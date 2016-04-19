@@ -12,6 +12,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -369,35 +370,32 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		Map<String, String> anEssentialMetadataParams = asMap(
-				"code", "mySchemaType_default_anEssentialMetadata",
-				"label", "zeEssentialMetadata");
+				"code", "mySchemaType_default_anEssentialMetadata");
 
 		Map<String, String> aMetadataThatWillOneDayBeEssentialParams = asMap(
-				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential",
-				"label", "zeMetadataThatWillOneDayBeEssential");
+				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential");
 
 		Map<String, String> aTrivialMetadataParams = asMap(
-				"code", "mySchemaType_default_aTrivialMetadata",
-				"label", "ZeTrivialMetadata");
+				"code", "mySchemaType_default_aTrivialMetadata");
 
 		Map<String, String> titleParams = asMap(
-				"code", "mySchemaType_default_title",
-				"label", "Ze title");
+				"code", "mySchemaType_default_title");
 
 		Map<String, String> codeParams = asMap(
-				"code", "mySchemaType_default_code",
-				"label", "Ze code");
+				"code", "mySchemaType_default_code");
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaType("mySchemaType").getDefaultSchema();
 				schemaBuilder.create("aMetadataThatWillOneDayBeEssential").setType(TEXT).setEssential(false)
-						.addLabel(Language.French,"zeMetadataThatWillOneDayBeEssential");
-				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true).addLabel(Language.French,"zeEssentialMetadata");
-				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false).addLabel(Language.French,"ZeTrivialMetadata");
-				schemaBuilder.create("code").setType(TEXT).addLabel(Language.French,"Ze code");
-				schemaBuilder.get("title").addLabel(Language.French,"Ze title");
+						.addLabel(Language.French, "zeMetadataThatWillOneDayBeEssential");
+				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true)
+						.addLabel(Language.French, "zeEssentialMetadata");
+				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false)
+						.addLabel(Language.French, "ZeTrivialMetadata");
+				schemaBuilder.create("code").setType(TEXT).addLabel(Language.French, "Ze code");
+				schemaBuilder.get("title").addLabel(Language.French, "Ze title");
 			}
 		});
 
@@ -534,8 +532,10 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		customSchema.create("customMetadata").setType(MetadataValueType.STRING);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
+		Map<String, Map<Language, String>> groups = configureLabels(Arrays.asList("zeGroup", "Default", "zeCustomGroup"));
+
 		SchemaTypeDisplayConfig typeConfig = manager.getType(zeCollection, "myType");
-		manager.saveType(typeConfig.withMetadataGroup(asList("Default", "zeGroup", "zeCustomGroup")));
+		manager.saveType(typeConfig.withMetadataGroup(groups));
 
 		MetadataDisplayConfig defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		MetadataDisplayConfig customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
@@ -635,11 +635,24 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(1);
 
-		typeDisplay = typeDisplay.withMetadataGroup(Arrays.asList("zeGroup", "zeRequiredGroup", "zeOptionalGroup"));
+		typeDisplay = typeDisplay
+				.withMetadataGroup(configureLabels(Arrays.asList("zeGroup", "zeRequiredGroup", "zeOptionalGroup")));
 		manager.saveType(typeDisplay);
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(3);
-		assertThat(typeDisplay.getMetadataGroup()).containsOnly("zeGroup", "zeRequiredGroup", "zeOptionalGroup");
+		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("zeGroup", "zeRequiredGroup", "zeOptionalGroup");
+	}
+
+	private Map<String, Map<Language, String>> configureLabels(List<String> values) {
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+		Map<Language, String> labels;
+
+		for (String value : values) {
+			labels = new HashMap<>();
+			labels.put(Language.French, value);
+			groups.put(value, labels);
+		}
+		return groups;
 	}
 }

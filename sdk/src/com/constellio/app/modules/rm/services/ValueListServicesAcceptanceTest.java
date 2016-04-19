@@ -3,7 +3,9 @@ package com.constellio.app.modules.rm.services;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,11 +16,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -190,8 +192,12 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenGroupExistingWhenCreateAMultivalueClassificationMetadataInGroupThenMtadataCreatedCorrectlyInGroup() {
 
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+		Map<Language, String> labels = new HashMap<>();
+		labels.put(Language.French, "Ze magic group");
+		groups.put("ZeMagicGroup", labels);
 		schemasDisplayManager.saveType(schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE)
-				.withNewMetadataGroup("Ze magic group"));
+				.withNewMetadataGroup(groups));
 
 		createMetadataAndValidate();
 	}
@@ -214,7 +220,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.LOOKUP);
 
 		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE);
-		assertThat(typeDisplayConfig.getMetadataGroup()).containsOnlyOnce("Ze magic group");
+		assertThat(typeDisplayConfig.getMetadataGroup().keySet()).containsOnlyOnce("ZeMagicGroup");
 
 		SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
 		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains(metadataCode);

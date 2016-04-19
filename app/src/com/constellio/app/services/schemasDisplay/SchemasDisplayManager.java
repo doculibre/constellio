@@ -1,6 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2.FORMAT_ATTRIBUTE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -239,7 +238,7 @@ public class SchemasDisplayManager
 			public SchemasDisplayManagerCache read(String collection, Document document) {
 
 				Element rootElement = document.getRootElement();
-				String formatVersion = rootElement == null ? null : rootElement.getAttributeValue(FORMAT_ATTRIBUTE);
+				String formatVersion = rootElement == null ? null : rootElement.getAttributeValue(SchemasDisplayWriter.FORMAT_ATTRIBUTE);
 
 				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 				if (formatVersion == null) {

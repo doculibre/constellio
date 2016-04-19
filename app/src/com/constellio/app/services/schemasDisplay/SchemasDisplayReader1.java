@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -15,6 +14,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -110,9 +110,13 @@ public class SchemasDisplayReader1 {
 				boolean advancedSearch = new Boolean(child.getAttributeValue(ADVANCED_SEARCH));
 				String schemaType = child.getName();
 
-				List<String> metadataGroups = new ArrayList<>();
+				Map<String, Map<Language, String>> metadataGroups = new HashMap<>();
+
 				for (Element metadataGroup : child.getChild(METADATA_GROUPS_LABELS).getChildren()) {
-					metadataGroups.add(metadataGroup.getAttributeValue(METADATA_GROUP_NAME));
+					Map<Language, String> labels = new HashMap<>();
+					//TODO Thiago get language
+					labels.put(Language.French, metadataGroup.getAttributeValue(METADATA_GROUP_NAME));
+					metadataGroups.put(metadataGroup.getAttributeValue(METADATA_GROUP_NAME), labels);
 				}
 
 				SchemaTypeDisplayConfig schemaTypeDisplayConfig = new SchemaTypeDisplayConfig(collection, schemaType, manageable,
@@ -240,11 +244,17 @@ public class SchemasDisplayReader1 {
 		String metadataGroup = metadataDisplayConfigElement.getAttributeValue(METADATA_GROUP);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
-		List<String> groups = schemasDisplayManagerCache.getType(typeCode).getMetadataGroup();
+		Map<String, Map<Language, String>> groups = schemasDisplayManagerCache.getType(typeCode).getMetadataGroup();
 
-		if (StringUtils.isBlank(metadataGroup) || !groups.contains(metadataGroup)) {
-			metadataGroup = groups.isEmpty() ? null : groups.get(0);
+		if (groups.get(metadataGroup) != null) {
+			//TODO Thiago
+			Language language = Language.French;
+			metadataGroup = groups.get(metadataGroup).get(language);
 		}
+		//TODO Thiago
+		//				if (StringUtils.isBlank(metadataGroup) || !groups.contains(metadataGroup)) {
+		//					metadataGroup = groups.isEmpty() ? null : groups.get(0);
+		//				}
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);

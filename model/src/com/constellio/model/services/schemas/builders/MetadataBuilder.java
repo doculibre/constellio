@@ -5,7 +5,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Factory;
@@ -205,14 +208,12 @@ public class MetadataBuilder {
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
 		}
-		//TODO Thiago
 		if (inheritanceMetadata.getLabels() != null && !inheritanceMetadata.getLabels().isEmpty()) {
 			for (Language language : inheritanceMetadata.getLabels().keySet()) {
-				if (inheritanceMetadata.getLabel(language).equals(metadata.getLabel(language))) {
+				if (!inheritanceMetadata.getLabel(language).equals(metadata.getLabel(language))) {
 					builder.addLabel(language, metadata.getLabel(language));
 				}
 			}
-
 		}
 		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(inheritanceMetadata.getInputMask())) {
 			builder.inputMask = metadata.getInputMask();
@@ -563,11 +564,11 @@ public class MetadataBuilder {
 
 	Metadata buildWithInheritance(Metadata inheritance) {
 
-		if (this.getLabels() == null || this.getLabels().isEmpty() /*|| this.getLabel().equals(localCode)*/) {
+		if (this.getLabels() == null || this.getLabels().isEmpty()) {
 			this.setLabels(inheritance.getLabels());
 		} else {
 			for (Language language : inheritance.getLabels().keySet()) {
-				if (this.getLabel(language).equals(localCode)) {
+				if ((this.getLabel(language) == null || this.getLabel(language).equals(localCode))) {
 					addLabel(language, inheritance.getLabel(language));
 				}
 			}
@@ -745,6 +746,12 @@ public class MetadataBuilder {
 		validateCode(inheritance.getLocalCode());
 		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
+		} else {
+			for (Entry<Language, String> entry : builder.getLabels().entrySet()) {
+				if (StringUtils.isBlank(entry.getValue())) {
+					throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
+				}
+			}
 		}
 		if (builder.getEnabled() == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "enabled");

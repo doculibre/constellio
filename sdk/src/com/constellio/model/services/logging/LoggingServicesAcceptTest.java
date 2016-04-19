@@ -429,7 +429,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
 	}
 
-	//TODO Thiago fix
 	@Test
 	public void whenModifyFolderThenCreateValidEvent()
 			throws Exception {
