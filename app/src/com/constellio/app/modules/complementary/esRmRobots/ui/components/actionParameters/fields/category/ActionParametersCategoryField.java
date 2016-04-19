@@ -2,15 +2,15 @@ package com.constellio.app.modules.complementary.esRmRobots.ui.components.action
 
 public interface ActionParametersCategoryField {
 	
-	String getValue();
+	String getFieldValue();
 	
-	void setValue(String value);
+	void setFieldValue(String value);
 	
 	void addValueChangeListener(CategoryValueChangeListener listener);
 	
 	interface CategoryValueChangeListener {
 		
-		void valueChanged(String oldValue, String newValue);
+		void valueChanged(String newValue);
 		
 	}
 

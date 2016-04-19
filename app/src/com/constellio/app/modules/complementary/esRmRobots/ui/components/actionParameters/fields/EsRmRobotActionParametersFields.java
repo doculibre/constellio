@@ -4,7 +4,7 @@ import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionP
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleField;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 
-public interface RMActionParametersForm extends SessionContextProvider {
+public interface EsRmRobotActionParametersFields extends SessionContextProvider {
 	
 	ActionParametersCategoryField getCategoryField();
 	

@@ -2,11 +2,15 @@ package com.constellio.app.modules.robots.ui.components.actionParameters;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.ui.Button;
@@ -17,17 +21,16 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class DynamicParametersField extends CustomField<String> {
 	
+	public static final String RECORD_FIELD_FACTORY_KEY = DynamicParametersField.class.getName();
+	
 	private final DynamicParametersPresenter presenter;
 	private VerticalLayout layout;
 	private Button button;
 
 	private RecordVO record;
 	
-	private MetadataFieldFactory metadataFieldFactory;
-
-	public DynamicParametersField(DynamicParametersPresenter presenter, MetadataFieldFactory metadataFieldFactory) {
+	public DynamicParametersField(DynamicParametersPresenter presenter) {
 		this.presenter = presenter;
-		this.metadataFieldFactory = metadataFieldFactory;
 	}
 
 	@Override
@@ -84,7 +87,16 @@ public class DynamicParametersField extends CustomField<String> {
 				} else {
 					effectiveRecord = presenter.newDynamicParametersRecord();
 				}
-				return new RecordForm(effectiveRecord, metadataFieldFactory) {
+
+				String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
+				AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+				AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+				RecordFieldFactory recordFieldFactory = extensions.newRecordFieldFactory(new RecordFieldFactoryExtensionParams(RECORD_FIELD_FACTORY_KEY, null));
+				if (recordFieldFactory == null) {
+					recordFieldFactory = new RecordFieldFactory();
+				}
+				
+				return new RecordForm(effectiveRecord, recordFieldFactory) {
 					@Override
 					protected void saveButtonClick(RecordVO viewObject)
 							throws ValidationException {

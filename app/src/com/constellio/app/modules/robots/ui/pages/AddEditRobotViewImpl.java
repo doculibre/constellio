@@ -160,29 +160,14 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 
 	public static class RobotMetadataFieldFactory extends OverridingMetadataFieldFactory<AddEditRobotPresenter> {
 		
-		private MetadataFieldFactory actionParametersFieldFactory;
-		
 		public RobotMetadataFieldFactory(AddEditRobotPresenter presenter) {
 			super(presenter);
-			
-//			String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
-//			
-//			ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
-//			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-//			appLayerFactory.getExtensions().forCollection(collection).getIconForRecord(params);
-			
-			actionParametersFieldFactory = new OverridingMetadataFieldFactory<AddEditRobotPresenter>(presenter) {
-				@Override
-				public Field<?> build(MetadataVO metadata) {
-					return super.build(metadata);
-				}
-			};
 		}
 
 		@Override
 		protected Field<?> newSingleValueField(MetadataVO metadata) {
 			if (Robot.ACTION_PARAMETERS.equals(metadata.getLocalCode())) {
-				DynamicParametersField field = new DynamicParametersField(presenter, actionParametersFieldFactory);
+				DynamicParametersField field = new DynamicParametersField(presenter);
 				postBuild(field, metadata);
 				return field;
 			}
