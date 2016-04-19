@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.globalGroup;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -121,7 +122,7 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		addButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 
-		Table table = new Table($("ListGlobalGroupsView.viewTitle"), container);
+		/*Table table = new Table($("ListGlobalGroupsView.viewTitle"), container);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
 			tableSize = table.getItemIds().size();
@@ -132,7 +133,14 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
 		table.setColumnHeader("name", $("ListGlobalGroupsView.nameColumn"));
 		table.setColumnHeader(PROPERTY_BUTTONS, "");
-		table.setColumnWidth(PROPERTY_BUTTONS, 120);
+		table.setColumnWidth(PROPERTY_BUTTONS, 120);*/
+		Table table = new RecordVOTable($("ListGlobalGroupsView.viewTitle", dataProvider.size()), container);
+        table.setWidth("100%");
+        table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
+        table.setColumnHeader("name", $("ListGlobalGroupsView.nameColumn"));
+        table.setColumnHeader(PROPERTY_BUTTONS, "");
+        table.setColumnWidth(PROPERTY_BUTTONS, 120);
+        table.setPageLength(Math.min(15, dataProvider.size()));
 		return table;
 	}
 

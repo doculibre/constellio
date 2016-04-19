@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.TableStringFilter;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.UserCredentialVOLazyContainer;
@@ -119,7 +120,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
-		Table table = new Table($("ListUserCredentialsView.viewTitle"), tableContainer);
+		/*Table table = new Table($("ListUserCredentialsView.viewTitle"), tableContainer);
 		int tableSize = batchSize;
 		if (tableSize > table.getItemIds().size()) {
 			tableSize = table.getItemIds().size();
@@ -131,7 +132,16 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		table.setColumnHeader("lastName", $("ListUsersCredentialsView.lastNameColumn"));
 		table.setColumnHeader("email", $("ListUsersCredentialsView.emailColumn"));
 		table.setColumnHeader(PROPERTY_BUTTONS, "");
-		table.setColumnWidth(PROPERTY_BUTTONS, 120);
+		table.setColumnWidth(PROPERTY_BUTTONS, 120);*/
+		Table table = new RecordVOTable($("ListUserCredentialsView.viewTitle", dataProvider.size()), tableContainer);
+        table.setWidth("100%");
+        table.setColumnHeader("username", $("ListUsersCredentialsView.usernameColumn"));
+        table.setColumnHeader("firstName", $("ListUsersCredentialsView.firstNameColumn"));
+        table.setColumnHeader("lastName", $("ListUsersCredentialsView.lastNameColumn"));
+        table.setColumnHeader("email", $("ListUsersCredentialsView.emailColumn"));
+        table.setColumnHeader(PROPERTY_BUTTONS, "");
+        table.setColumnWidth(PROPERTY_BUTTONS, 120);
+        table.setPageLength(Math.min(15, dataProvider.size()));
 		return table;
 	}
 
