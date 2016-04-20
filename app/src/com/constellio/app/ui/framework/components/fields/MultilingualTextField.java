@@ -25,6 +25,13 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 		}
 	}
 
+	public void clear() {
+		for (String language : getCollectionLanguages()) {
+			value.put(language, null);
+		}
+		prepareEntryFields();
+	}
+
 	@Override
 	public Map<String, String> getValue() {
 		return value;
