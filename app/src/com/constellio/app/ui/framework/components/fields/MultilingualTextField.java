@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.fields;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,11 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 
 	public MultilingualTextField() {
 		value = new HashMap<>();
-		for (String language : getCollectionLanguages()) {
+		//		for (String language : getCollectionLanguages()) {
+		//			value.put(language, null);
+		//		}
+		//TODO Thiago
+		for (String language : Arrays.asList("fr", "en")) {
 			value.put(language, null);
 		}
 	}
@@ -53,7 +58,8 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 
 	private void prepareEntryFields() {
 		layout.removeAllComponents();
-		for (final String language : getCollectionLanguages()) {
+		//		for (final String language : getCollectionLanguages()) {
+		for (final String language : Arrays.asList("fr", "en")) {
 			final BaseTextField field = new BaseTextField($(language));
 			field.setValue(value.get(language));
 			field.addValueChangeListener(new ValueChangeListener() {
