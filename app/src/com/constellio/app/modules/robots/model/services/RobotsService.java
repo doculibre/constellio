@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
@@ -75,16 +76,17 @@ public class RobotsService {
 	}
 
 	public void deleteRobotHierarchy(Robot robot) {
+		for (String robotLogId : getRobotLogIds(robot.getId())) {
+			RobotLog robotLog = robots.getRobotLog(robotLogId);
+			recordServices.logicallyDelete(robotLog.getWrappedRecord(), User.GOD);
+			recordServices.physicallyDelete(robotLog.getWrappedRecord(), User.GOD);
+		}
+		
 		for (Robot child : getChildRobots(robot.getId())) {
 			deleteRobotHierarchy(child);
 		}
 		recordServices.logicallyDelete(robot.getWrappedRecord(), User.GOD);
-		try {
-			recordServices.physicallyDelete(robot.getWrappedRecord(), User.GOD);
-		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
-			// FIXME
-			e.printStackTrace();
-		}
+		recordServices.physicallyDelete(robot.getWrappedRecord(), User.GOD);
 	}
 
 	public void deleteRobotHierarchy(String robotId) {
@@ -101,5 +103,11 @@ public class RobotsService {
 
 	public List<Robot> getChildRobots(String robotId) {
 		return robots.searchRobots(where(robots.robot.parent()).isEqualTo(robotId));
+	}
+
+	private List<String> getRobotLogIds(String robotId) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(robots.robotLog.schemaType()).where(robots.robotLog.robot()).isEqualTo(robotId));
+		return searchServices.searchRecordIds(query);
 	}
 }

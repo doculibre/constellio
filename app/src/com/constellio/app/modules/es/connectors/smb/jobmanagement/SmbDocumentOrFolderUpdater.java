@@ -79,6 +79,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
 				.setLastFetchedStatus(LastFetchedStatus.OK)
+				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
 				.setParent(parentId);
 
 		// Utility

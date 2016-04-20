@@ -2,9 +2,6 @@ package com.constellio.app.modules.robots.ui.pages;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
@@ -17,6 +14,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -25,6 +23,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class ListRootRobotsViewImpl extends BaseViewImpl implements ListRootRobotsView {
+	
 	private final ListRootRobotsPresenter presenter;
 
 	public ListRootRobotsViewImpl() {
@@ -38,9 +37,21 @@ public class ListRootRobotsViewImpl extends BaseViewImpl implements ListRootRobo
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		VerticalLayout layout = new VerticalLayout(buildTable());
+		VerticalLayout layout = new VerticalLayout();
 		layout.setSizeFull();
 
+		Button addButton = new AddButton() {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+		};
+		Table table = buildTable();
+		
+		layout.addComponents(addButton, table);
+		layout.setExpandRatio(table, 1);
+		layout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		
 		return layout;
 	}
 
@@ -80,20 +91,6 @@ public class ListRootRobotsViewImpl extends BaseViewImpl implements ListRootRobo
 		table.setPageLength(Math.min(15, container.size()));
 		table.setWidth("100%");
 		return table;
-	}
-
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = new ArrayList<>();
-
-		buttons.add(new AddButton() {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addButtonClicked();
-			}
-		});
-
-		return buttons;
 	}
 
 	@Override

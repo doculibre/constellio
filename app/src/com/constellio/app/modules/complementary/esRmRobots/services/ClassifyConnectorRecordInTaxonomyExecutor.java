@@ -310,11 +310,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 						}
 					}
 				}
+				setOpeningDateFromLastModifiedIfNull(rmFolder);
 				useDefaultValuesInMissingFields(folderEntry, rmFolder);
 			} else {
+				setOpeningDateFromLastModifiedIfNull(rmFolder);
 				useAllDefaultValuesFromParams(rmFolder);
 			}
 		} else {
+			setOpeningDateFromLastModifiedIfNull(rmFolder);
 			useAllDefaultValuesFromParams(rmFolder);
 		}
 		try {
@@ -463,6 +466,15 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 		return folderSchema;
 	}
+	
+	private void setOpeningDateFromLastModifiedIfNull(Folder rmFolder) {
+		if (rmFolder.getOpeningDate() == null) {
+			LocalDateTime connectorFolderLastModified = connectorFolder.getLastModified();
+			if (connectorFolderLastModified != null) {
+				rmFolder.setOpenDate(connectorFolderLastModified.toLocalDate());
+			}
+		}
+	}
 
 	private void useAllDefaultValuesFromParams(Folder rmFolder) {
 		if (rmFolder.getParentFolder() == null && params.getDefaultParentFolder() != null) {
@@ -480,7 +492,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (params.getDefaultOpenDate() != null) {
+		if (rmFolder.getOpeningDate() == null && params.getDefaultOpenDate() != null) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
 	}
