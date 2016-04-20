@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,18 +49,20 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenBackgroundThreadsEnabled();
+		//givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
-				withCollection("LaCollectionDeRida").withConstellioRMModule().withConstellioESModule().withRobotsModule()
-						.withAllTestUsers().withRMTest(records2)
+				withCollection("LaCollectionDeRida").withConstellioRMModule()
+						.withAllTestUsers()
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		AppLayerFactory appLayerFactory = getAppLayerFactory();

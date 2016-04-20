@@ -59,9 +59,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private CssLayout menuItemsLayout;
 
-	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<ConstellioMenuButton>();
+	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
-	private List<String> collections = new ArrayList<String>();
+	private List<String> collections = new ArrayList<>();
 
 	public ConstellioMenuImpl() {
 		this.presenter = new ConstellioMenuPresenter(this);
@@ -251,10 +251,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		String firstName = currentUser.getFirstName();
 		String lastName = currentUser.getLastName();
 
-		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
-			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
-
-		} else if (!presenter.hasCurrentUserPhoto()) {
+//		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
+//			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
+//
+//		} else
+        if (!presenter.hasCurrentUserPhoto()) {
 			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/default.jpg"), null);
 
 		} else {
@@ -286,13 +287,13 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				presenter.preferencesButtonClicked();
 		//			}
 		//		});
-		String collection = sessionContext.getCurrentCollection();
-		for(String language : presenter.getCollectionLanguagesOrderedByCode(collection)){
+		final String collection = sessionContext.getCurrentCollection();
+		for(String language : presenter.getCollectionLanguages(collection)){
 			userSettingsItem.addSeparator();
-			userSettingsItem.addItem($(language), new Command() {
+			userSettingsItem.addItem(language, new Command() {
 				@Override
 				public void menuSelected(final MenuItem selectedItem) {
-					presenter.languageSelected(selectedItem.getId());
+					presenter.languageSelected(selectedItem.getText(), collection);
 				}
 			}).setStyleName("language-item-" + language);
 		}
@@ -313,7 +314,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	protected List<ConstellioMenuButton> buildMainMenuButtons() {
-		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<ConstellioMenuButton>();
+		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 		return mainMenuButtons;
 	}
 
