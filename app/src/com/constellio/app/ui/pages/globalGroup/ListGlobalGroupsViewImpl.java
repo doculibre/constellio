@@ -3,6 +3,8 @@ package com.constellio.app.ui.pages.globalGroup;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.vaadin.ui.*;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -21,15 +23,10 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+
+import java.util.List;
 
 public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobalGroupsView {
 
@@ -39,9 +36,11 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 	private Table table;
 	private HorizontalLayout filterAndAddButtonLayout;
 	private TableStringFilter tableFilter;
-	private Button addButton;
 	private GlobalGroupStatus status;
 	private final int batchSize = 100;
+	private TabSheet sheet;
+    public static final String AJOUTER = "Ajouter";
+
 
 	public ListGlobalGroupsViewImpl() {
 		this.presenter = new ListGlobalGroupsPresenter(this);
@@ -51,6 +50,18 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 	protected String getTitle() {
 		return $("ListGlobalGroupsView.viewTitle");
 	}
+
+    @Override
+    protected List<Button> buildActionMenuButtons(ViewChangeEvent event){
+        List<Button> buttons = super.buildActionMenuButtons(event);
+        buttons.add(new AddButton(AJOUTER) {
+            @Override
+            protected void buttonClick(ClickEvent event) {
+                presenter.addButtonClicked();
+            }
+        });
+        return buttons;
+    }
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
@@ -63,14 +74,6 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 
 		filterAndAddButtonLayout = new HorizontalLayout();
 		filterAndAddButtonLayout.setWidth("100%");
-
-		addButton = new AddButton() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.addButtonClicked();
-			}
-		};
-		addButton.setEnabled(presenter.canAddOrModify());
 
 		tableFilter = new TableStringFilter(table);
 
@@ -95,14 +98,44 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 			}
 		});
 
-		viewLayout.addComponents(filterAndAddButtonLayout, statusFilter, table);
-		viewLayout.setExpandRatio(table, 1);
+        sheet = new TabSheet();
+        sheet.setSizeFull();
+        sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+            @Override
+            public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+                String selectedSheet = sheet.getSelectedTab().getId();
+                status = getTAbId(selectedSheet);
+                refreshTable();
+            }
+        });
 
-		filterAndAddButtonLayout.addComponents(tableFilter, addButton);
-		filterAndAddButtonLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+        for (String tabId : presenter.getTabs()) {
+            sheet.addTab(buildEmptyTab(tabId));
+        }
+
+		viewLayout.addComponents(sheet, tableFilter, table);
+		viewLayout.setExpandRatio(table, 1);
+        viewLayout.setComponentAlignment(tableFilter, Alignment.TOP_RIGHT);
 
 		return viewLayout;
 	}
+
+    private GlobalGroupStatus getTAbId(String selectedSheet) {
+        switch (selectedSheet){
+            case "inactive":
+                return GlobalGroupStatus.INACTIVE;
+            default:
+                return GlobalGroupStatus.ACTIVE;
+        }
+    }
+
+    private VerticalLayout buildEmptyTab(String tabId) {
+        VerticalLayout tab = new VerticalLayout();
+        tab.setCaption(presenter.getTabCaption(tabId));
+        tab.setId(tabId);
+        tab.setSpacing(true);
+        return tab;
+    }
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
@@ -122,18 +155,6 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		addButtons(dataProvider, buttonsContainer);
 		container = buttonsContainer;
 
-		/*Table table = new Table($("ListGlobalGroupsView.viewTitle"), container);
-		int tableSize = batchSize;
-		if (tableSize > table.getItemIds().size()) {
-			tableSize = table.getItemIds().size();
-		}
-		table.setPageLength(tableSize);
-		table.setWidth("100%");
-		table.setSelectable(true);
-		table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
-		table.setColumnHeader("name", $("ListGlobalGroupsView.nameColumn"));
-		table.setColumnHeader(PROPERTY_BUTTONS, "");
-		table.setColumnWidth(PROPERTY_BUTTONS, 120);*/
 		Table table = new RecordVOTable($("ListGlobalGroupsView.viewTitle", dataProvider.size()), container);
         table.setWidth("100%");
         table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
