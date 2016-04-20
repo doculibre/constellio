@@ -442,11 +442,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private String getParentPath(String fullPath, String pathPart) {
-		StringBuilder builder = new StringBuilder(fullPath);
-		int lastSlash = fullPath.lastIndexOf(pathPart + "/");
-
-		builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
-		return builder.toString();
+		//StringBuilder builder = new StringBuilder(fullPath);
+		int lastSlash = fullPath.lastIndexOf("/", fullPath.length() - 2);
+		return fullPath.substring(0, lastSlash);
+//        builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
+//        return builder.toString();
 	}
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {
@@ -574,17 +574,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			document.setFolder(inRmFolder);
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
-			/*------------------------------------------------------
-				TODO Manage versions
-					- Have to try catch unsupported exception, and keep old behaviour in catch.
-			 -------------------------------------------------------*/
 			try {
-				// TODO call stuff to manage multiple versions
 				List<String> availableVersions = connectorServices(connectorDocument).getAvailableVersions(connectorDocument.getConnector(),connectorDocument);
 				for(String availableVersion: availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
-					addVersionToDocument(connectorDocument,majorVersions,newVersionDataSummary,document);
+					addVersionToDocument(connectorDocument,availableVersion.endsWith(".0"),newVersionDataSummary,document);
 				}
 			} catch(UnsupportedOperationException ex) {
 				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
