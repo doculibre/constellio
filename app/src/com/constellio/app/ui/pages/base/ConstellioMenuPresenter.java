@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.KerberosServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -172,4 +173,12 @@ public class ConstellioMenuPresenter implements Serializable {
 		return StringUtils.isNotBlank(collectionTitle) ? collectionTitle : collectionName;
 	}
 
+	public List<String> getCollectionLanguagesOrderedByCode(String collection) {
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		return appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+	}
+
+	public void languageSelected(int id) {
+
+	}
 }
