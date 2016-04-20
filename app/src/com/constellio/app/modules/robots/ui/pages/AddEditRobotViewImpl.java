@@ -54,6 +54,7 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 		prepareSchemaFilterField(form.getSchemaFilterField());
 		prepareActionField(form.getActionField());
 		prepareActionParametersField(form.getActionParametersField());
+		prepareAutoExecuteField(form.getAutoExecuteField());
 		return form;
 	}
 
@@ -80,6 +81,10 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 		boolean enabled = presenter.requiresActionParameters();
 		parameters.setEnabled(enabled);
 		parameters.setRequired(enabled);
+	}
+
+	private void prepareAutoExecuteField(Field<?> autoExecute) {
+		autoExecute.setVisible(presenter.canAutoExecute());
 	}
 
 	@Override
@@ -151,6 +156,10 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 
 		public ComboBox getActionField() {
 			return (ComboBox) getField(Robot.ACTION);
+		}
+
+		public Field<?> getAutoExecuteField() {
+			return getField(Robot.AUTO_EXECUTE);
 		}
 
 		public DynamicParametersField getActionParametersField() {

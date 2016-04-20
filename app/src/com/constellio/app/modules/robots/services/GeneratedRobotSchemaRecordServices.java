@@ -27,6 +27,7 @@ public class GeneratedRobotSchemaRecordServices extends SchemasRecordsServices {
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
+
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 
 	public ActionParameters wrapActionParameters(Record record) {
@@ -74,11 +75,13 @@ public class GeneratedRobotSchemaRecordServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_actionParameters_default actionParameters
 			= new SchemaTypeShortcuts_actionParameters_default("actionParameters_default");
+
 	public class SchemaTypeShortcuts_actionParameters_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_actionParameters_default(String schemaCode) {
 			super(schemaCode);
 		}
 	}
+
 	public Robot wrapRobot(Record record) {
 		return record == null ? null : new Robot(record, getTypes());
 	}
@@ -128,6 +131,7 @@ public class GeneratedRobotSchemaRecordServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_robot_default robot
 			= new SchemaTypeShortcuts_robot_default("robot_default");
+
 	public class SchemaTypeShortcuts_robot_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_robot_default(String schemaCode) {
 			super(schemaCode);
@@ -163,6 +167,10 @@ public class GeneratedRobotSchemaRecordServices extends SchemasRecordsServices {
 
 		public Metadata searchCriteria() {
 			return metadata("searchCriteria");
+		}
+
+		public Metadata autoExecute() {
+			return metadata("autoExecute");
 		}
 	}
 

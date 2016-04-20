@@ -6,6 +6,7 @@ import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -60,10 +62,11 @@ public class ConstellioESModule implements InstallableModule {
 
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
-		List<MigrationScript> migrationScripts = new ArrayList<>();
-		migrationScripts.add(new ESMigrationTo5_1_6());
-		migrationScripts.add(new ESMigrationTo6_1());
-		return migrationScripts;
+		return Arrays.asList(
+				new ESMigrationTo5_1_6(),
+				new ESMigrationTo6_1(),
+				new ESMigrationTo6_2()
+		);
 	}
 
 	@Override
@@ -103,7 +106,6 @@ public class ConstellioESModule implements InstallableModule {
 
 		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
-
 
 	}
 
