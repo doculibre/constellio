@@ -11,6 +11,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
 import com.vaadin.navigator.View;
@@ -285,7 +286,17 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				presenter.preferencesButtonClicked();
 		//			}
 		//		});
+		for(String language : i18n.getSupportedLanguages())
 		userSettingsItem.addSeparator();
+		userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
+			@Override
+			public void menuSelected(final MenuItem selectedItem) {
+				presenter.signOutButtonClicked();
+			}
+		}).setStyleName("disconnect-item");
+
+		userSettingsItem.addSeparator();
+
 		userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
 			@Override
 			public void menuSelected(final MenuItem selectedItem) {
