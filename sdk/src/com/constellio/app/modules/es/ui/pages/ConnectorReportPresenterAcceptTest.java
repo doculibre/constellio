@@ -103,7 +103,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 		presenter = new ConnectorReportPresenter(view);
 		Map<String, String> params = new HashMap<>();
 		params.put(ConnectorReportView.CONNECTOR_ID, connectorInstance.getId());
-		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXATION);
+		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXING);
 		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.CONNECTOR_REPORT, params);
 		presenter.forParams(viewPath);
 		dataProvider = presenter.getDataProvider();

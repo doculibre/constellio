@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.ui.pages;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
@@ -62,6 +63,12 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 		reportMode = params.get(ConnectorReportView.REPORT_MODE);
 		connectorInstance = es.getConnectorManager().getConnectorInstance(connectorId);
 		connector = es.instanciate(connectorInstance);
+
+		if (ConnectorReportView.ERRORS.equals(reportMode)) {
+			view.setTitle($("ConnectorReportView.viewTitle.error"));
+		} else {
+			view.setTitle($("ConnectorReportView.viewTitle.indexing"));
+		}
 	}
 
 	public RecordVOWithDistinctSchemasDataProvider getDataProvider() {

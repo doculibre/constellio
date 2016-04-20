@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -78,7 +79,12 @@ public class RobotsService {
 			deleteRobotHierarchy(child);
 		}
 		recordServices.logicallyDelete(robot.getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(robot.getWrappedRecord(), User.GOD);
+		try {
+			recordServices.physicallyDelete(robot.getWrappedRecord(), User.GOD);
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
+			// FIXME
+			e.printStackTrace();
+		}
 	}
 
 	public void deleteRobotHierarchy(String robotId) {
