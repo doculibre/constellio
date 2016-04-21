@@ -114,7 +114,6 @@ public class SchemasDisplayReader1 {
 
 				for (Element metadataGroup : child.getChild(METADATA_GROUPS_LABELS).getChildren()) {
 					Map<Language, String> labels = new HashMap<>();
-					//TODO Thiago get language
 					labels.put(Language.French, metadataGroup.getAttributeValue(METADATA_GROUP_NAME));
 					metadataGroups.put(metadataGroup.getAttributeValue(METADATA_GROUP_NAME), labels);
 				}
@@ -245,16 +244,6 @@ public class SchemasDisplayReader1 {
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
 		Map<String, Map<Language, String>> groups = schemasDisplayManagerCache.getType(typeCode).getMetadataGroup();
-
-		if (groups.get(metadataGroup) != null) {
-			//TODO Thiago
-			Language language = Language.French;
-			metadataGroup = groups.get(metadataGroup).get(language);
-		}
-		//TODO Thiago
-		//				if (StringUtils.isBlank(metadataGroup) || !groups.contains(metadataGroup)) {
-		//					metadataGroup = groups.isEmpty() ? null : groups.get(0);
-		//				}
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);

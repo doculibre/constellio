@@ -126,7 +126,6 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		}
 	}
 
-	//TODO Thiago
 	void createExistingTaskSelected(WorkflowTaskVO workflowTaskVOBefore) {
 		String workflowId = workflowVO.getId();
 		SessionContext sessionContext = view.getSessionContext();
@@ -216,7 +215,6 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		return allow;
 	}
 
-	//TODO Thiago
 	public boolean addExistingTaskAfter(WorkflowTaskVO existingItemId, WorkflowTaskVO targetItemId) {
 		boolean allow;
 		SessionContext sessionContext = view.getSessionContext();

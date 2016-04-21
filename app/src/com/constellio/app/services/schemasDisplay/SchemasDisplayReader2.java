@@ -20,10 +20,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
 
-//TODO Thiago
 public class SchemasDisplayReader2 {
 	private static final String ROOT = "display";
 	private static final String SCHEMA_TYPES_DISPLAY_CONFIG = "SchemaTypesDisplayConfig";
@@ -140,7 +137,7 @@ public class SchemasDisplayReader2 {
 		String labelValue = element.getAttributeValue(LABELS);
 		if (StringUtils.isNotBlank(labelValue)) {
 			List<String> languagesLabels = Arrays
-					.asList(labelValue.split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
+					.asList(labelValue.split(SchemasDisplayWriter.LABEL_SEPARATOR));
 			for (String languagesLabel : languagesLabels) {
 				String[] keyValue = languagesLabel.split("=");
 				Language language = Language.withCode(keyValue[0]);
@@ -262,15 +259,8 @@ public class SchemasDisplayReader2 {
 		String highlightString = metadataDisplayConfigElement
 				.getAttributeValue(HIGHLIGHT);
 		boolean highlight = new Boolean(highlightString);
+
 		String metadataGroup = metadataDisplayConfigElement.getAttributeValue(METADATA_GROUP);
-
-		String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
-		//TODO Thiago
-		List<String> groups = new ArrayList<>(schemasDisplayManagerCache.getType(typeCode).getMetadataGroup().keySet());
-
-		if (StringUtils.isBlank(metadataGroup) || !groups.contains(metadataGroup)) {
-			metadataGroup = groups.isEmpty() ? null : groups.get(0);
-		}
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);

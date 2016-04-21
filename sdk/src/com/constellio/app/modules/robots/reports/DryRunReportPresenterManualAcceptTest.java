@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -28,12 +29,13 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 	TestsSchemasSetup zeCollectionSetup = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeCollectionSchema = zeCollectionSetup.new ZeSchemaMetadatas();
+	SessionContext sessionContext;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		prepareSystem(withZeCollection());
+		prepareSystem(withZeCollection().withAllTestUsers());
 
 		defineSchemasManager().using(zeCollectionSetup
 				.withAStringMetadata()
@@ -43,11 +45,15 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 				.withADateMetadata());
 
 		configDryRunRobotActions();
+
+		sessionContext = loggedAsUserInCollection(admin, zeCollection);
+
 	}
 
 	@Test
 	public void whenBuildEmptyReportThenOk() {
-		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions);
+		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions,
+				sessionContext);
 		build(new DryRunReportBuilder(presenter.buildModel(), new Locale("fr")));
 	}
 
@@ -57,7 +63,7 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		dryRunRobotActions.add(dryRunRobotAction2);
 		dryRunRobotActions.add(dryRunRobotAction3);
 		dryRunRobotActions.add(dryRunRobotAction4);
-		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions);
+		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions, sessionContext);
 		build(new DryRunReportBuilder(presenter.buildModel(), new Locale("fr")));
 	}
 
@@ -67,7 +73,7 @@ public class DryRunReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		dryRunRobotActions.add(dryRunRobotAction3);
 		dryRunRobotActions.add(dryRunRobotAction2);
 		dryRunRobotActions.add(dryRunRobotAction1);
-		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions);
+		presenter = new DryRunReportPresenter(getModelLayerFactory(), dryRunRobotActions, sessionContext);
 		build(new DryRunReportBuilder(presenter.buildModel(), new Locale("fr")));
 	}
 

@@ -274,6 +274,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return new ArrayList<>(schemaConfig.getMetadataGroup().keySet());
 	}
 
+	public String getGroupLabel(String code) {
+		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		return schemaConfig.getMetadataGroup().get(code).get(language);
+	}
+
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA, parameters);
 		view.navigateTo().listSchemaMetadata(params);

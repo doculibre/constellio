@@ -90,13 +90,7 @@ public abstract class MetadataSchemasAlterationHelper {
 				if (label.startsWith("init.")) {
 					label = specificKey;
 				}
-
 				setLabel(metadataBuilder, label, overwrite, language);
-				//TODO Thiago
-				if (metadataBuilder.getLabels().isEmpty()) {
-					System.out.println("i18n " + metadataBuilder.getCode());
-				}
-
 			}
 		}
 		return schemaType;
@@ -107,10 +101,6 @@ public abstract class MetadataSchemasAlterationHelper {
 				metadataBuilder.getLabel(language) != null && !metadataBuilder.getLabel(language)
 						.equals(metadataBuilder.getLocalCode()));
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
-		//TODO Thiago
-		//		if ((newLabelIsHumanFriendly && overwrite)) {
-		//			metadataBuilder.addLabel(language, label);
-		//		}
 		if (!labelDefined || (newLabelIsHumanFriendly && overwrite)) {
 			metadataBuilder.addLabel(language, label);
 		}

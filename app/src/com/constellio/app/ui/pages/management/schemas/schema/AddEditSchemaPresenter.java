@@ -47,7 +47,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		if (!schemaCode.isEmpty()) {
 			MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
-			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema);
+			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, view.getSessionContext());
 		}
 		return schemaVO;
 	}
@@ -66,7 +66,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 			builder = types.getSchema(code);
 		}
 
-		Language language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		builder.addLabel(language, schemaVO.getLabel());
 
 		try {

@@ -141,8 +141,7 @@ public class SchemasDisplayWriter {
 		Element newElement;
 		newElement = new Element(METADATA_GROUP_LABEL);
 		if (StringUtils.isNotBlank(METADATA_GROUP_CODE)) {
-			//TODO Thiago
-			newElement.setAttribute(METADATA_GROUP_CODE, codeValue);
+			newElement.setAttribute(METADATA_GROUP_CODE, codeValue != null ? codeValue : "");
 			newElement.setAttribute(LABELS, labelToSemiColonStringSeparated(labelsValue));
 		}
 		rootElement.addContent(newElement);
@@ -178,13 +177,9 @@ public class SchemasDisplayWriter {
 			metadataGroups.removeChildren(METADATA_GROUP_LABEL);
 		}
 
-		//TODO Thiago
 		for (String code : config.getMetadataGroup().keySet()) {
 			createMetadataGroupLabel(metadataGroups, code, config.getMetadataGroup().get(code));
 		}
-		//		for (String group : config.getMetadataGroup()) {
-		//			createAndAddElement(metadataGroups, METADATA_GROUP_LABEL, METADATA_GROUP_CODE, group);
-		//		}
 	}
 
 	public void saveSchema(SchemaDisplayConfig config) {
@@ -235,7 +230,7 @@ public class SchemasDisplayWriter {
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
 		metadata.setAttribute(METADATA_GROUP,
-				org.apache.commons.lang3.StringUtils.isBlank(config.getMetadataGroup()) ? "" : config.getMetadataGroup());
+				StringUtils.isBlank(config.getMetadataGroupCode()) ? "" : config.getMetadataGroupCode());
 	}
 
 	public void resetSchema(String code) {

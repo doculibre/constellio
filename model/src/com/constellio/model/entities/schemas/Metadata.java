@@ -73,8 +73,7 @@ public class Metadata implements DataStoreField {
 		this("global_default", localCode, type, multivalue, multiLingual);
 	}
 
-	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue, boolean multiLingual/*,
-			Language language, Map<Language, String> labels*/) {
+	Metadata(String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue, boolean multiLingual) {
 		this.inheritance = null;
 
 		this.enabled = false;
@@ -107,7 +106,6 @@ public class Metadata implements DataStoreField {
 			this.dataStoreType = null;
 			this.code = schemaCode + "_" + localCode;
 		}
-		//TODO Thiago
 		this.labels = new HashMap<>();
 		this.recordMetadataValidators = null;
 		this.structureFactory = null;

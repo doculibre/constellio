@@ -104,14 +104,10 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(schema.getCode());
 
-		//TODO Thiago
 		Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode)
 				.getMetadataGroup();
 		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 		String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
-
-		//		List<String> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode).getMetadataGroup();
-		//		String groupLabel = groups.get(0);
 
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getDisplayMetadataCodes());
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());

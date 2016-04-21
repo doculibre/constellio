@@ -1513,7 +1513,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 							"legacyId", "3",
 							"schemaType", zeSchema.typeCode(),
 							"metadataCode", "zeSchemaType_default_stringMetadata",
-							"metadataLabel", "A toAString metadata",
+							//							"metadataLabel", "A toAString metadata",
 							"basedOnMetadatas", "[numberMetadata, booleanMetadata]")));
 		}
 	}

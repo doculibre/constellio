@@ -540,11 +540,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		MetadataDisplayConfig defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		MetadataDisplayConfig customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		MetadataDisplayConfig customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 
 		manager.saveMetadata(defaultSchemaMetadata.withMetadataGroup("zeGroup").withInputType(TEXTAREA));
@@ -552,11 +552,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 
 		manager.saveMetadata(customSchemaMetadata.withMetadataGroup("zeCustomGroup").withInputType(FIELD));
@@ -564,11 +564,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeCustomGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 
 		manager.saveMetadata(customSchemaCustomMetadata.withMetadataGroup("zeCustomGroup").withInputType(TEXTAREA));
@@ -576,11 +576,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeCustomGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("zeCustomGroup");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(TEXTAREA);
 
 		manager.resetSchema(zeCollection, "myType_custom");
@@ -588,11 +588,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 	}
 

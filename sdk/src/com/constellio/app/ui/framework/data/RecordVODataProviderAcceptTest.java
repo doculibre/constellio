@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +42,8 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 				.where(rm.folderCategory()).isEqualTo(records.getCategory_Z112()));
 
 		RecordVODataProvider dataProvider = newDataProvider(query);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
+
 
 		assertThat(dataProvider.size()).isEqualTo(5);
 

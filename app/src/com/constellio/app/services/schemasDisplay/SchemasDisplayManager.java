@@ -33,7 +33,6 @@ import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
 
-//TODO Thiago
 public class SchemasDisplayManager
 		implements OneXMLConfigPerCollectionManagerListener<SchemasDisplayManagerCache>, StatefulService {
 
@@ -111,8 +110,6 @@ public class SchemasDisplayManager
 			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
 				Map<String, String> params = new HashMap<>();
 				params.put("code", metadata.getCode());
-				//TODO Thiago
-				//				params.put("label", metadata.getLabel());
 				errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
 			}
 		}
@@ -238,7 +235,8 @@ public class SchemasDisplayManager
 			public SchemasDisplayManagerCache read(String collection, Document document) {
 
 				Element rootElement = document.getRootElement();
-				String formatVersion = rootElement == null ? null : rootElement.getAttributeValue(SchemasDisplayWriter.FORMAT_ATTRIBUTE);
+				String formatVersion =
+						rootElement == null ? null : rootElement.getAttributeValue(SchemasDisplayWriter.FORMAT_ATTRIBUTE);
 
 				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 				if (formatVersion == null) {

@@ -774,7 +774,8 @@ public class MetadataBuilder {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "code");
 		}
 		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
-			//			TODO Thiago
+			//FIXME
+			//TODO Thiago
 			builder.addLabel(Language.French, builder.getCode());
 			//			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
 		}

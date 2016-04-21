@@ -24,6 +24,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements ListMetadataGroupSchemaTypeView, ClickListener {
 
@@ -56,32 +57,6 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		groups = buildTable();
-
-		//		HorizontalLayout nameLayout = new HorizontalLayout();
-		//		final TextField groupCode = new TextField();
-		//		groupCode.setRequired(true);
-		//		groupCode.setNullRepresentation("");
-		//		groupCode.addStyleName(GROUP_NAME);
-		//
-		//		final MultilingualTextField multilingualTextField = new MultilingualTextField();
-		//		multilingualTextField.setRequired(true);
-		//		multilingualTextField.addStyleName(GROUP_NAME);
-		//
-		//		Button addButton = new AddButton() {
-		//			@Override
-		//			public void buttonClick(ClickEvent event) {
-		//				presenter.addGroupMetadata(groupCode.getValue(), multilingualTextField.getValue());
-		//				multilingualTextField.clear();
-		//			}
-		//		};
-		//		addButton.addStyleName(GROUP_BUTTON);
-		//
-		//		nameLayout.addComponent(groupCode);
-		//		nameLayout.addComponent(multilingualTextField);
-		//		nameLayout.addComponent(addButton);
-		//		nameLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
-
-		//		viewLayout.addComponents(nameLayout, groups);
 		viewLayout.addComponents(groups);
 		return viewLayout;
 	}
@@ -91,14 +66,26 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		table.setWidth("100%");
 		table.setColumnHeader("button", "");
 		table.setColumnWidth("button", 60);
-		table.setColumnHeader("caption", $("ListMetadataGroupSchemaTypeView.caption"));
-		table.addContainerProperty("caption", String.class, "");
+		table.setColumnHeader("code", $("ListMetadataGroupSchemaTypeView.code"));
+		table.addContainerProperty("code", String.class, "");
+		for (String language : presenter.getCollectionLanguages()) {
+			table.setColumnHeader(language, language);
+			table.addContainerProperty(language, String.class, "");
+		}
+		//		table.setColumnHeader("caption", $("ListMetadataGroupSchemaTypeView.caption"));
+		//		table.addContainerProperty("caption", String.class, "");
 		table.addContainerProperty("button", Button.class, null);
 		table.addStyleName(GROUP_TABLE);
 
 		for (final String group : presenter.getMetadataGroupList()) {
 			table.addItem(group);
-			table.getContainerProperty(group, "caption").setValue(group);
+			table.getContainerProperty(group, "code").setValue(group);
+
+			for (String language : presenter.getCollectionLanguages()) {
+				String groupLabel = presenter.getGroupLabel(group, language);
+				table.getContainerProperty(group, language).setValue(groupLabel);
+			}
+
 			Button deleteButton = new DeleteButton() {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -136,6 +123,11 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	}
 
 	@Override
+	public void invalidCodeOrLabels() {
+		this.showErrorMessage($("ListMetadataGroupSchemaTypeView.invalidCodeOrLabels"));
+	}
+
+	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = new ArrayList<>();
 
@@ -165,9 +157,13 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 				Button addButton = new AddButton() {
 					@Override
 					public void buttonClick(ClickEvent event) {
-						presenter.addGroupMetadata(groupCode.getValue(), multilingualTextField.getValue());
-						multilingualTextField.clear();
-						getWindow().close();
+						if (presenter.isValidCodeAndLabels(groupCode.getValue(), multilingualTextField.getValue())) {
+							presenter.addGroupMetadata(groupCode.getValue(), multilingualTextField.getValue());
+							multilingualTextField.clear();
+							getWindow().close();
+						} else {
+							showErrorMessage($("ListMetadataGroupSchemaTypeView.invalidCodeOrLabels"));
+						}
 					}
 				};
 				addButton.addStyleName(GROUP_BUTTON);
@@ -178,6 +174,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 						getWindow().close();
 					}
 				};
+				cancel.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				HorizontalLayout horizontalLayout = new HorizontalLayout();
 				horizontalLayout.addComponent(groupCode);

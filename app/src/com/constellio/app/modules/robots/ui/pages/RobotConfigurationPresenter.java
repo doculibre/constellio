@@ -65,12 +65,12 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 
 	public String getReportTitle() {
 		return new DryRunReportBuilderFactory(
-				manager().dryRun(robotSchemas().getRobot(rootRobotId))).getFilename();
+				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext()).getFilename();
 	}
 
 	public StreamSource getResource() {
 		final DryRunReportBuilderFactory factory = new DryRunReportBuilderFactory(
-				manager().dryRun(robotSchemas().getRobot(rootRobotId)));
+				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext());
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {

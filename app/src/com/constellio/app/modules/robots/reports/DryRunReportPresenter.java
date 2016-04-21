@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
-import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.RecordMetadataValuePrinter;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
@@ -21,10 +21,11 @@ public class DryRunReportPresenter {
 	private RecordMetadataValuePrinter recordMetadataValuePrinter;
 	Language language;
 
-	public DryRunReportPresenter(ModelLayerFactory modelLayerFactory, List<DryRunRobotAction> dryRunRobotActions) {
+	public DryRunReportPresenter(ModelLayerFactory modelLayerFactory, List<DryRunRobotAction> dryRunRobotActions,
+			SessionContext sessionContext) {
 		this.dryRunRobotActions = dryRunRobotActions;
 		recordMetadataValuePrinter = new RecordMetadataValuePrinter(modelLayerFactory);
-		language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+		language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 	}
 
 	public DryRunReportModel buildModel() {

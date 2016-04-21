@@ -20,11 +20,6 @@ public class MetadataToFormVOBuilder implements Serializable {
 	private Language language;
 	private SessionContext sessionContext;
 
-	//TODO Thiago
-	//	@Deprecated
-	//	public MetadataToFormVOBuilder() {
-	//	}
-
 	public MetadataToFormVOBuilder(SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
 		this.language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
@@ -51,7 +46,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean highlight = config.isHighlight();
 		boolean enabled = metadata.isEnabled();
 		boolean facet = false;
-		String metadataGroup = getValidMetadataGroup(config.getMetadataGroup(),
+		String metadataGroup = getValidMetadataGroup(config.getMetadataGroupCode(),
 				configManager.getType(metadata.getCollection(), schemaTypeCode));
 
 		for (String codeFacet : types.getFacetMetadataCodes()) {
@@ -75,11 +70,11 @@ public class MetadataToFormVOBuilder implements Serializable {
 				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask);
 	}
 
-	private String getValidMetadataGroup(String metadataGroup, SchemaTypeDisplayConfig config) {
-		String validGroup = metadataGroup;
+	private String getValidMetadataGroup(String metadataGroupCode, SchemaTypeDisplayConfig config) {
+		String validGroup;
 		boolean found = false;
 		for (String group : config.getMetadataGroup().keySet()) {
-			if (group.equals(metadataGroup)) {
+			if (group.equals(metadataGroupCode)) {
 				found = true;
 				break;
 			}
@@ -87,6 +82,9 @@ public class MetadataToFormVOBuilder implements Serializable {
 
 		if (!found) {
 			validGroup = config.getMetadataGroup().keySet().iterator().next();
+		} else {
+			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+			validGroup = config.getMetadataGroup().get(metadataGroupCode).get(language);
 		}
 
 		return validGroup;
