@@ -310,14 +310,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 						}
 					}
 				}
-				setOpeningDateFromLastModifiedIfNull(rmFolder);
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useDefaultValuesInMissingFields(folderEntry, rmFolder);
 			} else {
-				setOpeningDateFromLastModifiedIfNull(rmFolder);
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useAllDefaultValuesFromParams(rmFolder);
 			}
 		} else {
-			setOpeningDateFromLastModifiedIfNull(rmFolder);
+			setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 			useAllDefaultValuesFromParams(rmFolder);
 		}
 		try {
@@ -467,10 +467,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return folderSchema;
 	}
 	
-	private void setOpeningDateFromLastModifiedIfNull(Folder rmFolder) {
+	private void setOpeningDateFromCreatedOnOrLastModifiedIfNull(Folder rmFolder) {
 		if (rmFolder.getOpeningDate() == null) {
+			LocalDateTime connectorFolderCreatedOn = connectorFolder.getCreatedOn();
 			LocalDateTime connectorFolderLastModified = connectorFolder.getLastModified();
-			if (connectorFolderLastModified != null) {
+			if (connectorFolderCreatedOn != null) {
+				rmFolder.setOpenDate(connectorFolderCreatedOn.toLocalDate());
+			} else if (connectorFolderLastModified != null) {
 				rmFolder.setOpenDate(connectorFolderLastModified.toLocalDate());
 			}
 		}

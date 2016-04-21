@@ -1,6 +1,9 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
@@ -70,6 +73,11 @@ public class SmbDocumentOrFolderUpdater {
 		smbDocument.setErrorMessage(null);
 		smbDocument.setErrorStackTrace(null);
 		smbDocument.resetErrorsCount();
+
+		smbDocument.addDateTimeProperty("dateCreated", new LocalDateTime(smbFileDTO.getCreateTime()))
+				.withPropertyLabel("dateCreated", $("SmbDocumentOrFolderUpdater.dateCreated"));
+		smbDocument.addDateTimeProperty("dateModified", new LocalDateTime(smbFileDTO.getLastModified()))
+				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
 	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId) {
@@ -101,6 +109,11 @@ public class SmbDocumentOrFolderUpdater {
 		smbFolder.setErrorMessage(null);
 		smbFolder.setErrorStackTrace(null);
 		smbFolder.resetErrorsCount();
+
+		smbFolder.addDateTimeProperty("dateCreated", new LocalDateTime(smbFileDTO.getCreateTime()))
+				.withPropertyLabel("dateCreated", $("SmbDocumentOrFolderUpdater.dateCreated"));
+		smbFolder.addDateTimeProperty("dateModified", new LocalDateTime(smbFileDTO.getLastModified()))
+				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
 	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder) {
