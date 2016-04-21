@@ -46,6 +46,7 @@ public class SmbFileDTOSimpleBuilder {
 			if (!smbFile.exists()) {
 				smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 			} else {
+				smbFileDTO.setCreateTime(smbFile.createTime());
 				smbFileDTO.setLastModified(smbFile.getLastModified());
 
 				WindowsPermissions windowsPermissions = getWindowsPermissions(smbFile);

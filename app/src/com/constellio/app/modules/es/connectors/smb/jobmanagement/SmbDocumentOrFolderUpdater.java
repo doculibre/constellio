@@ -55,6 +55,7 @@ public class SmbDocumentOrFolderUpdater {
 		// Optional
 		smbDocument.setParsedContent(smbFileDTO.getParsedContent())
 				.setSize(smbFileDTO.getLength())
+				.setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
 				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
 				.setPermissionsHash(smbFileDTO.getPermissionsHash())
 				.setLanguage(smbFileDTO.getLanguage())
@@ -79,6 +80,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setFetched(true)
 				.setLastFetched(new LocalDateTime(smbFileDTO.getLastFetchAttempt()))
 				.setLastFetchedStatus(LastFetchedStatus.OK)
+				.setCreatedOn(new LocalDateTime(smbFileDTO.getCreateTime()))
 				.setLastModified(new LocalDateTime(smbFileDTO.getLastModified()))
 				.setParent(parentId);
 
