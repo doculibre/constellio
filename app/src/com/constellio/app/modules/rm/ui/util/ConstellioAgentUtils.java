@@ -31,6 +31,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.server.Page;
+import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
 
 public class ConstellioAgentUtils {
@@ -38,17 +40,18 @@ public class ConstellioAgentUtils {
 	public static final String AGENT_DOWNLOAD_URL = "http://constellio.com/agent/";
 
 	public static boolean isAgentSupported() {
-		HttpServletRequest request = VaadinServletService.getCurrentServletRequest();
-		return isAgentSupported(request);
+		return isAgentSupported(null);
 	}
 
 	public static boolean isAgentSupported(HttpServletRequest request) {
+		if (request == null) {
+			request = VaadinServletService.getCurrentServletRequest();
+		}
 		return HttpRequestUtils.isWindows(request) || HttpRequestUtils.isMacOsX(request) || HttpRequestUtils.isLocalhost(request);
 	}
 
 	public static String getAgentBaseURL() {
-		HttpServletRequest request = VaadinServletService.getCurrentServletRequest();
-		return getAgentBaseURL(request);
+		return getAgentBaseURL(null);
 	}
 
 	public static String getAgentBaseURL(HttpServletRequest request) {
@@ -58,7 +61,36 @@ public class ConstellioAgentUtils {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		if (rmConfigs.isAgentEnabled()) {
-			String baseURL = HttpRequestUtils.getBaseURL(request, true);
+			String baseURL;
+			if (request != null) {
+				baseURL = HttpRequestUtils.getBaseURL(request, true);
+			} else {
+				Page page = Page.getCurrent();
+				URI location = page.getLocation();
+				String contextPath = VaadinServlet.getCurrent().getServletContext().getContextPath();
+
+				String schemeSpecificPart = location.getSchemeSpecificPart().substring(2);
+				String schemeSpecificPartBeforeContextPath;
+				if (StringUtils.isNotBlank(contextPath)) {
+					if (schemeSpecificPart.indexOf(contextPath) != -1) {
+						schemeSpecificPartBeforeContextPath = StringUtils.substringBeforeLast(schemeSpecificPart, contextPath);
+					} else {
+						contextPath = null;
+						schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
+					}
+				} else {
+					schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
+				}
+
+				StringBuffer baseURLSB = new StringBuffer();
+				baseURLSB.append(location.getScheme());
+				baseURLSB.append("://");
+				baseURLSB.append(schemeSpecificPartBeforeContextPath);
+				if (StringUtils.isNotBlank(contextPath)) {
+					baseURLSB.append(contextPath);
+				}
+				baseURL = baseURLSB.toString();
+			}
 
 			StringBuffer sb = new StringBuffer();
 			sb.append(baseURL);
@@ -71,19 +103,17 @@ public class ConstellioAgentUtils {
 	}
 
 	public static String getAgentInitURL() {
-		HttpServletRequest request = VaadinServletService.getCurrentServletRequest();
-		return getAgentInitURL(request);
+		return getAgentInitURL(null);
 	}
 
 	public static String getAgentInitURL(HttpServletRequest request) {
-		String agentBaseURL = getAgentBaseURL();
+		String agentBaseURL = getAgentBaseURL(request);
 		return addConstellioProtocol(agentBaseURL, request);
 	}
 
 	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO) {
-		HttpServletRequest request = VaadinServletService.getCurrentServletRequest();
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-		return getAgentURL(recordVO, contentVersionVO, request, sessionContext);
+		return getAgentURL(recordVO, contentVersionVO, null, sessionContext);
 	}
 
 	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request, SessionContext sessionContext) {
@@ -114,13 +144,15 @@ public class ConstellioAgentUtils {
 	}
 	
 	public static String getAgentSmbURL(String smbPath) {
-		HttpServletRequest request = VaadinServletService.getCurrentServletRequest();
-		return getAgentSmbURL(smbPath, request);
+		return getAgentSmbURL(smbPath, null);
 	}
 	
 	public static String getAgentSmbURL(String smbPath, HttpServletRequest request) {
 		String agentSmbURL;
-		
+
+		if (request == null) {
+			request = VaadinServletService.getCurrentServletRequest();
+		}
 		String passthroughPath;
 		if (HttpRequestUtils.isWindows(request)) {
 			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
@@ -135,6 +167,7 @@ public class ConstellioAgentUtils {
 		sb.append("/passthrough/");
 		sb.append(passthroughPath);
 		agentSmbURL = sb.toString();
+		
 		return addConstellioProtocol(agentSmbURL, request);
 	}
 
@@ -218,13 +251,15 @@ public class ConstellioAgentUtils {
 	}
 
 	public static String addConstellioProtocol(String url) {
-		HttpServletRequest request = VaadinServletService.getCurrentServletRequest();
-		return addConstellioProtocol(url, request);
+		return addConstellioProtocol(url, null);
 	}
 
 	public static String addConstellioProtocol(String url, HttpServletRequest request) {
 		String agentURL;
 		if (url != null) {
+			if (request == null) {
+				request = VaadinServletService.getCurrentServletRequest();
+			}
 			String encoding;
 			if (HttpRequestUtils.isWindows(request)) {
 				encoding = "cp1252";
