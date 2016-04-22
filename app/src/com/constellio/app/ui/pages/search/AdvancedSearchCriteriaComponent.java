@@ -223,9 +223,9 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		private Field<?> buildReferenceEntryField(AllowedReferences references, final Criterion criterion) {
 			String allowedSchemaType = references.getAllowedSchemaType();
 			Set<String> allowedSchemas = references.getAllowedSchemas();
-			String[] allowedSchemasArray = allowedSchemas != null ? allowedSchemas.toArray(new String[0]) : null;
+			String firstAllowedSchema = !allowedSchemas.isEmpty() ? allowedSchemas.iterator().next() : null; 
 			
-			final LookupRecordField field = new LookupRecordField(allowedSchemaType, allowedSchemasArray[0]);
+			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema);
 			field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
 			field.setWidth("100%");
 			field.setValue((String) criterion.getValue());
