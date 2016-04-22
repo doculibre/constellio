@@ -70,8 +70,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		formMetadataSchemaVO.setLocalCode("newSchema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 
-		//TODO Thiago
-		//		presenter.saveButtonClicked(formMetadataSchemaVO, false);
+		presenter.saveButtonClicked(formMetadataSchemaVO, false);
 
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema")
 				.getLabel(Language.French))
@@ -90,8 +89,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		FormMetadataSchemaVO formMetadataSchemaVO = presenter.getSchemaVO();
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 
-		//TODO Thiago
-		//		presenter.saveButtonClicked(formMetadataSchemaVO, true);
+		presenter.saveButtonClicked(formMetadataSchemaVO, true);
 
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel(Language.French))
 				.isEqualTo(
