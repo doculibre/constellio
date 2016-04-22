@@ -9,7 +9,6 @@ import java.util.Map;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.VerticalLayout;
@@ -33,15 +32,16 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 	}
 
 	@Override
-	public Map<String, String> getValue() {
+	protected Map<String, String> getInternalValue() {
 		return value;
 	}
 
 	@Override
-	public void setValue(Map<String, String> newFieldValue)
-			throws ReadOnlyException, ConversionException {
+	protected void setInternalValue(Map<String, String> newFieldValue) {
 		value.putAll(newFieldValue);
-		prepareEntryFields();
+		if (layout != null) {
+			prepareEntryFields();
+		}
 	}
 
 	@Override
@@ -67,6 +67,7 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					value.put(language, field.getValue());
+					setInternalValue(value);
 				}
 			});
 			layout.addComponent(field);

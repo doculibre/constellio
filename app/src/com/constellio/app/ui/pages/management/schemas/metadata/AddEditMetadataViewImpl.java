@@ -32,7 +32,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	@PropertyId("localcode")
 	private BaseTextField localcodeField;
-	@PropertyId("labesl")
+	@PropertyId("labels")
 	private MultilingualTextField labelsField;
 	@PropertyId("valueType")
 	private ComboBox valueType;

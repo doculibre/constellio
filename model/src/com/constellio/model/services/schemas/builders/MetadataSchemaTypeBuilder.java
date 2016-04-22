@@ -169,7 +169,7 @@ public class MetadataSchemaTypeBuilder {
 	private Map<Language, String> configureLabels(Map<String, String> labels) {
 		Map<Language, String> newLabels = new HashMap<>();
 		for (Entry<String, String> entry : labels.entrySet()) {
-			newLabels.put(Language.withCode(entry.getKey()), entry.getKey());
+			newLabels.put(Language.withCode(entry.getKey()), entry.getValue());
 		}
 		return newLabels;
 	}

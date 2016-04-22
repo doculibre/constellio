@@ -220,7 +220,6 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.LOOKUP);
 
 		//FIXME
-		//TODO Thiago
 		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE);
 		assertThat(typeDisplayConfig.getMetadataGroup().keySet()).containsOnlyOnce("ZeMagicGroup");
 

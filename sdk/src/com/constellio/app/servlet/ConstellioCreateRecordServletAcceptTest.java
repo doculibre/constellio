@@ -171,7 +171,7 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 
 		String message = callCreateFolder(bobServiceKey, bobToken, zeCollection, missingArgumentsForFolderCreation);
 
-		assertThat(message).contains("Métadonnée Date d'ouverture requise", "Métadonnée Titre requise");
+		assertThat(message).contains("Métadonnée folder_default_openingDate requise", "Métadonnée folder_default_title requise");
 	}
 
 	private String callCreateFolder(String serviceKey, String token, String collection, String... otherParams)
