@@ -96,7 +96,9 @@ public class MetadataSchemaXMLReader3 {
 			for (String languagesLabel : languagesLabels) {
 				String[] keyValue = languagesLabel.split("=");
 				Language language = Language.withCode(keyValue[0]);
-				labels.put(language, keyValue[1]);
+				if (keyValue.length > 1) {
+					labels.put(language, keyValue[1]);
+				}
 			}
 		}
 		return labels;

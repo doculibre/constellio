@@ -42,8 +42,6 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 				.where(rm.folderCategory()).isEqualTo(records.getCategory_Z112()));
 
 		RecordVODataProvider dataProvider = newDataProvider(query);
-		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
-
 
 		assertThat(dataProvider.size()).isEqualTo(5);
 
@@ -98,6 +96,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 	}
 
