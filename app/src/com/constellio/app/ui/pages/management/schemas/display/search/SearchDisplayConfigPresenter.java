@@ -52,7 +52,8 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
-			FormMetadataVO metadataVO = builder.build(metadata, displayManager, parameters.get("schemaTypeCode"));
+			FormMetadataVO metadataVO = builder
+					.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
 			if (this.isAllowedMetadata(metadataVO)) {
 				formMetadataVOs.add(metadataVO);
 			}
@@ -70,7 +71,8 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
-			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+			formMetadataVOs
+					.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;

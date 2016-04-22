@@ -310,8 +310,6 @@ public class ConnectorMappingService {
 						.setSearchable(alteration.params.isSearchable());
 
 				for (String languageStr : collectionsManager.getCollectionLanguages(es.getCollection())) {
-					//FIXME
-					//TODO Thiago
 					builder.addLabel(Language.withCode(languageStr),
 							alteration.params.getLabel());
 				}

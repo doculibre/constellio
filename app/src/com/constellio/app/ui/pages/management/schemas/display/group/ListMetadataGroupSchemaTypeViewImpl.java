@@ -72,8 +72,6 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 			table.setColumnHeader(language, language);
 			table.addContainerProperty(language, String.class, "");
 		}
-		//		table.setColumnHeader("caption", $("ListMetadataGroupSchemaTypeView.caption"));
-		//		table.addContainerProperty("caption", String.class, "");
 		table.addContainerProperty("button", Button.class, null);
 		table.addStyleName(GROUP_TABLE);
 

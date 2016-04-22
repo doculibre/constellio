@@ -1,6 +1,9 @@
 package com.constellio.app.ui.framework.builders;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -17,28 +20,29 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 @SuppressWarnings("serial")
 public class MetadataToFormVOBuilder implements Serializable {
 
-	private Language language;
 	private SessionContext sessionContext;
 
 	public MetadataToFormVOBuilder(SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
-		this.language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 	}
 
-	public FormMetadataVO build(Metadata metadata, SchemasDisplayManager configManager, String schemaTypeCode) {
-		return build(metadata, null, configManager, schemaTypeCode);
+	public FormMetadataVO build(Metadata metadata, SchemasDisplayManager configManager, String schemaTypeCode,
+			SessionContext sessionContext) {
+		return build(metadata, null, configManager, schemaTypeCode, sessionContext);
 	}
 
 	public FormMetadataVO build(Metadata metadata, MetadataSchemaVO schemaVO, SchemasDisplayManager configManager,
-			String schemaTypeCode) {
+			String schemaTypeCode, SessionContext sessionContext) {
 		MetadataDisplayConfig config = configManager.getMetadata(metadata.getCollection(), metadata.getCode());
 		SchemaTypesDisplayConfig types = configManager.getTypes(metadata.getCollection());
+
+		this.sessionContext = sessionContext;
 
 		String code = metadata.getCode();
 		MetadataValueType type = metadata.getType();
 		boolean required = metadata.isDefaultRequirement();
 		boolean multivalue = metadata.isMultivalue();
-		String label = metadata.getLabel(language);
+		Map<Language, String> labels = metadata.getLabels();
 		MetadataInputType entry = config.getInputType();
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
@@ -66,8 +70,14 @@ public class MetadataToFormVOBuilder implements Serializable {
 		Object defaultValue = metadata.getDefaultValue();
 		String inputMask = metadata.getInputMask();
 
-		return new FormMetadataVO(code, type, required, schemaVO, reference, label, searchable, multivalue, sortable,
-				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask);
+		Map<String, String> newLabels = new HashMap<>();
+		for (Entry<Language, String> entryLabels : labels.entrySet()) {
+			newLabels.put(entryLabels.getKey().getCode(), entryLabels.getValue());
+		}
+
+		return new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
+				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask,
+				sessionContext);
 	}
 
 	private String getValidMetadataGroup(String metadataGroupCode, SchemaTypeDisplayConfig config) {

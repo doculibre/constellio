@@ -52,7 +52,8 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
 			if (this.isAllowedMetadata(metadata)) {
-				formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+				formMetadataVOs
+						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
 		}
 
@@ -69,7 +70,8 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		for (String metadataCode : codeList) {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 			if (this.isAllowedMetadata(metadata)) {
-				formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+				formMetadataVOs
+						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
 		}
 

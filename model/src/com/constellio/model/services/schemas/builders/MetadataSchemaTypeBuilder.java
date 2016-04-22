@@ -149,6 +149,32 @@ public class MetadataSchemaTypeBuilder {
 		throw new MetadataSchemaTypeBuilderRuntimeException.NoSuchSchema(localCode);
 	}
 
+	public MetadataSchemaBuilder createCustomSchema(String localCode, Map<String, String> labels) {
+		for (MetadataSchemaBuilder customSchema : customSchemas) {
+			if (localCode.equals(customSchema.getLocalCode())) {
+				throw new MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined(localCode);
+			}
+		}
+
+		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode);
+		customSchema.setLocalCode(localCode);
+		customSchema.setCollection(collection);
+		customSchema.setCode(code + UNDERSCORE + localCode);
+		Map<Language, String> newLabels = configureLabels(labels);
+		customSchema.setLabels(newLabels);
+		customSchemas.add(customSchema);
+		return customSchema;
+	}
+
+	private Map<Language, String> configureLabels(Map<String, String> labels) {
+		Map<Language, String> newLabels = new HashMap<>();
+		for (Entry<String, String> entry : labels.entrySet()) {
+			newLabels.put(Language.withCode(entry.getKey()), entry.getKey());
+		}
+		return newLabels;
+	}
+
+	@Deprecated
 	public MetadataSchemaBuilder createCustomSchema(String localCode) {
 		for (MetadataSchemaBuilder customSchema : customSchemas) {
 			if (localCode.equals(customSchema.getLocalCode())) {

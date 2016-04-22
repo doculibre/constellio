@@ -40,8 +40,6 @@ public class ESRecordExtension extends RecordExtension {
 						String schema = connectorInstance.getDocumentsCustomSchemaCode();
 						for (MetadataSchemaTypeBuilder type : types.getTypes()) {
 							if (type.hasSchema(schema)) {
-								//FIXME
-								//TODO Thiago
 								MetadataSchemaBuilder builder = type.getSchema(schema);
 								for (String languageStr : collectionsManager.getCollectionLanguages(es.getCollection())) {
 									builder.addLabel(Language.withCode(languageStr),

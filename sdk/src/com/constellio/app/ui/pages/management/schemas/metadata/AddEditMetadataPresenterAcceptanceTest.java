@@ -35,6 +35,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	AddEditMetadataPresenter presenter;
 	@Mock AddEditMetadataViewImpl view;
 	@Mock CoreViews navigator;
+	Map<String, String> newLabels = new HashMap<>();
 
 	@Before
 	public void setUp()
@@ -74,7 +75,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(resultVO).isNotNull();
 		assertThat(resultVO.getCode()).isEqualTo(stringDefault.getCode());
-		assertThat(resultVO.getLabel()).isEqualTo(stringDefault.getLabel(Language.French));
+		assertThat(resultVO.getLabel("fr")).isEqualTo(stringDefault.getLabel(Language.French));
 	}
 
 	@Test
@@ -83,9 +84,10 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		doNothing().when(navigator).listSchema(zeSchema.code());
 		presenter.setSchemaCode(zeSchema.code());
 
+		newLabels.put("fr", "zeTitle");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
-				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null);
+				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null, null, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -109,9 +111,10 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		doNothing().when(navigator).listSchema(zeCustomSchema.code());
 		presenter.setSchemaCode(zeCustomSchema.code());
 
+		newLabels.put("fr", "zeTitle");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
-				null, "", "zeTitle", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null);
+				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null, null, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -136,9 +139,10 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode(zeSchema.code());
 		Metadata stringMeta = zeSchema.stringMetadata();
 
+		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
-				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null);
+				newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null, null, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
@@ -163,9 +167,10 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode(zeCustomSchema.code());
 		Metadata stringMeta = zeCustomSchema.stringMetadata();
 
+		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
-				"zeTitleChanged", false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null);
+				newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null, null, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 

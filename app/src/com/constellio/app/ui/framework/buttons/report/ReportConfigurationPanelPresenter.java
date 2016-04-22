@@ -28,7 +28,8 @@ public class ReportConfigurationPanelPresenter {
 		SchemasDisplayManager displayManager = this.presenter.getSchemasDisplayManager();
 		for (Metadata metadata : presenter.getAllSchemaTypeMetadata()) {
 			if (this.isAllowedMetadata(metadata)) {
-				FormMetadataVO metadataVO = builder.build(metadata, displayManager, presenter.getSchemaTypeCode());
+				FormMetadataVO metadataVO = builder
+						.build(metadata, displayManager, presenter.getSchemaTypeCode(), ConstellioUI.getCurrentSessionContext());
 				formMetadataVOs.add(metadataVO);
 			}
 		}

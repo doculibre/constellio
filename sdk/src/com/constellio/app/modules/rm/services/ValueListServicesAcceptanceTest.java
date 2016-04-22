@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -218,9 +219,10 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig.getMetadataCode()).isEqualTo(metadataCode);
 		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.LOOKUP);
 
-		//TODO Thiago fix it
-		//		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE);
-		//		assertThat(typeDisplayConfig.getMetadataGroup().keySet()).containsOnlyOnce("ZeMagicGroup");
+		//FIXME
+		//TODO Thiago
+		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(zeCollection, Folder.SCHEMA_TYPE);
+		assertThat(typeDisplayConfig.getMetadataGroup().keySet()).containsOnlyOnce("ZeMagicGroup");
 
 		SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(zeCollection, Folder.DEFAULT_SCHEMA);
 		assertThat(schemaDisplayConfig.getFormMetadataCodes()).contains(metadataCode);

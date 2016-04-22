@@ -200,7 +200,7 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		for (Metadata metadata : metadatas) {
 			formMetadataVOs.add(builder.build(metadata, getAppLayerFactory().getMetadataSchemasDisplayManager(),
-					setup.zeCustomSchemaTypeCode()));
+					setup.zeCustomSchemaTypeCode(), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;

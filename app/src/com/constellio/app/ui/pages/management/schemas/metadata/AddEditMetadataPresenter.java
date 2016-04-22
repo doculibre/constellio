@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -77,7 +78,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			Metadata metadata = types.getMetadata(metadataCode);
 
 			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
-			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"));
+			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
 		}
 
 		return found;
@@ -154,7 +155,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
-		builder.addLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()), formMetadataVO.getLabel());
+		for (Entry<String, String> entry : formMetadataVO.getLabels().entrySet()) {
+			builder.addLabel(Language.withCode(entry.getKey()), entry.getValue());
+		}
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 
 		try {

@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.management.schemas.schema;
 
 import java.util.Map;
 
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
@@ -11,12 +10,10 @@ import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSchemaView> {
@@ -57,17 +54,13 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 
 		String code;
-		MetadataSchemaBuilder builder;
 		if (!editMode) {
 			code = "USR" + schemaVO.getLocalCode();
-			builder = types.getSchemaType(parameters.get("schemaTypeCode")).createCustomSchema(code);
+			types.getSchemaType(parameters.get("schemaTypeCode")).createCustomSchema(code, schemaVO.getLabels());
 		} else {
 			code = schemaVO.getCode();
-			builder = types.getSchema(code);
+			types.getSchema(code);
 		}
-
-		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
-		builder.addLabel(language, schemaVO.getLabel());
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
