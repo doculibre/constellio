@@ -32,7 +32,7 @@ public class MultilingualTextField extends CustomField<Map<String, String>> {
 	}
 
 	@Override
-	public Map<String, String> getValue() {
+	protected Map<String, String> getInternalValue() {
 		return value;
 	}
 

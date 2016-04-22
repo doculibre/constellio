@@ -68,9 +68,6 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 			@Override
 			protected void saveButtonClick(FormMetadataSchemaVO schemaVO)
 					throws ValidationException {
-				//FIXME
-				//TODO Thiago
-				schemaVO.setLabels(labelsField.getValue());
 				presenter.saveButtonClicked(schemaVO, editMode);
 			}
 
