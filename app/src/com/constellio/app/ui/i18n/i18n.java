@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,11 @@ public class i18n {
 	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
 
 	public static Locale getLocale() {
+		try {
+			return ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+		}catch(Throwable e){
+			//LOGGER.warn("error when trying to get session locale", e);
+		}
 		return locale;
 	}
 
@@ -47,7 +54,7 @@ public class i18n {
 		}
 		for (Utf8ResourceBundles bundle : getBundles()) {
 
-			ResourceBundle messages = bundle.getBundle(locale);
+			ResourceBundle messages = bundle.getBundle(getLocale());
 
 			if (messages.containsKey(key)) {
 
@@ -76,7 +83,7 @@ public class i18n {
 			return "";
 		}
 		for (Utf8ResourceBundles bundle : getBundles()) {
-			ResourceBundle messages = bundle.getBundle(locale);
+			ResourceBundle messages = bundle.getBundle(getLocale());
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
 				if (args != null) {
