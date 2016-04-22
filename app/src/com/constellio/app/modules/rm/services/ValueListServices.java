@@ -135,6 +135,8 @@ public class ValueListServices {
 		return classifiedTypes;
 	}
 
+	//FIXME label multilingual
+	//TODO Patrick
 	public void createAMultivalueClassificationMetadataInGroup(Taxonomy taxonomy, String schemaType, String groupLabel) {
 
 		MetadataSchemaTypesBuilder types = schemasManager.modify(taxonomy.getCollection());
@@ -148,6 +150,7 @@ public class ValueListServices {
 		for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
 			metadataBuilder.addLabel(language, taxonomy.getTitle());
 		}
+
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
 		} catch (OptimisticLocking optimistickLocking) {
@@ -157,13 +160,14 @@ public class ValueListServices {
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		SchemaTypeDisplayConfig typeDisplayConfig = schemasDisplayManager.getType(taxonomy.getCollection(), schemaType);
 		if (!typeDisplayConfig.getMetadataGroup().keySet().contains(groupLabel)) {
+			Map<String, Map<Language, String>> groups = new HashMap<>();
 			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
-				Map<String, Map<Language, String>> groups = new HashMap<>();
 				Map<Language, String> labels = new HashMap<>();
 				labels.put(language, groupLabel);
-				groups.put("init.robot.tabs.action", labels);
-				transaction.add(typeDisplayConfig.withNewMetadataGroup(groups));
+				groups.put(groupLabel, labels);
+
 			}
+			transaction.add(typeDisplayConfig.withNewMetadataGroup(groups));
 		}
 
 		for (MetadataSchema schema : schemasManager.getSchemaTypes(taxonomy.getCollection()).getSchemaType(schemaType)

@@ -158,7 +158,6 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	//FIXME
-	//TODO Thiago
 	@Test
 	public void whenCreateTargetMetadataThenHasCorrectInfos()
 			throws Exception {

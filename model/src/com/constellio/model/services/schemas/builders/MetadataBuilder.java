@@ -775,7 +775,6 @@ public class MetadataBuilder {
 		}
 		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
 			//FIXME
-			//TODO Thiago
 			builder.addLabel(Language.French, builder.getCode());
 			//			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
 		}
