@@ -16,7 +16,6 @@ public class MetadataSchemaToFormVOBuilder implements Serializable {
 	public FormMetadataSchemaVO build(MetadataSchema schema, SessionContext sessionContext) {
 		String code = schema.getCode();
 		String collection = schema.getCollection();
-		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 		Map<String, String> labels = configureLabels(schema.getLabels());
 
 		return new FormMetadataSchemaVO(code, collection, labels);
