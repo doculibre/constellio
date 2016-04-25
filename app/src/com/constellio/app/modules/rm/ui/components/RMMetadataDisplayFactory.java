@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components;
 
+import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -19,6 +21,9 @@ public class RMMetadataDisplayFactory extends MetadataDisplayFactory {
 
 		if (MetadataValueType.REFERENCE.equals(metadataValueType) && RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			displayComponent = new RetentionRuleReferenceDisplay(displayValue.toString());
+		} else if (MetadataValueType.REFERENCE.equals(metadataValueType) && AdministrativeUnit.SCHEMA_TYPE
+				.equals(schemaTypeCode)) {
+			displayComponent = new AdministrativeUnitReferenceDisplay(displayValue.toString());
 		} else {
 			displayComponent = super.buildSingleValue(recordVO, metadata, displayValue);
 		}

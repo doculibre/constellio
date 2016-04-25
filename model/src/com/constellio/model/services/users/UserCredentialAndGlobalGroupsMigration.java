@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
@@ -73,7 +72,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 			for (UserCredential userCredential : userCredentialBatchesIterator.next()) {
 				String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
 				if (!correctedUsername.equals(userCredential.getUsername())) {
-					for(String collection : userCredential.getCollections()){
+					for (String collection : userCredential.getCollections()) {
 						List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
 						invalidUsersForCollection.add(userCredential.getUsername());
 						invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
@@ -108,14 +107,17 @@ public class UserCredentialAndGlobalGroupsMigration {
 		for (Entry<String, List<String>> entry : invalidUsernameListMappedByCollection.entrySet()) {
 			String collection = entry.getKey();
 			List<String> usersWithInvalidNamesInCollection = entry.getValue();
-			if(!usersWithInvalidNamesInCollection.isEmpty()){
+			if (!usersWithInvalidNamesInCollection.isEmpty()) {
 				UserServices userServices = modelLayerFactory.newUserServices();
 				Transaction transaction = new Transaction();
-				for(String username : usersWithInvalidNamesInCollection){
+				for (String username : usersWithInvalidNamesInCollection) {
 					User user = userServices
 							.getUserInCollectionCaseSensitive(username, collection);
-					user.setUsername(UserUtils.cleanUsername(user.getUsername()));
-					transaction.add(user);
+					if (user != null) {
+						user.setUsername(UserUtils.cleanUsername(user.getUsername()));
+						transaction.add(user);
+					}
+
 				}
 				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 				transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));

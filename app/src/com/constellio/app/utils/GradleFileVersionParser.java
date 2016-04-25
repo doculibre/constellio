@@ -35,7 +35,13 @@ public class GradleFileVersionParser {
 				if (line.contains("baseName = 'core-app'")) {
 					String nextLine = appLayerBuildGradleFileLines.get(i + 1);
 					int firstQuote = nextLine.indexOf("'");
-					int secondQuote = nextLine.indexOf("'", firstQuote + 1);
+					int secondQuote;
+					if(firstQuote == -1){
+						firstQuote = nextLine.indexOf("\"");
+						secondQuote = nextLine.indexOf("\"", firstQuote + 1);
+					}else{
+						secondQuote = nextLine.indexOf("'", firstQuote + 1);
+					}
 					return nextLine.substring(firstQuote + 1, secondQuote);
 				}
 

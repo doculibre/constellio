@@ -138,10 +138,9 @@ public class ConstellioESModule implements InstallableSystemModule {
 				.forCollection(collection);
 		extensions.moduleExtensionsMap.put(ID, new ESModuleExtensions());
 		extensions.taxonomyAccessExtensions.add(new ESTaxonomyPageExtension(collection));
-		extensions.recordAppExtensions.add(new ESRecordAppExtension());
+		extensions.recordAppExtensions.add(new ESRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
 		extensions.searchPageExtensions.add(new ESSearchPageExtension());
-
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {

@@ -9,10 +9,12 @@ import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
@@ -25,6 +27,7 @@ import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -58,6 +61,8 @@ public class AppLayerCollectionExtensions {
 	public List<DownloadContentVersionLinkExtension> downloadContentVersionLinkExtensions = new ArrayList<>();
 
 	public VaultBehaviorsList<PagesComponentsExtension> pagesComponentsExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
@@ -228,6 +233,17 @@ public class AppLayerCollectionExtensions {
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			extension.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 		}
+	}
+
+	public RecordFieldFactory newRecordFieldFactory(RecordFieldFactoryExtensionParams params) {
+		RecordFieldFactory recordFieldFactory = null;
+		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
+			recordFieldFactory = extension.newRecordFieldFactory(params);
+			if (recordFieldFactory != null) {
+				break;
+			}
+		}
+		return recordFieldFactory;
 	}
 
 }

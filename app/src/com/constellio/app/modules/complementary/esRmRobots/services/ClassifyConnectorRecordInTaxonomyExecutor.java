@@ -80,9 +80,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	List<String> newExclusions = new ArrayList<>();
 	User currentUser;
 	String robotId;
+	List<Record> processedRecords;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -95,6 +96,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.robotId = robotId;
+		this.processedRecords = processedRecords;
 	}
 
 	public void execute() {
@@ -308,11 +310,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 						}
 					}
 				}
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useDefaultValuesInMissingFields(folderEntry, rmFolder);
 			} else {
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useAllDefaultValuesFromParams(rmFolder);
 			}
 		} else {
+			setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 			useAllDefaultValuesFromParams(rmFolder);
 		}
 		try {
@@ -442,11 +447,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private String getParentPath(String fullPath, String pathPart) {
-		StringBuilder builder = new StringBuilder(fullPath);
-		int lastSlash = fullPath.lastIndexOf(pathPart + "/");
-
-		builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
-		return builder.toString();
+		//StringBuilder builder = new StringBuilder(fullPath);
+		int lastSlash = fullPath.lastIndexOf("/", fullPath.length() - 2);
+		return fullPath.substring(0, lastSlash);
+//        builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
+//        return builder.toString();
 	}
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {
@@ -460,6 +465,18 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			rmFolder.getWrappedRecord().changeSchema(rm.defaultFolderSchema(), folderSchema);
 		}
 		return folderSchema;
+	}
+	
+	private void setOpeningDateFromCreatedOnOrLastModifiedIfNull(Folder rmFolder) {
+		if (rmFolder.getOpeningDate() == null) {
+			LocalDateTime connectorFolderCreatedOn = connectorFolder.getCreatedOn();
+			LocalDateTime connectorFolderLastModified = connectorFolder.getLastModified();
+			if (connectorFolderCreatedOn != null) {
+				rmFolder.setOpenDate(connectorFolderCreatedOn.toLocalDate());
+			} else if (connectorFolderLastModified != null) {
+				rmFolder.setOpenDate(connectorFolderLastModified.toLocalDate());
+			}
+		}
 	}
 
 	private void useAllDefaultValuesFromParams(Folder rmFolder) {
@@ -478,7 +495,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (params.getDefaultOpenDate() != null) {
+		if (rmFolder.getOpeningDate() == null && params.getDefaultOpenDate() != null) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
 	}
@@ -552,6 +569,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			try {
 				ClassifiedDocument classifiedDocument = classifyDocument(document, inRmFolder, majorVersions);
 				createdRecordsByUrls.put(document.getUrl(), classifiedDocument);
+				processedRecords.add(document.getWrappedRecord());
 			} catch (ClassifyServicesRuntimeException_CannotClassifyAsDocument e) {
 				LOGGER.warn("Cannot classify '" + document.getUrl() + "'", e);
 			}
@@ -574,24 +592,19 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			document.setFolder(inRmFolder);
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
-			InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
-					connectorDocument, CLASSIFY_DOCUMENT);
+			try {
+				List<String> availableVersions = connectorServices(connectorDocument).getAvailableVersions(connectorDocument.getConnector(),connectorDocument);
+				for(String availableVersion: availableVersions) {
+					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
+					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
+					addVersionToDocument(connectorDocument,availableVersion.endsWith(".0"),newVersionDataSummary,document);
+				}
+			} catch(UnsupportedOperationException ex) {
+				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
+						connectorDocument, CLASSIFY_DOCUMENT);
 
-			newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
-			if (document.getContent() != null) {
-				if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
-					document.getContent().updateContentWithName(
-							currentUser, newVersionDataSummary, majorVersions, connectorDocument.getTitle());
-					document.setContent(document.getContent());
-				}
-			} else {
-				Content content;
-				if (majorVersions) {
-					content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-				} else {
-					content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-				}
-				document.setContent(content);
+				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
+				addVersionToDocument(connectorDocument, majorVersions, newVersionDataSummary, document);
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
@@ -602,6 +615,24 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, e);
 		}
 
+	}
+
+	private void addVersionToDocument(ConnectorDocument connectorDocument, Boolean majorVersions, ContentVersionDataSummary newVersionDataSummary, Document document) {
+		if (document.getContent() != null) {
+			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
+				document.getContent().updateContentWithName(
+						currentUser, newVersionDataSummary, majorVersions, connectorDocument.getTitle());
+				document.setContent(document.getContent());
+			}
+		} else {
+			Content content;
+			if (majorVersions) {
+				content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
+			} else {
+				content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
+			}
+			document.setContent(content);
+		}
 	}
 
 	ConnectorUtilsServices connectorServices(ConnectorDocument document) {

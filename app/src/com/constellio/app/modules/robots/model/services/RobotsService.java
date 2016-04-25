@@ -8,12 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -74,6 +76,12 @@ public class RobotsService {
 	}
 
 	public void deleteRobotHierarchy(Robot robot) {
+		for (String robotLogId : getRobotLogIds(robot.getId())) {
+			RobotLog robotLog = robots.getRobotLog(robotLogId);
+			recordServices.logicallyDelete(robotLog.getWrappedRecord(), User.GOD);
+			recordServices.physicallyDelete(robotLog.getWrappedRecord(), User.GOD);
+		}
+		
 		for (Robot child : getChildRobots(robot.getId())) {
 			deleteRobotHierarchy(child);
 		}
@@ -89,7 +97,17 @@ public class RobotsService {
 		return robots.searchRobots(where(robots.robot.parent()).isNull());
 	}
 
+	public List<Robot> getAutoExecutingRootRobots() {
+		return robots.searchRobots(where(robots.robot.parent()).isNull().andWhere(robots.robot.autoExecute()).isTrue());
+	}
+
 	public List<Robot> getChildRobots(String robotId) {
 		return robots.searchRobots(where(robots.robot.parent()).isEqualTo(robotId));
+	}
+
+	private List<String> getRobotLogIds(String robotId) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(robots.robotLog.schemaType()).where(robots.robotLog.robot()).isEqualTo(robotId));
+		return searchServices.searchRecordIds(query);
 	}
 }

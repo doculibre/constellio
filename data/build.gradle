@@ -19,5 +19,5 @@ eclipse {
 
 jar {
     baseName = 'core-data'
-    version = '6.2.0.4'
+    version = '6.2.1.0'
 }

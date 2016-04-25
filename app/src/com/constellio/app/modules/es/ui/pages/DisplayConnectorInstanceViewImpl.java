@@ -72,6 +72,7 @@ public class DisplayConnectorInstanceViewImpl extends BaseViewImpl implements Di
 		lastDocumentsField.setSizeFull();
 
 		mainLayout.addComponents(recordDisplay, documentsCountComponent, lastDocumentsField);
+		mainLayout.setExpandRatio(lastDocumentsField, 1);
 		return mainLayout;
 	}
 
