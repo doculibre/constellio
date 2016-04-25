@@ -410,7 +410,7 @@ public class CoreViews {
 		if (connectorId != null) {
 			params.put(ConnectorReportView.CONNECTOR_ID, connectorId);
 		}
-		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXATION);
+		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXING);
 		String viewPath = ParamUtils.addParams(ESNavigationConfiguration.CONNECTOR_REPORT, params);
 		navigator.navigateTo(viewPath);
 	}

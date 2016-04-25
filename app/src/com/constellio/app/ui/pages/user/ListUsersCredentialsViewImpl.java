@@ -167,7 +167,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
         table.setColumnHeader("email", $("ListUsersCredentialsView.emailColumn"));
         table.setColumnHeader(PROPERTY_BUTTONS, "");
         table.setColumnWidth(PROPERTY_BUTTONS, 120);
-        table.setPageLength(Math.min(15, dataProvider.size()));
+        table.setPageLength(Math.min(2, dataProvider.size()));
 		return table;
 	}
 
