@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.ui.accept.decommissioning;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -16,7 +16,7 @@ public class DecommissioningMainPage extends PageHelper {
 	}
 
 	public DecommissioningMainPage navigateToPage() {
-		driver.navigateTo().url(NavigatorConfigurationService.DECOMMISSIONING);
+		driver.navigateTo().url(RMNavigationConfiguration.DECOMMISSIONING);
 		return this;
 	}
 

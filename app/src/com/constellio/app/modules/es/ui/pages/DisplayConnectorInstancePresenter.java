@@ -15,6 +15,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -29,7 +30,7 @@ import com.constellio.model.services.users.UserServices;
 public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConnectorInstanceView> {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayConnectorInstancePresenter.class);
-	
+
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	private RecordVO recordVO;
 	private ConnectorInstance connectorInstance;

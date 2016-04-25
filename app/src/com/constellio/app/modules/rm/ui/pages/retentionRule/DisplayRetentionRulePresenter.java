@@ -52,7 +52,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	}
 
 	public void editButtonClicked() {
-		view.navigateTo().editRetentionRule(retentionRuleVO.getId());
+		view.navigate().to(RMViews.class).editRetentionRule(retentionRuleVO.getId());
 	}
 
 	public void deleteButtonClicked() {

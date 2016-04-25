@@ -6,12 +6,12 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.junit.Test;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -87,7 +87,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 			for (String folderId : folders) {
 
 				System.out.println("" + (++progression) + " / " + total);
-				driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderId);
+				driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderId);
 				if (foldersWithReadAccess.contains(folderId)) {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
 							+ " should be able to view folder '" + folderId + "'")
@@ -140,7 +140,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 			for (String documentId : documents) {
 
 				System.out.println("" + (++progression) + " / " + total);
-				driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + documentId);
+				driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + documentId);
 				if (documentsWithReadAccess.contains(documentId)) {
 					assertThat(isOnHomePage()).describedAs("User " + user.getUsername()
 							+ " should be able to view document '" + documentId + "'")

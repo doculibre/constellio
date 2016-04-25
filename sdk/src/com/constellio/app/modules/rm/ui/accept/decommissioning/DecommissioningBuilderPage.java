@@ -3,11 +3,11 @@ package com.constellio.app.modules.rm.ui.accept.decommissioning;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.tools.AutocompleteWebElement;
 import com.constellio.app.ui.tools.ButtonWebElement;
@@ -23,7 +23,7 @@ public class DecommissioningBuilderPage extends PageHelper {
 	}
 
 	public DecommissioningBuilderPage navigateToPage(SearchType type) {
-		driver.navigateTo().url(NavigatorConfigurationService.DECOMMISSIONING_LIST_BUILDER + "/" + type);
+		driver.navigateTo().url(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type);
 		return this;
 	}
 

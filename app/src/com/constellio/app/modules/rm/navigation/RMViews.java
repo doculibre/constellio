@@ -17,7 +17,7 @@ public class RMViews extends CoreViews {
 	// FOLDER MANAGEMENT
 
 	public void displayFolder(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	public void addFolder() {
@@ -36,19 +36,19 @@ public class RMViews extends CoreViews {
 		if (typeId != null) {
 			params.put("typeId", typeId);
 		}
-		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_FOLDER, params));
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_FOLDER, params));
 	}
 
 	public void editFolder(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
-		navigator.navigateTo(addParams(NavigatorConfigurationService.EDIT_FOLDER, params));
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
 	}
 
 	// DOCUMENT MANAGEMENT
 
 	public void displayDocument(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_DOCUMENT + "/" + id);
+		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	public void addDocument() {
@@ -67,72 +67,72 @@ public class RMViews extends CoreViews {
 		if (typeId != null) {
 			params.put("typeId", typeId);
 		}
-		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_DOCUMENT, params));
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
 	public void addDocumentWithContent(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("idCopy", id);
-		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_DOCUMENT, params));
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
 	public void editDocument(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
-		navigator.navigateTo(addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params));
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 
 	public void editDocument(String id, String userDocumentId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("userDocumentId", userDocumentId);
-		navigator.navigateTo(addParams(NavigatorConfigurationService.EDIT_DOCUMENT, params));
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 
 	// RETENTION RULES
 
 	public void listRetentionRules() {
-		navigator.navigateTo(NavigatorConfigurationService.LIST_RETENTION_RULES);
+		navigator.navigateTo(RMNavigationConfiguration.LIST_RETENTION_RULES);
 	}
 
 	public void retentionRuleSearch(String queryExpression) {
-		navigator.navigateTo(NavigatorConfigurationService.RETENTION_RULES_SEARCH + "/" + queryExpression);
+		navigator.navigateTo(RMNavigationConfiguration.RETENTION_RULES_SEARCH + "/" + queryExpression);
 	}
 
 	// ARCHIVE MANAGEMENT
 
 	public void archiveManagement() {
-		navigator.navigateTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
+		navigator.navigateTo(RMNavigationConfiguration.ARCHIVES_MANAGEMENT);
 	}
 
 	// DECOMMISSIONING
 
 	public void decommissioning() {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING);
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING);
 	}
 
 	public void decommissioningListBuilder(String type) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_BUILDER + "/" + type);
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type);
 	}
 
 	public void displayDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
 	}
 
 	public void displayDocumentDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
+		navigator.navigateTo(RMNavigationConfiguration.DOCUMENT_DECOMMISSIONING_LIST_DISPLAY + "/" + entityId);
 	}
 
 	// USER DOCUMENTS
 
 	public void listUserDocuments() {
-		navigator.navigateTo(NavigatorConfigurationService.LIST_USER_DOCUMENTS);
+		navigator.navigateTo(RMNavigationConfiguration.LIST_USER_DOCUMENTS);
 	}
 
 	// CART
 
 	public void cart() {
-		navigator.navigateTo(NavigatorConfigurationService.CART);
+		navigator.navigateTo(RMNavigationConfiguration.CART);
 	}
 
 	// AUDIT EVENTS
@@ -144,6 +144,73 @@ public class RMViews extends CoreViews {
 	// AGENT
 
 	public void requestAgent() {
-		navigator.navigateTo(NavigatorConfigurationService.REQUEST_AGENT);
+		navigator.navigateTo(RMNavigationConfiguration.REQUEST_AGENT);
 	}
+
+	public void listAgentLogs() {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_AGENT_LOGS);
+	}
+
+	//REPORTS
+
+	public void reports() {
+		navigator.navigateTo(RMNavigationConfiguration.REPORTS);
+	}
+
+    //CONTAINERS
+
+    public void addContainer() {
+        navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER);
+    }
+
+    public void editContainer(String containerId) {
+        navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
+    }
+
+    public void containersByAdministrativeUnits() {
+        navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS);
+    }
+
+    public void displayAdminUnitWithContainers(String tabName, String entityId) {
+        navigator
+                .navigateTo(RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/" + tabName + "/" + entityId);
+    }
+
+    public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
+        navigator.navigateTo(
+                RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
+                        + filingSpaceId);
+    }
+
+    public void displayContainer(String containerId) {
+        navigator.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId);
+    }
+
+    //DECOMMISSIONING
+
+    public void searchContainerForDecommissioningList(String entityId) {
+        navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId);
+    }
+
+    public void createContainerForDecommissioningList(String entityId) {
+        navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER + "/" + entityId);
+    }
+
+    public void editDecommissioningList(String entityId) {
+        navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_EDIT + "/" + entityId);
+    }
+
+    //RETENTION RULE
+
+    public void addRetentionRule() {
+        navigator.navigateTo(RMNavigationConfiguration.ADD_RETENTION_RULE);
+    }
+
+    public void editRetentionRule(String id) {
+        navigator.navigateTo(RMNavigationConfiguration.EDIT_RETENTION_RULE + "/" + id);
+    }
+
+    public void displayRetentionRule(String id) {
+        navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
+    }
 }

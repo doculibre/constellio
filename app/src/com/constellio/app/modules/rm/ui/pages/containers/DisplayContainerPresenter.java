@@ -85,7 +85,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void editContainer() {
-		view.navigateTo().editContainer(containerId);
+		view.navigate().to(RMViews.class).editContainer(containerId);
 	}
 
 	public ComponentState getEmptyButtonState() {
@@ -99,7 +99,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
-		view.navigateTo().displayContainer(containerId);
+		view.navigate().to(RMViews.class).displayContainer(containerId);
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {

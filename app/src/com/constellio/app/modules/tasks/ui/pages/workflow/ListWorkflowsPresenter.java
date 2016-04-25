@@ -22,7 +22,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().addWorkflow();
+		view.navigate().to(TaskViews.class).addWorkflow();
 	}
 
 	public void backButtonClicked() {
@@ -45,7 +45,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 	}
 
 	public void editButtonClicked(RecordVO record) {
-		view.navigateTo().editWorkflow(record.getId());
+		view.navigate().to(TaskViews.class).editWorkflow(record.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO record) {

@@ -27,7 +27,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class HomePresenter extends BasePresenter<HomeView> {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(HomePresenter.class);
-	
+
 	private String currentTab;
 
 	public HomePresenter(HomeView view) {
@@ -78,7 +78,7 @@ public class HomePresenter extends BasePresenter<HomeView> {
 						String smbPath = record.get(smbUrlMetadata);
 						String agentSmbPath = ConstellioAgentUtils.getAgentSmbURL(smbPath);
 						view.openAgentURL(agentSmbPath);
-					}	
+					}
 				}
 			} catch (NoSuchRecordWithId e) {
 				view.showErrorMessage($("HomeView.noSuchRecord"));

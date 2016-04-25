@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.modules.es.navigation.ESViews;
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,7 +26,7 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
 	@Mock ListConnectorInstancesView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock RecordVO recordVO;
 	RecordServices recordServices;
 	Users users = new Users();
@@ -45,7 +48,9 @@ public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-		when(view.navigateTo()).thenReturn(navigator);
+		navigator = new MockedNavigation();
+		when(view.navigate()).thenReturn(navigator);
+		when(view.navigateTo()).thenReturn(navigator.to(RMViews.class));
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -105,7 +110,7 @@ public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
 
 		presenter.displayButtonClicked(recordVO);
 
-		verify(view.navigateTo()).displayConnectorInstance("recordId");
+		verify(view.navigate().to(ESViews.class)).displayConnectorInstance("recordId");
 	}
 
 	@Test
@@ -116,6 +121,6 @@ public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
 
 		presenter.editButtonClicked(recordVO);
 
-		verify(view.navigateTo()).editConnectorInstance("recordId");
+		verify(view.navigate().to(ESViews.class)).editConnectorInstance("recordId");
 	}
 }

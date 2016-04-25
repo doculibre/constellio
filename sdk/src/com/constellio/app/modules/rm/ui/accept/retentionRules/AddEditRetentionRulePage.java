@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.ui.accept.retentionRules;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.openqa.selenium.By;
 
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.RecordFormWebElement;
@@ -15,7 +15,7 @@ public class AddEditRetentionRulePage extends PageHelper {
 	}
 
 	public AddEditRetentionRulePage navigateToPage() {
-		driver.navigateTo().url(NavigatorConfigurationService.ADD_RETENTION_RULE);
+		driver.navigateTo().url(RMNavigationConfiguration.ADD_RETENTION_RULE);
 		return this;
 	}
 

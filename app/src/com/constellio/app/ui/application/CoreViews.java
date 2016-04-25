@@ -2,6 +2,9 @@ package com.constellio.app.ui.application;
 
 import java.util.Map;
 
+import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
@@ -220,9 +223,7 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.ADMIN_MODULE);
 	}
 
-	public void reports() {
-		navigator.navigateTo(NavigatorConfigurationService.REPORTS);
-	}
+
 
 	public void listPrincipalAccessAuthorizations(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);
@@ -238,18 +239,6 @@ public class CoreViews {
 
 	public void shareContent(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.SHARE_CONTENT + "/" + entityId);
-	}
-
-	public void editDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_EDIT + "/" + entityId);
-	}
-
-	public void createContainerForDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER + "/" + entityId);
-	}
-
-	public void searchContainerForDecommissioningList(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId);
 	}
 
 	public void configManagement() {
@@ -316,45 +305,6 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.FORM_DISPLAY_FORM + "/" + schemaCode);
 	}
 
-	public void containersByAdministrativeUnits() {
-		navigator.navigateTo(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS);
-	}
-
-	public void displayAdminUnitWithContainers(String tabName, String entityId) {
-		navigator
-				.navigateTo(NavigatorConfigurationService.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/" + tabName + "/" + entityId);
-	}
-
-	public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
-		navigator.navigateTo(
-				NavigatorConfigurationService.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
-						+ filingSpaceId);
-	}
-
-	public void displayContainer(String containerId) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_CONTAINER + "/" + containerId);
-	}
-
-	public void addContainer() {
-		navigator.navigateTo(NavigatorConfigurationService.EDIT_CONTAINER);
-	}
-
-	public void editContainer(String containerId) {
-		navigator.navigateTo(NavigatorConfigurationService.EDIT_CONTAINER + "/" + containerId);
-	}
-
-	public void displayRetentionRule(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_RETENTION_RULE + "/" + id);
-	}
-
-	public void addRetentionRule() {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_RETENTION_RULE);
-	}
-
-	public void editRetentionRule(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.EDIT_RETENTION_RULE + "/" + id);
-	}
-
 	public void declareUserDocument(String userDocumentId, String folderId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
@@ -362,14 +312,14 @@ public class CoreViews {
 			params.put("parentId", folderId);
 		}
 
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_DOCUMENT, params);
+		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_DOCUMENT, params);
 		navigator.navigateTo(viewPath);
 	}
 
 	public void declareUserDocument(String userDocumentId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_DOCUMENT, params);
+		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_DOCUMENT, params);
 		navigator.navigateTo(viewPath);
 	}
 
@@ -421,10 +371,6 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.EXPORTER);
 	}
 
-	public void listAgentLogs() {
-		navigator.navigateTo(NavigatorConfigurationService.LIST_AGENT_LOGS);
-	}
-
 	public void editFacetConfiguration(String params) {
 		navigator.navigateTo(NavigatorConfigurationService.EDIT_FACET_CONFIGURATION + "/" + params);
 	}
@@ -457,19 +403,7 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.SEARCH_BOOST_BY_QUERYS);
 	}
 
-	//Module ES
 
-	public void displayConnectorInstance(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_CONNECTOR_INSTANCE + "/" + params);
-	}
-
-	public void wizardConnectorInstance() {
-		navigator.navigateTo(NavigatorConfigurationService.WIZARD_CONNECTOR_INSTANCE);
-	}
-
-	public void editConnectorInstance(String params) {
-		navigator.navigateTo(NavigatorConfigurationService.EDIT_CONNECTOR_INSTANCE + "/" + params);
-	}
 
 	public void connectorIndexationReport(String connectorId) {
 		Map<String, String> params = new HashMap<>();
@@ -477,7 +411,7 @@ public class CoreViews {
 			params.put(ConnectorReportView.CONNECTOR_ID, connectorId);
 		}
 		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXING);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.CONNECTOR_REPORT, params);
+		String viewPath = ParamUtils.addParams(ESNavigationConfiguration.CONNECTOR_REPORT, params);
 		navigator.navigateTo(viewPath);
 	}
 
@@ -487,7 +421,7 @@ public class CoreViews {
 			params.put(ConnectorReportView.CONNECTOR_ID, connectorId);
 		}
 		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.ERRORS);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.CONNECTOR_REPORT, params);
+		String viewPath = ParamUtils.addParams(ESNavigationConfiguration.CONNECTOR_REPORT, params);
 		navigator.navigateTo(viewPath);
 	}
 
@@ -502,7 +436,7 @@ public class CoreViews {
 		if (StringUtils.isNotBlank(workflowId)) {
 			params.put("workflowId", workflowId);
 		}
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_TASK, params);
+		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.EDIT_TASK, params);
 		navigator.navigateTo(viewPath);
 	}
 
@@ -516,36 +450,6 @@ public class CoreViews {
 
 	public void editTask(String taskId) {
 		editTask(taskId, null);
-	}
-
-	public void addWorkflow() {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_WORKFLOW);
-	}
-
-	public void editWorkflow(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.EDIT_WORKFLOW + "/" + id);
-	}
-
-	public void displayWorkflowInstance(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_WORKFLOW_INSTANCE + "/" + id);
-	}
-
-	public void displayConnectorMappings(String entityId) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_CONNECTOR_MAPPINGS + "/" + entityId);
-	}
-
-	public void addConnectorMapping(String connectorInstance, String documentType) {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_CONNECTOR_MAPPING +
-				"/" + connectorInstance + "/" + documentType);
-	}
-
-	public void editConnectorMapping(String connectorInstance, String documentType, String metadata) {
-		navigator.navigateTo(NavigatorConfigurationService.ADD_CONNECTOR_MAPPING +
-				"/" + connectorInstance + "/" + documentType + "/" + metadata);
-	}
-
-	public void listTasksLogs() {
-		navigator.navigateTo(NavigatorConfigurationService.LIST_TASKS_LOGS);
 	}
 
 	public void listMetadataExtractors() {
@@ -563,7 +467,7 @@ public class CoreViews {
 	public void addEmailAttachmentsToFolder(String userDocumentId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EMAIL_ATTACHMENTS_TO_FOLDER, params);
+		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_EMAIL_ATTACHMENTS_TO_FOLDER, params);
 		navigator.navigateTo(viewPath);
 	}
 }

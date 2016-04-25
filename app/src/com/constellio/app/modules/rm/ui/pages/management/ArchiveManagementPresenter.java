@@ -16,15 +16,15 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 	}
 
 	public void newContainerButtonClicked() {
-		view.navigateTo().addContainer();
+		view.navigate().to(RMViews.class).addContainer();
 	}
 
 	public void containersButtonClicked() {
-		view.navigateTo().containersByAdministrativeUnits();
+		view.navigate().to(RMViews.class).containersByAdministrativeUnits();
 	}
 
 	public void reportsButtonClicked() {
-		view.navigateTo().reports();
+		view.navigate().to(RMViews.class).reports();
 	}
 
 	public void onViewAssembled() {

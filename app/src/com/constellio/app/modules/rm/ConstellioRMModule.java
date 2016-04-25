@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -71,7 +72,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
-public class ConstellioRMModule implements InstallableModule {
+public class ConstellioRMModule implements InstallableSystemModule {
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
@@ -146,7 +147,7 @@ public class ConstellioRMModule implements InstallableModule {
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new RMNavigationConfiguration().configureNavigation(config);
+		RMNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -249,4 +250,13 @@ public class ConstellioRMModule implements InstallableModule {
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), 100));
 	}
 
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		RMNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+	}
+
+	@Override
+	public void stop(AppLayerFactory appLayerFactory) {
+
+	}
 }

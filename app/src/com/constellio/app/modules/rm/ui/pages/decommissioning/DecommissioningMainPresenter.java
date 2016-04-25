@@ -109,7 +109,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void editButtonClicked(RecordVO entity) {
-		view.navigateTo().editDecommissioningList(entity.getId());
+		view.navigate().to(RMViews.class).editDecommissioningList(entity.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {

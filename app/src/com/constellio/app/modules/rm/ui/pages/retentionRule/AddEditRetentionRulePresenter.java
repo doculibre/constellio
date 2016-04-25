@@ -148,7 +148,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		if (addView) {
 			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
-			view.navigateTo().displayRetentionRule(rule.getId());
+			view.navigate().to(RMViews.class).displayRetentionRule(rule.getId());
 		}
 	}
 

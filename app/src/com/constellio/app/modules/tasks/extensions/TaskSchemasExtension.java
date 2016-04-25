@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -37,7 +38,6 @@ import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Transaction;
@@ -166,8 +166,8 @@ public class TaskSchemasExtension extends RecordExtension {
 		newParameters.add(TASK_DESCRIPTION + ":" + task.getDescription());
 		String constellioURL = eimConfigs.getConstellioUrl();
 		newParameters
-				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.DISPLAY_TASK + "/" + task.getId());
-		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.EDIT_TASK
+				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
+		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
 				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
 		emailToSend.setParameters(newParameters);
