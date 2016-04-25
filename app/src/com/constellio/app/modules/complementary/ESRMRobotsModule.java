@@ -15,6 +15,7 @@ import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConne
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderDirectlyInThePlanActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInParentFolderActionExecutor;
 import com.constellio.app.modules.complementary.esRmRobots.actions.ClassifyConnectorFolderInTaxonomyActionExecutor;
+import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsActionParametersFieldFactoryExtension;
 import com.constellio.app.modules.complementary.esRmRobots.extensions.EsRmRobotsMappingExtension;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_2;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo5_1_5;
@@ -122,6 +123,7 @@ public class ESRMRobotsModule implements InstallableModule {
 	private void setupAppLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		extensions.recordFieldFactoryExtensions.add(new EsRmRobotsActionParametersFieldFactoryExtension());
 
 		ESModuleExtensions esExtensions = extensions.forModule(ConstellioESModule.ID);
 		esExtensions.connectorMappingExtensions.add(new EsRmRobotsMappingExtension(rm));

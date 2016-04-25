@@ -80,9 +80,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	List<String> newExclusions = new ArrayList<>();
 	User currentUser;
 	String robotId;
+	List<Record> processedRecords;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -95,6 +96,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.robotId = robotId;
+		this.processedRecords = processedRecords;
 	}
 
 	public void execute() {
@@ -308,11 +310,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 						}
 					}
 				}
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useDefaultValuesInMissingFields(folderEntry, rmFolder);
 			} else {
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useAllDefaultValuesFromParams(rmFolder);
 			}
 		} else {
+			setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 			useAllDefaultValuesFromParams(rmFolder);
 		}
 		try {
@@ -461,6 +466,18 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 		return folderSchema;
 	}
+	
+	private void setOpeningDateFromCreatedOnOrLastModifiedIfNull(Folder rmFolder) {
+		if (rmFolder.getOpeningDate() == null) {
+			LocalDateTime connectorFolderCreatedOn = connectorFolder.getCreatedOn();
+			LocalDateTime connectorFolderLastModified = connectorFolder.getLastModified();
+			if (connectorFolderCreatedOn != null) {
+				rmFolder.setOpenDate(connectorFolderCreatedOn.toLocalDate());
+			} else if (connectorFolderLastModified != null) {
+				rmFolder.setOpenDate(connectorFolderLastModified.toLocalDate());
+			}
+		}
+	}
 
 	private void useAllDefaultValuesFromParams(Folder rmFolder) {
 		if (rmFolder.getParentFolder() == null && params.getDefaultParentFolder() != null) {
@@ -478,7 +495,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (params.getDefaultOpenDate() != null) {
+		if (rmFolder.getOpeningDate() == null && params.getDefaultOpenDate() != null) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
 	}
@@ -552,6 +569,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			try {
 				ClassifiedDocument classifiedDocument = classifyDocument(document, inRmFolder, majorVersions);
 				createdRecordsByUrls.put(document.getUrl(), classifiedDocument);
+				processedRecords.add(document.getWrappedRecord());
 			} catch (ClassifyServicesRuntimeException_CannotClassifyAsDocument e) {
 				LOGGER.warn("Cannot classify '" + document.getUrl() + "'", e);
 			}
