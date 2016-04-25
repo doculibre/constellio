@@ -1,28 +1,23 @@
-package com.constellio.app.modules.rm.model.calculators;
+package com.constellio.app.modules.rm.model.calculators.document;
 
-import static java.util.Arrays.asList;
-
+import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
-public class ContainerTitleCalculator implements MetadataValueCalculator<String> {
-
-	LocalDependency<String> identifierParam = LocalDependency.toAString(ContainerRecord.IDENTIFIER);
-	LocalDependency<String> temporaryIdentifierParam = LocalDependency.toAString(ContainerRecord.TEMPORARY_IDENTIFIER);
+public class DocumentVersionCalculator implements MetadataValueCalculator<String> {
+	LocalDependency<Content> content = LocalDependency.toAContent(Document.CONTENT);
 
 	@Override
 	public String calculate(CalculatorParameters parameters) {
-
-		String identifier = parameters.get(identifierParam);
-		String temporaryIdentifier = parameters.get(temporaryIdentifierParam);
-
-		return identifier != null ? identifier : temporaryIdentifier;
+		Content documentContent = parameters.get(content);
+		return documentContent != null ? documentContent.getCurrentVersion().getVersion() : null;
 	}
 
 	@Override
@@ -42,6 +37,6 @@ public class ContainerTitleCalculator implements MetadataValueCalculator<String>
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(identifierParam, temporaryIdentifierParam);
+		return Arrays.asList(content);
 	}
 }
