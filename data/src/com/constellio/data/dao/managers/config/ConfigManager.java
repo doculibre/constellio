@@ -70,4 +70,6 @@ public interface ConfigManager {
 	void deleteAllConfigsIn(String collection);
 
 	void copySettingsFrom(File setting);
+
+	void move(String src, String dest);
 }

@@ -32,7 +32,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class XmlUserCredentialsManager implements UserCredentialsManager, ConfigUpdatedEventListener {
 
-	private static final String USER_CREDENTIALS_CONFIG = "/userCredentialsConfig.xml";
+	public static final String USER_CREDENTIALS_CONFIG = "/userCredentialsConfig.xml";
 
 	private final ConfigManager configManager;
 
