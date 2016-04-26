@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.TargetParams;
 import com.constellio.app.modules.es.ui.entities.MappingVO;
@@ -134,11 +135,11 @@ public class AddEditMappingPresenter extends MappingsPresenter<AddEditMappingVie
 		mapping.put(mappingVO.getMetadataLocalCode(), mappingVO.getFieldIds());
 		ConnectorInstance instance = mappingService().setMapping(connectorInstance(), documentType, mapping);
 		addOrUpdate(instance.getWrappedRecord());
-		view.navigateTo().displayConnectorMappings(instanceId);
+		view.navigate().to(ESViews.class).displayConnectorMappings(instanceId);
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().displayConnectorMappings(instanceId);
+		view.navigate().to(ESViews.class).displayConnectorMappings(instanceId);
 	}
 
 	private MappingVO buildMappingVO() {

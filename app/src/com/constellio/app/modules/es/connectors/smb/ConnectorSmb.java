@@ -154,7 +154,7 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	public List<String> getReportMetadatas(String reportMode) {
-		if (ConnectorReportView.INDEXATION.equals(reportMode)) {
+		if (ConnectorReportView.INDEXING.equals(reportMode)) {
 			return Arrays.asList(ConnectorSmbDocument.URL, ConnectorSmbDocument.FETCHED_DATETIME);
 		} else if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			return Arrays.asList(ConnectorSmbDocument.URL, ConnectorSmbDocument.ERROR_CODE, ConnectorSmbDocument.ERROR_MESSAGE,

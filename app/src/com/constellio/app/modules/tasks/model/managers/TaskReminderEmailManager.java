@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -28,7 +29,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
@@ -173,8 +173,8 @@ public class TaskReminderEmailManager implements StatefulService {
 		String constellioURL = eimConfigs.getConstellioUrl();
 
 		newParameters
-				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.DISPLAY_TASK + "/" + task.getId());
-		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.EDIT_TASK
+				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
+		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
 				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
 		emailToSend.setParameters(newParameters);

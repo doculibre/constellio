@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,6 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskPresenter;
 import com.constellio.app.modules.tasks.ui.pages.tasks.AddEditTaskView;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -72,7 +72,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		Map<String, String> params = new HashMap<>();
 		String parentTaskId = "zeParentTask";
 		params.put("parentId", parentTaskId);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_TASK, params);
+		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.ADD_TASK, params);
 		presenter.initTaskVO(viewPath);
 		assertThat(presenter.getTask().get(Task.PARENT_TASK)).isEqualTo(parentTaskId);
 	}
@@ -86,7 +86,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("id", zeTask.getId());
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.EDIT_TASK, parameters);
+		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.EDIT_TASK, parameters);
 		presenter.initTaskVO(viewPath);
 		TaskVO taskVO = presenter.getTask();
 		assertThat(taskVO.getAssignee()).isEqualTo(null);
@@ -96,7 +96,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenAddTaskThenAssigneeSetToCurrentUserAndDueDateSetByDefaultToCurrentDate()
 			throws Exception {
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_TASK, new HashMap<String, String>());
+		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.ADD_TASK, new HashMap<String, String>());
 		presenter.initTaskVO(viewPath);
 
 		TaskVO taskVO = presenter.getTask();
@@ -173,7 +173,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCancelThenTaskNotSaved()
 			throws Exception {
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_TASK, new HashMap<String, String>());
+		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.ADD_TASK, new HashMap<String, String>());
 		presenter.initTaskVO(viewPath);
 		presenter.cancelButtonClicked();
 		assertThat(searchServices.getResultsCount(from(tasksSchemas.userTask.schema()).returnAll())).isEqualTo(0);

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.ui.pages;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
@@ -15,6 +16,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -61,6 +63,12 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 		reportMode = params.get(ConnectorReportView.REPORT_MODE);
 		connectorInstance = es.getConnectorManager().getConnectorInstance(connectorId);
 		connector = es.instanciate(connectorInstance);
+
+		if (ConnectorReportView.ERRORS.equals(reportMode)) {
+			view.setTitle($("ConnectorReportView.viewTitle.error"));
+		} else {
+			view.setTitle($("ConnectorReportView.viewTitle.indexing"));
+		}
 	}
 
 	public RecordVOWithDistinctSchemasDataProvider getDataProvider() {
@@ -145,8 +153,10 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 	public Long getTotalDocumentsCount() {
 
 		final List<MetadataSchemaType> types = getMetadataSchemaTypes();
+		
 
 		LogicalSearchCondition condition = from(types).returnAll();
+		condition = condition.andWhere(es.connectorDocument.connector()).isEqualTo(connectorId);
 		if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			condition = condition.andWhere(es.connectorDocument.errorsCount()).isGreaterOrEqualThan(1);
 		}
@@ -164,6 +174,7 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 		final List<MetadataSchemaType> types = getMetadataSchemaTypes();
 
 		LogicalSearchCondition condition = from(types).where(es.connectorDocument.fetched()).isTrue();
+		condition = condition.andWhere(es.connectorDocument.connector()).isEqualTo(connectorId);
 		if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			condition = condition.andWhere(es.connectorDocument.errorsCount()).isGreaterOrEqualThan(1);
 		}
@@ -183,5 +194,9 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 
 	public void filterButtonClicked() {
 		view.filterTable();
+	}
+	
+	public void backButtonClicked() {
+		view.navigate().to(ESViews.class).displayConnectorInstance(connectorId);
 	}
 }

@@ -76,7 +76,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void editButtonClicked() {
-		view.navigateTo().editDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).editDecommissioningList(recordId);
 	}
 
 	public boolean isDeletable() {
@@ -133,11 +133,11 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void containerCreationRequested() {
-		view.navigateTo().createContainerForDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).createContainerForDecommissioningList(recordId);
 	}
 
 	public void containerSearchRequested() {
-		view.navigateTo().searchContainerForDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).searchContainerForDecommissioningList(recordId);
 	}
 
 	public void folderPlacedInContainer(FolderDetailVO folder, ContainerVO container) {

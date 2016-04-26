@@ -45,7 +45,7 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records) {
+			List<Record> records, List<Record> processedRecords) {
 		String collection = actionParameters.getCollection();
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);

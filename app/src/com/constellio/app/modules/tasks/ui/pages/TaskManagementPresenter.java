@@ -165,7 +165,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void displayWorkflowInstanceRequested(RecordVO recordVO) {
-		view.navigateTo().displayWorkflowInstance(recordVO.getId());
+		view.navigate().to(TaskViews.class).displayWorkflowInstance(recordVO.getId());
 	}
 
 	@Override

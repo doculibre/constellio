@@ -23,7 +23,6 @@ public class ContainerTitleCalculator implements MetadataValueCalculator<String>
 		String temporaryIdentifier = parameters.get(temporaryIdentifierParam);
 
 		return identifier != null ? identifier : temporaryIdentifier;
-
 	}
 
 	@Override

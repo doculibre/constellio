@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.smokeTests;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.openqa.selenium.By;
 
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -20,19 +21,19 @@ public class NavigatePage extends PageHelper {
 	}
 
 	public void navigateToArchivesManagement() {
-		driver.navigateTo().url(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
+		driver.navigateTo().url(RMNavigationConfiguration.ARCHIVES_MANAGEMENT);
 	}
 
 	public void navigateToArchivesManagementContainers() {
-		driver.navigateTo().url(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS);
+		driver.navigateTo().url(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS);
 	}
 
 	public void navigateToArchivesManagementDecommissioning() {
-		driver.navigateTo().url(NavigatorConfigurationService.REPORTS);
+		driver.navigateTo().url(RMNavigationConfiguration.REPORTS);
 	}
 
 	public void navigateToAFolder(String folderName) {
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderName);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderName);
 	}
 
 	public void navigateToEventsList() {

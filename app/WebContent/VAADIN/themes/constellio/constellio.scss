@@ -1209,6 +1209,14 @@ $popup-view-z-index: 3;
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
+	    
+		// Admin ES Module 
+
+		.connector-report-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
+		}
     }
 
     .ui-with-top-menu[width-range~="801-1100px"] {
@@ -1274,6 +1282,14 @@ $popup-view-z-index: 3;
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
+	    
+		// Admin ES Module 
+
+		.connector-report-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
+		}
     }
 
     .ui-with-top-menu[width-range~="0-800px"] {

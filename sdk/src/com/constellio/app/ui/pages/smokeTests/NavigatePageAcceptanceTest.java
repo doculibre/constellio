@@ -113,7 +113,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		page.getAddDocumentButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.ADD_DOCUMENT);
+				.isEqualTo(RMNavigationConfiguration.ADD_DOCUMENT);
 
 		clickCancelAndGoBackToRecordsManagement();
 	}
@@ -128,7 +128,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		page.getAddFolderButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.ADD_FOLDER);
+				.isEqualTo(RMNavigationConfiguration.ADD_FOLDER);
 
 		clickCancelAndGoBackToRecordsManagement();
 	}
@@ -150,26 +150,26 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 		clickOnFolderMenuAndWaitForReload(0);
 		whenNavigateToDetailsViewThenLabelsExists();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.ADD_DOCUMENT + "/parentId%253D" + folderId);
+				.isEqualTo(RMNavigationConfiguration.ADD_DOCUMENT + "/parentId%253D" + folderId);
 		clickCancelAndGoBackToFolderDetails();
 
 		whenNavigateToDetailsViewThenLabelsExists();
 
 		clickOnFolderMenuAndWaitForReload(1);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.ADD_FOLDER + "/parentId%253D" + folderId);
+				.isEqualTo(RMNavigationConfiguration.ADD_FOLDER + "/parentId%253D" + folderId);
 		clickCancelAndGoBackToFolderDetails();
 
 		clickOnFolderMenuAndWaitForReload(2);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.EDIT_FOLDER + "/id%253D" + folderId);
+				.isEqualTo(RMNavigationConfiguration.EDIT_FOLDER + "/id%253D" + folderId);
 		clickCancelAndGoBackToFolderDetails();
 
 		clickOnFolderMenuAndWaitForReload(3);
 		driver.findElement(By.className("cancel-deletion")).clickAndWaitForRemoval();
 
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderId);
+				.isEqualTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderId);
 
 		//TODO
 		//clickOnFolderMenuAndWaitForReload(4);
@@ -185,7 +185,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderId);
+				.isEqualTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderId);
 
 		clickOnFolderMenuAndWaitForReload(6);
 		clickCancelAndGoBackToFolderDetails();
@@ -214,17 +214,17 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		clickOnCurrentPageIconAndWaitForReload(2);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.DECOMMISSIONING);
+				.isEqualTo(RMNavigationConfiguration.DECOMMISSIONING);
 		clickOnBackButtonAndGoBackToArchivesManagement();
 
 		clickOnCurrentPageIconAndWaitForReload(4);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS + "/transferNoStorageSpace");
+				.isEqualTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/transferNoStorageSpace");
 		clickOnBackButtonAndGoBackToArchivesManagement();
 
 		clickOnCurrentPageIconAndWaitForReload(5);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 		clickOnBackButtonAndGoBackToArchivesManagement();
 	}
 
@@ -233,19 +233,19 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		clickOnTabMenuAndWaitForReload(2);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS + "/depositNoStorageSpace");
+				.isEqualTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/depositNoStorageSpace");
 
 		clickOnTabMenuAndWaitForReload(1);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS + "/transferNoStorageSpace");
+				.isEqualTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/transferNoStorageSpace");
 
 		clickOnTabMenuAndWaitForReload(3);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS + "/transferWithStorageSpace");
+				.isEqualTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/transferWithStorageSpace");
 
 		clickOnTabMenuAndWaitForReload(4);
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.CONTAINERS_BY_ADMIN_UNITS + "/depositWithStorageSpace");
+				.isEqualTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/depositWithStorageSpace");
 
 	}
 
@@ -369,7 +369,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		page.getArchivesManagementButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
+				.isEqualTo(RMNavigationConfiguration.ARCHIVES_MANAGEMENT);
 
 		page.getLogsButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
@@ -381,7 +381,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		page.getUserDocumentsButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.LIST_USER_DOCUMENTS);
+				.isEqualTo(RMNavigationConfiguration.LIST_USER_DOCUMENTS);
 
 		page.getRecordsManagementButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
@@ -414,37 +414,37 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 
 		page.getCloseBoxButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 
 		clickOnCurrentPageIconAndWaitForReload(4);
 
 		page.getCloseBoxButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 
 		clickOnCurrentPageIconAndWaitForReload(5);
 
 		page.getCloseBoxButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 
 		clickOnCurrentPageIconAndWaitForReload(6);
 
 		page.getCloseBoxButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 
 		clickOnCurrentPageIconAndWaitForReload(7);
 
 		page.getCloseBoxButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 
 		clickOnCurrentPageIconAndWaitForReload(8);
 
 		page.getCloseBoxButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.REPORTS);
+				.isEqualTo(RMNavigationConfiguration.REPORTS);
 	}
 
 	private void clickCancelAndGoBackToRecordsManagement() {
@@ -456,13 +456,13 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 	private void clickCancelAndGoBackToFolderDetails() {
 		page.getCancelButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + folderId);
+				.isEqualTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + folderId);
 	}
 
 	private void clickOnBackButtonAndGoBackToArchivesManagement() {
 		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())
-				.isEqualTo(NavigatorConfigurationService.ARCHIVES_MANAGEMENT);
+				.isEqualTo(RMNavigationConfiguration.ARCHIVES_MANAGEMENT);
 	}
 
 	private void clickOnBackButtonAndGoBackToEventsList() {

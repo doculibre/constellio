@@ -6,6 +6,8 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserDocumentVO;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
 
 public class UserDocumentToVOBuilder extends RecordToVOBuilder {
 
@@ -14,5 +16,9 @@ public class UserDocumentToVOBuilder extends RecordToVOBuilder {
 		return new UserDocumentVO(id, metadataValueVOs, viewMode);
 	}
 
+	@Override
+	public UserDocumentVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
+		return (UserDocumentVO) super.build(record, viewMode, sessionContext);
+	}
 
 }

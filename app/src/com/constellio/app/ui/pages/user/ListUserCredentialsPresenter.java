@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.user;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -16,6 +18,11 @@ import com.constellio.model.services.users.UserServices;
 
 public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredentialsView> {
 	private transient UserServices userServices;
+
+    public static final String ACTIVE = "active";
+    public static final String PENDING = "pending";
+    public static final String SUSPENDED = "suspended";
+    public static final String DELETED = "deleted";
 
 	public ListUserCredentialsPresenter(ListUsersCredentialsView view) {
 		super(view);
@@ -70,4 +77,29 @@ public class ListUserCredentialsPresenter extends BasePresenter<ListUsersCredent
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS);
 	}
+
+    public List<String> getTabs() {
+        List<String> tabs = new ArrayList<>();
+        tabs.add(ACTIVE);
+        tabs.add(PENDING);
+        tabs.add(SUSPENDED);
+        tabs.add(DELETED);
+
+        return tabs;
+    }
+
+    public String getTabCaption(String tabId) {
+        switch (tabId){
+            case ACTIVE:
+                return "Actif";
+            case PENDING:
+                return "Instance d'approbation";
+            case SUSPENDED:
+                return "Suspendu";
+            case DELETED:
+                return "Supprimé";
+            default:
+                return null;
+        }
+    }
 }

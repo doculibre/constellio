@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -64,7 +65,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public void saveButtonClicked(RecordVO record) {
 		addOrUpdate(toRecord(record));
-		view.navigateTo().displayContainer(record.getId());
+		view.navigate().to(RMViews.class).displayContainer(record.getId());
 	}
 
 	public void cancelRequested() {

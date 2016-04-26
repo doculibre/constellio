@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -35,13 +36,14 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCache;
 
-public class ConstellioESModule implements InstallableModule {
+public class ConstellioESModule implements InstallableSystemModule {
 	public static final String ID = "es";
 	public static final String NAME = "Constellio Enterprise Search (beta)";
 
@@ -96,7 +98,7 @@ public class ConstellioESModule implements InstallableModule {
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new ESNavigationConfiguration().configureNavigation(config);
+		ESNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -136,10 +138,9 @@ public class ConstellioESModule implements InstallableModule {
 				.forCollection(collection);
 		extensions.moduleExtensionsMap.put(ID, new ESModuleExtensions());
 		extensions.taxonomyAccessExtensions.add(new ESTaxonomyPageExtension(collection));
-		extensions.recordAppExtensions.add(new ESRecordAppExtension());
+		extensions.recordAppExtensions.add(new ESRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new ESRecordNavigationExtension(collection, appLayerFactory));
 		extensions.searchPageExtensions.add(new ESSearchPageExtension());
-
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -157,4 +158,14 @@ public class ConstellioESModule implements InstallableModule {
 		extensions.recordExtensions.add(new ESRecordExtension(es));
 	}
 
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		ESNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+
+	}
+
+	@Override
+	public void stop(AppLayerFactory appLayerFactory) {
+
+	}
 }

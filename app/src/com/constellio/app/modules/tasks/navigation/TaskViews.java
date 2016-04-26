@@ -5,7 +5,6 @@ import static com.constellio.app.ui.params.ParamUtils.addParams;
 import java.util.Map;
 
 import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.navigator.Navigator;
 
@@ -15,13 +14,13 @@ public class TaskViews extends CoreViews {
 	}
 
 	public void taskManagement() {
-		navigator.navigateTo(NavigatorConfigurationService.TASK_MANAGEMENT);
+		navigator.navigateTo(TasksNavigationConfiguration.TASK_MANAGEMENT);
 	}
 
 	// TASKS
 
 	public void displayTask(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_TASK + "/" + id);
+		navigator.navigateTo(TasksNavigationConfiguration.DISPLAY_TASK + "/" + id);
 	}
 
 	public void addTask() {
@@ -33,16 +32,32 @@ public class TaskViews extends CoreViews {
 		if (parentTaskId != null) {
 			params.put("parentId", parentTaskId);
 		}
-		navigator.navigateTo(addParams(NavigatorConfigurationService.ADD_TASK, params));
+		navigator.navigateTo(addParams(TasksNavigationConfiguration.ADD_TASK, params));
 	}
+
+    public void listTasksLogs() {
+        navigator.navigateTo(TasksNavigationConfiguration.LIST_TASKS_LOGS);
+    }
 
 	// WORKFLOWS
 
 	public void listWorkflows() {
-		navigator.navigateTo(NavigatorConfigurationService.LIST_WORKFLOWS);
+		navigator.navigateTo(TasksNavigationConfiguration.LIST_WORKFLOWS);
 	}
 
 	public void displayWorkflow(String id) {
-		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_WORKFLOW + "/" + id);
+		navigator.navigateTo(TasksNavigationConfiguration.DISPLAY_WORKFLOW + "/" + id);
+	}
+
+    public void displayWorkflowInstance(String id) {
+        navigator.navigateTo(TasksNavigationConfiguration.DISPLAY_WORKFLOW_INSTANCE + "/" + id);
+    }
+
+    public void addWorkflow() {
+		navigator.navigateTo(TasksNavigationConfiguration.ADD_WORKFLOW);
+	}
+
+	public void editWorkflow(String id) {
+		navigator.navigateTo(TasksNavigationConfiguration.EDIT_WORKFLOW + "/" + id);
 	}
 }

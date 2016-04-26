@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorDeleteService;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -83,11 +84,11 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	}
 
 	public void displayButtonClicked(RecordVO entity) {
-		view.navigateTo().displayConnectorInstance(entity.getId());
+		view.navigate().to(ESViews.class).displayConnectorInstance(entity.getId());
 	}
 
 	public void editButtonClicked(RecordVO entity) {
-		view.navigateTo().editConnectorInstance(entity.getId());
+		view.navigate().to(ESViews.class).editConnectorInstance(entity.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {
@@ -97,10 +98,10 @@ public class ListConnectorInstancesPresenter extends BasePresenter<ListConnector
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().wizardConnectorInstance();
+		view.navigate().to(ESViews.class).wizardConnectorInstance();
 	}
 
 	public void editSchemasButtonClicked(RecordVO entity) {
-		view.navigateTo().displayConnectorMappings(entity.getId());
+		view.navigate().to(ESViews.class).displayConnectorMappings(entity.getId());
 	}
 }

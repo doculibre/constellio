@@ -13,6 +13,8 @@ import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -25,6 +27,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	private HorizontalLayout tableControls;
 	private BaseTextField filterField;
 	private VerticalLayout mainLayout;
+	private String title;
 
 	public ConnectorReportViewImpl() {
 		presenter = new ConnectorReportPresenter(this);
@@ -39,9 +42,14 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		
 		BaseDisplay statsDisplay = buildStatsDisplay();
 		HorizontalLayout filterComponent = buildFilterComponent();
-		table = buildTable();
+
+		RecordVOWithDistinctSchemaTypesLazyContainer container = new RecordVOWithDistinctSchemaTypesLazyContainer(
+				presenter.getDataProvider(), presenter.getReportMetadataList());
+		table = buildTable(container);
 		table.setColumnHeader("url", $("ConnectorReportView.url"));
 		table.setColumnHeader("fetchedDateTime", $("ConnectorReportView.fetchedDateTime"));
 		table.setColumnHeader("errorCode", $("ConnectorReportView.errorCode"));
@@ -81,10 +89,9 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 		return new BaseDisplay(components);
 	}
 
-	private BasePagedTable buildTable() {
-		RecordVOWithDistinctSchemaTypesLazyContainer container = new RecordVOWithDistinctSchemaTypesLazyContainer(
-				presenter.getDataProvider(), presenter.getReportMetadataList());
+	private BasePagedTable buildTable(RecordVOWithDistinctSchemaTypesLazyContainer container) {
 		table = new BasePagedTable<>(container);
+		table.addStyleName("connector-report-table");
 		table.setContainerDataSource(container);
 		table.setWidth("100%");
 		return table;
@@ -94,9 +101,7 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 	public void filterTable() {
 		RecordVOWithDistinctSchemaTypesLazyContainer container = new RecordVOWithDistinctSchemaTypesLazyContainer(
 				presenter.getFilteredDataProvider(filterField.getValue()), presenter.getReportMetadataList());
-		BasePagedTable<RecordVOWithDistinctSchemaTypesLazyContainer> newTable = new BasePagedTable<>(container);
-		newTable.setContainerDataSource(container);
-		newTable.setWidth("100%");
+		BasePagedTable<RecordVOWithDistinctSchemaTypesLazyContainer> newTable = buildTable(container);
 		newTable.setColumnHeader("url", $("ConnectorReportView.url"));
 		newTable.setColumnHeader("fetchedDateTime", $("ConnectorReportView.fetchedDateTime"));
 		newTable.setColumnHeader("errorCode", $("ConnectorReportView.errorCode"));
@@ -110,6 +115,21 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 
 	@Override
 	protected String getTitle() {
-		return $("ConnectorReportView.viewTitle");
+		return title;
+	}
+
+	@Override
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
+			}
+		};
 	}
 }

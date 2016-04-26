@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -27,7 +28,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
-public class TaskModule implements InstallableModule {
+public class TaskModule implements InstallableSystemModule {
 	public static final String ID = "tasks";
 	public static final String NAME = "Tasks";
 
@@ -42,7 +43,7 @@ public class TaskModule implements InstallableModule {
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new TasksNavigationConfiguration().configureNavigation(config);
+		TasksNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -125,5 +126,15 @@ public class TaskModule implements InstallableModule {
 	private void registerManagers(String collection, AppLayerFactory appLayerFactory) {
 		appLayerFactory.registerManager(collection, ID, TaskReminderEmailManager.ID,
 				new TaskReminderEmailManager(appLayerFactory, collection));
+	}
+
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		TasksNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+	}
+
+	@Override
+	public void stop(AppLayerFactory appLayerFactory) {
+
 	}
 }

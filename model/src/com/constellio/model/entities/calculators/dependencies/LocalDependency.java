@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class LocalDependency<T> implements Dependency {
@@ -70,6 +71,10 @@ public class LocalDependency<T> implements Dependency {
 
 	public static <T> LocalDependency<T> toAStructure(String metadataCode) {
 		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.STRUCTURE);
+	}
+
+	public static LocalDependency<Content> toAContent(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.CONTENT);
 	}
 
 	@Override

@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.TableStringFilter;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.UserCredentialVOLazyContainer;
@@ -19,25 +20,25 @@ import com.vaadin.data.Container.Filterable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 
 public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUsersCredentialsView {
 	public static final String ADMIN = "admin";
+    public static final String AJOUTER = "Ajouter";
+    public static final String PENDING = "pending";
+    public static final String SUSPENDED = "suspended";
+    public static final String DELETED = "deleted";
+
+
 	private ListUserCredentialsPresenter presenter;
 	private static final String PROPERTY_BUTTONS = "buttons";
 	private VerticalLayout viewLayout;
+    private TabSheet sheet;
 
 	private HorizontalLayout filterAndAddButtonLayout;
 	private TableStringFilter tableFilter;
-	private Button addButton;
 	private Table table;
 	private UserCredentialStatus status;
 	private final int batchSize = 100;
@@ -51,6 +52,18 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		return $("ListUserCredentialsView.viewTitle");
 	}
 
+    @Override
+    protected List<Button> buildActionMenuButtons(ViewChangeEvent event){
+        List<Button> buttons = super.buildActionMenuButtons(event);
+        buttons.add(new AddButton(AJOUTER) {
+            @Override
+            protected void buttonClick(ClickEvent event) {
+                presenter.addButtonClicked();
+            }
+        });
+        return buttons;
+    }
+
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		viewLayout = new VerticalLayout();
@@ -60,13 +73,6 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		filterAndAddButtonLayout = new HorizontalLayout();
 		filterAndAddButtonLayout.setWidth("100%");
 
-		addButton = new AddButton() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.addButtonClicked();
-			}
-		};
-		addButton.setEnabled(presenter.canAddOrModify());
 		table = buildTable(UserCredentialStatus.ACTIVE);
 		tableFilter = new TableStringFilter(table);
 		OptionGroup statusFilter = new OptionGroup();
@@ -89,16 +95,50 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 			}
 		});
 
-		viewLayout.addComponents(filterAndAddButtonLayout, statusFilter, table);
-		viewLayout.setExpandRatio(table, 1);
+        sheet = new TabSheet();
+        sheet.setSizeFull();
+        sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+            @Override
+            public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+                String selectedSheet = sheet.getSelectedTab().getId();
+                status = getTAbId(selectedSheet);
+                refreshTable();
+            }
+        });
 
-		filterAndAddButtonLayout.addComponents(tableFilter, addButton);
-		filterAndAddButtonLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+        for (String tabId : presenter.getTabs()) {
+            sheet.addTab(buildEmptyTab(tabId));
+        }
+
+		viewLayout.addComponents(sheet, tableFilter, table);
+		viewLayout.setExpandRatio(table, 1);
+        viewLayout.setComponentAlignment(tableFilter, Alignment.TOP_RIGHT);
 
 		return viewLayout;
 	}
 
-	@Override
+    private UserCredentialStatus getTAbId(String selectedSheet) {
+        switch (selectedSheet){
+            case PENDING:
+                return UserCredentialStatus.PENDING;
+            case SUSPENDED:
+                return UserCredentialStatus.SUSPENDED;
+            case DELETED:
+                return UserCredentialStatus.DELETED;
+            default:
+                return UserCredentialStatus.ACTIVE;
+        }
+    }
+
+    private VerticalLayout buildEmptyTab(String tabId) {
+        VerticalLayout tab = new VerticalLayout();
+        tab.setCaption(presenter.getTabCaption(tabId));
+        tab.setId(tabId);
+        tab.setSpacing(true);
+        return tab;
+    }
+
+    @Override
 	protected ClickListener getBackButtonClickListener() {
 		return new ClickListener() {
 			@Override
@@ -119,19 +159,15 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		addButtons(dataProvider, buttonsContainer);
 		tableContainer = buttonsContainer;
 
-		Table table = new Table($("ListUserCredentialsView.viewTitle"), tableContainer);
-		int tableSize = batchSize;
-		if (tableSize > table.getItemIds().size()) {
-			tableSize = table.getItemIds().size();
-		}
-		table.setPageLength(tableSize);
-		table.setWidth("100%");
-		table.setColumnHeader("username", $("ListUsersCredentialsView.usernameColumn"));
-		table.setColumnHeader("firstName", $("ListUsersCredentialsView.firstNameColumn"));
-		table.setColumnHeader("lastName", $("ListUsersCredentialsView.lastNameColumn"));
-		table.setColumnHeader("email", $("ListUsersCredentialsView.emailColumn"));
-		table.setColumnHeader(PROPERTY_BUTTONS, "");
-		table.setColumnWidth(PROPERTY_BUTTONS, 120);
+		Table table = new RecordVOTable($("ListUserCredentialsView.viewTitle", dataProvider.size()), tableContainer);
+        table.setWidth("100%");
+        table.setColumnHeader("username", $("ListUsersCredentialsView.usernameColumn"));
+        table.setColumnHeader("firstName", $("ListUsersCredentialsView.firstNameColumn"));
+        table.setColumnHeader("lastName", $("ListUsersCredentialsView.lastNameColumn"));
+        table.setColumnHeader("email", $("ListUsersCredentialsView.emailColumn"));
+        table.setColumnHeader(PROPERTY_BUTTONS, "");
+        table.setColumnWidth(PROPERTY_BUTTONS, 120);
+        table.setPageLength(Math.min(2, dataProvider.size()));
 		return table;
 	}
 

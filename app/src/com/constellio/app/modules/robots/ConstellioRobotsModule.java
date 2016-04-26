@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
@@ -19,7 +20,7 @@ import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfigura
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 
-public class ConstellioRobotsModule implements InstallableModule {
+public class ConstellioRobotsModule implements InstallableSystemModule {
 	public static final String ID = "robots";
 	public static final String NAME = "Constellio Robots";
 
@@ -49,7 +50,7 @@ public class ConstellioRobotsModule implements InstallableModule {
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new RobotsNavigationConfiguration().configureNavigation(config);
+		RobotsNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -99,5 +100,15 @@ public class ConstellioRobotsModule implements InstallableModule {
 	@Override
 	public List<String> getRolesForCreator() {
 		return new ArrayList<>();
+	}
+
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		RobotsNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+	}
+
+	@Override
+	public void stop(AppLayerFactory appLayerFactory) {
+
 	}
 }

@@ -19,6 +19,8 @@ import com.vaadin.ui.Field;
 public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public static final String STYLE_FIELD = "metadata-field";
+	
+	private RecordFieldFactory formFieldFactory;
 
 	public RecordForm(RecordVO record) {
 		this(record, new MetadataFieldFactory());
@@ -30,6 +32,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		super(recordVO, buildFields(recordVO, formFieldFactory));
+		this.formFieldFactory = formFieldFactory;
 	}
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
@@ -43,6 +46,10 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			}
 		}
 		return fieldsAndPropertyIds;
+	}
+	
+	protected RecordFieldFactory getFormFieldFactory() {
+		return formFieldFactory;
 	}
 
 	@Override
