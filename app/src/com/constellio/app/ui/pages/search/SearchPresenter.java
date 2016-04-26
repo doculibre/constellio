@@ -106,11 +106,17 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		sortOrder = SortOrder.ASCENDING;
 	}
 
+	protected Record getTemporarySearchRecord() {
+		return null;
+	}
+
 	public abstract SearchPresenter<T> forRequestParameters(String params);
 
 	public abstract boolean mustDisplayResults();
 
 	public abstract int getPageNumber();
+
+	public abstract void setPageNumber(int pageNumber);
 
 	public List<FacetVO> getFacets() {
 		return service.getFacets(getSearchQuery(), facetStatus);
@@ -348,7 +354,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setPublic(publicAccess)
 				.setSortField(sortCriterion)
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
-				.setSelectedFacets(facetSelections.getNestedMap());
+				.setSelectedFacets(facetSelections.getNestedMap())
+				.setTemporary(false);
 		try {
 			recordServices().add(prepareSavedSearch(search));
 		} catch (RecordServicesException e) {
@@ -358,6 +365,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		view.showMessage($("SearchView.searchSaved"));
 		return true;
 	}
+
+	protected abstract void saveTemporarySearch();
 
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;

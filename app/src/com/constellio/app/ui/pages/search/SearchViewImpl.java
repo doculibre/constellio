@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -84,7 +85,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
-			refreshSearchResultsAndFacets();
+			refreshSearchResultsAndFacets(true);
 		}
 		return layout;
 	}
@@ -92,6 +93,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	@Override
 	public void setSearchExpression(String expression) {
 		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
+	}
+
+	public void refreshSearchResultsAndFacets(boolean init) {
+		refreshSearchResults(init);
+		refreshFacets();
 	}
 
 	@Override
@@ -102,6 +108,25 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 
 	@Override
 	public void refreshSearchResults() {
+		presenter.saveTemporarySearch();
+
+		suggestions.removeAllComponents();
+		buildSuggestions();
+
+		results = buildResultTable();
+
+		summary.removeAllComponents();
+		summary.addComponent(buildSummary(results));
+
+		resultsArea.removeAllComponents();
+		resultsArea.addComponents(results, results.createControls());
+	}
+
+	public void refreshSearchResults(boolean init) {
+		if (!init) {
+			presenter.saveTemporarySearch();
+		}
+
 		suggestions.removeAllComponents();
 		buildSuggestions();
 
@@ -118,6 +143,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	public void refreshFacets() {
 		facetsArea.removeAllComponents();
 		addFacetComponents(facetsArea);
+		presenter.setPageNumber(1);
 	}
 
 	@Override
@@ -167,6 +193,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		SearchResultTable table = new SearchResultTable(buildResultContainer());
 		table.setWidth("100%");
 		table.setCurrentPage(presenter.getPageNumber());
+		table.addListener(new SearchResultTable.PageChangeListener() {
+			public void pageChanged(PagedTableChangeEvent event) {
+				presenter.setPageNumber(event.getCurrentPage());
+				presenter.saveTemporarySearch();
+			}
+		});
+
 		return table;
 	}
 

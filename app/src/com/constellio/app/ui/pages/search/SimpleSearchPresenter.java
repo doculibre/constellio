@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
@@ -10,10 +11,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
@@ -31,10 +35,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
 			if ("s".equals(parts[0])) {
 				SavedSearch search = getSavedSearch(parts[1]);
-				searchExpression = search.getFreeTextSearch();
-				facetSelections.putAll(search.getSelectedFacets());
-				sortCriterion = search.getSortField();
-				sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+				setSavedSearch(search);
+
 			} else {
 				searchExpression = parts[1];
 			}
@@ -42,6 +44,14 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			searchExpression = "";
 		}
 		return this;
+	}
+
+	private void setSavedSearch(SavedSearch search) {
+		searchExpression = search.getFreeTextSearch();
+		facetSelections.putAll(search.getSelectedFacets());
+		sortCriterion = search.getSortField();
+		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		pageNumber = search.getPageNumber();
 	}
 
 	@Override
@@ -57,6 +67,10 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	@Override
 	public int getPageNumber() {
 		return pageNumber;
+	}
+
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
 	}
 
 	@Override
@@ -128,5 +142,48 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			}
 		}
 		return result;
+	}
+
+	public Record getTemporarySearchRecord() {
+		MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		try {
+			return searchServices().searchSingleResult(from(schema).where(schema.getMetadata(SavedSearch.USER))
+					.isEqualTo(getCurrentUser())
+					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
+					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(SimpleSearchView.SEARCH_TYPE));
+		} catch (Exception e) {
+			//TODO exception
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	protected void saveTemporarySearch() {
+		Record tmpSearchRecord = getTemporarySearchRecord();
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		}
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporarySimple")
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(sortCriterion)
+				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+				.setSelectedFacets(facetSelections.getNestedMap())
+				.setTemporary(true)
+				.setSearchType(SimpleSearchView.SEARCH_TYPE)
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber);
+		try {
+			recordServices().update(search);
+		} catch (RecordServicesException e) {
+			//TODO remove after tests
+			view.showErrorMessage($("SIMPLE TEMPORARY SAVE ERROR"));
+		}
+		//TODO remove after tests
+		view.showMessage($("SIMPLE TEMPORARY SAVE"));
+		view.navigate().to().simpleSearchReplay(search.getId());
 	}
 }

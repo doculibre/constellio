@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
+import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
@@ -27,9 +28,11 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
@@ -70,8 +73,43 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
+	public void setPageNumber(int pageNumber) {
+	}
+
+	@Override
 	public void suggestionSelected(String suggestion) {
 		// Do nothing
+	}
+
+	private void setSavedSearch(SavedSearch search) {
+		/*
+		view.setSearchExpression(search.getFreeTextSearch());
+		viewfacetSelections.putAll(search.getSelectedFacets());
+		view.setSortCriterion(sortCriterion = search.getSortField();
+		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		schemaTypeCode = search.getSchemaFilter();
+		pageNumber = search.getPageNumber();
+
+		view.setSchemaType(schemaTypeCode);
+		view.setSearchExpression(searchExpression);
+		view.setSearchCriteria(search.getAdvancedSearch());
+
+		/*
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporaryDecommission")
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(getSortCriterion())
+				.setSortOrder(SavedSearch.SortOrder.valueOf(getSortOrder().name()))
+				.setSelectedFacets(getFacetSelections().getNestedMap())
+				.setTemporary(true)
+				.setSearchType(AdvancedSearchView.SEARCH_TYPE)
+				.setSchemaFilter(getSchemaType())
+				.setFreeTextSearch("")
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(1);
+		 */
+
 	}
 
 	public SearchType getSearchType() {
@@ -218,5 +256,35 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		public String getLabel() {
 			return label;
 		}
+	}
+
+	protected void saveTemporarySearch() {
+		Record tmpSearchRecord = getTemporarySearchRecord();
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		}
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporaryDecommission")
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(getSortCriterion())
+				.setSortOrder(SavedSearch.SortOrder.valueOf(getSortOrder().name()))
+				.setSelectedFacets(getFacetSelections().getNestedMap())
+				.setTemporary(true)
+				.setSearchType(AdvancedSearchView.SEARCH_TYPE)
+				.setSchemaFilter(getSchemaType())
+				.setFreeTextSearch("")
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(1);
+		try {
+			recordServices().update(search);
+		} catch (RecordServicesException e) {
+			//TODO remove after tests
+			view.showErrorMessage($("ADVANCE TEMPORARY SAVE ERROR"));
+		}
+		//TODO remove after tests
+		view.showMessage($("ADVANCE TEMPORARY SAVE"));
+		view.navigate().to().advancedSearchReplay(search.getId());
 	}
 }

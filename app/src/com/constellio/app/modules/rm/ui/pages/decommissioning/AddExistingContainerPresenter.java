@@ -78,6 +78,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return 1;
 	}
 
+	@Override
+	public void setPageNumber(int pageNumber) {
+
+	}
+
 	public void backButtonClicked() {
 		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
 	}
@@ -191,5 +196,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		}
 		return rmConfigs;
+	}
+
+	protected void saveTemporarySearch() {
 	}
 }
