@@ -191,10 +191,31 @@ public class FactoriesTestFeatures {
 				public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 
 					if (dummyPasswords) {
-						modelLayerFactory.add(new StatefulService() {
+						if (fakeEncryptionServices) {
+							try {
+								modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
+							} catch (Exception e) {
+								throw new RuntimeException(e);
+							}
+						}
+					}
+
+					if (spiedClasses.isEmpty()) {
+						return modelLayerFactory;
+					} else {
+						return spy(modelLayerFactory);
+					}
+				}
+
+				@Override
+				public AppLayerFactory decorateAppServicesFactory(final AppLayerFactory appLayerFactory) {
+
+					if (dummyPasswords) {
+						appLayerFactory.add(new StatefulService() {
 							@Override
 							public void initialize() {
 								try {
+									ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
 									StringBuilder passwordFileContent = new StringBuilder();
 									for (UserCredential user : users) {
@@ -218,24 +239,8 @@ public class FactoriesTestFeatures {
 
 							}
 						});
-						if (fakeEncryptionServices) {
-							try {
-								modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-							} catch (Exception e) {
-								throw new RuntimeException(e);
-							}
-						}
 					}
 
-					if (spiedClasses.isEmpty()) {
-						return modelLayerFactory;
-					} else {
-						return spy(modelLayerFactory);
-					}
-				}
-
-				@Override
-				public AppLayerFactory decorateAppServicesFactory(AppLayerFactory appLayerFactory) {
 					return spy(appLayerFactory);
 				}
 
@@ -280,7 +285,8 @@ public class FactoriesTestFeatures {
 			decorator.setConfigManagerFolder(configManagerFolder);
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
-			decorator.setPluginsFolder(pluginsFolder).setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
+			decorator.setPluginsFolder(pluginsFolder)
+					.setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
 			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {
