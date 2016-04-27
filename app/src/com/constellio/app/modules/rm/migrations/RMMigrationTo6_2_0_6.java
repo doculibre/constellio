@@ -7,20 +7,20 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo6_2_0_3 implements MigrationScript {
+public class RMMigrationTo6_2_0_6 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "6.2.0.3";
+		return "6.2.0.6";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		new SchemaAlterationsFor6_2_0_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new SchemaAlterationsFor6_2_0_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	public static class SchemaAlterationsFor6_2_0_3 extends MetadataSchemasAlterationHelper {
-		protected SchemaAlterationsFor6_2_0_3(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+	public static class SchemaAlterationsFor6_2_0_6 extends MetadataSchemasAlterationHelper {
+		protected SchemaAlterationsFor6_2_0_6(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
