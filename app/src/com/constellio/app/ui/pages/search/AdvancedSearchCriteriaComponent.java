@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 
@@ -24,6 +25,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -36,6 +38,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
@@ -189,20 +192,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
-
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
-			final LookupRecordField value = new LookupRecordField(metadata.getAllowedReferences().getAllowedSchemaType());
-			value.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
-			value.setWidth("100%");
-			value.setValue((String) criterion.getValue());
-			value.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setValue(value.getValue());
-				}
-			});
+			
+			final Field<?> value = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
 
-			//
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
 			operator.setNullSelectionAllowed(false);
 			operator.addValueChangeListener(new ValueChangeListener() {
@@ -225,6 +218,24 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setSpacing(true);
 
 			return component;
+		}
+
+		private Field<?> buildReferenceEntryField(AllowedReferences references, final Criterion criterion) {
+			String allowedSchemaType = references.getAllowedSchemaType();
+			Set<String> allowedSchemas = references.getAllowedSchemas();
+			String firstAllowedSchema = !allowedSchemas.isEmpty() ? allowedSchemas.iterator().next() : null; 
+			
+			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema);
+			field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
+			field.setWidth("100%");
+			field.setValue((String) criterion.getValue());
+			field.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					criterion.setValue(field.getValue());
+				}
+			});
+			return field;
 		}
 
 		private Component buildStringValueComponent(final Criterion criterion) {

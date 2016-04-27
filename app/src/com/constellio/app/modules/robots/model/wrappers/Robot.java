@@ -22,6 +22,7 @@ public class Robot extends RecordWrapper {
 	public static final String ACTION = "action";
 	public static final String ACTION_PARAMETERS = "actionParameters";
 	public static final String EXCLUDE_PROCESSED_BY_CHILDREN = "excludeProcessedByChildren";
+	public static final String AUTO_EXECUTE = "autoExecute";
 
 	public Robot(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -124,6 +125,15 @@ public class Robot extends RecordWrapper {
 
 	public Robot setExcludeProcessedByChildren(boolean excludeProcessed) {
 		set(EXCLUDE_PROCESSED_BY_CHILDREN, excludeProcessed);
+		return this;
+	}
+
+	public boolean isAutoExecute() {
+		return getBooleanWithDefaultValue(AUTO_EXECUTE, false);
+	}
+
+	public Robot setAutoExecute(boolean autoExecute) {
+		set(AUTO_EXECUTE, autoExecute);
 		return this;
 	}
 
