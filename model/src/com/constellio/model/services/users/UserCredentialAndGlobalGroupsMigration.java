@@ -124,7 +124,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 				transaction = new Transaction();
 				for (UserCredential userCredential : userCredentialBatchesIterator.next()) {
 					String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
-					if (!existingUsers.contains(correctedUsername)) {
+					if (!correctedUsername.isEmpty()) {
 						if (!correctedUsername.equals(userCredential.getUsername())) {
 							for (String collection : userCredential.getCollections()) {
 								List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
@@ -132,11 +132,12 @@ public class UserCredentialAndGlobalGroupsMigration {
 								invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
 							}
 						}
-						transaction.add(toSolrUserCredential(userCredential));
+						transaction.add(toSolrUserCredential(userCredential, existingUsers));
 					}
 				}
 
 				try {
+					transaction.getRecordUpdateOptions().setValidationsEnabled(false);
 					recordServices.execute(transaction);
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
@@ -192,11 +193,20 @@ public class UserCredentialAndGlobalGroupsMigration {
 		}
 	}
 
-	private SolrUserCredential toSolrUserCredential(UserCredential userCredential) {
-		SolrUserCredential newUserCredential = (SolrUserCredential) schemasRecordsServices.newCredential();
+	private SolrUserCredential toSolrUserCredential(UserCredential userCredential, List<String> existingUsers) {
+		String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
+		SolrUserCredential newUserCredential;
+		if (existingUsers.contains(correctedUsername)) {
+			Record record = searchServices.searchSingleResult(from(schemasRecordsServices.credentialSchemaType())
+					.where(schemasRecordsServices.credentialUsername()).isEqualTo(correctedUsername));
+			newUserCredential = (SolrUserCredential) schemasRecordsServices.wrapCredential(record);
+		} else {
+			newUserCredential = (SolrUserCredential) schemasRecordsServices.newCredential();
+		}
+
 		newUserCredential.setFirstName(userCredential.getFirstName());
 		newUserCredential.setLastName(userCredential.getLastName());
-		newUserCredential.setUsername(UserUtils.cleanUsername(userCredential.getUsername()));
+		newUserCredential.setUsername(correctedUsername);
 		newUserCredential.setDn(userCredential.getDn());
 		newUserCredential.setDomain(userCredential.getDomain());
 		newUserCredential.setEmail(userCredential.getEmail());
