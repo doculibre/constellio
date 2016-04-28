@@ -201,6 +201,15 @@ public class Metadata implements DataStoreField {
 		return labels;
 	}
 
+	public Map<String, String> getLabelsByLanguageCodes() {
+		Map<String,String> labelsMap = new HashMap<>();
+		for(Language language: getLabels().keySet()) {
+			labelsMap.put(language.getCode(),getLabels().get(language));
+		}
+		return labelsMap;
+	}
+
+
 	public boolean isEnabled() {
 		return enabled;
 	}

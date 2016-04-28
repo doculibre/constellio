@@ -42,7 +42,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	MetadataList customSchema2Metadatas;
 	private MetadataSchemaTypeValidator validator;
 	@Mock private ValidationErrors validationErrors;
-	@Mock private Map<String, String> parameters;
+	@Mock private Map<String, Object> parameters;
 	@Mock private MetadataSchemaType schemaType;
 	@Mock private MetadataSchema defaultSchema;
 	private MetadataList defaultMetadatas;
@@ -223,7 +223,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
 		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
 
-		Map<String, String> returnedMap = validator.createMapWithCode(aMetadata);
+		Map<String, Object> returnedMap = validator.createMapWithCode(aMetadata);
 
 		assertEquals(aMetadataCode, returnedMap.get("localCode"));
 		assertEquals(1, returnedMap.size());
@@ -235,7 +235,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
 		when(aMetadata.getType()).thenReturn(MetadataValueType.STRING);
 
-		Map<String, String> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);
+		Map<String, Object> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);
 
 		assertEquals(aMetadataCode, returnedMap.get("localCode"));
 		assertEquals("STRING", returnedMap.get("type"));

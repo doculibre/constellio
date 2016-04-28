@@ -369,19 +369,19 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void whenSavingFormMetadatasWithoutEssentialMetadataThenValidationException()
 			throws Exception {
 
-		Map<String, String> anEssentialMetadataParams = asMap(
+		Map<String, Object> anEssentialMetadataParams = asMap(
 				"code", "mySchemaType_default_anEssentialMetadata");
 
-		Map<String, String> aMetadataThatWillOneDayBeEssentialParams = asMap(
+		Map<String, Object> aMetadataThatWillOneDayBeEssentialParams = asMap(
 				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential");
 
-		Map<String, String> aTrivialMetadataParams = asMap(
+		Map<String, Object> aTrivialMetadataParams = asMap(
 				"code", "mySchemaType_default_aTrivialMetadata");
 
-		Map<String, String> titleParams = asMap(
+		Map<String, Object> titleParams = asMap(
 				"code", "mySchemaType_default_title");
 
-		Map<String, String> codeParams = asMap(
+		Map<String, Object> codeParams = asMap(
 				"code", "mySchemaType_default_code");
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
@@ -624,7 +624,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
 	}
 
-	private ValidationError error(final String code, final Map<String, String> params) {
+	private ValidationError error(final String code, final Map<String, Object> params) {
 		return new ValidationError(SchemasDisplayManager.class.getName() + "_" + code, params);
 	}
 
@@ -654,5 +654,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			groups.put(value, labels);
 		}
 		return groups;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
 	}
 }

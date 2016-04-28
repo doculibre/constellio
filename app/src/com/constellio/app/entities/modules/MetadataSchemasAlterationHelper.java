@@ -17,6 +17,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.List;
+
 public abstract class MetadataSchemasAlterationHelper {
 	private static Logger LOGGER = LoggerFactory.getLogger(MetadataSchemasAlterationHelper.class);
 	protected MetadataSchemaTypesBuilder typesBuilder;
@@ -66,37 +68,43 @@ public abstract class MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder applyI18N(MetadataSchemaTypeBuilder schemaType) {
 		String schemaTypeKey = "init." + schemaType.getCode();
-		String schemaTypeLabel = migrationResourcesProvider.getDefaultLanguageString(schemaTypeKey);
-		Language language = migrationResourcesProvider.getLanguage();
-		setLabel(schemaType, schemaTypeLabel, true, language);
 
-		for (MetadataSchemaBuilder schemaBuilder : schemaType.getAllSchemas()) {
-			String schemaKey = schemaTypeKey + "." + schemaBuilder.getLocalCode();
-			String schemaLabel = migrationResourcesProvider.getDefaultLanguageString(schemaKey);
-			setLabel(schemaBuilder, schemaLabel, true, language);
-			for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
+		List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
+		for (String languageCode : collectionLanguages) {
+			Language language = Language.withCode(languageCode);
+			String schemaTypeLabel = migrationResourcesProvider.getString(schemaTypeKey, language.getLocale());
+			addLabel(schemaType, schemaTypeLabel, true, language);
 
-				boolean overwrite = true;
-				String specificKey = "init." + metadataBuilder.getCode().replace("_", ".");
-				String label = migrationResourcesProvider.getDefaultLanguageString(specificKey);
-				if (label.equals(specificKey)) {
-					overwrite = false;
-					String globalKey = "init.allTypes.allSchemas." + metadataBuilder.getLocalCode();
-					label = migrationResourcesProvider.getDefaultLanguageString(globalKey);
-					if (label.equals(globalKey)) {
-						label = $(globalKey);
+			for (MetadataSchemaBuilder schemaBuilder : schemaType.getAllSchemas()) {
+				String schemaKey = schemaTypeKey + "." + schemaBuilder.getLocalCode();
+
+
+				String schemaLabel = migrationResourcesProvider.getString(schemaKey,language.getLocale());
+				addLabel(schemaBuilder, schemaLabel, true, language);
+				for (MetadataBuilder metadataBuilder : schemaBuilder.getMetadatas()) {
+
+					boolean overwrite = true;
+					String specificKey = "init." + metadataBuilder.getCode().replace("_", ".");
+					String label = migrationResourcesProvider.getString(specificKey,language.getLocale());
+					if (label.equals(specificKey)) {
+						overwrite = false;
+						String globalKey = "init.allTypes.allSchemas." + metadataBuilder.getLocalCode();
+						label = migrationResourcesProvider.getString(globalKey,language.getLocale());
+						if (label.equals(globalKey)) {
+							label = $(globalKey,language.getLocale());
+						}
 					}
+					if (label.startsWith("init.")) {
+						label = specificKey;
+					}
+					addLabel(metadataBuilder, label, overwrite, language);
 				}
-				if (label.startsWith("init.")) {
-					label = specificKey;
-				}
-				setLabel(metadataBuilder, label, overwrite, language);
 			}
 		}
 		return schemaType;
 	}
 
-	private void setLabel(MetadataBuilder metadataBuilder, String label, boolean overwrite, Language language) {
+	private void addLabel(MetadataBuilder metadataBuilder, String label, boolean overwrite, Language language) {
 		boolean labelDefined = metadataBuilder.getInheritance() != null || (
 				metadataBuilder.getLabel(language) != null && !metadataBuilder.getLabel(language)
 						.equals(metadataBuilder.getLocalCode()));
@@ -106,7 +114,7 @@ public abstract class MetadataSchemasAlterationHelper {
 		}
 	}
 
-	private void setLabel(MetadataSchemaTypeBuilder schemaType, String label, boolean overwrite, Language language) {
+	private void addLabel(MetadataSchemaTypeBuilder schemaType, String label, boolean overwrite, Language language) {
 		boolean labelDefined =
 				schemaType.getLabel(language) != null && !schemaType.getLabel(language).equals(schemaType.getCode());
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
@@ -114,10 +122,10 @@ public abstract class MetadataSchemasAlterationHelper {
 			schemaType.addLabel(language, label);
 		}
 
-		setLabel(schemaType.getDefaultSchema(), label, overwrite, language);
+		addLabel(schemaType.getDefaultSchema(), label, overwrite, language);
 	}
 
-	private void setLabel(MetadataSchemaBuilder schema, String label, boolean overwrite, Language language) {
+	private void addLabel(MetadataSchemaBuilder schema, String label, boolean overwrite, Language language) {
 		boolean labelDefined = schema.getLabel(language) != null && !schema.getLabel(language).equals(schema.getLocalCode());
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");
 

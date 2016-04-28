@@ -11,8 +11,10 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.ConfigProvider;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -115,7 +117,7 @@ public class RetentionRuleValidator implements RecordValidator {
 
 				if (documentType.getDisposalType() == null || documentType.getDisposalType() == DisposalType.SORT) {
 
-					Map<String, String> parameters = new HashMap<>();
+					Map<String, Object> parameters = new HashMap<>();
 					parameters.put(MISSING_DOCUMENT_TYPE_DISPOSAL_INDEX, "" + i);
 					validationErrors.add(getClass(), MISSING_DOCUMENT_TYPE_DISPOSAL, parameters);
 
@@ -261,7 +263,7 @@ public class RetentionRuleValidator implements RecordValidator {
 
 	private void addCopyRetentionRuleIntegrityError(int index, String field, MetadataSchema schema,
 			ValidationErrors validationErrors) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD, field);
 		parameters.put(COPY_RETENTION_RULE_FIELD_REQUIRED_INDEX, "" + index);
 		parameters.put(RecordMetadataValidator.METADATA_CODE, RetentionRule.COPY_RETENTION_RULES);
@@ -272,11 +274,10 @@ public class RetentionRuleValidator implements RecordValidator {
 	}
 
 	private void addCopyRetentionRuleError(String code, MetadataSchema schema, ValidationErrors validationErrors) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(RecordMetadataValidator.METADATA_CODE, RetentionRule.COPY_RETENTION_RULES);
-
-		parameters.put(RecordMetadataValidator.METADATA_LABEL,
-				schema.getMetadata(RetentionRule.COPY_RETENTION_RULES).getCode());
+		Metadata metadata = schema.getMetadata(RetentionRule.COPY_RETENTION_RULES);
+		parameters.put(RecordMetadataValidator.METADATA_LABEL,metadata.getLabelsByLanguageCodes());
 		validationErrors.add(getClass(), code, parameters);
 
 	}

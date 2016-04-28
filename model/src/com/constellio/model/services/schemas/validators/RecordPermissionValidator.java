@@ -35,7 +35,7 @@ public class RecordPermissionValidator implements Validator<Record> {
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Record record, User user) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(RECORD_ID, record.getId());
 		parameters.put(USERNAME, user.getUsername());
 		validationErrors.add(getClass(), errorCode, parameters);

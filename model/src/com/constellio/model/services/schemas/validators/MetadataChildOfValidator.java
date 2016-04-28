@@ -29,7 +29,7 @@ public class MetadataChildOfValidator implements Validator<Record> {
 			try {
 				record.getNonNullValueIn(parentMetadatas);
 			} catch (RecordImplException_RecordCannotHaveTwoParents e) {
-				validationErrors.add(getClass(), MULTIPLE_PARENTS, new HashMap<String, String>());
+				validationErrors.add(getClass(), MULTIPLE_PARENTS, new HashMap<String, Object>());
 			}
 		}
 	}

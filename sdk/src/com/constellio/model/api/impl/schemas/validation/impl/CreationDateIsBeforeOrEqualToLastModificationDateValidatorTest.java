@@ -58,7 +58,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 
 		validator.validate(record, types, schema, configProvider, validationErrors);
 
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(CreationDateIsBeforeOrEqualToLastModificationDateValidator.CREATION_DATE_MESSAGE_PARAM, date.toString());
 		parameters.put(CreationDateIsBeforeOrEqualToLastModificationDateValidator.MODIFICATION_DATE_MESSAGE_PARAM,
 				dateBefore.toString());

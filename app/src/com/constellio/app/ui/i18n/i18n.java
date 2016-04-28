@@ -23,6 +23,7 @@ public class i18n {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(i18n.class);
 
+	// TODO Use a languageCode->Locale Map instead?
 	private static Locale locale;
 
 	private static Utf8ResourceBundles defaultBundle = null;
@@ -76,7 +77,29 @@ public class i18n {
 		return message;
 	}
 
-	public static String $(String key, Map<String, String> args) {
+	public static String $(String key, Locale locale) {
+		String message = null;
+
+		if (key == null) {
+			return "";
+		}
+		for (Utf8ResourceBundles bundle : getBundles()) {
+
+			ResourceBundle messages = bundle.getBundle(locale);
+
+			if (messages.containsKey(key)) {
+				message = messages.getString(key);
+			}
+		}
+
+		if (message == null) {
+			message = key;
+		}
+
+		return message;
+	}
+
+	public static String $(String key, Map<String, Object> args) {
 		String message = null;
 
 		if (key == null) {
@@ -88,8 +111,17 @@ public class i18n {
 				message = messages.getString(key);
 				if (args != null) {
 					for (String argName : args.keySet()) {
-						String argValue = args.get(argName);
-						message = message.replace("{" + argName + "}", argValue);
+						Object argValue = args.get(argName);
+						if(argValue instanceof String) {
+							message = message.replace("{" + argName + "}", (String)argValue);
+						} else if (argValue instanceof Map) {
+							/*	TODO Manage Map value here:
+								- Must fetch the entry for the current language.
+							 */
+							Map<String,String> labelsMap = (Map<String,String>) argValue;
+							String language = getLocale().getLanguage();
+							message = message.replace("{" + argName + "}", labelsMap.get(language));
+						}
 					}
 				}
 			}
@@ -113,7 +145,7 @@ public class i18n {
 
 	public static String $(ValidationError error) {
 		String key = error.getCode();
-		Map<String, String> args = error.getParameters();
+		Map<String, Object> args = error.getParameters();
 		return $(key, args);
 	}
 

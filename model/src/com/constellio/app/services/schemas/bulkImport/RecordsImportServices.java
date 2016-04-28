@@ -269,7 +269,7 @@ public class RecordsImportServices implements ImportServices {
 					} catch (ValidationException e) {
 						ValidationErrors errorsWithExtraImportParameters = new ValidationErrors();
 						for (ValidationError error : e.getErrors().getValidationErrors()) {
-							Map<String, String> parameters = new HashMap<>(error.getParameters());
+							Map<String, Object> parameters = new HashMap<>(error.getParameters());
 							parameters.put("index", "" + toImport.getIndex());
 							parameters.put("legacyId", toImport.getLegacyId());
 							parameters.put("schemaType", schemaType);
@@ -454,7 +454,7 @@ public class RecordsImportServices implements ImportServices {
 			try {
 				types.getSchemaType(availableSchemaType);
 			} catch (NoSuchSchemaType e) {
-				Map<String, String> parameters = new HashMap<>();
+				Map<String, Object> parameters = new HashMap<>();
 				parameters.put("schemaType", availableSchemaType);
 
 				errors.add(RecordsImportServices.class, INVALID_SCHEMA_TYPE_CODE, parameters);

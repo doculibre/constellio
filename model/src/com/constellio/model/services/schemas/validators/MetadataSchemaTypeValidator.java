@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas.validators;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -56,9 +57,10 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 		}
 	}
 
-	Map<String, String> createMapWithCode(Metadata metadata) {
-		Map<String, String> parameters = new HashMap<String, String>();
+	Map<String, Object> createMapWithCode(Metadata metadata) {
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("localCode", metadata.getLocalCode());
+		parameters.put("label",metadata.getLabelsByLanguageCodes());
 		return parameters;
 	}
 
@@ -85,17 +87,17 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 	}
 
 	private void addAllowedReferencesInNonReferenceMetadataError(Metadata metadata, ValidationErrors validationErrors) {
-		Map<String, String> parameters = createMapWithCodeLabelAndType(metadata);
+		Map<String, Object> parameters = createMapWithCodeLabelAndType(metadata);
 		validationErrors.add(getClass(), ALLOWED_REFERENCES_IN_NON_REFERENCE_METADATA, parameters);
 	}
 
 	private void addNoAllowedReferencesInReferenceMetadataError(Metadata metadata, ValidationErrors validationErrors) {
-		Map<String, String> parameters = createMapWithCode(metadata);
+		Map<String, Object> parameters = createMapWithCode(metadata);
 		validationErrors.add(getClass(), ALLOWED_REFERENCES_IN_REFERENCE_METADATA_NOT_SPECIFIED, parameters);
 	}
 
-	Map<String, String> createMapWithCodeLabelAndType(Metadata metadata) {
-		Map<String, String> parameters = createMapWithCode(metadata);
+	Map<String, Object> createMapWithCodeLabelAndType(Metadata metadata) {
+		Map<String, Object> parameters = createMapWithCode(metadata);
 		parameters.put("type", metadata.getType().toString());
 		return parameters;
 	}

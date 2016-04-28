@@ -16,7 +16,7 @@ public class DecisionValidator implements RecordMetadataValidator<String> {
 	@Override
 	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		if (value != null && !DECISION_APPROVED.equals(DECISION_APPROVED) && !DECISION_REFUSED.equals(value)) {
-			Map<String, String> parameters = new HashMap<>();
+			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("DECISION", value);
 			validationErrors.add(this.getClass(), "INVALID_DECISION_VALUE", parameters);
 		}

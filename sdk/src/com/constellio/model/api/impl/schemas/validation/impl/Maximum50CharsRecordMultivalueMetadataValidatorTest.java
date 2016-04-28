@@ -43,7 +43,7 @@ public class Maximum50CharsRecordMultivalueMetadataValidatorTest extends Constel
 			throws Exception {
 		validator.validate(metadata, valuesOf51Character, configProvider, validationErrors);
 
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("maxSize", "50");
 		parameters.put("wasSize", "51");
 		verify(validationErrors).add(Maximum50CharsRecordMultivalueMetadataValidator.class,

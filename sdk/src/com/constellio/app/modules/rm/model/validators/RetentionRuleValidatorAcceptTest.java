@@ -399,7 +399,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		for (ValidationError error : errors.getValidationErrors()) {
 			error.getCode();
-			for (Entry<String, String> entry : error.getParameters().entrySet()) {
+			for (Entry<String, Object> entry : error.getParameters().entrySet()) {
 				System.out.println(entry.getKey() + " " + entry.getValue());
 			}
 		}

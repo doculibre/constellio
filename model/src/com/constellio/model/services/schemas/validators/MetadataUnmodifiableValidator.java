@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -53,8 +54,9 @@ public class MetadataUnmodifiableValidator implements Validator<Record> {
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Metadata metadata) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
+		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
 		validationErrors.add(getClass(), errorCode, parameters);
 	}
 }

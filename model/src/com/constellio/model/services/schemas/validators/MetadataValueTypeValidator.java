@@ -120,13 +120,13 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 
 	//@formatter:off
 	private void addValidationErrors(Metadata metadata, Object value, ValidationErrors validationErrors, String metadataValueType) {
-		Map<String, String> parameters = createParameters(metadata, value, metadataValueType);
+		Map<String, Object> parameters = createParameters(metadata, value, metadataValueType);
 		validationErrors.add(getClass(), INVALID_VALUE_FOR_METADATA, parameters);
 	}
 	//@formatter:on
 
-	private Map<String, String> createParameters(Metadata metadata, Object value, String expected) {
-		Map<String, String> parameters = new HashMap<>();
+	private Map<String, Object> createParameters(Metadata metadata, Object value, String expected) {
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE_MESSAGE_PARAM, metadata.getCode());
 		parameters.put(EXPECTED_TYPE_MESSAGE_PARAM, expected);
 		parameters.put(WAS_VALUE_CLASS_MESSAGE_PARAM, value == null ? "null" : value.getClass().getName());

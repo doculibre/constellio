@@ -26,9 +26,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.security.Key;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -1034,5 +1032,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		return transaction;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
 	}
 }

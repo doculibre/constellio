@@ -15,14 +15,14 @@ public class ValidationErrors {
 	}
 
 	public void add(Class<?> validatorClass, String code) {
-		add(validatorClass, code, new HashMap<String, String>());
+		add(validatorClass, code, new HashMap<String, Object>());
 	}
 
-	public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
+	public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 		validationErrors.add(new ValidationError(validatorClass.getName() + "_" + code, parameters));
 	}
 
-	public void add(String code, Map<String, String> parameters) {
+	public void add(String code, Map<String, Object> parameters) {
 		validationErrors.add(new ValidationError(code, parameters));
 	}
 

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +45,9 @@ public class MaskedMetadataValidator implements Validator<Record> {
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String value, Metadata metadata) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
+		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
 		parameters.put(MASK, metadata.getInputMask());
 		parameters.put(VALUE, value);
 		validationErrors.add(getClass(), VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK, parameters);

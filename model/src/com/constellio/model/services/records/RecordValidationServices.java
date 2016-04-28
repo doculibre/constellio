@@ -192,7 +192,7 @@ public class RecordValidationServices {
 			final ValidationErrors validationErrors, final Object value) {
 		ValidationErrors validationErrorsWithFailedMetadataParameters = new ValidationErrors() {
 			@Override
-			public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
+			public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 				parameters.put("metadataCode", metadata.getCode());
 				parameters.put("metadataValue", value.toString());
 				validationErrors.add(validatorClass, code, parameters);
@@ -206,7 +206,7 @@ public class RecordValidationServices {
 
 		validator.validate(record, types, schema, configProvider, new ValidationErrors() {
 			@Override
-			public void add(Class<?> validatorClass, String code, Map<String, String> parameters) {
+			public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 				parameters.put("schemaCode", schema.getCode());
 				validationErrors.add(validatorClass, code, parameters);
 			}

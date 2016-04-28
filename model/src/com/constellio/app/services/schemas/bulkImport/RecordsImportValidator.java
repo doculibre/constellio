@@ -1,6 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.data.utils.LangUtils.asMap;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
@@ -140,11 +139,18 @@ public class RecordsImportValidator {
 						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata));
 				Collections.sort(unresolved);
 				if (!unresolved.isEmpty()) {
-					Map<String, String> parameters = asMap(uniqueValueMetadata, unresolved.toString(), "schemaType",
-							schemaType.getCode());
+					Map<String, Object> parameters = new HashMap<>();
+					parameters.put(uniqueValueMetadata, unresolved.toString());
+					parameters.put("schemaType",schemaType.getCode());
 					error(UNRESOLVED_VALUE, parameters);
 				}
 			}
+	}
+
+	private Map<String,Object> asMap(String key,Object value) {
+		Map<String,Object> map = new HashMap<>();
+		map.put(key,value);
+		return map;
 	}
 
 	private void validateValueUnicityOfUniqueMetadata(List<String> uniqueMetadatas, ImportData importData) {
@@ -233,13 +239,13 @@ public class RecordsImportValidator {
 		MetadataSchemaType type = types.getSchemaType(schemaType);
 
 		if (type.getAllMetadatas().getMetadataWithLocalCode(resolver.metadata) == null) {
-			error(INVALID_RESOLVER_METADATA_CODE, importData, asMap("metadata", resolver.metadata));
+			error(INVALID_RESOLVER_METADATA_CODE, importData, asMap("metadata",resolver.metadata));
 		}
 
 		resolverCache.markUniqueValueAsRequired(schemaType, resolver.metadata, resolver.value);
 	}
 
-	private String validateValueType(Metadata metadata, Object value, Map<String, String> parameters) {
+	private String validateValueType(Metadata metadata, Object value, Map<String, Object> parameters) {
 		MetadataValueType type = metadata.getType();
 
 		if (type == MetadataValueType.DATE) {
@@ -309,7 +315,7 @@ public class RecordsImportValidator {
 	private boolean validateValue(int index, String legacyId, Metadata metadata, Object value) {
 
 		String errorCode = null;
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		if (value != null) {
 			if (metadata.isMultivalue()) {
 				if (!(value instanceof List)) {
@@ -347,14 +353,14 @@ public class RecordsImportValidator {
 		return true;
 	}
 
-	private void error(String code, Map<String, String> parameters) {
+	private void error(String code, Map<String, Object> parameters) {
 		if (!parameters.containsKey("schemaType")) {
 			parameters.put("schemaType", schemaType);
 		}
 		errors.add(RecordsImportServices.class, code, parameters);
 	}
 
-	private void error(String code, ImportData importData, Map<String, String> parameters) {
+	private void error(String code, ImportData importData, Map<String, Object> parameters) {
 		parameters.put("index", "" + (importData.getIndex() + 1));
 		parameters.put("legacyId", importData.getLegacyId());
 		parameters.put("schemaType", schemaType);
