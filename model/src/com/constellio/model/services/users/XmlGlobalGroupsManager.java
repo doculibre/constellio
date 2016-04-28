@@ -19,7 +19,7 @@ import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.G
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
 
 public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdatedEventListener {
-	private static final String CONFIG_FILE = "/globalGroups.xml";
+	public static final String CONFIG_FILE = "/globalGroups.xml";
 	private final ConfigManager configManager;
 	Map<String, GlobalGroup> cache = new HashMap<>();
 	Map<String, List<String>> cacheRelation = new HashMap<>();

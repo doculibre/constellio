@@ -444,6 +444,11 @@ public class ZooKeeperConfigManager implements StatefulService, ConfigManager, C
 	}
 
 	@Override
+	public void move(String src, String dest) {
+		throw new RuntimeException("Not supported operation move");
+	}
+
+	@Override
 	public void registerListener(String path, ConfigEventListener listener) {
 		String pathTmp = processPath("/constellio", path);
 
