@@ -104,7 +104,7 @@ public class FormDisplayConfigPresenter extends SingleSchemaBasePresenter<FormDi
 		try {
 			manager.saveSchema(config);
 			String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-			view.navigateTo().listSchema(params);
+			view.navigate().to().listSchema(params);
 		} catch (ValidationRuntimeException e) {
 			view.showErrorMessage($(e.getValidationErrors()));
 		}
@@ -113,6 +113,6 @@ public class FormDisplayConfigPresenter extends SingleSchemaBasePresenter<FormDi
 
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 }

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.model.entities.records.wrappers.Group;

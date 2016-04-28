@@ -68,6 +68,6 @@ public class ImportAuthorizationsFilePresenter extends BasePresenter<ImportFileV
 
 	@Override
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 }

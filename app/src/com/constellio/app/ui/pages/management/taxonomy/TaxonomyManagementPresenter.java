@@ -159,11 +159,11 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordVO.getId());
+		view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editTaxonomyConcept(taxonomy.getCode(), recordVO.getId(), recordVO.getSchema().getCode());
+		view.navigate().to().editTaxonomyConcept(taxonomy.getCode(), recordVO.getId(), recordVO.getSchema().getCode());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
@@ -182,18 +182,18 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void addLinkClicked(String taxonomyCode, String schemaCode) {
-		view.navigateTo().addTaxonomyConcept(taxonomyCode, conceptId, schemaCode);
+		view.navigate().to().addTaxonomyConcept(taxonomyCode, conceptId, schemaCode);
 	}
 
 	public void manageAccessAuthorizationsButtonClicked() {
 		if (conceptId != null) {
-			view.navigateTo().listObjectAccessAuthorizations(conceptId);
+			view.navigate().to().listObjectAccessAuthorizations(conceptId);
 		}
 	}
 
 	public void manageRoleAuthorizationsButtonClicked() {
 		if (conceptId != null) {
-			view.navigateTo().listObjectRoleAuthorizations(conceptId);
+			view.navigate().to().listObjectRoleAuthorizations(conceptId);
 		}
 	}
 
@@ -205,7 +205,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 
 	public void backButtonClicked() {
 		if (conceptId == null) {
-			view.navigateTo().adminModule();
+			view.navigate().to().adminModule();
 		} else {
 			SchemaPresenterUtils taxonomyPresenterUtils = new SchemaPresenterUtils(getCurrentConcept().getSchema().getCode(),
 					view.getConstellioFactories(), view.getSessionContext());
@@ -213,9 +213,9 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 					.split("/");
 			String parentId = pathParts[pathParts.length - 1];
 			if (taxonomyCode.equals(parentId)) {
-				view.navigateTo().taxonomyManagement(taxonomyCode);
+				view.navigate().to().taxonomyManagement(taxonomyCode);
 			} else {
-				view.navigateTo().taxonomyManagement(taxonomyCode, parentId);
+				view.navigate().to().taxonomyManagement(taxonomyCode, parentId);
 			}
 		}
 	}
@@ -268,6 +268,6 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void searchConcept(String freeText) {
-		view.navigateTo().taxonomySearch(taxonomyCode, freeText);
+		view.navigate().to().taxonomySearch(taxonomyCode, freeText);
 	}
 }

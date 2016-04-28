@@ -66,7 +66,7 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().displayCollectionUser(recordId);
+		view.navigate().to().displayCollectionUser(recordId);
 	}
 
 	private RolesManager roleManager() {

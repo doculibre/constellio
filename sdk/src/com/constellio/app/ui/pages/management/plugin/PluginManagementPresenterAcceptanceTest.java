@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.plugin;
 
 import static org.mockito.Mockito.when;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -11,7 +12,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
 public class PluginManagementPresenterAcceptanceTest extends ConstellioTest {
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock PluginManagementView view;
 
 	PluginManagementPresenter presenter;
@@ -23,7 +24,7 @@ public class PluginManagementPresenterAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection());
 		getAppLayerFactory();
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new PluginManagementPresenter(view);
 	}

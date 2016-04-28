@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -40,7 +41,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest {
 
 	@Mock AddEditMetadataExtractorView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 
 	AddEditMetadataExtractorPresenter presenter;
 	SessionContext sessionContext;
@@ -61,6 +62,8 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 				withZeCollection().withConstellioRMModule().withRMTest(rmTestRecords).withAllTestUsers()
 		);
 
+		navigator = new MockedNavigation();
+
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
@@ -68,7 +71,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new AddEditMetadataExtractorPresenter(view);
 	}
@@ -92,7 +95,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 
 		presenter.backButtonClicked();
 
-		verify(view.navigateTo()).listMetadataExtractors();
+		verify(view.navigate().to()).listMetadataExtractors();
 	}
 
 	@Test
@@ -101,7 +104,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 
 		presenter.cancelButtonClicked();
 
-		verify(view.navigateTo()).listMetadataExtractors();
+		verify(view.navigate().to()).listMetadataExtractors();
 	}
 
 	@Test
@@ -134,7 +137,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 
 		presenter.saveButtonClicked();
 
-		verify(view.navigateTo()).listMetadataExtractors();
+		verify(view.navigate().to()).listMetadataExtractors();
 
 		assertThat(types().getMetadata(schemaVo.getCode() + "_" + Email.DESCRIPTION).getPopulateConfigs().getStyles())
 				.isEqualTo(Arrays.asList("style1"));
@@ -165,7 +168,7 @@ public class AddEditMetadataExtractorPresenterAcceptTest extends ConstellioTest 
 
 		presenter.saveButtonClicked();
 
-		verify(view.navigateTo()).listMetadataExtractors();
+		verify(view.navigate().to()).listMetadataExtractors();
 		assertThat(types().getMetadata(metadataCode).getPopulateConfigs().getStyles()).isEqualTo(Arrays.asList("style1"));
 		assertThat(types().getMetadata(metadataCode).getPopulateConfigs().getProperties()).isEqualTo(Arrays.asList("property1"));
 		assertThat(types().getMetadata(metadataCode).getPopulateConfigs().getRegexes()).hasSize(1);

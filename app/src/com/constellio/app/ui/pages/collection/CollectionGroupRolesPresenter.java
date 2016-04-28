@@ -156,7 +156,7 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().displayCollectionGroup(recordId);
+		view.navigate().to().displayCollectionGroup(recordId);
 	}
 
 	@Override

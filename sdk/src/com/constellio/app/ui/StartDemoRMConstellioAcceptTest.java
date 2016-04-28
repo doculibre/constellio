@@ -6,6 +6,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.io.File;
 
+import com.constellio.model.entities.records.wrappers.User;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -95,9 +96,12 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		//getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
 		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		setup();
+
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
 	}
+
+
 
 	private void setup() {
 		givenConfig(RMConfigs.DOCUMENTS_TYPES_CHOICE, DocumentsTypeChoice.ALL_DOCUMENTS_TYPES);

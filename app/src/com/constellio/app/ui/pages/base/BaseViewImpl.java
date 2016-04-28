@@ -289,7 +289,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 	}
 
-	@Override
+	//@Override
 	public CoreViews navigateTo() {
 		return ConstellioUI.getCurrent().navigateTo();
 	}

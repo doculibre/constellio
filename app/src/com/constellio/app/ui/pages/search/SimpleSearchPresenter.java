@@ -66,7 +66,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	public void suggestionSelected(String suggestion) {
-		view.navigateTo().simpleSearch(suggestion);
+		view.navigate().to().simpleSearch(suggestion);
 	}
 
 	@Override

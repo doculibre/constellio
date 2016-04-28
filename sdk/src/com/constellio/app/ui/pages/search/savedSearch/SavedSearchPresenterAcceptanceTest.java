@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -37,7 +38,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	SearchCriterionTestSetup setup = new SearchCriterionTestSetup(zeCollection);
 	CriterionTestRecord shortcuts = setup.getShortcuts();
 
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock private SavedSearchView view;
 
 	private SavedSearchPresenter presenter;
@@ -49,6 +50,9 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
+		navigator = new MockedNavigation();
+
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers());
 		defineSchemasManager().using(setup);
 		adminUser = getModelLayerFactory().newUserServices().getUserInCollection(admin, zeCollection);
@@ -60,7 +64,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		presenter = new SavedSearchPresenter(view);
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 	}
 
 	@Test
@@ -90,14 +94,14 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		assertThat(userSavedSearch1.getTitle()).isEqualTo("New Title");
 		assertThat(userSavedSearch1.isPublic()).isTrue();
-		verify(navigator).listSavedSearches();
+		verify(navigator.to()).listSavedSearches();
 	}
 
 	@Test
 	public void whenDeletingRecordThenRecordDeleted()
 			throws Exception {
-		CoreViews navigator = mock(CoreViews.class);
-		when(view.navigateTo()).thenReturn(navigator);
+		MockedNavigation navigator = new MockedNavigation();
+		when(view.navigate()).thenReturn(navigator);
 
 		SavedSearch userSavedSearch1 = newSavedSearch(adminUser.getId(), false);
 		RecordVO recordVO = toVO(userSavedSearch1);

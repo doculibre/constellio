@@ -84,7 +84,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		report.setReportedMetadata(reportedMetadataList);
 		reportServices.saveReport(getCurrentUser(), report);
 
-		view.navigateTo().listSchemaTypes();
+		view.navigate().to().listSchemaTypes();
 	}
 
 	private List<ReportedMetadata> buildReportedMetadataList(List<MetadataVO> metadataVOs) {
@@ -97,7 +97,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().listSchemaTypes();
+		view.navigate().to().listSchemaTypes();
 	}
 
 	private MetadataSchemasManager getMetadataSchemasManager() {

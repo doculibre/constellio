@@ -55,13 +55,13 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		if (!backPage.endsWith("/") && !parameters.startsWith("/")) {
 			backPage += "/";
 		}
-		view.navigateTo().url(backPage + parameters);
+		view.navigate().to().url(backPage + parameters);
 	}
 
 	public void editButtonClicked(UserCredentialVO entity) {
 		paramsMap.put("username", entity.getUsername());
 		String parameters = getParameters(NavigatorConfigurationService.USER_DISPLAY);
-		view.navigateTo().editUserCredential(parameters);
+		view.navigate().to().editUserCredential(parameters);
 	}
 
 	public GlobalGroupVODataProvider getGlobalGroupVODataProvider() {
@@ -73,14 +73,14 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		paramsMap.put("username", username);
 		paramsMap.put("globalGroupCode", globalGroupCode);
 		String parameters = getParameters(NavigatorConfigurationService.USER_DISPLAY);
-		view.navigateTo().displayGlobalGroup(parameters);
+		view.navigate().to().displayGlobalGroup(parameters);
 	}
 
 	public void editGlobalGroupButtonClicked(String globalGroupCode, String username) {
 		paramsMap.put("globalGroupCode", globalGroupCode);
 		paramsMap.put("username", username);
 		String parameters = getParameters(NavigatorConfigurationService.USER_DISPLAY);
-		view.navigateTo().editGlobalGroup(parameters);
+		view.navigate().to().editGlobalGroup(parameters);
 	}
 
 	public void deleteGlobalGroupButtonClicked(String username, String globalGroupCode) {

@@ -132,7 +132,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 }
