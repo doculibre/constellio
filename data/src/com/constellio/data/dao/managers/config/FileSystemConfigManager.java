@@ -542,6 +542,21 @@ public class FileSystemConfigManager implements StatefulService, ConfigManager {
 		}
 	}
 
+	@Override
+	public void move(String src, String dest) {
+		if (!exist(src)) {
+			throw new NoSuchConfiguration(src);
+		}
+		if (exist(dest)) {
+			throw new ConfigurationAlreadyExists(dest);
+		}
+		File srcFile = new File(configFolder, src);
+		File destFile = new File(configFolder, dest);
+		if (!srcFile.renameTo(destFile)) {
+			throw new ConfigManagerRuntimeException.CannotCompleteOperation("move '" + src + "' to '" + dest + "'", null);
+		}
+	}
+
 	private void validateFileExistance(String path) {
 		if (!exist(path)) {
 			throw new NoSuchConfiguration(path);
