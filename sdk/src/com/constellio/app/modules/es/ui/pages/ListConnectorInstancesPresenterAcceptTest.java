@@ -50,7 +50,6 @@ public class ListConnectorInstancesPresenterAcceptTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
 		navigator = new MockedNavigation();
 		when(view.navigate()).thenReturn(navigator);
-		when(view.navigateTo()).thenReturn(navigator.to(RMViews.class));
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
