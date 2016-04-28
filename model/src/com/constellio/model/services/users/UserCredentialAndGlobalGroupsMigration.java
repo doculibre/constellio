@@ -81,6 +81,22 @@ public class UserCredentialAndGlobalGroupsMigration {
 			schemasRecordsServices = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 
 		}
+
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
+			SchemasRecordsServices collectionSchemas = new SchemasRecordsServices(collection, modelLayerFactory);
+			if (collectionSchemas.userEmail().isDefaultRequirement()) {
+
+				schemasManager.modify(Collection.SYSTEM_COLLECTION, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getSchema(User.DEFAULT_SCHEMA).get(User.EMAIL)
+								.setDefaultRequirement(false).setUniqueValue(false);
+					}
+				});
+				schemasRecordsServices = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+
+			}
+		}
 	}
 
 	public boolean isMigrationRequired() {
@@ -215,7 +231,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 
 				}
 				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-				//transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
+				transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
 				try {
 					recordServices.execute(transaction);
 				} catch (RecordServicesException e) {
