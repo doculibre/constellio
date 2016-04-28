@@ -66,20 +66,22 @@ public class RecordCommentsEditorPresenter implements Serializable {
 		}
 	}
 
-	public void commentsChanged(List<Comment> comments) {
-
-		if (comments != null) {
-
-			User user = presenterUtils.getCurrentUser();
-			ConstellioFactories constellioFactories = editor.getConstellioFactories();
-			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-
-			Record record = presenterUtils.getRecord(recordId);
+	public void commentsChanged(List<Comment> newComments) {
+		if (newComments != null) {
 			Metadata metadata = presenterUtils.getMetadata(metadataCode);
-			record.set(metadata, comments);
-			if (authorizationsServices.canWrite(user, record)) {
-				presenterUtils.addOrUpdate(record);
+			
+			Record record = presenterUtils.getRecord(recordId);
+			List<Comment> existingComments = record.get(metadata);
+			if (!newComments.equals(existingComments)) {
+				User user = presenterUtils.getCurrentUser();
+				ConstellioFactories constellioFactories = editor.getConstellioFactories();
+				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+				AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+
+				record.set(metadata, newComments);
+				if (authorizationsServices.canWrite(user, record)) {
+					presenterUtils.addOrUpdate(record);
+				}
 			}
 		}
 	}

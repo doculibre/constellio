@@ -247,7 +247,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void checkOutButtonClicked() {
-		presenterUtils.checkOutButtonClicked();
+		presenterUtils.checkOutButtonClicked(view.getSessionContext());
 	}
 
 	public void finalizeButtonClicked() {

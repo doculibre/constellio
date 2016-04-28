@@ -21,7 +21,6 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 @SlowTest
 public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 
-
 	@Test
 	public void givenSystemWithEmailServerConfigurationWhenUpdatingFrom5_0_6ThenConfigurationReadOK()
 			throws OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
@@ -71,8 +70,9 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		givenSystemWithEncryptedTokens();
 
 		String validToken = "c84e2c14-f933-4399-aed2-95c538b2b7dd";
-		assertThat(new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml")
-				.getDocument())).doesNotContain(validToken);
+		assertThat(
+				new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml.old")
+						.getDocument())).doesNotContain(validToken);
 
 		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
 		assertThat(adminTokens).contains(validToken);
