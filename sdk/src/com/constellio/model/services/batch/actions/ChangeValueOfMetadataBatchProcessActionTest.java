@@ -17,6 +17,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest {
@@ -36,6 +37,8 @@ public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest 
 
 	@Mock Object changedValue1;
 	@Mock Object changedValue2;
+
+	@Mock RecordProvider recordProvider;
 
 	@Before
 	public void setUp()
@@ -70,7 +73,7 @@ public class ChangeValueOfMetadataBatchProcessActionTest extends ConstellioTest 
 	public void whenExecutingThenCreateTransactionSetForcedChangeFieldsForAllRecords()
 			throws Exception {
 
-		Transaction transaction = action.execute(batch, schemaTypes);
+		Transaction transaction = action.execute(batch, schemaTypes, recordProvider);
 
 		assertThat(transaction.getRecords()).containsOnly(record1, record2, record3);
 		for (Record record : batch) {

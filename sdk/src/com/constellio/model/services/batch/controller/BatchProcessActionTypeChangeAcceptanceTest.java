@@ -37,7 +37,9 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 	BatchProcessesManager batchProcessesManager;
 	RecordServices recordServices;
 
-	String type1Id, type2Id, type3Id;
+	String type1Id = "type1";
+	String type2Id = "type2";
+	String type3Id = "type3";
 
 	OngoingLogicalSearchConditionWithDataStoreFields fromZeSchemaWhereTitle;
 
@@ -53,19 +55,19 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type1Id);
-		assertThat(record("r1").getSchemaCode()).isEqualTo("folder_custom1");
+		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom1");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v2");
 		assertThat(record("r1").get(metadataB)).isEqualTo("v3");
 		assertThat(record("r1").get(metadataC)).isNull();
 
 		assertThat(record("r2").get(type)).isEqualTo(type1Id);
-		assertThat(record("r2").getSchemaCode()).isEqualTo("folder_custom1");
+		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom1");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v2");
 		assertThat(record("r2").get(metadataB)).isEqualTo("v3");
 		assertThat(record("r2").get(metadataC)).isNull();
 
 		assertThat(record("r3").get(type)).isNull();
-		assertThat(record("r3").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r3").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
@@ -74,19 +76,19 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type2Id);
-		assertThat(record("r1").getSchemaCode()).isEqualTo("folder_custom2");
+		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r1").get(metadataB)).isNull();
 		assertThat(record("r1").get(metadataC)).isEqualTo("v4");
 
 		assertThat(record("r2").get(type)).isEqualTo(type2Id);
-		assertThat(record("r2").getSchemaCode()).isEqualTo("folder_custom2");
+		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_custom2");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r2").get(metadataB)).isNull();
 		assertThat(record("r2").get(metadataC)).isEqualTo("v4");
 
 		assertThat(record("r3").get(type)).isNull();
-		assertThat(record("r3").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r3").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
@@ -95,19 +97,19 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type3Id);
-		assertThat(record("r1").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r1").get(metadataB)).isNull();
 		assertThat(record("r1").get(metadataC)).isNull();
 
 		assertThat(record("r2").get(type)).isEqualTo(type3Id);
-		assertThat(record("r2").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r2").get(metadataB)).isNull();
 		assertThat(record("r2").get(metadataC)).isNull();
 
 		assertThat(record("r3").get(type)).isNull();
-		assertThat(record("r3").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r3").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
@@ -116,19 +118,19 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isNull();
-		assertThat(record("r1").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r1").get(metadataB)).isNull();
 		assertThat(record("r1").get(metadataC)).isNull();
 
 		assertThat(record("r2").get(type)).isNull();
-		assertThat(record("r2").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r2").get(metadataB)).isNull();
 		assertThat(record("r2").get(metadataC)).isNull();
 
 		assertThat(record("r3").get(type)).isNull();
-		assertThat(record("r3").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r3").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
@@ -145,19 +147,19 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(record("r1").get(type)).isEqualTo(type1Id);
-		assertThat(record("r1").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r1").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r1").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r1").get(metadataB)).isNull();
 		assertThat(record("r1").get(metadataC)).isNull();
 
 		assertThat(record("r2").get(type)).isEqualTo(type1Id);
-		assertThat(record("r2").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r2").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r2").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r2").get(metadataB)).isNull();
 		assertThat(record("r2").get(metadataC)).isNull();
 
 		assertThat(record("r3").get(type)).isNull();
-		assertThat(record("r3").getSchemaCode()).isEqualTo("folder_default");
+		assertThat(record("r3").getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record("r3").get(metadataA)).isEqualTo("v1");
 		assertThat(record("r3").get(metadataB)).isNull();
 		assertThat(record("r3").get(metadataC)).isNull();
@@ -176,19 +178,19 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 
 		type = zeSchema.metadata("type");
 		metadataA = zeSchema.metadata("metadataA");
-		metadataB = zeSchema.metadata("metadataB");
-		metadataC = zeSchema.metadata("metadataC");
+		metadataB = zeSchema.type().getSchema("custom1").get("metadataB");
+		metadataC = zeSchema.type().getSchema("custom2").get("metadataC");
 		fromZeSchemaWhereTitle = from(zeSchema.type()).where(TITLE);
 
-		Record record1 = new TestRecord(zeSchema, "r1").set(TITLE, "apple");
-		Record record2 = new TestRecord(zeSchema, "r2").set(TITLE, "apple");
-		Record record3 = new TestRecord(zeSchema, "r3").set(TITLE, "orange");
+		Record record1 = recordServices.newRecordWithSchema(zeSchema.instance(), "r1").set(TITLE, "apple");
+		Record record2 = recordServices.newRecordWithSchema(zeSchema.instance(), "r2").set(TITLE, "apple");
+		Record record3 = recordServices.newRecordWithSchema(zeSchema.instance(), "r3").set(TITLE, "orange");
 		recordServices.execute(new Transaction(record1, record2, record3));
 	}
 
 	private BatchProcessAction setTypeTo(String type1Id) {
 		Map<String, Object> values = new HashMap<>();
-		values.put("type", type1Id);
+		values.put("zeSchemaType_default_type", type1Id);
 		return new ChangeValueOfMetadataBatchProcessAction(values);
 	}
 
@@ -211,16 +213,17 @@ public class BatchProcessActionTypeChangeAcceptanceTest extends ConstellioTest {
 		return new MetadataSchemaTypesConfigurator() {
 			@Override
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
-				MetadataSchemaTypeBuilder anotherSchema = schemaTypes.getSchemaType("anotherSchema");
-				schemaTypes.getSchema("zeSchema_default").create("type").defineReferencesTo(anotherSchema);
-				MetadataSchemaBuilder custom1 = schemaTypes.getSchemaType("zeSchema").createCustomSchema("custom1");
-				MetadataSchemaBuilder custom2 = schemaTypes.getSchemaType("zeSchema").createCustomSchema("custom2");
+				MetadataSchemaTypeBuilder anotherSchema = schemaTypes.getSchemaType("anotherSchemaType");
+				schemaTypes.getSchema("zeSchemaType_default").create("type").defineReferencesTo(anotherSchema);
+				MetadataSchemaBuilder custom1 = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("custom1");
+				MetadataSchemaBuilder custom2 = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("custom2");
 
-				schemaTypes.getSchema("zeSchema_default").create("metadataA").setType(STRING).setDefaultValue("v1");
+				schemaTypes.getSchema("zeSchemaType_default").create("metadataA").setType(STRING).setDefaultValue("v1");
 				custom1.get("metadataA").setDefaultValue("v2");
 				custom1.create("metadataB").setType(STRING).setDefaultValue("v3");
 				custom2.create("metadataC").setType(STRING).setDefaultValue("v4");
 
+				anotherSchema.getDefaultSchema().create("code").setType(STRING);
 				if (linkedSchema) {
 					anotherSchema.getDefaultSchema().create("linkedSchema").setType(STRING);
 				}
