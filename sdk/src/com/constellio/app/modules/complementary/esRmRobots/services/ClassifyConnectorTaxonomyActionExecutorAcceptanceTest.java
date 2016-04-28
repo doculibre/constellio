@@ -1009,7 +1009,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				"Document '" + documentAA5TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentAAA6TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentB7JustDeletedTaxoURL + "' supprimé suite à sa classification dans Constellio",
-				"Execution terminée"
+				"Exécution terminée"
 		);
 
 		assertThat(deletedConnectorDocuments.getAllValues()).extracting("id")
