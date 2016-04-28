@@ -1,6 +1,8 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,10 +18,14 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -142,6 +148,37 @@ public class CoreMigrationTo_6_2AcceptanceTest extends ConstellioTest {
 		Map<String, LocalDateTime> tokens = user11Credentials.getAccessTokens();
 		assertThat(tokens.size()).isEqualTo(1);
 		assertThat(user2InCollection2.getAccessTokens()).isEmpty();
+
+	}
+
+	@Test
+	public void givenSystemWithStrangeUsersThenNotAllAreMigrated()
+			throws Exception {
+		givenSystemInState("given_system_in_6.1_with__module__with-strange-users.zip");
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		SchemasRecordsServices system = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, getModelLayerFactory());
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		List<GlobalGroup> globalGroups = system.wrapGlobalGroups(searchServices.search(new LogicalSearchQuery(
+				from(system.globalGroupSchemaType()).returnAll())));
+
+		assertThat(globalGroups).extracting("code", "name").contains(
+				tuple("group1", "Ze group 1")
+		);
+
+		List<UserCredential> userCredentials = system.wrapCredentials(searchServices.search(new LogicalSearchQuery(
+				from(system.credentialSchemaType()).returnAll())));
+
+		assertThat(userCredentials).extracting("username", "firstName", "lastName", "email").contains(
+				tuple("admin", "System", "Admin", "admin@organization.com"),
+				tuple("alice1", "Alice", "Wonderland", "alice@email.com"),
+				tuple("alice2", "Alice", "Wonderland", "alice@email.com"),
+				tuple("charles", "Charles", "Xavier", null),
+				tuple("chuck", null, null, null),
+				tuple("gandalf", "gandalf", "legris", "gandalf.legris@gmail.com")
+		);
+
+		//Verify user and groups is ze collection
 
 	}
 

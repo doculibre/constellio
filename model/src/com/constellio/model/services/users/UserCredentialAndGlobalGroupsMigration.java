@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -27,6 +29,10 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -38,12 +44,14 @@ public class UserCredentialAndGlobalGroupsMigration {
 	RecordServices recordServices;
 	SearchServices searchServices;
 	SchemasRecordsServices schemasRecordsServices;
+	MetadataSchemasManager schemasManager;
 	ConfigManager configManager;
 
 	public UserCredentialAndGlobalGroupsMigration(ModelLayerFactory modelLayerFactory) {
 
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.configManager = dataLayerFactory.getConfigManager();
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		if (configManager.exist(XmlGlobalGroupsManager.CONFIG_FILE)) {
 			this.oldGroupManager = new XmlGlobalGroupsManager(configManager);
@@ -60,6 +68,19 @@ public class UserCredentialAndGlobalGroupsMigration {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.schemasRecordsServices = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+
+		if (schemasRecordsServices.credentialSchema().get(SolrUserCredential.EMAIL).isDefaultRequirement()) {
+
+			schemasManager.modify(Collection.SYSTEM_COLLECTION, new MetadataSchemaTypesAlteration() {
+				@Override
+				public void alter(MetadataSchemaTypesBuilder types) {
+					types.getSchema(SolrUserCredential.DEFAULT_SCHEMA).get(SolrUserCredential.EMAIL)
+							.setDefaultRequirement(false).setUniqueValue(false);
+				}
+			});
+			schemasRecordsServices = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+
+		}
 	}
 
 	public boolean isMigrationRequired() {
@@ -98,7 +119,6 @@ public class UserCredentialAndGlobalGroupsMigration {
 				if (!existingGroups.contains(oldGroup.getCode())) {
 					SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
 					newGroup.setCode(oldGroup.getCode());
-					newGroup.setCode(oldGroup.getCode());
 					newGroup.setName(oldGroup.getName());
 					newGroup.setTitle(oldGroup.getName());
 					newGroup.setStatus(oldGroup.getStatus());
@@ -106,7 +126,9 @@ public class UserCredentialAndGlobalGroupsMigration {
 					if (oldGroup.getParent() != null) {
 						newGroup.setParent(oldGroup.getParent());
 					}
-					transaction.add(newGroup);
+					if (isValid(newGroup)) {
+						transaction.add(newGroup);
+					}
 				}
 			}
 
@@ -132,7 +154,10 @@ public class UserCredentialAndGlobalGroupsMigration {
 								invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
 							}
 						}
-						transaction.add(toSolrUserCredential(userCredential));
+						SolrUserCredential solrUserCredential = toSolrUserCredential(userCredential);
+						if (isValid(solrUserCredential)) {
+							transaction.add(solrUserCredential);
+						}
 					}
 				}
 
@@ -151,6 +176,14 @@ public class UserCredentialAndGlobalGroupsMigration {
 			configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
 			configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
 		}
+	}
+
+	private boolean isValid(SolrGlobalGroup group) {
+		return StringUtils.isNotBlank(group.getCode());
+	}
+
+	private boolean isValid(UserCredential user) {
+		return StringUtils.isNotBlank(user.getUsername());
 	}
 
 	private Map<String, List<String>> newCollectionMapExceptSystem() {
@@ -182,7 +215,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 
 				}
 				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-				transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
+				//transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
 				try {
 					recordServices.execute(transaction);
 				} catch (RecordServicesException e) {
@@ -199,7 +232,9 @@ public class UserCredentialAndGlobalGroupsMigration {
 		newUserCredential.setUsername(UserUtils.cleanUsername(userCredential.getUsername()));
 		newUserCredential.setDn(userCredential.getDn());
 		newUserCredential.setDomain(userCredential.getDomain());
-		newUserCredential.setEmail(userCredential.getEmail());
+		if (EmailValidator.isValid(userCredential.getEmail())) {
+			newUserCredential.setEmail(userCredential.getEmail());
+		}
 		newUserCredential.setAccessTokens(userCredential.getAccessTokens());
 		newUserCredential.setCollections(userCredential.getCollections());
 		newUserCredential.setMsExchDelegateListBL(userCredential.getMsExchDelegateListBL());
