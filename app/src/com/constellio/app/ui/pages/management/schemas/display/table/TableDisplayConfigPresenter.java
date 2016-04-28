@@ -116,7 +116,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 			manager.saveSchema(config);
 
 			String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-			view.navigateTo().listSchema(params);
+			view.navigate().to().listSchema(params);
 		} else {
 			throw new RuntimeException("Configuration only allowed for default schema");
 		}
@@ -124,6 +124,6 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 }

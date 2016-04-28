@@ -41,7 +41,7 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		}
 		}*/
 
-		view.navigateTo().showEvent(eventParameters);
+		view.navigate().to().showEvent(eventParameters);
 	}
 
 	public EventsCategoryDataProvider getEventListDataProvider(EventCategory eventCategory) {

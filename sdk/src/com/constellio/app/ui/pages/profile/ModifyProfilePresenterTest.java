@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,7 +30,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
 
 public class ModifyProfilePresenterTest extends ConstellioTest {
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock ModifyProfileView view;
 	@Mock UserServices userServices;
 	@Mock RecordServicesImpl recordServices;
@@ -50,9 +51,11 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		navigator = new MockedNavigation();
+
 		when(view.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.bobInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		profileVO = new ProfileVO(contentVersionVO, "bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
@@ -95,7 +98,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		verify(bob).setStartTab(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		verify(bob).setDefaultTaxonomy("taxo1");
 		verify(recordServices).update(bobRecord);
-		verify(view.navigateTo()).url(presenter.getParameters());
+		verify(view.navigate().to()).url(presenter.getParameters());
 
 	}
 
@@ -116,7 +119,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 
 		presenter.cancelButtonClicked();
 
-		verify(view.navigateTo()).url(presenter.getParameters());
+		verify(view.navigate().to()).url(presenter.getParameters());
 	}
 
 	@Test

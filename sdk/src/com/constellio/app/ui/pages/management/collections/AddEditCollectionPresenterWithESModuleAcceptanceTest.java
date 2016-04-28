@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,7 +26,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class AddEditCollectionPresenterWithESModuleAcceptanceTest extends ConstellioTest {
 	@Mock
 	AddEditCollectionView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	AddEditCollectionPresenter presenter;
 	Record zeCollectionRecord;
 	private ConstellioModulesManager moduleManager;
@@ -37,11 +38,12 @@ public class AddEditCollectionPresenterWithESModuleAcceptanceTest extends Conste
 				withZeCollection().withConstellioESModule().withAllTestUsers()
 		);
 
+		navigator = new MockedNavigation();
+
 		ConstellioFactories constellioFactories = getConstellioFactories();
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
-		doNothing().when(navigator).listFacetConfiguration();
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new AddEditCollectionPresenter(view, null);
 		moduleManager = getAppLayerFactory().getModulesManager();

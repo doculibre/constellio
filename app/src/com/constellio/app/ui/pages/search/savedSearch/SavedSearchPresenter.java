@@ -67,21 +67,21 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 		savedSearch.setTitle(recordVO.getTitle());
 		savedSearch.setPublic((boolean) recordVO.get(SavedSearch.PUBLIC));
 		addOrUpdate(savedSearch.getWrappedRecord());
-		view.navigateTo().listSavedSearches();
+		view.navigate().to().listSavedSearches();
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
 		delete(getRecord(recordVO.getId()));
-		view.navigateTo().listSavedSearches();
+		view.navigate().to().listSavedSearches();
 	}
 
 	public void searchButtonClicked(RecordVO recordVO) {
 		switch (recordVO.<String>get(SavedSearch.SEARCH_TYPE)) {
 		case SimpleSearchView.SEARCH_TYPE:
-			view.navigateTo().simpleSearchReplay(recordVO.getId());
+			view.navigate().to().simpleSearchReplay(recordVO.getId());
 			break;
 		case AdvancedSearchView.SEARCH_TYPE:
-			view.navigateTo().advancedSearchReplay(recordVO.getId());
+			view.navigate().to().advancedSearchReplay(recordVO.getId());
 			break;
 		}
 	}

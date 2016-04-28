@@ -81,7 +81,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 		try {
 			Record record = toRecord(recordVO);
 			addOrUpdateWithoutUser(record);
-			view.navigateTo().taxonomyManagement(taxonomyCode, conceptId);
+			view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			LOGGER.error(e.getMessage(), e);
@@ -89,7 +89,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 	}
 
 	public void cancelButtonClicked(RecordVO recordVO) {
-		view.navigateTo().taxonomyManagement(taxonomyCode, conceptId);
+		view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 	}
 
 	public String getConceptId() {

@@ -56,12 +56,12 @@ public class SearchSchemaRecordsPresenter extends SingleSchemaBasePresenter<Sear
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displaySchemaRecord(recordVO.getId());
+		view.navigate().to().displaySchemaRecord(recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().editSchemaRecord(schemaCode, recordVO.getId());
+		view.navigate().to().editSchemaRecord(schemaCode, recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
@@ -92,7 +92,7 @@ public class SearchSchemaRecordsPresenter extends SingleSchemaBasePresenter<Sear
 	}
 
 	public void search(String freeText) {
-		view.navigateTo().searchSchemaRecords(schemaCode, freeText);
+		view.navigate().to().searchSchemaRecords(schemaCode, freeText);
 	}
 
 	public String getQueryExpression() {

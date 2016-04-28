@@ -32,25 +32,25 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 		Map<String, String> paramsMap = new HashMap<>();
 		paramsMap.put("schemaTypeCode", schemaTypeVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, paramsMap);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 
 	public void listGroupButtonClicked(MetadataSchemaTypeVO schemaTypeVO) {
 		Map<String, String> paramsMap = new HashMap<>();
 		paramsMap.put("schemaTypeCode", schemaTypeVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.LIST_ONGLET, paramsMap);
-		view.navigateTo().listTabDisplayForm(params);
+		view.navigate().to().listTabDisplayForm(params);
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void reportButtonClicked(MetadataSchemaTypeVO schemaVO) {
 		Map<String, String> paramsMap = new HashMap<>();
 		paramsMap.put("schemaTypeCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.REPORT_DISPLAY_FORM, paramsMap);
-		view.navigateTo().reportDisplayForm(params);
+		view.navigate().to().reportDisplayForm(params);
 	}
 
 	public boolean isSearchableSchema(String schemaCode) {

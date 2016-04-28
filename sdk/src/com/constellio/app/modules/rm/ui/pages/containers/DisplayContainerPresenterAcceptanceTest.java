@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -30,7 +31,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 
 public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 	@Mock DisplayContainerView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private DisplayContainerPresenter presenter;
@@ -56,7 +57,7 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new DisplayContainerPresenter(view);//spy();
 		container = records.getContainerBac01();

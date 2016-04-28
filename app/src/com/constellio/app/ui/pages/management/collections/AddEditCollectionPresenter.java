@@ -192,7 +192,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	private void navigateToBackPage() {
-		view.navigateTo().manageCollections();
+		view.navigate().to().manageCollections();
 	}
 
 	public boolean getActionEdit() {
@@ -212,7 +212,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	public void backButtonClick() {
-		view.navigateTo().manageCollections();
+		view.navigate().to().manageCollections();
 	}
 
 	@Override

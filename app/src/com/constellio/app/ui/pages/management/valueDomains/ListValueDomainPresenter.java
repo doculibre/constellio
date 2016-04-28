@@ -36,7 +36,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	}
 
 	public void displayButtonClicked(MetadataSchemaTypeVO schemaType) {
-		view.navigateTo().listSchemaRecords(schemaType.getCode() + "_default");
+		view.navigate().to().listSchemaRecords(schemaType.getCode() + "_default");
 	}
 
 	public void editButtonClicked(MetadataSchemaTypeVO schemaTypeVO, String newLabel) {
@@ -98,7 +98,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	@Override

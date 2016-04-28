@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,7 +24,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "zeField_s";
 
 	@Mock SimpleSearchView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock LanguageDetectionManager detectionManager;
 	@Mock LogicalSearchQuery query;
 	@Mock Metadata metadata;
@@ -38,7 +39,7 @@ public class SimpleSearchPresenterTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		when(factories.getAppLayerFactory().getMetadataSchemasDisplayManager()).thenReturn(schemasDisplayManager);

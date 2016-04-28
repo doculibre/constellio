@@ -86,6 +86,6 @@ public class EmailServerConfigPresenter extends BasePresenter<EmailServerConfigV
 	}
 
 	public void backButtonClick() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 }

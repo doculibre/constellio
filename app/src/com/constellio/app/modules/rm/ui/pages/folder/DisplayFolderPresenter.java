@@ -483,7 +483,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().previousView();
+		view.navigate().to().previousView();
 	}
 
 	public void addDocumentButtonClicked() {
@@ -528,11 +528,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addAuthorizationButtonClicked() {
-		view.navigateTo().listObjectAccessAuthorizations(folderVO.getId());
+		view.navigate().to().listObjectAccessAuthorizations(folderVO.getId());
 	}
 
 	public void shareFolderButtonClicked() {
-		view.navigateTo().shareContent(folderVO.getId());
+		view.navigate().to().shareContent(folderVO.getId());
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {

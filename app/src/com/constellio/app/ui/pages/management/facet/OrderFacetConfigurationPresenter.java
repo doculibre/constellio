@@ -58,18 +58,18 @@ public class OrderFacetConfigurationPresenter extends BasePresenter<OrderFacetCo
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displayFacetConfiguration(recordVO.getId());
+		view.navigate().to().displayFacetConfiguration(recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
 		Record record = recordServices().getDocumentById(recordVO.getId());
 		recordServices().logicallyDelete(record, User.GOD);
 		recordServices().physicallyDelete(record, User.GOD);
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public void swap(String value, int offset) {
@@ -95,7 +95,7 @@ public class OrderFacetConfigurationPresenter extends BasePresenter<OrderFacetCo
 			throw new RuntimeException("");
 		}
 
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public List<String> getFacetTitle() {

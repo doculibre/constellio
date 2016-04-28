@@ -23,7 +23,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	public void backButtonPressed() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	@Override

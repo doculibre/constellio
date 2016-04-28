@@ -75,11 +75,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	}
 
 	public void displayButtonClicked(RecordVO entity) {
-		view.navigateTo().displayCollectionUser(entity.getId());
+		view.navigate().to().displayCollectionUser(entity.getId());
 	}
 
 	public void accessAuthorizationsButtonClicked(RecordVO entity) {
-		view.navigateTo().listPrincipalAccessAuthorizations(entity.getId());
+		view.navigate().to().listPrincipalAccessAuthorizations(entity.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {
@@ -188,11 +188,11 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	}
 
 	public void displayGlobalGroupButtonClicked(GlobalGroupVO entity) {
-		view.navigateTo().displayCollectionGroup(getGroupId(entity.getCode()));
+		view.navigate().to().displayCollectionGroup(getGroupId(entity.getCode()));
 	}
 
 	public void accessAuthorizationsGlobalGroupButtonClicked(GlobalGroupVO entity) {
-		view.navigateTo().listPrincipalAccessAuthorizations(getGroupId(entity.getCode()));
+		view.navigate().to().listPrincipalAccessAuthorizations(getGroupId(entity.getCode()));
 	}
 
 	public void deleteGlobalGroupButtonClicked(GlobalGroupVO entity) {
@@ -239,15 +239,15 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void permissionsButtonClicked(RecordVO entity) {
-		view.navigateTo().editCollectionUserRoles(entity.getId());
+		view.navigate().to().editCollectionUserRoles(entity.getId());
 	}
 
 	public void permissionsGlobalGroupButtonClicked(GlobalGroupVO entity) {
-		view.navigateTo().editCollectionGroupRoles(getGroupId(entity.getCode()));
+		view.navigate().to().editCollectionGroupRoles(getGroupId(entity.getCode()));
 	}
 
 	public List<RoleVO> getRoles() {

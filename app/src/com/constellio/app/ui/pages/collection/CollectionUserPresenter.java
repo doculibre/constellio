@@ -42,11 +42,11 @@ public class CollectionUserPresenter extends SingleSchemaBasePresenter<Collectio
 	}
 
 	public void authorizationsButtonClicked() {
-		view.navigateTo().listPrincipalAccessAuthorizations(recordId);
+		view.navigate().to().listPrincipalAccessAuthorizations(recordId);
 	}
 
 	public void rolesButtonClicked() {
-		view.navigateTo().editCollectionUserRoles(recordId);
+		view.navigate().to().editCollectionUserRoles(recordId);
 	}
 
 	public boolean isDeletionEnabled() {

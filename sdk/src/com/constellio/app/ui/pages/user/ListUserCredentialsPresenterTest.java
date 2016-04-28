@@ -33,7 +33,7 @@ public class ListUserCredentialsPresenterTest extends ConstellioTest {
 		when(userView.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
 		when(userView.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 
-		when(userView.navigateTo()).thenReturn(navigator);
+		when(userView.navigate().to()).thenReturn(navigator);
 
 		when(userCredentialVO.getUsername()).thenReturn("dakota");
 
@@ -46,7 +46,7 @@ public class ListUserCredentialsPresenterTest extends ConstellioTest {
 
 		presenter.addButtonClicked();
 
-		verify(userView.navigateTo(), times(1)).addUserCredential(NavigatorConfigurationService.USER_LIST + "/");
+		verify(userView.navigate().to(), times(1)).addUserCredential(NavigatorConfigurationService.USER_LIST + "/");
 	}
 
 	//@Test
@@ -55,7 +55,7 @@ public class ListUserCredentialsPresenterTest extends ConstellioTest {
 
 		presenter.editButtonClicked(userCredentialVO);
 
-		verify(userView.navigateTo(), times(1))
+		verify(userView.navigate().to(), times(1))
 				.editUserCredential(
 						NavigatorConfigurationService.USER_LIST + "/" + URLEncoder.encode("username=dakota", "UTF-8"));
 	}
@@ -66,7 +66,7 @@ public class ListUserCredentialsPresenterTest extends ConstellioTest {
 
 		presenter.displayButtonClicked(userCredentialVO);
 
-		verify(userView.navigateTo(), times(1)).displayUserCredential(
+		verify(userView.navigate().to(), times(1)).displayUserCredential(
 				NavigatorConfigurationService.USER_LIST + "/" + URLEncoder.encode("username=dakota", "UTF-8"));
 	}
 }

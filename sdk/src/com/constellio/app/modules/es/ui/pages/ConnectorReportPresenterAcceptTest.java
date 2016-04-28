@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,7 +43,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	@Mock ConnectorReportView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	SessionContext sessionContext;
 	RecordServices recordServices;
 	ConnectorInstance connectorInstance;
@@ -69,7 +70,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 

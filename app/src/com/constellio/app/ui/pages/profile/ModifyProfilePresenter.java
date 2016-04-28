@@ -185,7 +185,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	}
 
 	void navigateToBackPage() {
-		view.navigateTo().url(parameters);
+		view.navigate().to().url(parameters);
 	}
 
 	public boolean canModify() {

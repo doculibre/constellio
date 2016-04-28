@@ -75,7 +75,6 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 
 		navigator = new MockedNavigation();
 		when(view.navigate()).thenReturn(navigator);
-		when(view.navigateTo()).thenReturn(navigator.to(RMViews.class));
 
 		when(rm.getDecommissioningList(ZE_LIST)).thenReturn(list);
 		when(list.getWrappedRecord()).thenReturn(record);

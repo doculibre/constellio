@@ -47,17 +47,17 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displaySchemaRecord(recordVO.getId());
+		view.navigate().to().displaySchemaRecord(recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().editSchemaRecord(schemaCode, recordVO.getId());
+		view.navigate().to().editSchemaRecord(schemaCode, recordVO.getId());
 	}
 
 	public void addLinkClicked() {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().addSchemaRecord(schemaCode);
+		view.navigate().to().addSchemaRecord(schemaCode);
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
@@ -86,6 +86,6 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public void search(String freeText) {
-		view.navigateTo().searchSchemaRecords(getSchemaCode(), freeText);
+		view.navigate().to().searchSchemaRecords(getSchemaCode(), freeText);
 	}
 }

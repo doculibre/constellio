@@ -68,26 +68,26 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		parameters.put("schemaCode", getSchemaCode());
 		parameters.put("metadataCode", "");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-		view.navigateTo().addMetadata(params);
+		view.navigate().to().addMetadata(params);
 	}
 
 	public void editButtonClicked(MetadataVO metadataVO) {
 		parameters.put("schemaCode", getSchemaCode());
 		parameters.put("metadataCode", metadataVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-		view.navigateTo().editMetadata(params);
+		view.navigate().to().editMetadata(params);
 	}
 
 	public void backButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 
 	public void deleteButtonClicked(MetadataVO entity) {
 		try {
 			metadataDeletionService().deleteMetadata(entity.getCode());
 			String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-			view.navigateTo().listSchemaMetadata(params);
+			view.navigate().to().listSchemaMetadata(params);
 
 		} catch (MetadataDeletionException e) {
 			view.showErrorMessage(getAppropriateMessage(e));
