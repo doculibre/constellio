@@ -39,7 +39,7 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 					Metadata metadata = schemaTypes.getMetadata(metadataCode);
 
 					record.set(metadata, entry.getValue());
-					if (metadata.getCode().equals("type") || metadata.getType() == REFERENCE) {
+					if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
 						MetadataSchema referencedSchema = schemaTypes.getSchemaType(metadata
 								.getAllowedReferences().getTypeWithAllowedSchemas()).getDefaultSchema();
 						if (referencedSchema.hasMetadataWithCode("linkedSchema")) {

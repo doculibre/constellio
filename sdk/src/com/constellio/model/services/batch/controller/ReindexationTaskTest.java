@@ -1,6 +1,7 @@
 package com.constellio.model.services.batch.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -59,8 +60,6 @@ public class ReindexationTaskTest extends ConstellioTest {
 
 	@Mock TaskList taskList;
 
-	@Mock RecordProvider recordProvider;
-
 	private BatchProcessTask reindexationTask;
 
 	@Before
@@ -103,7 +102,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 	public void whenExecutingTaskThenExecuteActionAndExecuteTransaction()
 			throws Exception {
 
-		when(action.execute(batch, metadataSchemaTypes, recordProvider)).thenReturn(transaction);
+		when(action.execute(eq(batch), eq(metadataSchemaTypes), any(RecordProvider.class))).thenReturn(transaction);
 
 		reindexationTask.execute(batch, errorList);
 
@@ -115,7 +114,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 	public void givenNullTransactionThenDoNotExecuteItAndDoNotMarkRecordsAsErrors()
 			throws Exception {
 
-		when(action.execute(batch, metadataSchemaTypes, recordProvider)).thenReturn(null);
+		when(action.execute(eq(batch), eq(metadataSchemaTypes), any(RecordProvider.class))).thenReturn(null);
 
 		reindexationTask.execute(batch, errorList);
 
@@ -127,7 +126,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 	public void givenRecordServicesExceptionWhenExecutingTransactionThenRecordIdInErrorList()
 			throws Exception {
 
-		when(action.execute(batch, metadataSchemaTypes, recordProvider)).thenReturn(transaction);
+		when(action.execute(eq(batch), eq(metadataSchemaTypes), any(RecordProvider.class))).thenReturn(transaction);
 		doThrow(RecordServicesException.class).when(recordServices).executeWithImpactHandler(transaction, handler);
 
 		reindexationTask.execute(batch, errorList);
@@ -139,7 +138,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 	public void givenRecordServicesRuntimeExceptionWhenExecutingTransactionThenRecordIdInErrorList()
 			throws Exception {
 
-		when(action.execute(batch, metadataSchemaTypes, recordProvider)).thenReturn(transaction);
+		when(action.execute(eq(batch), eq(metadataSchemaTypes), any(RecordProvider.class))).thenReturn(transaction);
 		doThrow(RecordServicesRuntimeException.class).when(recordServices).executeWithImpactHandler(transaction, handler);
 
 		reindexationTask.execute(batch, errorList);
@@ -150,7 +149,7 @@ public class ReindexationTaskTest extends ConstellioTest {
 	@Test
 	public void givenExceptionWhenExecutingActionThenErrorListNotEmpty()
 			throws Exception {
-		doThrow(RuntimeException.class).when(action).execute(batch, metadataSchemaTypes, recordProvider);
+		doThrow(RuntimeException.class).when(action).execute(eq(batch), eq(metadataSchemaTypes), any(RecordProvider.class));
 
 		reindexationTask.execute(batch, errorList);
 
