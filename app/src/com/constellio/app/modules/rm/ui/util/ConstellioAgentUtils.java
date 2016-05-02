@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.ui.util;
 
+import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
+import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
+import static com.constellio.app.utils.HttpRequestUtils.isWindows;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -47,7 +51,7 @@ public class ConstellioAgentUtils {
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
-		return HttpRequestUtils.isWindows(request) || HttpRequestUtils.isMacOsX(request) || HttpRequestUtils.isLocalhost(request);
+		return request != null && (isWindows(request) || isMacOsX(request) || isLocalhost(request));
 	}
 
 	public static String getAgentBaseURL() {
@@ -116,7 +120,12 @@ public class ConstellioAgentUtils {
 		return getAgentURL(recordVO, contentVersionVO, null, sessionContext);
 	}
 
-	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request, SessionContext sessionContext) {
+	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, SessionContext sessionContext) {
+		return getAgentURL(recordVO, contentVersionVO, null, sessionContext);
+	}
+
+	public static String getAgentURL(RecordVO recordVO, ContentVersionVO contentVersionVO, HttpServletRequest request,
+			SessionContext sessionContext) {
 		String agentURL;
 		if (recordVO != null && contentVersionVO != null && isAgentSupported(request)) {
 			// FIXME Should not obtain ConstellioFactories through singleton
@@ -142,11 +151,11 @@ public class ConstellioAgentUtils {
 		}
 		return addConstellioProtocol(agentURL, request);
 	}
-	
+
 	public static String getAgentSmbURL(String smbPath) {
 		return getAgentSmbURL(smbPath, null);
 	}
-	
+
 	public static String getAgentSmbURL(String smbPath, HttpServletRequest request) {
 		String agentSmbURL;
 
@@ -154,7 +163,7 @@ public class ConstellioAgentUtils {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
 		String passthroughPath;
-		if (HttpRequestUtils.isWindows(request)) {
+		if (isWindows(request)) {
 			passthroughPath = StringUtils.replace(smbPath, "/", "\\");
 			passthroughPath = StringUtils.removeStart(passthroughPath, "smb:");
 		} else {
@@ -167,7 +176,7 @@ public class ConstellioAgentUtils {
 		sb.append("/passthrough/");
 		sb.append(passthroughPath);
 		agentSmbURL = sb.toString();
-		
+
 		return addConstellioProtocol(agentSmbURL, request);
 	}
 
@@ -244,7 +253,7 @@ public class ConstellioAgentUtils {
 	}
 
 	private static final MetadataSchemaTypes types(SessionContext sessionContext) {
-		String collectionName = sessionContext.getCurrentCollection(); 
+		String collectionName = sessionContext.getCurrentCollection();
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		return metadataSchemasManager.getSchemaTypes(collectionName);
@@ -261,13 +270,13 @@ public class ConstellioAgentUtils {
 				request = VaadinServletService.getCurrentServletRequest();
 			}
 			String encoding;
-			if (HttpRequestUtils.isWindows(request)) {
+			if (isWindows(request)) {
 				encoding = "cp1252";
 			} else {
 				// TODO Validate after implementing the agent for other OS.
 				encoding = "UTF-8";
 			}
-			String encodedURL; 
+			String encodedURL;
 			try {
 				encodedURL = URLEncoder.encode(url, encoding);
 			} catch (UnsupportedEncodingException e) {
@@ -287,7 +296,7 @@ public class ConstellioAgentUtils {
 		}
 		return agentURL;
 	}
-	
+
 	public static String getAgentDownloadURL() {
 		return AGENT_DOWNLOAD_URL;
 	}

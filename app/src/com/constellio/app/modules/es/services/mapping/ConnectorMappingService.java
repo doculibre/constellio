@@ -111,7 +111,7 @@ public class ConnectorMappingService {
 			TargetParams params = new TargetParams(
 					code, field.getLabel(), field.getType(), targets.containsKey(MAPPING_METADATA_PREFIX + code));
 			MappingParams mapping = new MappingParams(field.getId(), params);
-			mapping.setActive(fields.isEmpty() || fields.contains(field.getId()));
+			mapping.setActive(fields.contains(field.getId()));
 			result.add(mapping);
 		}
 		return Collections.unmodifiableList(result);

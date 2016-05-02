@@ -75,6 +75,12 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	}
 
+	public BatchProcess addPendingBatchProcess(LogicalSearchCondition condition, BatchProcessAction action) {
+		BatchProcess batchProcess = addBatchProcessInStandby(condition, action);
+		markAsPending(batchProcess);
+		return get(batchProcess.getId());
+	}
+
 	public BatchProcess addBatchProcessInStandby(LogicalSearchCondition condition, BatchProcessAction action) {
 		String collection = condition.getCollection();
 		String id = newBatchProcessId();
