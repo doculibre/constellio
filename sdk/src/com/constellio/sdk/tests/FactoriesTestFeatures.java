@@ -191,33 +191,6 @@ public class FactoriesTestFeatures {
 				public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 
 					if (dummyPasswords) {
-						modelLayerFactory.add(new StatefulService() {
-							@Override
-							public void initialize() {
-								try {
-									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
-									StringBuilder passwordFileContent = new StringBuilder();
-									for (UserCredential user : users) {
-										passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
-									}
-									File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-											.getSettingsFileSystemBaseFolder();
-									File authenticationFile = new File(settingsFolder, "authentification.properties");
-									try {
-										FileUtils.write(authenticationFile, passwordFileContent.toString());
-									} catch (IOException e) {
-										throw new RuntimeException(e);
-									}
-								} catch (Exception e) {
-									//e.printStackTrace();
-								}
-							}
-
-							@Override
-							public void close() {
-
-							}
-						});
 						if (fakeEncryptionServices) {
 							try {
 								modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
@@ -236,6 +209,36 @@ public class FactoriesTestFeatures {
 
 				@Override
 				public AppLayerFactory decorateAppServicesFactory(AppLayerFactory appLayerFactory) {
+
+					final ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+					appLayerFactory.add(new StatefulService() {
+						@Override
+						public void initialize() {
+							try {
+								List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
+								StringBuilder passwordFileContent = new StringBuilder();
+								for (UserCredential user : users) {
+									passwordFileContent.append(user.getUsername() + "=W6ph5Mm5Pz8GgiULbPgzG37mj9g\\=\n");
+								}
+								File settingsFolder = modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+										.getSettingsFileSystemBaseFolder();
+								File authenticationFile = new File(settingsFolder, "authentification.properties");
+								try {
+									FileUtils.write(authenticationFile, passwordFileContent.toString());
+								} catch (IOException e) {
+									throw new RuntimeException(e);
+								}
+							} catch (Exception e) {
+								//e.printStackTrace();
+							}
+						}
+
+						@Override
+						public void close() {
+
+						}
+					});
+
 					return spy(appLayerFactory);
 				}
 
@@ -280,7 +283,8 @@ public class FactoriesTestFeatures {
 			decorator.setConfigManagerFolder(configManagerFolder);
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
-			decorator.setPluginsFolder(pluginsFolder).setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
+			decorator.setPluginsFolder(pluginsFolder)
+					.setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
 			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {
