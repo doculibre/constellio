@@ -13288,6 +13288,10 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 320px;
 }
 
+.constellio .ui-with-top-menu[width-range~="1101px-"] .connector-report-table .v-scrollable {
+	overflow-x: auto;
+}
+
 .constellio .ui-with-top-menu[width-range~="801-1100px"] .valo-menu-title {
 	padding: 0;
 	border: none;
@@ -13338,6 +13342,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .ui-with-top-menu[width-range~="801-1100px"] .v-slot-suggestions-summary-results {
 	padding-right: 320px;
+}
+
+.constellio .ui-with-top-menu[width-range~="801-1100px"] .connector-report-table .v-scrollable {
+	overflow-x: auto;
 }
 
 .constellio .ui-with-top-menu[width-range~="0-800px"] .base-display .v-slot-display-caption {

@@ -14,6 +14,8 @@ public interface Record extends Serializable, CollectionObject {
 	public static final String PUBLIC_TOKEN = "__public__";
 
 	public String getId();
+	
+	String getTitle();
 
 	public long getVersion();
 

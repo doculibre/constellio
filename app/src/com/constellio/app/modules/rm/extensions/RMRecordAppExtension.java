@@ -20,6 +20,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RMRecordAppExtension extends RecordAppExtension {
+	
 	private static final String IMAGES_DIR = "images";
 
 	private final String collection;

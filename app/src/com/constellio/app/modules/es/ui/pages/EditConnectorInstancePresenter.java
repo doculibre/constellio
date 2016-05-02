@@ -37,7 +37,7 @@ public class EditConnectorInstancePresenter extends AddEditConnectorInstancePres
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-		view.navigate().to(ESViews.class).listConnectorInstances();
+		view.navigate().to(ESViews.class).displayConnectorInstance(record.getId());
 	}
 
 	@Override

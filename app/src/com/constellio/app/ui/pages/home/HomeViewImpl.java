@@ -34,6 +34,7 @@ import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -281,4 +282,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			return super.getContainerProperty(itemId, propertyId);
 		}
 	}
+
+	@Override
+	public void openAgentURL(String agentURL) {
+		Page.getCurrent().open(agentURL, null);
+	}
+	
 }

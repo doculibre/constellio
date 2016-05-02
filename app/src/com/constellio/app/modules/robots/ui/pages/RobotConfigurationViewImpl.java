@@ -25,6 +25,8 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 
@@ -141,6 +143,16 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				Page.getCurrent().open(resource, null, false);
+			}
+		};
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
 			}
 		};
 	}
