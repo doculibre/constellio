@@ -94,45 +94,20 @@ public class UserCredentialAndGlobalGroupsMigration {
 
 		try {
 
-			for (GlobalGroup oldGroup : oldGroupManager.getAllGroups()) {
-				if (!existingGroups.contains(oldGroup.getCode())) {
-					SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
-					newGroup.setCode(oldGroup.getCode());
-					newGroup.setCode(oldGroup.getCode());
-					newGroup.setName(oldGroup.getName());
-					newGroup.setTitle(oldGroup.getName());
-					newGroup.setStatus(oldGroup.getStatus());
-					newGroup.setUsersAutomaticallyAddedToCollections(oldGroup.getUsersAutomaticallyAddedToCollections());
-					if (oldGroup.getParent() != null) {
-						newGroup.setParent(oldGroup.getParent());
-					}
-					transaction.add(newGroup);
-				}
-			}
-
-			try {
-				recordServices.execute(transaction);
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
-
-			Iterator<List<UserCredential>> userCredentialBatchesIterator = new BatchBuilderIterator<>(
-					oldUserManager.getUserCredentials().iterator(), 100);
-
-			Map<String, List<String>> invalidUsernameListMappedByCollection = newCollectionMapExceptSystem();
-			while (userCredentialBatchesIterator.hasNext()) {
-				transaction = new Transaction();
-				for (UserCredential userCredential : userCredentialBatchesIterator.next()) {
-					String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
-					if (!existingUsers.contains(correctedUsername)) {
-						if (!correctedUsername.equals(userCredential.getUsername())) {
-							for (String collection : userCredential.getCollections()) {
-								List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
-								invalidUsersForCollection.add(userCredential.getUsername());
-								invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
-							}
+			if(oldGroupManager != null){
+				for (GlobalGroup oldGroup : oldGroupManager.getAllGroups()) {
+					if (!existingGroups.contains(oldGroup.getCode())) {
+						SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
+						newGroup.setCode(oldGroup.getCode());
+						newGroup.setCode(oldGroup.getCode());
+						newGroup.setName(oldGroup.getName());
+						newGroup.setTitle(oldGroup.getName());
+						newGroup.setStatus(oldGroup.getStatus());
+						newGroup.setUsersAutomaticallyAddedToCollections(oldGroup.getUsersAutomaticallyAddedToCollections());
+						if (oldGroup.getParent() != null) {
+							newGroup.setParent(oldGroup.getParent());
 						}
-						transaction.add(toSolrUserCredential(userCredential));
+						transaction.add(newGroup);
 					}
 				}
 
@@ -142,14 +117,49 @@ public class UserCredentialAndGlobalGroupsMigration {
 					throw new RuntimeException(e);
 				}
 			}
-			correctUsernameInAllCollections(invalidUsernameListMappedByCollection);
+
+
+			if(oldUserManager != null){
+				Iterator<List<UserCredential>> userCredentialBatchesIterator = new BatchBuilderIterator<>(
+						oldUserManager.getUserCredentials().iterator(), 100);
+
+				Map<String, List<String>> invalidUsernameListMappedByCollection = newCollectionMapExceptSystem();
+				while (userCredentialBatchesIterator.hasNext()) {
+					transaction = new Transaction();
+					for (UserCredential userCredential : userCredentialBatchesIterator.next()) {
+						String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
+						if (!existingUsers.contains(correctedUsername)) {
+							if (!correctedUsername.equals(userCredential.getUsername())) {
+								for (String collection : userCredential.getCollections()) {
+									List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
+									invalidUsersForCollection.add(userCredential.getUsername());
+									invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
+								}
+							}
+							transaction.add(toSolrUserCredential(userCredential));
+						}
+					}
+
+					try {
+						recordServices.execute(transaction);
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+				}
+				correctUsernameInAllCollections(invalidUsernameListMappedByCollection);
+			}
 
 		} finally {
-			oldUserManager.close();
-			oldGroupManager.close();
+			if(oldUserManager != null){
+				oldUserManager.close();
+				configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
+			}
 
-			configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
-			configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
+			if(oldGroupManager != null){
+				oldGroupManager.close();
+				configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
+			}
+
 		}
 	}
 
