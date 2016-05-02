@@ -109,6 +109,7 @@ public class CollectionsManager implements StatefulService {
 			createAdminUser();
 		}
 
+
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
 			for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {

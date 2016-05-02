@@ -14,7 +14,11 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.hwpf.HWPFDocumentCore;
+import org.apache.poi.hwpf.HWPFOldDocument;
+import org.apache.poi.hwpf.OldWordFileFormatException;
 import org.apache.poi.hwpf.model.StyleDescription;
+import org.apache.poi.hwpf.model.StyleSheet;
 import org.apache.poi.hwpf.usermodel.Paragraph;
 import org.apache.poi.hwpf.usermodel.Range;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -143,8 +147,8 @@ public class FileParser {
 		Map<String, List<String>> styles = null;
 		try {
 			styles = getStylesDoc(inputStreamFactory, type);
-		} catch (IOException e) {
-			throw new FileParserException_CannotExtractStyles(e, type);
+		} catch (Throwable t) {
+			throw new FileParserException_CannotExtractStyles(t, type);
 		}
 		return new ParsedContent(parsedContent, language, type, length, properties, styles);
 
@@ -241,33 +245,42 @@ public class FileParser {
 		KeyListMap<String, String> styles = new KeyListMap<>();
 
 		POIFSFileSystem fis = new POIFSFileSystem(inputStream);
-		HWPFDocument wdDoc = new HWPFDocument(fis);
-
-		Range range = wdDoc.getRange();
-		int parasSize = range.numParagraphs();
-		int maxPara = 20;
-		if (range.numParagraphs() > maxPara) {
-			parasSize = maxPara;
+		
+		HWPFDocumentCore wdDoc;
+		try {
+			wdDoc = new HWPFDocument(fis);
+		} catch (OldWordFileFormatException e) {
+			wdDoc = new HWPFOldDocument(fis);
 		}
 
-		for (int i = 0; i < parasSize; i++) {
-			Paragraph p = range.getParagraph(i);
+		StyleSheet styleSheet = wdDoc.getStyleSheet();
+		if (styleSheet != null) {
+			Range range = wdDoc.getRange();
+			
+			int parasSize = range.numParagraphs();
+			int maxPara = 20;
+			if (range.numParagraphs() > maxPara) {
+				parasSize = maxPara;
+			}
+			for (int i = 0; i < parasSize; i++) {
+				Paragraph p = range.getParagraph(i);
+	
+				short styleIndex = p.getStyleIndex();
+				StyleDescription style = styleSheet.getStyleDescription(styleIndex);
+				String styleName = style.getName();
 
-			StyleDescription style = wdDoc.getStyleSheet().getStyleDescription(p.getStyleIndex());
-			String styleName = style.getName();
-
-			if (styleName != null) {
-				styleName = styleName.toLowerCase().replace(" ", "");
-				if (!excludedStyles.contains(styleName)) {
-					String text = p.text().trim();
-					if (StringUtils.isNotBlank(text)) {
-						if (!styles.get(styleName).contains(text)) {
-							styles.add(styleName, text);
+				if (styleName != null) {
+					styleName = styleName.toLowerCase().replace(" ", "");
+					if (!excludedStyles.contains(styleName)) {
+						String text = p.text().trim();
+						if (StringUtils.isNotBlank(text)) {
+							if (!styles.get(styleName).contains(text)) {
+								styles.add(styleName, text);
+							}
 						}
 					}
 				}
 			}
-
 		}
 
 		return styles.getNestedMap();

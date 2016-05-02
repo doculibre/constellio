@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.reports.DryRunReportBuilderFactory;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
@@ -84,4 +85,9 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 			}
 		};
 	}
+	
+	public void backButtonClicked() {
+		view.navigate().to(RobotViews.class).listRootRobots();
+	}
+	
 }

@@ -7,8 +7,12 @@ import java.util.List;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.ui.components.actionParameters.DynamicParametersField;
 import com.constellio.app.modules.robots.ui.components.criteria.AdvancedSearchCriteriaField;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.Choice;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -164,6 +168,7 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 	}
 
 	public static class RobotMetadataFieldFactory extends OverridingMetadataFieldFactory<AddEditRobotPresenter> {
+		
 		public RobotMetadataFieldFactory(AddEditRobotPresenter presenter) {
 			super(presenter);
 		}

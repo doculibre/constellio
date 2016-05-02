@@ -771,8 +771,13 @@ public class RecordImpl implements Record {
 
 	@Override
 	public String getIdTitle() {
-		String title = get(Schemas.TITLE);
-		return id + (title == null ? "" : (":" + get(Schemas.TITLE)));
+		String title = getTitle();
+		return id + (title == null ? "" : (":" + title));
+	}
+	
+	@Override
+	public String getTitle() {
+		return get(Schemas.TITLE);
 	}
 
 	@Override
