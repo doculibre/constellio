@@ -466,7 +466,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 		return folderSchema;
 	}
-	
+
 	private void setOpeningDateFromCreatedOnOrLastModifiedIfNull(Folder rmFolder) {
 		if (rmFolder.getOpeningDate() == null) {
 			LocalDateTime connectorFolderCreatedOn = connectorFolder.getCreatedOn();
@@ -495,7 +495,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (rmFolder.getOpeningDate() == null && params.getDefaultOpenDate() != null) {
+		if (params.getDefaultOpenDate() != null) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
 	}
@@ -598,13 +598,15 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			 -------------------------------------------------------*/
 			try {
 				// TODO call stuff to manage multiple versions
-				List<String> availableVersions = connectorServices(connectorDocument).getAvailableVersions(connectorDocument.getConnector(),connectorDocument);
-				for(String availableVersion: availableVersions) {
-					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
+				List<String> availableVersions = connectorServices(connectorDocument)
+						.getAvailableVersions(connectorDocument.getConnector(), connectorDocument);
+				for (String availableVersion : availableVersions) {
+					InputStream versionStream = connectorServices(connectorDocument)
+							.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
-					addVersionToDocument(connectorDocument,majorVersions,newVersionDataSummary,document);
+					addVersionToDocument(connectorDocument, majorVersions, newVersionDataSummary, document);
 				}
-			} catch(UnsupportedOperationException ex) {
+			} catch (UnsupportedOperationException ex) {
 				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
 						connectorDocument, CLASSIFY_DOCUMENT);
 
@@ -622,7 +624,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	}
 
-	private void addVersionToDocument(ConnectorDocument connectorDocument, Boolean majorVersions, ContentVersionDataSummary newVersionDataSummary, Document document) {
+	private void addVersionToDocument(ConnectorDocument connectorDocument, Boolean majorVersions,
+			ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
 				document.getContent().updateContentWithName(
