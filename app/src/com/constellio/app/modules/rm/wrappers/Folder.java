@@ -83,7 +83,7 @@ public class Folder extends RMObject {
 	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
-
+	public static final String CREATED_BY_ROBOT = "createdByRobot";
 	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	public static final String CALENDAR_YEAR = "calendarYear";
 
