@@ -136,6 +136,11 @@ public class ContentManager implements StatefulService {
 		closing.set(true);
 	}
 
+	public Content createWithVersion(User user, String filename, ContentVersionDataSummary newVersion, String version) {
+		String uniqueId = uniqueIdGenerator.next();
+		return ContentImpl.createWithVersion(uniqueId, user, filename, newVersion, version, false);
+	}
+
 	public Content createMajor(User user, String filename, ContentVersionDataSummary newVersion) {
 		String uniqueId = uniqueIdGenerator.next();
 		return ContentImpl.create(uniqueId, user, filename, newVersion, true, false);
@@ -440,8 +445,8 @@ public class ContentManager implements StatefulService {
 		deleteUnreferencedContents(RecordsFlushing.NOW());
 	}
 
-
 	AtomicInteger counter = new AtomicInteger();
+
 	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {
 		LOGGER.info("deleteUnreferencedContents " + counter.incrementAndGet());
 		List<RecordDTO> potentiallyDeletableContentMarkers;

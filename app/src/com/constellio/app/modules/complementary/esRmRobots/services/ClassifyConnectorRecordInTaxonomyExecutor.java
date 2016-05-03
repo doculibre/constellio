@@ -445,8 +445,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		//StringBuilder builder = new StringBuilder(fullPath);
 		int lastSlash = fullPath.lastIndexOf("/", fullPath.length() - 2);
 		return fullPath.substring(0, lastSlash);
-//        builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
-//        return builder.toString();
+		//        builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
+		//        return builder.toString();
 	}
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {
@@ -575,18 +575,20 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
 			try {
-				List<String> availableVersions = connectorServices(connectorDocument).getAvailableVersions(connectorDocument.getConnector(),connectorDocument);
-				for(String availableVersion: availableVersions) {
-					InputStream versionStream = connectorServices(connectorDocument).newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
+				List<String> availableVersions = connectorServices(connectorDocument)
+						.getAvailableVersions(connectorDocument.getConnector(), connectorDocument);
+				for (String availableVersion : availableVersions) {
+					InputStream versionStream = connectorServices(connectorDocument)
+							.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
-					addVersionToDocument(connectorDocument,availableVersion.endsWith(".0"),newVersionDataSummary,document);
+					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
-			} catch(UnsupportedOperationException ex) {
+			} catch (UnsupportedOperationException ex) {
 				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
 						connectorDocument, CLASSIFY_DOCUMENT);
 
 				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
-				addVersionToDocument(connectorDocument, majorVersions, newVersionDataSummary, document);
+				addVersionToDocument(connectorDocument, (majorVersions ? "1.0" : "0.1"), newVersionDataSummary, document);
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
@@ -599,21 +601,17 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	}
 
-	private void addVersionToDocument(ConnectorDocument connectorDocument, Boolean majorVersions, ContentVersionDataSummary newVersionDataSummary, Document document) {
+	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
+			ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
-				document.getContent().updateContentWithName(
-						currentUser, newVersionDataSummary, majorVersions, connectorDocument.getTitle());
+				document.getContent().updateContentWithVersionAndName(
+						currentUser, newVersionDataSummary, versionNumber, connectorDocument.getTitle());
 				document.setContent(document.getContent());
 			}
 		} else {
-			Content content;
-			if (majorVersions) {
-				content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-			} else {
-				content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-			}
-			document.setContent(content);
+			document.setContent(contentManager
+					.createWithVersion(currentUser, connectorDocument.getTitle(), newVersionDataSummary, versionNumber));
 		}
 	}
 

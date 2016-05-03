@@ -67,6 +67,13 @@ public class ContentImpl implements Content {
 
 	public static ContentImpl create(String id, User user, String filename, ContentVersionDataSummary newVersion, boolean major,
 			boolean empty) {
+		String version = major ? "1.0" : "0.1";
+
+		return createWithVersion(id, user, filename, newVersion, version, empty);
+	}
+
+	public static ContentImpl createWithVersion(String id, User user, String filename, ContentVersionDataSummary newVersion,
+			String version, boolean empty) {
 		validateArgument("id", id);
 		validateUserArgument(user);
 		validateFilenameArgument(filename);
@@ -75,7 +82,6 @@ public class ContentImpl implements Content {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		ContentImpl content = new ContentImpl();
 		String correctFilename = correctFilename(filename);
-		String version = major ? "1.0" : "0.1";
 		content.id = id;
 		content.history = new ArrayList<>();
 		content.dirty = true;
@@ -317,7 +323,18 @@ public class ContentImpl implements Content {
 		return null;
 	}
 
-	public ContentImpl updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name) {
+	public Content updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name) {
+		String version;
+		if (emptyVersion) {
+			version = finalize ? "1.0" : "0.1";
+		} else {
+			version = getNextVersion(finalize);
+		}
+		return updateContentWithVersionAndName(user, newVersion, version, name);
+	}
+
+	@Override
+	public Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version, String name) {
 		ensureNotCheckedOut();
 		validateUserArgument(user);
 		valdiateNewVersionArgument(newVersion);
@@ -326,17 +343,15 @@ public class ContentImpl implements Content {
 		String correctedFilename = correctFilename(name);
 		if (emptyVersion) {
 			emptyVersion = false;
-			String version = finalize ? "1.0" : "0.1";
 			currentVersion = new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null);
 		} else {
-			String version = getNextVersion(finalize);
 			setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null));
 		}
 		this.dirty = true;
 		return this;
 	}
 
-	public ContentImpl updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
+	public Content updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
 		return updateContentWithName(user, newVersion, finalize, getCurrentVersion().getFilename());
 	}
 
