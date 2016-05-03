@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -42,6 +45,8 @@ public class MetadataSchemaXMLReader3 {
 	public static final String FORMAT_VERSION = "3";
 
 	ClassProvider classProvider;
+
+	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
 	public MetadataSchemaXMLReader3(ClassProvider classProvider) {
 		this.classProvider = classProvider;
@@ -364,11 +369,14 @@ public class MetadataSchemaXMLReader3 {
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
 	}
 
+
+
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
 
 		List<String> styles = new ArrayList<>();
 		List<String> properties = new ArrayList<>();
 		List<RegexConfig> regexes = new ArrayList<>();
+		List<MetadataPopulator> metadataPopulators = new ArrayList<>();
 
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
@@ -382,12 +390,27 @@ public class MetadataSchemaXMLReader3 {
 				Element regexConfigsElement = populateConfigsElement.getChild("regexConfigs");
 				addRegexConfigElementsToList(regexConfigsElement, regexes);
 			}
+			if (populateConfigsElement.getChild("metadataPopulators") != null){
+				Element metadataPopulatorsElement = populateConfigsElement.getChild("metadataPopulators");
+				addMetadataPopulateElementsToList(metadataPopulatorsElement, metadataPopulators);
+			}
 		}
 		MetadataPopulateConfigsBuilder metadataPopulateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		metadataPopulateConfigsBuilder.setStyles(styles);
 		metadataPopulateConfigsBuilder.setProperties(properties);
 		metadataPopulateConfigsBuilder.setRegexes(regexes);
+		metadataPopulateConfigsBuilder.setMetadataPopulators(metadataPopulators);
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
+	}
+
+	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement, List<MetadataPopulator> metadataPopulators) {
+		for (Element metadataPopulatorElement: metadataPopulatorsElement.getChildren()){
+			try {
+				metadataPopulators.add(metadataPopulatorXMLSerializer.fromXML(metadataPopulatorElement));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private void addRegexConfigElementsToList(Element element, List<RegexConfig> listToAdd) {

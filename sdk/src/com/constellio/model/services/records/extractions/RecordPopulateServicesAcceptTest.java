@@ -1,20 +1,5 @@
 package com.constellio.model.services.records.extractions;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import com.constellio.model.services.records.RecordServicesException;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -29,16 +14,14 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.extractions.RecordPopulateServices.ContentsComparator;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -52,6 +35,19 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapter;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
@@ -1032,14 +1028,17 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		Record record = new TestRecord(zeSchemas)
 				.set(Schemas.TITLE, "Ze A-39!")
 				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndProperties1));
+		MetadataList populated = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode()).getMetadatas().onlyPopulated();
+		assertThat(populated).isNotEmpty();
 		services.populate(record);
+
+		recordServices.add(record);
 		assertThatRecord(record)
 				.hasMetadataValue(Schemas.TITLE, "Ze A-39!")
 				.hasMetadataValue(zeSchemas.stringMeta(), "Édouard Lechat")
 				.hasMetadataValue(zeSchemas.textMeta(), "Formulaire A-39")
 				.hasMetadataValue(zeSchemas.stringsMeta(), asList("Édouard Lechat"))
 				.hasMetadataValue(zeSchemas.textsMeta(), asList("Formulaire A-39"));
-		recordServices.add(record);
 
 		services.populate(record
 				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndProperties2)));
@@ -1391,7 +1390,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 	}
 
 
-	private static class OngoingRegexConfig {
+	public static class OngoingRegexConfig {
 		String regex;
 		String metadata;
 		String value;
