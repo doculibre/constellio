@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -47,6 +49,8 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
+
 	String searchExpression;
 	String schemaTypeCode;
 	private int pageNumber;
@@ -294,12 +298,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageNumber(pageNumber);
 		try {
 			recordServices().update(search);
+			view.navigate().to().advancedSearchReplay(search.getId());
 		} catch (RecordServicesException e) {
-			//TODO remove after tests
-			view.showErrorMessage($("ADVANCE TEMPORARY SAVE ERROR"));
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}
-		//TODO remove after tests
-		view.showMessage($("ADVANCE TEMPORARY SAVE"));
-		view.navigate().to().advancedSearchReplay(search.getId());
 	}
 }

@@ -8,6 +8,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -38,6 +41,8 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class DecommissioningBuilderPresenter extends SearchPresenter<DecommissioningBuilderView>
 		implements SearchCriteriaPresenter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DecommissioningBuilderPresenter.class);
+
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
@@ -276,13 +281,11 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setSelectedFacets(this.getFacetSelections().getNestedMap());
 		try {
 			recordServices().update(search);
+			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
 		} catch (RecordServicesException e) {
-			//TODO remove after tests
-			view.showErrorMessage($("DECOMMISSION TEMPORARY SAVE ERROR"));
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}
-		//TODO remove after tests
-		view.showMessage($("DECOMMISSION TEMPORARY SAVE"));
-		view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
+
 	}
 
 	@Override

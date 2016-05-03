@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
@@ -8,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -21,6 +22,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
+
 	private int pageNumber;
 	private String searchExpression;
 
@@ -178,12 +181,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageNumber(pageNumber);
 		try {
 			recordServices().update(search);
+			view.navigate().to().simpleSearchReplay(search.getId());
 		} catch (RecordServicesException e) {
-			//TODO remove after tests
-			view.showErrorMessage($("SIMPLE TEMPORARY SAVE ERROR"));
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}
-		//TODO remove after tests
-		view.showMessage($("SIMPLE TEMPORARY SAVE"));
-		view.navigate().to().simpleSearchReplay(search.getId());
 	}
 }

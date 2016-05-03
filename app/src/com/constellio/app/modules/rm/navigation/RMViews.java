@@ -196,6 +196,10 @@ public class RMViews extends CoreViews {
         navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId);
     }
 
+	public void searchContainerForDecommissioningListReplay(String entityId, String searchId) {
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId + "/s/" + searchId);
+	}
+
     public void createContainerForDecommissioningList(String entityId) {
         navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER + "/" + entityId);
     }
