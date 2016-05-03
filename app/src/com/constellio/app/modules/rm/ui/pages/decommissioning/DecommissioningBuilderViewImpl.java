@@ -46,6 +46,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		presenter = new DecommissioningBuilderPresenter(this);
 		presenter.resetFacetAndOrder();
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
+		adminUnit = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
 		addStyleName("search-decommissioning");
 	}
 
@@ -73,6 +74,16 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	@Override
 	public void setCriteriaSchemaType(String schemaType) {
 		criteria.setSchemaType(schemaType);
+	}
+
+	@Override
+	public void setSearchCriteria(List<Criterion> criteria) {
+		this.criteria.setSearchCriteria(criteria);
+	}
+
+	@Override
+	public void setAdministrativeUnit(String administrativeUnitID) {
+		this.adminUnit.setValue(administrativeUnitID);
 	}
 
 	@Override
@@ -111,7 +122,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		VerticalLayout searchUI = new VerticalLayout(top, criteria, searchButton);
 		searchUI.setSpacing(true);
 
-		searchButton.setEnabled(false);
+		searchButton.setEnabled(adminUnit.getValue() != null);
 
 		return searchUI;
 	}
@@ -126,12 +137,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 	private Component buildAdministrativeUnitComponent() {
 		Label label = new Label($("DecommissioningBuilderView.administrativeUnit"));
-		adminUnit = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
 		adminUnit.setRequired(true);
 		adminUnit.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				searchButton.setEnabled(true);
+				searchButton.setEnabled(adminUnit.getValue() != null);
 				presenter.administrativeUnitSelected(adminUnit.getValue());
 			}
 		});

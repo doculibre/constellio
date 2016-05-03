@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,7 +20,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
@@ -30,6 +30,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
@@ -43,6 +44,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	SearchType searchType;
 	String adminUnitId;
+	boolean displayResults;
+	int pageNumber;
 
 	public DecommissioningBuilderPresenter(DecommissioningBuilderView view) {
 		super(view);
@@ -50,10 +53,21 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
-		searchType = SearchType.valueOf(params);
-		view.setCriteriaSchemaType(getSchemaType());
-		view.addEmptyCriterion();
-		view.addEmptyCriterion();
+		String[] parts = params.split("/", 3);
+
+		if (parts.length > 1) {
+			searchType = SearchType.valueOf(parts[0]);
+			SavedSearch search = getSavedSearch(parts[2]);
+			setSavedSearch(search);
+			this.displayResults = true;
+		} else {
+			searchType = SearchType.valueOf(params);
+			view.setCriteriaSchemaType(getSchemaType());
+			view.addEmptyCriterion();
+			view.addEmptyCriterion();
+			this.displayResults = false;
+			pageNumber = 1;
+		}
 		return this;
 	}
 
@@ -64,16 +78,17 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	@Override
 	public boolean mustDisplayResults() {
-		return false;
+		return this.displayResults;
 	}
 
 	@Override
 	public int getPageNumber() {
-		return 1;
+		return pageNumber;
 	}
 
 	@Override
 	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
 	}
 
 	@Override
@@ -82,34 +97,18 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	private void setSavedSearch(SavedSearch search) {
-		/*
-		view.setSearchExpression(search.getFreeTextSearch());
-		viewfacetSelections.putAll(search.getSelectedFacets());
-		view.setSortCriterion(sortCriterion = search.getSortField();
-		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
-		schemaTypeCode = search.getSchemaFilter();
-		pageNumber = search.getPageNumber();
-
-		view.setSchemaType(schemaTypeCode);
-		view.setSearchExpression(searchExpression);
-		view.setSearchCriteria(search.getAdvancedSearch());
-
-		/*
-		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
-				.setTitle("temporaryDecommission")
-				.setUser(getCurrentUser().getId())
-				.setPublic(false)
-				.setSortField(getSortCriterion())
-				.setSortOrder(SavedSearch.SortOrder.valueOf(getSortOrder().name()))
-				.setSelectedFacets(getFacetSelections().getNestedMap())
-				.setTemporary(true)
-				.setSearchType(AdvancedSearchView.SEARCH_TYPE)
-				.setSchemaFilter(getSchemaType())
-				.setFreeTextSearch("")
-				.setAdvancedSearch(view.getSearchCriteria())
-				.setPageNumber(1);
-		 */
-
+		view.setCriteriaSchemaType(search.getSearchType());
+		List<Criterion> criteria = search.getAdvancedSearch();
+		if (criteria.isEmpty()) {
+			view.addEmptyCriterion();
+			view.addEmptyCriterion();
+		} else {
+			view.setSearchCriteria(criteria);
+		}
+		this.pageNumber = search.getPageNumber();
+		this.setFacetSelections(search.getSelectedFacets());
+		this.adminUnitId = search.getFreeTextSearch();
+		view.setAdministrativeUnit(this.adminUnitId);
 	}
 
 	public SearchType getSearchType() {
@@ -266,25 +265,39 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
 				.setTitle("temporaryDecommission")
+				.setSearchType(DecommissioningBuilderView.SEARCH_TYPE)
 				.setUser(getCurrentUser().getId())
 				.setPublic(false)
-				.setSortField(getSortCriterion())
-				.setSortOrder(SavedSearch.SortOrder.valueOf(getSortOrder().name()))
-				.setSelectedFacets(getFacetSelections().getNestedMap())
 				.setTemporary(true)
-				.setSearchType(AdvancedSearchView.SEARCH_TYPE)
 				.setSchemaFilter(getSchemaType())
-				.setFreeTextSearch("")
+				.setFreeTextSearch(adminUnitId)
 				.setAdvancedSearch(view.getSearchCriteria())
-				.setPageNumber(1);
+				.setPageNumber(pageNumber)
+				.setSelectedFacets(this.getFacetSelections().getNestedMap());
 		try {
 			recordServices().update(search);
 		} catch (RecordServicesException e) {
 			//TODO remove after tests
-			view.showErrorMessage($("ADVANCE TEMPORARY SAVE ERROR"));
+			view.showErrorMessage($("DECOMMISSION TEMPORARY SAVE ERROR"));
 		}
 		//TODO remove after tests
-		view.showMessage($("ADVANCE TEMPORARY SAVE"));
-		view.navigate().to().advancedSearchReplay(search.getId());
+		view.showMessage($("DECOMMISSION TEMPORARY SAVE"));
+		view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
+	}
+
+	@Override
+	public Record getTemporarySearchRecord() {
+		MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		try {
+			return searchServices().searchSingleResult(from(schema)
+					.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser().getId())
+					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
+					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(DecommissioningBuilderView.SEARCH_TYPE));
+		} catch (Exception e) {
+			//TODO exception
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 }

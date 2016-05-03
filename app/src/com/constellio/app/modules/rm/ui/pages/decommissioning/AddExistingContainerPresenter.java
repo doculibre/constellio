@@ -42,6 +42,11 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
+	public Record getTemporarySearchRecord() {
+		return null;
+	}
+
+	@Override
 	public AddExistingContainerPresenter forRequestParameters(String params) {
 		recordId = params;
 		DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(recordId);

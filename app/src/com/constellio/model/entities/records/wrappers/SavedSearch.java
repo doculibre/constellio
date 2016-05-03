@@ -28,6 +28,9 @@ public class SavedSearch extends RecordWrapper {
 	public static final String TEMPORARY = "temporary";
 	public static final String PAGE_NUMBER = "pageNumber";
 
+	//testing only
+	public static final String CRITERION = "criterions";
+
 	public SavedSearch(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);

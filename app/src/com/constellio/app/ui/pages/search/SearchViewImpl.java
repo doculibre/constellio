@@ -85,7 +85,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
-			refreshSearchResultsAndFacets(true);
+			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
 	}
@@ -95,35 +95,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
 	}
 
-	public void refreshSearchResultsAndFacets(boolean init) {
-		refreshSearchResults(init);
+	public void refreshSearchResultsAndFacets(boolean temporarySave) {
+		refreshSearchResults(temporarySave);
 		refreshFacets();
 	}
 
 	@Override
 	public void refreshSearchResultsAndFacets() {
-		refreshSearchResults();
+		refreshSearchResults(true);
 		refreshFacets();
 	}
 
 	@Override
-	public void refreshSearchResults() {
-		presenter.saveTemporarySearch();
-
-		suggestions.removeAllComponents();
-		buildSuggestions();
-
-		results = buildResultTable();
-
-		summary.removeAllComponents();
-		summary.addComponent(buildSummary(results));
-
-		resultsArea.removeAllComponents();
-		resultsArea.addComponents(results, results.createControls());
-	}
-
-	public void refreshSearchResults(boolean init) {
-		if (!init) {
+	public void refreshSearchResults(boolean temporarySave) {
+		if (temporarySave) {
 			presenter.saveTemporarySearch();
 		}
 

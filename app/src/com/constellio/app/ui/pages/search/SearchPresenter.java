@@ -106,9 +106,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		sortOrder = SortOrder.ASCENDING;
 	}
 
-	protected Record getTemporarySearchRecord() {
-		return null;
-	}
+	public abstract Record getTemporarySearchRecord();
 
 	public abstract SearchPresenter<T> forRequestParameters(String params);
 
@@ -197,10 +195,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return facetSelections;
 	}
 
+	public void setFacetSelections(Map<String, Set<String>> facetSelections) {
+		this.facetSelections.putAll(facetSelections);
+	}
+
 	public void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 		this.sortCriterion = sortCriterion;
 		this.sortOrder = sortOrder;
-		view.refreshSearchResults();
+		view.refreshSearchResults(true);
 	}
 
 	@Override
