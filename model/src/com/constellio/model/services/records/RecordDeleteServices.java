@@ -198,7 +198,7 @@ public class RecordDeleteServices {
 		return physicallyDeletable;
 	}
 
-	public void physicallyDeleteNoMatterItsStatus(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
 		if (record.get(Schemas.LOGICALLY_DELETED_STATUS)) {
 			physicallyDelete(record, user, options);
 
