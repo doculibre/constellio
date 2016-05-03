@@ -13,6 +13,7 @@ import javax.servlet.Servlet;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -29,6 +30,8 @@ import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import com.constellio.model.conf.FoldersLocator;
 
 public class ApplicationStarter {
+
+	private static int REQUEST_HEADER_SIZE = 32 * 1024;
 
 	private static Server server;
 	private static WebAppContext handler;
@@ -96,7 +99,13 @@ public class ApplicationStarter {
 		if (params.isSSL()) {
 			return getSslServer(params);
 		} else {
-			return new Server(params.getPort());
+			SocketConnector connector = new SocketConnector();
+			connector.setPort(params.getPort());
+			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
+
+			Server server =  new Server();
+			server.setConnectors(new Connector[] { connector });
+			return server;
 		}
 	}
 
@@ -138,6 +147,8 @@ public class ApplicationStarter {
 
 		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
 		connector.setPort(params.getPort());
+
+		connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 		sslServer.setConnectors(new Connector[] { connector });
 
