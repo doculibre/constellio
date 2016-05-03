@@ -7,7 +7,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 public interface SearchView extends BaseView {
 	void refreshSearchResultsAndFacets();
 
-	void refreshSearchResults();
+	void refreshSearchResults(boolean temporarySave);
 
 	void refreshFacets();
 

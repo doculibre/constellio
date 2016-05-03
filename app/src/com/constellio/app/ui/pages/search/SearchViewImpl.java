@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -84,7 +85,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
-			refreshSearchResultsAndFacets();
+			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
 	}
@@ -94,14 +95,23 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
 	}
 
-	@Override
-	public void refreshSearchResultsAndFacets() {
-		refreshSearchResults();
+	public void refreshSearchResultsAndFacets(boolean temporarySave) {
+		refreshSearchResults(temporarySave);
 		refreshFacets();
 	}
 
 	@Override
-	public void refreshSearchResults() {
+	public void refreshSearchResultsAndFacets() {
+		refreshSearchResults(true);
+		refreshFacets();
+	}
+
+	@Override
+	public void refreshSearchResults(boolean temporarySave) {
+		if (temporarySave) {
+			presenter.saveTemporarySearch();
+		}
+
 		suggestions.removeAllComponents();
 		buildSuggestions();
 
@@ -118,6 +128,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	public void refreshFacets() {
 		facetsArea.removeAllComponents();
 		addFacetComponents(facetsArea);
+		presenter.setPageNumber(1);
 	}
 
 	@Override
@@ -167,6 +178,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		SearchResultTable table = new SearchResultTable(buildResultContainer());
 		table.setWidth("100%");
 		table.setCurrentPage(presenter.getPageNumber());
+		table.addListener(new SearchResultTable.PageChangeListener() {
+			public void pageChanged(PagedTableChangeEvent event) {
+				presenter.setPageNumber(event.getCurrentPage());
+				presenter.saveTemporarySearch();
+			}
+		});
+
 		return table;
 	}
 
