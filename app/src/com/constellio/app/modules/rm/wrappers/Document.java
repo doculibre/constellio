@@ -110,6 +110,15 @@ public class Document extends RMObject {
 		return this;
 	}
 
+	public String getCreatedByRobot() {
+		return get(CREATED_BY_ROBOT);
+	}
+
+	public Document setCreatedByRobot(String robotId) {
+		set(CREATED_BY_ROBOT, robotId);
+		return this;
+	}
+
 	public Content getContent() {
 		return get(CONTENT);
 	}

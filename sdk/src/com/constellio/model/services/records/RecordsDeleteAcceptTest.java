@@ -78,7 +78,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	RolesManager roleManager;
 
 	User bob, userWithDeletePermission;
-	Record valueListItem, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem;
+	Record valueListItem1, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem;
 
 	private ModelLayerCollectionExtensions extensions;
 
@@ -142,7 +142,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		MetadataSchema valueListItemSchema = schemas.getSchema("valueList_default");
 		MetadataSchema securedUnclassifiedSchema = schemas.getSchema("securedUnclassified_default");
 
-		valueListItem = recordServices.newRecordWithSchema(valueListItemSchema, "valuelListItem").set(TITLE, "Ze item");
+		valueListItem1 = recordServices.newRecordWithSchema(valueListItemSchema, "valuelListItem").set(TITLE, "Ze item");
 		valueListItem2 = recordServices.newRecordWithSchema(valueListItemSchema, "value2ListItem").set(TITLE, "Ze item 2");
 		valueListItem3 = recordServices.newRecordWithSchema(valueListItemSchema, "value3ListItem").set(TITLE, "Ze item 3");
 
@@ -153,7 +153,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				.set(TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
 
 		recordServices.execute(
-				new Transaction(valueListItem, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem));
+				new Transaction(valueListItem1, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem));
 	}
 
 	private void givenValueListSchemaHasSecurity() {
@@ -178,10 +178,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				return ExtensionBooleanResult.FALSE;
 			}
 		});
-		given(bob).logicallyDelete(valueListItem);
+		given(bob).logicallyDelete(valueListItem1);
 
-		assertThat(valueListItem).isNot(physicallyDeletableBy(bob));
-		assertThat(valueListItem).isNot(physicallyDeletableBy(bob, withReferencesRemoved));
+		assertThat(valueListItem1).isNot(physicallyDeletableBy(bob));
+		assertThat(valueListItem1).isNot(physicallyDeletableBy(bob, withReferencesRemoved));
 	}
 
 	@Test
@@ -193,10 +193,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				return ExtensionBooleanResult.TRUE;
 			}
 		});
-		given(bob).logicallyDelete(valueListItem);
+		given(bob).logicallyDelete(valueListItem1);
 
-		assertThat(valueListItem).is(physicallyDeletableBy(bob));
-		assertThat(valueListItem).is(physicallyDeletableBy(bob, withReferencesRemoved));
+		assertThat(valueListItem1).is(physicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(physicallyDeletableBy(bob, withReferencesRemoved));
 	}
 
 	@Test
@@ -209,7 +209,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			}
 
 		});
-		assertThat(valueListItem).isNot(logicallyDeletableBy(bob));
+		assertThat(valueListItem1).isNot(logicallyDeletableBy(bob));
 	}
 
 	@Test
@@ -222,42 +222,42 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			}
 
 		});
-		assertThat(valueListItem).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(logicallyDeletableBy(bob));
 	}
 
 	@Test
 	public void givenNotReferencedValueListItemWithoutSecurityThenLogicallyDeletableByAnybody()
 			throws Exception {
-		assertThat(valueListItem).is(logicallyDeletableBy(bob));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
+		assertThat(valueListItem1).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 
-		when(bob).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(logicallyDeleted());
+		when(bob).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenNotReferencedValueListItemWithoutSecurityThenRestorableByAnybody()
 			throws Exception {
-		given(bob).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(restorableBy(bob));
+		given(bob).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(restorableBy(bob));
 
-		when(bob).restore(valueListItem);
-		assertThat(valueListItem).isNot(logicallyDeleted());
+		when(bob).restore(valueListItem1);
+		assertThat(valueListItem1).isNot(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenNotReferencedValueListItemWithoutSecurityThenPhysicallyDeletableByAnybody()
 			throws Exception {
-		given(bob).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(physicallyDeletableBy(bob));
-		assertThat(valueListItem).is(physicallyDeletableBy(bob, withReferencesRemoved));
+		given(bob).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(physicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(physicallyDeletableBy(bob, withReferencesRemoved));
 
-		when(bob).physicallyDelete(valueListItem);
-		assertThat(valueListItem).is(physicallyDeleted());
+		when(bob).physicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(physicallyDeleted());
 
 	}
 
@@ -265,18 +265,18 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenNotReferencedValueListItemWithSecurityThenLogicallyDeletableByGodAndUserWithCollectionDelete()
 			throws Exception {
 		givenValueListSchemaHasSecurity();
-		assertThat(valueListItem).is(notLogicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
-		assertThat(valueListItem).is(logicallyDeletableBy(User.GOD));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD, withReferencesRemoved));
-		assertThat(valueListItem).is(logicallyDeletableBy(userWithDeletePermission));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
+		assertThat(valueListItem1).is(notLogicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
+		assertThat(valueListItem1).is(logicallyDeletableBy(User.GOD));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(User.GOD));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(User.GOD, withReferencesRemoved));
+		assertThat(valueListItem1).is(logicallyDeletableBy(userWithDeletePermission));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 
-		when(User.GOD).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(logicallyDeleted());
+		when(User.GOD).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(logicallyDeleted());
 
 	}
 
@@ -284,13 +284,13 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenNotReferencedValueListItemWithSecurityThenRestorableByGodAndUserWithCollectionDelete()
 			throws Exception {
 		givenValueListSchemaHasSecurity();
-		given(userWithDeletePermission).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(notRestorableBy(bob));
-		assertThat(valueListItem).is(restorableBy(User.GOD));
-		assertThat(valueListItem).is(restorableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(notRestorableBy(bob));
+		assertThat(valueListItem1).is(restorableBy(User.GOD));
+		assertThat(valueListItem1).is(restorableBy(userWithDeletePermission));
 
-		when(userWithDeletePermission).restore(valueListItem);
-		assertThat(valueListItem).isNot(logicallyDeleted());
+		when(userWithDeletePermission).restore(valueListItem1);
+		assertThat(valueListItem1).isNot(logicallyDeleted());
 
 	}
 
@@ -298,69 +298,69 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenNotReferencedValueListItemWithSecurityThenPhysicallyDeletableByGodAndUserWithCollectionDelete()
 			throws Exception {
 		givenValueListSchemaHasSecurity();
-		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(User.GOD));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 
-		given(User.GOD).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(physicallyDeletableBy(User.GOD));
-		assertThat(valueListItem).is(physicallyDeletableBy(userWithDeletePermission));
+		given(User.GOD).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(notPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(physicallyDeletableBy(User.GOD));
+		assertThat(valueListItem1).is(physicallyDeletableBy(userWithDeletePermission));
 
-		when(User.GOD).physicallyDelete(valueListItem);
-		assertThat(valueListItem).is(physicallyDeleted());
+		when(User.GOD).physicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(physicallyDeleted());
 
 	}
 
 	@Test
 	public void givenReferencedValueListItemThenLogicallyDeletable()
 			throws Exception {
-		given(records.folder3()).hasAValueListReferenceTo(valueListItem);
-		assertThat(valueListItem).is(logicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem1);
+		assertThat(valueListItem1).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(bob));
 
-		when(bob).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(logicallyDeleted());
+		when(bob).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenReferencedValueListItemThenRestorable()
 			throws Exception {
-		given(records.folder3()).hasAValueListReferenceTo(valueListItem);
-		given(userWithDeletePermission).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(restorableBy(bob));
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem1);
+		given(userWithDeletePermission).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(restorableBy(bob));
 
-		when(bob).restore(valueListItem);
-		assertThat(valueListItem).isNot(logicallyDeleted());
+		when(bob).restore(valueListItem1);
+		assertThat(valueListItem1).isNot(logicallyDeleted());
 
 	}
 
 	@Test
 	public void givenReferencedValueListItemThenNotPhysicallyDeletable()
 			throws Exception {
-		given(records.folder3()).hasAValueListReferenceTo(valueListItem);
-		given(bob).logicallyDelete(valueListItem);
-		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notPhysicallyDeletableBy(User.GOD));
-		assertThat(valueListItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem1);
+		given(bob).logicallyDelete(valueListItem1);
+		assertThat(valueListItem1).is(notPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notPhysicallyDeletableBy(User.GOD));
+		assertThat(valueListItem1).is(notPhysicallyDeletableBy(userWithDeletePermission));
 
 	}
 
 	@Test
 	public void givenReferencedValueListItemInMultivalueMetadataThenPhysicallyDeletableWithRefRemovedOption()
 			throws Exception {
-		given(records.folder3()).hasAValueListReferenceTo(valueListItem, valueListItem2, valueListItem3);
-		given(records.folder4()).hasAValueListReferenceTo(valueListItem2, valueListItem, valueListItem3);
-		given(records.folder1()).hasAValueListReferenceTo(valueListItem2, valueListItem3, valueListItem);
-		assertThat(valueListItem).is(logicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem1, valueListItem2, valueListItem3);
+		given(records.folder4()).hasAValueListReferenceTo(valueListItem2, valueListItem1, valueListItem3);
+		given(records.folder1()).hasAValueListReferenceTo(valueListItem2, valueListItem3, valueListItem1);
+		assertThat(valueListItem1).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 		Metadata metadata = folderSchema.instance().getMetadata("valueListRef");
-		when(bob).logicallyDelete(valueListItem);
-		when(bob).physicallyDelete(valueListItem, withReferencesRemoved);
-		assertThat(valueListItem).is(physicallyDeleted());
+		when(bob).logicallyDelete(valueListItem1);
+		when(bob).physicallyDelete(valueListItem1, withReferencesRemoved);
+		assertThat(valueListItem1).is(physicallyDeleted());
 		assertThat(records.folder3().getList(metadata)).containsExactly("value2ListItem", "value3ListItem");
 		assertThat(records.folder4().getList(metadata)).containsExactly("value2ListItem", "value3ListItem");
 		assertThat(records.folder1().getList(metadata)).containsExactly("value2ListItem", "value3ListItem");
@@ -370,17 +370,17 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenReferencedValueListItemInSingleValueMetadataThenPhysicallyDeletableWithRefRemovedOption()
 			throws Exception {
-		given(records.folder3()).hasASingleValueListReferenceTo(valueListItem);
-		given(records.folder4()).hasASingleValueListReferenceTo(valueListItem);
+		given(records.folder3()).hasASingleValueListReferenceTo(valueListItem1);
+		given(records.folder4()).hasASingleValueListReferenceTo(valueListItem1);
 		given(records.folder1()).hasASingleValueListReferenceTo(valueListItem2);
-		assertThat(valueListItem).is(logicallyDeletableBy(bob));
-		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
-		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
+		assertThat(valueListItem1).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem1).is(logicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 		Metadata metadata = folderSchema.instance().getMetadata("valueListSingleRef");
-		when(bob).logicallyDelete(valueListItem);
-		when(bob).physicallyDelete(valueListItem, withReferencesRemoved);
-		assertThat(valueListItem).is(physicallyDeleted());
+		when(bob).logicallyDelete(valueListItem1);
+		when(bob).physicallyDelete(valueListItem1, withReferencesRemoved);
+		assertThat(valueListItem1).is(physicallyDeleted());
 		assertThat(records.folder3().get(metadata)).isNull();
 		assertThat(records.folder4().get(metadata)).isNull();
 		assertThat(records.folder1().get(metadata)).isEqualTo("value2ListItem");

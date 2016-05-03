@@ -198,6 +198,21 @@ public class RecordDeleteServices {
 		return physicallyDeletable;
 	}
 
+	public void physicallyDeleteNoMatterItsStatus(Record record, User user, RecordDeleteOptions options) {
+		if (record.get(Schemas.LOGICALLY_DELETED_STATUS)) {
+			physicallyDelete(record, user, options);
+
+		} else {
+			logicallyDelete(record, user);
+			try {
+				physicallyDelete(record, user, options);
+			} catch (RecordServicesRuntimeException e) {
+				restore(record, user);
+				throw e;
+			}
+		}
+	}
+
 	public void physicallyDelete(Record record, User user) {
 		physicallyDelete(record, user, new RecordDeleteOptions());
 	}
