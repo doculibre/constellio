@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import java.security.Key;
 import java.util.*;
 
+import com.constellio.model.frameworks.validation.Validator;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -742,9 +743,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			recordServices.update(record.set(zeSchema.stringMetadata(), "another value"));
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
+			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
+			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata"))
+					parameters)
 			);
 		}
 
@@ -752,9 +755,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			recordServices.update(record.set(zeSchema.stringMetadata(), null));
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
+			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
+			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata"))
+					parameters)
 			);
 		}
 

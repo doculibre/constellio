@@ -143,22 +143,24 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenUpdateCollectionThenOk()
 			throws Exception {
+		Collection zeCollectionRecord = collectionsManager.getCollection(zeCollection);
+		assertThat(zeCollectionRecord.getLanguages()).containsOnly(Language.French.getCode(), Language.English.getCode());
 		CollectionVO zeCollectionVO = presenterRelatedToZeCollection.getCollectionVO();
 		Set<String> enabledModulesForZeCollection = new HashSet<>(
 				asList(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID));
 		zeCollectionVO.setModules(enabledModulesForZeCollection);
 		zeCollectionVO.setName("newName");
-		zeCollectionVO.setSupportedLanguages(new HashSet<>(Arrays.asList(Language.French.getCode(), Language.English.getCode())));
+		zeCollectionVO.setSupportedLanguages(new HashSet<>(Arrays.asList(Language.French.getCode())));
 
 		presenterRelatedToZeCollection.updateCollection(zeCollectionVO);
 
-		Collection zeCollectionRecord = collectionsManager.getCollection(zeCollection);
+		zeCollectionRecord = collectionsManager.getCollection(zeCollection);
 		assertThat(zeCollectionRecord.getCode()).isEqualTo(zeCollectionVO.getCode());
 		assertThat(zeCollectionRecord.getName()).isEqualTo("newName");
 		assertThat(modulesManager.getEnabledModules(zeCollectionVO.getCode())).extracting("id")
 				.containsOnly(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
 		//language is not modified
-		assertThat(zeCollectionRecord.getLanguages()).containsOnly(Language.French.getCode());
+		assertThat(zeCollectionRecord.getLanguages()).containsOnly(Language.French.getCode(), Language.English.getCode());
 	}
 
 	@Test(expected = AddEditCollectionPresenterException_CodeCodeChangeForbidden.class)

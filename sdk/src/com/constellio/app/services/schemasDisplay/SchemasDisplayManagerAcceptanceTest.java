@@ -371,18 +371,25 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 		Map<String, Object> anEssentialMetadataParams = asMap(
 				"code", "mySchemaType_default_anEssentialMetadata");
+		anEssentialMetadataParams.put("label", asMap("fr", "zeEssentialMetadata"));
 
 		Map<String, Object> aMetadataThatWillOneDayBeEssentialParams = asMap(
 				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential");
+		aMetadataThatWillOneDayBeEssentialParams.put("label", asMap("fr", "zeMetadataThatWillOneDayBeEssential"));
 
 		Map<String, Object> aTrivialMetadataParams = asMap(
 				"code", "mySchemaType_default_aTrivialMetadata");
 
 		Map<String, Object> titleParams = asMap(
 				"code", "mySchemaType_default_title");
+		Map<String, Object> titleLabels = asMap("fr","Ze title");
+		titleLabels.put("en", "Ze title en");
+		titleParams.put("label", titleLabels);
+
 
 		Map<String, Object> codeParams = asMap(
 				"code", "mySchemaType_default_code");
+		codeParams.put("label", asMap("fr", "Ze code"));
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -396,6 +403,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 						.addLabel(Language.French, "ZeTrivialMetadata");
 				schemaBuilder.create("code").setType(TEXT).addLabel(Language.French, "Ze code");
 				schemaBuilder.get("title").addLabel(Language.French, "Ze title");
+				schemaBuilder.get("title").addLabel(Language.English, "Ze title en");
 			}
 		});
 

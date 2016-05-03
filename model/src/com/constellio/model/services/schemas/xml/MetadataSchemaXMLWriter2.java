@@ -42,7 +42,7 @@ public class MetadataSchemaXMLWriter2 {
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
 	private SAXBuilder saxBuilder = new SAXBuilder();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
-	public static final String LABEL_SEPARATOR = ";;";
+	public static final String LABEL_SEPARATOR = ";~;";
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
 	public void writeEmptyDocument(String collection, Document document) {

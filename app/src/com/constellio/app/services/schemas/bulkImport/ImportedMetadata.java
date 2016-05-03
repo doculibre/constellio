@@ -1,9 +1,11 @@
 package com.constellio.app.services.schemas.bulkImport;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
@@ -52,7 +54,12 @@ public class ImportedMetadata implements Serializable {
 		this.schemaCode = schemaCode;
 		this.valueType = type;
 		this.required = required;
-		this.labels = labels;
+		this.labels = new HashMap<>();
+		for(Language language : Language.getAvailableLanguages()){
+			if(!language.equals(Language.UNKNOWN)){
+				this.labels.put(language, label);
+			}
+		}
 		this.multivalue = multivalue;
 		this.searchable = searchable;
 		this.sortable = sortable;

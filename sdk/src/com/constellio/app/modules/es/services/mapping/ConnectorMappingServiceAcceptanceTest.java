@@ -11,8 +11,10 @@ import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -182,21 +184,36 @@ public class ConnectorMappingServiceAcceptanceTest extends ConstellioTest {
 		service.createTargetMetadata(smbConnectorInstance, ConnectorSmbDocument.SCHEMA_TYPE,
 				new TargetParams("meta4", "My fourth metadata", DATE_TIME).withSearchable(true));
 
-		assertThat(service.getTargetMetadata(httpConnectorInstance, ConnectorHttpDocument.SCHEMA_TYPE))
-				.extracting("code", "type", "label", "multivalue", "searchable").containsOnly(
-				tuple(httpConnectorDocumentSchema + "_MAPmeta1", BOOLEAN, "My first metadata", true, false),
-				tuple(httpConnectorDocumentSchema + "_MAPmeta2", STRING, "My second metadata", true, true)
+		List<Metadata> metadatas = service.getTargetMetadata(httpConnectorInstance, ConnectorHttpDocument.SCHEMA_TYPE);
+		Map<Language, String> firstLabels = new HashMap<>();
+		firstLabels.put(Language.French, "My first metadata");
+		firstLabels.put(Language.English, "My first metadata");
+		Map<Language, String> secondLabels = new HashMap<>();
+		secondLabels.put(Language.French, "My second metadata");
+		secondLabels.put(Language.English, "My second metadata");
+		assertThat(metadatas)
+				.extracting("code", "type", "labels", "multivalue", "searchable").containsOnly(
+				tuple(httpConnectorDocumentSchema + "_MAPmeta1", BOOLEAN,
+						firstLabels, true, false),
+				tuple(httpConnectorDocumentSchema + "_MAPmeta2", STRING, secondLabels, true, true)
 		);
+
 		assertThat(service.getTargetMetadata(anotherHttpConnectorInstance, ConnectorHttpDocument.SCHEMA_TYPE)).isEmpty();
 		assertThat(service.getTargetMetadata(smbConnectorInstance, ConnectorSmbFolder.SCHEMA_TYPE))
-				.extracting("code", "type", "label", "multivalue", "searchable").containsOnly(
-				tuple(smbConnectorFolderSchema + "_MAPmeta1", DATE, "My first metadata", true, false),
-				tuple(smbConnectorFolderSchema + "_MAPmeta2", STRING, "My second metadata", true, true)
+				.extracting("code", "type", "labels", "multivalue", "searchable").containsOnly(
+				tuple(smbConnectorFolderSchema + "_MAPmeta1", DATE, firstLabels, true, false),
+				tuple(smbConnectorFolderSchema + "_MAPmeta2", STRING, secondLabels, true, true)
 		);
+		Map<Language, String> thirdLabels = new HashMap<>();
+		thirdLabels.put(Language.French, "My third metadata");
+		thirdLabels.put(Language.English, "My third metadata");
+		Map<Language, String> fourthLabels = new HashMap<>();
+		fourthLabels.put(Language.French, "My fourth metadata");
+		fourthLabels.put(Language.English, "My fourth metadata");
 		assertThat(service.getTargetMetadata(smbConnectorInstance, ConnectorSmbDocument.SCHEMA_TYPE))
-				.extracting("code", "type", "label", "multivalue", "searchable").containsOnly(
-				tuple(smbConnectorDocumentSchema + "_MAPmeta3", STRING, "My third metadata", false, false),
-				tuple(smbConnectorDocumentSchema + "_MAPmeta4", DATE_TIME, "My fourth metadata", true, true)
+				.extracting("code", "type", "labels", "multivalue", "searchable").containsOnly(
+				tuple(smbConnectorDocumentSchema + "_MAPmeta3", STRING, thirdLabels, false, false),
+				tuple(smbConnectorDocumentSchema + "_MAPmeta4", DATE_TIME, fourthLabels, true, true)
 		);
 
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();

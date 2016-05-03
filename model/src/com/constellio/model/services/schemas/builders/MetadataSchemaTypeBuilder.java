@@ -166,7 +166,7 @@ public class MetadataSchemaTypeBuilder {
 		return customSchema;
 	}
 
-	private Map<Language, String> configureLabels(Map<String, String> labels) {
+	public static Map<Language, String> configureLabels(Map<String, String> labels) {
 		Map<Language, String> newLabels = new HashMap<>();
 		for (Entry<String, String> entry : labels.entrySet()) {
 			newLabels.put(Language.withCode(entry.getKey()), entry.getValue());

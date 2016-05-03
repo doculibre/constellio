@@ -3,11 +3,7 @@ package com.constellio.app.services.schemas.bulkImport;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -256,6 +252,7 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 			if (metadata.getLocalCode().equals("USRcat1")) {
 				//<element code="regex" label="Regex" required="true" type="string"/>
 				assertThat(metadata.getType()).isEqualTo(MetadataValueType.STRING);
+				Map<Language, String> labels = metadata.getLabels();
 				assertThat(metadata.getLabel(Language.French)).isEqualTo("cat 1");
 				assertThat(metadata.isDefaultRequirement()).isFalse();
 				assertThat(metadata.isEnabled()).isTrue();

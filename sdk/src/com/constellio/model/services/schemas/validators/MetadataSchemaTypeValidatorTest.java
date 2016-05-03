@@ -1,6 +1,9 @@
 package com.constellio.model.services.schemas.validators;
 
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -13,12 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -221,25 +219,29 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	@Test
 	public void whenCreatingMapWithCodeAndLabelThenContentIsCorrect() {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
-		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabelsByLanguageCodes()).thenReturn(asMap("fr", aMetadataLabel));
 
 		Map<String, Object> returnedMap = validator.createMapWithCode(aMetadata);
 
-		assertEquals(aMetadataCode, returnedMap.get("localCode"));
-		assertEquals(1, returnedMap.size());
+		assertThat(returnedMap).containsOnly(
+				entry("localCode", aMetadataCode),
+				entry("label", asMap("fr", aMetadataLabel))
+		);
 	}
 
 	@Test
 	public void whenCreatingMapWithCodeLabelAndTypeThenContentIsCorrect() {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
-		when(aMetadata.getLabel(Language.French)).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabelsByLanguageCodes()).thenReturn(asMap("fr", aMetadataLabel));
 		when(aMetadata.getType()).thenReturn(MetadataValueType.STRING);
 
 		Map<String, Object> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);
 
-		assertEquals(aMetadataCode, returnedMap.get("localCode"));
-		assertEquals("STRING", returnedMap.get("type"));
-		assertEquals(2, returnedMap.size());
+		assertThat(returnedMap).containsOnly(
+				entry("localCode", aMetadataCode),
+				entry("type", "STRING"),
+				entry("label", asMap("fr", aMetadataLabel))
+		);
 	}
 
 	private void configureSchemas() {

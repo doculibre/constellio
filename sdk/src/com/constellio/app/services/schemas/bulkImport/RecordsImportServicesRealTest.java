@@ -820,11 +820,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
 					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("index", "1", "legacyId", "3", "invalidValue", "[S, SECOND_VALUE]", "metadata",
-									"withAnEnumMetadata", "availableChoices", "[F, S]")),
-					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("index", "3", "legacyId", "5", "invalidValue", "[FS, F]", "metadata", "withAnEnumMetadata",
-									"availableChoices", "[F, S]")));
+							asMap("availableChoices", "[F, S]", "index", "3", "legacyId", "5", "invalidValue", "[FS, F]", "metadata", "withAnEnumMetadata"))
+					,newZeSchemaValidationError(INVALID_ENUM_VALUE,
+							asMap("availableChoices", "[F, S]", "index", "1", "legacyId", "3", "invalidValue", "[S, SECOND_VALUE]", "metadata",
+									"withAnEnumMetadata"))
+			);
 		}
 	}
 
@@ -1507,14 +1507,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 
+			Map<String, Object> expectedMap = asMap(
+					"index", "1",
+					"legacyId", "3",
+					"schemaType", zeSchema.typeCode(),
+					"metadataCode", "zeSchemaType_default_stringMetadata");
+			expectedMap.put("metadataLabel", asMap("fr", "A toAString metadata"));
+			expectedMap.put("basedOnMetadatas", "[numberMetadata, booleanMetadata]");
 			assertThat(errors).containsOnly(
-					new ValidationError(ValueRequirementValidator.class.getName() + "_requiredValueForMetadata", asMap(
-							"index", "1",
-							"legacyId", "3",
-							"schemaType", zeSchema.typeCode(),
-							"metadataCode", "zeSchemaType_default_stringMetadata",
-							//							"metadataLabel", "A toAString metadata",
-							"basedOnMetadatas", "[numberMetadata, booleanMetadata]")));
+					new ValidationError(ValueRequirementValidator.class.getName() + "_requiredValueForMetadata", expectedMap));
 		}
 	}
 
@@ -1870,6 +1871,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		parameters.put(key2, value2);
 		parameters.put(key3, value3);
 		parameters.put(key4, value4);
+		parameters.put(key5, value5);
 		return parameters;
 	}
 
