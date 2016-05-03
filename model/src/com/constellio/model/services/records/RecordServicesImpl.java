@@ -782,10 +782,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
 	}
 
+	public boolean isPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+		refresh(record);
+		refresh(user);
+		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
+	}
+
 	public void physicallyDelete(Record record, User user) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDelete(record, user);
+	}
+
+	public void physicallyDelete(Record record, User user, RecordDeleteOptions options) {
+		refresh(record);
+		refresh(user);
+		newRecordDeleteServices().physicallyDelete(record, user, options);
 	}
 
 	public boolean isLogicallyDeletable(Record record, User user) {
@@ -798,6 +810,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
+	}
+
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+		refresh(record);
+		refresh(user);
+		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
 	}
 
 	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user) {

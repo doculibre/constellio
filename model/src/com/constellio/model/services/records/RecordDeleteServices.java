@@ -21,6 +21,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLo
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -130,10 +131,18 @@ public class RecordDeleteServices {
 	}
 
 	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
-		return isPhysicallyDeletableNoMatterTheStatus(record, user);
+		return isLogicallyThenPhysicallyDeletable(record, user, new RecordDeleteOptions());
+	}
+
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+		return isPhysicallyDeletableNoMatterTheStatus(record, user, options);
 	}
 
 	public boolean isPhysicallyDeletable(Record record, User user) {
+		return isPhysicallyDeletable(record, user, new RecordDeleteOptions());
+	}
+
+	public boolean isPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -156,12 +165,12 @@ public class RecordDeleteServices {
 			return false;
 
 		} else {
-			return isPhysicallyDeletableNoMatterTheStatus(record, user);
+			return isPhysicallyDeletableNoMatterTheStatus(record, user, options);
 		}
 
 	}
 
-	private boolean isPhysicallyDeletableNoMatterTheStatus(Record record, User user) {
+	private boolean isPhysicallyDeletableNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -169,17 +178,17 @@ public class RecordDeleteServices {
 
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record);
-		boolean notReferenced = !isReferencedByOtherRecords(record);
+		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isReferencesToNull();
 
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
 		}
 
-		if (!notReferenced) {
+		if (referencesUnhandled) {
 			LOGGER.info("Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
 		}
 
-		boolean physicallyDeletable = hasPermissions && notReferenced;
+		boolean physicallyDeletable = hasPermissions && !referencesUnhandled;
 
 		if (physicallyDeletable) {
 			RecordPhysicalDeletionValidationEvent event = new RecordPhysicalDeletionValidationEvent(record, user);
@@ -190,11 +199,69 @@ public class RecordDeleteServices {
 	}
 
 	public void physicallyDelete(Record record, User user) {
-		if (!isPhysicallyDeletable(record, user)) {
+		physicallyDelete(record, user, new RecordDeleteOptions());
+	}
+
+	public void physicallyDelete(final Record record, User user, RecordDeleteOptions options) {
+		if (!isPhysicallyDeletable(record, user, options)) {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
 		}
 
 		List<Record> records = getAllRecordsInHierarchy(record);
+
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
+		if (options.isReferencesToNull()) {
+
+			//Collections.sort(records, sortByLevelFromLeafToRoot());
+
+			for (final Record recordInHierarchy : records) {
+				String type = new SchemaUtils().getSchemaTypeCode(recordInHierarchy.getSchemaCode());
+				final List<Metadata> metadatas = types.getAllMetadatas().onlyReferencesToType(type).onlyNonParentReferences()
+						.onlyManuals();
+				if (!metadatas.isEmpty()) {
+					try {
+						new ActionExecutorInBatch(searchServices, "Remove references to '" + recordInHierarchy.getId() + "'",
+								1000) {
+
+							@Override
+							public void doActionOnBatch(List<Record> recordsWithRef)
+									throws Exception {
+
+								Transaction transaction = new Transaction();
+
+								for (Record recordWithRef : recordsWithRef) {
+									String recordWithRefType = new SchemaUtils().getSchemaTypeCode(recordWithRef.getSchemaCode());
+									for (Metadata metadata : metadatas) {
+										String metadataType = new SchemaUtils().getSchemaTypeCode(metadata);
+										if (recordWithRefType.equals(metadataType)) {
+											if (metadata.isMultivalue()) {
+												List<String> values = new ArrayList<>(recordWithRef.<String>getList(metadata));
+												int sizeBefore = values.size();
+												values.removeAll(Collections.singletonList(recordInHierarchy.getId()));
+												if (sizeBefore != values.size()) {
+													recordWithRef.set(metadata, values);
+												}
+											} else {
+												String value = recordWithRef.get(metadata);
+												if (recordInHierarchy.getId().equals(value)) {
+													recordWithRef.set(metadata, null);
+												}
+											}
+										}
+									}
+									transaction.add(recordWithRef);
+								}
+
+								recordServices.execute(transaction);
+							}
+						}.execute(fromAllSchemasIn(record.getCollection()).whereAny(metadatas).isEqualTo(recordInHierarchy));
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		}
+
 		deleteContents(records);
 		List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
 
@@ -210,6 +277,19 @@ public class RecordDeleteServices {
 			extensions.forCollectionOf(record).callRecordPhysicallyDeleted(event);
 		}
 	}
+	//
+	//	private Comparator<? super Record> sortByLevelFromLeafToRoot() {
+	//		return new Comparator<Record>() {
+	//			@Override
+	//			public int compare(Record o1, Record o2) {
+	//				 String path1 = o1.get(Schemas.PRINCIPAL_PATH);
+	//
+	//
+	//				String path2 = o1.get(Schemas.PRINCIPAL_PATH);
+	//				return 0;
+	//			}
+	//		};
+	//	}
 
 	void deleteContents(List<Record> records) {
 		String collection = records.get(0).getCollection();

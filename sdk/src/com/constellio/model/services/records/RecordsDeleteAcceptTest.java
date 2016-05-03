@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.idsArray;
 import static com.constellio.sdk.tests.TestUtils.recordsIds;
@@ -20,6 +21,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -69,18 +71,22 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	CollectionsListManager collectionsListManager;
 	AuthorizationsServices authorizationsServices;
 
+	RecordDeleteOptions withReferencesRemoved;
+
 	Records records;
 	Users users = new Users();
 	RolesManager roleManager;
 
 	User bob, userWithDeletePermission;
-	Record valueListItem, rootUnclassifiedItem, childUnclassifiedItem;
+	Record valueListItem, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem;
 
 	private ModelLayerCollectionExtensions extensions;
 
 	@Before
 	public void setUp()
 			throws Exception {
+
+		withReferencesRemoved = new RecordDeleteOptions().setReferencesToNull(true);
 
 		customSystemPreparation(new CustomSystemPreparation() {
 			@Override
@@ -136,15 +142,18 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		MetadataSchema valueListItemSchema = schemas.getSchema("valueList_default");
 		MetadataSchema securedUnclassifiedSchema = schemas.getSchema("securedUnclassified_default");
 
-		valueListItem = recordServices.newRecordWithSchema(valueListItemSchema, "valuelListItem").set(Schemas.TITLE, "Ze item");
+		valueListItem = recordServices.newRecordWithSchema(valueListItemSchema, "valuelListItem").set(TITLE, "Ze item");
+		valueListItem2 = recordServices.newRecordWithSchema(valueListItemSchema, "value2ListItem").set(TITLE, "Ze item 2");
+		valueListItem3 = recordServices.newRecordWithSchema(valueListItemSchema, "value3ListItem").set(TITLE, "Ze item 3");
 
 		rootUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "rootUnclassifiedItem")
-				.set(Schemas.TITLE, "rootUnclassifiedItem");
+				.set(TITLE, "rootUnclassifiedItem");
 
 		childUnclassifiedItem = recordServices.newRecordWithSchema(securedUnclassifiedSchema, "childUnclassifiedItem")
-				.set(Schemas.TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
+				.set(TITLE, "childUnclassifiedItem").set(securedUnclassifiedSchema.get("parent"), rootUnclassifiedItem);
 
-		recordServices.execute(new Transaction(valueListItem, rootUnclassifiedItem, childUnclassifiedItem));
+		recordServices.execute(
+				new Transaction(valueListItem, valueListItem2, valueListItem3, rootUnclassifiedItem, childUnclassifiedItem));
 	}
 
 	private void givenValueListSchemaHasSecurity() {
@@ -172,6 +181,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(bob).logicallyDelete(valueListItem);
 
 		assertThat(valueListItem).isNot(physicallyDeletableBy(bob));
+		assertThat(valueListItem).isNot(physicallyDeletableBy(bob, withReferencesRemoved));
 	}
 
 	@Test
@@ -186,6 +196,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(bob).logicallyDelete(valueListItem);
 
 		assertThat(valueListItem).is(physicallyDeletableBy(bob));
+		assertThat(valueListItem).is(physicallyDeletableBy(bob, withReferencesRemoved));
 	}
 
 	@Test
@@ -220,6 +231,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(valueListItem).is(logicallyDeletableBy(bob));
 		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob));
 		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob));
+		assertThat(valueListItem).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 		when(bob).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(logicallyDeleted());
@@ -242,6 +254,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		given(bob).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(physicallyDeletableBy(bob));
+		assertThat(valueListItem).is(physicallyDeletableBy(bob, withReferencesRemoved));
 
 		when(bob).physicallyDelete(valueListItem);
 		assertThat(valueListItem).is(physicallyDeleted());
@@ -254,10 +267,13 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		givenValueListSchemaHasSecurity();
 		assertThat(valueListItem).is(notLogicallyDeletableBy(bob));
 		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 		assertThat(valueListItem).is(logicallyDeletableBy(User.GOD));
 		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(User.GOD, withReferencesRemoved));
 		assertThat(valueListItem).is(logicallyDeletableBy(userWithDeletePermission));
 		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 
 		when(User.GOD).logicallyDelete(valueListItem);
 		assertThat(valueListItem).is(logicallyDeleted());
@@ -332,14 +348,58 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenReferencedValueListItemInMultivalueMetadataThenPhysicallyDeletableWithRefRemovedOption()
+			throws Exception {
+		given(records.folder3()).hasAValueListReferenceTo(valueListItem, valueListItem2, valueListItem3);
+		given(records.folder4()).hasAValueListReferenceTo(valueListItem2, valueListItem, valueListItem3);
+		given(records.folder1()).hasAValueListReferenceTo(valueListItem2, valueListItem3, valueListItem);
+		assertThat(valueListItem).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
+
+		Metadata metadata = folderSchema.instance().getMetadata("valueListRef");
+		when(bob).logicallyDelete(valueListItem);
+		when(bob).physicallyDelete(valueListItem, withReferencesRemoved);
+		assertThat(valueListItem).is(physicallyDeleted());
+		assertThat(records.folder3().getList(metadata)).containsExactly("value2ListItem", "value3ListItem");
+		assertThat(records.folder4().getList(metadata)).containsExactly("value2ListItem", "value3ListItem");
+		assertThat(records.folder1().getList(metadata)).containsExactly("value2ListItem", "value3ListItem");
+
+	}
+
+	@Test
+	public void givenReferencedValueListItemInSingleValueMetadataThenPhysicallyDeletableWithRefRemovedOption()
+			throws Exception {
+		given(records.folder3()).hasASingleValueListReferenceTo(valueListItem);
+		given(records.folder4()).hasASingleValueListReferenceTo(valueListItem);
+		given(records.folder1()).hasASingleValueListReferenceTo(valueListItem2);
+		assertThat(valueListItem).is(logicallyDeletableBy(bob));
+		assertThat(valueListItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(valueListItem).is(logicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
+
+		Metadata metadata = folderSchema.instance().getMetadata("valueListSingleRef");
+		when(bob).logicallyDelete(valueListItem);
+		when(bob).physicallyDelete(valueListItem, withReferencesRemoved);
+		assertThat(valueListItem).is(physicallyDeleted());
+		assertThat(records.folder3().get(metadata)).isNull();
+		assertThat(records.folder4().get(metadata)).isNull();
+		assertThat(records.folder1().get(metadata)).isEqualTo("value2ListItem");
+
+	}
+
+	@Test
 	public void givenUserWithCollectionDeleteAccessWhenDeletingASecuredUnclassifiedRecordThenAllHierarchyDeleted()
 			throws Exception {
 		assertThat(rootUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
 		assertThat(rootUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 		assertThat(childUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
 		assertThat(childUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 
 		when(userWithDeletePermission).logicallyDelete(rootUnclassifiedItem);
 		when(userWithDeletePermission).physicallyDelete(rootUnclassifiedItem);
@@ -354,11 +414,15 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		assertThat(rootUnclassifiedItem).is(notLogicallyDeletableBy(bob));
 		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 		assertThat(childUnclassifiedItem).is(notLogicallyDeletableBy(bob));
 		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 	}
 
@@ -370,11 +434,15 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		assertThat(rootUnclassifiedItem).is(notLogicallyDeletableBy(bob));
 		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 		assertThat(childUnclassifiedItem).is(notLogicallyDeletableBy(bob));
 		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(bob, withReferencesRemoved));
 		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(bob));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 
 	}
 
@@ -385,11 +453,15 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		assertThat(rootUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
 		assertThat(rootUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(rootUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 
 		assertThat(childUnclassifiedItem).is(logicallyDeletableBy(userWithDeletePermission));
 		assertThat(childUnclassifiedItem).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(childUnclassifiedItem).is(notPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 
 	}
 
@@ -443,7 +515,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenARecordWithoutPathThenAUserWithCollectionDeleteAccessCanLogicallyDeleteIt()
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
-		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		recordServices.add(folder.set(TITLE, "title"));
 
 		when(userWithDeletePermission).logicallyDelete(folder);
 
@@ -455,7 +527,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenARecordWithoutPathThenATypicalUserCannotLogicallyDeleteIt()
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
-		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		recordServices.add(folder.set(TITLE, "title"));
 
 		assertThat(records.folder4()).is(notLogicallyDeletableBy(bob));
 		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(bob));
@@ -466,7 +538,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWithoutPathThenAUserWithCollectionDeleteAccessCanRestoreIt()
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
-		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		recordServices.add(folder.set(TITLE, "title"));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
 		when(userWithDeletePermission).restore(folder);
@@ -479,7 +551,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWithoutPathThenATypicalUserCannotRestoreIt()
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
-		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		recordServices.add(folder.set(TITLE, "title"));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
 		assertThat(records.folder4()).is(notRestorableBy(bob));
@@ -490,7 +562,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWithoutPathThenAUserWithCollectionDeleteAccessCanPhysicallyDeleteIt()
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
-		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		recordServices.add(folder.set(TITLE, "title"));
 		assertThat(folder).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
@@ -504,7 +576,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenALogicallyDeletedRecordWithoutPathThenATypicalUserCannotPhysicallyDeleteIt()
 			throws Exception {
 		Record folder = recordServices.newRecordWithSchema(folderSchema.instance());
-		recordServices.add(folder.set(Schemas.TITLE, "title"));
+		recordServices.add(folder.set(TITLE, "title"));
 		given(userWithDeletePermission).logicallyDelete(folder);
 
 		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
@@ -517,6 +589,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(records.folder2()).hasAReferenceTo(records.folder4());
 
 		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
 		when(userWithDeletePermission).logicallyDelete(records.folder4());
 
 		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
@@ -644,6 +717,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(bob).hasRemovedDeletePermissionOn(records.folder4_2());
 
 		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob));
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(bob, withReferencesRemoved));
 		assertThat(records.inFolder4Hierarchy()).areNot(physicallyDeleted());
 	}
 
@@ -729,7 +803,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenALogicallyDeletedRecordInHierarchyIsReferencedByAnotherRecordThenCannotPhysicallyDeleteIt()
+	public void givenALogicallyDeletedRecordInHierarchyIsReferencedByMultivalueMetadataAnotherRecordThenCannotPhysicallyDeleteIt()
 			throws Exception {
 		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 
@@ -740,7 +814,18 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndTheReferenceIsRemovedThenCanPhysicallyDeleteIt()
+	public void givenALogicallyDeletedRecordInHierarchyIsReferencedBySingleValueMetadataAnotherRecordThenCannotPhysicallyDeleteIt()
+			throws Exception {
+		given(records.folder2()).hasASingleValueReferenceTo(records.folder4_2());
+
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		assertThat(records.folder4()).is(notPhysicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedByMultivalueMetadataInAnotherRecordAndTheReferenceIsRemovedThenCanPhysicallyDeleteIt()
 			throws Exception {
 		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
@@ -752,7 +837,19 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndTheReferenceIsRemovedAndRecordRestoredThenCanLogicallyThenPhysicallyDeleteIt()
+	public void givenALogicallyDeletedRecordIsReferencedBySinglevalueMetadataInAnotherRecordAndTheReferenceIsRemovedThenCanPhysicallyDeleteIt()
+			throws Exception {
+		given(records.folder2()).hasASingleValueReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		when(records.folder2()).hasASingleValueReferenceTo(null);
+
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(physicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedByMultivalueMetadataInAnotherRecordAndTheReferenceIsRemovedAndRecordRestoredThenCanLogicallyThenPhysicallyDeleteIt()
 			throws Exception {
 		given(records.folder2()).hasAReferenceTo(records.folder4_2());
 		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
@@ -760,6 +857,21 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
 		when(records.folder2()).hasAReferenceTo();
+		given(userWithDeletePermission).restore(records.folder4());
+
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedBySinglevalueMetadataInAnotherRecordAndTheReferenceIsRemovedAndRecordRestoredThenCanLogicallyThenPhysicallyDeleteIt()
+			throws Exception {
+		given(records.folder2()).hasASingleValueReferenceTo(records.folder4_2());
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		when(records.folder2()).hasASingleValueReferenceTo(null);
 		given(userWithDeletePermission).restore(records.folder4());
 
 		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
@@ -810,9 +922,24 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenALogicallyDeletedRecordIsReferencedByAnotherRecordAndIsMovedInAnOtherFolderThenPreviousParentFolderIsNowPhysicallyDeletable()
+	public void givenALogicallyDeletedRecordIsReferencedByMultivalueMetadataInAnotherRecordAndIsMovedInAnOtherFolderThenPreviousParentFolderIsNowPhysicallyDeletable()
 			throws Exception {
 		given(records.folder2()).hasAReferenceTo(records.folder4_2());
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		when(records.folder4_2()).hasNewParent(records.folder3());
+
+		assertThat(records.folder4()).is(physicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4_2()).is(notPhysicallyDeletableBy(userWithDeletePermission));
+
+		when(userWithDeletePermission).logicallyDelete(records.folder3());
+		assertThat(records.folder3()).is(notPhysicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedBySingleValueMetadataInAnotherRecordAndIsMovedInAnOtherFolderThenPreviousParentFolderIsNowPhysicallyDeletable()
+			throws Exception {
+		given(records.folder2()).hasASingleValueReferenceTo(records.folder4_2());
 		given(userWithDeletePermission).logicallyDelete(records.folder4());
 
 		when(records.folder4_2()).hasNewParent(records.folder3());
@@ -844,6 +971,23 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		given(userWithDeletePermission).restore(records.folder4());
 		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+	}
+
+	@Test
+	public void givenALogicallyDeletedRecordIsReferencedByThreeRecordsWhenPhysicallyDeletingWithRefRemovedThenRefRemoved()
+			throws Exception {
+		given(records.folder1()).hasAReferenceTo(records.folder4());
+		given(records.folder2()).hasAReferenceTo(records.folder4());
+		Record folder4 = records.folder4();
+		assertThat(records.folder4()).is(notLogicallyThenPhysicallyDeletableBy(userWithDeletePermission));
+		assertThat(records.folder4()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission, withReferencesRemoved));
+		given(userWithDeletePermission).logicallyDelete(records.folder4());
+
+		when(userWithDeletePermission).physicallyDelete(records.folder4(), withReferencesRemoved);
+		assertThat(folder4).is(physicallyDeleted());
+		assertThat(records.folder1().getList(folderSchema.linkToOtherFolders())).isEmpty();
+		assertThat(records.folder2().getList(folderSchema.linkToOtherFolders())).isEmpty();
+
 	}
 
 	@Test
@@ -1226,8 +1370,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void givenTypeSupportingTotalDeleteWhenTotallyDeletingRecordsThenAllDeleted()
 			throws Exception {
 		MetadataSchemaType typeTotallyDeletable = schemas.get("typeSupportingRawDelete");
-		Record record1 = new TestRecord(typeTotallyDeletable.getDefaultSchema(), "totalRecord1").set(Schemas.TITLE, "1");
-		Record record2 = new TestRecord(typeTotallyDeletable.getDefaultSchema(), "totalRecord2").set(Schemas.TITLE, "2");
+		Record record1 = new TestRecord(typeTotallyDeletable.getDefaultSchema(), "totalRecord1").set(TITLE, "1");
+		Record record2 = new TestRecord(typeTotallyDeletable.getDefaultSchema(), "totalRecord2").set(TITLE, "2");
 
 		recordServices.execute(new Transaction(record1, record2));
 
@@ -1254,15 +1398,24 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user) {
+		return logicallyThenPhysicallyDeletableBy(user, new RecordDeleteOptions());
+	}
+
+	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user, final RecordDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isLogicallyThenPhysicallyDeletable(record, user);
+				return recordServices.isLogicallyThenPhysicallyDeletable(record, user, options);
 			}
-		}.describedAs("logically deletable by " + user);
+		}.describedAs("logically then physically deletable by " + user);
 	}
 
 	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user) {
+		return notLogicallyThenPhysicallyDeletableBy(user, new RecordDeleteOptions());
+
+	}
+
+	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user, final RecordDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1273,7 +1426,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				try {
 					recordServices.logicallyDelete(record, user);
 					logicallyDeleted = true;
-					recordServices.physicallyDelete(record, user);
+					recordServices.physicallyDelete(record, user, options);
 
 					return false;
 				} catch (Exception e) {
@@ -1286,7 +1439,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				}
 
 			}
-		}.describedAs("logically deletable by " + user);
+		}.describedAs("not logically then physically deletable by " + user);
 	}
 
 	private Condition<? super Record> notLogicallyDeletableBy(final User user) {
@@ -1396,20 +1549,28 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> physicallyDeletableBy(final User user) {
+		return physicallyDeletableBy(user, new RecordDeleteOptions());
+	}
+
+	private Condition<? super Record> physicallyDeletableBy(final User user, final RecordDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isPhysicallyDeletable(record, user);
+				return recordServices.isPhysicallyDeletable(record, user, options);
 			}
 		}.describedAs("physically deletable by " + user);
 	}
 
 	private Condition<? super Record> notPhysicallyDeletableBy(final User user) {
+		return notPhysicallyDeletableBy(user, new RecordDeleteOptions());
+	}
+
+	private Condition<? super Record> notPhysicallyDeletableBy(final User user, final RecordDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
 
-				if (recordServices.isPhysicallyDeletable(record, user)) {
+				if (recordServices.isPhysicallyDeletable(record, user, options)) {
 					return false;
 				} else {
 
@@ -1570,6 +1731,11 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			recordServices.physicallyDelete(record, user);
 		}
 
+		public void physicallyDelete(Record record, RecordDeleteOptions options) {
+
+			recordServices.physicallyDelete(record, user, options);
+		}
+
 		public void logicallyDelete(Record record) {
 			recordServices.logicallyDelete(record, user);
 		}
@@ -1621,7 +1787,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		public void modify(Record record) {
 			recordServices.refresh(record);
-			record.set(Schemas.TITLE, record.get(Schemas.TITLE) + " modified");
+			record.set(TITLE, record.get(TITLE) + " modified");
 			try {
 				recordServices.update(record);
 			} catch (RecordServicesException e) {
@@ -1638,6 +1804,16 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			this.record = record;
 		}
 
+		public void hasASingleValueListReferenceTo(Record anotherRecord) {
+
+			record.set(folderSchema.instance().getMetadata("valueListSingleRef"), anotherRecord);
+			try {
+				recordServices.update(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		public void hasAValueListReferenceTo(Record... anotherRecords) {
 
 			record.set(folderSchema.instance().getMetadata("valueListRef"), Arrays.asList(anotherRecords));
@@ -1651,6 +1827,16 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasAReferenceTo(Record... anotherRecords) {
 
 			record.set(folderSchema.linkToOtherFolders(), Arrays.asList(anotherRecords));
+			try {
+				recordServices.update(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		public void hasASingleValueReferenceTo(Record anotherRecord) {
+
+			record.set(folderSchema.linkToOtherFolder(), anotherRecord);
 			try {
 				recordServices.update(record);
 			} catch (RecordServicesException e) {
@@ -1697,6 +1883,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 				MetadataSchemaBuilder folderSchema = schemaTypes.getSchemaType("folder").getDefaultSchema();
 				folderSchema.create("valueListRef").defineReferencesTo(aValueListType).setMultivalue(true);
+				folderSchema.create("valueListSingleRef").defineReferencesTo(aValueListType).setMultivalue(false);
 				folderSchema.create("securedUnclassified").defineReferencesTo(securedUnclassifiedSchemaType);
 
 				MetadataSchemaTypeBuilder typeSupportingRawDelete = schemaTypes.createNewSchemaType("typeSupportingRawDelete")
