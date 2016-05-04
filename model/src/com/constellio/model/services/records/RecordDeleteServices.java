@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static java.lang.Boolean.TRUE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,7 +97,7 @@ public class RecordDeleteServices {
 		boolean parentActiveOrNull;
 		if (parentId != null) {
 			Record parent = recordServices.getDocumentById(parentId);
-			parentActiveOrNull = Boolean.TRUE != parent.get(Schemas.LOGICALLY_DELETED_STATUS);
+			parentActiveOrNull = TRUE != parent.get(Schemas.LOGICALLY_DELETED_STATUS);
 		} else {
 			parentActiveOrNull = true;
 		}
@@ -148,7 +149,7 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 
-		boolean correctStatus = Boolean.TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
+		boolean correctStatus = TRUE == record.get(Schemas.LOGICALLY_DELETED_STATUS);
 		boolean noActiveRecords = containsNoActiveRecords(record);
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record);
@@ -199,14 +200,16 @@ public class RecordDeleteServices {
 	}
 
 	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
-		if (record.get(Schemas.LOGICALLY_DELETED_STATUS)) {
+		if (TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 			physicallyDelete(record, user, options);
 
 		} else {
 			logicallyDelete(record, user);
+			recordServices.refresh(record);
 			try {
 				physicallyDelete(record, user, options);
 			} catch (RecordServicesRuntimeException e) {
+				recordServices.refresh(record);
 				restore(record, user);
 				throw e;
 			}

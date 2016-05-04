@@ -794,6 +794,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().physicallyDelete(record, user);
 	}
 
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+		refresh(record);
+		refresh(user);
+		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record, user, options);
+	}
+
 	public void physicallyDelete(Record record, User user, RecordDeleteOptions options) {
 		refresh(record);
 		refresh(user);
