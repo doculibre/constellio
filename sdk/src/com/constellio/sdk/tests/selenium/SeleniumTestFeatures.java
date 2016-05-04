@@ -144,12 +144,74 @@ public class SeleniumTestFeatures {
 	}
 
 	public ConstellioWebDriver newWebDriver(boolean preferFirefox) {
+		return newWebDriver(preferFirefox, false);
+	}
+
+	public ConstellioWebDriver newWebDriver(boolean preferFirefox, boolean useSSL) {
 		disableAllServices();
 		if (!applicationStarted) {
 			startApplication();
 		}
 
-		String url = "http://localhost:" + port + "/constellio";
+		String url;
+		if (useSSL) {
+			url = "https://localhost:" + portSSL + "/constellio";
+		} else {
+			url = "http://localhost:" + port + "/constellio";
+		}
+
+		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
+		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
+
+		String currentPageLoadTime;
+		if (openedWebDriver == null) {
+			WebDriver webDriver;
+			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
+				throw new RuntimeException(
+						"You need to configure 'phantomJSBinary' or 'firefoxBinary' properties in sdk.properties file");
+			} else if (phantomJSBinaryDir == null || (firefoxBinaryDir != null && preferFirefox)) {
+				webDriver = newFirefoxWebDriver(firefoxBinaryDir);
+
+			} else {
+				webDriver = newPhantomJSWebDriver(phantomJSBinaryDir);
+			}
+			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator();
+			openedWebDriver = new ConstellioWebDriver(webDriver, url, foldersLocator, skipTestsRule);
+			currentPageLoadTime = "";
+
+		} else {
+			currentPageLoadTime = openedWebDriver.getPageLoadTimeAsString(2000);
+			openedWebDriver.manage().deleteAllCookies();
+		}
+
+		openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+
+		boolean ready = false;
+
+		Exception exception = null;
+		for (int i = 0; i < 10 && !ready; i++) {
+			try {
+				openedWebDriver.gotoConstellio();
+				openedWebDriver.waitForPageReload(20, currentPageLoadTime);
+				ready = true;
+			} catch (Exception e) {
+				exception = e;
+			}
+		}
+		if (!ready) {
+			throw new RuntimeException(exception);
+		}
+
+		return openedWebDriver;
+	}
+
+	public ConstellioWebDriver newWebDriverSSL(boolean preferFirefox) {
+		disableAllServices();
+		if (!applicationStarted) {
+			startApplication();
+		}
+
+		String url = "http://localhost:" + portSSL + "/constellio";
 
 		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
 		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");

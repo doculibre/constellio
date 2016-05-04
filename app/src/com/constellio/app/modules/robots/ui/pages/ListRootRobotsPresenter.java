@@ -45,4 +45,9 @@ public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsVi
 	public void addButtonClicked() {
 		view.navigate().to(RobotViews.class).addRobot(null);
 	}
+	
+	public void backButtonClicked() {
+		view.navigate().to().adminModule();
+	}
+	
 }

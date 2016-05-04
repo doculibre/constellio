@@ -80,9 +80,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	List<String> newExclusions = new ArrayList<>();
 	User currentUser;
 	String robotId;
+	List<Record> processedRecords;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId) {
+			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -95,6 +96,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.robotId = robotId;
+		this.processedRecords = processedRecords;
 	}
 
 	public void execute() {
@@ -235,6 +237,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName);
 			} else {
 				rmFolder = rm.newFolder();
+				rmFolder.setCreatedByRobot(robotId);
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
@@ -265,6 +268,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			Folder parentFolder = rm.getFolderByLegacyId(parentPath);
 
 			rmFolder = rm.newFolder().setTitle(folderName);
+			rmFolder.setCreatedByRobot(robotId);
 			rmFolder.setLegacyId(url);
 			rmFolder.setParentFolder(parentFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
@@ -308,11 +312,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 						}
 					}
 				}
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useDefaultValuesInMissingFields(folderEntry, rmFolder);
 			} else {
+				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 				useAllDefaultValuesFromParams(rmFolder);
 			}
 		} else {
+			setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
 			useAllDefaultValuesFromParams(rmFolder);
 		}
 		try {
@@ -335,6 +342,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		Folder parentFolder = rm.getFolderByLegacyId(parentPath);
 		Folder newRmFolder = rm.newFolder();
+		newRmFolder.setCreatedByRobot(robotId);
 		if (parentFolder != null) {
 			newRmFolder.setOpenDate(parentFolder.getOpenDate());
 			newRmFolder.setCloseDateEntered(parentFolder.getCloseDateEntered());
@@ -346,6 +354,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
 			MetadataSchema folderSchema, Record parentConcept) {
 		Folder newRmFolder = rm.newFolder();
+		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy))
 				.get(0);
 		newRmFolder.set(taxoMetadata.getLocalCode(), parentConcept.getId()).setTitle(pathPart);
@@ -462,6 +471,18 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return folderSchema;
 	}
 
+	private void setOpeningDateFromCreatedOnOrLastModifiedIfNull(Folder rmFolder) {
+		if (rmFolder.getOpeningDate() == null) {
+			LocalDateTime connectorFolderCreatedOn = connectorFolder.getCreatedOn();
+			LocalDateTime connectorFolderLastModified = connectorFolder.getLastModified();
+			if (connectorFolderCreatedOn != null) {
+				rmFolder.setOpenDate(connectorFolderCreatedOn.toLocalDate());
+			} else if (connectorFolderLastModified != null) {
+				rmFolder.setOpenDate(connectorFolderLastModified.toLocalDate());
+			}
+		}
+	}
+
 	private void useAllDefaultValuesFromParams(Folder rmFolder) {
 		if (rmFolder.getParentFolder() == null && params.getDefaultParentFolder() != null) {
 			rmFolder.setParentFolder(params.getDefaultParentFolder());
@@ -552,6 +573,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			try {
 				ClassifiedDocument classifiedDocument = classifyDocument(document, inRmFolder, majorVersions);
 				createdRecordsByUrls.put(document.getUrl(), classifiedDocument);
+				processedRecords.add(document.getWrappedRecord());
 			} catch (ClassifyServicesRuntimeException_CannotClassifyAsDocument e) {
 				LOGGER.warn("Cannot classify '" + document.getUrl() + "'", e);
 			}
@@ -567,6 +589,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 			if (document == null) {
 				document = rm.newDocument();
+				document.setCreatedByRobot(robotId);
 				document.setLegacyId(connectorDocument.getUrl());
 			}
 			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);

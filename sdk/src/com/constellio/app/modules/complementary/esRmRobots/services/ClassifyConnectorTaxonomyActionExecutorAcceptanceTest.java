@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -280,6 +281,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 		assertThat(folderA.getKeywords()).containsOnly("mot1", "mot2", "mot3");
+		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
 
 		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
@@ -288,6 +290,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 		assertThat(folderAA.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAA.getCreatedByRobot()).isEqualTo(robotId);
 
 		Folder folderAB = getFolderByLegacyId(folderABTaxoURL);
 		assertThat(folderAB.getParentFolder()).isEqualTo(folderA.getId());
@@ -296,6 +299,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 		assertThat(folderAB.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAB.getCreatedByRobot()).isEqualTo(robotId);
 
 		Folder folderAAA = getFolderByLegacyId(folderAAATaxoURL);
 		assertThat(folderAAA.getParentFolder()).isEqualTo(folderAA.getId());
@@ -304,6 +308,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderAAA.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 		assertThat(folderAAA.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAAA.getCreatedByRobot()).isEqualTo(robotId);
 
 		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
@@ -312,6 +317,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderAAB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-11-04");
 		assertThat(folderAAB.getKeywords()).containsOnly("mot1", "mot2");
+		assertThat(folderAAB.getCreatedByRobot()).isEqualTo(robotId);
 
 		Folder folderB = getFolderByLegacyId(folderBTaxoURL);
 		assertThat(folderB.getParentFolder()).isNull();
@@ -320,6 +326,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderB.getOpenDate().toString("yyyy-MM-dd")).isEqualTo("2015-12-14");
 		assertThat(folderB.getKeywords()).containsOnly("mot2", "mot4");
+		assertThat(folderB.getCreatedByRobot()).isEqualTo(robotId);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1008,7 +1015,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				"Document '" + documentAA5TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentAAA6TaxoURL + "' supprimé suite à sa classification dans Constellio",
 				"Document '" + documentB7JustDeletedTaxoURL + "' supprimé suite à sa classification dans Constellio",
-				"Execution terminée"
+				"Exécution terminée"
 		);
 
 		assertThat(deletedConnectorDocuments.getAllValues()).extracting("id")
@@ -1439,10 +1446,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(document.getAuthor()).isEqualTo("Rob Robinson");
 		assertThat(document.getSchemaCode()).isEqualTo("document_customDocument");
 		assertThat(document.get("customMeta")).isEqualTo("valeur 1");
+		assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
 
 		document = getDocumentByLegacyId(folderBTaxoURL + "3.txt");
 		assertThat(document.getTitle()).isEqualTo("Le document 3");
 		assertThat(document.getAuthor()).isEqualTo("Dan Danielson");
+		assertThat(document.getCreatedByRobot()).isEqualTo(robotId);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1847,7 +1856,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 	void classifyConnectorFolderInTaxonomy(Record connectorFolder, ClassifyConnectorFolderInTaxonomyActionParameters params) {
 		ClassifyConnectorRecordInTaxonomyExecutor builder = new ClassifyConnectorRecordInTaxonomyExecutor(
-				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId);
+				connectorFolder, params, es.getAppLayerFactory(), users.adminIn(zeCollection), robotId, new ArrayList<Record>());
 		builder.execute();
 
 	}
