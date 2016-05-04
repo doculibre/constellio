@@ -132,7 +132,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
-		return search.setSearchType(SimpleSearchView.SEARCH_TYPE).setFreeTextSearch(searchExpression);
+		return search.setSearchType(SimpleSearchView.SEARCH_TYPE)
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber);
 	}
 
 	private List<MetadataSchemaType> allowedSchemaTypes() {

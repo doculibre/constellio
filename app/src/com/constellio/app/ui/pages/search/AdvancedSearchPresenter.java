@@ -259,7 +259,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return search.setSearchType(AdvancedSearchView.SEARCH_TYPE)
 				.setSchemaFilter(schemaTypeCode)
 				.setFreeTextSearch(searchExpression)
-				.setAdvancedSearch(view.getSearchCriteria());
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(pageNumber);
 	}
 
 	public Record getTemporarySearchRecord() {
