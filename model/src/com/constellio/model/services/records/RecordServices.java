@@ -113,6 +113,8 @@ public interface RecordServices {
 
 	void physicallyDelete(Record record, User user);
 
+	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options);
+
 	boolean isLogicallyDeletable(Record record, User user);
 
 	boolean isLogicallyThenPhysicallyDeletable(Record record, User user);

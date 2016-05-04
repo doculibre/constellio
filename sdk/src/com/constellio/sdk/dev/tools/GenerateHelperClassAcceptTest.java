@@ -60,7 +60,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		System.out.println(header());
 
-		printGeneratedSchemas(wrappers);
+		printGeneratedSchemas(wrappers, true);
 
 		System.out.println(footer());
 	}
@@ -90,7 +90,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		System.out.println(header());
 
-		printGeneratedSchemas(wrappers);
+		printGeneratedSchemas(wrappers, false);
 
 		System.out.println(footer());
 	}
@@ -121,7 +121,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		System.out.println(header());
 
-		printGeneratedSchemas(wrappers);
+		printGeneratedSchemas(wrappers, true);
 
 		System.out.println(footer());
 	}
@@ -139,12 +139,12 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		System.out.println(header());
 
-		printGeneratedSchemas(wrappers);
+		printGeneratedSchemas(wrappers, true);
 
 		System.out.println(footer());
 	}
 
-	protected void printGeneratedSchemas(Map<String, Class<? extends RecordWrapper>> wrappers)
+	protected void printGeneratedSchemas(Map<String, Class<? extends RecordWrapper>> wrappers, boolean appLayer)
 			throws Exception {
 
 		StringBuilder stringBuilder = new StringBuilder();
@@ -172,7 +172,14 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 			}
 		}
-		System.out.println(stringBuilder.toString());
+
+		String code = stringBuilder.toString();
+
+		if (!appLayer) {
+			code = code.replace("appLayerFactory.getModelLayerFactory()", "modelLayerFactory");
+		}
+
+		System.out.println(code);
 	}
 
 	private String generateSchemaHelperMethods(MetadataSchema schema, String wrapperName) {

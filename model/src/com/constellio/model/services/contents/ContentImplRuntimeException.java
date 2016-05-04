@@ -44,6 +44,13 @@ public class ContentImplRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion extends ContentImplRuntimeException {
+
+		public ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(String givenVersion, String previousVersion) {
+			super("Bad version '" + givenVersion + "'. Must be higher than previous version '" + previousVersion + "'");
+		}
+	}
+
 	public static class ContentImplRuntimeException_UserHasNoDeleteVersionPermission extends ContentImplRuntimeException {
 
 		public ContentImplRuntimeException_UserHasNoDeleteVersionPermission(User user) {
