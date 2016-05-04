@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+<<<<<<< HEAD
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -69,6 +70,11 @@ public class CoreMigrationTo_6_3 implements MigrationScript {
         protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
             MetadataSchemaBuilder user = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
             user.createUndeletable(User.LOGIN_LANGUAGE_CODE).setType(MetadataValueType.STRING);
+            MetadataSchemaTypeBuilder type = typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE);
+            MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
+            defaultSchema.createUndeletable(SavedSearch.TEMPORARY).setType(BOOLEAN);
+            defaultSchema.createUndeletable(SavedSearch.PAGE_NUMBER).setType(NUMBER);
+
         }
     }
 }
