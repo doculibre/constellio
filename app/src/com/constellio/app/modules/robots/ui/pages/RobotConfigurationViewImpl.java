@@ -87,6 +87,7 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		buttons.add(buildDeleteButton());
 		buttons.add(buildLogsButton());
 		buttons.add(buildDownloadButton());
+		buttons.add(buildDeleteRecordsButton());
 		return buttons;
 	}
 
@@ -143,6 +144,15 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				Page.getCurrent().open(resource, null, false);
+			}
+		};
+	}
+
+	private DeleteButton buildDeleteRecordsButton() {
+		return new DeleteButton($("RobotConfigurationView.deleteRecords")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.deleteRecordsButtonClicked(robot);
 			}
 		};
 	}
