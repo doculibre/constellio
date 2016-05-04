@@ -90,4 +90,12 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 		view.navigate().to(RobotViews.class).listRootRobots();
 	}
 	
+	public void deleteRecordsButtonClicked() {
+		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
+	}
+
+	public void deleteRecordsButtonClicked(RecordVO robot) {
+		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
+	}
+	
 }

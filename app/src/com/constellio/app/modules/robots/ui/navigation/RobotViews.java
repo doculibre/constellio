@@ -43,4 +43,10 @@ public class RobotViews extends CoreViews {
 	public void displayLogs(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.ROBOT_LOGS + "/" + entityId);
 	}
+
+	public void deleteRobotRecords(String robotId) {
+		navigator.navigateTo(NavigatorConfigurationService.DELETE_ROBOT_RECORDS + "/" + robotId);
+	}
+	
+	
 }

@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
@@ -71,12 +71,12 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		setSizeUndefined();
 
 		setCompositionRoot(buildContent());
-		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
-			@Override
-			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
-				hideMenu();
-			}
-		});
+//		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
+//			@Override
+//			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
+//				hideMenu();
+//			}
+//		});
 	}
 
 	@Override

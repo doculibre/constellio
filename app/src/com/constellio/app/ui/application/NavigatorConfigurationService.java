@@ -40,6 +40,7 @@ import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesVi
 import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
 import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.AddEditRobotViewImpl;
+import com.constellio.app.modules.robots.ui.pages.DeleteRobotRecordsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.ListRootRobotsViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotConfigurationViewImpl;
 import com.constellio.app.modules.robots.ui.pages.RobotLogsViewImpl;
@@ -247,6 +248,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String ROBOT_CONFIGURATION = "robotConfiguration";
 	public static final String ADD_EDIT_ROBOT = "addEditRobot";
 	public static final String ROBOT_LOGS = "robotLogs";
+	public static final String DELETE_ROBOT_RECORDS = "deleteRobotRecords";
 
 	public static final String TAXONOMY_SEARCH = "taxonomySearch";
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
@@ -409,6 +411,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(ROBOT_CONFIGURATION, RobotConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ADD_EDIT_ROBOT, AddEditRobotViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ROBOT_LOGS, RobotLogsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(DELETE_ROBOT_RECORDS, DeleteRobotRecordsViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class));
 	}
