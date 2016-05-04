@@ -96,10 +96,10 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		Field<?> firstFieldWithError = null;
 		for (ValidationError validationError : validationErrors.getValidationErrors()) {
 			String errorMessage = $(validationError);
-			String metadataCode = validationError.getParameters()
+			Object metadataCode = validationError.getParameters()
 					.get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
 			if (metadataCode != null) {
-				MetadataVO metadata = viewObject.getMetadataOrNull(metadataCode);
+				MetadataVO metadata = viewObject.getMetadataOrNull((String)metadataCode);
 				if (metadata != null) {
 					Field<?> field = getField(metadata);
 					if (field != null) {

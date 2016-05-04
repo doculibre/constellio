@@ -3,11 +3,15 @@ package com.constellio.app.ui.pages.base;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.app.ui.application.ConstellioUI;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.KerberosServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -19,6 +23,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConstellioMenuPresenter implements Serializable {
 
@@ -172,4 +178,22 @@ public class ConstellioMenuPresenter implements Serializable {
 		return StringUtils.isNotBlank(collectionTitle) ? collectionTitle : collectionName;
 	}
 
+	private List<String> getCollectionLanguagesOrderedByCode(String collection) {
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		return appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+	}
+
+	public void languageSelected(String languageText, String collection) {
+		List<String> allLanguagesCodes = getCollectionLanguagesOrderedByCode(collection);
+		for(String code : allLanguagesCodes)
+			if($("Language." + code).equals(languageText))
+				ConstellioUI.getCurrentSessionContext().setCurrentLocale(new Locale(code));
+	}
+
+	public List<String> getCollectionLanguages(String collection) {
+		List<String> returnList = new ArrayList<>();
+		for(String code : getCollectionLanguagesOrderedByCode(collection))
+			returnList.add($("Language." + code));
+		return returnList;
+	}
 }

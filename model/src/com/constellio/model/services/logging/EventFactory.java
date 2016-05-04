@@ -168,14 +168,14 @@ public class EventFactory {
 					Object oldValue = recordImpl.getRecordDTO().getFields().get(metadataDatastoreCode);
 					if (newValue == null) {
 						if (oldValue != null) {
-							delta.append("-[" + metadata.getLabel() + " : " + oldValue.toString() + "]\n");
+							delta.append("-[" + metadata.getCode() + " : " + oldValue.toString() + "]\n");
 						}
 					} else {
 						if (oldValue == null) {
-							delta.append("+[" + metadata.getLabel() + " : " + newValue.toString() + "]\n");
+							delta.append("+[" + metadata.getCode() + " : " + newValue.toString() + "]\n");
 						} else {
 							if (!oldValue.toString().equals(newValue.toString())) {
-								delta.append("[ " + metadata.getLabel() + " :\n");
+								delta.append("[ " + metadata.getCode() + " :\n");
 								delta.append("\tAvant : " + limitContentLength(oldValue.toString()) + "\n");
 								delta.append("\tAprès : " + limitContentLength(newValue.toString()) + "]\n");
 							}

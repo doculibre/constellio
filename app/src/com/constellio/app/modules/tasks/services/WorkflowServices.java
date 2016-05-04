@@ -333,7 +333,6 @@ public class WorkflowServices {
 		}
 	}
 
-	//TODO Thiago test
 	public void addAfter(WorkflowTaskVO existingWorkflowTaskVO, WorkflowTaskVO targetTask, SessionContext sessionContext) {
 
 		//		WorkflowTaskVO taskBeforeSelected = getTaskVOBefore(selectedWorkflowTaskVO, sessionContext);
@@ -391,7 +390,6 @@ public class WorkflowServices {
 		transaction.add(task);
 	}
 
-	//TODO Thiago
 	private void addRelationShip(Transaction transaction, WorkflowTaskVO selectNode,
 			WorkflowTaskVO targetNode) {
 
@@ -418,7 +416,6 @@ public class WorkflowServices {
 		if (task.getNextTasks().isEmpty()) {
 			task.setNextTask(selectNode.getId());
 		} else {
-			//TODO Thiago
 			task.addNextTaskDecision(targetNode.getTitle(), selectNode.getId());
 		}
 		//		if (node.getDecision() == null) {

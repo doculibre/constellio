@@ -10,17 +10,22 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.utils.RecordMetadataValuePrinter;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class DryRunReportPresenter {
 	private final List<DryRunRobotAction> dryRunRobotActions;
 	private RecordMetadataValuePrinter recordMetadataValuePrinter;
+	Language language;
 
-	public DryRunReportPresenter(ModelLayerFactory modelLayerFactory, List<DryRunRobotAction> dryRunRobotActions) {
+	public DryRunReportPresenter(ModelLayerFactory modelLayerFactory, List<DryRunRobotAction> dryRunRobotActions,
+			SessionContext sessionContext) {
 		this.dryRunRobotActions = dryRunRobotActions;
 		recordMetadataValuePrinter = new RecordMetadataValuePrinter(modelLayerFactory);
+		language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
 	}
 
 	public DryRunReportModel buildModel() {
@@ -39,7 +44,7 @@ public class DryRunReportPresenter {
 				new Comparator<Metadata>() {
 					@Override
 					public int compare(Metadata o1, Metadata o2) {
-						return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+						return o1.getLabel(language).toLowerCase().compareTo(o2.getLabel(language).toLowerCase());
 					}
 
 				});
@@ -49,9 +54,9 @@ public class DryRunReportPresenter {
 
 		List<String> actionLabels = new ArrayList<>();
 		for (Metadata metadata : treeMap.keySet()) {
-			if (!actionLabels.contains(metadata.getLabel())) {
-				model.addTitle(metadata.getLabel());
-				actionLabels.add(metadata.getLabel());
+			if (!actionLabels.contains(metadata.getLabel(language))) {
+				model.addTitle(metadata.getLabel(language));
+				actionLabels.add(metadata.getLabel(language));
 			}
 		}
 
@@ -68,7 +73,7 @@ public class DryRunReportPresenter {
 			for (String actionLabel : actionLabels) {
 				boolean added = false;
 				for (Entry<Metadata, Object> entry : dryRunRobotAction.getActionParameters().entrySet()) {
-					if (actionLabel.equals(entry.getKey().getLabel())) {
+					if (actionLabel.equals(entry.getKey().getLabel(language))) {
 						results.add(recordMetadataValuePrinter.convertForPrinting(entry.getKey(), entry.getValue()));
 						added = true;
 					}

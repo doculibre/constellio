@@ -1,16 +1,20 @@
 package com.constellio.model.services.records.validators;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -163,6 +167,7 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(record.get(requiredMetadata2)).thenReturn(aNumberValue);
 		when(record.get(optionalMetadata)).thenReturn(null);
 		when(requiredMetadata1.isMultivalue()).thenReturn(true);
+		when(requiredMetadata1.getLabelsByLanguageCodes()).thenReturn(asMap("fr", "ze French label"));
 
 		validator.validate(record, validationErrors);
 
@@ -171,7 +176,8 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 				validator.getClass().getName() + UNDERSCORE + REQUIRED_VALUE_FOR_METADATA);
 		assertThat(validationErrors.getValidationErrors().get(0).getParameters().get(METADATA_CODE)).isEqualTo(
 				requiredMetadata1.getCode());
-		assertThat(validationErrors.getValidationErrors().get(0).getParameters().get(METADATA_LABEL)).isEqualTo(
-				requiredMetadata1.getLabel());
+		assertThat((Map<String, String>) validationErrors.getValidationErrors().get(0).getParameters().get(METADATA_LABEL)).containsOnly(
+			entry("fr", "ze French label")
+		);
 	}
 }

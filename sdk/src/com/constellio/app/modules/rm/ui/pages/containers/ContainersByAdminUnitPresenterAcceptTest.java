@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +49,7 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getSessionContext()).thenReturn(sessionContext);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 
 		presenter = new ContainersByAdministrativeUnitsPresenter(view);

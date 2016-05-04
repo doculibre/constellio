@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,17 +9,30 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class MetadataSchemaTest extends ConstellioTest {
+
+	Map<Language, String> labels;
+
+	@Before
+	public void setUp()
+			throws Exception {
+		labels = new HashMap<>();
+		labels.put(Language.French, "zeLabel");
+	}
 
 	@Test
 	public void whenGetTaxonomySchemasMetadataWithChildOfRelationshipThenReturnCorrectMetadatas()
@@ -52,10 +66,11 @@ public class MetadataSchemaTest extends ConstellioTest {
 				secondTypeParentRelationToThirdType, secondTypeRelationToSecondType);
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
-		MetadataSchema schema = new MetadataSchema("default", "second_default", "zeCollection", "zeLabel", metadatas, false,
+		MetadataSchema schema = new MetadataSchema("default", "second_default", "zeCollection", labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 
-		MetadataSchemaType schemaType = new MetadataSchemaType("second", "zeCollection", "titre", new ArrayList<MetadataSchema>(),
+		MetadataSchemaType schemaType = new MetadataSchemaType("second", "zeCollection", asMap(Language.French, "titre"),
+				new ArrayList<MetadataSchema>(),
 				schema, true, true, true);
 
 		List<Metadata> returnedMetadatas = schemaType.getTaxonomySchemasMetadataWithChildOfRelationship(taxonomies);
@@ -81,7 +96,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata);
 
-		MetadataSchema schema = new MetadataSchema("default", "zeType_default", "zeCollection", "zeLabel", metadatas, false,
+		MetadataSchema schema = new MetadataSchema("default", "zeType_default", "zeCollection", labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
@@ -109,7 +124,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 				.asList(relationToT4, taxonomyRelationToT4, relationToT3Custom, taxonomyRelationToT3Custom, relationToOtherSchema,
 						textMetadata, relationToT1, relationToT2);
 
-		MetadataSchema schema = new MetadataSchema("default", "t2_default", "zeCollection", "zeLabel", metadatas, false,
+		MetadataSchema schema = new MetadataSchema("default", "t2_default", "zeCollection", labels, metadatas, false,
 				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);

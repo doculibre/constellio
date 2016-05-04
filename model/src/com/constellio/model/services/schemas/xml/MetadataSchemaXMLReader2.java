@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas.xml;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
@@ -42,7 +43,7 @@ public class MetadataSchemaXMLReader2 {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider);
+				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French));
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
@@ -52,8 +53,11 @@ public class MetadataSchemaXMLReader2 {
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
-				.setLabel(getLabelValue(element));
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false);
+
+		for (Language language : typesBuilder.getLanguages()) {
+			schemaTypeBuilder = schemaTypeBuilder.addLabel(language, getLabelValue(element));
+		}
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 				null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
@@ -76,7 +80,7 @@ public class MetadataSchemaXMLReader2 {
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement,
 			MetadataSchemaBuilder collectionSchema) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
-		schemaBuilder.setLabel(getLabelValue(schemaElement));
+		schemaBuilder.addLabel(Language.French, getLabelValue(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
@@ -98,7 +102,7 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
 
-		metadataBuilder.setLabel(getLabelValue(metadataElement));
+		metadataBuilder.addLabel(Language.French, getLabelValue(metadataElement));
 
 		String localCode = metadataBuilder.getLocalCode();
 
@@ -174,9 +178,9 @@ public class MetadataSchemaXMLReader2 {
 
 		String xmlLabel = getLabelValue(metadataElement);
 		if (inheriteGlobalMetadata && xmlLabel == null) {
-			metadataBuilder.setLabel(globalMetadataInCollectionSchema.getLabel());
+			metadataBuilder.setLabels(globalMetadataInCollectionSchema.getLabels());
 		} else {
-			metadataBuilder.setLabel(xmlLabel);
+			metadataBuilder.addLabel(Language.French, xmlLabel);
 		}
 
 		List<String> validatorsClassNames = parseValidators(metadataElement, globalMetadataInCollectionSchema);
@@ -506,7 +510,7 @@ public class MetadataSchemaXMLReader2 {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
-		defaultSchemaBuilder.setLabel(getLabelValue(defaultSchemaElement));
+		defaultSchemaBuilder.addLabel(Language.French, getLabelValue(defaultSchemaElement));
 		//	new CommonMetadataBuilder().addCommonMetadataToExistingSchema(defaultSchemaBuilder, typesBuilder);
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);

@@ -17,6 +17,7 @@ import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -61,14 +62,20 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 
 		typesBuilder = MetadataSchemaTypesBuilder.modify(manager.getSchemaTypes("zeCollection"), new DefaultClassProvider());
 
-		MetadataSchemaTypeBuilder type1Builder = typesBuilder.getOrCreateNewSchemaType("type1").setLabel("type1");
-		MetadataSchemaTypeBuilder type2Builder = typesBuilder.getOrCreateNewSchemaType("type2").setLabel("type2");
-		MetadataSchemaBuilder type1Default = type1Builder.getDefaultSchema().setLabel("schemaDefault1");
-		MetadataSchemaBuilder type1Schema1Builder = type1Builder.createCustomSchema("schema1").setLabel("schema1");
-		MetadataSchemaBuilder type1Schema2Builder = type1Builder.createCustomSchema("schema2").setLabel("schema2");
-		MetadataSchemaBuilder type2Default = type2Builder.getDefaultSchema().setLabel("schemaDefault2");
-		MetadataSchemaBuilder type2Schema1Builder = type2Builder.createCustomSchema("schema1").setLabel("schema1");
-		MetadataSchemaBuilder type2Schema2Builder = type2Builder.createCustomSchema("schema2").setLabel("schema2");
+		MetadataSchemaTypeBuilder type1Builder = typesBuilder.getOrCreateNewSchemaType("type1")
+				.addLabel(Language.French, "type1");
+		MetadataSchemaTypeBuilder type2Builder = typesBuilder.getOrCreateNewSchemaType("type2")
+				.addLabel(Language.French, "type2");
+		MetadataSchemaBuilder type1Default = type1Builder.getDefaultSchema().addLabel(Language.French, "schemaDefault1");
+		MetadataSchemaBuilder type1Schema1Builder = type1Builder.createCustomSchema("schema1")
+				.addLabel(Language.French, "schema1");
+		MetadataSchemaBuilder type1Schema2Builder = type1Builder.createCustomSchema("schema2")
+				.addLabel(Language.French, "schema2");
+		MetadataSchemaBuilder type2Default = type2Builder.getDefaultSchema().addLabel(Language.French, "schemaDefault2");
+		MetadataSchemaBuilder type2Schema1Builder = type2Builder.createCustomSchema("schema1")
+				.addLabel(Language.French, "schema1");
+		MetadataSchemaBuilder type2Schema2Builder = type2Builder.createCustomSchema("schema2")
+				.addLabel(Language.French, "schema2");
 		MetadataBuilder type1DefaultSchemaMetadata1Builder = newMetadata(type1Default, "metadata1");
 		MetadataBuilder type1DefaultSchemaMetadata2Builder = newMetadata(type1Default, "metadata2");
 		MetadataBuilder type1Schema1Metadata1Builder = newMetadata(type1Schema1Builder, "customMetadata11");

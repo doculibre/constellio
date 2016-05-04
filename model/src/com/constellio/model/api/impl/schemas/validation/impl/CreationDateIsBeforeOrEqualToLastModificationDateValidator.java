@@ -43,7 +43,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implemen
 
 		if (creationDate != null && modificationDate != null && creationDate.isAfter(modificationDate)) {
 
-			Map<String, String> parameters = new HashMap<>();
+			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CREATION_DATE_MESSAGE_PARAM, creationDate.toString());
 			parameters.put(MODIFICATION_DATE_MESSAGE_PARAM, modificationDate.toString());
 			validationErrors.add(getClass(), CREATION_DATE_IS_AFTER_MODIFICATION_DATE, parameters);

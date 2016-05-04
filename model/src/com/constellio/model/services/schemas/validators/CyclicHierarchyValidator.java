@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -61,9 +62,9 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 	}
 
 	public void addValidationErrors(ValidationErrors validationErrors, String code, Metadata metadata, String unallowedSchema) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL, metadata.getLabel());
+		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
 		parameters.put(UNALLOWED_CODE, unallowedSchema);
 		validationErrors.add(getClass(), code, parameters);
 	}

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,7 @@ public class ContainersInAdministrativeUnitPresenterAcceptTest extends Constelli
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(sessionContext.getCurrentUser()).thenReturn(currentUser);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 		when(currentUser.getUsername()).thenReturn(chuckNorris);
 		when(currentUser.getId()).thenReturn(records.getChuckNorris().getId());
 

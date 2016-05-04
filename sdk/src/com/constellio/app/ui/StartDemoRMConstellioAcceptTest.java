@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +20,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -47,18 +49,20 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenBackgroundThreadsEnabled();
+		//givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
-				withCollection("LaCollectionDeRida").withConstellioRMModule().withConstellioESModule().withRobotsModule()
-						.withAllTestUsers().withRMTest(records2)
+				withCollection("LaCollectionDeRida").withConstellioRMModule()
+						.withAllTestUsers()
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		AppLayerFactory appLayerFactory = getAppLayerFactory();
@@ -80,9 +84,9 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).setLabel("Date metadata 1");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).setLabel("Date metadata 2");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).setLabel("Datetime metadata");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).addLabel(Language.French,"Date metadata 1");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).addLabel(Language.French,"Date metadata 2");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).addLabel(Language.French,"Datetime metadata");
 			}
 		});
 

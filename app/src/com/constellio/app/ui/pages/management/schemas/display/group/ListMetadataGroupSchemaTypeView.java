@@ -9,4 +9,6 @@ public interface ListMetadataGroupSchemaTypeView extends BaseView, AdminViewGrou
 	void displayAddError();
 
 	void displayDeleteError();
+
+	void invalidCodeOrLabels();
 }

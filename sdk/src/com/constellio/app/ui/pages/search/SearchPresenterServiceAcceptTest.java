@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
@@ -174,8 +175,8 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
-		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().setLabel("Ze folder");
-		typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema().setLabel("Ze document");
+		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze folder");
+		typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze document");
 		getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("schema_s").setTitle("Ze type"));

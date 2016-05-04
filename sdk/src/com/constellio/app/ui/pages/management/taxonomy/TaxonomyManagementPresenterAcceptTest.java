@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -57,6 +58,7 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(userVO.getUsername()).thenReturn(admin);
 		when(sessionContext.getCurrentUser()).thenReturn(userVO);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new TaxonomyManagementPresenter(view);
 	}

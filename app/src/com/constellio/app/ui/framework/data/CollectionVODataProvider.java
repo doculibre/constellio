@@ -38,7 +38,7 @@ public class CollectionVODataProvider implements DataProvider {
 		List<String> codes = collectionManager.getCollectionCodesExcludingSystem();
 		for (String code : codes) {
 			Collection collection = collectionManager.getCollection(code);
-			CollectionVO collectionVO = new CollectionVO(code, collection.getName(), collection.getLanguages().get(0));
+			CollectionVO collectionVO = new CollectionVO(code, collection.getName(), collection.getLanguages());
 			collections.add(collectionVO);
 		}
 	}
@@ -83,23 +83,25 @@ public class CollectionVODataProvider implements DataProvider {
 	public static class CollectionVO implements Serializable {
 		private String code;
 		private String name;
-		private String language;
 		private Set<String> modules;
+		private Set<String> supportedLanguages;
 
-		public CollectionVO(String code, String name, String language, List<String> installedModules) {
+		public CollectionVO(String code, String name, List<String> supportedLanguages, List<String> installedModules) {
 			this.code = code;
 			this.name = name;
-			this.language = language;
 			modules = new HashSet<>(installedModules);
+			this.supportedLanguages = new HashSet<>(supportedLanguages);
 		}
 
-		public CollectionVO(String code, String name, String language) {
-			this(code, name, language, new ArrayList<String>());
+		public CollectionVO(String code, String name, List<String> supportedLanguages) {
+			this(code, name, supportedLanguages, new ArrayList<String>());
 		}
 
 		public CollectionVO() {
-			this(null, null, null, new ArrayList<String>());
+			this(null, null, new ArrayList<String>(), new ArrayList<String>());
 		}
+
+
 
 		public String getCode() {
 			return code;
@@ -117,20 +119,20 @@ public class CollectionVODataProvider implements DataProvider {
 			this.name = name;
 		}
 
-		public String getLanguage() {
-			return language;
-		}
-
-		public void setLanguage(String language) {
-			this.language = language;
-		}
-
 		public Set<String> getModules() {
 			return modules;
 		}
 
 		public void setModules(Set<String> modules) {
 			this.modules = modules;
+		}
+
+		public Set<String> getSupportedLanguages() {
+			return supportedLanguages;
+		}
+
+		public void setSupportedLanguages(Set<String> supportedLanguages) {
+			this.supportedLanguages = supportedLanguages;
 		}
 	}
 }

@@ -35,6 +35,7 @@ import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpact
 import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpactsCalculator;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader1;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader2;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader3;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -133,6 +134,9 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 					typesBuilder = new MetadataSchemaXMLReader2(getClassProvider())
 							.read(collection, document, typesFactory, modelLayerFactory);
 
+				} else if (MetadataSchemaXMLReader3.FORMAT_VERSION.equals(formatVersion)) {
+					typesBuilder = new MetadataSchemaXMLReader3(getClassProvider())
+							.read(collection, document, typesFactory, modelLayerFactory);
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}

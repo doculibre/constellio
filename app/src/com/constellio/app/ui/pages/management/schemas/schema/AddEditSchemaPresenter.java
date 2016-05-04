@@ -10,11 +10,13 @@ import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSchemaView> {
@@ -45,7 +47,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		if (!schemaCode.isEmpty()) {
 			MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
-			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema);
+			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, view.getSessionContext());
 		}
 		return schemaVO;
 	}
@@ -55,16 +57,15 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 
 		String code;
-		MetadataSchemaBuilder builder;
 		if (!editMode) {
 			code = "USR" + schemaVO.getLocalCode();
-			builder = types.getSchemaType(parameters.get("schemaTypeCode")).createCustomSchema(code);
+			types.getSchemaType(parameters.get("schemaTypeCode")).createCustomSchema(code, schemaVO.getLabels());
 		} else {
 			code = schemaVO.getCode();
-			builder = types.getSchema(code);
+			MetadataSchemaBuilder builder = types.getSchema(code);
+			Map<Language, String> newLabels = MetadataSchemaTypeBuilder.configureLabels(schemaVO.getLabels());
+			builder.setLabels(newLabels);
 		}
-
-		builder.setLabel(schemaVO.getLabel());
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);

@@ -2,7 +2,7 @@ package com.constellio.app.ui.acceptation.search;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +12,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -37,10 +38,12 @@ public class AdvancedSearchViewAcceptTest extends ConstellioTest {
 		schemasDisplayManager.saveTypes(new SchemaTypesDisplayConfig(zeCollection,
 				Arrays.asList("fakeDocument_default_someFacet", "fakeDocument_default_anotherFacet")));
 
-		schemasDisplayManager.saveType(new SchemaTypeDisplayConfig(zeCollection, "fakeDocument", (List) Collections.emptyList())
-				.withAdvancedSearchStatus(true));
-		schemasDisplayManager.saveType(new SchemaTypeDisplayConfig(zeCollection, "user", (List) Collections.emptyList())
-				.withAdvancedSearchStatus(true));
+		schemasDisplayManager.saveType(
+				new SchemaTypeDisplayConfig(zeCollection, "fakeDocument", Collections.<String, Map<Language, String>>emptyMap())
+						.withAdvancedSearchStatus(true));
+		schemasDisplayManager
+				.saveType(new SchemaTypeDisplayConfig(zeCollection, "user", Collections.<String, Map<Language, String>>emptyMap())
+						.withAdvancedSearchStatus(true));
 
 		schemasDisplayManager.saveMetadata(
 				new MetadataDisplayConfig(zeCollection, "fakeDocument_default_title", true, MetadataInputType.FIELD, true,

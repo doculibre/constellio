@@ -5,6 +5,9 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.Classify
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.MAJOR_VERSIONS;
 import static java.util.Arrays.asList;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -14,6 +17,7 @@ import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -70,8 +74,18 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 			MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
 
+		Language language = migrationResourcesProvider.getLanguage();
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+
 		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
+		Map<Language, String> labelsDefaultValues = new HashMap<>();
+		labelsDefaultValues.put(language, defaultValuesTab);
+		groups.put("tab.defaultValues", labelsDefaultValues);
+
 		String optionsTab = migrationResourcesProvider.get("tab.options");
+		Map<Language, String> labelsOptionsTab = new HashMap<>();
+		labelsDefaultValues.put(language, optionsTab);
+		groups.put("tab.options", labelsOptionsTab);
 
 		String parametersSchema = ClassifyConnectorDocumentInFolderActionParameters.SCHEMA;
 
@@ -79,7 +93,7 @@ public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE)
-				.withNewMetadataGroup(defaultValuesTab).withNewMetadataGroup(optionsTab));
+				.withNewMetadataGroup(groups));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema).withFormMetadataCodes(asList(
 				parametersSchema + "_" + IN_FOLDER,

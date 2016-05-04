@@ -7,6 +7,7 @@ import java.util.Map;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -20,8 +21,8 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 	AddEditSchemaPresenter presenter;
 	@PropertyId("localCode")
 	private BaseTextField localCodeField;
-	@PropertyId("label")
-	private BaseTextField labelField;
+	@PropertyId("labels")
+	private MultilingualTextField labelsField;
 
 	public AddEditSchemaViewImpl() {
 		this.presenter = new AddEditSchemaPresenter(this);
@@ -49,7 +50,7 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 
 		final boolean editMode = schemaVO != null;
 		if (!editMode) {
-			schemaVO = new FormMetadataSchemaVO();
+			schemaVO = new FormMetadataSchemaVO(getSessionContext());
 		}
 
 		localCodeField = new BaseTextField($("AddEditSchemaView.localCode"));
@@ -58,12 +59,12 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 		localCodeField.setEnabled(!editMode);
 		localCodeField.setRequired(true);
 
-		labelField = new BaseTextField($("AddEditSchemaView.title"));
-		labelField.setRequired(true);
-		labelField.setId("label");
-		labelField.addStyleName("label");
+		labelsField = new MultilingualTextField();
+		labelsField.setId("labels");
+		labelsField.addStyleName("labels");
+		labelsField.setRequired(true);
 
-		return new BaseForm<FormMetadataSchemaVO>(schemaVO, this, localCodeField, labelField) {
+		return new BaseForm<FormMetadataSchemaVO>(schemaVO, this, localCodeField, labelsField) {
 			@Override
 			protected void saveButtonClick(FormMetadataSchemaVO schemaVO)
 					throws ValidationException {

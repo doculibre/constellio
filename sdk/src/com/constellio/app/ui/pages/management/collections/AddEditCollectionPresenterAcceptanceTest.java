@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ import com.constellio.app.ui.pages.management.collections.AddEditCollectionPrese
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeUnAvailable;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_MustSelectAtLeastOneModule;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -66,10 +68,10 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenUnsavedCollectionWhenGetCollectionVOThenOk();
-		givenExistingCollectionWhenGetCollectionVOThenOk();
+		givenExistingCollectionWhenGetCollectionAfterModulesModificationVOThenOk();
 	}
 
-	private void givenExistingCollectionWhenGetCollectionVOThenOk() {
+	private void givenExistingCollectionWhenGetCollectionAfterModulesModificationVOThenOk() {
 		CollectionVO zeCollectionVO = presenterRelatedToZeCollection.getCollectionVO();
 		Collection zeCollectionRecord = collectionsManager.getCollection(zeCollection);
 		assertThat(zeCollectionVO.getCode()).isEqualTo(zeCollectionRecord.getCode());
@@ -93,6 +95,8 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 		CollectionVO newCollectionVo = presenterRelatedToNewCollection.getCollectionVO();
 		assertThat(newCollectionVo.getCode()).isNull();
 		assertThat(newCollectionVo.getName()).isNull();
+		assertThat(newCollectionVo.getSupportedLanguages())
+				.containsOnly(getModelLayerFactory().getConfiguration().getMainDataLanguage());
 		assertThat(newCollectionVo.getModules()).isEmpty();
 	}
 
@@ -126,29 +130,37 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 		CollectionVO entity = new CollectionVO();
 		entity.setCode("zeCode");
 		entity.setName("zeName");
+		entity.setSupportedLanguages(new HashSet<>(Arrays.asList(Language.French.getCode(), Language.English.getCode())));
 		entity.setModules(new HashSet<>(asList(ConstellioRobotsModule.ID)));
 		presenterRelatedToNewCollection.createCollection(entity);
 		Collection createdCollection = collectionsManager.getCollection("zeCode");
 		assertThat(createdCollection.getCode()).isEqualTo("zeCode");
 		assertThat(createdCollection.getName()).isEqualTo("zeName");
+		assertThat(createdCollection.getLanguages()).containsOnly(Language.French.getCode(), Language.English.getCode());
 		assertThat(modulesManager.getEnabledModules("zeCode")).extracting("id").containsOnly(ConstellioRobotsModule.ID);
 	}
 
 	@Test
 	public void whenUpdateCollectionThenOk()
 			throws Exception {
+		Collection zeCollectionRecord = collectionsManager.getCollection(zeCollection);
+		assertThat(zeCollectionRecord.getLanguages()).containsOnly(Language.French.getCode(), Language.English.getCode());
 		CollectionVO zeCollectionVO = presenterRelatedToZeCollection.getCollectionVO();
 		Set<String> enabledModulesForZeCollection = new HashSet<>(
 				asList(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID));
 		zeCollectionVO.setModules(enabledModulesForZeCollection);
 		zeCollectionVO.setName("newName");
+		zeCollectionVO.setSupportedLanguages(new HashSet<>(Arrays.asList(Language.French.getCode())));
 
 		presenterRelatedToZeCollection.updateCollection(zeCollectionVO);
 
-		Collection zeCollectionRecord = collectionsManager.getCollection(zeCollection);
-		assertThat(zeCollectionVO.getCode()).isEqualTo(zeCollectionRecord.getCode());
-		assertThat(zeCollectionVO.getName()).isEqualTo("newName");
-		assertThat(zeCollectionVO.getModules()).containsExactlyElementsOf(enabledModulesForZeCollection);
+		zeCollectionRecord = collectionsManager.getCollection(zeCollection);
+		assertThat(zeCollectionRecord.getCode()).isEqualTo(zeCollectionVO.getCode());
+		assertThat(zeCollectionRecord.getName()).isEqualTo("newName");
+		assertThat(modulesManager.getEnabledModules(zeCollectionVO.getCode())).extracting("id")
+				.containsOnly(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
+		//language is not modified
+		assertThat(zeCollectionRecord.getLanguages()).containsOnly(Language.French.getCode(), Language.English.getCode());
 	}
 
 	@Test(expected = AddEditCollectionPresenterException_CodeCodeChangeForbidden.class)

@@ -54,10 +54,10 @@ public class FormDisplayConfigPresenter extends SingleSchemaBasePresenter<FormDi
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
 			//if (this.isAllowedMetadata(metadata)) {
-			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			//}
 		}
 
@@ -70,10 +70,10 @@ public class FormDisplayConfigPresenter extends SingleSchemaBasePresenter<FormDi
 		List<String> codeList = displayManager.getSchema(collection, getSchemaCode()).getFormMetadataCodes();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
-			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;

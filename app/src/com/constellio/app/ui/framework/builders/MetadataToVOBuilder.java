@@ -18,6 +18,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
@@ -102,12 +103,16 @@ public class MetadataToVOBuilder implements Serializable {
 			MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(collection, metadataCode);
 
 			metadataInputType = metadataDisplayConfig.getInputType();
-			metadataGroup = metadataDisplayConfig.getMetadataGroup();
 
+			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
+			String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
+			Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
+					.getMetadataGroup();
 			if (StringUtils.isBlank(metadataGroup)) {
-				String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
-				List<String> groups = schemasDisplayManager.getType(collection, typeCode).getMetadataGroup();
-				metadataGroup = groups.isEmpty() ? null : groups.get(0);
+				metadataGroup = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
+			} else if (groups.get(metadataGroup) != null && groups.get(metadataGroup).get(language) != metadataGroup) {
+				metadataGroup = groups.get(metadataGroup).get(language);
 			}
 		} else {
 			taxonomyCodes = new String[0];
@@ -116,7 +121,8 @@ public class MetadataToVOBuilder implements Serializable {
 		}
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
-		labels.put(sessionContext.getCurrentLocale(), metadata.getLabel());
+		labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
+				Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 

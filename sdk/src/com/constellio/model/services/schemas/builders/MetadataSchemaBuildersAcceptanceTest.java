@@ -4,11 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -32,6 +35,7 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
+		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
@@ -98,7 +102,7 @@ public class MetadataSchemaBuildersAcceptanceTest extends ConstellioTest {
 	public MetadataSchemaTypeBuilder createMetadataSchemaTypeBuilder() {
 		MetadataSchemaTypeBuilder typeBuilder = MetadataSchemaTypeBuilder
 				.createNewSchemaType(zeCollection, "zetype", typesBuilder);
-		typeBuilder.getDefaultSchema().create(theMetadataCode).setLabel("zeMetadata")
+		typeBuilder.getDefaultSchema().create(theMetadataCode).addLabel(Language.French, "zeMetadata")
 				.setType(MetadataValueType.STRING);
 		typeBuilder.createCustomSchema(theCustomSchemaCode);
 		return typeBuilder;

@@ -79,4 +79,7 @@ public class MigrationResourcesProvider {
 		return bundle.containsKey(key);
 	}
 
+	public Language getLanguage() {
+		return language;
+	}
 }

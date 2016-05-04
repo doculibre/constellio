@@ -45,6 +45,7 @@ public class User extends RecordWrapper {
 	public static final String DEFAULT_TAXONOMY = "defaultTaxonomy";
 	public static final String STATUS = "status";
 	public static final String SIGNATURE = "signature";
+	public static final String LOGIN_LANGUAGE_CODE = "loginLanguageCode";
 
 	private transient Roles roles;
 
@@ -137,6 +138,15 @@ public class User extends RecordWrapper {
 	public User setLastIPAddress(String value) {
 		set(LAST_IP_ADDRESS, value);
 		return this;
+	}
+
+	public User setLoginLanguageCode(String loginLanguageCode) {
+		set(LOGIN_LANGUAGE_CODE, loginLanguageCode);
+		return this;
+	}
+
+	public String getLoginLanguageCode() {
+		return get(LOGIN_LANGUAGE_CODE);
 	}
 
 	public String getLastIPAddress() {

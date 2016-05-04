@@ -3,6 +3,8 @@ package com.constellio.app.modules.rm.ui.pages.retentionRule;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.Locale;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -45,6 +47,7 @@ public class SearchRetentionRulesPresenterAcceptTest extends ConstellioTest {
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(userVO.getUsername()).thenReturn(admin);
 		when(sessionContext.getCurrentUser()).thenReturn(userVO);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new SearchRetentionRulesPresenter(view);
 	}

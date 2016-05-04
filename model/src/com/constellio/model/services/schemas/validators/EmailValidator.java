@@ -13,7 +13,7 @@ public class EmailValidator implements RecordMetadataValidator<String> {
 	@Override
 	public void validate(Metadata metadata, String email, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		if (email != null && !isValid(email)) {
-			Map<String, String> parameters = new HashMap<>();
+			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("EMAIL", email);
 			validationErrors.add(getClass(), "INVALID_EMAIL", parameters);
 		}

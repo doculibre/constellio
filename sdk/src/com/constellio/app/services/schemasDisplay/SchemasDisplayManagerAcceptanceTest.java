@@ -12,6 +12,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -367,36 +369,41 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void whenSavingFormMetadatasWithoutEssentialMetadataThenValidationException()
 			throws Exception {
 
-		Map<String, String> anEssentialMetadataParams = asMap(
-				"code", "mySchemaType_default_anEssentialMetadata",
-				"label", "zeEssentialMetadata");
+		Map<String, Object> anEssentialMetadataParams = asMap(
+				"code", "mySchemaType_default_anEssentialMetadata");
+		anEssentialMetadataParams.put("label", asMap("fr", "zeEssentialMetadata"));
 
-		Map<String, String> aMetadataThatWillOneDayBeEssentialParams = asMap(
-				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential",
-				"label", "zeMetadataThatWillOneDayBeEssential");
+		Map<String, Object> aMetadataThatWillOneDayBeEssentialParams = asMap(
+				"code", "mySchemaType_default_aMetadataThatWillOneDayBeEssential");
+		aMetadataThatWillOneDayBeEssentialParams.put("label", asMap("fr", "zeMetadataThatWillOneDayBeEssential"));
 
-		Map<String, String> aTrivialMetadataParams = asMap(
-				"code", "mySchemaType_default_aTrivialMetadata",
-				"label", "ZeTrivialMetadata");
+		Map<String, Object> aTrivialMetadataParams = asMap(
+				"code", "mySchemaType_default_aTrivialMetadata");
 
-		Map<String, String> titleParams = asMap(
-				"code", "mySchemaType_default_title",
-				"label", "Ze title");
+		Map<String, Object> titleParams = asMap(
+				"code", "mySchemaType_default_title");
+		Map<String, Object> titleLabels = asMap("fr","Ze title");
+		titleLabels.put("en", "Ze title en");
+		titleParams.put("label", titleLabels);
 
-		Map<String, String> codeParams = asMap(
-				"code", "mySchemaType_default_code",
-				"label", "Ze code");
+
+		Map<String, Object> codeParams = asMap(
+				"code", "mySchemaType_default_code");
+		codeParams.put("label", asMap("fr", "Ze code"));
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaType("mySchemaType").getDefaultSchema();
 				schemaBuilder.create("aMetadataThatWillOneDayBeEssential").setType(TEXT).setEssential(false)
-						.setLabel("zeMetadataThatWillOneDayBeEssential");
-				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true).setLabel("zeEssentialMetadata");
-				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false).setLabel("ZeTrivialMetadata");
-				schemaBuilder.create("code").setType(TEXT).setLabel("Ze code");
-				schemaBuilder.get("title").setLabel("Ze title");
+						.addLabel(Language.French, "zeMetadataThatWillOneDayBeEssential");
+				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true)
+						.addLabel(Language.French, "zeEssentialMetadata");
+				schemaBuilder.create("aTrivialMetadata").setType(TEXT).setEssential(false)
+						.addLabel(Language.French, "ZeTrivialMetadata");
+				schemaBuilder.create("code").setType(TEXT).addLabel(Language.French, "Ze code");
+				schemaBuilder.get("title").addLabel(Language.French, "Ze title");
+				schemaBuilder.get("title").addLabel(Language.English, "Ze title en");
 			}
 		});
 
@@ -533,17 +540,19 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		customSchema.create("customMetadata").setType(MetadataValueType.STRING);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);
 
+		Map<String, Map<Language, String>> groups = configureLabels(Arrays.asList("zeGroup", "Default", "zeCustomGroup"));
+
 		SchemaTypeDisplayConfig typeConfig = manager.getType(zeCollection, "myType");
-		manager.saveType(typeConfig.withMetadataGroup(asList("Default", "zeGroup", "zeCustomGroup")));
+		manager.saveType(typeConfig.withMetadataGroup(groups));
 
 		MetadataDisplayConfig defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		MetadataDisplayConfig customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		MetadataDisplayConfig customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 
 		manager.saveMetadata(defaultSchemaMetadata.withMetadataGroup("zeGroup").withInputType(TEXTAREA));
@@ -551,11 +560,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 
 		manager.saveMetadata(customSchemaMetadata.withMetadataGroup("zeCustomGroup").withInputType(FIELD));
@@ -563,11 +572,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeCustomGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 
 		manager.saveMetadata(customSchemaCustomMetadata.withMetadataGroup("zeCustomGroup").withInputType(TEXTAREA));
@@ -575,11 +584,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeCustomGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(FIELD);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("zeCustomGroup");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("zeCustomGroup");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(TEXTAREA);
 
 		manager.resetSchema(zeCollection, "myType_custom");
@@ -587,11 +596,11 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		defaultSchemaMetadata = manager.getMetadata(zeCollection, "myType_default_metadata");
 		customSchemaMetadata = manager.getMetadata(zeCollection, "myType_custom_metadata");
 		customSchemaCustomMetadata = manager.getMetadata(zeCollection, "myType_custom_customMetadata");
-		assertThat(defaultSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(defaultSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(defaultSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaMetadata.getMetadataGroup()).isEqualTo("zeGroup");
+		assertThat(customSchemaMetadata.getMetadataGroupCode()).isEqualTo("zeGroup");
 		assertThat(customSchemaMetadata.getInputType()).isEqualTo(TEXTAREA);
-		assertThat(customSchemaCustomMetadata.getMetadataGroup()).isEqualTo("");
+		assertThat(customSchemaCustomMetadata.getMetadataGroupCode()).isEqualTo("");
 		assertThat(customSchemaCustomMetadata.getInputType()).isEqualTo(FIELD);
 	}
 
@@ -623,7 +632,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 				"myType_custom_customMetadata1", "myType_custom_customMetadata2"));
 	}
 
-	private ValidationError error(final String code, final Map<String, String> params) {
+	private ValidationError error(final String code, final Map<String, Object> params) {
 		return new ValidationError(SchemasDisplayManager.class.getName() + "_" + code, params);
 	}
 
@@ -634,11 +643,30 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(1);
 
-		typeDisplay = typeDisplay.withMetadataGroup(Arrays.asList("zeGroup", "zeRequiredGroup", "zeOptionalGroup"));
+		typeDisplay = typeDisplay
+				.withMetadataGroup(configureLabels(Arrays.asList("zeGroup", "zeRequiredGroup", "zeOptionalGroup")));
 		manager.saveType(typeDisplay);
 
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(3);
-		assertThat(typeDisplay.getMetadataGroup()).containsOnly("zeGroup", "zeRequiredGroup", "zeOptionalGroup");
+		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("zeGroup", "zeRequiredGroup", "zeOptionalGroup");
+	}
+
+	private Map<String, Map<Language, String>> configureLabels(List<String> values) {
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+		Map<Language, String> labels;
+
+		for (String value : values) {
+			labels = new HashMap<>();
+			labels.put(Language.French, value);
+			groups.put(value, labels);
+		}
+		return groups;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
 	}
 }

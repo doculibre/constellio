@@ -19,8 +19,10 @@ import com.constellio.app.modules.es.extensions.api.params.TargetMetadataCreatio
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -30,6 +32,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class ConnectorMappingService {
@@ -41,6 +44,7 @@ public class ConnectorMappingService {
 	RecordServices recordServices;
 	ESSchemasRecordsServices es;
 	ESModuleExtensions extensions;
+	CollectionsManager collectionsManager;
 
 	public ConnectorMappingService(ESSchemasRecordsServices es) {
 		this.es = es;
@@ -48,6 +52,7 @@ public class ConnectorMappingService {
 		schemasDisplayManager = es.getAppLayerFactory().getMetadataSchemasDisplayManager();
 		recordServices = es.getModelLayerFactory().newRecordServices();
 		extensions = es.getAppLayerFactory().getExtensions().forCollection(es.getCollection()).forModule(ConstellioESModule.ID);
+		collectionsManager = es.getAppLayerFactory().getCollectionsManager();
 	}
 
 	public List<String> getDocumentTypes(ConnectorInstance<?> instance) {
@@ -297,12 +302,17 @@ public class ConnectorMappingService {
 
 		protected void execute() {
 			for (Alteration alteration : alterations) {
-				types.getSchemaType(new SchemaUtils().getSchemaTypeCode(alteration.schema)).getSchema(alteration.schema)
+				MetadataBuilder builder = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(alteration.schema))
+						.getSchema(alteration.schema)
 						.create(alteration.localCode)
-						.setLabel(alteration.params.getLabel())
 						.setType(alteration.params.getType())
 						.setMultivalue(alteration.params.isMultivalue())
 						.setSearchable(alteration.params.isSearchable());
+
+				for (String languageStr : collectionsManager.getCollectionLanguages(es.getCollection())) {
+					builder.addLabel(Language.withCode(languageStr),
+							alteration.params.getLabel());
+				}
 			}
 			saveSchemas();
 

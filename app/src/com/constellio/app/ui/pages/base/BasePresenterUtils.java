@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -156,6 +157,10 @@ public class BasePresenterUtils implements Serializable {
 	public Roles getCollectionRoles() {
 		String collection = getCollection();
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+	}
+
+	public CollectionsManager getCollectionManager() {
+		return appLayerFactory.getCollectionsManager();
 	}
 
 }

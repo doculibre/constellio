@@ -3,6 +3,8 @@ package com.constellio.app.ui.pages.management.taxonomy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.Locale;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -38,6 +40,7 @@ public class AddEditTaxonomyConceptPresenterAcceptTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new AddEditTaxonomyConceptPresenter(view);
 	}

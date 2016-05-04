@@ -10,6 +10,7 @@ import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -31,8 +32,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	@PropertyId("localcode")
 	private BaseTextField localcodeField;
-	@PropertyId("label")
-	private BaseTextField titleField;
+	@PropertyId("labels")
+	private MultilingualTextField labelsField;
 	@PropertyId("valueType")
 	private ComboBox valueType;
 	@PropertyId("multivalue")
@@ -96,7 +97,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		final boolean inherited;
 		if (!editMode) {
-			formMetadataVO = new FormMetadataVO();
+			formMetadataVO = new FormMetadataVO(getSessionContext());
 			inherited = false;
 		} else {
 			inherited = presenter.isInherited(formMetadataVO.getCode());
@@ -226,10 +227,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		localcodeField.setEnabled(!editMode);
 		localcodeField.setRequired(true);
 
-		titleField = new BaseTextField($("AddEditMetadataView.title"));
-		titleField.setRequired(true);
-		titleField.setId("title");
-		titleField.addStyleName("title");
+		//$("AddEditMetadataView.title")
+		labelsField = new MultilingualTextField();
+		labelsField.setRequired(true);
+		labelsField.setId("labels");
+		labelsField.addStyleName("labels");
 
 		valueType = new ComboBox();
 		valueType.setCaption($("AddEditMetadataView.type"));
@@ -291,6 +293,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		metadataGroup.setRequired(true);
 		metadataGroup.setId("metadataGroup");
 		metadataGroup.addStyleName("metadataGroup");
+		metadataGroup.setCaption(presenter.getLabel());
+		for (String itemCode : presenter.getMetadataGroupList()) {
+			metadataGroup.setItemCaption(itemCode, presenter.getGroupLabel(itemCode));
+		}
 
 		multivalueType = new CheckBox();
 		multivalueType.setCaption($("AddEditMetadataView.multivalue"));
@@ -388,7 +394,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputMask = new BaseTextField($("AddEditMetadataView.inputMask"));
 		inputMask.setEnabled(false);
 
-		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
+		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
 				advancedSearchField, highlight, autocomplete, defaultValueField) {
 

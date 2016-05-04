@@ -8,6 +8,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -55,7 +56,7 @@ public class RecordCommentsEditorPresenter implements Serializable {
 		presenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
 
 		Metadata metadata = presenterUtils.getMetadata(metadataCode);
-		String caption = metadata.getLabel();
+		String caption = metadata.getLabel(Language.withCode(presenterUtils.getCurrentLocale().getLanguage()));
 		List<Comment> comments = record.get(metadata);
 		editor.setComments(comments);
 		editor.setCaption(caption);

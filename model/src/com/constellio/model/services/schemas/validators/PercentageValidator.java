@@ -14,7 +14,7 @@ public class PercentageValidator implements RecordMetadataValidator<Number> {
 	public void validate(Metadata metadata, Number percentage, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		if(percentage != null&&
 				(percentage.doubleValue() < 0 || percentage.doubleValue() > 100)){
-			Map<String, String> parameters = new HashMap<>();
+			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("PERCENTAGE", percentage.toString());
 			validationErrors.add(getClass(), "INVALID_PERCENTAGE", parameters);
 		}

@@ -1,6 +1,7 @@
 package com.constellio.model.entities.schemas;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -10,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.Language;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class MetadataSchemaTypeTest extends ConstellioTest {
@@ -31,7 +33,8 @@ public class MetadataSchemaTypeTest extends ConstellioTest {
 		when(customSchema1AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 		when(customSchema2AutomaticMetadataWithInheritance.getInheritance()).thenReturn(defaultSchemaAutomaticMetadata);
 
-		type = new MetadataSchemaType(aString(), aString(), aString(), asList(customSchema1, customSchema2), defaultSchema,
+		type = new MetadataSchemaType(aString(), aString(), asMap(Language.French, "label"), asList(customSchema1, customSchema2),
+				defaultSchema,
 				false, true, true);
 	}
 

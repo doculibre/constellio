@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -23,6 +24,7 @@ import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -75,8 +77,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if (types != null) {
 			Metadata metadata = types.getMetadata(metadataCode);
 
-			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder();
-			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"));
+			MetadataToFormVOBuilder voBuilder = new MetadataToFormVOBuilder(view.getSessionContext());
+			found = voBuilder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
 		}
 
 		return found;
@@ -102,7 +104,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public String getMetadataTypesCaption(String code) {
 		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(code);
-		return type.getLabel();
+		return type.getLabel(Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
 	}
 
 	private boolean isAllowedReferenceType(MetadataSchemaType type) {
@@ -153,7 +155,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultValue(formMetadataVO.getDefaultValue());
 		builder.setInputMask(formMetadataVO.getInputMask());
 		builder.setEnabled(formMetadataVO.isEnabled());
-		builder.setLabel(formMetadataVO.getLabel());
+		for (Entry<String, String> entry : formMetadataVO.getLabels().entrySet()) {
+			builder.addLabel(Language.withCode(entry.getKey()), entry.getValue());
+		}
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 
 		try {
@@ -270,7 +274,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public List<String> getMetadataGroupList() {
 		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
-		return schemaConfig.getMetadataGroup();
+		return new ArrayList<>(schemaConfig.getMetadataGroup().keySet());
+	}
+
+	public String getGroupLabel(String code) {
+		SchemaTypeDisplayConfig schemaConfig = schemasDisplayManager().getType(collection, parameters.get("schemaTypeCode"));
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		return schemaConfig.getMetadataGroup().get(code).get(language);
 	}
 
 	public void cancelButtonClicked() {

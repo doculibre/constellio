@@ -18,6 +18,7 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.OverrideMode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -103,8 +104,8 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 			throws OptimisticLocking {
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(zeCollection);
-		types.getSchemaType(schemaType).createCustomSchema("custom1").setLabel(schemaType + " custom 1");
-		types.getSchemaType(schemaType).createCustomSchema("custom2").setLabel(schemaType + " custom 2");
+		types.getSchemaType(schemaType).createCustomSchema("custom1").addLabel(Language.French,schemaType + " custom 1");
+		types.getSchemaType(schemaType).createCustomSchema("custom2").addLabel(Language.French,schemaType + " custom 2");
 		manager.saveUpdateSchemaTypes(types);
 	}
 }
