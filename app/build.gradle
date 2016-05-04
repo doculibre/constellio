@@ -1,9 +1,9 @@
 plugins {
-    id "fi.jasoft.plugin.vaadin" version '0.10.5'
+    id "fi.jasoft.plugin.vaadin" version "0.10.5"
 }
 
 vaadin {
-    version '7.6.5'
+    version '7.6.1'
     addon.title = "constellio"
 
     widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
@@ -64,12 +64,13 @@ dependencies {
     compile "org.vaadin.addons:actionbuttontextfield:1.0.2"
     compile "org.vaadin.addons:googleanalyticstracker:2.1.0"
     compile "org.vaadin.addon:confirmdialog:2.1.2"
-    compile "com.vaadin:vaadin-shared:7.6.5"
-    compile "com.vaadin:vaadin-client:7.6.5"
-    compile "com.vaadin:vaadin-server:7.6.5"
-    compile "com.vaadin:vaadin-themes:7.6.5"
-    compile "com.vaadin:vaadin-client-compiled:7.6.5"
-    compile "com.vaadin:vaadin-client-compiler:7.6.5"
+    compile "com.vaadin:vaadin-shared:7.6.1"
+    compile "com.vaadin:vaadin-client:7.6.1"
+    compile "com.vaadin:vaadin-server:7.6.1"
+    compile "com.vaadin:vaadin-themes:7.6.1"
+    compile "com.vaadin:vaadin-client-compiled:7.6.1"
+    compile "com.vaadin:vaadin-client-compiler:7.6.1"
+    compile "com.vaadin:vaadin-themes:7.6.1"
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
     compile "com.sun.messaging.mq:jaxm-api:4.4.1"
@@ -81,13 +82,13 @@ dependencies {
     compile "unoil:unoil:3.2.1"
     compile "org.mockito:mockito-all:1.10.8"
     compile "net.sf.barcode4j:barcode4j:2.1"
+    compile "com.jgoodies:jgoodies-common:1.7.0"
     compile files("libs/vaadin-mediaelementjs-player-1.2.6.jar")
-    compile "nl.bitwalker:UserAgentUtils:1.2.4"
 }
 
 war {
     baseName = "constellio-app"
-    version = '6.2.1.2'
+    version = '6.2.2.0'
 
     webInf {
         from 'WebContent/'
@@ -115,7 +116,7 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.2.1.2'
+    version = '6.2.2.0'
 }
 
 configurations.archives.artifacts.with { archives ->

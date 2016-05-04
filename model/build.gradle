@@ -4,7 +4,6 @@ dependencies {
     compile "com.cybozu.labs:langdetect:1.1-20120112"
     compile "net.sourceforge.jexcelapi:jxl:2.6.12"
     compile "com.google.code.gson:gson:1.7.2"
-    compile "org.springframework:spring-context:3.1.2.RELEASE"
 }
 
 sourceSets {
@@ -24,5 +23,5 @@ eclipse {
 
 jar {
     baseName = 'core-model'
-    version = "6.2.1.2"
+    version = "6.2.2.0"
 }
