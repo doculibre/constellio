@@ -54,7 +54,7 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 
 	@InternetTest
 	@SlowTest
-	//@Test
+	@Test
 	public void whenSendEmailThenOk()
 			throws Exception {
 		prepareSystem(withZeCollection());
