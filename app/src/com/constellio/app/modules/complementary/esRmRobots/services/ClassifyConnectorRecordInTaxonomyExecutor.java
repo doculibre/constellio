@@ -47,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -610,8 +611,15 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
 						connectorDocument, CLASSIFY_DOCUMENT);
 
+				String version;
+				if (document.getContent() != null) {
+					version = ContentImpl.getVersionAfter(document.getContent().getCurrentVersion().getVersion(), majorVersions);
+				} else {
+					version = (majorVersions ? "1.0" : "0.1");
+				}
+
 				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
-				addVersionToDocument(connectorDocument, (majorVersions ? "1.0" : "0.1"), newVersionDataSummary, document);
+				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);

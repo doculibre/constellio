@@ -111,7 +111,7 @@ public class ContentImpl implements Content {
 		return finalized ? "1.0" : "0.1";
 	}
 
-	private static String getVersionAfter(String version, boolean finalized) {
+	public static String getVersionAfter(String version, boolean finalized) {
 		int dotIndex = version.indexOf(".");
 		Integer major = Integer.valueOf(version.substring(0, dotIndex));
 		Integer minor = Integer.valueOf(version.substring(dotIndex + 1));
