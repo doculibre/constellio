@@ -228,7 +228,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		init();
 	}
 
-	public List<String> getLanguagesCodes() {
-		return i18n.getSupportedLanguages();
+	public List<String> getCurrentCollectionLanguagesCodes() {
+		return modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 	}
 }
