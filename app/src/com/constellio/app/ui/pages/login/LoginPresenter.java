@@ -4,7 +4,11 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -126,6 +130,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
 					sessionContext.setForcedSignOut(false);
+					sessionContext.setCurrentLocale(getSessionLanguage(userInLastCollection));
 
 					view.updateUIContent();
 					String currentState = view.navigateTo().getState();
@@ -143,7 +148,31 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		} else {
 			view.showBadLoginMessage();
 		}
+	}
 
+	Locale getSessionLanguage(User userInLastCollection) {
+		String userPreferredLanguage = userInLastCollection.getLoginLanguageCode();
+		String systemLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		if(StringUtils.isBlank(userPreferredLanguage)){
+			return getLocale(systemLanguage);
+		} else {
+			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(userInLastCollection.getCollection());
+			if(collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages.contains(userPreferredLanguage)){
+				return getLocale(systemLanguage);
+			} else {
+				return getLocale(userPreferredLanguage);
+			}
+		}
+	}
+
+	private Locale getLocale(String languageCode) {
+		i18n.getSupportedLanguages();
+		for(Language language : Language.values()){
+			if(language.getCode().equals(languageCode)){
+				return new Locale(languageCode);
+			}
+		}
+		throw new ImpossibleRuntimeException("Invalid language " + languageCode);
 	}
 
 	boolean hasUserDocuments(User user, String collection) {
