@@ -38,7 +38,6 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	Map<String, String> parameters;
 	@Mock AddEditSchemaView view;
 	MockedNavigation navigator;
-	@Mock CoreViews navigator;
 	String language;
 
 	@Before

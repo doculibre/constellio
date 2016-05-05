@@ -35,7 +35,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	AddEditMetadataPresenter presenter;
 	@Mock AddEditMetadataViewImpl view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	Map<String, String> newLabels = new HashMap<>();
 
 	@Before

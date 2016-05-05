@@ -63,7 +63,7 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		when(currentUser.getUsername()).thenReturn(admin);
 		when(session.getCurrentUser()).thenReturn(currentUser);
 		when(view.navigate()).thenReturn(navigator);
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 		when(session.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new ReportDisplayConfigPresenter(view);
