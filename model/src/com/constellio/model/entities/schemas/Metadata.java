@@ -106,7 +106,7 @@ public class Metadata implements DataStoreField {
 			this.dataStoreType = null;
 			this.code = schemaCode + "_" + localCode;
 		}
-		this.labels = new HashMap<>();
+		this.labels = Collections.emptyMap();
 		this.recordMetadataValidators = null;
 		this.structureFactory = null;
 		this.enumClass = null;
@@ -128,7 +128,7 @@ public class Metadata implements DataStoreField {
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
-		this.labels = new HashMap<>(labels);
+		this.labels = Collections.unmodifiableMap(labels);
 		this.enabled = enabled;
 		this.type = type;
 		this.allowedReferences = allowedReferences;
@@ -155,7 +155,7 @@ public class Metadata implements DataStoreField {
 		this.code = code;
 		this.collection = inheritance.collection;
 		this.inheritance = inheritance;
-		this.labels = new HashMap<>(labels);
+		this.labels = Collections.unmodifiableMap(labels);
 		this.enabled = enabled;
 		this.type = inheritance.getType();
 		this.allowedReferences = inheritance.getAllowedReferences();
