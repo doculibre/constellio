@@ -23,6 +23,7 @@ import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
@@ -147,15 +148,17 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	private void findTypesMissingKeys() {
 		List<String> missingKeys = new ArrayList<>();
 
-		for (MetadataSchemaType type : getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaTypes()) {
-			addIfNoValue(type.getLabel());
+		Language language = Language.withCode(locale.getLanguage());
+
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			addIfNoValue(type.getLabel(language));
 
 			for (MetadataSchema schema : type.getAllSchemas()) {
-				addIfNoValue(schema.getLabel());
+				addIfNoValue(schema.getLabel(language));
 
 				for (Metadata metadata : schema.getMetadatas()) {
-					addIfNoValue(metadata.getLabel());
+					addIfNoValue(metadata.getLabel(language));
 
 					if (metadata.getEnumClass() != null) {
 						findEnumMissingKeys(metadata.getEnumClass());

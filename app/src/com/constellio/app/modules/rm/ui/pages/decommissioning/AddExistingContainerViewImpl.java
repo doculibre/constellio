@@ -52,6 +52,15 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 	}
 
 	@Override
+	public void setSearchCriteria(List<Criterion> criteria) {
+		this.criteria.setSearchCriteria(criteria);
+	}
+
+	@Override
+	public void setAdministrativeUnit(String administrativeUnitID) {
+	}
+
+	@Override
 	public List<Criterion> getSearchCriteria() {
 		return criteria.getSearchCriteria();
 	}

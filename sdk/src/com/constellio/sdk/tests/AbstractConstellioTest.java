@@ -115,7 +115,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@Rule public FailureDetectionTestWatcher failureDetectionTestWatcher = new FailureDetectionTestWatcher(this);
 
-	protected Map<String, String> sdkProperties = new HashMap<String, String>();
+	protected Map<String, String> sdkProperties = new HashMap<>();
 
 	protected String zeCollection = "zeCollection";
 	protected String businessCollection = "LaCollectionDeRida";
@@ -453,7 +453,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	@SuppressWarnings("unchecked")
 	protected <I> List<I> newArrayList(I... items) {
-		return new ArrayList<I>(asList(items));
+		return new ArrayList<>(asList(items));
 	}
 
 	protected void configure(DataLayerConfigurationAlteration dataLayerConfigurationAlteration) {
@@ -718,7 +718,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection) {
-		return givenCollection(collection, asList("fr"));
+		return givenCollection(collection, asList("fr", "en"));
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenSpecialCollection(String collection, List<String> languages) {

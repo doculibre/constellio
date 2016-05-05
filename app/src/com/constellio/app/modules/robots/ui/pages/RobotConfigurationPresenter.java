@@ -66,12 +66,12 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 
 	public String getReportTitle() {
 		return new DryRunReportBuilderFactory(
-				manager().dryRun(robotSchemas().getRobot(rootRobotId))).getFilename();
+				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext()).getFilename();
 	}
 
 	public StreamSource getResource() {
 		final DryRunReportBuilderFactory factory = new DryRunReportBuilderFactory(
-				manager().dryRun(robotSchemas().getRobot(rootRobotId)));
+				manager().dryRun(robotSchemas().getRobot(rootRobotId)), view.getSessionContext());
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {
@@ -88,6 +88,14 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	
 	public void backButtonClicked() {
 		view.navigate().to(RobotViews.class).listRootRobots();
+	}
+	
+	public void deleteRecordsButtonClicked() {
+		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
+	}
+
+	public void deleteRecordsButtonClicked(RecordVO robot) {
+		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
 	}
 	
 }

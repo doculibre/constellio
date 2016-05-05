@@ -12,18 +12,18 @@ public class MetadataDisplayConfig {
 
 	private final MetadataInputType inputType;
 
-	private final String metadataGroup;
+	private final String metadataGroupCode;
 
 	private final boolean highlight;
 
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
-			MetadataInputType inputType, boolean highlight, String metadataGroup) {
+			MetadataInputType inputType, boolean highlight, String metadataGroupCode) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
 		this.inputType = inputType;
 		this.highlight = highlight;
-		this.metadataGroup = metadataGroup;
+		this.metadataGroupCode = metadataGroupCode;
 	}
 
 	public boolean isVisibleInAdvancedSearch() {
@@ -46,28 +46,32 @@ public class MetadataDisplayConfig {
 		return collection;
 	}
 
-	public String getMetadataGroup() {
-		return metadataGroup;
+	public String getMetadataGroupCode() {
+		return metadataGroupCode;
 	}
 
 	public MetadataDisplayConfig withVisibleInAdvancedSearchStatus(boolean visibleInAdvancedSearch) {
-		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight, metadataGroup);
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode);
 	}
 
 	public MetadataDisplayConfig withHighlightStatus(boolean highlight) {
-		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight, metadataGroup);
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode);
 	}
 
 	public MetadataDisplayConfig withInputType(MetadataInputType inputType) {
-		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight, metadataGroup);
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode);
 	}
 
-	public MetadataDisplayConfig withMetadataGroup(String metadataGroup) {
-		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight, metadataGroup);
+	public MetadataDisplayConfig withMetadataGroup(String metadataGroupCode) {
+		return new MetadataDisplayConfig(collection, metadataCode, visibleInAdvancedSearch, inputType, highlight,
+				metadataGroupCode);
 	}
 
 	public static MetadataDisplayConfig inheriting(String metadataCode, MetadataDisplayConfig inheritance) {
 		return new MetadataDisplayConfig(inheritance.collection, metadataCode, inheritance.visibleInAdvancedSearch,
-				inheritance.inputType, inheritance.highlight, inheritance.metadataGroup);
+				inheritance.inputType, inheritance.highlight, inheritance.metadataGroupCode);
 	}
 }

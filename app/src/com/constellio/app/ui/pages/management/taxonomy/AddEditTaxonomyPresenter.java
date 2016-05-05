@@ -100,6 +100,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	void createMetadatasInDefaultSchemaIfInexistent(Taxonomy taxonomy, String schemaType) {
 
 		if (!getClassifiedObjects(taxonomy).contains(schemaType)) {
+			//TODO Patrick - code instead label
 			String groupLabel = $("classifiedInGroupLabel");
 			valueListServices().createAMultivalueClassificationMetadataInGroup(taxonomy, schemaType, groupLabel);
 		}

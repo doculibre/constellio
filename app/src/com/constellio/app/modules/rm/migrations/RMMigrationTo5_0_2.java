@@ -1,7 +1,9 @@
 package com.constellio.app.modules.rm.migrations;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -16,6 +18,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -144,10 +147,15 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 		for (MetadataSchemaType schemaType : rmTypes) {
 			SchemaTypeDisplayConfig typeConfig = schemasDisplayManager.getType(types.getCollection(), schemaType.getCode());
 
-			List<String> groups = new ArrayList<>();
-			groups.add(groupLabel);
+			Language language = migrationResourcesProvider.getLanguage();
+			Map<String, Map<Language, String>> groups = new HashMap<>();
+			Map<Language, String> labels = new HashMap<>();
+			labels.put(language, groupLabel);
+			groups.put("defaultGroupLabel", labels);
 			if (schemaType.getCode().equals(Folder.SCHEMA_TYPE) || schemaType.getCode().equals(Document.SCHEMA_TYPE)) {
-				groups.add(classifiedInLabel);
+				labels = new HashMap<>();
+				labels.put(language, classifiedInLabel);
+				groups.put("classifiedInGroupLabel", labels);
 			}
 
 			transaction.getModifiedTypes().add(typeConfig.withMetadataGroup(groups));

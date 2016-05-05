@@ -37,7 +37,7 @@ public class Maximum50CharsRecordMetadataValidatorTest extends ConstellioTest {
 			throws Exception {
 		validator.validate(metadata, valueOf51Character, configProvider, validationErrors);
 
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("maxSize", "50");
 		parameters.put("wasSize", "51");
 		verify(validationErrors).add(Maximum50CharsRecordMetadataValidator.class,

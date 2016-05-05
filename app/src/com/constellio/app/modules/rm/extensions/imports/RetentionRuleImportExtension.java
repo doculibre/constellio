@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import static com.constellio.data.utils.LangUtils.asMap;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -161,7 +159,11 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		if (copyRetentionRule.containsKey(ACTIVE_RETENTION_PERIOD)) {
 			String value = copyRetentionRule.get(ACTIVE_RETENTION_PERIOD);
 			if (value.isEmpty()) {
-				errors.error(REQUIRED_VALUE, copyRetentionRule);
+				Map<String,Object> convertedRetentionRule = new HashMap<>();
+				for(String parameterKey: copyRetentionRule.keySet()) {
+					convertedRetentionRule.put(parameterKey,copyRetentionRule.get(parameterKey));
+				}
+				errors.error(REQUIRED_VALUE, convertedRetentionRule);
 			} else if (!value.startsWith("var:")) {
 				try {
 					int convertedValue = Integer.valueOf(value);
@@ -222,6 +224,19 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 				errors.error(INVALID_CODE_VALUE, asMap(CODE, value, DOCUMENT_TYPE_INDEX, index));
 			}
 		}
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		parameters.put(key2, value2);
+		return parameters;
 	}
 
 	@Override

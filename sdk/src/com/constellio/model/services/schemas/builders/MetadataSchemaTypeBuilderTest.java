@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -12,6 +14,7 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -53,8 +56,9 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
+		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType("zeUltimateCollection", CODE_SCHEMA_TYPE, typesBuilder)
-				.setLabel("aLabel");
+				.addLabel(Language.French, "aLabel");
 	}
 
 	@Test
@@ -92,35 +96,35 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	@Test
 	public void givenLabelWhenBuildingThenHasCorrectValue()
 			throws Exception {
-		schemaTypeBuilder.setLabel("zeLabel");
+		schemaTypeBuilder.addLabel(Language.French, "zeLabel");
 
 		build();
 
-		assertThat(schemaType.getLabel()).isEqualTo("zeLabel");
+		assertThat(schemaType.getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
 	@Test
 	public void givenLabelWhenModifyingThenHasCorrectValue()
 			throws Exception {
-		schemaTypeBuilder.setLabel("zeLabel");
+		schemaTypeBuilder.addLabel(Language.French, "zeLabel");
 
 		buildAndModify();
 
-		assertThat(schemaTypeBuilder.getLabel()).isEqualTo("zeLabel");
+		assertThat(schemaTypeBuilder.getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
 	@Test(expected = MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined.class)
 	public void givenLabelNotDefinedWhenBuildingThenException()
 			throws Exception {
-		schemaTypeBuilder.setLabel(null);
+		schemaTypeBuilder.setLabels(null);
 
 		build();
 	}
 
-	@Test(expected = MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined.class)
+	@Test(expected = MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage.class)
 	public void givenLabelEmptyWhenBuildingThenException()
 			throws Exception {
-		schemaTypeBuilder.setLabel("");
+		schemaTypeBuilder.addLabel(Language.French, "");
 
 		build();
 	}

@@ -37,7 +37,7 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 		collectionsListManager.registerCollectionsListener(listener1);
 		collectionsListManager.registerCollectionsListener(listener2);
 
-		givenSpecialCollection("zeUltimateCollection");
+		givenSpecialCollection("zeUltimateCollection", asList("fr"));
 
 		verify(listener1).onCollectionCreated("zeUltimateCollection");
 		verify(listener2).onCollectionCreated("zeUltimateCollection");

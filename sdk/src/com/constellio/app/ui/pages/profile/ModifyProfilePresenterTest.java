@@ -60,6 +60,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 
 		profileVO = new ProfileVO(contentVersionVO, "bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
 				RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null);
+		profileVO.setLoginLanguageCode("fr");
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
 		when(mockedFactories.getModelLayerFactory().newRecordServices()).thenReturn(recordServices);
@@ -97,6 +98,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		verify(bob).setPhone("3333333");
 		verify(bob).setStartTab(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		verify(bob).setDefaultTaxonomy("taxo1");
+		verify(bob).setLoginLanguageCode("fr");
 		verify(recordServices).update(bobRecord);
 		verify(view.navigate().to()).url(presenter.getParameters());
 

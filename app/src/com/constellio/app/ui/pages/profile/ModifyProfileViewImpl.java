@@ -4,6 +4,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.InputStream;
 
+import com.vaadin.data.Property;
+import com.vaadin.event.FieldEvents;
+import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -25,13 +28,6 @@ import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Embedded;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
 	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
@@ -61,6 +57,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private PasswordField confirmPasswordField;
 	@PropertyId("oldPassword")
 	private PasswordField oldPasswordField;
+	@PropertyId("loginLanguageCode")
+	private ComboBox loginLanguageCodeField;
 	@PropertyId("startTab")
 	private OptionGroup startTabField;
 	@PropertyId("defaultTabInFolderDisplay")
@@ -225,6 +223,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
 
+		loginLanguageCodeField = new ComboBox($("ModifyProfileView.loginLanguageCode"));
+		loginLanguageCodeField.setId("loginLanguageCode");
+		loginLanguageCodeField.setRequired(true);
+		loginLanguageCodeField.setNullSelectionAllowed(false);
+		for(String code : presenter.getLanguagesCodes()){
+			loginLanguageCodeField.addItem(code);
+			loginLanguageCodeField.setItemCaption(code, $("Language." + code));
+		}
+		loginLanguageCodeField.setEnabled(true);
+
 		startTabField = new OptionGroup($("ModifyProfileView.startTab"));
 		startTabField.setId("startTab");
 		for (String tab : presenter.getAvailableHomepageTabs()) {
@@ -253,7 +261,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		}
 
 		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField,
-				phoneField, passwordField, confirmPasswordField, oldPasswordField, startTabField, defaultTabInFolderDisplay,
+				phoneField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
 				taxonomyField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)

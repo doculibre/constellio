@@ -36,6 +36,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.app.ui.tools.RecordContainerWebElementRuntimeException.RecordContainerWebElementRuntimeException_NoSuchRowWithValueInColumn;
 import com.constellio.model.entities.records.Transaction;
@@ -80,6 +81,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	ModelLayerFactory modelLayerFactory;
+	SessionContext sessionContext;
 
 	@Before
 	public void setUp()
@@ -109,6 +111,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 		};
 		when(factory.getNavigatorConfigurationService()).thenReturn(navigatorConfigurationService);
 
+		sessionContext = loggedAsUserInCollection(dakota, zeCollection);
 		driver = newWebDriver(loggedAsUserInCollection(dakota, zeCollection));
 	}
 
@@ -447,7 +450,8 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 			metadataCodes.add(schema.getMetadata("code").getCode());
 			metadataCodes.add(schema.getMetadata("title").getCode());
 
-			final MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, metadataCodes);
+			final MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
+					.build(schema, VIEW_MODE.TABLE, metadataCodes, sessionContext);
 			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 			return new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory) {
 				@Override

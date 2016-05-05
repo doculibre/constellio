@@ -36,7 +36,8 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 				return new LogicalSearchQuery(from(schema)
-						.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser()))
+						.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser())
+						.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);
 			}
 		};
@@ -51,7 +52,8 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 				return new LogicalSearchQuery(from(schema)
 						.where(schema.getMetadata(SavedSearch.PUBLIC)).isTrue()
-						.andWhere(schema.getMetadata(SavedSearch.USER)).isNotEqual(getCurrentUser()))
+						.andWhere(schema.getMetadata(SavedSearch.USER)).isNotEqual(getCurrentUser())
+						.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);
 			}
 		};

@@ -350,7 +350,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	public void checkOutButtonClicked() {
+	public void checkOutButtonClicked(SessionContext sessionContext) {
 		if (isCheckOutPossible()) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
@@ -362,7 +362,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				actionsComponent.showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
-				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
+				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), sessionContext);
 				if (agentURL != null) {
 					actionsComponent.openAgentURL(agentURL);
 				}

@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.entities.ReportedMetadataVO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -116,8 +117,8 @@ public class ReportTestUtils {
 
 	public void validateDefaultReport(SearchResultReportModel model) {
 		List<String> titles = model.getColumnsTitles();
-		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(),
-				types.getMetadata(folderCreatedByMetadataCode).getLabel());
+		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French),
+				types.getMetadata(folderCreatedByMetadataCode).getLabel(Language.French));
 		List<List<Object>> content = model.getResults();
 		assertThat(content.size()).isEqualTo(2);
 		List<Object> result1 = content.get(0);
@@ -132,8 +133,8 @@ public class ReportTestUtils {
 
 	public void validateUserReportTitles(SearchResultReportModel model) {
 		List<String> titles = model.getColumnsTitles();
-		assertThat(titles).containsOnly(types.getMetadata(folderDescriptionMetadataCode).getLabel(),
-				types.getMetadata(folderTitleMetadataCode).getLabel());
+		assertThat(titles).containsOnly(types.getMetadata(folderDescriptionMetadataCode).getLabel(Language.French),
+				types.getMetadata(folderTitleMetadataCode).getLabel(Language.French));
 	}
 
 	public void addUserReport(String reportTitle, String username) {
@@ -245,7 +246,7 @@ public class ReportTestUtils {
 
 	public void validateUserReportWithDisabledMetadata(SearchResultReportModel model) {
 		List<String> titles = model.getColumnsTitles();
-		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel());
+		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French));
 		List<List<Object>> content = model.getResults();
 		assertThat(content.size()).isEqualTo(2);
 		List<Object> result1 = content.get(0);

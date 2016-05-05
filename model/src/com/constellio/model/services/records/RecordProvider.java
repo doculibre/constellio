@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,10 @@ public class RecordProvider {
 	RecordServices recordServices;
 
 	Map<String, Record> memoryList;
+
+	public RecordProvider(RecordServices recordServices) {
+		this(recordServices, null, Collections.<Record>emptyList(), null);
+	}
 
 	public RecordProvider(RecordServices recordServices, RecordProvider recordProvider, List<Record> records,
 			Transaction transaction) {

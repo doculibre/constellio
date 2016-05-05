@@ -56,6 +56,8 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn("zeSchemaType");
 
 		presenter = spy(new AdvancedSearchPresenter(view));
+
+		doNothing().when(presenter).saveTemporarySearch();
 	}
 
 	@Test

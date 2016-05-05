@@ -14,6 +14,7 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -219,6 +220,10 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 
 	protected final SchemasDisplayManager schemasDisplayManager() {
 		return presenterUtils.schemasDisplayManager();
+	}
+
+	protected final CollectionsManager collectionsManager() {
+		return presenterUtils.getCollectionManager();
 	}
 
 	public String buildString(List<String> list) {

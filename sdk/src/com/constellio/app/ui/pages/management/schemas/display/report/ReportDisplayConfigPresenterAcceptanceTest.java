@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.sdk.tests.MockedNavigation;
@@ -62,6 +63,8 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		when(currentUser.getUsername()).thenReturn(admin);
 		when(session.getCurrentUser()).thenReturn(currentUser);
 		when(view.navigate()).thenReturn(navigator);
+		when(view.navigateTo()).thenReturn(navigator);
+		when(session.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new ReportDisplayConfigPresenter(view);
 		Map<String, String> params = new HashMap<>();

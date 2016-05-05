@@ -16,7 +16,7 @@ public class IntegerStringValidator implements RecordMetadataValidator<String> {
 	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		if (value != null && !value.matches("[0-9]+")) {
 
-			Map<String, String> params = new HashMap<>();
+			Map<String, Object> params = new HashMap<>();
 			//params.put("value", value);
 
 			validationErrors.add(getClass(), MUST_ONLY_CONTAINS_DIGITS, params);

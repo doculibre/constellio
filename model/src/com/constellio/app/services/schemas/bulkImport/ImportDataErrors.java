@@ -20,7 +20,7 @@ public class ImportDataErrors {
 		this.schemaType = schemaType;
 	}
 
-	public void error(String code, Map<String, String> parameters) {
+	public void error(String code, Map<String, Object> parameters) {
 		parameters.put("index", "" + (importData.getIndex() + 1));
 		parameters.put("legacyId", importData.getLegacyId());
 		parameters.put("schemaType", schemaType);
@@ -28,7 +28,7 @@ public class ImportDataErrors {
 	}
 
 	public void error(String code) {
-		HashMap<String, String> parameters = new HashMap<>();
+		HashMap<String, Object> parameters = new HashMap<>();
 		parameters.put("index", "" + (importData.getIndex() + 1));
 		parameters.put("legacyId", importData.getLegacyId());
 		parameters.put("schemaType", schemaType);

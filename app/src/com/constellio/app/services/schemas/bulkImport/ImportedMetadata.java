@@ -1,8 +1,12 @@
 package com.constellio.app.services.schemas.bulkImport;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 @SuppressWarnings("serial")
@@ -12,7 +16,7 @@ public class ImportedMetadata implements Serializable {
 	String localCode;
 	MetadataValueType valueType;
 	String reference;
-	String label;
+	Map<Language, String> labels;
 	boolean required;
 	boolean multivalue;
 	boolean searchable;
@@ -50,7 +54,12 @@ public class ImportedMetadata implements Serializable {
 		this.schemaCode = schemaCode;
 		this.valueType = type;
 		this.required = required;
-		this.label = label;
+		this.labels = new HashMap<>();
+		for(Language language : Language.getAvailableLanguages()){
+			if(!language.equals(Language.UNKNOWN)){
+				this.labels.put(language, label);
+			}
+		}
 		this.multivalue = multivalue;
 		this.searchable = searchable;
 		this.sortable = sortable;
@@ -128,8 +137,8 @@ public class ImportedMetadata implements Serializable {
 		return enabled;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<Language, String> getLabels() {
+		return labels;
 	}
 
 	public String getMetadataGroup() {
@@ -168,8 +177,12 @@ public class ImportedMetadata implements Serializable {
 		this.multivalue = multivalue;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public void setLabels(Map<Language, String> labels) {
+		this.labels = labels;
+	}
+
+	public void addLabel(Language language, String label) {
+		this.labels.put(language, label);
 	}
 
 	public void setHighlight(boolean highlight) {

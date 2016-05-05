@@ -1,8 +1,11 @@
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 
@@ -13,7 +16,7 @@ public class FormMetadataVO implements Serializable {
 	MetadataValueType valueType;
 	MetadataSchemaVO schema;
 	String reference;
-	String label;
+	Map<String, String> labels;
 	boolean required;
 	boolean multivalue;
 	boolean searchable;
@@ -27,11 +30,13 @@ public class FormMetadataVO implements Serializable {
 	MetadataInputType input;
 	Object defaultValue;
 	String inputMask;
+	String currentLanguageCode;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
-			String label, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch, boolean facet,
+			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
+			boolean facet,
 			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup,
-			Object defaultValue, String inputMask) {
+			Object defaultValue, String inputMask, SessionContext sessionContext) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
@@ -41,7 +46,7 @@ public class FormMetadataVO implements Serializable {
 		this.valueType = type;
 		this.required = required;
 		this.schema = schemaVO;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
 		this.multivalue = multivalue;
 		this.searchable = searchable;
 		this.sortable = sortable;
@@ -55,16 +60,17 @@ public class FormMetadataVO implements Serializable {
 		this.metadataGroup = metadataGroup;
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
+		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 	}
 
-	public FormMetadataVO() {
+	public FormMetadataVO(SessionContext sessionContext) {
 		super();
 		this.code = "";
 		this.localcode = "";
 		this.valueType = null;
 		this.required = false;
 		this.schema = null;
-		this.label = "";
+		this.labels = new HashMap<>();
 		this.multivalue = false;
 		this.searchable = false;
 		this.sortable = false;
@@ -77,6 +83,7 @@ public class FormMetadataVO implements Serializable {
 		this.enabled = true;
 		this.metadataGroup = "";
 		this.inputMask = "";
+		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 	}
 
 	public String getCode() {
@@ -139,8 +146,8 @@ public class FormMetadataVO implements Serializable {
 		return enabled;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<String, String> getLabels() {
+		return labels;
 	}
 
 	public String getMetadataGroup() {
@@ -187,8 +194,12 @@ public class FormMetadataVO implements Serializable {
 		this.multivalue = multivalue;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public void setLabels(Map<String, String> labels) {
+		this.labels = new HashMap<>(labels);
+	}
+
+	public String getLabel(String currentLanguageCode) {
+		return labels.get(currentLanguageCode);
 	}
 
 	public void setHighlight(boolean highlight) {
@@ -267,7 +278,7 @@ public class FormMetadataVO implements Serializable {
 	public String toString() {
 		String toString;
 		try {
-			toString = getLabel();
+			toString = getLabel(currentLanguageCode);
 		} catch (RuntimeException e) {
 			toString = super.toString();
 		}
