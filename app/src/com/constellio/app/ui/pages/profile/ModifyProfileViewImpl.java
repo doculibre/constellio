@@ -4,8 +4,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.InputStream;
 
-import com.vaadin.data.Property;
-import com.vaadin.event.FieldEvents;
 import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -227,7 +225,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		loginLanguageCodeField.setId("loginLanguageCode");
 		loginLanguageCodeField.setRequired(true);
 		loginLanguageCodeField.setNullSelectionAllowed(false);
-		for(String code : presenter.getLanguagesCodes()){
+		for(String code : presenter.getCurrentCollectionLanguagesCodes()){
 			loginLanguageCodeField.addItem(code);
 			loginLanguageCodeField.setItemCaption(code, $("Language." + code));
 		}

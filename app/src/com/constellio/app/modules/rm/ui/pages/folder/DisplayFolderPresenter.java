@@ -806,4 +806,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		addOrUpdate(cart.getWrappedRecord());
 		view.showMessage($("DisplayFolderView.addedToCart"));
 	}
+
+	public void parentFolderButtonClicked(String parentId) throws RecordServicesException {
+		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+
+		String currentFolderId = folderVO.getId();
+		if(StringUtils.isBlank(parentId)){
+			//FIXME francis traitement particulier?
+			parentId = null;
+		}
+		recordServices.add(rmSchemas.getFolder(currentFolderId).setParentFolder(parentId));
+		view.navigate().to(RMViews.class).displayFolder(currentFolderId);
+	}
 }
