@@ -325,6 +325,12 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			public int compare(MetadataVO o1, MetadataVO o2) {
 				String label1 = AccentApostropheCleaner.cleanAll(o1.getLabel());
 				String label2 = AccentApostropheCleaner.cleanAll(o2.getLabel());
+				if (label1 == null) {
+					label1 = "";
+				}
+				if (label2 == null) {
+					label2 = "";
+				}
 				return label1.compareTo(label2);
 			}
 		});
