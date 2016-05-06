@@ -53,12 +53,9 @@ public class UserCredentialAndGlobalGroupsMigration {
 		this.configManager = dataLayerFactory.getConfigManager();
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
 
-		if (configManager.exist(XmlGlobalGroupsManager.CONFIG_FILE)) {
+		if (configManager.exist(XmlGlobalGroupsManager.CONFIG_FILE) || configManager.exist(USER_CREDENTIALS_CONFIG)) {
 			this.oldGroupManager = new XmlGlobalGroupsManager(configManager);
 			this.oldGroupManager.initialize();
-		}
-
-		if (configManager.exist(USER_CREDENTIALS_CONFIG)) {
 			this.oldUserManager = new XmlUserCredentialsManager(dataLayerFactory, modelLayerFactory,
 					modelLayerFactory.getConfiguration());
 			this.oldUserManager.initialize();

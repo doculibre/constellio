@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
-import com.constellio.model.services.records.extractions.MetadataPopulator;
-import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -27,6 +25,9 @@ import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -78,7 +79,7 @@ public class MetadataSchemaXMLReader3 {
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
-		Map<Language, String> labels = getLabels(element);
+		Map<Language, String> labels = readLabels(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
 				.setLabels(labels);
 
@@ -92,23 +93,6 @@ public class MetadataSchemaXMLReader3 {
 		return schemaTypeBuilder.build(typesFactory, modelLayerFactory);
 	}
 
-	private Map<Language, String> getLabels(Element element) {
-		Map<Language, String> labels = new HashMap<>();
-		String labelValue = element.getAttributeValue("label");
-		if (StringUtils.isNotBlank(labelValue)) {
-			List<String> languagesLabels = Arrays
-					.asList(labelValue.split(MetadataSchemaXMLWriter2.LABEL_SEPARATOR));
-			for (String languagesLabel : languagesLabels) {
-				String[] keyValue = languagesLabel.split("=");
-				Language language = Language.withCode(keyValue[0]);
-				if (keyValue.length > 1) {
-					labels.put(language, keyValue[1]);
-				}
-			}
-		}
-		return labels;
-	}
-
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
 			MetadataSchemaBuilder collectionSchema) {
 		Element customSchemasElement = root.getChild("customSchemas");
@@ -120,7 +104,7 @@ public class MetadataSchemaXMLReader3 {
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement,
 			MetadataSchemaBuilder collectionSchema) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
-		schemaBuilder.setLabels(getLabels(schemaElement));
+		schemaBuilder.setLabels(readLabels(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
@@ -142,7 +126,7 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
 
-		metadataBuilder.setLabels(getLabels(metadataElement));
+		metadataBuilder.setLabels(readLabels(metadataElement));
 
 		if (metadataBuilder.getInheritance() != null && !metadataBuilder.getCode().contains("default")) {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);
@@ -214,8 +198,8 @@ public class MetadataSchemaXMLReader3 {
 			inheriteGlobalMetadata = true;
 		}
 
-		Map<Language, String> xmlLabels = getLabels(metadataElement);
-		if (inheriteGlobalMetadata && xmlLabels == null && xmlLabels.isEmpty()) {
+		Map<Language, String> xmlLabels = readLabels(metadataElement);
+		if (inheriteGlobalMetadata && (xmlLabels == null || xmlLabels.isEmpty())) {
 			metadataBuilder.setLabels(globalMetadataInCollectionSchema.getLabels());
 		} else {
 			metadataBuilder.setLabels(xmlLabels);
@@ -369,8 +353,6 @@ public class MetadataSchemaXMLReader3 {
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
 	}
 
-
-
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
 
 		List<String> styles = new ArrayList<>();
@@ -390,7 +372,7 @@ public class MetadataSchemaXMLReader3 {
 				Element regexConfigsElement = populateConfigsElement.getChild("regexConfigs");
 				addRegexConfigElementsToList(regexConfigsElement, regexes);
 			}
-			if (populateConfigsElement.getChild("metadataPopulators") != null){
+			if (populateConfigsElement.getChild("metadataPopulators") != null) {
 				Element metadataPopulatorsElement = populateConfigsElement.getChild("metadataPopulators");
 				addMetadataPopulateElementsToList(metadataPopulatorsElement, metadataPopulators);
 			}
@@ -403,8 +385,9 @@ public class MetadataSchemaXMLReader3 {
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
 	}
 
-	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement, List<MetadataPopulator> metadataPopulators) {
-		for (Element metadataPopulatorElement: metadataPopulatorsElement.getChildren()){
+	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement,
+			List<MetadataPopulator> metadataPopulators) {
+		for (Element metadataPopulatorElement : metadataPopulatorsElement.getChildren()) {
 			try {
 				metadataPopulators.add(metadataPopulatorXMLSerializer.fromXML(metadataPopulatorElement));
 			} catch (Exception e) {
@@ -549,7 +532,7 @@ public class MetadataSchemaXMLReader3 {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
-		defaultSchemaBuilder.setLabels(getLabels(defaultSchemaElement));
+		defaultSchemaBuilder.setLabels(readLabels(defaultSchemaElement));
 		//	new CommonMetadataBuilder().addCommonMetadataToExistingSchema(defaultSchemaBuilder, typesBuilder);
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);
@@ -620,5 +603,15 @@ public class MetadataSchemaXMLReader3 {
 			return false;
 		}
 		throw new ImpossibleRuntimeException("Unsupported value '" + value + "'");
+	}
+
+	private Map<Language, String> readLabels(Element schemaElement) {
+		Map<Language, String> labels = new HashMap<>();
+		for (Attribute attribute : schemaElement.getAttributes()) {
+			if (attribute.getName().startsWith("label_")) {
+				labels.put(Language.withCode(attribute.getName().substring(6)), attribute.getValue());
+			}
+		}
+		return labels;
 	}
 }
