@@ -49,6 +49,12 @@ public class ConstellioTest extends AbstractConstellioTest {
 		}
 	}
 
+	public void resetTestSession() {
+		testSession.close(true, false);
+
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
+	}
+
 	protected void clearTestSession() {
 		if (!isPreservingState()) {
 			testSession.close(false, false);

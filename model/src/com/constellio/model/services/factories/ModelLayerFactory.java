@@ -64,7 +64,6 @@ import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.XmlGlobalGroupsManager;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.constellio.model.services.workflows.WorkflowExecutor;
 import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
@@ -287,9 +286,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public UserServices newUserServices() {
-		return new UserServices(userCredentialsManager, globalGroupsManager, collectionsListManager, newRecordServices(),
-				newSearchServices(), schemasManager, newAuthenticationService(), rolesManager, modelLayerConfiguration,
-				ldapConfigurationManager);
+		return new UserServices(this);
 	}
 
 	public LanguageDetectionManager getLanguageDetectionManager() {

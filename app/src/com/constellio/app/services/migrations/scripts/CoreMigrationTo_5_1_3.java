@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -40,7 +41,7 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		EncryptionServices encryptionServices;
 		try {
 			if (isFirstInit(dataLayerFactory)) {
-				createKeyFile(modelLayerFactory.getConfiguration());
+				createKeyFile(modelLayerFactory.getConfiguration(), dataLayerFactory.getDataLayerConfiguration());
 				createKeyDocument(dataLayerFactory);
 				encryptionServices = modelLayerFactory.newEncryptionServices();
 				encryptLdapPassword(modelLayerFactory, encryptionServices);
@@ -81,13 +82,13 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		dataLayerFactory.saveEncryptionKey();
 	}
 
-	private void createKeyFile(ModelLayerConfiguration modelLayerConfiguration)
+	private void createKeyFile(ModelLayerConfiguration modelLayerConfiguration, DataLayerConfiguration dataLayerConfiguration)
 			throws IOException {
 		File encryptionFile = modelLayerConfiguration.getConstellioEncryptionFile();
 
 		Random random = new Random();
 		String fileKeyPart =
-				"constellio_" + random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000) + "_ext";
+				"constellio_" + dataLayerConfiguration.createRandomUniqueKey() + "_ext";
 		FileUtils.writeByteArrayToFile(encryptionFile, fileKeyPart.getBytes());
 	}
 

@@ -62,8 +62,6 @@ public interface UserCredential {
 
 	UserCredential withSystemAdminPermission();
 
-	UserCredential withNewServiceKey();
-
 	UserCredential withServiceKey(String serviceKey);
 
 	UserCredential withMsExchDelegateListBL(List<String> msExchDelegateListBL);

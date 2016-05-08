@@ -4,6 +4,7 @@ import static com.constellio.data.conf.SolrServerType.HTTP;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
@@ -76,6 +77,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public IdGeneratorType getSecondaryIdGeneratorType() {
+		return (IdGeneratorType) getEnum("secondaryIdGenerator.type", IdGeneratorType.UUID_V1);
+	}
+
+	@Override
 	public boolean isSecondTransactionLogEnabled() {
 		if (secondTransactionLogEnabled != null) {
 			return secondTransactionLogEnabled;
@@ -142,7 +148,6 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		};
 	}
 
-
 	@Override
 	public void setSecondTransactionLogFolderEnabled(boolean enable) {
 		this.secondTransactionLogEnabled = enable;
@@ -161,6 +166,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 			return secondTransactionLogEnabled;
 		}
 		return getBoolean("secondTransactionLog.checkRollback", false);
+	}
+
+	@Override
+	public String createRandomUniqueKey() {
+		Random random = new Random();
+		return random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
 	}
 
 }

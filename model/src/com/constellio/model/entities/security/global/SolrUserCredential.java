@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import org.joda.time.LocalDateTime;
 
@@ -270,11 +269,6 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	@Override
 	public UserCredential withSystemAdminPermission() {
 		return setSystemAdmin(true);
-	}
-
-	@Override
-	public UserCredential withNewServiceKey() {
-		return setServiceKey(UUID.randomUUID().toString());
 	}
 
 	@Override

@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -49,6 +48,7 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -407,6 +407,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			batchProcessesManager.waitUntilAllFinished();
 
 			removedSyncedAuthorizations();
+
 			createAuthorizationsForFilingSpaceUsersAndAdministrators();
 
 			moveFoldersToNewAdministrativeUnits();
@@ -444,11 +445,14 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 				managersInFilingSpace.removeAll(managersAndRGDs);
 
+				UniqueIdGenerator uniqueIdGenerator = rm.getModelLayerFactory().getDataLayerFactory()
+						.getSecondaryUniqueIdGenerator();
 				List<AdministrativeUnit> newUnits = rm.getAdministrativesUnits(getNewUnits(filingSpace.getId()));
 				for (AdministrativeUnit newUnit : newUnits) {
-					addAuthorizationOn(newUnit, usersWithReadWrite, asList(Role.READ, Role.WRITE));
-					addAuthorizationOn(newUnit, usersWithReadWriteDelete, asList(Role.READ, Role.WRITE, Role.DELETE));
-					addAuthorizationOn(newUnit, managersInFilingSpace, asList(RMRoles.MANAGER));
+					addAuthorizationOn(newUnit, usersWithReadWrite, asList(Role.READ, Role.WRITE), uniqueIdGenerator);
+					addAuthorizationOn(newUnit, usersWithReadWriteDelete, asList(Role.READ, Role.WRITE, Role.DELETE),
+							uniqueIdGenerator);
+					addAuthorizationOn(newUnit, managersInFilingSpace, asList(RMRoles.MANAGER), uniqueIdGenerator);
 				}
 			}
 		}
@@ -463,10 +467,11 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 			return filingSpaces;
 		}
 
-		private void addAuthorizationOn(AdministrativeUnit newUnit, List<String> users, List<String> roles) {
+		private void addAuthorizationOn(AdministrativeUnit newUnit, List<String> users, List<String> roles,
+				UniqueIdGenerator uniqueIdGenerator) {
 			if (!users.isEmpty()) {
 				AuthorizationDetails details = AuthorizationDetails
-						.create(UUID.randomUUID().toString(), roles, newUnit.getCollection());
+						.create(uniqueIdGenerator.next(), roles, newUnit.getCollection());
 				authorizationsServices.add(new Authorization(details, users, asList(newUnit.getId())), User.GOD);
 			}
 		}

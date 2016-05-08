@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -285,12 +284,6 @@ public class XmlUserCredential implements UserCredential {
 	public UserCredential withSystemAdminPermission() {
 		return new XmlUserCredential(username, firstName, lastName, email, serviceKey, true, globalGroups, collections, tokensMap,
 				status, domain, msExchDelegateListBL, dn);
-	}
-
-	@Override
-	public UserCredential withNewServiceKey() {
-		String serviceKey = UUID.randomUUID().toString();
-		return withServiceKey(serviceKey);
 	}
 
 	@Override
