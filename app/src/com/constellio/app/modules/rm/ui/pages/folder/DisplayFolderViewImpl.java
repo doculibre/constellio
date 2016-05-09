@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -10,8 +21,17 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -43,22 +63,23 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -77,7 +98,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
 			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, startWorkflowButton;
-	WindowButton parentFolderButton;
+	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
@@ -181,9 +202,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
-
-		parentFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
-		, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+		moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
+				, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
@@ -194,13 +214,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						String parentId = field.getValue();
-							try{
-								presenter.parentFolderButtonClicked(parentId);
-							}catch(Throwable e){
-								LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
-								showErrorMessage("DisplayFolderView.parentFolderException");
-							}
-							parentFolderButton.getWindow().close();
+						try {
+							presenter.parentFolderButtonClicked(parentId);
+						} catch (Throwable e) {
+							LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
+							showErrorMessage("DisplayFolderView.parentFolderException");
+						}
+						moveInFolderButton.getWindow().close();
 					}
 				};
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -342,10 +362,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 		startWorkflowButton = new StartWorkflowButton();
 
-		actionMenuButtons.add(parentFolderButton);
 		actionMenuButtons.add(addDocumentButton);
 		actionMenuButtons.add(addSubFolderButton);
 		actionMenuButtons.add(editFolderButton);
+		actionMenuButtons.add(moveInFolderButton);
 		actionMenuButtons.add(deleteFolderButton);
 		actionMenuButtons.add(duplicateFolderButton);
 		actionMenuButtons.add(linkToFolderButton);
@@ -493,6 +513,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		deleteFolderButton.setVisible(state.isVisible());
 		deleteFolderButton.setEnabled(state.isEnabled());
 
+	}
+
+	@Override
+	public void setMoveInFolderState(ComponentState state) {
+		moveInFolderButton.setVisible(state.isVisible());
+		moveInFolderButton.setEnabled(state.isEnabled());
 	}
 
 	@Override
