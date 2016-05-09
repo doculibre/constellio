@@ -707,7 +707,7 @@ public class RMTestRecords {
 		principal42_5_C.setInactiveDisposalType(DisposalType.DEPOSIT);
 		principal42_5_C.setContentTypesComment("R1");
 		principal42_5_C.setActiveRetentionComment("R2");
-		principal42_5_C.setCode("42-5-C");
+		//principal42_5_C.setCode("42-5-C");
 		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
