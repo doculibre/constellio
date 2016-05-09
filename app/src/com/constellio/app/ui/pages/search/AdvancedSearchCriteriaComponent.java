@@ -211,6 +211,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					}
 				}
 			});
+
 			HorizontalLayout component = new HorizontalLayout(operator, value);
 			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
 			component.setExpandRatio(value, 1);
@@ -373,6 +374,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(value.getValue());
 				}
 			});
+			//value.setVisible();
 
 			final SearchOperator searchOperator = criterion.getSearchOperator();
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
@@ -382,8 +384,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
 						criterion.setSearchOperator(newOperator);
-						value.setVisible(
-								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+						boolean visible = !newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL);
+						value.setVisible(visible);
+						if (!visible) {
+							criterion.setValue(null);
+						}
 					} else {
 						criterion.setSearchOperator(searchOperator);
 						value.setVisible(true);

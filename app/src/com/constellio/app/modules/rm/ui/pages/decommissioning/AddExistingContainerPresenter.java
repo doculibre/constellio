@@ -245,7 +245,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		return rmConfigs;
 	}
 
-	protected void saveTemporarySearch() {
+	protected void saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -262,7 +262,9 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setSelectedFacets(this.getFacetSelections().getNestedMap());
 		try {
 			recordServices().update(search);
-			view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
+			if (refreshPage) {
+				view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
+			}
 		} catch (RecordServicesException e) {
 			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}

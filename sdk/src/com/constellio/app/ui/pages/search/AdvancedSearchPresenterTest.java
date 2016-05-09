@@ -56,7 +56,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 
 		presenter = spy(new AdvancedSearchPresenter(view));
 
-		doNothing().when(presenter).saveTemporarySearch();
+		doNothing().when(presenter).saveTemporarySearch(true);
 	}
 
 	@Test

@@ -138,7 +138,11 @@ public class CriterionFactory implements StructureFactory {
 			} catch (ClassNotFoundException e) {
 				newCriterion.setValue(null);
 			}
-			newCriterion.setValue(Enum.valueOf(clazz, value));
+			if (value != null) {
+				newCriterion.setValue(Enum.valueOf(clazz, value));
+			} else {
+				newCriterion.setValue(null);
+			}
 			break;
 		default:
 			throw new UnsupportedOperationException("Unknow metadata type");
