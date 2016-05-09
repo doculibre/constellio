@@ -61,4 +61,5 @@ public interface DataLayerConfiguration {
 	boolean isInRollbackTestMode();
 
 	String createRandomUniqueKey();
+
 }

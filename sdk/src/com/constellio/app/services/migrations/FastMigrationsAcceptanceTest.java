@@ -18,14 +18,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 
-public class CoreMigrationHighwayAcceptanceTest extends ConstellioTest {
+public class FastMigrationsAcceptanceTest extends ConstellioTest {
 
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -106,6 +108,13 @@ public class CoreMigrationHighwayAcceptanceTest extends ConstellioTest {
 			}
 		});
 
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(AppLayerConfiguration configuration) {
+				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			}
+		});
+
 		LocalDateTime time = new LocalDateTime();
 		givenTimeIs(time);
 		setupScript.setupCollection();
@@ -134,10 +143,6 @@ public class CoreMigrationHighwayAcceptanceTest extends ConstellioTest {
 		tools = new SolrSDKToolsServices(getDataLayerFactory().newRecordDao());
 		tools.flushAndDeleteContentMarkers();
 		VaultSnapshot snapshot2 = tools.snapshot();
-
-		//		for (File settings : asList(settings1, settings2)) {
-		//			FileUtils.deleteQuietly(new File(settings, "key.txt"));
-		//		}
 
 		compareFolder(settings1, settings2);
 		tools.ensureSameSnapshots("", snapshot1, snapshot2);

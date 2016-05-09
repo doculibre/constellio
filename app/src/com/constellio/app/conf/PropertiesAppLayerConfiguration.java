@@ -45,4 +45,9 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 		return foldersLocator.getConstellioSetupProperties();
 	}
 
+	@Override
+	public boolean isFastMigrationsEnabled() {
+		return true;
+	}
+
 }

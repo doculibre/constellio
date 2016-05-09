@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.entities.modules.FastMigrationScript;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.Migration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -130,6 +132,11 @@ public class MigrationServices {
 	private Set<String> migrateModules(String collection, String toVersion)
 			throws OptimisticLockingConfiguration {
 		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
+
+		if (isNewCollection(collection) && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled()) {
+			migrateWithoutException(new FastCoreMigration(), null, collection);
+		}
+
 		List<Migration> migrations = getAllMigrationsFor(collection);
 
 		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
@@ -152,6 +159,18 @@ public class MigrationServices {
 		return modulesNotMigratedCorrectly;
 	}
 
+	private boolean migrateWithoutException(FastMigrationScript migration, String moduleId, String collection) {
+		boolean exceptionWhenMigrating = false;
+		try {
+			migrate(collection, moduleId, migration);
+		} catch (Throwable e) {
+			constellioPluginManager
+					.handleModuleNotMigratedCorrectly(moduleId, collection, e);
+			exceptionWhenMigrating = true;
+		}
+		return exceptionWhenMigrating;
+	}
+
 	private boolean migrateWithoutException(Migration migration, String collection) {
 		boolean exceptionWhenMigrating = false;
 		try {
@@ -167,6 +186,16 @@ public class MigrationServices {
 	public Set<String> migrate(String collection, String toVersion)
 			throws OptimisticLockingConfiguration {
 		return migrateModules(collection, toVersion);
+	}
+
+	boolean isNewCollection(String collection) {
+		if (configManager.exist(VERSION_PROPERTIES_FILE)) {
+			String propertyKey = collection + "_completedMigrations";
+			String completedMigrations = configManager.getProperties(VERSION_PROPERTIES_FILE).getProperties().get(propertyKey);
+			return StringUtils.isBlank(completedMigrations);
+		} else {
+			return true;
+		}
 	}
 
 	List<Migration> filterRunnedMigration(String collection, List<Migration> migrations) {
@@ -223,6 +252,45 @@ public class MigrationServices {
 		}
 		setCurrentDataVersion(migration.getCollection(), migration.getVersion());
 		markMigrationAsCompleted(migration);
+	}
+
+	String getHighestVersion(FastMigrationScript script) {
+		List<String> versions = new ArrayList<>();
+
+		if (script.getVersions().isEmpty()) {
+			return "1.0";
+		}
+
+		for (MigrationScript migration : script.getVersions()) {
+			versions.add(migration.getVersion());
+		}
+
+		Collections.sort(versions, new VersionsComparator());
+		return versions.get(versions.size() - 1);
+	}
+
+	void migrate(String collectionId, String moduleId, FastMigrationScript fastMigrationScript)
+			throws OptimisticLockingConfiguration {
+
+		String highestVersion = getHighestVersion(fastMigrationScript);
+		LOGGER.info("Running migration script '" + fastMigrationScript.getClass().getSimpleName() +
+				"' updating to version '" + highestVersion + "'");
+		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
+		moduleId = moduleId == null ? "core" : moduleId;
+
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
+				"fast", ioServices, moduleResourcesLocator);
+
+		try {
+			fastMigrationScript.migrate(collectionId, migrationResourcesProvider, appLayerFactory);
+		} catch (Exception e) {
+			throw new RuntimeException("Error when migrating collection '" + collectionId + "'", e);
+		}
+		setCurrentDataVersion(collectionId, highestVersion);
+		for (MigrationScript migrationScript : fastMigrationScript.getVersions()) {
+			markMigrationAsCompleted(new Migration(collectionId, moduleId, migrationScript));
+		}
 	}
 
 	public void setCurrentDataVersion(String collection, String version)
