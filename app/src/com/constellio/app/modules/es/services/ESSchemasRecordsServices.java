@@ -380,7 +380,10 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
 						where(connectorDocument.fetched()).isFalse(),
-						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode))
+						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode),
+						where(connectorDocument.nextFetch()).isLessOrEqualThan(TimeProvider.getLocalDateTime())
+				)
+
 		));
 		return query;
 	}
