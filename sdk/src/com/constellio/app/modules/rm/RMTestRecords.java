@@ -133,6 +133,7 @@ public class RMTestRecords {
 	public final String ruleId_4 = "ruleId_4";
 	public final String ruleId_5 = "ruleId_5";
 	public final String ruleId_6 = "ruleId_6";
+	public String principal42_5_CId;
 
 	public final String storageSpaceId_S01 = "S01";
 	public final String storageSpaceId_S01_01 = "S01-01";
@@ -700,11 +701,13 @@ public class RMTestRecords {
 		transaction.add(period666);
 
 		CopyRetentionRule principal42_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "42-5-C");
+		principal42_5_CId = principal42_5_C.getId();
 		principal42_5_C.setActiveRetentionPeriod(RetentionPeriod.variable(period42));
 		principal42_5_C.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(5));
 		principal42_5_C.setInactiveDisposalType(DisposalType.DEPOSIT);
 		principal42_5_C.setContentTypesComment("R1");
 		principal42_5_C.setActiveRetentionComment("R2");
+		principal42_5_C.setCode("42-5-C");
 		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
