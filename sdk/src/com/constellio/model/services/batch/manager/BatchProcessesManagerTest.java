@@ -246,7 +246,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
-		when(searchServices.getResultsCount(condition)).thenReturn(42L);
+		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(42L);
 		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action);
 
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
