@@ -183,11 +183,22 @@ public class UserCredentialAndGlobalGroupsMigration {
 			correctUsernameInAllCollections(invalidUsernameListMappedByCollection);
 
 		} finally {
-			oldUserManager.close();
-			oldGroupManager.close();
+			if(oldGroupManager != null){
+				oldUserManager.close();
+			}
 
-			configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
-			configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
+			if(oldUserManager != null){
+				oldGroupManager.close();
+			}
+
+			if(configManager.exist(USER_CREDENTIALS_CONFIG)){
+				configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
+			}
+
+			if(configManager.exist(XmlGlobalGroupsManager.CONFIG_FILE)){
+				configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
+			}
+
 		}
 	}
 
