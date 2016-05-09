@@ -4,8 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
-import java.util.Locale;
-
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,6 +14,8 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.sdk.tests.ConstellioTest;
 
+import java.util.Locale;
+
 /**
  * Created by Patrick on 2015-11-25.
  */
@@ -23,7 +24,7 @@ public class DisplayRetentionRulePresenterAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	DisplayRetentionRulePresenter presenter;
 	@Mock private DisplayRetentionRuleView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock private SessionContext sessionContext;
 
 	@Before
@@ -38,7 +39,7 @@ public class DisplayRetentionRulePresenterAcceptTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 		presenter = new DisplayRetentionRulePresenter(view);
 

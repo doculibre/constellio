@@ -61,21 +61,21 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 
 	public void addButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.GROUP_LIST, null);
-		view.navigateTo().addGlobalGroup(params);
+		view.navigate().to().addGlobalGroup(params);
 	}
 
 	public void editButtonClicked(GlobalGroupVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().editGlobalGroup(parameters);
+		view.navigate().to().editGlobalGroup(parameters);
 	}
 
 	public void displayButtonClicked(GlobalGroupVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().displayGlobalGroup(parameters);
+		view.navigate().to().displayGlobalGroup(parameters);
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void deleteButtonClicked(GlobalGroupVO globalGroupVO) {

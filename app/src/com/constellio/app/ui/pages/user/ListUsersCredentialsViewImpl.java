@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.containers.UserCredentialVOLazyContainer;
 import com.constellio.app.ui.framework.data.UserCredentialVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.sun.star.sheet.TableFilterField;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -167,7 +168,7 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
         table.setColumnHeader("email", $("ListUsersCredentialsView.emailColumn"));
         table.setColumnHeader(PROPERTY_BUTTONS, "");
         table.setColumnWidth(PROPERTY_BUTTONS, 120);
-        table.setPageLength(Math.min(2, dataProvider.size()));
+        table.setPageLength(Math.min(10, dataProvider.size()));
 		return table;
 	}
 
@@ -212,13 +213,12 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 		Table newTable = buildTable(status);
 		viewLayout.replaceComponent(table, newTable);
 		table = newTable;
-
 		refreshFilter();
 	}
 
 	private void refreshFilter() {
 		TableStringFilter newTableFilter = new TableStringFilter(table);
-		filterAndAddButtonLayout.replaceComponent(tableFilter, newTableFilter);
+		viewLayout.replaceComponent(tableFilter, newTableFilter);
 		tableFilter = newTableFilter;
 	}
 

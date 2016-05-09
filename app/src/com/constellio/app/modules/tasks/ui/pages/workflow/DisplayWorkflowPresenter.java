@@ -158,7 +158,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	void editTaskSelected(WorkflowTaskVO workflowTaskVO) {
 		String taskId = workflowTaskVO.getTaskVO().getId();
 		String workflowId = workflowVO.getId();
-		view.navigateTo().editTask(taskId, workflowId);
+		view.navigate().to().editTask(taskId, workflowId);
 	}
 
 	void deleteTaskSelected(WorkflowTaskVO workflowTaskVO) {

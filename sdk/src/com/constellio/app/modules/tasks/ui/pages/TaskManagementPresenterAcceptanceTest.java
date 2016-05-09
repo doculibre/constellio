@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -20,8 +21,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	@Mock
 	TaskManagementView view;
-	@Mock
-	CoreViews navigator;
+	MockedNavigation navigator;
 	SessionContext sessionContext;
 	private RecordServices recordServices;
 	private SearchServices searchServices;
@@ -41,7 +41,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 	}
 
 	@Test

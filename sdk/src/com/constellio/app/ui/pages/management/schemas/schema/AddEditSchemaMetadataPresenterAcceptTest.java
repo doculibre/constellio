@@ -11,6 +11,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -35,7 +36,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 	Map<String, String> parameters;
 	@Mock AddEditSchemaMetadataView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	SessionContext sessionContext;
 
 	@Before
@@ -44,6 +45,9 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection()
 		);
+
+		navigator = new MockedNavigation();
+
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
@@ -53,7 +57,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new AddEditSchemaMetadataPresenter(view);
 		parameters = new HashMap<>();
@@ -70,7 +74,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 
 		presenter.addButtonClicked();
 		String params = "metadataCode=;schemaCode=anotherSchemaType_default;schemaTypeCode=anotherSchemaType";
-		verify(view.navigateTo()).addMetadata("editMetadata/" + URLEncoder.encode(params));
+		verify(view.navigate().to()).addMetadata("editMetadata/" + URLEncoder.encode(params));
 	}
 
 	@Test
@@ -84,7 +88,7 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 		presenter.editButtonClicked(metadataVO);
 
 		String params = "metadataCode=anotherSchemaType_default_title;schemaCode=anotherSchemaType_default;schemaTypeCode=anotherSchemaType";
-		verify(view.navigateTo()).editMetadata("editMetadata/" + URLEncoder.encode(params));
+		verify(view.navigate().to()).editMetadata("editMetadata/" + URLEncoder.encode(params));
 	}
 
 	@Test
@@ -96,6 +100,6 @@ public class AddEditSchemaMetadataPresenterAcceptTest extends ConstellioTest {
 
 		String params = "schemaCode=anotherSchemaType_default;schemaTypeCode=anotherSchemaType";
 
-		verify(view.navigateTo()).listSchema("editSchema/" + URLEncoder.encode(params));
+		verify(view.navigate().to()).listSchema("editSchema/" + URLEncoder.encode(params));
 	}
 }

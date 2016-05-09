@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -41,8 +42,7 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	SessionContext session;
 	@Mock
 	UserVO currentUser;
-	@Mock
-	CoreViews navigator;
+	MockedNavigation navigator;
 	private String zeReportTitle = "report title";
 	private ReportServices reportServices;
 
@@ -55,12 +55,15 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
+		navigator = new MockedNavigation();
+
 		when(view.getSessionContext()).thenReturn(session);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(session.getCurrentCollection()).thenReturn(zeCollection);
 		when(currentUser.getUsername()).thenReturn(admin);
 		when(session.getCurrentUser()).thenReturn(currentUser);
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 		when(session.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new ReportDisplayConfigPresenter(view);

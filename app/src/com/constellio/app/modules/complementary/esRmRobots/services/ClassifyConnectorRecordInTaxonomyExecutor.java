@@ -47,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -237,6 +238,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName);
 			} else {
 				rmFolder = rm.newFolder();
+				rmFolder.setCreatedByRobot(robotId);
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
@@ -267,6 +269,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			Folder parentFolder = rm.getFolderByLegacyId(parentPath);
 
 			rmFolder = rm.newFolder().setTitle(folderName);
+			rmFolder.setCreatedByRobot(robotId);
 			rmFolder.setLegacyId(url);
 			rmFolder.setParentFolder(parentFolder);
 			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
@@ -340,6 +343,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		Folder parentFolder = rm.getFolderByLegacyId(parentPath);
 		Folder newRmFolder = rm.newFolder();
+		newRmFolder.setCreatedByRobot(robotId);
 		if (parentFolder != null) {
 			newRmFolder.setOpenDate(parentFolder.getOpenDate());
 			newRmFolder.setCloseDateEntered(parentFolder.getCloseDateEntered());
@@ -351,6 +355,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
 			MetadataSchema folderSchema, Record parentConcept) {
 		Folder newRmFolder = rm.newFolder();
+		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy))
 				.get(0);
 		newRmFolder.set(taxoMetadata.getLocalCode(), parentConcept.getId()).setTitle(pathPart);
@@ -585,6 +590,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 			if (document == null) {
 				document = rm.newDocument();
+				document.setCreatedByRobot(robotId);
 				document.setLegacyId(connectorDocument.getUrl());
 			}
 			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
@@ -599,14 +605,21 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					InputStream versionStream = connectorServices(connectorDocument)
 							.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
-					addVersionToDocument(connectorDocument, availableVersion.endsWith(".0"), newVersionDataSummary, document);
+					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
 				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
 						connectorDocument, CLASSIFY_DOCUMENT);
 
+				String version;
+				if (document.getContent() != null) {
+					version = ContentImpl.getVersionAfter(document.getContent().getCurrentVersion().getVersion(), majorVersions);
+				} else {
+					version = (majorVersions ? "1.0" : "0.1");
+				}
+
 				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
-				addVersionToDocument(connectorDocument, majorVersions, newVersionDataSummary, document);
+				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
@@ -619,22 +632,17 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	}
 
-	private void addVersionToDocument(ConnectorDocument connectorDocument, Boolean majorVersions,
+	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
 			ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
-				document.getContent().updateContentWithName(
-						currentUser, newVersionDataSummary, majorVersions, connectorDocument.getTitle());
+				document.getContent().updateContentWithVersionAndName(
+						currentUser, newVersionDataSummary, versionNumber, connectorDocument.getTitle());
 				document.setContent(document.getContent());
 			}
 		} else {
-			Content content;
-			if (majorVersions) {
-				content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-			} else {
-				content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-			}
-			document.setContent(content);
+			document.setContent(contentManager
+					.createWithVersion(currentUser, connectorDocument.getTitle(), newVersionDataSummary, versionNumber));
 		}
 	}
 

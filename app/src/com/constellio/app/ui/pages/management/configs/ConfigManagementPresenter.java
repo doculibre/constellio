@@ -52,7 +52,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 				}
 			}
 			view.showMessage($("ConfigManagementView.saved"));
-			view.navigateTo().adminModule();
+			view.navigate().to().adminModule();
 		}
 	}
 
@@ -77,7 +77,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 	}
 
 	public void backButtonClick() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	@Override

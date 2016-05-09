@@ -48,15 +48,15 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().addFacetConfiguration();
+		view.navigate().to().addFacetConfiguration();
 	}
 
 	public void orderButtonClicked() {
-		view.navigateTo().orderFacetConfiguration();
+		view.navigate().to().orderFacetConfiguration();
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displayFacetConfiguration(recordVO.getId());
+		view.navigate().to().displayFacetConfiguration(recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
@@ -69,11 +69,11 @@ public class ListFacetConfigurationPresenter extends BasePresenter<ListFacetConf
 			throw new RuntimeException(e);
 		}
 
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editFacetConfiguration(recordVO.getId());
+		view.navigate().to().editFacetConfiguration(recordVO.getId());
 	}
 
 	public RecordVODataProvider getDataProvider() {

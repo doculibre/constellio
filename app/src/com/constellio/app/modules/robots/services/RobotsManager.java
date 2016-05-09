@@ -124,7 +124,7 @@ public class RobotsManager implements StatefulService {
 		conditions.push(localCondition);
 
 		RobotCondition condition = newRobotCondition(conditions, robot);
-		if (searchServices.hasResults(condition.conditionIncludingParentCondition)) {
+		if (searchServices.hasResults(query(condition.conditionIncludingParentCondition))) {
 			for (Robot childRobot : robotsService.getChildRobots(robot.getId())) {
 				RobotCondition childsCondition = startRobotExecution(childRobot, conditions, dryRunRobotActions);
 				condition.childRobotConditions.add(childsCondition);
@@ -132,24 +132,25 @@ public class RobotsManager implements StatefulService {
 		}
 		conditions.pop();
 		if (robot.getAction() != null) {
-			LogicalSearchCondition builtCondition = condition.buildCondition();
+			LogicalSearchQuery query = query(condition.buildCondition());
 			if (dryRunRobotActions != null) {
-				Iterator<Record> recordsIterator = searchServices.recordsIterator(new LogicalSearchQuery(builtCondition), 5000);
+
+				Iterator<Record> recordsIterator = searchServices.recordsIterator(query, 5000);
 				while (recordsIterator.hasNext()) {
 					Record record = recordsIterator.next();
 					dryRunRobotActions.add(dryRunRobotAction(record, robot, robotSchemas));
 				}
 			} else {
-				createBatchProcess(robot.getId(), builtCondition, robot.getAction(), robot.getActionParameters());
+				createBatchProcess(robot.getId(), query, robot.getAction(), robot.getActionParameters());
 			}
 		}
 		return condition;
 	}
 
-	private void createBatchProcess(String robotId, LogicalSearchCondition condition, String action, String actionParametersId) {
-		if (searchServices.hasResults(condition)) {
+	private void createBatchProcess(String robotId, LogicalSearchQuery query, String action, String actionParametersId) {
+		if (searchServices.hasResults(query)) {
 			RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robotId, action, actionParametersId);
-			BatchProcess batchProcess = batchProcessesManager.addBatchProcessInStandby(condition, batchProcessAction);
+			BatchProcess batchProcess = batchProcessesManager.addBatchProcessInStandby(query, batchProcessAction);
 			batchProcessesManager.markAsPending(batchProcess);
 		}
 	}
@@ -191,6 +192,12 @@ public class RobotsManager implements StatefulService {
 	@Override
 	public void close() {
 
+	}
+
+	private LogicalSearchQuery query(LogicalSearchCondition condition) {
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.setPreferAnalyzedFields(true);
+		return query;
 	}
 
 	public RegisteredAction getActionFor(String actionCode) {

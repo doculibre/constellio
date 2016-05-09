@@ -69,7 +69,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	public void cancelRequested() {
-		view.navigateTo().previousView();
+		view.navigate().to().previousView();
 	}
 
 	@Override

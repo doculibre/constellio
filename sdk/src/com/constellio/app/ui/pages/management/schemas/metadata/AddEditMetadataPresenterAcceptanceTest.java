@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -34,7 +35,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	AddEditMetadataPresenter presenter;
 	@Mock AddEditMetadataViewImpl view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	Map<String, String> newLabels = new HashMap<>();
 
 	@Before
@@ -43,13 +44,16 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection()
 		);
+
+		navigator = new MockedNavigation();
+
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
 						.withAStringMetadata(whichIsSortable, whichIsEnabled));
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new AddEditMetadataPresenter(view);
 		Map<String, String> parameters = new HashMap<>();
@@ -81,7 +85,6 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenNewMetadataFormFilledWhenSaveButtonClickThenMetadataSaved()
 			throws Exception {
-		doNothing().when(navigator).listSchema(zeSchema.code());
 		presenter.setSchemaCode(zeSchema.code());
 
 		newLabels.put("fr", "zeTitle");
@@ -108,7 +111,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	//TODO Maxime Broken @Test@Test
 	public void givenNewMetadataFormFromCustomSchemFilledWhenSaveButtonClickThenMetadataSaved()
 			throws Exception {
-		doNothing().when(navigator).listSchema(zeCustomSchema.code());
+		doNothing().when(navigator).to().listSchema(zeCustomSchema.code());
 		presenter.setSchemaCode(zeCustomSchema.code());
 
 		newLabels.put("fr", "zeTitle");
@@ -135,7 +138,6 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEditMetadataFormFilledWhenSaveButtonClickThenMetadataSaved()
 			throws Exception {
-		doNothing().when(navigator).listSchema(zeSchema.code());
 		presenter.setSchemaCode(zeSchema.code());
 		Metadata stringMeta = zeSchema.stringMetadata();
 
@@ -163,7 +165,6 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEditMetadataFormFromCustomSchemaFilledWhenSaveButtonClickThenMetadataSaved()
 			throws Exception {
-		doNothing().when(navigator).listSchema(zeCustomSchema.code());
 		presenter.setSchemaCode(zeCustomSchema.code());
 		Metadata stringMeta = zeCustomSchema.stringMetadata();
 

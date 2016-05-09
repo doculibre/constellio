@@ -5,6 +5,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -20,7 +21,7 @@ import com.constellio.sdk.tests.MockedFactories;
 public class ListTaxonomyPresenterTest extends ConstellioTest {
 
 	@Mock ListTaxonomyViewImpl view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock ValueListServices valueListServices;
 	@Mock Taxonomy taxonomy1;
 	@Mock TaxonomyVO taxonomyVO;
@@ -32,9 +33,11 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		navigator = new MockedNavigation();
+
 		when(view.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		newTaxonomyTitle = "taxonomy 1";
 		when(taxonomy1.getTitle()).thenReturn(newTaxonomyTitle);
@@ -47,13 +50,13 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	@Test
 	public void whenAddButtonClikedThenNavigateToAddEditTaxonomy() {
 		presenter.addButtonClicked();
-		verify(view.navigateTo()).addTaxonomy();
+		verify(view.navigate().to()).addTaxonomy();
 	}
 
 	@Test
 	public void whenEditButtonClikedThenNavigateToAddEditTaxonomyWithCorrectParams() {
 		presenter.editButtonClicked("taxo1Code");
-		verify(view.navigateTo()).editTaxonomy("taxo1Code");
+		verify(view.navigate().to()).editTaxonomy("taxo1Code");
 	}
 
 	@Test
@@ -64,7 +67,7 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 
 		presenter.displayButtonClicked(taxonomyVO);
 
-		verify(view.navigateTo()).taxonomyManagement("taxoCode");
+		verify(view.navigate().to()).taxonomyManagement("taxoCode");
 	}
 
 }

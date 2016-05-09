@@ -86,8 +86,8 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(category);
 		folderType.getDefaultSchema().create("taxonomy2")
 				.defineTaxonomyRelationshipToSchemas(administrativeUnit.getCustomSchema("classificationStation"));
-		folderType.getDefaultSchema().create("linkToOtherFolders").setMultivalue(true).defineReferencesTo(
-				folderType);
+		folderType.getDefaultSchema().create("linkToOtherFolders").setMultivalue(true).defineReferencesTo(folderType);
+		folderType.getDefaultSchema().create("linkToOtherFolder").setMultivalue(false).defineReferencesTo(folderType);
 
 	}
 
@@ -352,6 +352,9 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return getMetadata(code() + "_linkToOtherFolders");
 		}
 
+		public Metadata linkToOtherFolder() {
+			return getMetadata(code() + "_linkToOtherFolder");
+		}
 	}
 
 	public class DocumentSchema implements SchemaShortcuts {
@@ -573,99 +576,99 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 					taxo2_station1, taxo2_station2, taxo2_station2_1, folder1, folder2, folder2_1, folder2_2, folder3, folder4, folder4_1, folder4_2, folder5;
 			records.add(taxo1_fond1 =
 
-							addFondRecord(transaction, prefix + "taxo1_fond1", null)
+					addFondRecord(transaction, prefix + "taxo1_fond1", null)
 
 			);
 			records.add(taxo1_fond1_1 =
 
-							addFondRecord(transaction, prefix + "taxo1_fond1_1", taxo1_fond1)
+					addFondRecord(transaction, prefix + "taxo1_fond1_1", taxo1_fond1)
 
 			);
 			records.add(taxo1_category1 =
 
-							addCategoryRecord(transaction, prefix + "taxo1_category1", taxo1_fond1_1, null)
+					addCategoryRecord(transaction, prefix + "taxo1_category1", taxo1_fond1_1, null)
 
 			);
 			records.add(taxo1_category2 =
 
-							addCategoryRecord(transaction, prefix + "taxo1_category2", taxo1_fond1, null)
+					addCategoryRecord(transaction, prefix + "taxo1_category2", taxo1_fond1, null)
 
 			);
 			records.add(taxo1_category2_1 =
 
-							addCategoryRecord(transaction, prefix + "taxo1_category2_1", null, taxo1_category2)
+					addCategoryRecord(transaction, prefix + "taxo1_category2_1", null, taxo1_category2)
 
 			);
 
 			records.add(taxo2_unit1 =
 
-							addUnitRecord(transaction, prefix + "taxo2_unit1", null)
+					addUnitRecord(transaction, prefix + "taxo2_unit1", null)
 
 			);
 			records.add(taxo2_unit1_1 =
 
-							addUnitRecord(transaction, prefix + "taxo2_unit1_1", taxo2_unit1)
+					addUnitRecord(transaction, prefix + "taxo2_unit1_1", taxo2_unit1)
 
 			);
 			records.add(taxo2_station1 =
 
-							addStationRecord(transaction, prefix + "taxo2_station1", taxo2_unit1_1)
+					addStationRecord(transaction, prefix + "taxo2_station1", taxo2_unit1_1)
 
 			);
 			records.add(taxo2_station2 =
 
-							addStationRecord(transaction, prefix + "taxo2_station2", taxo2_unit1)
+					addStationRecord(transaction, prefix + "taxo2_station2", taxo2_unit1)
 
 			);
 			records.add(taxo2_station2_1 =
 
-							addStationRecord(transaction, prefix + "taxo2_station2_1", taxo2_station2)
+					addStationRecord(transaction, prefix + "taxo2_station2_1", taxo2_station2)
 
 			);
 
 			records.add(folder1 =
 
-							addFolderRecord(transaction, prefix + "folder1", null, taxo1_category1, taxo2_station2)
+					addFolderRecord(transaction, prefix + "folder1", null, taxo1_category1, taxo2_station2)
 
 			);
 			records.add(folder2 =
 
-							addFolderRecord(transaction, prefix + "folder2", null, taxo1_category1, taxo2_station2_1)
+					addFolderRecord(transaction, prefix + "folder2", null, taxo1_category1, taxo2_station2_1)
 
 			);
 			records.add(folder2_1 =
 
-							addFolderRecord(transaction, prefix + "folder2_1", folder2, null, null)
+					addFolderRecord(transaction, prefix + "folder2_1", folder2, null, null)
 
 			);
 			records.add(folder2_2 =
 
-							addFolderRecord(transaction, prefix + "folder2_2", folder2, null, null)
+					addFolderRecord(transaction, prefix + "folder2_2", folder2, null, null)
 
 			);
 			records.add(folder3 =
 
-							addFolderRecord(transaction, prefix + "folder3", null, taxo1_category2_1, null)
+					addFolderRecord(transaction, prefix + "folder3", null, taxo1_category2_1, null)
 
 			);
 			records.add(folder4 =
 
-							addFolderRecord(transaction, prefix + "folder4", null, taxo1_category2, null)
+					addFolderRecord(transaction, prefix + "folder4", null, taxo1_category2, null)
 
 			);
 			records.add(folder4_1 =
 
-							addFolderRecord(transaction, prefix + "folder4_1", folder4, null, null)
+					addFolderRecord(transaction, prefix + "folder4_1", folder4, null, null)
 
 			);
 			records.add(folder4_2 =
 
-							addFolderRecord(transaction, prefix + "folder4_2", folder4, null, null)
+					addFolderRecord(transaction, prefix + "folder4_2", folder4, null, null)
 
 			);
 			records.add(folder5 =
 
-							addFolderRecord(transaction, prefix + "folder5", null, null, taxo2_station1)
+					addFolderRecord(transaction, prefix + "folder5", null, null, taxo2_station1)
 
 			);
 

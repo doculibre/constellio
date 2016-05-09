@@ -16,6 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -34,7 +35,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 	public static final String DAKOTA = "dakota";
 
 	@Mock AddEditUserCredentialView userCredentialView;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	UserServices userServices;
 	UserCredential dakotaCredential, newUserCredential;
 	UserCredentialVO dakotaCredentialVO, newUserCredentialVO;
@@ -50,13 +51,15 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 				withCollection("otherCollection")
 		);
 
+		navigator = new MockedNavigation();
+
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		userServices = getModelLayerFactory().newUserServices();
 		when(userCredentialView.getSessionContext()).thenReturn(sessionContext);
 		when(userCredentialView.getCollection()).thenReturn(zeCollection);
 		when(userCredentialView.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(userCredentialView.navigateTo()).thenReturn(navigator);
+		when(userCredentialView.navigate()).thenReturn(navigator);
 
 		presenter = spy(new AddEditUserCredentialPresenter(userCredentialView));
 
@@ -108,7 +111,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked(dakotaCredentialVO);
 
 		dakotaCredential = userServices.getUserCredential(DAKOTA);
-		verify(userCredentialView.navigateTo()).url("url3/url1/url2/" + URLEncoder.encode("username=dakota", "UTF-8"));
+		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=dakota", "UTF-8"));
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota1");
 		assertThat(dakotaCredential.getGlobalGroups()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
@@ -134,7 +137,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		presenter.saveButtonClicked(dakotaCredentialVO);
 
 		dakotaCredential = userServices.getUserCredential(DAKOTA);
-		verify(userCredentialView, never()).navigateTo();
+		verify(userCredentialView, never()).navigate();
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota");
 		assertThat(dakotaCredential.getGlobalGroups()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection);
@@ -161,7 +164,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		verify(userCredentialView.navigateTo()).url("url3/url1/url2/" + URLEncoder.encode("username=user", "UTF-8"));
+		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=user", "UTF-8"));
 		newUserCredential = userServices.getUserCredential("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
 		assertThat(newUserCredential.getGlobalGroups()).containsOnly(HEROES);
@@ -188,7 +191,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		verify(userCredentialView, never()).navigateTo();
+		verify(userCredentialView, never()).navigate();
 		assertThat(userServices.getUserCredential("user")).isNull();
 	}
 
@@ -211,7 +214,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
-		verify(userCredentialView, never()).navigateTo();
+		verify(userCredentialView, never()).navigate();
 		assertThat(userServices.getUserCredential("user")).isNull();
 	}
 
@@ -221,7 +224,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		presenter.cancelButtonClicked();
 
-		verify(userCredentialView.navigateTo()).url("url3/url1/url2/" + URLEncoder.encode("username=dakota",
+		verify(userCredentialView.navigate().to()).url("url3/url1/url2/" + URLEncoder.encode("username=dakota",
 				"UTF-8"));
 	}
 }

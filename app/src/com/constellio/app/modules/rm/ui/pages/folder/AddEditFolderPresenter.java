@@ -159,7 +159,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public void viewAssembled() {
-		adjustCustomFields(null);
+		adjustCustomFields(null, true);
 	}
 
 	public boolean isAddView() {
@@ -172,7 +172,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				view.navigateTo().recordsManagement();
+				view.navigate().to().recordsManagement();
 			}
 		} else {
 			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
@@ -195,7 +195,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {
-		adjustCustomFields(customField);
+		adjustCustomFields(customField, false);
 	}
 
 	boolean isReloadRequiredAfterFolderTypeChange() {
@@ -293,7 +293,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		field.setReadOnly(readOnly);
 	}
 
-	void adjustCustomFields(CustomFolderField<?> customField) {
+	void adjustCustomFields(CustomFolderField<?> customField, boolean firstDraw) {
 		adjustTypeField();
 		boolean reload = isReloadRequiredAfterFolderTypeChange();
 		if (reload) {
@@ -304,7 +304,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		adjustCategoryField();
 		adjustUniformSubdivisionField();
 		adjustRetentionRuleField();
-		adjustStatusCopyEnteredField();
+		adjustStatusCopyEnteredField(firstDraw);
 		adjustCopyRetentionRuleField();
 		adjustLinearSizeField();
 		adjustActualTransferDateField(customField);
@@ -455,22 +455,22 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	boolean isCopyStatusInputPossible() {
+	boolean isCopyStatusInputPossible(boolean firstDraw) {
 		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
 		FolderRetentionRuleField retentionRuleField = (FolderRetentionRuleField) view.getForm().getCustomField(
 				Folder.RETENTION_RULE_ENTERED);
-		if (retentionRuleField != null) {
+		if (retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
 			folder.setRetentionRuleEntered(retentionRuleField.getFieldValue());
 		}
 		return decommissioningService().isCopyStatusInputPossible(folder, getCurrentUser());
 	}
 
-	void adjustStatusCopyEnteredField() {
+	void adjustStatusCopyEnteredField(boolean firstDraw) {
 		FolderCopyStatusEnteredField copyStatusEnteredField = (FolderCopyStatusEnteredField) view.getForm()
 				.getCustomField(Folder.COPY_STATUS_ENTERED);
 		if (copyStatusEnteredField != null) {
 			CopyType currentValue = copyStatusEnteredField.getFieldValue();
-			if (isCopyStatusInputPossible()) {
+			if (isCopyStatusInputPossible(firstDraw)) {
 				if (!copyStatusEnteredField.isVisible()) {
 					setFieldVisible(copyStatusEnteredField, true, Folder.COPY_STATUS_ENTERED);
 				}

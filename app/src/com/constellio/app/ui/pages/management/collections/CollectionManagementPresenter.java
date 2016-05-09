@@ -32,7 +32,7 @@ public class CollectionManagementPresenter extends BasePresenter<CollectionManag
 	public void editButtonClicked(CollectionVODataProvider dataProvider, Integer index) {
 		CollectionVO collectionVO = dataProvider.getRecordVO(index);
 		String parameters = getParameters(collectionVO);
-		view.navigateTo().addEditCollection(parameters);
+		view.navigate().to().addEditCollection(parameters);
 	}
 
 	public void deleteButtonClicked(CollectionVODataProvider dataProvider, Integer index) {
@@ -50,7 +50,7 @@ public class CollectionManagementPresenter extends BasePresenter<CollectionManag
 	}
 
 	public void addButtonClick() {
-		view.navigateTo().addEditCollection(getParameters(null));
+		view.navigate().to().addEditCollection(getParameters(null));
 	}
 
 	private String getParameters(CollectionVO entity) {
@@ -62,7 +62,7 @@ public class CollectionManagementPresenter extends BasePresenter<CollectionManag
 	}
 
 	public void backButtonClick() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public boolean isDeletePossible(CollectionVODataProvider dataProvider, Integer index) {

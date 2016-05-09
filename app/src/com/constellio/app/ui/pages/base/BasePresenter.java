@@ -67,7 +67,7 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 			public void afterInit(String params) {
 				if (!isViewVisibleToCurrentUser(params)) {
 					LOGGER.warn("Error does not have access to the page");
-					view.navigateTo().home();
+					view.navigate().to().home();
 				}
 			}
 		});

@@ -8,12 +8,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -79,6 +82,7 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
+	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
 	public static final String STYLE_NAME = "display-folder";
 	public static final String USER_LOOKUP = "user-lookup";
 	private RecordVO recordVO;
@@ -94,6 +98,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
 			addAuthorizationButton, shareFolderButton, printLabelButton, linkToFolderButton, borrowButton, returnFolderButton,
 			reminderReturnFolderButton, alertWhenAvailableButton, addToCartButton, startWorkflowButton;
+	WindowButton moveInFolderButton;
 	private Label borrowedLabel;
 
 	private Window documentVersionWindow;
@@ -194,6 +199,37 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.addDocumentButtonClicked();
+			}
+		};
+
+		moveInFolderButton = new WindowButton($("DisplayFolderView.parentFolder"), $("DisplayFolderView.parentFolder")
+				, WindowButton.WindowConfiguration.modalDialog("50%", "20%")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.setSpacing(true);
+				final LookupFolderField field = new LookupFolderField();
+				verticalLayout.addComponent(field);
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String parentId = field.getValue();
+						try {
+							presenter.parentFolderButtonClicked(parentId);
+						} catch (Throwable e) {
+							LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
+							showErrorMessage("DisplayFolderView.parentFolderException");
+						}
+						moveInFolderButton.getWindow().close();
+					}
+				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				HorizontalLayout hLayout = new HorizontalLayout();
+				hLayout.setSizeFull();
+				hLayout.addComponent(saveButton);
+				hLayout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
+				verticalLayout.addComponent(hLayout);
+				return verticalLayout;
 			}
 		};
 
@@ -329,6 +365,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(addDocumentButton);
 		actionMenuButtons.add(addSubFolderButton);
 		actionMenuButtons.add(editFolderButton);
+		actionMenuButtons.add(moveInFolderButton);
 		actionMenuButtons.add(deleteFolderButton);
 		actionMenuButtons.add(duplicateFolderButton);
 		actionMenuButtons.add(linkToFolderButton);
@@ -476,6 +513,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		deleteFolderButton.setVisible(state.isVisible());
 		deleteFolderButton.setEnabled(state.isEnabled());
 
+	}
+
+	@Override
+	public void setMoveInFolderState(ComponentState state) {
+		moveInFolderButton.setVisible(state.isVisible());
+		moveInFolderButton.setEnabled(state.isEnabled());
 	}
 
 	@Override

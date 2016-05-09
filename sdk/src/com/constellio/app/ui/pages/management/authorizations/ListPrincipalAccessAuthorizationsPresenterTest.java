@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -41,7 +42,7 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Mock AuthorizationsServices authorizationsServices;
 	@Mock PresenterService presenterService;
 	@Mock ListPrincipalAccessAuthorizationsView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock User user;
 	@Mock RecordVO principal;
 	@Mock AuthorizationVO authorizationVO;
@@ -58,11 +59,13 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Before
 	public void setUp()
 			throws Exception {
+		navigator = new MockedNavigation();
+
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
 		when(view.getSessionContext()).thenReturn(context);
 		when(view.getCollection()).thenReturn(zeCollection);
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		when(factories.getAppLayerFactory().newPresenterService()).thenReturn(presenterService);
 		when(presenterService.getRecordVO(ZE_PRINCIPAL, VIEW_MODE.DISPLAY, context)).thenReturn(principal);
@@ -81,13 +84,13 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Test
 	public void givenBackButtonPressedWhenPrincipalIsGroupThenNavigateToGroup() {
 		presenter.backButtonClicked(Group.DEFAULT_SCHEMA);
-		verify(navigator, times(1)).displayCollectionGroup(ZE_PRINCIPAL);
+		verify(navigator.to(), times(1)).displayCollectionGroup(ZE_PRINCIPAL);
 	}
 
 	@Test
 	public void givenBackButtonPressedWhenPrincipalIsUserThenNavigateToUser() {
 		presenter.backButtonClicked(User.DEFAULT_SCHEMA);
-		verify(navigator, times(1)).displayCollectionUser(ZE_PRINCIPAL);
+		verify(navigator.to(), times(1)).displayCollectionUser(ZE_PRINCIPAL);
 	}
 
 	@Test

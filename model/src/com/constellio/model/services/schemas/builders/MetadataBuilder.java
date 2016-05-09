@@ -277,9 +277,9 @@ public class MetadataBuilder {
 	}
 
 	public MetadataBuilder setLabels(Map<Language, String> labels) {
-		if(labels == null){
+		if (labels == null) {
 			this.labels = new HashMap<>();
-		}else{
+		} else {
 			this.labels = new HashMap<>(labels);
 		}
 		return this;

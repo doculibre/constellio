@@ -86,21 +86,21 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void editButtonClicked() {
-		view.navigateTo().editTask(taskVO.getId());
+		view.navigate().to().editTask(taskVO.getId());
 	}
 
 	@Override
 	public void editButtonClicked(RecordVO entity) {
-		view.navigateTo().editTask(entity.getId());
+		view.navigate().to().editTask(entity.getId());
 	}
 
 	public void completeButtonClicked() {
-		view.navigateTo().editTask(taskVO.getId(), true);
+		view.navigate().to().editTask(taskVO.getId(), true);
 	}
 
 	@Override
 	public void completeButtonClicked(RecordVO entity) {
-		view.navigateTo().editTask(entity.getId(), true);
+		view.navigate().to().editTask(entity.getId(), true);
 	}
 
 	public void closeButtonClicked() {
@@ -248,7 +248,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().previousView();
+		view.navigate().to().previousView();
 	}
 
 	public void autoAssignButtonClicked() {
