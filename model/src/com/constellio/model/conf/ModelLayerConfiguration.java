@@ -41,4 +41,5 @@ public interface ModelLayerConfiguration {
 	void setMainDataLanguage(String language);
 
 	File getConstellioEncryptionFile();
+
 }
