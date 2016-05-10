@@ -164,8 +164,10 @@ public class UserCredentialAndGlobalGroupsMigration {
 						if (!correctedUsername.equals(userCredential.getUsername())) {
 							for (String collection : userCredential.getCollections()) {
 								List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
-								invalidUsersForCollection.add(userCredential.getUsername());
-								invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
+								if (invalidUsersForCollection != null) {
+									invalidUsersForCollection.add(userCredential.getUsername());
+									invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
+								}
 							}
 						}
 						SolrUserCredential solrUserCredential = toSolrUserCredential(userCredential);
