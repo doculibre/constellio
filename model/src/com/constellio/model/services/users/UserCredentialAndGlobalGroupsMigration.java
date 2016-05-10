@@ -146,6 +146,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 			}
 
 			try {
+				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 				recordServices.execute(transaction);
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
@@ -163,8 +164,10 @@ public class UserCredentialAndGlobalGroupsMigration {
 						if (!correctedUsername.equals(userCredential.getUsername())) {
 							for (String collection : userCredential.getCollections()) {
 								List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
-								invalidUsersForCollection.add(userCredential.getUsername());
-								invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
+								if (invalidUsersForCollection != null) {
+									invalidUsersForCollection.add(userCredential.getUsername());
+									invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
+								}
 							}
 						}
 						SolrUserCredential solrUserCredential = toSolrUserCredential(userCredential);
@@ -175,6 +178,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 				}
 
 				try {
+					transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 					recordServices.execute(transaction);
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
@@ -183,19 +187,19 @@ public class UserCredentialAndGlobalGroupsMigration {
 			correctUsernameInAllCollections(invalidUsernameListMappedByCollection);
 
 		} finally {
-			if(oldGroupManager != null){
+			if (oldGroupManager != null) {
 				oldUserManager.close();
 			}
 
-			if(oldUserManager != null){
+			if (oldUserManager != null) {
 				oldGroupManager.close();
 			}
 
-			if(configManager.exist(USER_CREDENTIALS_CONFIG)){
+			if (configManager.exist(USER_CREDENTIALS_CONFIG)) {
 				configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
 			}
 
-			if(configManager.exist(XmlGlobalGroupsManager.CONFIG_FILE)){
+			if (configManager.exist(XmlGlobalGroupsManager.CONFIG_FILE)) {
 				configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
 			}
 
