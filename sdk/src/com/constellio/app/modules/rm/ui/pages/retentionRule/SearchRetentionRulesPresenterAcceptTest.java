@@ -56,7 +56,7 @@ public class SearchRetentionRulesPresenterAcceptTest extends ConstellioTest {
 	public void givenNotPrincipalTaxonomyAndFreeSearchTextWhenSearchConceptsOfTaxonomyThenOk()
 			throws Exception {
 
-		String freeText = records.getRule1().getTitle();
+		String freeText = records.getRule1().getCode();
 		presenter.forParams(freeText);
 		presenter.viewAssembled();
 
