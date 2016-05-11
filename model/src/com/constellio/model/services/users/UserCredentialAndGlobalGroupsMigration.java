@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,6 +34,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
 public class UserCredentialAndGlobalGroupsMigration {
 
@@ -113,12 +113,22 @@ public class UserCredentialAndGlobalGroupsMigration {
 		return existingGroups;
 	}
 
-	private List<String> getExistingUsers() {
-		List<String> existingUsers = new ArrayList<>();
+	private Map<String, SolrUserCredential> getExistingUsers(List<String> invalidUsernameListMappedByCollection) {
+		Map<String, SolrUserCredential> existingUsers = new HashMap<>();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemasRecordsServices.credentialSchemaType()).returnAll());
-		Iterator<Record> groupsIterator = searchServices.recordsIterator(query, 1000);
-		while (groupsIterator.hasNext()) {
-			existingUsers.add((String) groupsIterator.next().get(schemasRecordsServices.credentialUsername()));
+		Iterator<Record> usersIterator = searchServices.recordsIterator(query, 1000);
+		while (usersIterator.hasNext()) {
+			SolrUserCredential userCredential = (SolrUserCredential) schemasRecordsServices
+					.wrapUserCredential(usersIterator.next());
+
+			String cleanedUsername = UserUtils.cleanUsername(userCredential.getUsername());
+
+			if (!cleanedUsername.equals(userCredential.getUsername())) {
+				invalidUsernameListMappedByCollection.add(cleanedUsername);
+			}
+
+			existingUsers.put(cleanedUsername, userCredential);
+			userCredential.setUsername(UserUtils.cleanUsername(userCredential.getUsername()));
 		}
 		return existingUsers;
 	}
@@ -127,7 +137,8 @@ public class UserCredentialAndGlobalGroupsMigration {
 		Transaction transaction = new Transaction();
 
 		List<String> existingGroups = getExistingGroups();
-		List<String> existingUsers = getExistingUsers();
+		List<String> invalidUsernameListMappedByCollection = new ArrayList<>();
+		Map<String, SolrUserCredential> existingUsers = getExistingUsers(invalidUsernameListMappedByCollection);
 
 		try {
 
@@ -157,23 +168,12 @@ public class UserCredentialAndGlobalGroupsMigration {
 			Iterator<List<UserCredential>> userCredentialBatchesIterator = new BatchBuilderIterator<>(
 					oldUserManager.getUserCredentials().iterator(), 100);
 
-			Map<String, List<String>> invalidUsernameListMappedByCollection = newCollectionMapExceptSystem();
 			while (userCredentialBatchesIterator.hasNext()) {
 				transaction = new Transaction();
 				for (UserCredential userCredential : userCredentialBatchesIterator.next()) {
-					String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
-					if (!existingUsers.contains(correctedUsername)) {
-						if (!correctedUsername.equals(userCredential.getUsername())) {
-							for (String collection : userCredential.getCollections()) {
-								List<String> invalidUsersForCollection = invalidUsernameListMappedByCollection.get(collection);
-								invalidUsersForCollection.add(userCredential.getUsername());
-								invalidUsernameListMappedByCollection.put(collection, invalidUsersForCollection);
-							}
-						}
-						SolrUserCredential solrUserCredential = toSolrUserCredential(userCredential);
-						if (isValid(solrUserCredential)) {
-							transaction.add(solrUserCredential);
-						}
+					SolrUserCredential solrUserCredential = toSolrUserCredential(userCredential, existingUsers);
+					if (isValid(solrUserCredential)) {
+						transaction.add(solrUserCredential);
 					}
 				}
 
@@ -202,50 +202,45 @@ public class UserCredentialAndGlobalGroupsMigration {
 		return StringUtils.isNotBlank(user.getUsername());
 	}
 
-	private Map<String, List<String>> newCollectionMapExceptSystem() {
-		Map<String, List<String>> returnMap = new HashMap<>();
-		CollectionsListManager collectionManager = modelLayerFactory
-				.getCollectionsListManager();
+	private void correctUsernameInAllCollections(List<String> invalidUsernames) {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		CollectionsListManager collectionManager = modelLayerFactory.getCollectionsListManager();
 		for (String collection : collectionManager.getCollections()) {
-			if (!collection.equals(Collection.SYSTEM_COLLECTION)) {
-				returnMap.put(collection, new ArrayList<String>());
-			}
-		}
-		return returnMap;
-	}
-
-	private void correctUsernameInAllCollections(Map<String, List<String>> invalidUsernameListMappedByCollection) {
-		for (Entry<String, List<String>> entry : invalidUsernameListMappedByCollection.entrySet()) {
-			String collection = entry.getKey();
-			List<String> usersWithInvalidNamesInCollection = entry.getValue();
-			if (!usersWithInvalidNamesInCollection.isEmpty()) {
-				UserServices userServices = modelLayerFactory.newUserServices();
-				Transaction transaction = new Transaction();
-				for (String username : usersWithInvalidNamesInCollection) {
-					User user = userServices
-							.getUserInCollectionCaseSensitive(username, collection);
+			Transaction transaction = new Transaction();
+			for (String username : invalidUsernames) {
+				try {
+					User user = userServices.getUserInCollectionCaseSensitive(username, collection);
 					if (user != null) {
 						user.setUsername(UserUtils.cleanUsername(user.getUsername()));
 						transaction.add(user);
 					}
+				} catch (UserServicesRuntimeException_NoSuchUser e) {
+					//OK
+				}
 
-				}
-				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-				transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
-				try {
-					recordServices.execute(transaction);
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
+			}
+			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+			transaction.setOptions(transaction.getRecordUpdateOptions().setValidationsEnabled(false));
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
 			}
 		}
 	}
 
-	private SolrUserCredential toSolrUserCredential(UserCredential userCredential) {
-		SolrUserCredential newUserCredential = (SolrUserCredential) schemasRecordsServices.newCredential();
+	private SolrUserCredential toSolrUserCredential(UserCredential userCredential,
+			Map<String, SolrUserCredential> existingUsers) {
+		String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
+		SolrUserCredential newUserCredential = existingUsers.get(correctedUsername);
+
+		if (newUserCredential == null) {
+			newUserCredential = (SolrUserCredential) schemasRecordsServices.newCredential();
+		}
+
 		newUserCredential.setFirstName(userCredential.getFirstName());
 		newUserCredential.setLastName(userCredential.getLastName());
-		newUserCredential.setUsername(UserUtils.cleanUsername(userCredential.getUsername()));
+		newUserCredential.setUsername(correctedUsername);
 		newUserCredential.setDn(userCredential.getDn());
 		newUserCredential.setDomain(userCredential.getDomain());
 		if (EmailValidator.isValid(userCredential.getEmail())) {

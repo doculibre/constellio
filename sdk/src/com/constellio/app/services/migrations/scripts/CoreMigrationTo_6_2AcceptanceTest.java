@@ -5,6 +5,7 @@ import static com.constellio.model.entities.security.global.UserCredentialStatus
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -198,8 +200,36 @@ public class CoreMigrationTo_6_2AcceptanceTest extends ConstellioTest {
 				tuple("alice1", "Alice", "Wonderland", "alice@email.com", ACTIVE),
 				tuple("alice2", "Alice", "Wonderland", "alice@email.com", ACTIVE),
 				tuple("chuck", null, null, null, ACTIVE),
-				tuple("gandalf", "gandalf", "legris", "gandalf.legris@gmail.com", ACTIVE)
+				tuple("gandalf", "gandalf", "leblanc", "gandalf.leblanc@gmail.com", ACTIVE)
 		);
+
+	}
+
+	@Test
+	public void givenSystemIn6_2WithAProblemAndOldUserAndGroupFilesThenNotFixedAtStartup()
+			throws Exception {
+		givenSystemInState("given_system_in_6.2.2_with_tasks,rm_modules__ProblemAndOldUserGroupFiles.zip");
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		assertThat(userServices.getUserCredential(aliceWonderland).getCollections()).containsOnly(zeCollection);
+		try {
+			userServices.getUserInCollection(aliceWonderland, "newCollection");
+			fail("Exception expected");
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection e) {
+			//OK
+		}
+
+	}
+
+	@Test
+	public void givenSystemIn6_2WithAProblemAndRenamedOldUserAndGroupFilesThenNotFixedAtStartup()
+			throws Exception {
+
+		givenSystemInState("given_system_in_6.2.2_with_tasks,rm_modules__ProblemAndRenamedOldUserGroupFiles.zip");
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		assertThat(userServices.getUserCredential(aliceWonderland).getCollections()).containsOnly(zeCollection, "newCollection");
+		assertThat(userServices.getUserInCollection(aliceWonderland, "newCollection")).isNotNull();
 
 	}
 

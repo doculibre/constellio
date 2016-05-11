@@ -1,6 +1,9 @@
 package com.constellio.model.services.factories;
 
+import java.io.IOException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +67,6 @@ import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.XmlGlobalGroupsManager;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.constellio.model.services.workflows.WorkflowExecutor;
 import com.constellio.model.services.workflows.bpmn.WorkflowBPMNDefinitionsService;
@@ -409,16 +411,15 @@ public class ModelLayerFactory extends LayerFactory {
 		if (applicationEncryptionKey == null) {
 			this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
 		}
-		return EncryptionServices.create(applicationEncryptionKey);
+		try {
+			return modelLayerConfiguration.getEncryptionServicesFactory().get().withKey(applicationEncryptionKey);
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public SearchBoostManager getSearchBoostManager() {
 		return searchBoostManager;
-	}
-
-	public void setEncryptionServices(EncryptionServices encryptionServices) {
-		ensureNotYetInitialized();
-		this.encryptionServices = encryptionServices;
 	}
 
 	public void setAuthenticationService(AuthenticationService authenticationService) {
