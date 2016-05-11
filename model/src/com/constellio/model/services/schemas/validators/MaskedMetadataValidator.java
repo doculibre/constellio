@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class MaskedMetadataValidator implements Validator<Record> {
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
 		for (Metadata metadata : metadatas) {
-			if (metadata.getInputMask() != null) {
+			if (StringUtils.isNotBlank(metadata.getInputMask())) {
 				Object value = record.get(metadata);
 				if (value != null && value instanceof String) {
 					String strValue = (String) value;
