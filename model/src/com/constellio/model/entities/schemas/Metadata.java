@@ -289,13 +289,13 @@ public class Metadata implements DataStoreField {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "getEncryptionServicesFactory");
+		return HashCodeBuilder.reflectionHashCode(this, "dataEntry", "structureFactory", "encryptionServicesFactory");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj, "dataEntry", "recordMetadataValidators", "structureFactory",
-				"getEncryptionServicesFactory");
+				"encryptionServicesFactory");
 	}
 
 	@Override
