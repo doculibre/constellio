@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +53,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> {
+public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
 
 	String searchExpression;
@@ -57,6 +61,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private int pageNumber;
 
 	private transient LogicalSearchCondition condition;
+
+	private transient BatchProcessingPresenterService batchProcessingPresenter;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -177,6 +183,13 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			}
 		}
 		return condition;
+	}
+
+	BatchProcessingPresenter batchProcessingPresenter(){
+		if(batchProcessingPresenter == null){
+			batchProcessingPresenter = new BatchProcessingPresenterService(modelLayerFactory, collection);
+		}
+		return batchProcessingPresenter;
 	}
 
 	void buildSearchCondition()
@@ -305,5 +318,30 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		} catch (RecordServicesException e) {
 			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}
+	}
+
+	@Override
+	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
+		return batchProcessingPresenter().getOriginSchema(schemaType, selectedRecordIds);
+	}
+
+	@Override
+	public List<String> getDestinationSchemata(String originSchema) {
+		return batchProcessingPresenter().getDestinationSchemata(originSchema);
+	}
+
+	@Override
+	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+		return batchProcessingPresenter().newRecordVO(schema, sessionContext);
+	}
+
+	@Override
+	public void simulateButtonClicked(RecordVO viewObject) {
+		batchProcessingPresenter().simulateButtonClicked(viewObject);
+	}
+
+	@Override
+	public void saveButtonClicked(RecordVO viewObject) {
+		batchProcessingPresenter().saveButtonClicked(viewObject);
 	}
 }
