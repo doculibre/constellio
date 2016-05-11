@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,6 +10,7 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.MetadataList;
@@ -24,7 +26,7 @@ public class MetadataSchema {
 
 	private final String collection;
 
-	private final String label;
+	private Map<Language, String> labels;
 
 	private final List<Metadata> automaticMetadatas;
 
@@ -38,14 +40,15 @@ public class MetadataSchema {
 
 	private final Map<String, Metadata> indexByAtomicCode;
 
-	public MetadataSchema(String localCode, String code, String collection, String label, List<Metadata> metadatas,
+	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
+			List<Metadata> metadatas,
 			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
 			List<Metadata> automaticMetadatas) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
 		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
 		this.undeletable = undeletable;
@@ -66,8 +69,12 @@ public class MetadataSchema {
 		return collection;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public String getLabel(Language language) {
+		return labels.get(language);
 	}
 
 	public MetadataList getMetadatas() {

@@ -12,6 +12,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.model.entities.records.wrappers.User;
@@ -63,6 +64,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			user.setDefaultTabInFolderDisplay(entity.getDefaultTabInFolderDisplay().getCode());
 		}
 		user.setDefaultTaxonomy(entity.getDefaultTaxonomy());
+		user.setLoginLanguageCode(entity.getLoginLanguageCode());
 
 		try {
 			if (entity.getPassword() != null && entity.getPassword().equals(entity.getConfirmPassword())) {
@@ -108,6 +110,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 		User user = userServices.getUserInCollection(username, view.getCollection());
 		String phone = user.getPhone();
+		String loginLanguage = user.getLoginLanguageCode();
 		String startTab = user.getStartTab();
 		if (startTab == null) {
 			startTab = getDefaultHomepageTab();
@@ -128,6 +131,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 		ProfileVO profileVO = newProfilVO(username, firstName, lastName, email, phone, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy);
+		profileVO.setLoginLanguageCode(loginLanguage);
 		return profileVO;
 	}
 
@@ -185,7 +189,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	}
 
 	void navigateToBackPage() {
-		view.navigateTo().url(parameters);
+		view.navigate().to().url(parameters);
 	}
 
 	public boolean canModify() {
@@ -222,5 +226,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		init();
+	}
+
+	public List<String> getCurrentCollectionLanguagesCodes() {
+		return modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 	}
 }

@@ -29,7 +29,7 @@ public class EventCategoriesPresenter extends BasePresenter<EventCategoriesView>
 		} else if (eventCategory == EventCategory.TASKS_EVENTS) {
 			view.navigate().to(TaskViews.class).listTasksLogs();
 		} else {
-			view.navigateTo().showEventCategory(eventCategory);
+			view.navigate().to().showEventCategory(eventCategory);
 		}
 	}
 

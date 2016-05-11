@@ -17,17 +17,19 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
 
 public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest {
@@ -59,7 +61,6 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
         navigator = new MockedNavigation();
         when(view.navigate()).thenReturn(navigator);
-        when(view.navigateTo()).thenReturn(navigator.to(RMViews.class));
 
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());

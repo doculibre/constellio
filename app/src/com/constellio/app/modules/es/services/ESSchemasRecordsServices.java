@@ -380,7 +380,10 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
 						where(connectorDocument.fetched()).isFalse(),
-						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode))
+						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode),
+						where(connectorDocument.nextFetch()).isLessOrEqualThan(TimeProvider.getLocalDateTime())
+				)
+
 		));
 		return query;
 	}
@@ -391,75 +394,75 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		}
 
 		public Metadata url() {
-			return Metadata.newGlobalMetadata("url_s", STRING, false);
+			return Metadata.newGlobalMetadata("url_s", STRING, false, false);
 		}
 
 		public Metadata mimetype() {
-			return Metadata.newGlobalMetadata("mimetype_s", STRING, false);
+			return Metadata.newGlobalMetadata("mimetype_s", STRING, false, false);
 		}
 
 		public Metadata traversalCode() {
-			return Metadata.newGlobalMetadata("traversalCode_s", STRING, false);
+			return Metadata.newGlobalMetadata("traversalCode_s", STRING, false, false);
 		}
 
 		public Metadata connector() {
-			return Metadata.newGlobalMetadata("connector_s", REFERENCE, false);
+			return Metadata.newGlobalMetadata("connector_s", REFERENCE, false, false);
 		}
 
 		public Metadata connectorType() {
-			return Metadata.newGlobalMetadata("connectorType_s", REFERENCE, false);
+			return Metadata.newGlobalMetadata("connectorType_s", REFERENCE, false, false);
 		}
 
 		public Metadata fetched() {
-			return Metadata.newGlobalMetadata("fetched_s", BOOLEAN, false);
+			return Metadata.newGlobalMetadata("fetched_s", BOOLEAN, false, false);
 		}
 
 		public Metadata fetchedDateTime() {
-			return Metadata.newGlobalMetadata("fetchedDateTime_dt", DATE_TIME, false);
+			return Metadata.newGlobalMetadata("fetchedDateTime_dt", DATE_TIME, false, false);
 		}
 
 		public Metadata status() {
-			return Metadata.newGlobalMetadata("status_s", ENUM, false);
+			return Metadata.newGlobalMetadata("status_s", ENUM, false, false);
 		}
 
 		public Metadata fetchFrequency() {
-			return Metadata.newGlobalMetadata("fetchFrequency_s", ENUM, false);
+			return Metadata.newGlobalMetadata("fetchFrequency_s", ENUM, false, false);
 		}
 
 		public Metadata fetchDelay() {
-			return Metadata.newGlobalMetadata("fetchDelay_d", NUMBER, false);
+			return Metadata.newGlobalMetadata("fetchDelay_d", NUMBER, false, false);
 		}
 
 		public Metadata nextFetch() {
-			return Metadata.newGlobalMetadata("nextFetch_dt", DATE_TIME, false);
+			return Metadata.newGlobalMetadata("nextFetch_dt", DATE_TIME, false, false);
 		}
 
 		public Metadata searchable() {
-			return Metadata.newGlobalMetadata("searchable_s", BOOLEAN, false);
+			return Metadata.newGlobalMetadata("searchable_s", BOOLEAN, false, false);
 		}
 
 		public Metadata neverFetch() {
-			return Metadata.newGlobalMetadata("neverFetch_s", BOOLEAN, false);
+			return Metadata.newGlobalMetadata("neverFetch_s", BOOLEAN, false, false);
 		}
 
 		public Metadata errorCode() {
-			return Metadata.newGlobalMetadata("errorCode_s", STRING, false);
+			return Metadata.newGlobalMetadata("errorCode_s", STRING, false, false);
 		}
 
 		public Metadata errorsCount() {
-			return Metadata.newGlobalMetadata("errorsCount_d", NUMBER, false);
+			return Metadata.newGlobalMetadata("errorsCount_d", NUMBER, false, false);
 		}
 
 		public Metadata errorMessage() {
-			return Metadata.newGlobalMetadata("errorMessage_s", STRING, false);
+			return Metadata.newGlobalMetadata("errorMessage_s", STRING, false, false);
 		}
 
 		public Metadata errorStackTrace() {
-			return Metadata.newGlobalMetadata("errorStackTrace_s", TEXT, false);
+			return Metadata.newGlobalMetadata("errorStackTrace_s", TEXT, false, false);
 		}
 
 		public final Metadata lastModified() {
-			return Metadata.newGlobalMetadata("lastModified_dt", DATE_TIME, false);
+			return Metadata.newGlobalMetadata("lastModified_dt", DATE_TIME, false, false);
 		}
 	}
 

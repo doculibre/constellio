@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
+import com.constellio.model.services.records.RecordDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -201,6 +202,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public void physicallyDelete(Record record,
 			User user) {
 		recordServices.physicallyDelete(record, user);
+	}
+
+	@Override
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+		recordServices.physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
 	@Override

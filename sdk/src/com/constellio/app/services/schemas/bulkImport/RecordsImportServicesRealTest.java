@@ -820,11 +820,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
 					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("index", "1", "legacyId", "3", "invalidValue", "[S, SECOND_VALUE]", "metadata",
-									"withAnEnumMetadata", "availableChoices", "[F, S]")),
-					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("index", "3", "legacyId", "5", "invalidValue", "[FS, F]", "metadata", "withAnEnumMetadata",
-									"availableChoices", "[F, S]")));
+							asMap("availableChoices", "[F, S]", "index", "3", "legacyId", "5", "invalidValue", "[FS, F]", "metadata", "withAnEnumMetadata"))
+					,newZeSchemaValidationError(INVALID_ENUM_VALUE,
+							asMap("availableChoices", "[F, S]", "index", "1", "legacyId", "3", "invalidValue", "[S, SECOND_VALUE]", "metadata",
+									"withAnEnumMetadata"))
+			);
 		}
 	}
 
@@ -1507,14 +1507,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 
+			Map<String, Object> expectedMap = asMap(
+					"index", "1",
+					"legacyId", "3",
+					"schemaType", zeSchema.typeCode(),
+					"metadataCode", "zeSchemaType_default_stringMetadata");
+			expectedMap.put("metadataLabel", asMap("fr", "A toAString metadata"));
+			expectedMap.put("basedOnMetadatas", "[numberMetadata, booleanMetadata]");
 			assertThat(errors).containsOnly(
-					new ValidationError(ValueRequirementValidator.class.getName() + "_requiredValueForMetadata", asMap(
-							"index", "1",
-							"legacyId", "3",
-							"schemaType", zeSchema.typeCode(),
-							"metadataCode", "zeSchemaType_default_stringMetadata",
-							"metadataLabel", "A toAString metadata",
-							"basedOnMetadatas", "[numberMetadata, booleanMetadata]")));
+					new ValidationError(ValueRequirementValidator.class.getName() + "_requiredValueForMetadata", expectedMap));
 		}
 	}
 
@@ -1738,7 +1739,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAStringMetadataInCustomSchema()
 				.withAStructureMetadata());
 
-		Map<String, String> record11Structure = asMap("zeTitle", "pouet");
+		Map<String, Object> record11Structure = asMap("zeTitle", "pouet");
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
 				.addField("structureMetadata", record11Structure));
 
@@ -1813,12 +1814,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				fromAllSchemasIn(zeCollection).where(LEGACY_ID).isEqualTo(legacyId));
 	}
 
-	private ValidationError newZeSchemaValidationError(String code, Map<String, String> parameters) {
+	private ValidationError newZeSchemaValidationError(String code, Map<String, Object> parameters) {
 		parameters.put("schemaType", zeSchema.typeCode());
 		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
 	}
 
-	private ValidationError newValidationError(String code, Map<String, String> parameters) {
+	private ValidationError newValidationError(String code, Map<String, Object> parameters) {
 		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
 	}
 
@@ -1832,6 +1833,46 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		thirdSchemaTypeRecords.clear();
 
 		return results;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		parameters.put(key2, value2);
+		return parameters;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2,String key3, String value3) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		parameters.put(key2, value2);
+		parameters.put(key3, value3);
+		return parameters;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2,String key3, String value3, String key4, String value4) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		parameters.put(key2, value2);
+		parameters.put(key3, value3);
+		parameters.put(key4, value4);
+		return parameters;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2,String key3, String value3, String key4, String value4,String key5, String value5) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		parameters.put(key2, value2);
+		parameters.put(key3, value3);
+		parameters.put(key4, value4);
+		parameters.put(key5, value5);
+		return parameters;
 	}
 
 }

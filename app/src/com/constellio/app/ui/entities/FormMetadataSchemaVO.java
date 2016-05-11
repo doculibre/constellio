@@ -1,7 +1,10 @@
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 @SuppressWarnings("serial")
@@ -13,17 +16,29 @@ public class FormMetadataSchemaVO implements Serializable {
 
 	String collection;
 
-	String label;
+	Map<String, String> labels;
 
+	String currentLanguageCode;
+
+	@Deprecated
 	public FormMetadataSchemaVO() {
 		super();
 		this.localCode = "";
 		this.code = "";
 		this.collection = "";
-		this.label = "";
+		this.labels = new HashMap<>();
 	}
 
-	public FormMetadataSchemaVO(String code, String collection, String label) {
+	public FormMetadataSchemaVO(SessionContext sessionContext) {
+		super();
+		this.localCode = "";
+		this.code = "";
+		this.collection = "";
+		this.labels = new HashMap<>();
+		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
+	}
+
+	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels) {
 		super();
 
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[1];
@@ -34,7 +49,7 @@ public class FormMetadataSchemaVO implements Serializable {
 		this.localCode = localCodeParsed;
 		this.code = code;
 		this.collection = collection;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
 	}
 
 	public String getCode() {
@@ -49,12 +64,20 @@ public class FormMetadataSchemaVO implements Serializable {
 		return collection;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<String, String> getLabels() {
+		return labels;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public String getLabel(String language) {
+		return labels.get(language);
+	}
+
+	public void addLabel(String language, String label) {
+		labels.put(language, label);
+	}
+
+	public void setLabels(Map<String, String> labels) {
+		this.labels = new HashMap<>(labels);
 	}
 
 	public void setLocalCode(String code) {
@@ -105,11 +128,10 @@ public class FormMetadataSchemaVO implements Serializable {
 	public String toString() {
 		String toString;
 		try {
-			toString = getLabel();
+			toString = getLabel(currentLanguageCode);
 		} catch (RuntimeException e) {
 			toString = code;
 		}
 		return toString;
 	}
-
 }

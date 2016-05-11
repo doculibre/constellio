@@ -49,10 +49,11 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
 			if (this.isAllowedMetadata(metadata)) {
-				formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+				formMetadataVOs
+						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
 		}
 
@@ -65,11 +66,12 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		List<String> codeList = displayManager.getSchema(collection, getSchemaCode()).getDisplayMetadataCodes();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 			if (this.isAllowedMetadata(metadata)) {
-				formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+				formMetadataVOs
+						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
 		}
 
@@ -101,11 +103,11 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		manager.saveSchema(config);
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 }

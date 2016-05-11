@@ -999,7 +999,7 @@
  */
 
 .v-vaadin-version:after {
-	content: "7.6.1";
+	content: "7.6.5";
 }
 
 .v-widget {
@@ -13394,4 +13394,71 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .ui-with-top-menu[width-range~="0-800px"] .v-slot-action-menu {
 	padding: 10px;
+}
+
+.constellio .v-progressbar {
+	width: 150px;
+}
+
+.constellio .v-progressbar-wrapper {
+	height: 7px;
+	border: 1px solid #197de1;
+}
+
+.constellio .v-progressbar-indicator {
+	height: 7px;
+	background: #197de1;
+}
+
+.constellio div.v-progressbar-indeterminate {
+	height: 20px;
+	width: 20px;
+	background: #fff url(common/img/ajax-loader-medium.gif) no-repeat 50%;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+}
+
+.constellio .v-progressbar-indeterminate .v-progressbar-wrapper, .constellio .v-progressbar-indeterminate .v-progressbar-indicator, .constellio .v-progressbar-indeterminate-disabled .v-progressbar-wrapper, .constellio .v-progressbar-indeterminate-disabled .v-progressbar-indicator {
+	display: none;
+}
+
+.constellio div.v-progressbar-indeterminate-disabled {
+	height: 20px;
+	width: 20px;
+	background: transparent;
+}
+
+.constellio .v-progressindicator {
+	width: 150px;
+	background-color: #414B56;
+}
+
+.constellio .v-progressindicator-wrapper {
+	height: 7px;
+	border: 1px solid #197de1;
+}
+
+.constellio .v-progressindicator-indicator {
+	height: 7px;
+	background: #197de1;
+}
+
+.constellio div.v-progressindicator-indeterminate {
+	height: 20px;
+	width: 20px;
+	background: #fff url(common/img/ajax-loader-medium.gif) no-repeat 50%;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+}
+
+.constellio .v-progressindicator-indeterminate .v-progressindicator-wrapper, .constellio .v-progressindicator-indeterminate .v-progressindicator-indicator, .constellio .v-progressindicator-indeterminate-disabled .v-progressindicator-wrapper, .constellio .v-progressindicator-indeterminate-disabled .v-progressindicator-indicator {
+	display: none;
+}
+
+.constellio div.v-progressindicator-indeterminate-disabled {
+	height: 20px;
+	width: 20px;
+	background: transparent;
 }

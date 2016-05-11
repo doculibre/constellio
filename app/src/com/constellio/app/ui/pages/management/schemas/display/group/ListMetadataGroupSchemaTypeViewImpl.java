@@ -2,16 +2,20 @@ package com.constellio.app.ui.pages.management.schemas.display.group;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -20,6 +24,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements ListMetadataGroupSchemaTypeView, ClickListener {
 
@@ -52,27 +57,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		groups = buildTable();
-
-		HorizontalLayout nameLayout = new HorizontalLayout();
-		final TextField groupName = new TextField();
-		groupName.setRequired(true);
-		groupName.setNullRepresentation("");
-		groupName.addStyleName(GROUP_NAME);
-
-		Button addButton = new AddButton() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.addGroupMetadata(groupName.getValue());
-				groupName.setValue("");
-			}
-		};
-		addButton.addStyleName(GROUP_BUTTON);
-
-		nameLayout.addComponent(groupName);
-		nameLayout.addComponent(addButton);
-		nameLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
-
-		viewLayout.addComponents(nameLayout, groups);
+		viewLayout.addComponents(groups);
 		return viewLayout;
 	}
 
@@ -81,14 +66,24 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		table.setWidth("100%");
 		table.setColumnHeader("button", "");
 		table.setColumnWidth("button", 60);
-		table.setColumnHeader("caption", $("ListMetadataGroupSchemaTypeView.caption"));
-		table.addContainerProperty("caption", String.class, "");
+		table.setColumnHeader("code", $("ListMetadataGroupSchemaTypeView.code"));
+		table.addContainerProperty("code", String.class, "");
+		for (String language : presenter.getCollectionLanguages()) {
+			table.setColumnHeader(language, language);
+			table.addContainerProperty(language, String.class, "");
+		}
 		table.addContainerProperty("button", Button.class, null);
 		table.addStyleName(GROUP_TABLE);
 
 		for (final String group : presenter.getMetadataGroupList()) {
 			table.addItem(group);
-			table.getContainerProperty(group, "caption").setValue(group);
+			table.getContainerProperty(group, "code").setValue(group);
+
+			for (String language : presenter.getCollectionLanguages()) {
+				String groupLabel = presenter.getGroupLabel(group, language);
+				table.getContainerProperty(group, language).setValue(groupLabel);
+			}
+
 			Button deleteButton = new DeleteButton() {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -123,5 +118,77 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 	@Override
 	public void displayDeleteError() {
 		this.showErrorMessage($("ListMetadataGroupSchemaTypeView.deleteError"));
+	}
+
+	@Override
+	public void invalidCodeOrLabels() {
+		this.showErrorMessage($("ListMetadataGroupSchemaTypeView.invalidCodeOrLabels"));
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> buttons = new ArrayList<>();
+
+		Button addGroupsButton = newAddGroupButton();
+
+		buttons.add(addGroupsButton);
+
+		return buttons;
+	}
+
+	private Button newAddGroupButton() {
+		return new WindowButton($("add"),
+				$("ListMetadataGroupSchemaTypeView.addGroups")) {
+			@Override
+			protected Component buildWindowContent() {
+
+				final TextField groupCode = new TextField();
+				groupCode.setRequired(true);
+				groupCode.setCaption($("ListMetadataGroupSchemaTypeView.code"));
+				groupCode.setNullRepresentation("");
+				groupCode.addStyleName(GROUP_NAME);
+
+				final MultilingualTextField multilingualTextField = new MultilingualTextField();
+				multilingualTextField.setRequired(true);
+				multilingualTextField.addStyleName(GROUP_NAME);
+
+				Button addButton = new AddButton() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						if (presenter.isValidCodeAndLabels(groupCode.getValue(), multilingualTextField.getValue())) {
+							presenter.addGroupMetadata(groupCode.getValue(), multilingualTextField.getValue());
+							multilingualTextField.clear();
+							getWindow().close();
+						} else {
+							showErrorMessage($("ListMetadataGroupSchemaTypeView.invalidCodeOrLabels"));
+						}
+					}
+				};
+				addButton.addStyleName(GROUP_BUTTON);
+
+				BaseButton cancel = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				cancel.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				HorizontalLayout horizontalLayout = new HorizontalLayout();
+				horizontalLayout.addComponent(groupCode);
+				horizontalLayout.addComponent(multilingualTextField);
+				horizontalLayout.setWidth("95%");
+				horizontalLayout.setSpacing(true);
+
+				HorizontalLayout buttonsLayout = new HorizontalLayout();
+				buttonsLayout.addComponents(addButton, cancel);
+				buttonsLayout.setSpacing(true);
+
+				VerticalLayout wrapper = new VerticalLayout(horizontalLayout, buttonsLayout);
+				wrapper.setSizeFull();
+
+				return wrapper;
+			}
+		};
 	}
 }

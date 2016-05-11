@@ -5,6 +5,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -95,7 +96,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	@Test(expected = NoSuchReportRuntimeException.class)
 	public void whenInvalidReportThenThrowsNoSuchReportRuntimeException() {
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
-				chuckNorris, reportTitle, searchQuery);
+				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		presenter.buildModel(getModelLayerFactory());
 	}
 
@@ -105,7 +106,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		SearchResultReportPresenter.BATCH_SIZE = 100;
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), new ArrayList<String>(), folderSchemaType,
-				zeCollection, chuckNorris, reportTitle, searchQuery);
+				zeCollection, chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateUserReportWithAllQueryFolders(model);
 	}
@@ -116,7 +117,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		SearchResultReportPresenter.BATCH_SIZE = 1;
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), new ArrayList<String>(), folderSchemaType,
-				zeCollection, chuckNorris, reportTitle, searchQuery);
+				zeCollection, chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateUserReportWithSelectedFolders(model);
 	}
@@ -125,7 +126,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	public void givenValidReportWhenTwoFoldersThenGenerateValidReportWithValidData() {
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
-				chuckNorris, reportTitle, searchQuery);
+				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateUserReportWithSelectedFolders(model);
 	}
@@ -135,7 +136,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
 		reportTestUtils.disableAUserReportMetadata();
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
-				chuckNorris, reportTitle, searchQuery);
+				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateUserReportWithDisabledMetadata(model);
 	}
@@ -145,7 +146,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		reportTestUtils.addUserReport(reportTitle, chuckNorris);
 		reportTestUtils.addDefaultReport(reportTitle);
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
-				chuckNorris, reportTitle, searchQuery);
+				chuckNorris, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateUserReportWithSelectedFolders(model);
 	}
@@ -155,7 +156,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		reportTestUtils.addUserReport(reportTitle, chuckNorris);
 		reportTestUtils.addDefaultReport(reportTitle);
 		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
-				bobGratton, reportTitle, searchQuery);
+				bobGratton, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateDefaultReport(model);
 	}

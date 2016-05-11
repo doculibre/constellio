@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -30,11 +32,14 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -45,8 +50,11 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
+
 	String searchExpression;
 	String schemaTypeCode;
+	private int pageNumber;
 
 	private transient LogicalSearchCondition condition;
 
@@ -64,26 +72,38 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		if (StringUtils.isNotBlank(params)) {
 			String[] parts = params.split("/", 2);
 			SavedSearch search = getSavedSearch(parts[1]);
-			searchExpression = search.getFreeTextSearch();
-			facetSelections.putAll(search.getSelectedFacets());
-			sortCriterion = search.getSortField();
-			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
-			schemaTypeCode = search.getSchemaFilter();
-
-			view.setSchemaType(schemaTypeCode);
-			view.setSearchExpression(searchExpression);
-			view.setSearchCriteria(search.getAdvancedSearch());
+			setSavedSearch(search);
 		} else {
 			searchExpression = StringUtils.stripToNull(view.getSearchExpression());
 			resetFacetSelection();
 			schemaTypeCode = view.getSchemaType();
+			pageNumber = 1;
+			saveTemporarySearch();
 		}
 		return this;
 	}
 
+	private void setSavedSearch(SavedSearch search) {
+		searchExpression = search.getFreeTextSearch();
+		facetSelections.putAll(search.getSelectedFacets());
+		sortCriterion = search.getSortField();
+		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		schemaTypeCode = search.getSchemaFilter();
+		pageNumber = search.getPageNumber();
+
+		view.setSchemaType(schemaTypeCode);
+		view.setSearchExpression(searchExpression);
+		view.setSearchCriteria(search.getAdvancedSearch());
+	}
+
 	@Override
 	public int getPageNumber() {
-		return 1;
+		return pageNumber;
+	}
+
+	@Override
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
 	}
 
 	@Override
@@ -138,7 +158,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle()) {
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		for (Metadata metadata : types().getSchemaType(schemaTypeCode).getAllMetadatas().sortAscTitle(language)) {
 			if (isBatchEditable(metadata)) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
@@ -240,6 +261,49 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return search.setSearchType(AdvancedSearchView.SEARCH_TYPE)
 				.setSchemaFilter(schemaTypeCode)
 				.setFreeTextSearch(searchExpression)
-				.setAdvancedSearch(view.getSearchCriteria());
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(pageNumber);
+	}
+
+	public Record getTemporarySearchRecord() {
+		MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		try {
+			return searchServices().searchSingleResult(from(schema).where(schema.getMetadata(SavedSearch.USER))
+					.isEqualTo(getCurrentUser())
+					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
+					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(AdvancedSearchView.SEARCH_TYPE));
+		} catch (Exception e) {
+			//TODO exception
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	protected void saveTemporarySearch() {
+		Record tmpSearchRecord = getTemporarySearchRecord();
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		}
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporaryAdvance")
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(sortCriterion)
+				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+				.setSelectedFacets(facetSelections.getNestedMap())
+				.setTemporary(true)
+				.setSearchType(AdvancedSearchView.SEARCH_TYPE)
+				.setSchemaFilter(schemaTypeCode)
+				.setFreeTextSearch(searchExpression)
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(pageNumber);
+		try {
+			recordServices().update(search);
+			view.navigate().to().advancedSearchReplay(search.getId());
+		} catch (RecordServicesException e) {
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		}
 	}
 }

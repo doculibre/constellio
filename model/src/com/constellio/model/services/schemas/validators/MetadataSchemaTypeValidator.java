@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas.validators;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -46,20 +47,20 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 
 	void validateMetadataTypeNotNull(Metadata metadata, ValidationErrors validationErrors) {
 		if (metadata.getType() == null) {
-			validationErrors.add(getClass(), NO_TYPE_IN_METADATA_WITHOUT_INHERITANCE, createMapWithCodeAndLabel(metadata));
+			validationErrors.add(getClass(), NO_TYPE_IN_METADATA_WITHOUT_INHERITANCE, createMapWithCode(metadata));
 		}
 	}
 
 	void validateMetadataLabelNotNull(Metadata metadata, ValidationErrors validationErrors) {
-		if (metadata.getLabel() == null) {
-			validationErrors.add(getClass(), NO_LABEL_IN_METADATA_WITHOUT_INHERITANCE, createMapWithCodeAndLabel(metadata));
+		if (metadata.getLabels() == null || metadata.getLabels().isEmpty()) {
+			validationErrors.add(getClass(), NO_LABEL_IN_METADATA_WITHOUT_INHERITANCE, createMapWithCode(metadata));
 		}
 	}
 
-	Map<String, String> createMapWithCodeAndLabel(Metadata metadata) {
-		Map<String, String> parameters = new HashMap<String, String>();
+	Map<String, Object> createMapWithCode(Metadata metadata) {
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("localCode", metadata.getLocalCode());
-		parameters.put("label", metadata.getLabel());
+		parameters.put("label",metadata.getLabelsByLanguageCodes());
 		return parameters;
 	}
 
@@ -86,17 +87,17 @@ public class MetadataSchemaTypeValidator implements Validator<MetadataSchemaType
 	}
 
 	private void addAllowedReferencesInNonReferenceMetadataError(Metadata metadata, ValidationErrors validationErrors) {
-		Map<String, String> parameters = createMapWithCodeLabelAndType(metadata);
+		Map<String, Object> parameters = createMapWithCodeLabelAndType(metadata);
 		validationErrors.add(getClass(), ALLOWED_REFERENCES_IN_NON_REFERENCE_METADATA, parameters);
 	}
 
 	private void addNoAllowedReferencesInReferenceMetadataError(Metadata metadata, ValidationErrors validationErrors) {
-		Map<String, String> parameters = createMapWithCodeAndLabel(metadata);
+		Map<String, Object> parameters = createMapWithCode(metadata);
 		validationErrors.add(getClass(), ALLOWED_REFERENCES_IN_REFERENCE_METADATA_NOT_SPECIFIED, parameters);
 	}
 
-	Map<String, String> createMapWithCodeLabelAndType(Metadata metadata) {
-		Map<String, String> parameters = createMapWithCodeAndLabel(metadata);
+	Map<String, Object> createMapWithCodeLabelAndType(Metadata metadata) {
+		Map<String, Object> parameters = createMapWithCode(metadata);
 		parameters.put("type", metadata.getType().toString());
 		return parameters;
 	}

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.reports.builders.search;
 
 import java.util.List;
+import java.util.Locale;
 
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportPresenter;
@@ -39,10 +40,10 @@ public class SearchResultReportBuilderFactory implements ReportBuilderFactory {
 	@Override
 	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		FoldersLocator folderLocator = modelLayerFactory.getFoldersLocator();
+		Locale locale =ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		SearchResultReportPresenter searchResultPresenter = new SearchResultReportPresenter(modelLayerFactory, selectedRecords,
-				schemaType, collection, username, reportTitle, searchQuery);
-		return new SearchResultReportBuilder(searchResultPresenter.buildModel(modelLayerFactory), folderLocator,
-				ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+				schemaType, collection, username, reportTitle, searchQuery, locale);
+		return new SearchResultReportBuilder(searchResultPresenter.buildModel(modelLayerFactory), folderLocator,locale);
 	}
 
 	@Override

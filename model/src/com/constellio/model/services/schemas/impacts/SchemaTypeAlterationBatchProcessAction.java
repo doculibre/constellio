@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordProvider;
 
 public class SchemaTypeAlterationBatchProcessAction implements BatchProcessAction {
 
@@ -28,7 +29,7 @@ public class SchemaTypeAlterationBatchProcessAction implements BatchProcessActio
 	}
 
 	@Override
-	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes) {
+	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		Transaction transaction = new Transaction();
 		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.getRecordUpdateOptions().setFullRewrite(true);

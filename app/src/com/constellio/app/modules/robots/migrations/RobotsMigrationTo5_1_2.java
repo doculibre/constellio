@@ -3,8 +3,9 @@ package com.constellio.app.modules.robots.migrations;
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
@@ -21,6 +22,7 @@ import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransactio
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
@@ -49,12 +51,26 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
+		Language language = provider.getLanguage();
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+
 		String definition = provider.getDefaultLanguageString("init.robot.tabs.definition");
+		Map<Language, String> labelsDefinition = new HashMap<>();
+		labelsDefinition.put(language, definition);
+		groups.put("init.robot.tabs.definition", labelsDefinition);
+
 		String criteria = provider.getDefaultLanguageString("init.robot.tabs.criteria");
+		Map<Language, String> labelsCriteria = new HashMap<>();
+		labelsCriteria.put(language, criteria);
+		groups.put("init.robot.tabs.criteria", labelsCriteria);
+
 		String action = provider.getDefaultLanguageString("init.robot.tabs.action");
+		Map<Language, String> labelsAction = new HashMap<>();
+		labelsAction.put(language, action);
+		groups.put("init.robot.tabs.action", labelsAction);
 
 		SchemaTypeDisplayConfig type = manager.getType(collection, Robot.SCHEMA_TYPE);
-		transaction.add(type.withMetadataGroup(Arrays.asList(definition, criteria, action)));
+		transaction.add(type.withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.PARENT)
 				.withInputType(MetadataInputType.HIDDEN));

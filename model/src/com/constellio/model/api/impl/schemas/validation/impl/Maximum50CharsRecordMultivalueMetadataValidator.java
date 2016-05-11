@@ -20,7 +20,7 @@ public class Maximum50CharsRecordMultivalueMetadataValidator implements RecordMe
 			ValidationErrors validationErrors) {
 		for (String value : values) {
 			if (value != null && value.length() > 50) {
-				Map<String, String> parameters = new HashMap<>();
+				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(MAX_SIZE, "50");
 				parameters.put(WAS_SIZE, "" + value.length());
 				validationErrors.add(getClass(), VALUE_LENGTH_TOO_LONG, parameters);

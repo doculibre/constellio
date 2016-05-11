@@ -10,6 +10,7 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -31,8 +32,10 @@ public class MetadataSchemaTypes {
 	private List<String> referenceDefaultValues;
 	private MetadataList searchableMetadatas;
 
+	private final List<Language> languages;
+
 	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
-			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues) {
+			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages) {
 		super();
 		this.version = version;
 		this.collection = collection;
@@ -41,6 +44,7 @@ public class MetadataSchemaTypes {
 		this.referenceDefaultValues = referenceDefaultValues;
 		this.searchableMetadatas = getAllMetadatas().onlySearchable();
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
+		this.languages = Collections.unmodifiableList(languages);
 	}
 
 	private Map<String, MetadataSchemaType> toUnmodifiableMap(List<MetadataSchemaType> schemaTypes) {
@@ -57,6 +61,10 @@ public class MetadataSchemaTypes {
 
 	public int getVersion() {
 		return version;
+	}
+
+	public List<Language> getLanguages() {
+		return languages;
 	}
 
 	public List<MetadataSchemaType> getSchemaTypesWithCode(List<String> codes) {

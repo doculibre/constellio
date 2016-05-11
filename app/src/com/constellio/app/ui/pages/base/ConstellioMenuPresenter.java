@@ -3,11 +3,18 @@ package com.constellio.app.ui.pages.base;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.sso.KerberosServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -19,6 +26,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConstellioMenuPresenter implements Serializable {
 
@@ -81,6 +90,7 @@ public class ConstellioMenuPresenter implements Serializable {
 				modelLayerFactory.newRecordServices().update(newUser
 						.setLastLogin(TimeProvider.getLocalDateTime())
 						.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
+				sessionContext.setCurrentLocale(getSessionLanguage(newUser));
 
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
@@ -92,6 +102,33 @@ public class ConstellioMenuPresenter implements Serializable {
 			constellioMenu.updateUIContent();
 			constellioMenu.navigateTo().home();
 		}
+	}
+
+
+	//FIXME use service and remove redundant code in LoginPresenter
+	Locale getSessionLanguage(User userInLastCollection) {
+		String userPreferredLanguage = userInLastCollection.getLoginLanguageCode();
+		String systemLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		if(StringUtils.isBlank(userPreferredLanguage)){
+			return getLocale(systemLanguage);
+		} else {
+			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(userInLastCollection.getCollection());
+			if(collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages.contains(userPreferredLanguage)){
+				return getLocale(systemLanguage);
+			} else {
+				return getLocale(userPreferredLanguage);
+			}
+		}
+	}
+
+	private Locale getLocale(String languageCode) {
+		i18n.getSupportedLanguages();
+		for(Language language : Language.values()){
+			if(language.getCode().equals(languageCode)){
+				return new Locale(languageCode);
+			}
+		}
+		throw new ImpossibleRuntimeException("Invalid language " + languageCode);
 	}
 
 	public void editProfileButtonClicked(String params) {
@@ -172,4 +209,22 @@ public class ConstellioMenuPresenter implements Serializable {
 		return StringUtils.isNotBlank(collectionTitle) ? collectionTitle : collectionName;
 	}
 
+	private List<String> getCollectionLanguagesOrderedByCode(String collection) {
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		return appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+	}
+
+	public void languageSelected(String languageText, String collection) {
+		List<String> allLanguagesCodes = getCollectionLanguagesOrderedByCode(collection);
+		for(String code : allLanguagesCodes)
+			if($("Language." + code).equals(languageText))
+				ConstellioUI.getCurrentSessionContext().setCurrentLocale(new Locale(code));
+	}
+
+	public List<String> getCollectionLanguages(String collection) {
+		List<String> returnList = new ArrayList<>();
+		for(String code : getCollectionLanguagesOrderedByCode(collection))
+			returnList.add($("Language." + code));
+		return returnList;
+	}
 }

@@ -1,8 +1,28 @@
 package com.constellio.model.services.schemas.xml;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.services.DataLayerLogger;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -14,27 +34,18 @@ import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MetadataSchemaXMLWriter2 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
-	public static final String FORMAT_VERSION = MetadataSchemaXMLReader2.FORMAT_VERSION;
-	private  SAXBuilder saxBuilder = new SAXBuilder();
+	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
+	private SAXBuilder saxBuilder = new SAXBuilder();
 	private static final Logger LOGGER = LoggerFactory.getLogger(DataLayerLogger.class);
-
 	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
-				new ArrayList<String>()), document);
+				new ArrayList<String>(), Arrays.asList(Language.French)), document);
 	}
 
 	public Document write(MetadataSchemaTypes schemaTypes) {
@@ -57,7 +68,9 @@ public class MetadataSchemaXMLWriter2 {
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		Element defaultSchemaElement = new Element("defaultSchema");
 		defaultSchemaElement.setAttribute("code", "" + defaultSchema.getLocalCode());
-		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
+
+		writeLabels(defaultSchemaElement, defaultSchema.getLabels());
+		//		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
@@ -87,6 +100,7 @@ public class MetadataSchemaXMLWriter2 {
 		Element schemaTypesElement = new Element("types");
 		document.setRootElement(schemaTypesElement);
 		schemaTypesElement.setAttribute("version", "" + schemaTypes.getVersion());
+		schemaTypesElement.setAttribute("languages", "" + toCommaSeparatedString(toLanguagesCodes(schemaTypes)));
 
 		MetadataSchema collectionSchema = null;
 		if (schemaTypes.hasType(Collection.SCHEMA_TYPE)) {
@@ -104,10 +118,19 @@ public class MetadataSchemaXMLWriter2 {
 		return schemaTypesElement;
 	}
 
+	private List<String> toLanguagesCodes(MetadataSchemaTypes schemaTypes) {
+		List<String> languages = new ArrayList<>();
+		for (Language language : schemaTypes.getLanguages()) {
+			languages.add(language.getCode());
+		}
+		return languages;
+	}
+
 	private Element writeSchemaType(MetadataSchemaType schemaType, MetadataSchema collectionSchema) {
 		Element schemaTypeElement = new Element("type");
 		schemaTypeElement.setAttribute("code", schemaType.getCode());
-		schemaTypeElement.setAttribute("label", schemaType.getLabel());
+
+		writeLabels(schemaTypeElement, schemaType.getLabels());
 		if (schemaType.hasSecurity()) {
 			schemaTypeElement.setAttribute("security", writeBoolean(schemaType.hasSecurity()));
 		}
@@ -120,7 +143,7 @@ public class MetadataSchemaXMLWriter2 {
 	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema) {
 		Element schemaElement = new Element("schema");
 		schemaElement.setAttribute("code", schema.getLocalCode());
-		schemaElement.setAttribute("label", schema.getLabel());
+		writeLabels(schemaElement, schema.getLabels());
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
 		for (Metadata metadata : schema.getMetadatas()) {
 			Metadata globalMetadataInCollectionSchema = null;
@@ -135,6 +158,12 @@ public class MetadataSchemaXMLWriter2 {
 			schemaElement.addContent(writeSchemaValidators(schema));
 		}
 		return schemaElement;
+	}
+
+	private void writeLabels(Element schemaElement, Map<Language, String> labels) {
+		for (Map.Entry<Language, String> labelEntry : labels.entrySet()) {
+			schemaElement.setAttribute("label_" + labelEntry.getKey().getCode(), labelEntry.getValue());
+		}
 	}
 
 	private void addMetadataToSchema(Element schemaElement, Metadata metadata, Metadata globalMetadataInCollectionSchema) {
@@ -168,7 +197,7 @@ public class MetadataSchemaXMLWriter2 {
 
 	private void writeMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils, Element metadataElement,
 			boolean notUserDefinedMetadata) {
-		metadataElement.setAttribute("label", metadata.getLabel());
+		writeLabels(metadataElement, metadata.getLabels());
 
 		if (!metadata.isEnabled()) {
 			metadataElement.setAttribute("enabled", writeBoolean(metadata.isEnabled()));
@@ -255,8 +284,8 @@ public class MetadataSchemaXMLWriter2 {
 			Element metadataElement, boolean notUserDefinedMetadata, Metadata globalMetadataInCollection) {
 
 		boolean different = false;
-		if (!globalMetadataInCollection.getLabel().equals(metadata.getLabel())) {
-			metadataElement.setAttribute("label", metadata.getLabel());
+		if (!globalMetadataInCollection.getLabels().equals(metadata.getLabels())) {
+			writeLabels(metadataElement, metadata.getLabels());
 			different = true;
 		}
 
@@ -398,8 +427,9 @@ public class MetadataSchemaXMLWriter2 {
 			metadataElement.setAttribute("inputMask", metadata.getInputMask());
 			differentFromInheritance = true;
 		}
-		if (metadata.getLabel() != null && !metadata.getLabel().equals(metadata.getInheritance().getLabel())) {
-			metadataElement.setAttribute("label", metadata.getLabel());
+		if (metadata.getLabels() != null && !metadata.getLabels().isEmpty() && !metadata.getLabels()
+				.equals(metadata.getInheritance().getLabels())) {
+			writeLabels(metadataElement, metadata.getLabels());
 			differentFromInheritance = true;
 		}
 		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue()
@@ -434,7 +464,7 @@ public class MetadataSchemaXMLWriter2 {
 		}
 
 		Element metadataPopulatorsElement = new Element("metadataPopulators");
-		for (MetadataPopulator metadataPopulator: populateConfigs.getMetadataPopulators()) {
+		for (MetadataPopulator metadataPopulator : populateConfigs.getMetadataPopulators()) {
 			try {
 				Element element = metadataPopulatorXMLSerializer.toXml(metadataPopulator);
 				metadataPopulatorsElement.addContent(element);
@@ -446,7 +476,6 @@ public class MetadataSchemaXMLWriter2 {
 		if (!populateConfigs.getMetadataPopulators().isEmpty()) {
 			populateConfigsElement.addContent(metadataPopulatorsElement);
 		}
-
 
 		return populateConfigsElement;
 	}

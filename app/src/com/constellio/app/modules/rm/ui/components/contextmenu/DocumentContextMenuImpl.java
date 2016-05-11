@@ -210,7 +210,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			checkOutButton.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.checkOutButtonClicked();
+					presenter.checkOutButtonClicked(getSessionContext());
 				}
 			});
 		}

@@ -17,7 +17,7 @@ public class Maximum50CharsRecordMetadataValidator implements RecordMetadataVali
 	@Override
 	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
 		if (value != null && value.length() > 50) {
-			Map<String, String> parameters = new HashMap<>();
+			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(MAX_SIZE, "50");
 			parameters.put(WAS_SIZE, "" + value.length());
 			validationErrors.add(getClass(), VALUE_LENGTH_TOO_LONG, parameters);

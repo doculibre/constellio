@@ -8,9 +8,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class ValidationError {
 
 	private final String code;
-	private final Map<String, String> parameters;
+	private final Map<String, Object> parameters;
 
-	public ValidationError(String code, Map<String, String> parameters) {
+	public ValidationError(String code, Map<String, Object> parameters) {
 		this.code = code;
 		this.parameters = parameters;
 	}
@@ -19,7 +19,7 @@ public class ValidationError {
 		return code;
 	}
 
-	public Map<String, String> getParameters() {
+	public Map<String, Object> getParameters() {
 		return parameters;
 	}
 
@@ -46,11 +46,25 @@ public class ValidationError {
 			StringBuilder stringBuilder = new StringBuilder(code + "[");
 
 			boolean first = true;
-			for (Map.Entry<String, String> parameter : parameters.entrySet()) {
+			for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
 				if (!first) {
 					stringBuilder.append(",");
 				}
-				stringBuilder.append(parameter.getKey() + "=" + parameter.getValue());
+				Object parameterValue = parameter.getValue();
+				if(parameterValue instanceof String) {
+					stringBuilder.append(parameter.getKey() + "=" + parameterValue);
+				} else if(parameterValue instanceof Map){
+					// TODO Pat manage Map value here...
+					Map<String,String> labelsMap = (Map<String,String>) parameterValue;
+					boolean firstLabel = true;
+					for(Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
+						if (!firstLabel) {
+							stringBuilder.append(",");
+						}
+						stringBuilder.append(labelsEntry.getKey() + "=" + labelsEntry.getValue());
+						firstLabel = false;
+					}
+				}
 				first = false;
 			}
 
@@ -61,8 +75,22 @@ public class ValidationError {
 	public String toMultilineErrorSummaryString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(code);
-		for (Map.Entry<String, String> entry : parameters.entrySet()) {
-			sb.append("\n\t" + entry.getKey() + "=" + entry.getValue());
+		for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+			Object entryValue = entry.getValue();
+			if(entryValue instanceof String) {
+				sb.append("\n\t" + entry.getKey() + "=" + entryValue);
+			} else if (entryValue instanceof Map) {
+				// TODO Pat manage Map value here...
+				Map<String,String> labelsMap = (Map<String,String>) entryValue;
+				boolean firstLabel = true;
+				for(Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
+					if (!firstLabel) {
+						sb.append(",");
+					}
+					sb.append(labelsEntry.getKey() + "=" + labelsEntry.getValue());
+					firstLabel = false;
+				}
+			}
 		}
 		return sb.toString();
 	}

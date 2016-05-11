@@ -66,7 +66,7 @@ public class DisplayConfigViewImpl extends BaseViewImpl implements DisplayConfig
 
 		for (FormMetadataVO form : valueMetadataVOs) {
 			select.addItem(form);
-			select.setItemCaption(form, form.getLabel());
+			select.setItemCaption(form, form.getLabel(getSessionContext().getCurrentLocale().getLanguage()));
 		}
 
 		select.setValue(metadataVOs);

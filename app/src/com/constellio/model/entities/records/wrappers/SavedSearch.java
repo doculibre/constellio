@@ -25,6 +25,11 @@ public class SavedSearch extends RecordWrapper {
 	public static final String SCHEMA_FILTER = "schemaFilter";
 	public static final String SEARCH_TYPE = "searchType";
 	public static final String SORT_ORDER = "sortOrder";
+	public static final String TEMPORARY = "temporary";
+	public static final String PAGE_NUMBER = "pageNumber";
+
+	//testing only
+	public static final String CRITERION = "criterions";
 
 	public SavedSearch(Record record,
 			MetadataSchemaTypes types) {
@@ -124,6 +129,24 @@ public class SavedSearch extends RecordWrapper {
 	public SavedSearch setSearchType(String searchType) {
 		set(SEARCH_TYPE, searchType);
 		return this;
+	}
+
+	public Boolean isTemporary() {
+		return get(TEMPORARY);
+	}
+
+	public SavedSearch setTemporary(Boolean temporary) {
+		set(TEMPORARY, temporary);
+		return this;
+	}
+
+	public SavedSearch setPageNumber(int pageNumber) {
+		set(PAGE_NUMBER, pageNumber);
+		return this;
+	}
+
+	public int getPageNumber() {
+		return getInteger(PAGE_NUMBER);
 	}
 
 	public enum SortOrder implements EnumWithSmallCode {

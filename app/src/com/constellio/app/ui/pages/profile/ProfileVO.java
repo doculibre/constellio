@@ -18,6 +18,7 @@ public class ProfileVO implements Serializable {
 	String startTab;
 	DefaultTabInFolderDisplay defaultTabInFolderDisplay;
 	String defaultTaxonomy;
+	String loginLanguageCode;
 
 	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email,
 			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
@@ -146,5 +147,13 @@ public class ProfileVO implements Serializable {
 
 	public void setConfirmPassword(String confirmPassword) {
 		this.confirmPassword = confirmPassword;
+	}
+
+	public String getLoginLanguageCode() {
+		return loginLanguageCode;
+	}
+
+	public void setLoginLanguageCode(String loginLanguageCode) {
+		this.loginLanguageCode = loginLanguageCode;
 	}
 }

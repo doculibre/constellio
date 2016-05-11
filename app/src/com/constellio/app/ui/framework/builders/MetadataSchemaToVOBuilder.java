@@ -16,6 +16,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 
@@ -49,7 +50,8 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		String collection = schema.getCollection();
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
-		labels.put(sessionContext.getCurrentLocale(), schema.getLabel());
+		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+		labels.put(sessionContext.getCurrentLocale(), schema.getLabel(language));
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();

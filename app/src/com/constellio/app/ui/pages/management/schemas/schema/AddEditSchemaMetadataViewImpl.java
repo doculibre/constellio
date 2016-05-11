@@ -48,7 +48,8 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 
 	@Override
 	protected String getTitle() {
-		return $("AddEditSchemaMetadataView.viewTitle", presenter.getSchemaVO().getLabel());
+		return $("AddEditSchemaMetadataView.viewTitle",
+				presenter.getSchemaVO().getLabel(getSessionContext().getCurrentLocale().getLanguage()));
 	}
 
 	@Override

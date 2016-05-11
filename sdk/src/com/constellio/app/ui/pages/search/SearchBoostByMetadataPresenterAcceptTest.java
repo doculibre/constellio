@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -31,7 +32,7 @@ public class SearchBoostByMetadataPresenterAcceptTest extends ConstellioTest {
 
 	public static final String METADATA = "metadata";
 	@Mock SearchBoostView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	UserServices userServices;
 	SearchBoost searchBoostTitle, searchBoostCode;
 	SearchBoostVO searchBoostVOTitle, searchBoostVOCode;
@@ -59,7 +60,7 @@ public class SearchBoostByMetadataPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		searchBoostTitle = new SearchBoost(METADATA, Schemas.TITLE.getDataStoreCode(), "Titre", 1d);
 		searchBoostCode = new SearchBoost(METADATA, Schemas.CODE.getDataStoreCode(), "Code", 2d);

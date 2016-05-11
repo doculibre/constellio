@@ -232,11 +232,12 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void whenPhysicallyDeletingThenGetRecordInHierarchyAndDeleteThemInATransaction()
 			throws Exception {
 
+		RecordDeleteOptions options = new RecordDeleteOptions();
 		doNothing().when(recordDeleteServices).deleteContents(anyList());
-		doReturn(true).when(recordDeleteServices).isPhysicallyDeletable(theRecord, user);
+		doReturn(true).when(recordDeleteServices).isPhysicallyDeletable(theRecord, user, options);
 		ArgumentCaptor<TransactionDTO> transactionDTO = ArgumentCaptor.forClass(TransactionDTO.class);
 
-		recordDeleteServices.physicallyDelete(theRecord, user);
+		recordDeleteServices.physicallyDelete(theRecord, user, options);
 		verify(recordDao).execute(transactionDTO.capture());
 		verify(recordDeleteServices)
 				.deleteContents(Arrays.asList(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy));

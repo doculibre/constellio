@@ -16,6 +16,7 @@ import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -472,7 +473,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					metadataCode = copyRetentionRule.getSemiActiveDateMetadata();
 				}
 				String metadataLabelStr = metadataCodeToStringConverter
-						.convertToPresentation(metadataCode, String.class, getLocale());
+						.convertToPresentation(metadataCode, String.class,
+								ConstellioUI.getCurrent().getSessionContext().getCurrentLocale());
 				Label metadataLabel = new Label(metadataLabelStr);
 				Label retentionPeriodLabel = new Label("" + retentionPeriod.getValue());
 				addComponents(metadataLabel, retentionPeriodLabel);

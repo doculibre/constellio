@@ -4,7 +4,6 @@ import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getC
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +15,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -91,8 +91,13 @@ public class SchemasDisplayManagerCache {
 	}
 
 	private SchemaTypeDisplayConfig getDefaultSchemaTypeDisplayConfig(String typeCode) {
-		// TODO verify for the default name
-		return new SchemaTypeDisplayConfig(collection, typeCode, Arrays.asList("Default"));
+
+		Map<String, Map<Language, String>> metadataGroup = new HashMap<>();
+		Map<Language, String> label = new HashMap<>();
+		// TODO iterate on all collections' languages
+		label.put(Language.French, "Default");
+		metadataGroup.put("default", label);
+		return new SchemaTypeDisplayConfig(collection, typeCode, metadataGroup);
 	}
 
 	public SchemaDisplayConfig getSchema(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
@@ -155,9 +160,9 @@ public class SchemasDisplayManagerCache {
 				for (MetadataSchema schema : type.getAllSchemas()) {
 					SchemaDisplayConfig schemaDisplayConfig = getSchema(schema.getCode(), metadataSchemasManager);
 					List<String> metadatas = new ArrayList<>();
-					if ("search" .equals(viewMode)) {
+					if ("search".equals(viewMode)) {
 						metadatas = schemaDisplayConfig.getSearchResultsMetadataCodes();
-					} else if ("table" .equals(viewMode)) {
+					} else if ("table".equals(viewMode)) {
 						metadatas = schemaDisplayConfig.getTableMetadataCodes();
 					}
 					for (String displayedMetadata : metadatas) {

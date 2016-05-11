@@ -147,7 +147,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		expected.add(newValidationError(INVALID_ENUM_VALUE, asMap("mediumTypes", "", "copyRetentionRuleIndex", "0")));
 		expected.add(newValidationError(INVALID_CODE_VALUE, asMap("mediumTypes", "empty", "copyRetentionRuleIndex", "0")));
 
-		Map<String, String> values = new HashMap<>();
+		Map<String, Object> values = new HashMap<>();
 		values.put("activeRetentionPeriod", "");
 		values.put("semiActiveRetentionPeriod", "");
 		values.put("mediumTypes", "");
@@ -205,6 +205,13 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		return expectedErrors;
 	}
 
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		parameters.put(key2, value2);
+		return parameters;
+	}
+
 	//----------------------------
 
 	private class StructureMapBuilder {
@@ -227,7 +234,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private ValidationError newValidationError(String code, Map<String, String> parameters) {
+	private ValidationError newValidationError(String code, Map<String, Object> parameters) {
 		parameters.put("index", "1");
 		parameters.put("legacyId", null);
 		parameters.put("schemaType", "retentionRule");

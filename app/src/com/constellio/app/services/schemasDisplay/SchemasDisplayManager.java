@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jdom2.Document;
+import org.jdom2.Element;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -17,6 +18,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -106,9 +108,9 @@ public class SchemasDisplayManager
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(config.getCollection()).getSchema(config.getSchemaCode());
 		for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
-				Map<String, String> params = new HashMap<>();
+				Map<String, Object> params = new HashMap<>();
 				params.put("code", metadata.getCode());
-				params.put("label", metadata.getLabel());
+				params.put("label",metadata.getLabelsByLanguageCodes());
 				errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
 			}
 		}
@@ -232,9 +234,21 @@ public class SchemasDisplayManager
 		return new XMLConfigReader<SchemasDisplayManagerCache>() {
 			@Override
 			public SchemasDisplayManagerCache read(String collection, Document document) {
+
+				Element rootElement = document.getRootElement();
+				String formatVersion =
+						rootElement == null ? null : rootElement.getAttributeValue(SchemasDisplayWriter.FORMAT_ATTRIBUTE);
+
 				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-				SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types);
-				return reader.readSchemaTypesDisplay(collection);
+				if (formatVersion == null) {
+					SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types);
+					return reader.readSchemaTypesDisplay(collection);
+				} else if (SchemasDisplayReader2.FORMAT_VERSION.equals(formatVersion)) {
+					SchemasDisplayReader2 reader = new SchemasDisplayReader2(document, types);
+					return reader.readSchemaTypesDisplay(collection);
+				} else {
+					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
+				}
 			}
 		};
 	}
@@ -265,7 +279,7 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id" .equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
+			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
 					&& !restrictedTypes
 					.contains(metadata.getType()) && !metadata
 					.isSystemReserved())) {

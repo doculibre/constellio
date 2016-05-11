@@ -66,7 +66,7 @@ public class SearchDisplayConfigViewImpl extends BaseViewImpl implements SearchD
 
 		for (FormMetadataVO form : metadataVOs) {
 			select.addItem(form);
-			select.setItemCaption(form, form.getLabel());
+			select.setItemCaption(form, form.getLabel(getSessionContext().getCurrentLocale().getLanguage()));
 		}
 
 		select.setValue(valueMetadataVOs);

@@ -7,16 +7,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
+
 	private int pageNumber;
 	private String searchExpression;
 
@@ -31,10 +38,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
 			if ("s".equals(parts[0])) {
 				SavedSearch search = getSavedSearch(parts[1]);
-				searchExpression = search.getFreeTextSearch();
-				facetSelections.putAll(search.getSelectedFacets());
-				sortCriterion = search.getSortField();
-				sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+				setSavedSearch(search);
+
 			} else {
 				searchExpression = parts[1];
 			}
@@ -42,6 +47,14 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			searchExpression = "";
 		}
 		return this;
+	}
+
+	private void setSavedSearch(SavedSearch search) {
+		searchExpression = search.getFreeTextSearch();
+		facetSelections.putAll(search.getSelectedFacets());
+		sortCriterion = search.getSortField();
+		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		pageNumber = search.getPageNumber();
 	}
 
 	@Override
@@ -59,6 +72,10 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return pageNumber;
 	}
 
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
+	}
+
 	@Override
 	public String getUserSearchExpression() {
 		return searchExpression;
@@ -66,7 +83,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	public void suggestionSelected(String suggestion) {
-		view.navigateTo().simpleSearch(suggestion);
+		view.navigate().to().simpleSearch(suggestion);
 	}
 
 	@Override
@@ -115,7 +132,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
-		return search.setSearchType(SimpleSearchView.SEARCH_TYPE).setFreeTextSearch(searchExpression);
+		return search.setSearchType(SimpleSearchView.SEARCH_TYPE)
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber);
 	}
 
 	private List<MetadataSchemaType> allowedSchemaTypes() {
@@ -128,5 +147,45 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			}
 		}
 		return result;
+	}
+
+	public Record getTemporarySearchRecord() {
+		MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		try {
+			return searchServices().searchSingleResult(from(schema).where(schema.getMetadata(SavedSearch.USER))
+					.isEqualTo(getCurrentUser())
+					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
+					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(SimpleSearchView.SEARCH_TYPE));
+		} catch (Exception e) {
+			//TODO exception
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	protected void saveTemporarySearch() {
+		Record tmpSearchRecord = getTemporarySearchRecord();
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		}
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporarySimple")
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(sortCriterion)
+				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+				.setSelectedFacets(facetSelections.getNestedMap())
+				.setTemporary(true)
+				.setSearchType(SimpleSearchView.SEARCH_TYPE)
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber);
+		try {
+			recordServices().update(search);
+			view.navigate().to().simpleSearchReplay(search.getId());
+		} catch (RecordServicesException e) {
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		}
 	}
 }

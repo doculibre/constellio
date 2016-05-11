@@ -23,6 +23,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -96,7 +97,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
 		}
 
-		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel()).isEqualTo("Date de l'événement");
+		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French)).isEqualTo("Date de l'événement");
 
 		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
 		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);

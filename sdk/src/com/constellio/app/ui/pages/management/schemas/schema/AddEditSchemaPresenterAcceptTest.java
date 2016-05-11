@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,6 +20,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -35,7 +37,8 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 	Map<String, String> parameters;
 	@Mock AddEditSchemaView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
+	String language;
 
 	@Before
 	public void setUp()
@@ -43,6 +46,9 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection()
 		);
+
+		navigator = new MockedNavigation();
+
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
 						.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
@@ -51,8 +57,9 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
+		language = FakeSessionContext.adminInCollection(zeCollection).getCurrentLocale().getLanguage();
 		presenter = new AddEditSchemaPresenter(view);
 		parameters = new HashMap<>();
 		parameters.put("schemaTypeCode", setup.zeCustomSchemaTypeCode());
@@ -63,18 +70,19 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenAddModeWhenSaveButtonClickedThenCustomSchema()
 			throws Exception {
 
-		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO();
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
 		formMetadataSchemaVO.setLocalCode("newSchema");
-		formMetadataSchemaVO.setLabel("new schema Label");
+		formMetadataSchemaVO.addLabel(language, "new schema Label");
 
 		presenter.saveButtonClicked(formMetadataSchemaVO, false);
 
-		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema").getLabel())
+		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema")
+				.getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		verify(view.navigateTo()).listSchema(params);
+		verify(view.navigate().to()).listSchema(params);
 	}
 
 	@Test
@@ -83,15 +91,15 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		presenter.setSchemaCode(zeSchema.code());
 		FormMetadataSchemaVO formMetadataSchemaVO = presenter.getSchemaVO();
-		formMetadataSchemaVO.setLabel("new schema Label");
+		formMetadataSchemaVO.addLabel(language, "new schema Label");
 
 		presenter.saveButtonClicked(formMetadataSchemaVO, true);
 
-		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel())
+		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		verify(view.navigateTo()).listSchema(params);
+		verify(view.navigate().to()).listSchema(params);
 	}
 
 	@Test
@@ -101,6 +109,6 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		presenter.cancelButtonClicked();
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		verify(view.navigateTo()).listSchema(params);
+		verify(view.navigate().to()).listSchema(params);
 	}
 }

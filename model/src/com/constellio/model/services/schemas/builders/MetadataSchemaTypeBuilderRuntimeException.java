@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.Language;
+
 @SuppressWarnings("serial")
 public class MetadataSchemaTypeBuilderRuntimeException extends RuntimeException {
 
@@ -42,6 +44,18 @@ public class MetadataSchemaTypeBuilderRuntimeException extends RuntimeException 
 	public static class LabelNotDefined extends MetadataSchemaTypeBuilderRuntimeException {
 		public LabelNotDefined(String code) {
 			super("The schema type '" + code + "' has no label");
+		}
+	}
+
+	public static class LabelNotDefinedForLanguage extends MetadataSchemaTypeBuilderRuntimeException {
+		public LabelNotDefinedForLanguage(Language language, String code) {
+			super("The schema type '" + code + "' has no label for language : " + language.getCode());
+		}
+	}
+
+	public static class LanguageNotDefined extends MetadataSchemaTypeBuilderRuntimeException {
+		public LanguageNotDefined(String code) {
+			super("The schema type '" + code + "' has no language");
 		}
 	}
 

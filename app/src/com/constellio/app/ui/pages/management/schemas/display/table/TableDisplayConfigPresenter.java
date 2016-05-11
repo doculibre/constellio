@@ -51,9 +51,10 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
-			FormMetadataVO metadataVO = builder.build(metadata, displayManager, parameters.get("schemaTypeCode"));
+			FormMetadataVO metadataVO = builder
+					.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
 			if (this.isAllowedMetadata(metadataVO)) {
 				formMetadataVOs.add(metadataVO);
 			}
@@ -68,10 +69,11 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 		List<String> codeList = displayManager.getSchema(collection, getSchemaCode()).getTableMetadataCodes();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
-			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+			formMetadataVOs
+					.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;
@@ -116,7 +118,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 			manager.saveSchema(config);
 
 			String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-			view.navigateTo().listSchema(params);
+			view.navigate().to().listSchema(params);
 		} else {
 			throw new RuntimeException("Configuration only allowed for default schema");
 		}
@@ -124,6 +126,6 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 }

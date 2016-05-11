@@ -24,6 +24,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -281,7 +282,9 @@ public class SchemaTypeImportServices implements ImportServices {
 		} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
 			builder = types.createNewSchemaType(code);//"USR" +
 		}
-		builder.setLabel(title);
+		for (String language : appLayerFactory.getCollectionsManager().getCollectionLanguages(collection)) {
+			builder.addLabel(Language.withCode(language), title);
+		}
 		return builder;
 	}
 
@@ -295,7 +298,9 @@ public class SchemaTypeImportServices implements ImportServices {
 		MetadataSchemaTypeBuilder schemaTypeBuilder = getOrCreateSchemaType(types, schemaTypeCode);
 
 		MetadataSchemaBuilder schemaBuilder = getOrCreateSchemaBuilder(schemaTypeBuilder, schemaCode);
-		schemaBuilder.setLabel(schemaLabel);
+		for (String language : appLayerFactory.getCollectionsManager().getCollectionLanguages(collection)) {
+			schemaBuilder.addLabel(Language.withCode(language), schemaLabel);
+		}
 		List<Metadata> allGlobalMetadata = Schemas.getAllGlobalMetadatas();
 		for (ImportedMetadata importedMetadata : importedMetadataList) {
 			processMetadata(importedMetadata, schemaBuilder, allGlobalMetadata, types);
@@ -424,7 +429,7 @@ public class SchemaTypeImportServices implements ImportServices {
 		}
 
 		builder.setEnabled(importedMetadata.isEnabled());
-		builder.setLabel(importedMetadata.getLabel());
+		builder.setLabels(importedMetadata.getLabels());
 		builder.setDefaultRequirement(importedMetadata.isRequired());
 	}
 

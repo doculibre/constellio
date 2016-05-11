@@ -79,12 +79,12 @@ public class ListMetadataExtractorsPresenter extends BasePresenter<ListMetadataE
 	}
 
 	void addButtonClicked() {
-		view.navigateTo().addMetadataExtractor();
+		view.navigate().to().addMetadataExtractor();
 	}
 
 	void editButtonClicked(MetadataExtractorVO metadataExtractorVO) {
 		MetadataVO metadataVO = metadataExtractorVO.getMetadataVO();
-		view.navigateTo().editMetadataExtractor(metadataVO.getCode());
+		view.navigate().to().editMetadataExtractor(metadataVO.getCode());
 	}
 
 	public void deleteButtonClicked(MetadataExtractorVO metadataExtractorVO) {
@@ -104,7 +104,7 @@ public class ListMetadataExtractorsPresenter extends BasePresenter<ListMetadataE
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 }

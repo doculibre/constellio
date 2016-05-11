@@ -154,7 +154,7 @@ public class FolderExtensionAcceptanceTest extends ConstellioTest {
 		List<ValidationError> errors = e.getErrors()
 				.getValidationErrors();
 		assertThat(errors.size()).isEqualTo(1);
-		assertThat(errors.get(0).getParameters().get(METADATA_CODE)).endsWith("_" + Folder.COPY_STATUS);
+		assertThat((String)errors.get(0).getParameters().get(METADATA_CODE)).endsWith("_" + Folder.COPY_STATUS);
 	}
 
 	private void assertThatFolderIsPrincipalCopy(Folder folder) {

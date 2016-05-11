@@ -131,7 +131,8 @@ public class Schemas {
 
 		String dataStoreCode = metadata.getDataStoreCode().replace("_s", "_sort_s");
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
-		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.STRING, metadata.isMultivalue());
+		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.STRING, metadata.isMultivalue(),
+				metadata.isMultiLingual());
 	}
 
 	public static Metadata getSearchableMetadata(Metadata metadata, String languageCode) {
@@ -151,7 +152,8 @@ public class Schemas {
 		}
 
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
-		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.TEXT, metadata.isMultivalue());
+		return new Metadata(schemaCode, dataStoreCode, MetadataValueType.TEXT, metadata.isMultivalue(),
+				metadata.isMultiLingual());
 	}
 
 	public static boolean isGlobalMetadata(String metadata) {

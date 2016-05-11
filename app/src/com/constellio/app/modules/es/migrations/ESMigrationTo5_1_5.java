@@ -23,7 +23,9 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
@@ -57,6 +59,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -83,6 +86,7 @@ public class ESMigrationTo5_1_5 extends MigrationHelper implements MigrationScri
 		return "5.1.5";
 	}
 
+	Map<String, Map<Language, String>> groups;
 	String configurationTab;
 	String executionTab;
 	String credentialsTab;
@@ -93,10 +97,30 @@ public class ESMigrationTo5_1_5 extends MigrationHelper implements MigrationScri
 			AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
+
+		Language language = migrationResourcesProvider.getLanguage();
+		groups = new HashMap<>();
+		Map<Language, String> labels = new HashMap<>();
+
 		configurationTab = migrationResourcesProvider.get("connectors.configurationTab");
+		labels.put(language, configurationTab);
+		groups.put("connectors.configurationTab", labels);
+
 		executionTab = migrationResourcesProvider.get("connectors.executionTab");
+		labels = new HashMap<>();
+		labels.put(language, executionTab);
+		groups.put("connectors.executionTab", labels);
+
 		credentialsTab = migrationResourcesProvider.get("connectors.credentialsTab");
+		labels = new HashMap<>();
+		labels.put(language, credentialsTab);
+		groups.put("connectors.credentialsTab", labels);
+
 		ldapUserTab = migrationResourcesProvider.get("connectors.ldapUserTab");
+		labels = new HashMap<>();
+		labels.put(language, ldapUserTab);
+		groups.put("connectors.ldapUserTab", labels);
+
 		clearExistingRecordsAndSchemas(collection, appLayerFactory);
 
 		new SchemaAlterationFor5_1_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -497,7 +521,7 @@ public class ESMigrationTo5_1_5 extends MigrationHelper implements MigrationScri
 		recordServices.add(es.newFacetField()
 				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
 				.setTitle(migrationResourcesProvider.get("init.facet.ldapUserEnabled"))
-						//FIXME
+				//FIXME
 				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
 				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
 
@@ -809,7 +833,7 @@ public class ESMigrationTo5_1_5 extends MigrationHelper implements MigrationScri
 			SchemasDisplayManager manager, String collection) {
 
 		transaction.add(manager.getType(collection, ConnectorInstance.SCHEMA_TYPE)
-				.withMetadataGroup(asList(configurationTab, executionTab, credentialsTab, ldapUserTab)));
+				.withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, ConnectorInstance.DEFAULT_SCHEMA, ConnectorInstance.CONNECTOR_TYPE)
 				.withInputType(MetadataInputType.HIDDEN));

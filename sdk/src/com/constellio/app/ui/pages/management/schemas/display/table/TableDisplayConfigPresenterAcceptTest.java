@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -41,7 +42,7 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	TableDisplayConfigPresenter presenter;
 	@Mock TableDisplayConfigView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 
 	@Before
 	public void setUp()
@@ -49,6 +50,9 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection()
 		);
+
+        navigator = new MockedNavigation();
+
 		defineSchemasManager()
 				.using(setup.andCustomSchema()
 						.withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
@@ -57,7 +61,7 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new TableDisplayConfigPresenter(view);
 		Map<String, String> parameters = new HashMap<>();
@@ -196,11 +200,11 @@ public class TableDisplayConfigPresenterAcceptTest extends ConstellioTest {
 	}
 
 	private List<FormMetadataVO> getFormVO(List<Metadata> metadatas) {
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(FakeSessionContext.adminInCollection(zeCollection));
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		for (Metadata metadata : metadatas) {
 			formMetadataVOs.add(builder.build(metadata, getAppLayerFactory().getMetadataSchemasDisplayManager(),
-					setup.zeCustomSchemaTypeCode()));
+					setup.zeCustomSchemaTypeCode(), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;

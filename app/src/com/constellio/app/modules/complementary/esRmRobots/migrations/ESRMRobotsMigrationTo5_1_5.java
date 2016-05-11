@@ -13,6 +13,9 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.Classify
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX;
 import static java.util.Arrays.asList;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -27,6 +30,7 @@ import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -74,23 +78,26 @@ public class ESRMRobotsMigrationTo5_1_5 implements MigrationScript {
 					.createCustomSchema(ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA_LOCAL_CODE);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.IN_TAXONOMY).setDefaultRequirement(true)
 					.setType(MetadataValueType.STRING).setDefaultValue(RMTaxonomies.ADMINISTRATIVE_UNITS);
-			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION).setDefaultRequirement(true)
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.ACTION_AFTER_CLASSIFICATION)
+					.setDefaultRequirement(true)
 					.defineAsEnum(ActionAfterClassification.class)
 					.setDefaultValue(ActionAfterClassification.DO_NOTHING);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DELIMITER).setDefaultRequirement(false).setType(
 					MetadataValueType.STRING);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING).setDefaultRequirement(false).setType(
 					MetadataValueType.CONTENT);
-			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING).setDefaultRequirement(false).setType(
-					MetadataValueType.CONTENT);
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DOCUMENT_MAPPING).setDefaultRequirement(false)
+					.setType(
+							MetadataValueType.CONTENT);
 			schema.create(DEFAULT_ADMIN_UNIT).setDefaultRequirement(false)
 					.defineReferencesTo(administrativeUnitSchemaType);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY).setDefaultRequirement(false)
 					.defineReferencesTo(categorySchemaType);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE).setDefaultRequirement(false)
 					.defineReferencesTo(retentionRuleSchemaType);
-			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_OPEN_DATE).setDefaultRequirement(false).setType(
-					MetadataValueType.DATE);
+			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_OPEN_DATE).setDefaultRequirement(false)
+					.setType(
+							MetadataValueType.DATE);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_COPY_STATUS).setDefaultRequirement(false)
 					.defineAsEnum(CopyType.class);
 			schema.create(ClassifyConnectorFolderInTaxonomyActionParameters.PATH_PREFIX).setDefaultRequirement(true).setType(
@@ -102,10 +109,28 @@ public class ESRMRobotsMigrationTo5_1_5 implements MigrationScript {
 	private void configureClassifyInTaxonomyParametersForm(String collection,
 			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
 
+		Language language = migrationResourcesProvider.getLanguage();
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+
 		String taxonomyTab = migrationResourcesProvider.get("tab.taxonomy");
+		Map<Language, String> labelsTaxo = new HashMap<>();
+		labelsTaxo.put(language, taxonomyTab);
+		groups.put("tab.taxonomy", labelsTaxo);
+
 		String optionsTab = migrationResourcesProvider.get("tab.options");
+		Map<Language, String> labelsOptions = new HashMap<>();
+		labelsOptions.put(language, optionsTab);
+		groups.put("tab.options", labelsOptions);
+
 		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
+		Map<Language, String> labelsDefaultValues = new HashMap<>();
+		labelsDefaultValues.put(language, defaultValuesTab);
+		groups.put("tab.defaultValues", labelsDefaultValues);
+
 		String mappingsTab = migrationResourcesProvider.get("tab.mappings");
+		Map<Language, String> labelsMappings = new HashMap<>();
+		labelsMappings.put(language, mappingsTab);
+		groups.put("tab.mappings", labelsMappings);
 
 		String parametersSchema = ClassifyConnectorFolderInTaxonomyActionParameters.SCHEMA;
 
@@ -113,10 +138,7 @@ public class ESRMRobotsMigrationTo5_1_5 implements MigrationScript {
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
 		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE)
-				.withNewMetadataGroup(taxonomyTab)
-				.withNewMetadataGroup(optionsTab)
-				.withNewMetadataGroup(defaultValuesTab)
-				.withNewMetadataGroup(mappingsTab));
+				.withNewMetadataGroup(groups));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, parametersSchema).withFormMetadataCodes(asList(
 				parametersSchema + "_" + IN_TAXONOMY,

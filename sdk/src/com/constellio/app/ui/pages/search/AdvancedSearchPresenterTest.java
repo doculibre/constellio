@@ -6,6 +6,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -26,7 +27,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "zeField_s";
 
 	@Mock AdvancedSearchView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock SchemasDisplayManager schemasDisplayManager;
 	@Mock LabelTemplateManager labelTemplateManager;
 	@Mock SchemaTypesDisplayConfig typesDisplayConfig;
@@ -42,7 +43,7 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		when(factories.getAppLayerFactory().getMetadataSchemasDisplayManager()).thenReturn(schemasDisplayManager);
@@ -55,6 +56,8 @@ public class AdvancedSearchPresenterTest extends ConstellioTest {
 		when(view.getSchemaType()).thenReturn("zeSchemaType");
 
 		presenter = spy(new AdvancedSearchPresenter(view));
+
+		doNothing().when(presenter).saveTemporarySearch();
 	}
 
 	@Test

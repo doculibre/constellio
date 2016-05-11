@@ -245,7 +245,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 		try {
 			recordServices().execute(transaction);
 			this.recordVO = service.getVOForRecord(recordToSave);
-			view.navigateTo().listFacetConfiguration();
+			view.navigate().to().listFacetConfiguration();
 		} catch (RecordServicesException ex) {
 			throw new RuntimeException();
 		}
@@ -278,7 +278,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public static class AvailableFacetFieldMetadata {

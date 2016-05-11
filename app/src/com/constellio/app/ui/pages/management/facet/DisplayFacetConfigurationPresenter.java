@@ -51,11 +51,11 @@ public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFac
 		Record record = recordServices().getDocumentById(recordVO.getId());
 		recordServices().logicallyDelete(record, User.GOD);
 		recordServices().physicallyDelete(record, User.GOD);
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public void editButtonClicked() {
-		view.navigateTo().editFacetConfiguration(displayRecordVO.getId());
+		view.navigate().to().editFacetConfiguration(displayRecordVO.getId());
 	}
 
 	public void setDisplayRecordVO(String id) {
@@ -96,7 +96,7 @@ public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFac
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listFacetConfiguration();
+		view.navigate().to().listFacetConfiguration();
 	}
 
 	public Record toRecord(RecordVO recordVO) {
@@ -108,7 +108,7 @@ public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFac
 	public void activate() {
 		try {
 			service.activate(recordVO.getId());
-			view.navigateTo().displayFacetConfiguration(recordVO.getId());
+			view.navigate().to().displayFacetConfiguration(recordVO.getId());
 		} catch (Exception e) {
 			view.showErrorMessage($("DisplayFacetConfiguration.cannotActivateFacet", recordVO.getTitle()));
 		}
@@ -117,7 +117,7 @@ public class DisplayFacetConfigurationPresenter extends BasePresenter<DisplayFac
 	public void deactivate() {
 		try {
 			service.deactivate(recordVO.getId());
-			view.navigateTo().displayFacetConfiguration(recordVO.getId());
+			view.navigate().to().displayFacetConfiguration(recordVO.getId());
 		} catch (Exception e) {
 			view.showErrorMessage($("DisplayFacetConfiguration.cannotDeactivateFacet", recordVO.getTitle()));
 		}

@@ -1356,5 +1356,72 @@ $popup-view-z-index: 3;
     	}
 
     }
+    
+    .v-progressbar {
+		width: 150px;
+	}
+
+	.v-progressbar-wrapper {
+		height: 7px;
+		border: 1px solid #197de1;
+	}
+	
+	.v-progressbar-indicator {
+		height: 7px;
+		background: #197de1;
+	}
+	
+	div.v-progressbar-indeterminate {
+		height: 20px;
+		width: 20px;
+		background: #fff url(common/img/ajax-loader-medium.gif) no-repeat 50%;
+		border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+	}
+	
+	.v-progressbar-indeterminate .v-progressbar-wrapper, .v-progressbar-indeterminate .v-progressbar-indicator, .v-progressbar-indeterminate-disabled .v-progressbar-wrapper, .v-progressbar-indeterminate-disabled .v-progressbar-indicator {
+		display: none;
+	}
+	
+	div.v-progressbar-indeterminate-disabled {
+		height: 20px;
+		width: 20px;
+		background: transparent;
+	}
+	
+	.v-progressindicator {
+		width: 150px;
+		background-color: #414B56;
+	}
+	
+	.v-progressindicator-wrapper {
+		height: 7px;
+		border: 1px solid #197de1; 
+	}
+	
+	.v-progressindicator-indicator {
+		height: 7px;
+		background: #197de1;
+	} 
+	
+	div.v-progressindicator-indeterminate {
+		height: 20px;
+		width: 20px;
+		background: #fff url(common/img/ajax-loader-medium.gif) no-repeat 50%;
+		border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+	}
+	
+	.v-progressindicator-indeterminate .v-progressindicator-wrapper, .v-progressindicator-indeterminate .v-progressindicator-indicator, .v-progressindicator-indeterminate-disabled .v-progressindicator-wrapper, .v-progressindicator-indeterminate-disabled .v-progressindicator-indicator {
+		display: none;
+	}
+	
+	div.v-progressindicator-indeterminate-disabled {
+		height: 20px;
+		width: 20px;
+		background: transparent;
+	}
 
 }

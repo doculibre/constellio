@@ -96,7 +96,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		}
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
-			schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes);
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -184,7 +185,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		parameters.put(EventViewParameters.EVENT_END_DATE, endDate);
 		parameters.put(EventViewParameters.BY_ID_EVENT_PARAMETER, id);
 		parameters.put(EventViewParameters.EVENT_CATEGORY, eventCategory);
-		view.navigateTo().showEventCategory(parameters);
+		view.navigate().to().showEventCategory(parameters);
 	}
 
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {

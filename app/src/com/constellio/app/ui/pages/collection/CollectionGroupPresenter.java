@@ -43,11 +43,11 @@ public class CollectionGroupPresenter extends SingleSchemaBasePresenter<Collecti
 	}
 
 	public void authorizationsButtonClicked() {
-		view.navigateTo().listPrincipalAccessAuthorizations(recordId);
+		view.navigate().to().listPrincipalAccessAuthorizations(recordId);
 	}
 
 	public void rolesButtonClicked() {
-		view.navigateTo().editCollectionGroupRoles(recordId);
+		view.navigate().to().editCollectionGroupRoles(recordId);
 	}
 
 	public void deleteButtonClicked(String code) {

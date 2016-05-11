@@ -32,6 +32,7 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
@@ -96,7 +97,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		return linkTarget;
 	}
 
-	public void saveRequested(String setupLocaleCode, List<String> modules, String collectionTitle, String collectionCode,
+	public void saveRequested(String setupLocaleCode, List<String> languages, List<String> modules, String collectionTitle, String collectionCode,
 			String adminPassword)
 			throws ConstellioSetupPresenterException {
 
@@ -113,9 +114,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 		setSystemLanguage(setupLocaleCode);
 		Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
-				collectionCode, asList(setupLocaleCode));
+				collectionCode, languages);
 		Collection collection = new Collection(collectionRecord,
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
+		if (StringUtils.isBlank(collectionTitle)) {
+			collectionTitle = collectionCode;
+		}
 		collection.setName(collectionTitle).setTitle(collectionTitle);
 		try {
 			recordServices().update(collection);
@@ -259,5 +263,4 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throws AppManagementServiceException {
 		appLayerFactory.newApplicationService().restart();
 	}
-
 }

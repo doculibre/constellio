@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas.builders;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -58,95 +59,146 @@ public class CommonMetadataBuilder {
 		metadata.put(ID, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
-				builder.createSystemReserved(ID).setType(MetadataValueType.STRING).setUnmodifiable(true)
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(ID).setType(MetadataValueType.STRING)
+						.setUnmodifiable(true)
 						.setUniqueValue(true).setDefaultRequirement(true).setSearchable(true).setSortable(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(LEGACY_ID, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(LEGACY_ID).setType(MetadataValueType.STRING).setUnmodifiable(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(LEGACY_ID).setType(MetadataValueType.STRING)
+						.setUnmodifiable(true)
 						.setUniqueValue(true).setDefaultRequirement(true).setSearchable(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(SCHEMA, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(SCHEMA).setType(MetadataValueType.STRING).setDefaultRequirement(true);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA).setType(MetadataValueType.STRING)
+						.setDefaultRequirement(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(PATH, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(PATH).setType(MetadataValueType.STRING).setMultivalue(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(PATH).setType(MetadataValueType.STRING)
+						.setMultivalue(true)
 						.defineDataEntry().asCalculated(PathCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(PATH_PARTS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(PATH_PARTS).setType(MetadataValueType.STRING).setMultivalue(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(PATH_PARTS).setType(MetadataValueType.STRING)
+						.setMultivalue(true)
 						.defineDataEntry().asCalculated(PathPartsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(PRINCIPAL_PATH, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(PRINCIPAL_PATH).setType(MetadataValueType.STRING)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPAL_PATH).setType(MetadataValueType.STRING)
 						.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(PARENT_PATH, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(PARENT_PATH).setType(MetadataValueType.STRING).setMultivalue(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(PARENT_PATH).setType(MetadataValueType.STRING)
+						.setMultivalue(true)
 						.defineDataEntry().asCalculated(ParentPathCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(AUTHORIZATIONS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(AUTHORIZATIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(AUTHORIZATIONS).setType(MetadataValueType.STRING)
+						.setMultivalue(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(REMOVED_AUTHORIZATIONS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(REMOVED_AUTHORIZATIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(REMOVED_AUTHORIZATIONS)
+						.setType(MetadataValueType.STRING).setMultivalue(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(INHERITED_AUTHORIZATIONS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadata = schema.createSystemReserved(INHERITED_AUTHORIZATIONS).setType(MetadataValueType.STRING)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(INHERITED_AUTHORIZATIONS)
+						.setType(MetadataValueType.STRING)
 						.setMultivalue(true);
 				if (!schema.getCode().equals(Group.DEFAULT_SCHEMA)) {
-					metadata.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
+					metadataBuilder.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
+				}
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
 			}
 		});
 		metadata.put(DETACHED_AUTHORIZATIONS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(DETACHED_AUTHORIZATIONS).setType(MetadataValueType.BOOLEAN);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(DETACHED_AUTHORIZATIONS)
+						.setType(MetadataValueType.BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(ALL_AUTHORIZATIONS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(ALL_AUTHORIZATIONS).setType(MetadataValueType.STRING).setMultivalue(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_AUTHORIZATIONS)
+						.setType(MetadataValueType.STRING).setMultivalue(true)
 						.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(TOKENS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(TOKENS).setType(MetadataValueType.STRING).setMultivalue(true)
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(MetadataValueType.STRING)
+						.setMultivalue(true)
 						.defineDataEntry().asCalculated(TokensCalculator2.class);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 		metadata.put(DENY_TOKENS, new MetadataCreator() {
@@ -177,14 +229,21 @@ public class CommonMetadataBuilder {
 		metadata.put(LOGICALLY_DELETED, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(LOGICALLY_DELETED).setType(MetadataValueType.BOOLEAN);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(LOGICALLY_DELETED)
+						.setType(MetadataValueType.BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(SEARCHABLE, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(SEARCHABLE).setType(MetadataValueType.BOOLEAN);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(SEARCHABLE).setType(MetadataValueType.BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
@@ -196,7 +255,10 @@ public class CommonMetadataBuilder {
 				}
 				try {
 					MetadataSchemaTypeBuilder user = types.getSchemaType(User.SCHEMA_TYPE);
-					schema.createSystemReserved(CREATED_BY).defineReferencesTo(user);
+					MetadataBuilder metadataBuilder = schema.createSystemReserved(CREATED_BY).defineReferencesTo(user);
+					for (Language language : types.getLanguages()) {
+						metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+					}
 				} catch (NoSuchSchemaType e) {
 					// Do nothing
 				}
@@ -205,7 +267,11 @@ public class CommonMetadataBuilder {
 		metadata.put(CREATED_ON, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(CREATED_ON).setType(MetadataValueType.DATE_TIME).setSortable(true);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(CREATED_ON).setType(MetadataValueType.DATE_TIME)
+						.setSortable(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
@@ -217,7 +283,10 @@ public class CommonMetadataBuilder {
 				}
 				try {
 					MetadataSchemaTypeBuilder user = types.getSchemaType(User.SCHEMA_TYPE);
-					schema.createSystemReserved(MODIFIED_BY).defineReferencesTo(user);
+					MetadataBuilder metadataBuilder = schema.createSystemReserved(MODIFIED_BY).defineReferencesTo(user);
+					for (Language language : types.getLanguages()) {
+						metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+					}
 				} catch (NoSuchSchemaType e) {
 					// Do nothing
 				}
@@ -226,7 +295,11 @@ public class CommonMetadataBuilder {
 		metadata.put(MODIFIED_ON, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(MODIFIED_ON).setType(MetadataValueType.DATE_TIME).setSortable(true);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(MODIFIED_ON).setType(MetadataValueType.DATE_TIME)
+						.setSortable(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
@@ -238,27 +311,42 @@ public class CommonMetadataBuilder {
 				if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 					title.defineDataEntry().asCalculated(UserTitleCalculator.class);
 				}
+				for (Language language : types.getLanguages()) {
+					title.addLabel(language, title.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(FOLLOWERS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(FOLLOWERS).setType(MetadataValueType.STRING).setMultivalue(true).setSearchable(true);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(FOLLOWERS).setType(MetadataValueType.STRING)
+						.setMultivalue(true).setSearchable(true);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(VISIBLE_IN_TREES, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(VISIBLE_IN_TREES).setType(MetadataValueType.BOOLEAN);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(VISIBLE_IN_TREES)
+						.setType(MetadataValueType.BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
 		metadata.put(MARKED_FOR_PREVIEW_CONVERSION, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				schema.createSystemReserved(MARKED_FOR_PREVIEW_CONVERSION).setType(MetadataValueType.BOOLEAN);
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(MARKED_FOR_PREVIEW_CONVERSION)
+						.setType(MetadataValueType.BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
 			}
 		});
 
@@ -285,8 +373,10 @@ public class CommonMetadataBuilder {
 	}
 
 	private void defineTokenMetadata(MetadataSchemaBuilder schema, String code) {
-		schema.createSystemReserved(code).setType(MetadataValueType.STRING).setMultivalue(true)
-				.defineValidators().add(ManualTokenValidator.class);
+		MetadataBuilder metadataBuilder = schema.createSystemReserved(code).setType(MetadataValueType.STRING).setMultivalue(true);
+		metadataBuilder = metadataBuilder.setLabels(schema.getLabels());
+		metadataBuilder.defineValidators().add(ManualTokenValidator.class);
+
 	}
 
 	private boolean isCollectionUserOrGroupSchema(MetadataSchemaBuilder schema) {

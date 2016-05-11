@@ -57,7 +57,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 	public void editButtonClicked(GlobalGroupVO entity) {
 		paramsMap.put("globalGroupCode", entity.getCode());
 		String parameters = getParameters();
-		view.navigateTo().editGlobalGroup(parameters);
+		view.navigate().to().editGlobalGroup(parameters);
 	}
 
 	public void deleteButtonClicked(GlobalGroupVO globalGroupVO) {
@@ -94,7 +94,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		paramsMap.put("username", entity.getUsername());
 		paramsMap.put("globalGroupCode", globalGroupCode);
 		String parameters = getParameters();
-		view.navigateTo().displayUserCredential(parameters);
+		view.navigate().to().displayUserCredential(parameters);
 
 	}
 
@@ -102,7 +102,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		paramsMap.put("username", entity.getUsername());
 		paramsMap.put("globalGroupCode", globalGroupCode);
 		String parameters = getParameters();
-		view.navigateTo().editUserCredential(parameters);
+		view.navigate().to().editUserCredential(parameters);
 	}
 
 	public void deleteUserCredentialButtonClicked(UserCredentialVO userCredentialVO, String globalGroupCode) {
@@ -125,7 +125,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		paramsMap.put("parentGlobalGroupCode", entity.getCode());
 		paramsMap.remove("globalGroupCode");
 		String parameters = ParamUtils.addParams(breadCrumb + "/" + NavigatorConfigurationService.GROUP_DISPLAY, paramsMap);
-		view.navigateTo().addGlobalGroup(parameters);
+		view.navigate().to().addGlobalGroup(parameters);
 	}
 
 	public void setParamsMap(Map<String, String> paramsMap) {
@@ -159,7 +159,7 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		parameters = correctSlashs(parameters);
 		backPage = correctUrl(backPage, parameters);
 
-		view.navigateTo().url(backPage + parameters);
+		view.navigate().to().url(backPage + parameters);
 	}
 
 	private String correctUrl(String backPage, String parameters) {
@@ -194,12 +194,12 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 
 	public void displaySubGroupCliked(GlobalGroupVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().displayGlobalGroup(parameters);
+		view.navigate().to().displayGlobalGroup(parameters);
 	}
 
 	public void editSubGroupButtonClicked(GlobalGroupVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().editGlobalGroup(parameters);
+		view.navigate().to().editGlobalGroup(parameters);
 	}
 
 	public void deleteSubGroupButtonClicked(GlobalGroupVO entity) {

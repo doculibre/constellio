@@ -38,7 +38,7 @@ public class AddEditRetentionRulePresenterAcceptanceTest extends ConstellioTest 
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate().to()).thenReturn(navigator);
 
 		presenter = new AddEditRetentionRulePresenter(view);
 

@@ -59,7 +59,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 		when(userCredentialView.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(userCredentialView.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
-		when(userCredentialView.navigateTo()).thenReturn(navigator);
+		when(userCredentialView.navigate().to()).thenReturn(navigator);
 
 		when(mockedFactories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
 		when(mockedFactories.getModelLayerFactory().getUserCredentialsManager()).thenReturn(userCredentialsManager);
@@ -97,7 +97,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 		presenter.backButtonClicked();
 
-		verify(userCredentialView.navigateTo(), times(1)).url("url3/url1/url2/" + URLEncoder.encode("username=dakota.indien",
+		verify(userCredentialView.navigate().to(), times(1)).url("url3/url1/url2/" + URLEncoder.encode("username=dakota.indien",
 				"UTF-8"));
 	}
 
@@ -107,7 +107,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 		presenter.editButtonClicked(dakotaCredentialVO);
 
-		verify(userCredentialView.navigateTo(), times(1))
+		verify(userCredentialView.navigate().to(), times(1))
 				.editUserCredential("url1/url2/url3/" + NavigatorConfigurationService.USER_DISPLAY + "/" + URLEncoder
 						.encode("username=dakota.indien", "UTF-8"));
 	}
@@ -118,7 +118,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 		presenter.displayGlobalGroupButtonClicked(HEROES, DAKOTA_INDIEN);
 
-		verify(userCredentialView.navigateTo(), times(1))
+		verify(userCredentialView.navigate().to(), times(1))
 				.displayGlobalGroup("url1/url2/url3/" + NavigatorConfigurationService.USER_DISPLAY + "/" + URLEncoder
 						.encode("username=dakota.indien;globalGroupCode=heroes",
 								"UTF-8"));
@@ -130,7 +130,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 
 		presenter.editGlobalGroupButtonClicked(HEROES, DAKOTA_INDIEN);
 
-		verify(userCredentialView.navigateTo(), times(1))
+		verify(userCredentialView.navigate().to(), times(1))
 				.editGlobalGroup("url1/url2/url3/" + NavigatorConfigurationService.USER_DISPLAY + "/" + URLEncoder
 						.encode("username=dakota.indien;globalGroupCode=heroes",
 								"UTF-8"));

@@ -36,6 +36,7 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
@@ -162,7 +163,7 @@ public class FacetConfigurationPresenterService extends BasePresenterUtils {
 		String label = $("init.allTypes.allSchemas." + metadata.getLocalCode());
 
 		if (label.startsWith("init.")) {
-			label = metadata.getLabel();
+			label = metadata.getLabel(Language.withCode(sessionContext.getCurrentLocale().getLanguage()));
 		}
 
 		return label;

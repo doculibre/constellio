@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
@@ -59,9 +59,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 	private CssLayout menuItemsLayout;
 
-	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<ConstellioMenuButton>();
+	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
-	private List<String> collections = new ArrayList<String>();
+	private List<String> collections = new ArrayList<>();
 
 	public ConstellioMenuImpl() {
 		this.presenter = new ConstellioMenuPresenter(this);
@@ -71,12 +71,12 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		setSizeUndefined();
 
 		setCompositionRoot(buildContent());
-		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
-			@Override
-			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
-				hideMenu();
-			}
-		});
+//		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
+//			@Override
+//			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
+//				hideMenu();
+//			}
+//		});
 	}
 
 	@Override
@@ -113,6 +113,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		if (titleComponent != null) {
 			menuContent.addComponent(titleComponent);
 		}
+		menuContent.addComponent(buildUserMenu());
 		menuContent.addComponent(buildUserMenu());
 		menuContent.addComponent(buildToggleButton());
 		menuContent.addComponent(buildMainMenu());
@@ -250,10 +251,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		String firstName = currentUser.getFirstName();
 		String lastName = currentUser.getLastName();
 
-		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
-			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
-
-		} else if (!presenter.hasCurrentUserPhoto()) {
+//		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
+//			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
+//
+//		} else
+        if (!presenter.hasCurrentUserPhoto()) {
 			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/default.jpg"), null);
 
 		} else {
@@ -285,7 +287,20 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//				presenter.preferencesButtonClicked();
 		//			}
 		//		});
+		final String collection = sessionContext.getCurrentCollection();
+		for(String language : presenter.getCollectionLanguages(collection)){
+			userSettingsItem.addSeparator();
+			userSettingsItem.addItem(language, new Command() {
+				@Override
+				public void menuSelected(final MenuItem selectedItem) {
+					presenter.languageSelected(selectedItem.getText(), collection);
+				}
+			}).setStyleName("language-item-" + language);
+		}
+
+
 		userSettingsItem.addSeparator();
+
 		userSettingsItem.addItem($("ConstellioMenu.signOut"), new Command() {
 			@Override
 			public void menuSelected(final MenuItem selectedItem) {
@@ -299,7 +314,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	}
 
 	protected List<ConstellioMenuButton> buildMainMenuButtons() {
-		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<ConstellioMenuButton>();
+		List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 		return mainMenuButtons;
 	}
 

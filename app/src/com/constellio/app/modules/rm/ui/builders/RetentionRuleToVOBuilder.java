@@ -23,6 +23,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -102,8 +103,11 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		references.add(referencedSchema);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(schema.getCode());
-		List<String> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode).getMetadataGroup();
-		String groupLabel = groups.get(0);
+
+		Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode)
+				.getMetadataGroup();
+		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+		String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
 
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getDisplayMetadataCodes());
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());

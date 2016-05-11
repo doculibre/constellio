@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.client.entities.MetadataResource;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -254,7 +256,8 @@ public class SchemasServicesAPI {
 			metadata.setEnabled(metadataResource.getEnabled());
 		}
 		if (metadataResource.getLabel() != null) {
-			metadata.setLabel(metadataResource.getLabel());
+			Language language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+			metadata.addLabel(language, metadataResource.getLabel());
 		}
 
 		metadata.defineValidators().set(metadataResource.getValidators());
@@ -330,7 +333,8 @@ public class SchemasServicesAPI {
 		MetadataResource resource = new MetadataResource();
 		resource.setCode(metadata.getCode());
 		resource.setDataStoreCode(metadata.getDataStoreCode());
-		resource.setLabel(metadata.getLabel());
+		Language language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+		resource.setLabel(metadata.getLabel(language));
 		resource.setType(metadata.getType().name());
 		resource.setChildOfRelationship(metadata.isChildOfRelationship());
 		if (metadata.getAllowedReferences() != null) {

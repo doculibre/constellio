@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
@@ -31,10 +33,11 @@ public class SearchResultReportPresenter {
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
 	private final ModelLayerFactory modelLayerFactory;
+	private final Locale locale;
 
 	public SearchResultReportPresenter(ModelLayerFactory modelLayerFactory, List<String> selectedRecords, String schemaType,
 			String collection, String username,
-			String reportTitle, LogicalSearchQuery searchQuery) {
+			String reportTitle, LogicalSearchQuery searchQuery, Locale locale) {
 		this.selectedRecords = selectedRecords;
 		this.schemaTypeCode = schemaType;
 		this.collection = collection;
@@ -42,6 +45,7 @@ public class SearchResultReportPresenter {
 		this.reportTitle = reportTitle;
 		this.searchQuery = searchQuery;
 		this.modelLayerFactory = modelLayerFactory;
+		this.locale = locale;
 	}
 
 	public SearchResultReportModel buildModel(ModelLayerFactory modelLayerFactory) {
@@ -50,7 +54,7 @@ public class SearchResultReportPresenter {
 		List<Metadata> orderedEnabledReportedMetadataList = getEnabledReportedMetadataList(modelLayerFactory);
 
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
-			resultReportModel.addTitle(metadata.getLabel());
+			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 		List<Record> records;
 		if (selectedRecords == null || selectedRecords.isEmpty()) {

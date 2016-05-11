@@ -5,6 +5,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,7 +26,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 
 public class AddEditFacetConfigurationPresenterAcceptTest extends ConstellioTest {
 	@Mock AddEditFacetConfigurationView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	AddEditFacetConfigurationPresenter presenter;
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -38,10 +40,11 @@ public class AddEditFacetConfigurationPresenterAcceptTest extends ConstellioTest
 				withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
+		navigator = new MockedNavigation();
+
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
-		doNothing().when(navigator).listFacetConfiguration();
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = spy(new AddEditFacetConfigurationPresenter(view));
 		schemasRecords = new SchemasRecordsServices(zeCollection, getModelLayerFactory());

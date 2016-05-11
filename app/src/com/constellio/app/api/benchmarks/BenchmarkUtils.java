@@ -2,6 +2,8 @@ package com.constellio.app.api.benchmarks;
 
 import static org.mockito.Mockito.when;
 
+import java.util.Locale;
+
 import org.mockito.Mockito;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -20,6 +22,7 @@ public class BenchmarkUtils {
 
 		SessionContext sessionContext = Mockito.mock(SessionContext.class);
 		when(sessionContext.getCurrentCollection()).thenReturn(collection);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 		UserVO currentUser = new UserToVOBuilder().build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		when(sessionContext.getCurrentUser()).thenReturn(currentUser);
 

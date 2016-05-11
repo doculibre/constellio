@@ -1,7 +1,6 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
-import static com.constellio.model.frameworks.validation.Validator.METADATA_LABEL;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedReferenceFromDummyCalculatorUsingOtherMetadata;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
@@ -27,10 +26,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.security.Key;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.frameworks.validation.Validator;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -745,10 +743,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			recordServices.update(record.set(zeSchema.stringMetadata(), "another value"));
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
+			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
+			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-							METADATA_LABEL, "A toAString metadata"))
+					parameters)
 			);
 		}
 
@@ -756,10 +755,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			recordServices.update(record.set(zeSchema.stringMetadata(), null));
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
+			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
+			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-							METADATA_LABEL, "A toAString metadata"))
+					parameters)
 			);
 		}
 
@@ -1037,5 +1037,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		return transaction;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
 	}
 }

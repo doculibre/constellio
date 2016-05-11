@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -95,6 +96,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 	}
 
