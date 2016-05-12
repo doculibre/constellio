@@ -1,15 +1,12 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -117,16 +114,4 @@ public class BatchProcessingPresenterService {
 		return eimConfigs.getBatchProcessingMode();
 	}
 
-	public BatchProcessRequest toRequest(List<String> selectedRecord, RecordVO formVO) {
-		MetadataSchema schema = schemas.getTypes().getSchema(formVO.getSchema().getCode());
-		Map<String, Object> fieldsModifications = new HashMap<>();
-		for (MetadataVO metadataVO : formVO.getMetadatas()) {
-			Object value = formVO.get(metadataVO);
-			if (value != null) {
-				fieldsModifications.put(metadataVO.getCode(), value);
-			}
-		}
-
-		return new BatchProcessRequest(selectedRecord, schema, fieldsModifications);
-	}
 }

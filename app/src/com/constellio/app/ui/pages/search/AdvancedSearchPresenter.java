@@ -344,7 +344,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		BatchProcessingPresenterService presenterService = batchProcessingPresenterService();
 		//TODO Nouha
 		List<String> selectedIds = new ArrayList<>();
-		BatchProcessRequest request = presenterService.toRequest(selectedIds, viewObject);
+		BatchProcessRequest request = toRequest(selectedIds, viewObject);
 		ValidationErrors errors = presenterService.validate(request);
 		if (errors.isEmpty()) {
 			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
@@ -357,7 +357,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		BatchProcessingPresenterService presenterService = batchProcessingPresenterService();
 		//TODO Nouha
 		List<String> selectedIds = new ArrayList<>();
-		BatchProcessRequest request = presenterService.toRequest(selectedIds, viewObject);
+		BatchProcessRequest request = toRequest(selectedIds, viewObject);
 		ValidationErrors errors = presenterService.validate(request);
 		if (errors.isEmpty()) {
 			BatchProcessResults results = batchProcessingPresenterService().run(request);

@@ -26,6 +26,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ReportPresenter;
@@ -33,12 +34,15 @@ import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -376,5 +380,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private SearchBoostManager searchBoostManager() {
 		return modelLayerFactory.getSearchBoostManager();
+	}
+
+	public BatchProcessRequest toRequest(List<String> selectedRecord, RecordVO formVO) {
+		MetadataSchema schema = coreSchemas().getTypes().getSchema(formVO.getSchema().getCode());
+		Map<String, Object> fieldsModifications = new HashMap<>();
+		for (MetadataVO metadataVO : formVO.getMetadatas()) {
+			Object value = formVO.get(metadataVO);
+			if (value != null) {
+				fieldsModifications.put(metadataVO.getCode(), value);
+			}
+		}
+		User user = getCurrentUser();
+
+		return new BatchProcessRequest(selectedRecord, schema, user, fieldsModifications);
 	}
 }
