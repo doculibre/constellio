@@ -247,7 +247,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			givenTransactionLogIsEnabled();
 			File state = new File(getStatesFolder(old), testCase + ".zip");
 
-			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state).withFakeEncryptionServices();
 		}
 
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
