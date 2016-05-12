@@ -29,6 +29,7 @@ import java.security.Key;
 import java.util.*;
 
 import com.constellio.model.frameworks.validation.Validator;
+import com.constellio.sdk.FakeEncryptionServices;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -482,6 +483,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 						.withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
 
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotNull();
+		assertThat(getModelLayerFactory().newEncryptionServices()).isNotInstanceOf(FakeEncryptionServices.class);
 
 		recordServices.add(record
 				.set(zeSchema.title(), "neverEncryptedValue")
