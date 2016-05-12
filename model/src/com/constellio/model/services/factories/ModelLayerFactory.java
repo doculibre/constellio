@@ -408,6 +408,7 @@ public class ModelLayerFactory extends LayerFactory {
 		if (encryptionServices != null) {
 			return encryptionServices;
 		}
+
 		if (applicationEncryptionKey == null) {
 			this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
 		}

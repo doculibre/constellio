@@ -105,6 +105,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
+	public DataLayerConfiguration getDataLayerConfiguration() {
+		return dataLayerConfiguration;
+	}
+
+	@Override
 	public void setBatchProcessesEnabled(boolean enabled) {
 		this.batchProcessesEnabled = enabled;
 	}
