@@ -3,6 +3,7 @@ package com.constellio.sdk.tests;
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,8 +41,11 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.FakeEncryptionServices;
 
@@ -190,16 +194,6 @@ public class FactoriesTestFeatures {
 				@Override
 				public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 
-					if (dummyPasswords) {
-						if (fakeEncryptionServices) {
-							try {
-								modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-							} catch (Exception e) {
-								throw new RuntimeException(e);
-							}
-						}
-					}
-
 					if (spiedClasses.isEmpty()) {
 						return modelLayerFactory;
 					} else {
@@ -267,6 +261,21 @@ public class FactoriesTestFeatures {
 
 				}
 			};
+
+			if (fakeEncryptionServices) {
+				modelLayerConfigurationAlterations.add(new ModelLayerConfigurationAlteration() {
+					@Override
+					public void alter(ModelLayerConfiguration configuration) {
+						Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+							@Override
+							public EncryptionServices get() {
+								return new FakeEncryptionServices();
+							}
+						};
+						when(configuration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
+					}
+				});
+			}
 
 			File configManagerFolder = fileSystemTestFeatures.newTempFolderWithName("configManagerFolder");
 			File contentFolder = fileSystemTestFeatures.newTempFolderWithName("contentFolder");

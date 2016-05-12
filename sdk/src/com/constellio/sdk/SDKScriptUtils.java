@@ -1,11 +1,15 @@
 package com.constellio.sdk;
 
+import static org.mockito.Mockito.when;
+
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.factories.ConstellioFactoriesDecorator;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 
@@ -25,6 +29,13 @@ public class SDKScriptUtils {
 			@Override
 			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
 				modelLayerConfiguration.setBatchProcessesEnabled(false);
+				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+					@Override
+					public EncryptionServices get() {
+						return new FakeEncryptionServices();
+					}
+				};
+				when(modelLayerConfiguration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
 				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
 			}
 
@@ -36,11 +47,6 @@ public class SDKScriptUtils {
 
 			@Override
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
-				try {
-					modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
 					public boolean authenticate(String username, String password) {
@@ -97,11 +103,6 @@ public class SDKScriptUtils {
 
 			@Override
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
-				try {
-					modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
 					public boolean authenticate(String username, String password) {

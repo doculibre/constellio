@@ -1,6 +1,7 @@
 package com.constellio.sdk;
 
 import java.io.IOException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -11,9 +12,12 @@ import com.constellio.model.services.encrypt.EncryptionServices;
  * Created by dakota on 11/9/15.
  */
 public class FakeEncryptionServices extends EncryptionServices {
-	public FakeEncryptionServices()
+
+	@Override
+	public EncryptionServices withKey(Key key)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		super(EncryptionKeyFactory.newApplicationKey("test", "test"));
+		super.withKey(EncryptionKeyFactory.newApplicationKey("test", "test"));
+		return this;
 	}
 
 	@Override
@@ -29,4 +33,5 @@ public class FakeEncryptionServices extends EncryptionServices {
 			return encryptedBase64.replace("crypted:", "");
 		}
 	}
+
 }
