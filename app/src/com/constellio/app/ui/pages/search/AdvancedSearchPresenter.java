@@ -10,11 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
-import com.constellio.model.entities.enums.BatchProcessingMode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +25,14 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
@@ -40,6 +41,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -48,6 +50,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServicesException;
@@ -63,7 +66,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	private transient LogicalSearchCondition condition;
 
-	private transient BatchProcessingPresenterService batchProcessingPresenter;
+	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -186,11 +189,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return condition;
 	}
 
-	BatchProcessingPresenter batchProcessingPresenter(){
-		if(batchProcessingPresenter == null){
-			batchProcessingPresenter = new BatchProcessingPresenterService(modelLayerFactory, collection);
+	BatchProcessingPresenterService batchProcessingPresenterService() {
+		if (batchProcessingPresenterService == null) {
+			batchProcessingPresenterService = new BatchProcessingPresenterService(collection, appLayerFactory);
 		}
-		return batchProcessingPresenter;
+		return batchProcessingPresenterService;
 	}
 
 	void buildSearchCondition()
@@ -323,31 +326,46 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
-		return batchProcessingPresenter().getOriginSchema(schemaType, selectedRecordIds);
+		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedRecordIds);
 	}
 
 	@Override
 	public List<String> getDestinationSchemata(String originSchema) {
-		return batchProcessingPresenter().getDestinationSchemata(originSchema);
+		return batchProcessingPresenterService().getDestinationSchemata(originSchema);
 	}
 
 	@Override
 	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
-		return batchProcessingPresenter().newRecordVO(schema, sessionContext);
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext);
 	}
 
 	@Override
 	public void simulateButtonClicked(RecordVO viewObject) {
-		batchProcessingPresenter().simulateButtonClicked(viewObject);
+		BatchProcessingPresenterService presenterService = batchProcessingPresenterService();
+		//TODO Nouha
+		List<String> selectedIds = new ArrayList<>();
+		BatchProcessRequest request = presenterService.toRequest(selectedIds, viewObject);
+		ValidationErrors errors = presenterService.validate(request);
+		if (errors.isEmpty()) {
+			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
+		}
+
 	}
 
 	@Override
 	public void saveButtonClicked(RecordVO viewObject) {
-		batchProcessingPresenter().saveButtonClicked(viewObject);
+		BatchProcessingPresenterService presenterService = batchProcessingPresenterService();
+		//TODO Nouha
+		List<String> selectedIds = new ArrayList<>();
+		BatchProcessRequest request = presenterService.toRequest(selectedIds, viewObject);
+		ValidationErrors errors = presenterService.validate(request);
+		if (errors.isEmpty()) {
+			BatchProcessResults results = batchProcessingPresenterService().run(request);
+		}
 	}
 
 	@Override
 	public BatchProcessingMode getBatchProcessingMode() {
-		return batchProcessingPresenter().getBatchProcessingMode();
+		return batchProcessingPresenterService().getBatchProcessingMode();
 	}
 }
