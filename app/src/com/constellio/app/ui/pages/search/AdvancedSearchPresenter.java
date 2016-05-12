@@ -14,6 +14,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -343,5 +344,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public void saveButtonClicked(RecordVO viewObject) {
 		batchProcessingPresenter().saveButtonClicked(viewObject);
+	}
+
+	@Override
+	public BatchProcessingMode getBatchProcessingMode() {
+		return batchProcessingPresenter().getBatchProcessingMode();
 	}
 }

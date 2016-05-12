@@ -1,8 +1,10 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
@@ -16,11 +18,6 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BatchProcessingButton extends WindowButton {
-    private MetadataFieldFactory factory;
-    private HorizontalLayout valueArea;
-    private ComboBox metadata;
-    private Field value;
-    private Button process;
     private AdvancedSearchPresenter presenter;
     private final AdvancedSearchView view;
 
@@ -30,10 +27,9 @@ public class BatchProcessingButton extends WindowButton {
     VerticalLayout vLayout;
 
     public BatchProcessingButton(AdvancedSearchPresenter presenter, AdvancedSearchView view) {
-        super($("AdvancedSearchView.batchProcessing"), $("AdvancedSearchView.batchProcessing"),new WindowConfiguration(false, false,
+        super($("AdvancedSearchView.batchProcessing"), $("AdvancedSearchView.batchProcessing"),new WindowConfiguration(true, true,
                 "75%", "75%"));
         this.presenter = presenter;
-        factory = new MetadataFieldFactory();
         this.view = view;
     }
 
@@ -43,7 +39,7 @@ public class BatchProcessingButton extends WindowButton {
         vLayout = new VerticalLayout();
         String originSchema = presenter.getOriginSchema(view.getSchemaType(), view.getSelectedRecordIds());
         List<String> destinationSchema = presenter.getDestinationSchemata(view.getSchemaType());
-        schemaField = new ComboBox("AdvancedSearchView.schema", destinationSchema);
+        schemaField = new ComboBox($("AdvancedSearchView.schema"), destinationSchema);
         schemaField.setValue(originSchema);
         schemaField.setNullSelectionAllowed(false);
         schemaField.addListener(new Property.ValueChangeListener() {
@@ -54,7 +50,7 @@ public class BatchProcessingButton extends WindowButton {
         });
         vLayout.addComponent(schemaField);
 
-        form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()));
+        form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()), new RecordFieldFactoryWithoutType());
         vLayout.addComponent(form);
 
         panel.setContent(vLayout);
@@ -63,7 +59,7 @@ public class BatchProcessingButton extends WindowButton {
     }
 
     private void refreshForm() {
-        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()));
+        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()), new RecordFieldFactoryWithoutType());
         vLayout.replaceComponent(form, newForm);
         form = newForm;
     }
@@ -72,8 +68,10 @@ public class BatchProcessingButton extends WindowButton {
     public class BatchProcessingForm extends RecordForm {
         Button simulateButton, processButton;
 
-        public BatchProcessingForm(RecordVO record) {
-            super(record);
+        public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {
+            super(record, recordFieldFactory);
+            getWindow().setWidth("200px");
+            getWindow().setHeight("300px");
             simulateButton = new Button($("simulate"));
             simulateButton.addClickListener(new ClickListener() {
                 @Override
@@ -105,12 +103,15 @@ public class BatchProcessingButton extends WindowButton {
             getWindow().close();
         }
 
+    }
+
+    public static class RecordFieldFactoryWithoutType extends RecordFieldFactory {
         @Override
-        public Field<?> getField(String metadataCode) {
-            if(metadataCode.endsWith("_type")){
+        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+            if(metadataVO.getLocalCode().equals("type")){
                 return null;
             }else{
-                return super.getField(metadataCode);
+                return super.build(recordVO, metadataVO);
             }
         }
     }

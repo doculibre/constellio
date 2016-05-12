@@ -13,8 +13,11 @@ import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamRes
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.github.rjeschke.txtmark.Run;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Link;
@@ -26,6 +29,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView {
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
@@ -76,8 +81,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
 
-		//TODO config system to use defaut or new batchProcess button
-		WindowButton batchProcess = new BatchProcessingButton(presenter, this);
+		WindowButton batchProcess = newBatchProcessingButton();
 		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
 		selectionActions.add(batchProcess);
@@ -118,6 +122,17 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 
 		return results.createSummary(actions, selectionActions);
+	}
+
+	private WindowButton newBatchProcessingButton() {
+		BatchProcessingMode mode = presenter.getBatchProcessingMode();
+		if(mode.equals(ALL_METADATA_OF_SCHEMA)){
+			return new BatchProcessingButton(presenter, this);
+		}else if (mode.equals(ONE_METADATA)){
+			return new BatchProcessingModifyingOneMetadataButton(presenter, this);
+		}else{
+			throw new RuntimeException("Unsupported mode " + mode);
+		}
 	}
 
 	@Override

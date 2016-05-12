@@ -4,9 +4,11 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import org.apache.commons.lang.StringUtils;
 
@@ -95,5 +97,11 @@ public class BatchProcessingPresenterService implements BatchProcessingPresenter
     @Override
     public void saveButtonClicked(RecordVO viewObject) {
 
+    }
+
+    @Override
+    public BatchProcessingMode getBatchProcessingMode() {
+        ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+        return eimConfigs.getBatchProcessingMode();
     }
 }
