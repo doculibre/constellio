@@ -50,7 +50,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServicesException;
@@ -341,26 +340,40 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public void simulateButtonClicked(RecordVO viewObject) {
-		BatchProcessingPresenterService presenterService = batchProcessingPresenterService();
 		//TODO Nouha
 		List<String> selectedIds = new ArrayList<>();
-		BatchProcessRequest request = toRequest(selectedIds, viewObject);
-		ValidationErrors errors = presenterService.validate(request);
-		if (errors.isEmpty()) {
+
+		try {
+			BatchProcessRequest request = toRequest(selectedIds, viewObject);
 			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
+			//show results
+
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+
+		} catch (RecordServicesException | RuntimeException e) {
+			LOGGER.error("Unexpected error while simulating batch process", e);
+			view.showErrorMessage($(e.getMessage()));
 		}
 
 	}
 
 	@Override
 	public void saveButtonClicked(RecordVO viewObject) {
-		BatchProcessingPresenterService presenterService = batchProcessingPresenterService();
 		//TODO Nouha
 		List<String> selectedIds = new ArrayList<>();
-		BatchProcessRequest request = toRequest(selectedIds, viewObject);
-		ValidationErrors errors = presenterService.validate(request);
-		if (errors.isEmpty()) {
-			BatchProcessResults results = batchProcessingPresenterService().run(request);
+
+		try {
+			BatchProcessRequest request = toRequest(selectedIds, viewObject);
+			batchProcessingPresenterService().execute(request);
+			//show success message
+
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+
+		} catch (RecordServicesException | RuntimeException e) {
+			LOGGER.error("Unexpected error while executing batch process", e);
+			view.showErrorMessage($(e.getMessage()));
 		}
 	}
 

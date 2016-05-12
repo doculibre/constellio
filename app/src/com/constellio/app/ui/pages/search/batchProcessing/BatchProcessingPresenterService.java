@@ -17,10 +17,10 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 
 public class BatchProcessingPresenterService {
@@ -97,16 +97,14 @@ public class BatchProcessingPresenterService {
 		return new RecordToVOBuilder().build(tmpRecord, RecordVO.VIEW_MODE.FORM, sessionContext);
 	}
 
-	public BatchProcessResults run(BatchProcessRequest request) {
+	public BatchProcessResults execute(BatchProcessRequest request)
+			throws RecordServicesException {
 		return new BatchProcessResults(new ArrayList<BatchProcessRecordModifications>());
 	}
 
-	public BatchProcessResults simulate(BatchProcessRequest request) {
+	public BatchProcessResults simulate(BatchProcessRequest request)
+			throws RecordServicesException {
 		return new BatchProcessResults(new ArrayList<BatchProcessRecordModifications>());
-	}
-
-	public ValidationErrors validate(BatchProcessRequest request) {
-		return new ValidationErrors();
 	}
 
 	public BatchProcessingMode getBatchProcessingMode() {
