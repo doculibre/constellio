@@ -162,6 +162,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 		}
 
 		try {
+			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
@@ -184,6 +185,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 			}
 
 			try {
+				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 				recordServices.execute(transaction);
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
@@ -218,6 +220,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 
 							try {
 								transaction2.getRecordUpdateOptions().setValidationsEnabled(false);
+								transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 								recordServices.execute(transaction2);
 							} catch (RecordServicesException e1) {
 								throw new RuntimeException(e1);
