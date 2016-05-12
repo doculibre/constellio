@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -39,6 +41,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 
 public class UserCredentialAndGlobalGroupsMigration {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserCredentialAndGlobalGroupsMigration.class);
 	private final ModelLayerFactory modelLayerFactory;
 	XmlUserCredentialsManager oldUserManager;
 	XmlGlobalGroupsManager oldGroupManager;
@@ -193,43 +196,45 @@ public class UserCredentialAndGlobalGroupsMigration {
 		}
 		correctUsernameInAllCollections(validUsernames, invalidUsernames);
 
-		Iterator<List<Record>> userCredentialIterator = searchServices.recordsBatchIterator(100, new LogicalSearchQuery(
-				from(schemasRecordsServices.credentialSchemaType()).returnAll()));
+		Iterator<Record> userCredentialIterator = searchServices.recordsIterator(new LogicalSearchQuery(
+				from(schemasRecordsServices.credentialSchemaType()).returnAll()), 100);
 
+		long nbUsers = searchServices.getResultsCount(from(schemasRecordsServices.credentialSchemaType()).returnAll());
+
+		int done = 0;
 		UserServices userServices = modelLayerFactory.newUserServices();
 		while (userCredentialIterator.hasNext()) {
-			List<UserCredential> userCredentials = schemasRecordsServices.wrapCredentials(userCredentialIterator.next());
-			for (UserCredential userCredential : userCredentials) {
-				if (validUsernames.contains(userCredential.getUsername())) {
-					for (String collection : userCredential.getCollections()) {
-						try {
-							if (userServices.getUserInCollection(userCredential.getUsername(), collection) == null) {
-								userServices.sync(userCredential);
-							}
-						} catch (SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult e) {
-							SchemasRecordsServices collectionSchemas = new SchemasRecordsServices(collection, modelLayerFactory);
-							List<Record> userRecords = searchServices.search(new LogicalSearchQuery(
-									from(collectionSchemas.userSchemaType())
-											.where(collectionSchemas.userUsername()).isEqualTo(userCredential.getUsername())));
-							List<User> users = collectionSchemas.wrapUsers(userRecords);
-							Transaction transaction2 = new Transaction();
-
-							for (int i = 1; i < users.size(); i++) {
-								transaction2.add(users.get(i)).setUsername(userCredential.getUsername() + "-disabled");
-							}
-
-							try {
-								transaction2.getRecordUpdateOptions().setValidationsEnabled(false);
-								transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-								recordServices.execute(transaction2);
-							} catch (RecordServicesException e1) {
-								throw new RuntimeException(e1);
-							}
+			UserCredential userCredential = schemasRecordsServices.wrapCredential(userCredentialIterator.next());
+			if (validUsernames.contains(userCredential.getUsername())) {
+				for (String collection : userCredential.getCollections()) {
+					try {
+						if (userServices.getUserInCollection(userCredential.getUsername(), collection) == null) {
 							userServices.sync(userCredential);
 						}
+					} catch (SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult e) {
+						SchemasRecordsServices collectionSchemas = new SchemasRecordsServices(collection, modelLayerFactory);
+						List<Record> userRecords = searchServices.search(new LogicalSearchQuery(
+								from(collectionSchemas.userSchemaType())
+										.where(collectionSchemas.userUsername()).isEqualTo(userCredential.getUsername())));
+						List<User> users = collectionSchemas.wrapUsers(userRecords);
+						Transaction transaction2 = new Transaction();
+
+						for (int i = 1; i < users.size(); i++) {
+							transaction2.add(users.get(i)).setUsername(userCredential.getUsername() + "-disabled");
+						}
+
+						try {
+							transaction2.getRecordUpdateOptions().setValidationsEnabled(false);
+							transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+							recordServices.execute(transaction2);
+						} catch (RecordServicesException e1) {
+							throw new RuntimeException(e1);
+						}
+						userServices.sync(userCredential);
 					}
 				}
 			}
+			LOGGER.info("Validating users after migration : " + ++done + "/" + nbUsers);
 		}
 
 		oldUserManager.close();

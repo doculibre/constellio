@@ -405,18 +405,22 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	synchronized public EncryptionServices newEncryptionServices() {
-		if (encryptionServices != null) {
-			return encryptionServices;
+		if (encryptionServices == null) {
+			encryptionServices = modelLayerConfiguration.getEncryptionServicesFactory().get();
 		}
 
-		if (applicationEncryptionKey == null) {
-			this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
+		if (!encryptionServices.isInitialized()) {
+			if (applicationEncryptionKey == null) {
+				this.applicationEncryptionKey = EncryptionKeyFactory.getApplicationKey(this);
+			}
+			try {
+				encryptionServices.withKey(applicationEncryptionKey);
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
-		try {
-			return modelLayerConfiguration.getEncryptionServicesFactory().get().withKey(applicationEncryptionKey);
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
-			throw new RuntimeException(e);
-		}
+
+		return encryptionServices;
 	}
 
 	public SearchBoostManager getSearchBoostManager() {
