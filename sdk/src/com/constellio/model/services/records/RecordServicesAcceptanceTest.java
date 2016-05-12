@@ -7,7 +7,6 @@ import static com.constellio.model.services.records.RecordServicesAcceptanceTest
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculatorReturningInvalidType;
 import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
 import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
@@ -24,12 +23,18 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.security.Key;
-import java.util.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.constellio.model.frameworks.validation.Validator;
-import com.constellio.sdk.FakeEncryptionServices;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -41,6 +46,8 @@ import org.mockito.ArgumentCaptor;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -51,9 +58,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
-import com.constellio.model.services.factories.ModelLayerFactoryUtils;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
@@ -62,7 +70,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator;
+import com.constellio.sdk.FakeEncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -93,6 +103,28 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		System.out.println("\n\n--RecordServicesAcceptanceTest.setup--\n\n");
+
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(ModelLayerConfiguration configuration) {
+
+				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+
+					@Override
+					public EncryptionServices get() {
+						Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
+						try {
+							return new EncryptionServices().withKey(key);
+						} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				};
+
+				when(configuration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
+			}
+		});
+
 		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		schemas = new RecordServicesTestSchemaSetup();
@@ -475,8 +507,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEncryptedMetadataThenDecryptedInRecordAndEncryptedInSolr()
 			throws Exception {
-		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
-		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
 
 		defineSchemasManager()
 				.using(schemas.withATitle().withAStringMetadata(whichIsEncrypted)
@@ -484,7 +514,6 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotNull();
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotInstanceOf(FakeEncryptionServices.class);
-
 		recordServices.add(record
 				.set(zeSchema.title(), "neverEncryptedValue")
 				.set(zeSchema.stringMetadata(), "decryptedValue1")
