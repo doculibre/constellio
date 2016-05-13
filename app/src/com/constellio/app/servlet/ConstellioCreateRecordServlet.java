@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -38,13 +40,18 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class ConstellioCreateRecordServlet extends HttpServlet {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioCreateRecordServlet.class);
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		LOGGER.info("Create record called!");
+		System.out.println("Create record called!");
 		User user = new HttpServletRequestAuthenticator(modelLayerFactory()).authenticateSystemAdminInCollection(request);
 		if (user == null) {
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			PrintWriter responseWriter = response.getWriter();
+			responseWriter.append("Unauthorized access : Invalid collection/servicesKey/token");
 		} else {
 			executeRequest(user, request, response);
 		}
@@ -160,6 +167,8 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 					List<String> recordIds = searchServices.searchRecordIds(query);
 					if (!recordIds.isEmpty()) {
 						record.set(metadata, recordIds.get(0));
+					} else {
+						record.set(metadata, metadataValue);
 					}
 					break;
 				case CONTENT:

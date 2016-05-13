@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.Language;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class MaskedMetadataValidator implements Validator<Record> {
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
 		for (Metadata metadata : metadatas) {
-			if (metadata.getInputMask() != null) {
+			if (StringUtils.isNotBlank(metadata.getInputMask())) {
 				Object value = record.get(metadata);
 				if (value != null && value instanceof String) {
 					String strValue = (String) value;
@@ -47,7 +47,7 @@ public class MaskedMetadataValidator implements Validator<Record> {
 	private void addValidationErrors(ValidationErrors validationErrors, String value, Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
+		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
 		parameters.put(MASK, metadata.getInputMask());
 		parameters.put(VALUE, value);
 		validationErrors.add(getClass(), VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK, parameters);
