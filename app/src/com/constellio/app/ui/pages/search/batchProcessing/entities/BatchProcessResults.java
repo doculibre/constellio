@@ -15,4 +15,13 @@ public class BatchProcessResults {
 	public List<BatchProcessRecordModifications> getRecordModifications() {
 		return recordModifications;
 	}
+
+	public BatchProcessRecordModifications getRecordModifications(String id) {
+		for (BatchProcessRecordModifications recordModification : recordModifications) {
+			if (recordModification.getRecordId().equals(id)) {
+				return recordModification;
+			}
+		}
+		return null;
+	}
 }

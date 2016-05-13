@@ -498,6 +498,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
 	}
 
+	public MetadataSchema folderSchema(String localCode) {
+		return getTypes().getSchemaType(Folder.SCHEMA_TYPE).getSchema(localCode);
+	}
+
 	public MetadataSchema folderSchemaFor(FolderType type) {
 		return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
 	}

@@ -10,12 +10,12 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -99,17 +99,34 @@ public class BatchProcessingPresenterService {
 
 	public BatchProcessResults execute(BatchProcessRequest request)
 			throws RecordServicesException {
-		return new BatchProcessResults(new ArrayList<BatchProcessRecordModifications>());
+
+		Transaction transaction = prepareTransaction(request);
+		BatchProcessResults results = toBatchProcessResults(transaction);
+
+		//results.getRecordModifications().add
+
+		return results;
 	}
 
 	public BatchProcessResults simulate(BatchProcessRequest request)
 			throws RecordServicesException {
-		return new BatchProcessResults(new ArrayList<BatchProcessRecordModifications>());
+
+		Transaction transaction = prepareTransaction(request);
+
+		return toBatchProcessResults(transaction);
 	}
 
 	public BatchProcessingMode getBatchProcessingMode() {
 		ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		return eimConfigs.getBatchProcessingMode();
+	}
+
+	private BatchProcessResults toBatchProcessResults(Transaction transaction) {
+		return null;
+	}
+
+	private Transaction prepareTransaction(BatchProcessRequest request) {
+		return null;
 	}
 
 }
