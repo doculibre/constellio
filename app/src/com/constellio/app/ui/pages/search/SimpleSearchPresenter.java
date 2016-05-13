@@ -15,7 +15,6 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordServicesException;
@@ -26,6 +25,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	private int pageNumber;
 	private String searchExpression;
+	private String searchID;
 
 	public SimpleSearchPresenter(SimpleSearchView view) {
 		super(view);
@@ -37,9 +37,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			String[] parts = params.split("/", 3);
 			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
 			if ("s".equals(parts[0])) {
-				SavedSearch search = getSavedSearch(parts[1]);
+				searchID = parts[1];
+				SavedSearch search = getSavedSearch(searchID);
 				setSavedSearch(search);
 			} else {
+				searchID = null;
 				searchExpression = parts[1];
 			}
 		} else {
@@ -149,12 +151,15 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	}
 
 	public Record getTemporarySearchRecord() {
-		MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		//MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 		try {
+			return recordServices().getDocumentById(searchID);
+			/*
 			return searchServices().searchSingleResult(from(schema).where(schema.getMetadata(SavedSearch.USER))
 					.isEqualTo(getCurrentUser())
 					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
 					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(SimpleSearchView.SEARCH_TYPE));
+					*/
 		} catch (Exception e) {
 			//TODO exception
 			e.printStackTrace();
@@ -164,9 +169,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	}
 
 	protected void saveTemporarySearch(boolean refreshPage) {
-		Record tmpSearchRecord = getTemporarySearchRecord();
-		if (tmpSearchRecord == null) {
+		Record tmpSearchRecord;
+		if (searchID == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		} else {
+			tmpSearchRecord = getTemporarySearchRecord();
 		}
 
 		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
