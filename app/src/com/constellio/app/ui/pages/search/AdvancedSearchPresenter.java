@@ -50,6 +50,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.records.RecordServicesException;
@@ -340,14 +341,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public void simulateButtonClicked(RecordVO viewObject) {
-		//TODO Nouha
-		List<String> selectedIds = new ArrayList<>();
-
 		try {
-			BatchProcessRequest request = toRequest(selectedIds, viewObject);
+			BatchProcessRequest request = toRequest(view.getSelectedRecordIds(), viewObject);
 			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
-			//show results
-
+			//view.showBatchProcessingresult(results);
 		} catch (RecordServicesException.ValidationException e) {
 			view.showErrorMessage($(e.getErrors()));
 
@@ -360,13 +357,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public void saveButtonClicked(RecordVO viewObject) {
-		//TODO Nouha
-		List<String> selectedIds = new ArrayList<>();
-
 		try {
-			BatchProcessRequest request = toRequest(selectedIds, viewObject);
-			batchProcessingPresenterService().execute(request);
+			BatchProcessRequest request = toRequest(view.getSelectedRecordIds(), viewObject);
+			BatchProcessResults results = batchProcessingPresenterService().execute(request);
 			//show success message
+			//view.showBatchProcessingresult(results);
 
 		} catch (RecordServicesException.ValidationException e) {
 			view.showErrorMessage($(e.getErrors()));

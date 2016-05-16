@@ -3,11 +3,11 @@ package com.constellio.app.ui.pages.search.batchProcessing;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.ui.*;
@@ -16,6 +16,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
 public class BatchProcessingButton extends WindowButton {
     private AdvancedSearchPresenter presenter;
@@ -50,7 +51,7 @@ public class BatchProcessingButton extends WindowButton {
         });
         vLayout.addComponent(schemaField);
 
-        form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()), new RecordFieldFactoryWithoutType());
+        form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()), new RecordFieldFactoryWithNoTypeNoContent());
         vLayout.addComponent(form);
 
         panel.setContent(vLayout);
@@ -59,7 +60,7 @@ public class BatchProcessingButton extends WindowButton {
     }
 
     private void refreshForm() {
-        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()), new RecordFieldFactoryWithoutType());
+        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()), new RecordFieldFactoryWithNoTypeNoContent());
         vLayout.replaceComponent(form, newForm);
         form = newForm;
     }
@@ -105,12 +106,12 @@ public class BatchProcessingButton extends WindowButton {
 
     }
 
-    public static class RecordFieldFactoryWithoutType extends RecordFieldFactory {
+    public static class RecordFieldFactoryWithNoTypeNoContent extends RecordFieldFactory {
         @Override
         public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            if(metadataVO.getLocalCode().equals("type")){
+            if(metadataVO.getLocalCode().equals("type") || metadataVO.getType().equals(CONTENT)){
                 return null;
-            }else{
+            } else {
                 return super.build(recordVO, metadataVO);
             }
         }
