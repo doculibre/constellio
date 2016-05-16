@@ -9,6 +9,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,6 +127,27 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		MV = records.MV;
 		MD = records.MD;
 
+	}
+
+	//@Test
+	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndCategoryThenValidationException()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setCategoryEntered(records.categoryId_X120);
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setOpenDate(LocalDate.now());
+
+		try {
+			recordServices.add(folder);
+			fail("Validation exception expected");
+		} catch (RecordServicesException.ValidationException e) {
+			e.printStackTrace();
+			//OK
+		}
 	}
 
 	@Test
