@@ -8,17 +8,14 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
-import org.assertj.core.groups.Tuple;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -36,8 +33,6 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -134,20 +129,6 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		}
 		assertThat(records.getFolder_A05().getRetentionRuleEntered()).isNotEqualTo(records.ruleId_2);
 
-	}
-
-	private List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
-
-		List<Tuple> tuples = new ArrayList<>();
-		for (ValidationError error : errors.getValidationErrors()) {
-			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
-			for (String parameter : parameters) {
-				tuple.addData(error.getParameters().get(parameter));
-			}
-			tuples.add(tuple);
-		}
-
-		return tuples;
 	}
 
 	private String error(Class<?> validatorClass, String code) {

@@ -75,7 +75,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		searchServices = spy(getModelLayerFactory().newSearchServices());
-		doReturn(true).when(searchServices).hasResults(any(LogicalSearchCondition.class));
+		doReturn(1L).when(searchServices).getResultsCount(any(LogicalSearchCondition.class));
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
