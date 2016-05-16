@@ -18,12 +18,16 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.github.rjeschke.txtmark.Run;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +56,17 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	@Override
 	public void setSearchCriteria(List<Criterion> criteria) {
 		header.setAdvancedSearchCriteria(criteria);
+	}
+
+	@Override
+	public void downloadBatchProcessingResults(final InputStream stream) {
+		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				return stream;
+			}
+		}, "results.xls");
+		Page.getCurrent().open(resource, null, false);
 	}
 
 	@Override

@@ -70,8 +70,8 @@ public class BatchProcessingResultReportBuilderManualAcceptTest  extends ReportB
         List<BatchProcessPossibleImpact> impacts2 = new ArrayList<>();
         MetadataSchemaType schema21 = types.getSchemaType(ContainerRecord.SCHEMA_TYPE);
         MetadataSchemaType schema22 = types.getSchemaType(Task.SCHEMA_TYPE);
-        impacts2.add(new BatchProcessPossibleImpact(11, schema21));
-        impacts2.add(new BatchProcessPossibleImpact(12, schema22));
+        impacts2.add(new BatchProcessPossibleImpact(21, schema21));
+        impacts2.add(new BatchProcessPossibleImpact(22, schema22));
         List<BatchProcessRecordFieldModification> fieldsModifs2 = new ArrayList<>();
         fieldsModifs2.add(0, new BatchProcessRecordFieldModification("lol21", "lol21After", metadata1));
         fieldsModifs2.add(1, new BatchProcessRecordFieldModification("lol22", "lol22After", metadata2));

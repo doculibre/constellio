@@ -46,6 +46,9 @@ public class BatchProcessingResultReportBuilder implements ReportBuilder {
         WritableWorkbook workbook = Workbook.createWorkbook(output, wbSettings);
         workbook.createSheet(i18n.$("Report.sheetName"), 0);
         WritableSheet excelSheet = workbook.getSheet(0);
+        excelSheet.setColumnView(0, 30);
+        excelSheet.setColumnView(1, 30);
+        excelSheet.setColumnView(2, 30);
         try {
             createContent(excelSheet, model);
         } catch (WriteException e) {

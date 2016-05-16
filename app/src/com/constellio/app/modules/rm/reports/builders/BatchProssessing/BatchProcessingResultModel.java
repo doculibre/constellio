@@ -68,14 +68,14 @@ public class BatchProcessingResultModel {
         List<List<Object> > recordImpacts = new ArrayList<>();
         for(BatchProcessPossibleImpact possibleImpact : currentResult.getImpacts()){
             List<Object> currentLine = new ArrayList<>();
-            currentLine.add($("BatchProcessingResultModel.impactOnSchema", possibleImpact + " " + getLabael(possibleImpact.getSchemaType())));
+            currentLine.add($("BatchProcessingResultModel.impactOnSchema", possibleImpact.getCount(), getLabel(possibleImpact.getSchemaType())));
 
             recordImpacts.add(currentLine);
         }
         return recordImpacts;
     }
 
-    private String getLabael(MetadataSchemaType schemaType) {
+    private String getLabel(MetadataSchemaType schemaType) {
         return schemaType.getLabel(language);
     }
 }
