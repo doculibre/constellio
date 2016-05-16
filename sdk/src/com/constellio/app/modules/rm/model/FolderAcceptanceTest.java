@@ -5,10 +5,14 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
+import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -113,6 +117,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withRMTest(records)
 		);
+
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
 				.isEqualTo(RMTaxonomies.ADMINISTRATIVE_UNITS);
 
@@ -129,14 +134,15 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//@Test
+	@Test
 	public void givenEnforcedWhenCreateFolderWithIncompatibleRuleAndCategoryThenValidationException()
 			throws Exception {
 
+		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, true);
 		Folder folder = rm.newFolder();
 		folder.setAdministrativeUnitEntered(records.unitId_11b);
-		folder.setCategoryEntered(records.categoryId_X120);
-		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setCategoryEntered(records.categoryId_X);
+		folder.setRetentionRuleEntered(records.ruleId_2);
 		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
 		folder.setTitle("Ze folder");
 		folder.setOpenDate(LocalDate.now());
@@ -145,9 +151,17 @@ public class FolderAcceptanceTest extends ConstellioTest {
 			recordServices.add(folder);
 			fail("Validation exception expected");
 		} catch (RecordServicesException.ValidationException e) {
-			e.printStackTrace();
-			//OK
+
+			assertThat(extractingSimpleCodeAndParameters(e, CATEGORY_CODE, RULE_CODE)).containsOnly(
+					tuple("FolderValidator_folderCategoryMustBeRelatedToItsRule", "X", "2")
+			);
+
 		}
+
+		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
+
+		//OK
+		recordServices.add(folder);
 	}
 
 	@Test

@@ -923,7 +923,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 		@Override
 		public void validate(RecordValidatorParams params) {
-			String title = params.getRecord().get(Schemas.TITLE);
+			String title = params.getValidatedRecord().get(Schemas.TITLE);
 			if (title.contains("1") || title.contains("3")) {
 				params.getValidationErrors().add(NoAB_OR_1_Validator.class, "No 1, 3");
 			}

@@ -30,8 +30,12 @@ public class RecordValidatorParams {
 		this.recordProvider = recordProvider;
 	}
 
-	public Record getRecord() {
+	public Record getValidatedRecord() {
 		return record;
+	}
+
+	public Record getRecord(String id) {
+		return recordProvider.getRecord(id);
 	}
 
 	public MetadataSchemaTypes getTypes() {

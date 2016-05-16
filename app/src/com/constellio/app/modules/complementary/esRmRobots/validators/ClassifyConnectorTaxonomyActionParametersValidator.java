@@ -20,7 +20,7 @@ public class ClassifyConnectorTaxonomyActionParametersValidator implements Recor
 	@Override
 	public void validate(RecordValidatorParams params) {
 		ClassifyConnectorFolderInTaxonomyActionParameters parameters = new ClassifyConnectorFolderInTaxonomyActionParameters(
-				params.getRecord(), params.getTypes());
+				params.getValidatedRecord(), params.getTypes());
 		validate(parameters, params.getSchema(), params.getConfigProvider(), params.getValidationErrors());
 	}
 
