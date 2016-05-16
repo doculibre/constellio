@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
@@ -36,7 +37,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
@@ -494,5 +499,27 @@ public class TestUtils {
 			//				}
 			//			});
 		}
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationRuntimeException e, String... parameters) {
+		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationException e, String... parameters) {
+		return extractingSimpleCodeAndParameters(e.getErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
+
+		List<Tuple> tuples = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
+			for (String parameter : parameters) {
+				tuple.addData(error.getParameters().get(parameter));
+			}
+			tuples.add(tuple);
+		}
+
+		return tuples;
 	}
 }

@@ -9,13 +9,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class ModificationImpact {
 
+	final MetadataSchemaType impactedSchemaType;
 	final List<Metadata> metadataToReindex;
 	final LogicalSearchCondition logicalSearchCondition;
+	final int potentialImpactsCount;
 
-	public ModificationImpact(List<Metadata> metadataToReindex,
-			LogicalSearchCondition logicalSearchCondition) {
+	public ModificationImpact(MetadataSchemaType impactedSchemaType, List<Metadata> metadataToReindex,
+			LogicalSearchCondition logicalSearchCondition, int potentialImpactsCount) {
+		this.impactedSchemaType = impactedSchemaType;
 		this.metadataToReindex = metadataToReindex;
 		this.logicalSearchCondition = logicalSearchCondition;
+		this.potentialImpactsCount = potentialImpactsCount;
 
 		if (logicalSearchCondition == null) {
 			throw new RuntimeException("logicalSearchCondition required");
@@ -40,11 +44,21 @@ public class ModificationImpact {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	public MetadataSchemaType getImpactedSchemaType() {
+		return impactedSchemaType;
+	}
+
+	public int getPotentialImpactsCount() {
+		return potentialImpactsCount;
+	}
+
 	@Override
 	public String toString() {
 		return "ModificationImpact{" +
-				"metadataToReindex=" + metadataToReindex +
+				"impactedSchemaType=" + impactedSchemaType +
+				", metadataToReindex=" + metadataToReindex +
 				", logicalSearchCondition=" + logicalSearchCondition +
+				", potentialImpactsCount=" + potentialImpactsCount +
 				'}';
 	}
 }

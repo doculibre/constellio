@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
@@ -28,6 +27,7 @@ import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
@@ -53,8 +53,8 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -209,6 +209,7 @@ public class ConstellioRMModule implements InstallableSystemModule {
 		extensions.recordAppExtensions.add(new RMRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension());
 		extensions.searchPageExtensions.add(new RMSearchPageExtension());
+		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {

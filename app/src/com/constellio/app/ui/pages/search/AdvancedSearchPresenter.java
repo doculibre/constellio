@@ -8,6 +8,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +26,14 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
@@ -35,6 +42,7 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -49,7 +57,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> {
+public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
 
 	String searchExpression;
@@ -57,6 +65,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private int pageNumber;
 
 	private transient LogicalSearchCondition condition;
+
+	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -177,6 +187,14 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			}
 		}
 		return condition;
+	}
+
+	BatchProcessingPresenterService batchProcessingPresenterService() {
+		if (batchProcessingPresenterService == null) {
+			Locale locale = view.getSessionContext().getCurrentLocale();
+			batchProcessingPresenterService = new BatchProcessingPresenterService(collection, appLayerFactory, locale);
+		}
+		return batchProcessingPresenterService;
 	}
 
 	void buildSearchCondition()
@@ -305,5 +323,64 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		} catch (RecordServicesException e) {
 			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}
+	}
+
+	@Override
+	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedRecordIds);
+	}
+
+	@Override
+	public List<String> getDestinationSchemata(String originSchema) {
+		return batchProcessingPresenterService().getDestinationSchemata(originSchema);
+	}
+
+	@Override
+	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext);
+	}
+
+	@Override
+	public void simulateButtonClicked(RecordVO viewObject) {
+		//TODO Nouha
+		List<String> selectedIds = new ArrayList<>();
+
+		try {
+			BatchProcessRequest request = toRequest(selectedIds, viewObject);
+			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
+			//show results
+
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+
+		} catch (RecordServicesException | RuntimeException e) {
+			LOGGER.error("Unexpected error while simulating batch process", e);
+			view.showErrorMessage($(e.getMessage()));
+		}
+
+	}
+
+	@Override
+	public void saveButtonClicked(RecordVO viewObject) {
+		//TODO Nouha
+		List<String> selectedIds = new ArrayList<>();
+
+		try {
+			BatchProcessRequest request = toRequest(selectedIds, viewObject);
+			batchProcessingPresenterService().execute(request);
+			//show success message
+
+		} catch (RecordServicesException.ValidationException e) {
+			view.showErrorMessage($(e.getErrors()));
+
+		} catch (RecordServicesException | RuntimeException e) {
+			LOGGER.error("Unexpected error while executing batch process", e);
+			view.showErrorMessage($(e.getMessage()));
+		}
+	}
+
+	@Override
+	public BatchProcessingMode getBatchProcessingMode() {
+		return batchProcessingPresenterService().getBatchProcessingMode();
 	}
 }
