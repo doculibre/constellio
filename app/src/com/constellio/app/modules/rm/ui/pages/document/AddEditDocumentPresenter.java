@@ -446,6 +446,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			newSchemaCode = Document.DEFAULT_SCHEMA;
 		}
 
+		view.getForm().commit();
 		Record documentRecord = toRecord(documentVO);
 		Document document = new Document(documentRecord, types());
 
@@ -453,7 +454,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		document.changeSchemaTo(newSchemaCode);
 		MetadataSchema newSchema = document.getSchema();
 
-		view.getForm().commit();
+		recordServices().recalculate(document);
 
 		for (MetadataVO metadataVO : documentVO.getMetadatas()) {
 			String metadataCode = metadataVO.getCode();

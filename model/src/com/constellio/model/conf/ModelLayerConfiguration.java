@@ -4,6 +4,10 @@ import java.io.File;
 
 import org.joda.time.Duration;
 
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.services.encrypt.EncryptionServices;
+
 public interface ModelLayerConfiguration {
 
 	void validate();
@@ -15,6 +19,8 @@ public interface ModelLayerConfiguration {
 	String getComputerName();
 
 	boolean isBatchProcessesThreadEnabled();
+
+	Factory<EncryptionServices> getEncryptionServicesFactory();
 
 	void setBatchProcessesEnabled(boolean enabled);
 
@@ -41,4 +47,6 @@ public interface ModelLayerConfiguration {
 	void setMainDataLanguage(String language);
 
 	File getConstellioEncryptionFile();
+
+	DataLayerConfiguration getDataLayerConfiguration();
 }
