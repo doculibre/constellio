@@ -1,12 +1,11 @@
 package com.constellio.app.modules.tasks.model.validators;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordValidatorParams;
 
 public class TaskValidator implements RecordValidator {
 	public static final String ASSIGNATION_DATE_AND_ASSIGNED_ON_ASSIGNER_SHOULD_BE_ALL_NULL_OR_ALL_NOT_NULL = "assignationDateAndAssignedOnAndAssignerShouldBeAllNullOrAllNotNull";
@@ -14,10 +13,9 @@ public class TaskValidator implements RecordValidator {
 	public static final String TASK_DECISION_IS_REQUIRED = "taskDecisionIsRequired";
 
 	@Override
-	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ConfigProvider configProvider,
-			ValidationErrors validationErrors) {
-		Task task = new Task(record, types);
-		validate(task, schema, configProvider, validationErrors);
+	public void validate(RecordValidatorParams params) {
+		Task task = new Task(params.getRecord(), params.getTypes());
+		validate(task, params.getSchema(), params.getConfigProvider(), params.getValidationErrors());
 	}
 
 	public void validate(Task task, MetadataSchema schema, ConfigProvider configProvider, ValidationErrors validationErrors) {
