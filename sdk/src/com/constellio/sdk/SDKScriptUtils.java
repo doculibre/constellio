@@ -1,6 +1,9 @@
 package com.constellio.sdk;
 
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+
+import java.io.File;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,6 +31,11 @@ public class SDKScriptUtils {
 
 			@Override
 			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+
+				File keyTxt = new File(modelLayerConfiguration.getDataLayerConfiguration().getSettingsFileSystemBaseFolder(),
+						"key.txt");
+
+				modelLayerConfiguration = spy(modelLayerConfiguration);
 				modelLayerConfiguration.setBatchProcessesEnabled(false);
 				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 					@Override
@@ -36,11 +44,13 @@ public class SDKScriptUtils {
 					}
 				};
 				when(modelLayerConfiguration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
-				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
+				when(modelLayerConfiguration.getConstellioEncryptionFile()).thenReturn(keyTxt);
+				return modelLayerConfiguration;
 			}
 
 			@Override
 			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+
 				dataLayerConfiguration.setBackgroundThreadsEnabled(false);
 				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
 			}

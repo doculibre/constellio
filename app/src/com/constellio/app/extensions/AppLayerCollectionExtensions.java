@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.BatchProcessingExtension;
+import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.PageExtension;
@@ -36,6 +38,7 @@ import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class AppLayerCollectionExtensions {
@@ -55,6 +58,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordAppExtension> recordAppExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordNavigationExtension> recordNavigationExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<BatchProcessingExtension> batchProcessingExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<CmisExtension> cmisExtensions = new VaultBehaviorsList<>();
 
@@ -244,6 +249,15 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return recordFieldFactory;
+	}
+
+	public boolean isMetadataDisplayedWhenModifiedInBatchProcessing(final Metadata metadata) {
+		return batchProcessingExtensions.getBooleanValue(true, new BooleanCaller<BatchProcessingExtension>() {
+			@Override
+			public ExtensionBooleanResult call(BatchProcessingExtension behavior) {
+				return behavior.isMetadataDisplayedWhenModified(new IsMetadataDisplayedWhenModifiedParams(metadata));
+			}
+		});
 	}
 
 }

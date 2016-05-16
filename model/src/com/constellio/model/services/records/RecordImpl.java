@@ -102,6 +102,7 @@ public class RecordImpl implements Record {
 
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
 
+		get(metadata);
 		Object convertedRecord;
 		if (metadata.getEnumClass() != null) {
 			if (metadata.isMultivalue()) {
@@ -202,15 +203,24 @@ public class RecordImpl implements Record {
 
 		Object correctedValue = correctValue(value);
 		String codeAndType = metadata.getDataStoreCode();
-		if (!isSameValueThanDTO(correctedValue, codeAndType)) {
-			modifiedValues.put(codeAndType, correctedValue);
+		if (structuredValues != null && structuredValues.containsKey(codeAndType)) {
+			if (!structuredValues.get(codeAndType).equals(correctedValue)) {
+				modifiedValues.put(codeAndType, correctedValue);
+			} else {
+				modifiedValues.remove(codeAndType);
+			}
 		} else {
-			modifiedValues.remove(codeAndType);
+
+			if (!isSameValueThanDTO(metadata, correctedValue, codeAndType)) {
+				modifiedValues.put(codeAndType, correctedValue);
+			} else {
+				modifiedValues.remove(codeAndType);
+			}
 		}
 		return this;
 	}
 
-	private boolean isSameValueThanDTO(Object value, String codeAndType) {
+	private boolean isSameValueThanDTO(Metadata metadata, Object value, String codeAndType) {
 		boolean sameAsDTOValue = false;
 		if (recordDTO != null) {
 			Object dtoValue = recordDTO.getFields().get(codeAndType);
@@ -218,6 +228,7 @@ public class RecordImpl implements Record {
 
 				sameAsDTOValue = dtoValue == null || (dtoValue instanceof List && ((List) dtoValue).isEmpty());
 			} else {
+
 				sameAsDTOValue = Objects.equals(dtoValue, value);
 			}
 		}
@@ -774,7 +785,7 @@ public class RecordImpl implements Record {
 		String title = getTitle();
 		return id + (title == null ? "" : (":" + title));
 	}
-	
+
 	@Override
 	public String getTitle() {
 		return get(Schemas.TITLE);

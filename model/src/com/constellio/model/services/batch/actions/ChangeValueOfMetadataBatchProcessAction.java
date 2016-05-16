@@ -1,6 +1,6 @@
 package com.constellio.model.services.batch.actions;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 
 import java.util.List;
 import java.util.Map;
@@ -10,7 +10,6 @@ import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -39,27 +38,8 @@ public class ChangeValueOfMetadataBatchProcessAction implements BatchProcessActi
 					Metadata metadata = schemaTypes.getMetadata(metadataCode);
 
 					record.set(metadata, entry.getValue());
-					if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
-						MetadataSchema referencedSchema = schemaTypes.getSchemaType(metadata
-								.getAllowedReferences().getTypeWithAllowedSchemas()).getDefaultSchema();
-						if (referencedSchema.hasMetadataWithCode("linkedSchema")) {
-							String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-							String typeId = (String) entry.getValue();
-							String customSchema = null;
-							if (typeId != null) {
-
-								Record typeRecord = recordProvider.getRecord(typeId);
-								customSchema = typeRecord.get(referencedSchema.get("linkedSchema"));
-							}
-
-							String newSchemaCode = schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
-							if (!record.getSchemaCode().equals(newSchemaCode)) {
-								MetadataSchema currentSchema = schemaTypes.getSchema(record.getSchemaCode());
-								MetadataSchema newSchema = schemaTypes.getSchema(newSchemaCode);
-								record.changeSchema(currentSchema, newSchema);
-							}
-						}
-
+					if (schemaTypes.isRecordTypeMetadata(metadata)) {
+						changeSchemaTypeAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, metadata);
 					}
 				}
 			}

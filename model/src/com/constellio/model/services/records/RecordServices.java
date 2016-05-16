@@ -76,6 +76,9 @@ public interface RecordServices {
 
 	List<Record> getRecordsById(String collection, List<String> ids);
 
+	void validateTransaction(Transaction transaction)
+			throws ValidationException;
+
 	void validateRecordInTransaction(Record record, Transaction transaction)
 			throws ValidationException;
 

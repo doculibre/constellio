@@ -184,17 +184,18 @@ public class RecordValidationServices {
 			RecordMetadataValidator<Object> validator, final ValidationErrors validationErrors) {
 
 		final Object value = record.get(metadata);
-		callMetadataValidatorForValue(metadata, validator, validationErrors, value);
+		callMetadataValidatorForValue(metadata, validator, validationErrors, value, record.getId());
 
 	}
 
 	private void callMetadataValidatorForValue(final Metadata metadata, RecordMetadataValidator<Object> validator,
-			final ValidationErrors validationErrors, final Object value) {
+			final ValidationErrors validationErrors, final Object value, final String recordId) {
 		ValidationErrors validationErrorsWithFailedMetadataParameters = new ValidationErrors() {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 				parameters.put("metadataCode", metadata.getCode());
 				parameters.put("metadataValue", value.toString());
+				parameters.put("record", recordId);
 				validationErrors.add(validatorClass, code, parameters);
 			}
 		};
