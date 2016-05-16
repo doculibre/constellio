@@ -1,6 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.sdk.tests.TestUtils.anInteger;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -12,8 +11,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import sun.security.krb5.Config;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -106,7 +103,7 @@ public class RecordValidationServicesTest extends ConstellioTest {
 		when(copiedDataEntry.getType()).thenReturn(DataEntryType.COPIED);
 		when(calculatedDataEntry.getType()).thenReturn(DataEntryType.CALCULATED);
 
-		services = spy(new RecordValidationServices(configProvider, schemasManager, searchServices));
+		services = spy(new RecordValidationServices(configProvider, recordProvider, schemasManager, searchServices));
 		doReturn(true).when(services).hasSecurityOnSchema(record);
 	}
 

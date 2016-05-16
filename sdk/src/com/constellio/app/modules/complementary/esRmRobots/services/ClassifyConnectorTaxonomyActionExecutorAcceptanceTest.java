@@ -64,19 +64,17 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordValidatorParams;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -924,11 +922,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	public static class NoAB_OR_1_Validator implements RecordValidator {
 
 		@Override
-		public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ConfigProvider configProvider,
-				ValidationErrors validationErrors) {
-			String title = record.get(Schemas.TITLE);
+		public void validate(RecordValidatorParams params) {
+			String title = params.getRecord().get(Schemas.TITLE);
 			if (title.contains("1") || title.contains("3")) {
-				validationErrors.add(NoAB_OR_1_Validator.class, "No 1, 3");
+				params.getValidationErrors().add(NoAB_OR_1_Validator.class, "No 1, 3");
 			}
 		}
 	}

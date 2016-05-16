@@ -7,13 +7,10 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordValidatorParams;
 
 public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implements RecordValidator {
 
@@ -27,15 +24,14 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implemen
 			.getLogger(CreationDateIsBeforeOrEqualToLastModificationDateValidator.class);
 
 	@Override
-	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema,
-			ConfigProvider configProvider, ValidationErrors validationErrors) {
+	public void validate(RecordValidatorParams params) {
 
-		Metadata creationDateMetadata = schema.getMetadata("creationDate");
-		Metadata modificationDateMetadata = schema.getMetadata("modificationDate");
+		Metadata creationDateMetadata = params.getSchema().getMetadata("creationDate");
+		Metadata modificationDateMetadata = params.getSchema().getMetadata("modificationDate");
 
-		LocalDateTime creationDate = record.get(creationDateMetadata);
-		LocalDateTime modificationDate = record.get(modificationDateMetadata);
-		validate(creationDate, modificationDate, validationErrors);
+		LocalDateTime creationDate = params.getRecord().get(creationDateMetadata);
+		LocalDateTime modificationDate = params.getRecord().get(modificationDateMetadata);
+		validate(creationDate, modificationDate, params.getValidationErrors());
 
 	}
 

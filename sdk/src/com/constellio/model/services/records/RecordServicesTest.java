@@ -247,7 +247,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		when(collectionsManager.getCollectionLanguages(zeCollection)).thenReturn(Arrays.asList("fr", "en"));
 
-		doReturn(validationServices).when(recordServices).newRecordValidationServices();
+		doReturn(validationServices).when(recordServices).newRecordValidationServices(any(RecordProvider.class));
 		doReturn(automaticMetadataServices).when(recordServices).newAutomaticMetadataServices();
 		define(schemaManager).using(schemas.withATitle().withAStringMetadata());
 
