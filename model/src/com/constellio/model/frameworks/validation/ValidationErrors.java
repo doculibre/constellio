@@ -57,4 +57,8 @@ public class ValidationErrors {
 	public boolean isEmpty() {
 		return validationErrors.isEmpty();
 	}
+
+	public void addAll(List<ValidationError> validationErrors) {
+		this.validationErrors.addAll(validationErrors);
+	}
 }

@@ -158,8 +158,11 @@ public class ModificationImpactCalculator {
 			while (batchIterator.hasNext()) {
 				LogicalSearchCondition condition = getLogicalSearchConditionFor(schemaType, batchIterator.next(),
 						transactionRecordIds, references);
-				if (searchServices.hasResults(condition)) {
-					recordsModificationImpactsInType.add(new ModificationImpact(reindexedMetadatas, condition));
+
+				int recordsCount = (int) searchServices.getResultsCount(condition);
+				if (recordsCount > 0) {
+					recordsModificationImpactsInType.add(new ModificationImpact(
+							schemaType, reindexedMetadatas, condition, recordsCount));
 				}
 			}
 		}

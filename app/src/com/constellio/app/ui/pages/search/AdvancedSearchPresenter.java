@@ -8,6 +8,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -190,7 +191,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	BatchProcessingPresenterService batchProcessingPresenterService() {
 		if (batchProcessingPresenterService == null) {
-			batchProcessingPresenterService = new BatchProcessingPresenterService(collection, appLayerFactory);
+			Locale locale = view.getSessionContext().getCurrentLocale();
+			batchProcessingPresenterService = new BatchProcessingPresenterService(collection, appLayerFactory, locale);
 		}
 		return batchProcessingPresenterService;
 	}

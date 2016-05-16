@@ -1,25 +1,45 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang.StringUtils;
+import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -38,137 +58,288 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	MetadataSchemaType folderSchemaType;
 	SearchServices searchServices;
 
+	LocalDate date1 = aDate();
+	LocalDate date2 = aDate();
+	LocalDate date3 = aDate();
+
+	LocalDateTime dateTime1 = aDateTime();
+	LocalDateTime dateTime2 = aDateTime();
+	LocalDateTime dateTime3 = aDateTime();
+
+	String date1String, date2String, date3String, dateTime1String, dateTime2String, dateTime3String;
+
 	@Before
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
 		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
-		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaTypeBuilder folderSchemaType = types.getSchemaType(Folder.SCHEMA_TYPE);
-				MetadataSchemaBuilder schema1 = folderSchemaType.createCustomSchema("custom1", fr("Custom schema 1"));
-				MetadataSchemaBuilder schema2 = folderSchemaType.createCustomSchema("custom2", fr("Custom schema 2"));
-				MetadataSchemaBuilder schema3 = folderSchemaType.createCustomSchema("custom3", fr("Custom schema 3"));
 
-				schema1.create("stringMeta1").setType(MetadataValueType.STRING);
-				schema2.create("stringMeta2").setType(MetadataValueType.STRING);
-				schema3.create("stringMeta2").setType(MetadataValueType.STRING);
-
-				schema1.create("textMeta").setType(MetadataValueType.TEXT);
-				schema1.create("dateMeta").setType(MetadataValueType.DATE);
-				schema1.create("dateTimeMeta").setType(MetadataValueType.DATE_TIME);
-				schema1.create("booleanMeta").setType(MetadataValueType.BOOLEAN);
-				schema1.create("numberMeta").setType(MetadataValueType.NUMBER);
-				schema1.create("enumMeta").setType(MetadataValueType.ENUM).defineAsEnum(FolderStatus.class);
-				schema1.create("referencedFolderMeta").setType(MetadataValueType.REFERENCE).defineReferencesTo(folderSchemaType);
-			}
-		});
 		folderSchemaType = rm.folderSchemaType();
 		searchServices = getModelLayerFactory().newSearchServices();
-		presenterService = new BatchProcessingPresenterService(zeCollection, getAppLayerFactory());
-		//givenConfig(ConstellioEIMConfigs.DATE_FORMAT, "yyyy-MM-dd");
+		presenterService = new BatchProcessingPresenterService(zeCollection, getAppLayerFactory(), Locale.FRENCH);
+
+		Transaction transaction = new Transaction();
+
+		LocalDate now = new LocalDate();
+		Folder subFolder = rm.newFolder().setTitle("Ze sub folder").setParentFolder(records.folder_A03).setOpenDate(now);
+		transaction.add(subFolder);
+		transaction.add(rm.newFolder().setTitle("Ze sub folder").setParentFolder(subFolder)).setOpenDate(now);
+		transaction.add(rm.newDocument().setTitle("Ze document 1").setFolder(records.folder_A03));
+		transaction.add(rm.newDocument().setTitle("Ze document 1").setFolder(subFolder));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		givenConfig(ConstellioEIMConfigs.DATE_FORMAT, "yyyy-MM-dd");
+		givenConfig(ConstellioEIMConfigs.DATE_TIME_FORMAT, "yyyy-MM-dd-HH-mm-ss");
+		date1String = DateFormatUtils.format(date1);
+		date2String = DateFormatUtils.format(date2);
+		date3String = DateFormatUtils.format(date3);
+		dateTime1String = DateFormatUtils.format(dateTime1);
+		dateTime2String = DateFormatUtils.format(dateTime2);
+		dateTime3String = DateFormatUtils.format(dateTime3);
+	}
+
+	@Test
+	public void givenModifiedRuleIsLinkedToSomeFoldersCategoryThenValidationException()
+			throws Exception {
 
 	}
 
 	@Test
-	public void givenValuesOfEveryTypeAreModifiedThenApplied()
+	public void givenValidationExceptionsThenThrownInSimulation()
+			throws Exception {
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A05, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+
+		try {
+			BatchProcessResults results = presenterService.simulate(request);
+			fail("error expected!");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+			);
+		}
+
+		try {
+			BatchProcessResults results = presenterService.execute(request);
+			fail("error expected!");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+			);
+		}
+		assertThat(records.getFolder_A05().getRetentionRuleEntered()).isNotEqualTo(records.ruleId_2);
+
+	}
+
+	private List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
+
+		List<Tuple> tuples = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
+			for (String parameter : parameters) {
+				tuple.addData(error.getParameters().get(parameter));
+			}
+			tuples.add(tuple);
+		}
+
+		return tuples;
+	}
+
+	private String error(Class<?> validatorClass, String code) {
+		return validatorClass.getCanonicalName() + "." + code;
+	}
+
+	@Test
+	public void whenModifyingValuesWithImpactsInHierarchyInHierarchyThenCalculated()
 			throws Exception {
 
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
-				.setSchema(rm.folderSchema("custom1")).setIds(asList(records.folder_A03, records.folder_A04))
-				.addModifiedMetadata("default_folder_title", "Mon dossier")
-				.addModifiedMetadata("stringMeta1", "zeStringValue")
-				.addModifiedMetadata("textMeta", "zeTextValue")
-				.addModifiedMetadata("dateMeta", date(2042, 4, 5))
-				.addModifiedMetadata("dateTimeMeta", dateTime(2042, 4, 5, 6, 7, 8))
-				.addModifiedMetadata("booleanMeta", true)
-				.addModifiedMetadata("numberMeta", 66.6)
-				.addModifiedMetadata("enumMeta", INACTIVE_DEPOSITED)
-				.addModifiedMetadata("referencedFolderMeta", records.folder_A06);
+				.setIds(asList(records.folder_A04, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2)
+				.addModifiedMetadata(Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+
+		BatchProcessResults results = presenterService.execute(request);
+
+		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
+				tuple(records.folder_A04, "Baleine"),
+				tuple(records.folder_A16, "Chat")
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_default_retentionRule", "ruleId_1:Rule #1", "ruleId_2:Rule #2"),
+				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
+				tuple("folder_default_copyStatus", "Principal", "Secondaire")
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A16).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_default_retentionRule", "ruleId_1:Rule #1", "ruleId_2:Rule #2"),
+				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
+				tuple("folder_default_copyStatus", "Principal", "Secondaire"),
+				tuple("folder_default_expectedTransferDate", "2002-10-31", "2003-10-31"),
+				tuple("folder_default_expectedDestructionDate", null, "2003-10-31"),
+				tuple("folder_default_expectedDepositDate", "2007-10-31", null)
+		);
+
+	}
+
+	@Test
+	public void whenSimulateBatchProcessThenNoModificationsOccur()
+			throws Exception {
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A03, records.folder_A04))
+				.addModifiedMetadata("default_folder_title", "Mon dossier");
 
 		BatchProcessResults results = presenterService.simulate(request);
 
 		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
-				tuple(records.folder_A03, "Folder 3"),
-				tuple(records.folder_A04, "Folder 4")
+				tuple(records.folder_A03, "Alouette"),
+				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).extracting("schemaType.code", "count")
-				.containsOnly(tuple(Document.SCHEMA_TYPE, 3));
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("document_default_title", "Folder 3", "Mon dossier"),
-				tuple("document_default_stringMeta1", null, "zeStringValue"),
-				tuple("document_default_textMeta", null, "zeTextValue"),
-				tuple("document_default_dateMeta", null, "2042-04-05"),
-				tuple("document_default_dateTimeMeta", null, "2042-04-05-06-07-08"),
-				tuple("document_default_booleanMeta", null, "Vrai"),
-				tuple("document_default_numberMeta", null, "66.6"),
-				tuple("document_default_enumMeta", null, "Versé"),
-				tuple("document_default_referencedFolderMeta", null, "A06 - Folder 6")
+				tuple("folder_default_title", "Alouette", "Mon dossier")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).extracting("schemaType.code", "count")
-				.containsOnly(tuple(Document.SCHEMA_TYPE, 3));
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("document_default_title", "Folder 4", "Mon dossier"),
-				tuple("document_default_stringMeta1", null, "zeStringValue"),
-				tuple("document_default_textMeta", null, "zeTextValue"),
-				tuple("document_default_dateMeta", null, "2042-04-05"),
-				tuple("document_default_dateTimeMeta", null, "2042-04-05-06-07-08"),
-				tuple("document_default_booleanMeta", null, "Vrai"),
-				tuple("document_default_numberMeta", null, "66.6"),
-				tuple("document_default_enumMeta", null, "Versé"),
-				tuple("document_default_referencedFolderMeta", null, "A06 - Folder 6"),
-				tuple("document_default_", null, "A06 - Folder 6")
+				tuple("folder_default_title", "Baleine", "Mon dossier")
 		);
 
-		assertThat(rm.searchFolders(where(Schemas.SCHEMA).isEqualTo("folder_custom1"))).hasSize(0);
-		assertThat(rm.searchFolders(where(Schemas.SCHEMA).isEqualTo("folder_default"))).hasSize(105);
+		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Alouette");
+		assertThat(records.getFolder_A04().getTitle()).isEqualTo("Baleine");
 
 		results = presenterService.execute(request);
 
 		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
-				tuple(records.folder_A03, "Folder 3"),
-				tuple(records.folder_A04, "Folder 4")
+				tuple(records.folder_A03, "Alouette"),
+				tuple(records.folder_A04, "Baleine")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).extracting("schemaType.code", "count")
-				.containsOnly(tuple(Document.SCHEMA_TYPE, 3));
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("document_default_title", "Folder 3", "Mon dossier"),
-				tuple("document_default_stringMeta1", null, "zeStringValue"),
-				tuple("document_default_textMeta", null, "zeTextValue"),
-				tuple("document_default_dateMeta", null, "2042-04-05"),
-				tuple("document_default_dateTimeMeta", null, "2042-04-05-06-07-08"),
-				tuple("document_default_booleanMeta", null, "Vrai"),
-				tuple("document_default_numberMeta", null, "66.6"),
-				tuple("document_default_enumMeta", null, "Versé"),
-				tuple("document_default_referencedFolderMeta", null, "A06 - Folder 6")
+				tuple("folder_default_title", "Alouette", "Mon dossier")
 		);
 
-		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).extracting("schemaType.code", "count")
-				.containsOnly(tuple(Document.SCHEMA_TYPE, 3));
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("document_default_title", "Folder 4", "Mon dossier"),
-				tuple("document_default_stringMeta1", null, "zeStringValue"),
-				tuple("document_default_textMeta", null, "zeTextValue"),
-				tuple("document_default_dateMeta", null, "2042-04-05"),
-				tuple("document_default_dateTimeMeta", null, "2042-04-05-06-07-08"),
-				tuple("document_default_booleanMeta", null, "Vrai"),
-				tuple("document_default_numberMeta", null, "66.6"),
-				tuple("document_default_enumMeta", null, "Versé"),
-				tuple("document_default_referencedFolderMeta", null, "A06 - Folder 6"),
-				tuple("document_default_", null, "A06 - Folder 6")
+				tuple("folder_default_title", "Baleine", "Mon dossier")
 		);
 
-		assertThat(rm.searchFolders(where(Schemas.SCHEMA).isEqualTo("folder_custom1"))).hasSize(2);
-		assertThat(rm.searchFolders(where(Schemas.SCHEMA).isEqualTo("folder_default"))).hasSize(103);
+		assertThat(records.getFolder_A03().getTitle()).isEqualTo("Mon dossier");
+		assertThat(records.getFolder_A04().getTitle()).isEqualTo("Mon dossier");
+	}
+
+	@Test
+	public void givenValuesOfEveryTypeAreModifiedThenAppliedAndShownInResults()
+			throws Exception {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaTypeBuilder folderSchemaType = types.getSchemaType(Folder.SCHEMA_TYPE);
+				MetadataSchemaBuilder defaultSchema = folderSchemaType.getDefaultSchema();
+
+				defaultSchema.create("stringsMeta").setType(STRING).setMultivalue(true);
+				defaultSchema.create("textMeta").setType(TEXT);
+				defaultSchema.create("textsMeta").setType(TEXT).setMultivalue(true);
+				defaultSchema.create("dateMeta").setType(DATE);
+				defaultSchema.create("datesMeta").setType(DATE).setMultivalue(true);
+				defaultSchema.create("dateTimeMeta").setType(DATE_TIME);
+				defaultSchema.create("dateTimesMeta").setType(DATE_TIME).setMultivalue(true);
+				defaultSchema.create("booleanMeta").setType(BOOLEAN);
+				defaultSchema.create("booleansMeta").setType(BOOLEAN).setMultivalue(true);
+				defaultSchema.create("numberMeta").setType(NUMBER);
+				defaultSchema.create("numbersMeta").setType(NUMBER).setMultivalue(true);
+				defaultSchema.create("enumMeta").setType(ENUM).defineAsEnum(FolderStatus.class);
+				defaultSchema.create("enumsMeta").setType(ENUM).defineAsEnum(FolderStatus.class).setMultivalue(true);
+				defaultSchema.create("referencedFolderMeta").setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(folderSchemaType);
+				defaultSchema.create("referencedFoldersMeta").setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(folderSchemaType).setMultivalue(true);
+			}
+		});
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A03, records.folder_A04))
+				.addModifiedMetadata("default_folder_title", "Mon dossier")
+				.addModifiedMetadata("stringsMeta", asList("stringValue1", "stringValue2"))
+				.addModifiedMetadata("textMeta", "zeTextValue")
+				.addModifiedMetadata("textsMeta", asList("textValue1", "textValue2"))
+				.addModifiedMetadata("dateMeta", date1)
+				.addModifiedMetadata("datesMeta", asList(date2, date3))
+				.addModifiedMetadata("dateTimeMeta", dateTime1)
+				.addModifiedMetadata("dateTimesMeta", asList(dateTime2, dateTime3))
+				.addModifiedMetadata("booleanMeta", true)
+				.addModifiedMetadata("booleansMeta", asList(true, false))
+				.addModifiedMetadata("numberMeta", 66.6)
+				.addModifiedMetadata("numbersMeta", asList(66.6, 42))
+				.addModifiedMetadata("enumMeta", INACTIVE_DEPOSITED)
+				.addModifiedMetadata("enumsMeta", asList(FolderStatus.SEMI_ACTIVE, FolderStatus.ACTIVE))
+				.addModifiedMetadata("referencedFolderMeta", records.folder_A06)
+				.addModifiedMetadata("referencedFoldersMeta", asList(records.folder_A07, records.folder_A08));
+
+		BatchProcessResults results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
+				tuple(records.folder_A03, "Alouette"),
+				tuple(records.folder_A04, "Baleine")
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A03).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_default_title", "Alouette", "Mon dossier"),
+				tuple("folder_default_stringsMeta", "{}", "{stringValue1, stringValue2}"),
+				tuple("folder_default_textMeta", null, "zeTextValue"),
+				tuple("folder_default_textsMeta", "{}", "{textValue1, textValue2}"),
+				tuple("folder_default_dateMeta", null, date1String),
+				tuple("folder_default_datesMeta", "{}", "{" + date2String + ", " + date3String + "}"),
+				tuple("folder_default_dateTimeMeta", null, dateTime1String),
+				tuple("folder_default_dateTimesMeta", "{}", "{" + dateTime2String + ", " + dateTime3String + "}"),
+				tuple("folder_default_booleanMeta", null, "Oui"),
+				tuple("folder_default_booleansMeta", "{}", "{Oui, Non}"),
+				tuple("folder_default_numberMeta", null, "66.6"),
+				tuple("folder_default_numbersMeta", "{}", "{66.6, 42}"),
+				tuple("folder_default_enumMeta", null, "Versé"),
+				tuple("folder_default_enumsMeta", "{}", "{Semi-actif, Actif}"),
+				tuple("folder_default_referencedFolderMeta", null, "A06:Bison"),
+				tuple("folder_default_referencedFoldersMeta", "{}", "{A07:Bouc, A08:Boeuf}")
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
+		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_default_title", "Baleine", "Mon dossier"),
+				tuple("folder_default_stringsMeta", "{}", "{stringValue1, stringValue2}"),
+				tuple("folder_default_textMeta", null, "zeTextValue"),
+				tuple("folder_default_textsMeta", "{}", "{textValue1, textValue2}"),
+				tuple("folder_default_dateMeta", null, date1String),
+				tuple("folder_default_datesMeta", "{}", "{" + date2String + ", " + date3String + "}"),
+				tuple("folder_default_dateTimeMeta", null, dateTime1String),
+				tuple("folder_default_dateTimesMeta", "{}", "{" + dateTime2String + ", " + dateTime3String + "}"),
+				tuple("folder_default_booleanMeta", null, "Oui"),
+				tuple("folder_default_booleansMeta", "{}", "{Oui, Non}"),
+				tuple("folder_default_numberMeta", null, "66.6"),
+				tuple("folder_default_numbersMeta", "{}", "{66.6, 42}"),
+				tuple("folder_default_enumMeta", null, "Versé"),
+				tuple("folder_default_enumsMeta", "{}", "{Semi-actif, Actif}"),
+				tuple("folder_default_referencedFolderMeta", null, "A06:Bison"),
+				tuple("folder_default_referencedFoldersMeta", "{}", "{A07:Bouc, A08:Boeuf}")
+		);
+
 	}
 
 }

@@ -393,6 +393,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 		User user = getCurrentUser();
 
-		return new BatchProcessRequest(selectedRecord, schema, user, fieldsModifications);
+		return new BatchProcessRequest(selectedRecord, user, fieldsModifications);
 	}
 }

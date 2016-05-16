@@ -7,22 +7,18 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 
 public class BatchProcessRequest {
 
 	private List<String> ids = new ArrayList<>();
 
-	private MetadataSchema schema;
-
 	private Map<String, Object> modifiedMetadatas = new HashMap<>();
 
 	private User user;
 
-	public BatchProcessRequest(List<String> ids, MetadataSchema schema, User user,
+	public BatchProcessRequest(List<String> ids, User user,
 			Map<String, Object> modifiedMetadatas) {
 		this.ids = Collections.unmodifiableList(ids);
-		this.schema = schema;
 		this.user = user;
 		this.modifiedMetadatas = Collections.unmodifiableMap(modifiedMetadatas);
 	}
@@ -32,10 +28,6 @@ public class BatchProcessRequest {
 
 	public List<String> getIds() {
 		return ids;
-	}
-
-	public MetadataSchema getSchema() {
-		return schema;
 	}
 
 	public User getUser() {
@@ -48,11 +40,6 @@ public class BatchProcessRequest {
 
 	public BatchProcessRequest setIds(List<String> ids) {
 		this.ids = ids;
-		return this;
-	}
-
-	public BatchProcessRequest setSchema(MetadataSchema schema) {
-		this.schema = schema;
 		return this;
 	}
 
