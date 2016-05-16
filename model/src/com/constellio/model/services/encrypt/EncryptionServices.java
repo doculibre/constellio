@@ -119,4 +119,8 @@ public class EncryptionServices {
 			throw new ImpossibleRuntimeException(e);
 		}
 	}
+
+	public boolean isInitialized() {
+		return initialized;
+	}
 }
