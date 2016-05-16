@@ -129,14 +129,14 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		//		}
 
 		if (copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE)) {
-			String value = copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase();
+			String value = copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE) != null ? copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase() : "";
 			if (value.isEmpty() || !(isDisposalTypeValid(value))) {
 				errors.error(INVALID_ENUM_VALUE, asMap(INACTIVE_DISPOSAL_TYPE, value, COPY_RETENTION_RULE_INDEX, index));
 			}
 		}
 
 		if (copyRetentionRule.containsKey(COPY_TYPE)) {
-			String value = copyRetentionRule.get(COPY_TYPE).toUpperCase();
+			String value = copyRetentionRule.get(COPY_TYPE) != null ? copyRetentionRule.get(COPY_TYPE).toUpperCase() : "";
 			if (value.isEmpty() || (!value.equals("P") && !value.equals("S"))) {
 				errors.error(INVALID_ENUM_VALUE, asMap(MEDIUM_TYPES, value, COPY_RETENTION_RULE_INDEX, index));
 			} else if (value.equals("P") && copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE) && !copyRetentionRule
@@ -157,7 +157,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		if (copyRetentionRule.containsKey(ACTIVE_RETENTION_PERIOD)) {
-			String value = copyRetentionRule.get(ACTIVE_RETENTION_PERIOD);
+			String value = copyRetentionRule.get(ACTIVE_RETENTION_PERIOD) != null ? copyRetentionRule.get(ACTIVE_RETENTION_PERIOD) : "";
 			if (value.isEmpty()) {
 				Map<String,Object> convertedRetentionRule = new HashMap<>();
 				for(String parameterKey: copyRetentionRule.keySet()) {

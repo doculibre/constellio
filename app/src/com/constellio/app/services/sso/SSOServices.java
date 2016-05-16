@@ -3,17 +3,19 @@ package com.constellio.app.services.sso;
 import java.io.Serializable;
 
 @SuppressWarnings("serial")
-public class KerberosServices implements Serializable {
+public class SSOServices implements Serializable {
 
 	private boolean debug = false;
 
-	private static KerberosServices instance;
+	private static SSOServices instance;
 
 	private boolean enabled;
 	
-	private KerberosAuthenticator authenticator;
+	private boolean enabledForAgent;
 	
-	private KerberosServices() {
+	private SSOAuthenticator authenticator;
+	
+	private SSOServices() {
 	}
 	
 	public String getPrincipalName() {
@@ -38,22 +40,31 @@ public class KerberosServices implements Serializable {
 		this.enabled = enabled;
 	}
 
+	public boolean isEnabledForAgent() {
+		return enabledForAgent;
+	}
+	
+	public void setEnabledForAgent(boolean enabledForAgent) {
+		this.enabledForAgent = enabledForAgent;
+	}
+
 	public boolean isDebug() {
 		return debug;
 	}
 
-	public static KerberosServices init(KerberosAuthenticator authenticator, boolean debug) {
-		instance = new KerberosServices();
+	public static SSOServices init(SSOAuthenticator authenticator, boolean debug) {
+		instance = new SSOServices();
 		instance.authenticator = authenticator;
 		instance.debug = debug;
 		instance.enabled = authenticator != null && authenticator.isEnabled();
+		instance.enabledForAgent = authenticator != null && authenticator.isEnabledForAgent();
 		return instance;
 	}
 	
-	public static KerberosServices getInstance() {
+	public static SSOServices getInstance() {
 		if (instance == null) {
 			// Disabled instance
-			instance = new KerberosServices();
+			instance = new SSOServices();
 		}
 		return instance;
 	}
