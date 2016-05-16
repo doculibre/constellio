@@ -379,6 +379,10 @@ public class SchemasRecordsServices {
 		return new User(record, getTypes(), getRoles());
 	}
 
+	public UserCredential wrapUserCredential(Record record) {
+		return new SolrUserCredential(record, getTypes());
+	}
+
 	public List<User> wrapUsers(List<Record> records) {
 		List<User> users = new ArrayList<>();
 		for (Record record : records) {
