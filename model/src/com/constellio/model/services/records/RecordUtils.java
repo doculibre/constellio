@@ -263,6 +263,10 @@ public class RecordUtils {
 			customSchema = typeRecord.get(referencedSchema.get("linkedSchema"));
 		}
 
+		if (customSchema != null && customSchema.contains("_")) {
+			return customSchema;
+		}
+
 		return schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
 	}
 }

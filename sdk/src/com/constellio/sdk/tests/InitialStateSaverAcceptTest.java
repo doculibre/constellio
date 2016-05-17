@@ -74,7 +74,7 @@ public class InitialStateSaverAcceptTest extends ConstellioTest {
 		givenTransactionLogIsEnabled();
 		givenCollection(zeCollection).withConstellioRMModule().withAllTestUsers();
 		RMTestRecords records = new RMTestRecords(zeCollection);
-		records.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		records.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		getSaveStateFeature().saveStateAfterTestWithTitle("with_document_rules");
 

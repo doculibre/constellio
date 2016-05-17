@@ -15,6 +15,7 @@ import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -53,6 +54,8 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -61,6 +64,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
@@ -72,6 +76,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -348,13 +355,15 @@ public class RMTestRecords {
 	private RMEventsSearchServices rmEventsSearchServices;
 	private ContentManager contentManager;
 	private ModelLayerFactory modelLayerFactory;
+	private AppLayerFactory appLayerFactory;
 
 	public RMTestRecords(String collection) {
 		this.collection = collection;
 	}
 
-	public RMTestRecords alreadySettedUp(ModelLayerFactory modelLayerFactory) {
-		this.modelLayerFactory = modelLayerFactory;
+	public RMTestRecords alreadySettedUp(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices);
 
@@ -416,9 +425,10 @@ public class RMTestRecords {
 		return this;
 	}
 
-	public RMTestRecords setup(ModelLayerFactory modelLayerFactory)
+	public RMTestRecords setup(AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -444,6 +454,7 @@ public class RMTestRecords {
 		setupAdministrativeUnits(transaction);
 		setupDocumentTypes(transaction);
 		setupRetentionRules(transaction);
+		setupTypes(transaction);
 		recordServices.execute(transaction);
 
 		setupAdministrativeUnitsAuthorizations();
@@ -550,6 +561,60 @@ public class RMTestRecords {
 		createLoginEvents();
 		recordServices.flush();
 		return this;
+	}
+
+	private void setupTypes(Transaction transaction) {
+
+		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+
+				MetadataSchemaBuilder employeFolderSchema = types.getSchemaType("folder").createCustomSchema("employe");
+				MetadataSchemaBuilder meetingFolderSchema = types.getSchemaType("folder").createCustomSchema("meeting");
+
+				MetadataSchemaBuilder formDocumentSchema = types.getSchemaType("document").createCustomSchema("form");
+				MetadataSchemaBuilder reportDocumentSchema = types.getSchemaType("document").createCustomSchema("report");
+
+				MetadataSchemaBuilder criticalTaskSchema = types.getSchemaType("userTask").createCustomSchema("criticalTask");
+				MetadataSchemaBuilder communicationTaskSchema = types.getSchemaType("userTask")
+						.createCustomSchema("communicationTask");
+
+				employeFolderSchema.create("subType").setType(STRING).setDefaultValue("Dossier d'employé général");
+				employeFolderSchema.create("hireDate").setType(MetadataValueType.DATE).setDefaultValue(LocalDate.now());
+
+				meetingFolderSchema.create("subType").setType(STRING).setDefaultValue("Meeting important");
+				meetingFolderSchema.create("meetingDateTime").setType(MetadataValueType.DATE_TIME)
+						.setDefaultValue(LocalDateTime.now());
+
+				formDocumentSchema.create("subType").setType(STRING).setDefaultValue("Permit A-38 Form");
+				formDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE).setDefaultValue(LocalDate.now());
+
+				reportDocumentSchema.create("subType").setType(STRING).setDefaultValue("Financial report");
+				reportDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE).setDefaultValue(LocalDate.now());
+
+				criticalTaskSchema.create("subType").setType(STRING).setDefaultValue("Dû pour hier");
+
+				communicationTaskSchema.create("subType").setType(STRING).setDefaultValue("Envoie d'un courriel");
+				communicationTaskSchema.create("email").setType(STRING).setDefaultValue("dakota.indien@gmail.com");
+				communicationTaskSchema.create("phone").setType(STRING);
+
+			}
+		});
+
+		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
+		transaction.add(rm.newFolderType().setCode("employe").setTitle("Employé").setLinkedSchema("folder_employe"));
+		transaction.add(rm.newFolderType().setCode("meeting").setTitle("Réunion").setLinkedSchema("folder_meeting"));
+		transaction.add(rm.newFolderType().setCode("other").setTitle("Autre"));
+
+		transaction.add(rm.newDocumentType().setCode("form").setTitle("Formulaire").setLinkedSchema("document_form"));
+		transaction.add(rm.newDocumentType().setCode("report").setTitle("Rapport").setLinkedSchema("document_report"));
+		transaction.add(rm.newDocumentType().setCode("other").setTitle("Autre"));
+
+		transaction.add(tasks.newTaskType().setCode("criticalTask").setTitle("Tâche critique")
+				.setLinkedSchema("userTask_criticalTask"));
+		transaction.add(tasks.newTaskType().setCode("communicationTask").setTitle("Communication")
+				.setLinkedSchema("userTask_communicationTask"));
+		transaction.add(tasks.newTaskType().setCode("other").setTitle("Autre"));
 	}
 
 	private void setupDocumentTypes(Transaction transaction) {
