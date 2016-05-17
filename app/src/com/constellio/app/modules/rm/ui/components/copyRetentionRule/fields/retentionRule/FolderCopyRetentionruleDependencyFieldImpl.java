@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule;
 
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.vaadin.data.Property;
