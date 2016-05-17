@@ -339,8 +339,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedRecordIds);
+	public String getOriginType(String schemaType, List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().getOriginType(schemaType, selectedRecordIds);
 	}
 
 	@Override
@@ -411,6 +411,21 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
 		return appLayerFactory.getExtensions().forCollection(collection);
+	}
+
+	@Override
+	public String getSchema(String schemaType, String type) {
+		if(StringUtils.isBlank(type)) {
+			return schemaType + "_default";
+		}
+		//TODO Francis
+		return schemaType + "_default";
+	}
+
+	@Override
+	public String getTypeSchemaType(String schemaType) {
+		//TODO Francis
+		return "ddv" + schemaType + "Type";
 	}
 
 }

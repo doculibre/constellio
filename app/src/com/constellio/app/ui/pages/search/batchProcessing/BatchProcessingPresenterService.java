@@ -70,21 +70,21 @@ public class BatchProcessingPresenterService {
 		this.extensions = appLayerFactory.getExtensions().forCollection(collection);
 	}
 
-	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
+	public String getOriginType(String schemaType, List<String> selectedRecordIds) {
 		if (selectedRecordIds == null || selectedRecordIds.isEmpty()) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
 		String firstRecordSchema = getRecordSchemaCode(recordServices, selectedRecordIds.get(0));
-		Boolean moreThanOneSchema = false;
+		Boolean moreThanOneType = false;
 		for (int i = 0; i < selectedRecordIds.size(); i++) {
 			String currentRecordSchema = getRecordSchemaCode(recordServices, selectedRecordIds.get(i));
 			if (!currentRecordSchema.equals(firstRecordSchema)) {
-				moreThanOneSchema = true;
+				moreThanOneType = true;
 				break;
 			}
 		}
-		if (moreThanOneSchema) {
-			return schemaType + "_" + "default";
+		if (moreThanOneType) {
+			return null;
 		} else {
 			return firstRecordSchema;
 		}

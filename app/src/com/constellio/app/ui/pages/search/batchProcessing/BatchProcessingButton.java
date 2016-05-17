@@ -7,14 +7,13 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -24,7 +23,8 @@ public class BatchProcessingButton extends WindowButton {
     private final AdvancedSearchView view;
 
     //fields
-    ComboBox schemaField;
+    LookupRecordField typeField;
+    String currentSchema;
     BatchProcessingForm form;
     VerticalLayout vLayout;
 
@@ -39,18 +39,20 @@ public class BatchProcessingButton extends WindowButton {
     protected Component buildWindowContent() {
         Panel panel = new Panel();
         vLayout = new VerticalLayout();
-        String originSchema = presenter.getOriginSchema(view.getSchemaType(), view.getSelectedRecordIds());
-        List<String> destinationSchema = presenter.getDestinationSchemata(view.getSchemaType());
-        schemaField = new ComboBox($("AdvancedSearchView.schema"), destinationSchema);
-        schemaField.setValue(originSchema);
-        schemaField.setNullSelectionAllowed(false);
-        schemaField.addListener(new Property.ValueChangeListener() {
+        String typeSchemaType = presenter.getTypeSchemaType(view.getSchemaType());
+        typeField = new LookupRecordField(typeSchemaType);
+        String originType = presenter.getOriginType(view.getSchemaType(), view.getSelectedRecordIds());
+        if (originType != null) {
+            typeField.setValue(originType);
+        }
+        typeField.addListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 refreshForm();
             }
         });
-        vLayout.addComponent(schemaField);
+        vLayout.addComponent(typeField);
+        String originSchema = presenter.getSchema(view.getSchemaType(), originType);
 
         form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()), newFieldFactory());
         vLayout.addComponent(form);
@@ -62,7 +64,8 @@ public class BatchProcessingButton extends WindowButton {
 
     private void refreshForm() {
         RecordFieldFactory fieldFactory = newFieldFactory();
-        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()), fieldFactory);
+        String originSchema = presenter.getSchema(view.getSchemaType(), typeField.getValue());
+        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO(originSchema , view.getSessionContext()), fieldFactory);
         vLayout.replaceComponent(form, newForm);
         form = newForm;
     }

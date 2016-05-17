@@ -8,7 +8,7 @@ import com.constellio.model.entities.enums.BatchProcessingMode;
 import java.util.List;
 
 public interface BatchProcessingPresenter {
-    String getOriginSchema(String schemaType, List<String> selectedRecordIds);
+    String getOriginType(String schemaType, List<String> selectedRecordIds);
 
     List<String> getDestinationSchemata(String originSchema);
 
@@ -21,4 +21,8 @@ public interface BatchProcessingPresenter {
     BatchProcessingMode getBatchProcessingMode();
 
     AppLayerCollectionExtensions getBatchProcessingExtension();
+
+    String getSchema(String schemaType, String type);
+
+    String getTypeSchemaType(String schemaType);
 }
