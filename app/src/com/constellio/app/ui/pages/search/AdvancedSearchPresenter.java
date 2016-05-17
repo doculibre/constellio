@@ -383,7 +383,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		} finally {
 			ioServices.deleteQuietly(resultsFile);
 			IOUtils.closeQuietly(outputStream);
-			IOUtils.closeQuietly(inputStream);
 		}
 	}
 
