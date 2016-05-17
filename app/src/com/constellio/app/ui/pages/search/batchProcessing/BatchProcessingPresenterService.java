@@ -10,19 +10,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
-import com.constellio.app.ui.framework.components.RecordFieldFactory;
-import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 
+import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessPossibleImpact;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordFieldModification;
@@ -30,6 +29,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
@@ -79,19 +79,19 @@ public class BatchProcessingPresenterService {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
 		String firstType = null;
-		for(String recordId : selectedRecordIds){
-			Record record =  recordServices.getDocumentById(recordId);
+		for (String recordId : selectedRecordIds) {
+			Record record = recordServices.getDocumentById(recordId);
 			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(record);
 			Object type = record.get(typeMetadata);
-			if(type != null){
-				if(firstType == null){
-					firstType = (String)type;
-				}else if(!firstType.equals(type)){
+			if (type != null) {
+				if (firstType == null) {
+					firstType = (String) type;
+				} else if (!firstType.equals(type)) {
 					//more than one type
 					return null;
 				}
-			}else {
-				if(firstType != null){
+			} else {
+				if (firstType != null) {
 					//more than one type
 					return null;
 				}
@@ -172,7 +172,8 @@ public class BatchProcessingPresenterService {
 			List<BatchProcessPossibleImpact> impacts = new ArrayList<>();
 			Record originalRecord = record.getCopyOfOriginalRecord();
 			for (Metadata metadata : record.getModifiedMetadatas(schemas.getTypes())) {
-				if (!metadata.hasSameCode(Schemas.MODIFIED_ON) && extensions.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+				if (!metadata.hasSameCode(Schemas.MODIFIED_ON) && extensions
+						.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
 					String valueBefore = convertToString(metadata, originalRecord.get(metadata));
 					String valueAfter = convertToString(metadata, record.get(metadata));
 					recordFieldModifications.add(new BatchProcessRecordFieldModification(valueBefore, valueAfter, metadata));
@@ -261,7 +262,7 @@ public class BatchProcessingPresenterService {
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	private Transaction prepareTransaction(BatchProcessRequest request) {
+	public Transaction prepareTransaction(BatchProcessRequest request) {
 		Transaction transaction = new Transaction();
 		MetadataSchemaTypes types = schemas.getTypes();
 		for (String id : request.getIds()) {
@@ -303,7 +304,7 @@ public class BatchProcessingPresenterService {
 	}
 
 	public String getSchema(String schemaType, String typeId) {
-		if(StringUtils.isBlank(typeId)) {
+		if (StringUtils.isBlank(typeId)) {
 			return schemaType + "_default";
 		}
 		Record record = recordServices.getDocumentById(typeId);
@@ -316,11 +317,14 @@ public class BatchProcessingPresenterService {
 
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
 		BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams params =
-				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType);
-		params.setSelectedTypeId(selectedType).setRecordIdThatCopyRetentionRuleDependantOn(getRecordIdThatCopyRetentionRuleDependsOn(schemaType, selectedRecordIds));
+				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(
+						BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType);
+		params.setSelectedTypeId(selectedType).setRecordIdThatCopyRetentionRuleDependantOn(
+				getRecordIdThatCopyRetentionRuleDependsOn(schemaType, selectedRecordIds));
 
 		RecordFieldFactory recordFieldFactory = null;
-		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions().forCollection(collection).recordFieldFactoryExtensions;
+		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
+				.forCollection(collection).recordFieldFactoryExtensions;
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
 			recordFieldFactory = extension.newRecordFieldFactory(params);
 			if (recordFieldFactory != null) {
@@ -334,4 +338,28 @@ public class BatchProcessingPresenterService {
 		//TODO Francis
 		return null;
 	}
+
+
 }
+//		ConstellioFactories constellioFactories = fields.getConstellioFactories();
+//		SessionContext sessionContext = fields.getSessionContext();
+//		String collection = sessionContext.getCurrentCollection();
+//
+//		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+//
+//		if (fields.getSchemaType().equals(Folder.SCHEMA_TYPE)) {
+//			RetentionRule retentionRule = rm.getRetentionRule(dependencyRecordId);
+//			List<CopyRetentionRule> copyRetentionRules = new ArrayList<>(retentionRule.getCopyRetentionRules());
+//
+//			return copyRetentionRules;
+//		} else {
+//			Folder parentFolder = rm.getFolder(dependencyRecordId);
+//
+//			List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
+//			copyRetentionRules.addAll(parentFolder.getApplicableCopyRules());
+//
+//			return copyRetentionRules;
+//		}
+//
+//	}

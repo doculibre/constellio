@@ -390,6 +390,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
 
 	public BatchProcessRequest toRequest(List<String> selectedRecord, RecordVO formVO) {
+
+		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
+		MetadataSchemaType type = coreSchemas().getTypes().getSchemaType(typeCode);
 		MetadataSchema schema = coreSchemas().getTypes().getSchema(formVO.getSchema().getCode());
 		Map<String, Object> fieldsModifications = new HashMap<>();
 		for (MetadataVO metadataVO : formVO.getMetadatas()) {
@@ -404,6 +407,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 		User user = getCurrentUser();
 
-		return new BatchProcessRequest(selectedRecord, user, fieldsModifications);
+		return new BatchProcessRequest(selectedRecord, user, type, fieldsModifications);
 	}
 }
