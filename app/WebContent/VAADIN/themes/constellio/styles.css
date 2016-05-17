@@ -12642,6 +12642,10 @@ div.v-layout.v-horizontal.v-widget {
 	margin-top: 5px;
 }
 
+.constellio .window-button-window .v-scrollable .v-panel .v-scrollable {
+	overflow: auto;
+}
+
 .constellio .window-button-window .v-table .v-scrollable {
 	overflow: auto;
 }
