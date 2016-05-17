@@ -1,37 +1,47 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import net.sf.cglib.core.CollectionUtils;
+import net.sf.cglib.core.Predicate;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import net.sf.cglib.core.CollectionUtils;
-import net.sf.cglib.core.Predicate;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;
@@ -53,7 +63,6 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		}
 	}
 
-
 	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
 			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
 
@@ -61,6 +70,9 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		ConstellioFactories constellioFactories = fields.getConstellioFactories();
 		SessionContext sessionContext = fields.getSessionContext();
 		User user = presenterService(constellioFactories.getModelLayerFactory()).getCurrentUser(sessionContext);
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
+		MetadataSchemaType schemaType = coreSchemas(sessionContext.getCurrentCollection(),
+				constellioFactories.getModelLayerFactory()).getTypes().getSchemaType(schemaTypeCode);
 		MetadataSchema schema = coreSchemas(sessionContext.getCurrentCollection(),
 				constellioFactories.getModelLayerFactory()).getTypes().getSchema(recordVO.getSchema().getCode());
 		Map<String, Object> fieldsModifications = new HashMap<>();
@@ -75,7 +87,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			}
 		}
 
-		return new BatchProcessRequest(selectedRecords, user, fieldsModifications);
+		return new BatchProcessRequest(selectedRecords, user, schemaType, fieldsModifications);
 	}
 
 	private SchemasRecordsServices coreSchemas(String collection, ModelLayerFactory modelLayerFactory) {
@@ -86,7 +98,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		return new PresenterService(model);
 	}
 
-	private void updateFields(String dependencyRecordId, BatchProcessRequest  request) {
+	private void updateFields(String dependencyRecordId, BatchProcessRequest request) {
 		CopyRetentionRuleField copyRetentionRuleField = fields.getCopyRetentionRuleField();
 		if (StringUtils.isNotBlank(dependencyRecordId)) {
 			List<CopyRetentionRule> copyRetentionRules = getOptions(dependencyRecordId, request);
@@ -95,9 +107,9 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			if (copyRetentionRules.size() == 1) {
 				copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
 			}
-			if(copyRetentionRules.size() == 0){
+			if (copyRetentionRules.size() == 0) {
 				copyRetentionRuleField.setVisible(false);
-			}else{
+			} else {
 				copyRetentionRuleField.setVisible(true);
 			}
 		} else {
@@ -107,14 +119,14 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 	}
 
 	private void filterByType(final List<CopyRetentionRule> copyRetentionRules) {
-		if(StringUtils.isBlank(fields.getType())){
+		if (StringUtils.isBlank(fields.getType())) {
 			return;
 		}
 		CollectionUtils.filter(copyRetentionRules, new Predicate() {
 			@Override
 			public boolean evaluate(Object arg) {
-				if(arg instanceof CopyRetentionRule){
-					if(((CopyRetentionRule) arg).getTypeId().equals(fields.getType())){
+				if (arg instanceof CopyRetentionRule) {
+					if (((CopyRetentionRule) arg).getTypeId().equals(fields.getType())) {
 						return true;
 					}
 				}
@@ -123,27 +135,8 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		});
 	}
 
-	private List<CopyRetentionRule> getOptions(String dependencyRecordId, BatchProcessRequest recordVo) {
-		ConstellioFactories constellioFactories = fields.getConstellioFactories();
-		SessionContext sessionContext = fields.getSessionContext();
-		String collection = sessionContext.getCurrentCollection();
-
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-
-		if (fields.getSchemaType().equals(Folder.SCHEMA_TYPE)) {
-			RetentionRule retentionRule = rm.getRetentionRule(dependencyRecordId);
-			return retentionRule.getCopyRetentionRules();
-		} else {
-			Folder parentFolder = rm.getFolder(dependencyRecordId);
-			//TODO Francis
-			return asList(parentFolder.getMainCopyRule());
-		}
-
-	}
-
-	public List<CopyRetentionRule> getOptions(String typeId, BatchProcessRequest request) {
-
+	private List<CopyRetentionRule> getOptions(String dependencyRecordId, BatchProcessRequest request) {
+		String typeId = fields.getType();
 		AppLayerFactory appLayerFactory = fields.getConstellioFactories().getAppLayerFactory();
 		String collection = fields.getSessionContext().getCurrentCollection();
 		Locale locale = fields.getSessionContext().getCurrentLocale();
