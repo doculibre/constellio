@@ -65,4 +65,12 @@ public class BatchProcessRequest {
 		modifiedMetadatas.put(metadataCode, value);
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "BatchProcessRequest{" +
+				"modifiedMetadatas=" + modifiedMetadatas +
+				", ids=" + ids +
+				'}';
+	}
 }

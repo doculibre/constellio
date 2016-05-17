@@ -10,11 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.framework.components.RecordFieldFactory;
-import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -148,19 +143,31 @@ public class BatchProcessingPresenterService {
 	public BatchProcessResults execute(BatchProcessRequest request)
 			throws RecordServicesException {
 
+		System.out.println("**************** EXECUTE ****************");
+		System.out.println("REQUEST : ");
+		System.out.println(request);
 		Transaction transaction = prepareTransaction(request);
 		recordServices.validateTransaction(transaction);
 		BatchProcessResults results = toBatchProcessResults(transaction);
 		recordServices.executeHandlingImpactsAsync(transaction);
+
+		System.out.println("\nRESULTS : ");
+		System.out.println(results);
 		return results;
 	}
 
 	public BatchProcessResults simulate(BatchProcessRequest request)
 			throws RecordServicesException {
-
+		System.out.println("**************** SIMULATE ****************");
+		System.out.println("REQUEST : ");
+		System.out.println(request);
 		Transaction transaction = prepareTransaction(request);
 		recordServices.validateTransaction(transaction);
-		return toBatchProcessResults(transaction);
+		BatchProcessResults results = toBatchProcessResults(transaction);
+
+		System.out.println("\nRESULTS : ");
+		System.out.println(results);
+		return results;
 	}
 
 	public BatchProcessingMode getBatchProcessingMode() {
@@ -343,7 +350,6 @@ public class BatchProcessingPresenterService {
 		//TODO Francis
 		return null;
 	}
-
 
 }
 //		ConstellioFactories constellioFactories = fields.getConstellioFactories();
