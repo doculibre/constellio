@@ -66,6 +66,9 @@ public class LDAPUserSyncConfiguration {
 	}
 
 	public boolean isGroupAccepted(String groupName) {
+		if (groupName == null) {
+			return false;
+		}
 		if (this.groupFilter == null) {
 			return true;
 		}
