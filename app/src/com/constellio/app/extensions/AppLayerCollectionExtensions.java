@@ -29,6 +29,7 @@ import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -238,17 +239,6 @@ public class AppLayerCollectionExtensions {
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			extension.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 		}
-	}
-
-	public RecordFieldFactory newRecordFieldFactory(RecordFieldFactoryExtensionParams params) {
-		RecordFieldFactory recordFieldFactory = null;
-		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
-			recordFieldFactory = extension.newRecordFieldFactory(params);
-			if (recordFieldFactory != null) {
-				break;
-			}
-		}
-		return recordFieldFactory;
 	}
 
 	public boolean isMetadataDisplayedWhenModifiedInBatchProcessing(final Metadata metadata) {

@@ -10,6 +10,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -70,24 +74,30 @@ public class BatchProcessingPresenterService {
 		this.extensions = appLayerFactory.getExtensions().forCollection(collection);
 	}
 
-	public String getOriginType(String schemaType, List<String> selectedRecordIds) {
+	public String getOriginType(List<String> selectedRecordIds) {
 		if (selectedRecordIds == null || selectedRecordIds.isEmpty()) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
-		String firstRecordSchema = getRecordSchemaCode(recordServices, selectedRecordIds.get(0));
-		Boolean moreThanOneType = false;
-		for (int i = 0; i < selectedRecordIds.size(); i++) {
-			String currentRecordSchema = getRecordSchemaCode(recordServices, selectedRecordIds.get(i));
-			if (!currentRecordSchema.equals(firstRecordSchema)) {
-				moreThanOneType = true;
-				break;
+		String firstType = null;
+		for(String recordId : selectedRecordIds){
+			Record record =  recordServices.getDocumentById(recordId);
+			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(record);
+			Object type = record.get(typeMetadata);
+			if(type != null){
+				if(firstType == null){
+					firstType = (String)type;
+				}else if(!firstType.equals(type)){
+					//more than one type
+					return null;
+				}
+			}else {
+				if(firstType != null){
+					//more than one type
+					return null;
+				}
 			}
 		}
-		if (moreThanOneType) {
-			return null;
-		} else {
-			return firstRecordSchema;
-		}
+		return firstType;
 	}
 
 	private String getRecordSchemaCode(RecordServices recordServices, String recordId) {
@@ -292,4 +302,36 @@ public class BatchProcessingPresenterService {
 		return transaction;
 	}
 
+	public String getSchema(String schemaType, String typeId) {
+		if(StringUtils.isBlank(typeId)) {
+			return schemaType + "_default";
+		}
+		Record record = recordServices.getDocumentById(typeId);
+		return schemas.getLinkedSchemaOf(record);
+	}
+
+	public String getTypeSchemaType(String schemaType) {
+		return schemas.getRecordTypeMetadataOf(schemas.getTypes().getSchemaType(schemaType)).getReferencedSchemaType();
+	}
+
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
+		BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams params =
+				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType);
+		params.setSelectedTypeId(selectedType).setRecordIdThatCopyRetentionRuleDependantOn(getRecordIdThatCopyRetentionRuleDependsOn(schemaType, selectedRecordIds));
+
+		RecordFieldFactory recordFieldFactory = null;
+		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions().forCollection(collection).recordFieldFactoryExtensions;
+		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
+			recordFieldFactory = extension.newRecordFieldFactory(params);
+			if (recordFieldFactory != null) {
+				break;
+			}
+		}
+		return recordFieldFactory;
+	}
+
+	private String getRecordIdThatCopyRetentionRuleDependsOn(String schemaType, List<String> selectedRecordIds) {
+		//TODO Francis
+		return null;
+	}
 }

@@ -10,4 +10,6 @@ public interface CopyRetentionRuleField {
     String getFieldValue();
 
     void setFieldValue(Object string);
+
+    void setVisible(boolean b);
 }

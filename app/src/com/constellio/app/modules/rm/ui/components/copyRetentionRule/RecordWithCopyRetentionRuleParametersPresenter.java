@@ -3,7 +3,7 @@ package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
-import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.RetentionRuleField;
+import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -21,9 +21,9 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
     }
 
     void rmFieldsCreated() {
-        RetentionRuleField retentionRuleField = fields.getRetentionField();
+        CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
         if (retentionRuleField != null) {
-            retentionRuleField.addValueChangeListener(new RetentionRuleField.RetentionValueChangeListener() {
+            retentionRuleField.addValueChangeListener(new CopyRetentionRuleDependencyField.RetentionValueChangeListener() {
                 @Override
                 public void valueChanged(String newValue) {
                     updateFields(newValue);
@@ -32,7 +32,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
         }
     }
 
-    private void updateFields(String retentionRuleId) {
+    private void updateFields(String dependencyRecordId) {
         CopyRetentionRuleField copyRetentionRuleField = fields.getCopyRetentionRuleField();
 
         ConstellioFactories constellioFactories = fields.getConstellioFactories();
@@ -42,15 +42,18 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
         AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-        if (StringUtils.isNotBlank(retentionRuleId)) {
-            RetentionRule retentionRule = rm.getRetentionRule(retentionRuleId);
+        if (StringUtils.isNotBlank(dependencyRecordId)) {
+
+            RetentionRule retentionRule = rm.getRetentionRule(dependencyRecordId);
             List<CopyRetentionRule> copyRetentionRules = retentionRule.getCopyRetentionRules();
             copyRetentionRuleField.setOptions(copyRetentionRules);
             if (copyRetentionRules.size() == 1) {
                 copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
             }
+            copyRetentionRuleField.setVisible(true);
         } else {
             copyRetentionRuleField.setOptions(new ArrayList<CopyRetentionRule>());
+            copyRetentionRuleField.setVisible(false);
         }
     }
 }

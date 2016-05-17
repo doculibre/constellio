@@ -1,16 +1,21 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule;
 
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
+import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.vaadin.data.Property;
 
-public class RetentionRuleFieldImpl extends FolderRetentionRuleFieldImpl implements RetentionRuleField{
-    public RetentionRuleFieldImpl(String collection) {
-        super(collection);
+public class DocumentCopyRetentionRuleDependencyFieldImpl  extends LookupFolderField implements CopyRetentionRuleDependencyField {
+    public DocumentCopyRetentionRuleDependencyFieldImpl(String collection) {
+        super();
+    }
+
+    @Override
+    public String getFieldValue() {
+        return super.getValue();
     }
 
     @Override
     public void setFieldValue(String value) {
-        super.setFieldValue(value);
+        super.setValue(value);
     }
 
     @Override
@@ -24,3 +29,4 @@ public class RetentionRuleFieldImpl extends FolderRetentionRuleFieldImpl impleme
         });
     }
 }
+

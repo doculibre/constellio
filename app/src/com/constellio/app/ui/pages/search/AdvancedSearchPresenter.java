@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -339,13 +342,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginType(String schemaType, List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginType(schemaType, selectedRecordIds);
-	}
-
-	@Override
-	public List<String> getDestinationSchemata(String originSchema) {
-		return batchProcessingPresenterService().getDestinationSchemata(originSchema);
+	public String getOriginType(List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
 	}
 
 	@Override
@@ -415,17 +413,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public String getSchema(String schemaType, String type) {
-		if(StringUtils.isBlank(type)) {
-			return schemaType + "_default";
-		}
-		//TODO Francis
-		return schemaType + "_default";
+		return batchProcessingPresenterService().getSchema(schemaType, type);
 	}
 
 	@Override
 	public String getTypeSchemaType(String schemaType) {
-		//TODO Francis
-		return "ddv" + schemaType + "Type";
+		return batchProcessingPresenterService().getTypeSchemaType(schemaType);
+	}
+
+	@Override
+	public RecordFieldFactory newRecordFieldFactory(String selectedType) {
+		return batchProcessingPresenterService().newRecordFieldFactory(view.getSchemaType(), selectedType, view.getSelectedRecordIds());
 	}
 
 }
