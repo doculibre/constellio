@@ -250,4 +250,15 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
+	public RecordFieldFactory newRecordFieldFactory(RecordFieldFactoryExtensionParams params) {
+		RecordFieldFactory recordFieldFactory = null;
+		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
+			recordFieldFactory = extension.newRecordFieldFactory(params);
+			if (recordFieldFactory != null) {
+				break;
+			}
+		}
+		return recordFieldFactory;
+	}
+
 }
