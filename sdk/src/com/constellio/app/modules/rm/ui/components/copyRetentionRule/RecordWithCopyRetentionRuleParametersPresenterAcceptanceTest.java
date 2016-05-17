@@ -1,35 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
-import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
-import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
-import static com.constellio.app.modules.rm.wrappers.Folder.SCHEMA_TYPE;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Locale;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.TestUtils;
 
 public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extends ConstellioTest {
 
