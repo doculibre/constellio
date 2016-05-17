@@ -83,10 +83,8 @@ public class LDAPServices {
 					/* for each entry print out name + all attrs and values */
 				while (results != null && results.hasMore()) {
 					SearchResult entry = (SearchResult) results.next();
-					Attribute attribute = entry.getAttributes().get("cn");
 
-					Attributes attrs = entry.getAttributes();
-					LDAPGroup group = buildLDAPGroup(attrs);
+					LDAPGroup group = buildLDAPGroup(entry);
 					groups.add(group);
 				}
 
@@ -179,27 +177,33 @@ public class LDAPServices {
 		return usersIds;*/
 	}
 
-	private LDAPGroup buildLDAPGroup(Attributes attrs)
+	private LDAPGroup buildLDAPGroup(SearchResult entry)
 			throws NamingException {
+		Attributes attrs = entry.getAttributes();
 		Attribute groupNameAttribute = attrs.get(LDAPGroup.COMMON_NAME);
 		Attribute groupDNameAttribute = attrs.get(LDAPGroup.DISTINGUISHED_NAME);
 
+		String groupName;
+		String distinguishedName;
 		if (groupNameAttribute != null && groupNameAttribute.size() > 0) {
-			String groupName = (String) groupNameAttribute.get(0);
-			String distinguishedName = (String) groupDNameAttribute.get(0);
-			LDAPGroup returnGroup = new LDAPGroup(groupName, distinguishedName);
-			//String groupName = (String) groupNameAttribute.get(0);
-			//TODO parent
-			Attribute members = attrs.get(LDAPGroup.MEMBER);
-			if (members != null) {
-				for (int i = 0; i < members.size(); i++) {
-					String userId = (String) members.get(i);
-					returnGroup.addUser(userId);
-				}
-			}
-			return returnGroup;
+			groupName = (String) groupNameAttribute.get(0);
+			distinguishedName = (String) groupDNameAttribute.get(0);
+		} else {
+			groupName = entry.getNameInNamespace();
+			distinguishedName = entry.getNameInNamespace();
 		}
-		return null;
+
+		LDAPGroup returnGroup = new LDAPGroup(groupName, distinguishedName);
+		//String groupName = (String) groupNameAttribute.get(0);
+		//TODO parent
+		Attribute members = attrs.get(LDAPGroup.MEMBER);
+		if (members != null) {
+			for (int i = 0; i < members.size(); i++) {
+				String userId = (String) members.get(i);
+				returnGroup.addUser(userId);
+			}
+		}
+		return returnGroup;
 	}
 
 	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password, Boolean followReferences,
