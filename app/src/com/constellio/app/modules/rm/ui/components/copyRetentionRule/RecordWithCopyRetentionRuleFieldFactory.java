@@ -20,10 +20,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory implements RecordWithCopyRetentionRuleParametersFields {
-    static final private List<String> folderSpecificFieldsMetadataLocaleCodes = Arrays.asList(Folder.RETENTION_RULE_ENTERED, Folder.MAIN_COPY_RULE_ID_ENTERED);
+    static final private List<String> folderSpecificFieldsMetadataLocaleCodes = Arrays.asList(Folder.RETENTION_RULE_ENTERED, Folder.MAIN_COPY_RULE_ID_ENTERED
+                                    , Folder.COPY_STATUS);
     static final private List<String> documentSpecificMetadataLocaleCodes = Arrays.asList(Document.FOLDER, Document.MAIN_COPY_RULE_ID_ENTERED);
 
-    private FolderCopyRetentionRuleDependencyFieldImpl folderCopyRetentionruleDependencyField;
+    private FolderCopyRetentionRuleDependencyFieldImpl folderCopyRetentionRuleDependencyField;
 
     private DocumentCopyRetentionRuleDependencyFieldImpl documentCopyRetentionRuleDependencyField;
 
@@ -32,12 +33,14 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory 
     private RecordWithCopyRetentionRuleParametersPresenter presenter;
 
     private final String recordIdThatCopyRetentionRuleDependantOn, selectedTypeId, schemaType;
+    private final List<String> selectedRecords;
 
-    public RecordWithCopyRetentionRuleFieldFactory(String schemaType, String recordIdThatCopyRetentionRuleDependantOn, String selectedTypeId) {
+    public RecordWithCopyRetentionRuleFieldFactory(String schemaType, String recordIdThatCopyRetentionRuleDependantOn, String selectedTypeId, List<String> selectedRecords) {
         this.presenter = new RecordWithCopyRetentionRuleParametersPresenter(this);
         this.schemaType = schemaType;
         this.recordIdThatCopyRetentionRuleDependantOn = recordIdThatCopyRetentionRuleDependantOn;
         this.selectedTypeId = selectedTypeId;
+        this.selectedRecords = selectedRecords;
     }
 
     @Override
@@ -45,11 +48,11 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory 
         Field<?> field;
         String code = MetadataVO.getCodeWithoutPrefix(metadataVO.getCode());
         if(schemaType.equals(Folder.SCHEMA_TYPE) &&
-                folderSpecificFieldsMetadataLocaleCodes.contains(metadataVO.getLocalCode())){
+                folderSpecificFieldsMetadataLocaleCodes.contains(code)){
             field = buildFolderSpecificFields(recordVO, metadataVO);
             super.postBuild(field, recordVO, metadataVO);
         }else if(schemaType.equals(Document.SCHEMA_TYPE) &&
-                documentSpecificMetadataLocaleCodes.contains(metadataVO.getLocalCode())){
+                documentSpecificMetadataLocaleCodes.contains(code)){
             field = buildDocumentSpecificFields(recordVO, metadataVO);
             super.postBuild(field, recordVO, metadataVO);
         }else{
@@ -63,12 +66,12 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory 
         if (documentCopyRetentionRuleDependencyField == null) {
             documentCopyRetentionRuleDependencyField = new DocumentCopyRetentionRuleDependencyFieldImpl(presenter.fields.getSessionContext().getCurrentCollection());
             copyRetentionRuleField = new CopyRetentionRuleFieldImpl();
+            presenter.rmFieldsCreated(recordVO);
             if(StringUtils.isNotBlank(recordIdThatCopyRetentionRuleDependantOn)){
                 documentCopyRetentionRuleDependencyField.setFieldValue(recordIdThatCopyRetentionRuleDependantOn);
             }
-            presenter.rmFieldsCreated();
         }
-        if (Folder.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {
+        if (Document.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {
             field = copyRetentionRuleField;
         } else {
             field = documentCopyRetentionRuleDependencyField;
@@ -78,15 +81,18 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory 
 
     private Field<?> buildFolderSpecificFields(RecordVO recordVO, MetadataVO metadataVO) {
         Field<?> field;
-            if (folderCopyRetentionruleDependencyField == null) {
-                folderCopyRetentionruleDependencyField = new FolderCopyRetentionRuleDependencyFieldImpl(presenter.fields.getSessionContext().getCurrentCollection());
+            if (folderCopyRetentionRuleDependencyField == null) {
+                folderCopyRetentionRuleDependencyField = new FolderCopyRetentionRuleDependencyFieldImpl(presenter.fields.getSessionContext().getCurrentCollection());
                 copyRetentionRuleField = new CopyRetentionRuleFieldImpl();
-                presenter.rmFieldsCreated();
+                presenter.rmFieldsCreated(recordVO);
+                if(StringUtils.isNotBlank(recordIdThatCopyRetentionRuleDependantOn)){
+                    folderCopyRetentionRuleDependencyField.setFieldValue(recordIdThatCopyRetentionRuleDependantOn);
+                }
             }
             if (Folder.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {
                 field = copyRetentionRuleField;
             } else {
-                field = folderCopyRetentionruleDependencyField;
+                field = folderCopyRetentionRuleDependencyField;
             }
         return field;
     }
@@ -105,7 +111,7 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory 
     @Override
     public CopyRetentionRuleDependencyField getCopyRetentionRuleDependencyField() {
         if(schemaType.equals(Folder.SCHEMA_TYPE)){
-            return folderCopyRetentionruleDependencyField;
+            return folderCopyRetentionRuleDependencyField;
         }else if (schemaType.equals(Document.SCHEMA_TYPE)){
             return documentCopyRetentionRuleDependencyField;
         }else{
@@ -122,6 +128,12 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory 
     public String getSchemaType() {
         return schemaType;
     }
+
+    @Override
+    public List<String> getSelectedRecords() {
+        return selectedRecords;
+    }
+
 
     @Override
     public String getType() {

@@ -317,4 +317,6 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 	}
 
+	
+
 }

@@ -49,7 +49,7 @@ public class SchemasRecordsServices {
 	//Generic
 
 	public Metadata getRecordTypeMetadataOf(MetadataSchemaType schemaType) {
-		return schemaType.getMetadata("type");
+		return schemaType.getDefaultSchema().getMetadata("type");
 
 	}
 

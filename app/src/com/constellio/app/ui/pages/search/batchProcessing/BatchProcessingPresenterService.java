@@ -12,6 +12,7 @@ import java.util.Set;
 
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import org.apache.commons.lang.StringUtils;
@@ -317,7 +318,8 @@ public class BatchProcessingPresenterService {
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
 		BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams params =
 				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType);
-		params.setSelectedTypeId(selectedType).setRecordIdThatCopyRetentionRuleDependantOn(getRecordIdThatCopyRetentionRuleDependsOn(schemaType, selectedRecordIds));
+		params.setSelectedTypeId(selectedType).setRecordIdThatCopyRetentionRuleDependantOn(getRecordIdThatCopyRetentionRuleDependsOn(schemaType, selectedRecordIds))
+				.setSelectedRecords(selectedRecordIds);
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions().forCollection(collection).recordFieldFactoryExtensions;
