@@ -11,12 +11,14 @@ import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -58,7 +60,9 @@ public class SchemasRecordsServices {
 
 	}
 
-
+	public String getLinkedSchemaOf(RecordWrapper recordWrapper) {
+		return getLinkedSchemaOf(recordWrapper.getWrappedRecord());
+	}
 
 	//TODO Francis : Test
 	public String getLinkedSchemaOf(Record record) {
@@ -85,7 +89,8 @@ public class SchemasRecordsServices {
 				for (MetadataSchemaType type : types.getSchemaTypes()) {
 					if (type.getDefaultSchema().hasMetadataWithCode("type")) {
 						Metadata metadata = type.getDefaultSchema().getMetadata("type");
-						if (recordSchemaType.equals(metadata.getReferencedSchemaType())) {
+						if (metadata.getType() == MetadataValueType.REFERENCE && recordSchemaType
+								.equals(metadata.getReferencedSchemaType())) {
 							linkedSchemaType = new SchemaUtils().getSchemaTypeCode(metadata.getSchemaCode());
 						}
 					}
