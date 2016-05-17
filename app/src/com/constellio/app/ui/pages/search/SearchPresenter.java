@@ -401,7 +401,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
 					&& value != null
 					&& !metadata.isSystemReserved()
+					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
 					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+
 				fieldsModifications.put(metadataVO.getCode(), value);
 			}
 		}
