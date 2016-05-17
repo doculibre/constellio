@@ -62,7 +62,7 @@ public class OptionGroupAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		rm.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		dummyView = new DummyView();
 
