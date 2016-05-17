@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
@@ -397,4 +398,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public BatchProcessingMode getBatchProcessingMode() {
 		return batchProcessingPresenterService().getBatchProcessingMode();
 	}
+
+	@Override
+	public AppLayerCollectionExtensions getBatchProcessingExtension() {
+		return appLayerFactory.getExtensions().forCollection(collection);
+	}
+
 }

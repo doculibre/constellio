@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.enums.BatchProcessingMode;
@@ -18,4 +19,6 @@ public interface BatchProcessingPresenter {
     void saveButtonClicked(RecordVO viewObject);
 
     BatchProcessingMode getBatchProcessingMode();
+
+    AppLayerCollectionExtensions getBatchProcessingExtension();
 }

@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -7,7 +9,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property;
 import com.vaadin.ui.*;
@@ -51,7 +52,7 @@ public class BatchProcessingButton extends WindowButton {
         });
         vLayout.addComponent(schemaField);
 
-        form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()), new RecordFieldFactoryWithNoTypeNoContent());
+        form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()), newFieldFactory());
         vLayout.addComponent(form);
 
         panel.setContent(vLayout);
@@ -60,9 +61,16 @@ public class BatchProcessingButton extends WindowButton {
     }
 
     private void refreshForm() {
-        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()), new RecordFieldFactoryWithNoTypeNoContent());
+        RecordFieldFactory fieldFactory = newFieldFactory();
+        BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO((String) schemaField.getValue(), view.getSessionContext()), fieldFactory);
         vLayout.replaceComponent(form, newForm);
         form = newForm;
+    }
+
+    private RecordFieldFactory newFieldFactory() {
+        RecordFieldFactory fieldFactory = presenter.getBatchProcessingExtension().newRecordFieldFactory
+                (new RecordFieldFactoryExtensionParams(BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null));
+        return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
     }
 
 
@@ -71,8 +79,7 @@ public class BatchProcessingButton extends WindowButton {
 
         public BatchProcessingForm(RecordVO record, RecordFieldFactory recordFieldFactory) {
             super(record, recordFieldFactory);
-            getWindow().setWidth("200px");
-            getWindow().setHeight("300px");
+            getWindow().setSizeFull();
             simulateButton = new Button($("simulate"));
             simulateButton.addClickListener(new ClickListener() {
                 @Override
@@ -106,15 +113,22 @@ public class BatchProcessingButton extends WindowButton {
 
     }
 
-    public static class RecordFieldFactoryWithNoTypeNoContent extends RecordFieldFactory {
-        @Override
-        public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-            if(metadataVO.getLocalCode().equals("type") || metadataVO.getType().equals(CONTENT)){
-                return null;
-            } else {
-                return super.build(recordVO, metadataVO);
-            }
+    private class RecordFieldFactoryWithNoTypeNoContent extends RecordFieldFactory {
+        final RecordFieldFactory fieldFactory;
+        public RecordFieldFactoryWithNoTypeNoContent(RecordFieldFactory fieldFactory) {
+            this.fieldFactory = fieldFactory;
         }
+
+        @Override
+                public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+                    if(metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")){
+                        return null;
+                    }
+                    if(fieldFactory != null) {
+                        return fieldFactory.build(recordVO, metadataVO);
+                    }
+                    return super.build(recordVO, metadataVO);
+                }
     }
 }
 

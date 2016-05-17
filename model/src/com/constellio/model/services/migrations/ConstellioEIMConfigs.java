@@ -13,6 +13,7 @@ import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 public class ConstellioEIMConfigs {
@@ -68,7 +69,7 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
-		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class).withDefaultValue(ONE_METADATA));
+		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class).withDefaultValue(ALL_METADATA_OF_SCHEMA));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
