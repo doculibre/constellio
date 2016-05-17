@@ -3,8 +3,11 @@ package com.constellio.app.api.extensions;
 import java.io.Serializable;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.schemas.Metadata;
+import com.vaadin.ui.Field;
 
 public abstract class BatchProcessingExtension implements Serializable {
 
@@ -14,6 +17,14 @@ public abstract class BatchProcessingExtension implements Serializable {
 
 	public ExtensionBooleanResult isMetadataModifiable(IsMetadataModifiableParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public Field buildMetadataField(MetadataVO metadataVO, RecordVO recordVO) {
+		return null;
+	}
+
+	public boolean hasMetadataSpecificAssociatedField(MetadataVO metadataVO) {
+		return false;
 	}
 
 	public static class IsMetadataDisplayedWhenModifiedParams {

@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
@@ -338,13 +342,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
-		return batchProcessingPresenterService().getOriginSchema(schemaType, selectedRecordIds);
-	}
-
-	@Override
-	public List<String> getDestinationSchemata(String originSchema) {
-		return batchProcessingPresenterService().getDestinationSchemata(originSchema);
+	public String getOriginType(List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
 	}
 
 	@Override
@@ -406,4 +405,25 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public BatchProcessingMode getBatchProcessingMode() {
 		return batchProcessingPresenterService().getBatchProcessingMode();
 	}
+
+	@Override
+	public AppLayerCollectionExtensions getBatchProcessingExtension() {
+		return appLayerFactory.getExtensions().forCollection(collection);
+	}
+
+	@Override
+	public String getSchema(String schemaType, String type) {
+		return batchProcessingPresenterService().getSchema(schemaType, type);
+	}
+
+	@Override
+	public String getTypeSchemaType(String schemaType) {
+		return batchProcessingPresenterService().getTypeSchemaType(schemaType);
+	}
+
+	@Override
+	public RecordFieldFactory newRecordFieldFactory(String selectedType) {
+		return batchProcessingPresenterService().newRecordFieldFactory(view.getSchemaType(), selectedType, view.getSelectedRecordIds());
+	}
+
 }

@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
@@ -212,6 +213,7 @@ public class ConstellioRMModule implements InstallableSystemModule {
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension());
 		extensions.searchPageExtensions.add(new RMSearchPageExtension());
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension());
+		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
