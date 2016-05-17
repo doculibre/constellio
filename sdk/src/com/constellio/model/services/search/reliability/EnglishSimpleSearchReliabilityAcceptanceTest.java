@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.assertj.core.data.Index;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -104,17 +105,21 @@ public class EnglishSimpleSearchReliabilityAcceptanceTest extends ConstellioTest
 		recordServices.execute(transaction);
 
 		assertThat(simpleSearch("2006")).containsOnly(record1);
-		//BROKEN assertThat(simpleSearch("2009")).containsOnly(record2);
+		assertThat(simpleSearch("2009")).containsOnly(record4);
 		assertThat(simpleSearch("2008")).containsOnly(record3);
-		assertThat(simpleSearch("2008-01")).containsOnly(record3);
-		assertThat(simpleSearch("2008-01-")).containsOnly(record3);
-		assertThat(simpleSearch("01")).containsOnly(record1, record3);
+		assertThat(simpleSearch("2008-01")).contains(record3, Index.atIndex(0));
+		assertThat(simpleSearch("2008-01")).contains(record3, record3, record4);
+		assertThat(simpleSearch("2008-01*")).containsOnly(record3);
+		assertThat(simpleSearch("2007-02-04")).containsOnly(record2);
+		assertThat(simpleSearch("01")).containsOnly(record1, record3, record4);
 		assertThat(simpleSearch("CO*")).containsOnly(record5, record6, record7);
 
-		//BROKEN assertThat(simpleSearch("CO-4262?")).containsOnly(record5, record6);
-		//BROKEN assertThat(simpleSearch("CO-48*")).containsOnly(record5, record6);
+		assertThat(simpleSearch("48621")).containsOnly(record5);
+		assertThat(simpleSearch("Co")).containsOnly(record5, record6, record7);
+		//? operator removes record6 as a match
+		assertThat(simpleSearch("CO-4?621")).containsOnly(record5, record7);
+		assertThat(simpleSearch("CO-48*")).containsOnly(record5, record6);
 	}
-
 	@Test
 	public void whenSearchingWithAndORNotThenOK()
 			throws Exception {

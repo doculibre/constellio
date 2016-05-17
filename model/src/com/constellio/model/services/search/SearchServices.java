@@ -199,7 +199,7 @@ public class SearchServices {
 			String qf = getQfFor(query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
-			params.add(DisMaxParams.MM, "2<66%");
+			params.add(DisMaxParams.MM, "1");
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
 
