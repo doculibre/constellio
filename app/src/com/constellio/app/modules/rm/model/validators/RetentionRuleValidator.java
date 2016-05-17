@@ -58,7 +58,7 @@ public class RetentionRuleValidator implements RecordValidator {
 
 	@Override
 	public void validate(RecordValidatorParams params) {
-		RetentionRule retentionRule = new RetentionRule(params.getRecord(), params.getTypes());
+		RetentionRule retentionRule = new RetentionRule(params.getValidatedRecord(), params.getTypes());
 		validate(retentionRule, params.getSchema(), params.getConfigProvider(), params.getValidationErrors());
 	}
 

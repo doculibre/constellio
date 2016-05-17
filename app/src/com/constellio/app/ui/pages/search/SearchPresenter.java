@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +22,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -44,6 +46,8 @@ import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -382,12 +386,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return modelLayerFactory.getSearchBoostManager();
 	}
 
+	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
+			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
+
 	public BatchProcessRequest toRequest(List<String> selectedRecord, RecordVO formVO) {
 		MetadataSchema schema = coreSchemas().getTypes().getSchema(formVO.getSchema().getCode());
 		Map<String, Object> fieldsModifications = new HashMap<>();
 		for (MetadataVO metadataVO : formVO.getMetadatas()) {
+			Metadata metadata = schema.get(metadataVO.getLocalCode());
 			Object value = formVO.get(metadataVO);
-			if (value != null) {
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+					&& value != null
+					&& !metadata.isSystemReserved()
+					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 				fieldsModifications.put(metadataVO.getCode(), value);
 			}
 		}

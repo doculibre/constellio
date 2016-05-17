@@ -435,6 +435,8 @@ public class RMTestRecords {
 		MV = rm.FI();
 		PA_MD = asList(PA, MD);
 
+		systemConfigurationsManager.setValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
+
 		Transaction transaction = new Transaction();
 		setupUsers(transaction, userServices);
 		setupCategories(transaction);

@@ -14,7 +14,7 @@ public class TaskValidator implements RecordValidator {
 
 	@Override
 	public void validate(RecordValidatorParams params) {
-		Task task = new Task(params.getRecord(), params.getTypes());
+		Task task = new Task(params.getValidatedRecord(), params.getTypes());
 		validate(task, params.getSchema(), params.getConfigProvider(), params.getValidationErrors());
 	}
 

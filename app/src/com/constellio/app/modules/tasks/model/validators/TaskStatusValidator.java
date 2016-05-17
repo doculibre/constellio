@@ -17,7 +17,7 @@ public class TaskStatusValidator implements RecordValidator {
 
 	@Override
 	public void validate(RecordValidatorParams params) {
-		TaskStatus taskStatus = new TaskStatus(params.getRecord(), params.getTypes());
+		TaskStatus taskStatus = new TaskStatus(params.getValidatedRecord(), params.getTypes());
 		validate(taskStatus, params.getValidationErrors());
 	}
 

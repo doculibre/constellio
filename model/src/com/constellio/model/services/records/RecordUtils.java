@@ -240,11 +240,22 @@ public class RecordUtils {
 	}
 
 	public static void changeSchemaTypeAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
-			RecordProvider recordProvider, Metadata metadata) {
+			RecordProvider recordProvider, Metadata typeMetadata) {
 		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
-		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(metadata.getReferencedSchemaType());
+		String newSchemaCode = getSchemaAccordingToTypeLinkedSchema(record, schemaTypes, recordProvider, typeMetadata);
+		if (!record.getSchemaCode().equals(newSchemaCode)) {
+			MetadataSchema newSchema = schemaTypes.getSchema(newSchemaCode);
+			record.changeSchema(recordSchema, newSchema);
+		}
+
+	}
+
+	public static String getSchemaAccordingToTypeLinkedSchema(Record record, MetadataSchemaTypes schemaTypes,
+			RecordProvider recordProvider, Metadata typeMetadata) {
+		MetadataSchema recordSchema = schemaTypes.getSchema(record.getSchemaCode());
+		MetadataSchema referencedSchema = schemaTypes.getDefaultSchema(typeMetadata.getReferencedSchemaType());
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-		String typeId = record.get(metadata);
+		String typeId = record.get(typeMetadata);
 		String customSchema = null;
 		if (typeId != null) {
 
@@ -252,11 +263,6 @@ public class RecordUtils {
 			customSchema = typeRecord.get(referencedSchema.get("linkedSchema"));
 		}
 
-		String newSchemaCode = schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
-		if (!record.getSchemaCode().equals(newSchemaCode)) {
-			MetadataSchema newSchema = schemaTypes.getSchema(newSchemaCode);
-			record.changeSchema(recordSchema, newSchema);
-		}
-
+		return schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
 	}
 }

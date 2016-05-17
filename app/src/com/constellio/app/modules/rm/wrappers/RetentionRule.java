@@ -307,4 +307,9 @@ public class RetentionRule extends RecordWrapper {
 		set(SCOPE, retentionRuleScope);
 		return this;
 	}
+
+	public static RetentionRule wrap(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new RetentionRule(record, types);
+	}
+
 }

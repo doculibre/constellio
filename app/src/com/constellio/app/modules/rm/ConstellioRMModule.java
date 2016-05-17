@@ -56,6 +56,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -119,7 +120,8 @@ public class ConstellioRMModule implements InstallableSystemModule {
 				new RMMigrationTo6_1_4(),
 				new RMMigrationTo6_2(),
 				new RMMigrationTo6_2_0_7(),
-				new RMMigrationTo6_3()
+				new RMMigrationTo6_3(),
+				new RMMigrationTo6_4()
 		);
 	}
 

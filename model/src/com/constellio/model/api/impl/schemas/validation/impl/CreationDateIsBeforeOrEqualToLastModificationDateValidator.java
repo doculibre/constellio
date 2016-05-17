@@ -29,8 +29,8 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidator implemen
 		Metadata creationDateMetadata = params.getSchema().getMetadata("creationDate");
 		Metadata modificationDateMetadata = params.getSchema().getMetadata("modificationDate");
 
-		LocalDateTime creationDate = params.getRecord().get(creationDateMetadata);
-		LocalDateTime modificationDate = params.getRecord().get(modificationDateMetadata);
+		LocalDateTime creationDate = params.getValidatedRecord().get(creationDateMetadata);
+		LocalDateTime modificationDate = params.getValidatedRecord().get(modificationDateMetadata);
 		validate(creationDate, modificationDate, params.getValidationErrors());
 
 	}

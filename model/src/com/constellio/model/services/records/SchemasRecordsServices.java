@@ -46,6 +46,68 @@ public class SchemasRecordsServices {
 
 	//Generic
 
+	public Metadata getRecordTypeMetadataOf(MetadataSchemaType schemaType) {
+		return schemaType.getMetadata("type");
+
+	}
+
+	public Metadata getRecordTypeMetadataOf(Record record) {
+		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		RecordProvider recordProvider = new RecordProvider(modelLayerFactory.newRecordServices());
+		return getTypes().getDefaultSchema(recordSchemaType).getMetadata("type");
+
+	}
+
+
+
+	//TODO Francis : Test
+	public String getLinkedSchemaOf(Record record) {
+		MetadataSchemaTypes types = getTypes();
+		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		MetadataSchema recordSchema = types.getSchema(record.getSchemaCode());
+
+		//The case where the record is a type
+		if (recordSchemaType.toLowerCase().contains("type")) {
+
+			if (!recordSchema.hasMetadataWithCode("linkedSchema")) {
+				throw new IllegalArgumentException(
+						"The record's schema '" + recordSchemaType + "' does not have 'linkedSchema' metadata");
+			}
+
+			Metadata linkedSchemaMetadata = recordSchema.getMetadata("linkedSchema");
+
+			String linkedSchema = record.get(linkedSchemaMetadata);
+			if (linkedSchema != null && linkedSchema.contains("_")) {
+				return linkedSchema;
+			} else {
+
+				String linkedSchemaType = null;
+				for (MetadataSchemaType type : types.getSchemaTypes()) {
+					if (type.getDefaultSchema().hasMetadataWithCode("type")) {
+						Metadata metadata = type.getDefaultSchema().getMetadata("type");
+						if (recordSchemaType.equals(metadata.getReferencedSchemaType())) {
+							linkedSchemaType = new SchemaUtils().getSchemaTypeCode(metadata.getSchemaCode());
+						}
+					}
+				}
+
+				if (linkedSchemaType == null) {
+					throw new IllegalArgumentException("No Schematype has a type referencing '" + recordSchemaType + "'");
+				}
+
+				return linkedSchemaType + "_" + (linkedSchema == null ? "default" : linkedSchema);
+			}
+
+		} else {
+			//The case where the record is an object with a type
+
+			RecordProvider recordProvider = new RecordProvider(modelLayerFactory.newRecordServices());
+			Metadata typeMetadata = getRecordTypeMetadataOf(record);
+			return RecordUtils.getSchemaAccordingToTypeLinkedSchema(record, types, recordProvider, typeMetadata);
+		}
+
+	}
+
 	public ModelLayerFactory getModelLayerFactory() {
 		return modelLayerFactory;
 	}
