@@ -17,9 +17,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
-import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,6 +38,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -389,6 +387,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public void saveButtonClicked(RecordVO viewObject) {
 		try {
+
 			BatchProcessRequest request = toRequest(view.getSelectedRecordIds(), viewObject);
 			BatchProcessResults results = batchProcessingPresenterService().execute(request);
 			displayBatchProcessingResults(results);
@@ -422,7 +421,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public RecordFieldFactory newRecordFieldFactory(String selectedType) {
-		return batchProcessingPresenterService().newRecordFieldFactory(view.getSchemaType(), selectedType, view.getSelectedRecordIds());
+		List<String> records = view.getSelectedRecordIds();
+
+		return batchProcessingPresenterService().newRecordFieldFactory(view.getSchemaType(), selectedType, records);
 	}
 
 }

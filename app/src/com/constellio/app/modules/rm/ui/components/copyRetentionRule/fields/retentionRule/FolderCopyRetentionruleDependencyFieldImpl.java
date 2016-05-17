@@ -4,8 +4,8 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.vaadin.data.Property;
 
-public class FolderCopyRetentionRuleDependencyFieldImpl extends LookupRecordField implements CopyRetentionRuleDependencyField {
-	public FolderCopyRetentionRuleDependencyFieldImpl(String collection) {
+public class FolderCopyRetentionruleDependencyFieldImpl extends LookupRecordField implements CopyRetentionRuleDependencyField {
+	public FolderCopyRetentionruleDependencyFieldImpl(String collection) {
 		super(RetentionRule.SCHEMA_TYPE);
 	}
 

@@ -398,12 +398,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		for (MetadataVO metadataVO : formVO.getMetadatas()) {
 			Metadata metadata = schema.get(metadataVO.getLocalCode());
 			Object value = formVO.get(metadataVO);
+
+			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
 					&& value != null
-					&& !metadata.isSystemReserved()
+					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
 					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
 					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
+				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
 			}
 		}
