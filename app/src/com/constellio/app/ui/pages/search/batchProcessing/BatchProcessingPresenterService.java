@@ -5,6 +5,7 @@ import static com.constellio.model.services.records.RecordUtils.changeSchemaType
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -78,26 +79,18 @@ public class BatchProcessingPresenterService {
 		if (selectedRecordIds == null || selectedRecordIds.isEmpty()) {
 			throw new ImpossibleRuntimeException("Batch processing should be done on at least one record");
 		}
-		String firstType = null;
+		Set<String> types = new HashSet<>();
 		for (String recordId : selectedRecordIds) {
 			Record record = recordServices.getDocumentById(recordId);
 			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(record);
-			Object type = record.get(typeMetadata);
-			if (type != null) {
-				if (firstType == null) {
-					firstType = (String) type;
-				} else if (!firstType.equals(type)) {
-					//more than one type
-					return null;
-				}
+			String type = record.get(typeMetadata);
+			if (type == null) {
+				return null;
 			} else {
-				if (firstType != null) {
-					//more than one type
-					return null;
-				}
+				types.add(type);
 			}
 		}
-		return firstType;
+		return types.size() == 1 ? types.iterator().next() : null;
 	}
 
 	private String getRecordSchemaCode(RecordServices recordServices, String recordId) {

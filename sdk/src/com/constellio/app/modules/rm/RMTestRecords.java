@@ -53,7 +53,10 @@ import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -335,6 +338,7 @@ public class RMTestRecords {
 	public final String list_36 = "list36";
 
 	private String collection;
+	private TasksSchemasRecordsServices tasks;
 	private RMSchemasRecordsServices rm;
 	private String alice_userWithNoWriteAccess;
 	private String admin_userIdWithAllAccess;
@@ -368,6 +372,7 @@ public class RMTestRecords {
 		users.setUp(userServices);
 
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> userRecords = searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.userSchemaType()).returnAll())
@@ -432,6 +437,7 @@ public class RMTestRecords {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
@@ -601,7 +607,6 @@ public class RMTestRecords {
 			}
 		});
 
-		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		transaction.add(rm.newFolderType().setCode("employe").setTitle("Employé").setLinkedSchema("folder_employe"));
 		transaction.add(rm.newFolderType().setCode("meeting").setTitle("Réunion").setLinkedSchema("folder_meeting"));
 		transaction.add(rm.newFolderType().setCode("other").setTitle("Autre"));
@@ -3006,5 +3011,41 @@ public class RMTestRecords {
 		}
 
 		return ids;
+	}
+
+	public FolderType folderTypeEmploye() {
+		return rm.getFolderTypeByCode("employe");
+	}
+
+	public FolderType folderTypeMeeting() {
+		return rm.getFolderTypeByCode("meeting");
+	}
+
+	public FolderType folderTypeOther() {
+		return rm.getFolderTypeByCode("other");
+	}
+
+	public DocumentType documentTypeForm() {
+		return rm.getDocumentTypeByCode("form");
+	}
+
+	public DocumentType documentTypeReport() {
+		return rm.getDocumentTypeByCode("report");
+	}
+
+	public DocumentType documentTypeOther() {
+		return rm.getDocumentTypeByCode("other");
+	}
+
+	public TaskType taskTypeForm() {
+		return tasks.getTaskTypeByCode("criticalTask");
+	}
+
+	public TaskType taskTypeReport() {
+		return tasks.getTaskTypeByCode("communicationTask");
+	}
+
+	public TaskType taskTypeOther() {
+		return tasks.getTaskTypeByCode("other");
 	}
 }

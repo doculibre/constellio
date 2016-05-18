@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -111,6 +112,17 @@ public class SchemasRecordsServices {
 			return RecordUtils.getSchemaAccordingToTypeLinkedSchema(record, types, recordProvider, typeMetadata);
 		}
 
+	}
+
+	public void setType(Record record, Record type) {
+		MetadataSchemaTypes types = getTypes();
+		MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+
+		Metadata recordTypeMetadata = getRecordTypeMetadataOf(record);
+
+		record.set(recordTypeMetadata, type);
+		RecordProvider recordProvider = new RecordProvider(getModelLayerFactory().newRecordServices());
+		changeSchemaTypeAccordingToTypeLinkedSchema(record, types, recordProvider, recordTypeMetadata);
 	}
 
 	public ModelLayerFactory getModelLayerFactory() {

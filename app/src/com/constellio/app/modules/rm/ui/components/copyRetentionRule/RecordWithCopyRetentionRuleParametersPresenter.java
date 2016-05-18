@@ -8,9 +8,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.cglib.core.CollectionUtils;
-import net.sf.cglib.core.Predicate;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -51,7 +48,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			retentionRuleField.addValueChangeListener(new CopyRetentionRuleDependencyField.RetentionValueChangeListener() {
 				@Override
 				public void valueChanged(String newValue) {
-					updateFields(newValue);
+					updateFields();
 				}
 			});
 		}
@@ -100,10 +97,10 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		return new PresenterService(model);
 	}
 
-	public void updateFields(String dependencyRecordId) {
+	public void updateFields() {
 		CopyRetentionRuleField copyRetentionRuleField = fields.getCopyRetentionRuleField();
 		BatchProcessRequest request = toRequest();
-		List<CopyRetentionRule> copyRetentionRules = getOptions(dependencyRecordId, request);
+		List<CopyRetentionRule> copyRetentionRules = getOptions(request);
 		copyRetentionRuleField.setOptions(copyRetentionRules);
 		if (copyRetentionRules.size() == 1) {
 			copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
@@ -115,24 +112,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		}
 	}
 
-	private void filterByType(final List<CopyRetentionRule> copyRetentionRules) {
-		if (StringUtils.isBlank(fields.getType())) {
-			return;
-		}
-		CollectionUtils.filter(copyRetentionRules, new Predicate() {
-			@Override
-			public boolean evaluate(Object arg) {
-				if (arg instanceof CopyRetentionRule) {
-					if (((CopyRetentionRule) arg).getTypeId().equals(fields.getType())) {
-						return true;
-					}
-				}
-				return false;
-			}
-		});
-	}
-
-	private List<CopyRetentionRule> getOptions(String dependencyRecordId, BatchProcessRequest request) {
+	private List<CopyRetentionRule> getOptions(BatchProcessRequest request) {
 		String typeId = fields.getType();
 		AppLayerFactory appLayerFactory = fields.getConstellioFactories().getAppLayerFactory();
 		String collection = fields.getSessionContext().getCurrentCollection();

@@ -347,4 +347,32 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 	}
 
+	@Test
+	public void whenBatchProcessingThenOriginalTypeIsNonNullIfEachRecordsHaveTheSameType()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.setType(records.getFolder_A01(), records.folderTypeEmploye()));
+		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye()));
+		transaction.add(rm.setType(records.getFolder_A03(), records.folderTypeMeeting()));
+		transaction.add(rm.setType(records.getFolder_A04(), records.folderTypeOther()));
+		transaction.add(rm.setType(records.getFolder_A05(), null));
+		transaction.add(rm.setType(records.getFolder_A06(), null));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A03,
+				records.folder_A04, records.folder_A05, records.folder_A06))).isNull();
+
+		assertThat(presenterService.getOriginType(asList(records.folder_A04, records.folder_A06))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A05, records.folder_A06))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A03))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A05))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A05, records.folder_A01, records.folder_A02))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A04))).isEqualTo(records.folderTypeOther().getId());
+		assertThat(presenterService.getOriginType(asList(records.folder_A03))).isEqualTo(records.folderTypeMeeting().getId());
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02)))
+				.isEqualTo(records.folderTypeEmploye().getId());
+	}
+
 }
