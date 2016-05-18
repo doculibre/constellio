@@ -13,10 +13,21 @@ import com.constellio.model.services.encrypt.EncryptionServices;
  */
 public class FakeEncryptionServices extends EncryptionServices {
 
+	public FakeEncryptionServices() {
+		try {
+			withKey(EncryptionKeyFactory.newApplicationKey("test", "test"));
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		} catch (InvalidKeySpecException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Override
 	public EncryptionServices withKey(Key key)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		super.withKey(EncryptionKeyFactory.newApplicationKey("test", "test"));
 		return this;
 	}
 
@@ -34,4 +45,8 @@ public class FakeEncryptionServices extends EncryptionServices {
 		}
 	}
 
+	@Override
+	public boolean isInitialized() {
+		return true;
+	}
 }

@@ -94,13 +94,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		dateTime2String = DateFormatUtils.format(dateTime2);
 		dateTime3String = DateFormatUtils.format(dateTime3);
 	}
-
-	@Test
-	public void givenModifiedRuleIsLinkedToSomeFoldersCategoryThenValidationException()
-			throws Exception {
-
-	}
-
+	
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulation()
 			throws Exception {

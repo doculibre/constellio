@@ -35,17 +35,21 @@ public class RecordValidationServices {
 	private final MetadataSchemasManager schemasManager;
 	private final AuthorizationsServices authorizationServices;
 	private final ConfigProvider configProvider;
+	private final RecordProvider recordProvider;
 	private SearchServices searchService;
 
-	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager,
+	public RecordValidationServices(ConfigProvider configProvider, RecordProvider recordProvider,
+			MetadataSchemasManager schemasManager,
 			SearchServices searchService) {
-		this(configProvider, schemasManager, searchService, null);
+		this(configProvider, recordProvider, schemasManager, searchService, null);
 	}
 
-	public RecordValidationServices(ConfigProvider configProvider, MetadataSchemasManager schemasManager,
+	public RecordValidationServices(ConfigProvider configProvider, RecordProvider recordProvider,
+			MetadataSchemasManager schemasManager,
 			SearchServices searchService,
 			AuthorizationsServices authorizationsServices) {
 		this.configProvider = configProvider;
+		this.recordProvider = recordProvider;
 		this.schemasManager = schemasManager;
 		this.searchService = searchService;
 		this.authorizationServices = authorizationsServices;
@@ -205,12 +209,18 @@ public class RecordValidationServices {
 	private void callSchemaValidator(Record record, MetadataSchemaTypes types, final MetadataSchema schema,
 			RecordValidator validator, final ValidationErrors validationErrors) {
 
-		validator.validate(record, types, schema, configProvider, new ValidationErrors() {
+		ValidationErrors validationErrorsWithExtraParams = new ValidationErrors() {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 				parameters.put("schemaCode", schema.getCode());
 				validationErrors.add(validatorClass, code, parameters);
 			}
-		});
+		};
+
+		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator,
+				validationErrorsWithExtraParams,
+				configProvider, recordProvider);
+
+		validator.validate(params);
 	}
 }

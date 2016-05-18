@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.joda.time.Duration;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 
@@ -46,4 +47,6 @@ public interface ModelLayerConfiguration {
 	void setMainDataLanguage(String language);
 
 	File getConstellioEncryptionFile();
+
+	DataLayerConfiguration getDataLayerConfiguration();
 }

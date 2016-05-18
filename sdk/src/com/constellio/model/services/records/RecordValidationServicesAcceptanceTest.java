@@ -87,7 +87,8 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 		thirdSchema = schemas.new ThirdSchemaMetadatas();
 
-		services = new RecordValidationServices(configProvider, getModelLayerFactory().getMetadataSchemasManager(),
+		services = new RecordValidationServices(configProvider, recordProvider,
+				getModelLayerFactory().getMetadataSchemasManager(),
 				getModelLayerFactory().newSearchServices(), getModelLayerFactory().newAuthorizationsServices());
 
 		recordServices = getModelLayerFactory().newCachelessRecordServices();
