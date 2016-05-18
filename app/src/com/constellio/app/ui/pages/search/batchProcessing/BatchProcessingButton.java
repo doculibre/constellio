@@ -91,7 +91,7 @@ public class BatchProcessingButton extends WindowButton {
 				@Override
 				public void buttonClick(ClickEvent event) {
 					form.commit();
-					presenter.simulateButtonClicked(viewObject);
+					presenter.simulateButtonClicked(typeField.getValue(), viewObject);
 				}
 			});
 			processButton = new Button($("process"));
@@ -100,7 +100,7 @@ public class BatchProcessingButton extends WindowButton {
 				@Override
 				public void buttonClick(ClickEvent event) {
 					form.commit();
-					presenter.saveButtonClicked(viewObject);
+					presenter.processBatchButtonClicked(typeField.getValue(), viewObject);
 				}
 			});
 			buttonsLayout.addComponent(processButton);

@@ -13,9 +13,9 @@ public interface BatchProcessingPresenter {
 
     RecordVO newRecordVO(String schema, SessionContext sessionContext);
 
-    void simulateButtonClicked(RecordVO viewObject);
+    void simulateButtonClicked(String selectedType, RecordVO viewObject);
 
-    void saveButtonClicked(RecordVO viewObject);
+    void processBatchButtonClicked(String selectedType, RecordVO viewObject);
 
     BatchProcessingMode getBatchProcessingMode();
 

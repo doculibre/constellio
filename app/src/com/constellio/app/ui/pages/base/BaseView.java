@@ -11,7 +11,7 @@ public interface BaseView extends Serializable, SessionContextProvider {
 
 	String getCollection();
 
-	@Deprecated
+	//@Deprecated
 	//CoreViews navigateTo();
 
 	void showMessage(String message);

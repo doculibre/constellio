@@ -41,6 +41,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
 	private final ConstellioHeader header;
+	private WindowButton batchProcess;
 
 	public AdvancedSearchViewImpl() {
 		presenter = new AdvancedSearchPresenter(this);
@@ -70,6 +71,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	@Override
+	public void closeBatchProcessingWindow() {
+		batchProcess.getWindow().close();
+	}
+
+	@Override
 	public String getSchemaType() {
 		return header.getAdvancedSearchSchemaType();
 	}
@@ -96,7 +102,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
 
-		WindowButton batchProcess = newBatchProcessingButton();
+		batchProcess = newBatchProcessingButton();
 		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
 		selectionActions.add(batchProcess);

@@ -332,6 +332,8 @@ public class BatchProcessingPresenterService {
 				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(
 						BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType);
 		params.setSelectedTypeId(selectedType).setSelectedRecords(selectedRecordIds);
+		//FIXME set this
+		//params.setRecordIdThatCopyRetentionRuleDependantOn()
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
