@@ -11,6 +11,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +52,6 @@ import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -251,10 +253,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		}
 	}
 
-	public void addToCartRequested(List<String> recordIds) {
+	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		Cart cart = rm.getOrCreateUserCart(getCurrentUser());
+		Cart cart = rm.getCart(cartVO.getId());
 		switch (schemaTypeCode) {
 		case Folder.SCHEMA_TYPE:
 			cart.addFolders(recordIds);
@@ -272,6 +274,19 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($(e));
 		}
+	}
+
+	public RecordVODataProvider getOwnedCartsDataProvider() {
+		MetadataSchemaToVOBuilder schemaToVOBuilder = new MetadataSchemaToVOBuilder();
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,appLayerFactory);
+		final MetadataSchemaVO cartSchemaVO = schemaToVOBuilder.build(rm.cartSchema(), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+			}
+		};
 	}
 
 	@Override

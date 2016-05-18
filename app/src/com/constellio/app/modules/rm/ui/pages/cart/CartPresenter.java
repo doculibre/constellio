@@ -33,6 +33,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
+	private String cartId;
 
 	public CartPresenter(CartView view) {
 		super(view, Cart.DEFAULT_SCHEMA);
@@ -52,7 +53,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 			break;
 		}
 		addOrUpdate(cart.getWrappedRecord());
-		view.navigate().to(RMViews.class).cart();
+		view.navigate().to(RMViews.class).cart(cart.getId());
 	}
 
 	public boolean canEmptyCart() {
@@ -61,7 +62,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 
 	public void cartEmptyingRequested() {
 		addOrUpdate(cart().empty().getWrappedRecord());
-		view.navigate().to(RMViews.class).cart();
+		view.navigate().to(RMViews.class).cart(cart().getId());
 	}
 
 	public boolean canPrepareEmail() {
@@ -128,7 +129,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 
 	private Cart cart() {
 		if (cart == null) {
-			cart = rm().getOrCreateUserCart(getCurrentUser());
+//			cart = rm().getOrCreateUserCart(getCurrentUser());
+			cart = rm().getCart(cartId);
 		}
 		return cart;
 	}
@@ -227,5 +229,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
+	}
+
+	public void forParams(String parameters) {
+		cartId = parameters;
 	}
 }

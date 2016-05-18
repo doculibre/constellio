@@ -804,10 +804,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return hasContent && hasAccess;
 	}
 
-	public void addToCartRequested() {
-		Cart cart = rmSchemasRecordsServices.getOrCreateUserCart(getCurrentUser()).addFolders(Arrays.asList(folderVO.getId()));
+	public void addToCartRequested(RecordVO recordVO) {
+		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId()).addFolders(Arrays.asList(folderVO.getId()));
 		addOrUpdate(cart.getWrappedRecord());
 		view.showMessage($("DisplayFolderView.addedToCart"));
+	}
+
+	public RecordVODataProvider getOwnedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartOwner())
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+			}
+		};
 	}
 
 	public void parentFolderButtonClicked(String parentId)

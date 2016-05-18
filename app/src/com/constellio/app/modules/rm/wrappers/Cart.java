@@ -37,6 +37,8 @@ public class Cart extends RecordWrapper {
 		return this;
 	}
 
+	// TODO When implementing cart sharing, must add a list of 'shared with users'
+
 	public List<String> getFolders() {
 		return getList(FOLDERS);
 	}

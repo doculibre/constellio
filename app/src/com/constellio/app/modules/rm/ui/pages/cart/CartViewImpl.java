@@ -36,6 +36,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		super.initBeforeCreateComponents(event);
+		presenter.forParams(event.getParameters());
+	}
+
+	@Override
 	protected String getTitle() {
 		return $("CartView.viewTitle");
 	}

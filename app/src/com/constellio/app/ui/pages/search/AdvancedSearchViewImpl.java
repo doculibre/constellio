@@ -11,17 +11,16 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
-import com.github.rjeschke.txtmark.Run;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Link;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
@@ -109,12 +108,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Button addToCart = new LinkButton($("SearchView.addToCart")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addToCartRequested(getSelectedRecordIds());
-				}
-			};
+			Button addToCart = buildAddToCartButton();
 			selectionActions.add(addToCart);
 		}
 
@@ -122,6 +116,32 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 
 		return results.createSummary(actions, selectionActions);
+	}
+
+	private WindowButton buildAddToCartButton() {
+		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				TabSheet tabSheet = new TabSheet();
+
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartsListView.cartsTable"), ownedCartsContainer);
+				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(getSelectedRecordIds(),ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				ownedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				layout.addComponent(tabSheet);
+				return layout;
+			}
+		};
 	}
 
 	private WindowButton newBatchProcessingButton() {
