@@ -19,4 +19,6 @@ public interface AdvancedSearchView extends SearchView {
 	void setSearchCriteria(List<Criterion> criteria);
 
 	void downloadBatchProcessingResults(InputStream inputStream);
+
+	void closeBatchProcessingWindow();
 }

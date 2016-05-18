@@ -350,9 +350,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void simulateButtonClicked(RecordVO viewObject) {
+	public void simulateButtonClicked(String selectedType, RecordVO viewObject) {
 		try {
-			BatchProcessRequest request = toRequest(view.getSelectedRecordIds(), viewObject);
+			BatchProcessRequest request = toRequest(selectedType, view.getSelectedRecordIds(), viewObject);
 			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
 			displayBatchProcessingResults(results);
 		} catch (RecordServicesException.ValidationException e) {
@@ -385,11 +385,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void saveButtonClicked(RecordVO viewObject) {
+	public void processBatchButtonClicked(String selectedType, RecordVO viewObject) {
 		try {
-
-			BatchProcessRequest request = toRequest(view.getSelectedRecordIds(), viewObject);
+			BatchProcessRequest request = toRequest(selectedType, view.getSelectedRecordIds(), viewObject);
 			BatchProcessResults results = batchProcessingPresenterService().execute(request);
+			view.closeBatchProcessingWindow();
+			view.showMessage($("BatchProcessing.endedNormally"));
 			displayBatchProcessingResults(results);
 		} catch (RecordServicesException.ValidationException e) {
 			view.showErrorMessage($(e.getErrors()));

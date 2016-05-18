@@ -72,9 +72,11 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 			documentCopyRetentionRuleDependencyField = new DocumentCopyRetentionRuleDependencyFieldImpl(
 					presenter.fields.getSessionContext().getCurrentCollection());
 			copyRetentionRuleField = new CopyRetentionRuleFieldImpl();
-			presenter.rmFieldsCreated(recordVO);
+			presenter.rmFieldsCreated();
 			if (StringUtils.isNotBlank(recordIdThatCopyRetentionRuleDependantOn)) {
 				documentCopyRetentionRuleDependencyField.setFieldValue(recordIdThatCopyRetentionRuleDependantOn);
+			}else{
+				presenter.updateFields(null);
 			}
 		}
 		if (Document.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {
@@ -91,9 +93,11 @@ public class RecordWithCopyRetentionRuleFieldFactory extends RecordFieldFactory
 			folderCopyRetentionRuleDependencyField = new FolderCopyRetentionruleDependencyFieldImpl(
 					presenter.fields.getSessionContext().getCurrentCollection());
 			copyRetentionRuleField = new CopyRetentionRuleFieldImpl();
-			presenter.rmFieldsCreated(recordVO);
+			presenter.rmFieldsCreated();
 			if (StringUtils.isNotBlank(recordIdThatCopyRetentionRuleDependantOn)) {
 				folderCopyRetentionRuleDependencyField.setFieldValue(recordIdThatCopyRetentionRuleDependantOn);
+			}else{
+				presenter.updateFields(null);
 			}
 		}
 		if (Folder.MAIN_COPY_RULE_ID_ENTERED.equals(metadataVO.getLocalCode())) {

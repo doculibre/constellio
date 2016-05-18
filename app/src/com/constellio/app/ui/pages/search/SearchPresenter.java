@@ -389,7 +389,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
 			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
 
-	public BatchProcessRequest toRequest(List<String> selectedRecord, RecordVO formVO) {
+	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO) {
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
 		MetadataSchemaType type = coreSchemas().getTypes().getSchemaType(typeCode);
@@ -409,6 +409,11 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
 			}
+		}
+		if(StringUtils.isNotBlank(selectedType)){
+			Metadata typeMetadata = coreSchemas().getRecordTypeMetadataOf(type);
+			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
+			fieldsModifications.put(typeMetadata.getCode(), selectedType);
 		}
 		User user = getCurrentUser();
 
