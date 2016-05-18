@@ -17,10 +17,15 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -38,11 +43,14 @@ import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordProvider;
@@ -130,7 +138,28 @@ public class BatchProcessingPresenterService {
 	public RecordVO newRecordVO(String schemaCode, SessionContext sessionContext) {
 		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
-		return new RecordToVOBuilder().build(tmpRecord, RecordVO.VIEW_MODE.FORM, sessionContext);
+		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder() {
+			@Override
+			protected MetadataToVOBuilder newMetadataToVOBuilder() {
+				return new MetadataToVOBuilder() {
+					@Override
+					protected MetadataVO newMetadataVO(String metadataCode, MetadataValueType type, String collection,
+							MetadataSchemaVO schemaVO, boolean required, boolean multivalue, boolean readOnly,
+							Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+							String schemaTypeCode, MetadataInputType metadataInputType,
+							AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
+							String metadataGroup, Object defaultValue, boolean isWriteNullValues) {
+						// Default value is always null
+						return super.newMetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels, enumClass,
+								taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory, metadataGroup,
+								null, isWriteNullValues);
+					}
+					
+				};
+			}
+		};
+		MetadataSchemaVO schemaVO = schemaVOBuilder.build(schema, RecordVO.VIEW_MODE.FORM, sessionContext);
+		return new RecordToVOBuilder().build(tmpRecord, RecordVO.VIEW_MODE.FORM, schemaVO, sessionContext);
 	}
 
 	public BatchProcessResults execute(BatchProcessRequest request)
