@@ -94,9 +94,39 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		dateTime2String = DateFormatUtils.format(dateTime2);
 		dateTime3String = DateFormatUtils.format(dateTime3);
 	}
-	
+
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulation()
+			throws Exception {
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A05, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+
+		try {
+			BatchProcessResults results = presenterService.simulate(request);
+			fail("error expected!");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+			);
+		}
+
+		try {
+			BatchProcessResults results = presenterService.execute(request);
+			fail("error expected!");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+			);
+		}
+		assertThat(records.getFolder_A05().getRetentionRuleEntered()).isNotEqualTo(records.ruleId_2);
+
+	}
+
+	@Test
+	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A05, records.folder_A16))
@@ -316,7 +346,5 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		);
 
 	}
-
-	
 
 }

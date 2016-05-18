@@ -14,6 +14,8 @@ import net.sf.cglib.core.CollectionUtils;
 import net.sf.cglib.core.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -44,19 +46,22 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecordWithCopyRetentionRuleParametersPresenter.class);
+
 	RecordWithCopyRetentionRuleParametersFields fields;
 
 	public RecordWithCopyRetentionRuleParametersPresenter(RecordWithCopyRetentionRuleParametersFields fields) {
 		this.fields = fields;
 	}
 
-	void rmFieldsCreated(RecordVO recordVO) {
-		CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
-		final BatchProcessRequest request = toRequest(fields.getSelectedRecords(), recordVO);
+	void rmFieldsCreated(final RecordVO recordVO) {
+		final CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
 		if (retentionRuleField != null) {
 			retentionRuleField.addValueChangeListener(new CopyRetentionRuleDependencyField.RetentionValueChangeListener() {
 				@Override
 				public void valueChanged(String newValue) {
+					BatchProcessRequest request = toRequest(fields.getSelectedRecords(), recordVO);
 					updateFields(newValue, request);
 				}
 			});
@@ -99,22 +104,18 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 	}
 
 	private void updateFields(String dependencyRecordId, BatchProcessRequest request) {
+		LOGGER.info("update fields");
 		CopyRetentionRuleField copyRetentionRuleField = fields.getCopyRetentionRuleField();
-		if (StringUtils.isNotBlank(dependencyRecordId)) {
-			List<CopyRetentionRule> copyRetentionRules = getOptions(dependencyRecordId, request);
-			filterByType(copyRetentionRules);
-			copyRetentionRuleField.setOptions(copyRetentionRules);
-			if (copyRetentionRules.size() == 1) {
-				copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
-			}
-			if (copyRetentionRules.size() == 0) {
-				copyRetentionRuleField.setVisible(false);
-			} else {
-				copyRetentionRuleField.setVisible(true);
-			}
-		} else {
-			copyRetentionRuleField.setOptions(new ArrayList<CopyRetentionRule>());
+		//if (StringUtils.isNotBlank(dependencyRecordId)) {
+		List<CopyRetentionRule> copyRetentionRules = getOptions(dependencyRecordId, request);
+		copyRetentionRuleField.setOptions(copyRetentionRules);
+		if (copyRetentionRules.size() == 1) {
+			copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
+		}
+		if (copyRetentionRules.size() == 0) {
 			copyRetentionRuleField.setVisible(false);
+		} else {
+			copyRetentionRuleField.setVisible(true);
 		}
 	}
 
