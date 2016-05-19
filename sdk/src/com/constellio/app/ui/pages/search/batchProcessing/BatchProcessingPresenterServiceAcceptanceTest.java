@@ -8,12 +8,14 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.joda.time.LocalDate;
@@ -25,6 +27,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
@@ -192,6 +195,36 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_expectedDepositDate", "2007-10-31", null)
 		);
 
+	}
+
+	@Test
+	public void whenModifyDocumentParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
+			throws Exception {
+
+		List<Document> folderA04Documents = rm.searchDocuments(where(rm.document.folder()).isEqualTo(records.folder_A04));
+		Document document1 = folderA04Documents.get(0);
+		Document document2 = folderA04Documents.get(1);
+		Document document3 = folderA04Documents.get(2);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(document1.getId(), document2.getId(), document3.getId()))
+				.addModifiedMetadata(Document.FOLDER, records.folder_A07);
+
+		BatchProcessResults results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
+				tuple(document1.getId(), document1.getTitle()),
+				tuple(document2.getId(), document2.getTitle()),
+				tuple(document3.getId(), document3.getTitle()));
+
+		assertThat(results.getRecordModifications(document1.getId()).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+
+				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
+				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
+				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+		);
 	}
 
 	@Test
@@ -387,7 +420,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A01, records.folder_A02))
 				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
-		;
+				.addModifiedMetadata("subType", "");
 
 		results = presenterService.simulate(request);
 
@@ -408,6 +441,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+
 	}
 
 	@Test

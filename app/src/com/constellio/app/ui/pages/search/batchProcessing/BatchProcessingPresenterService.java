@@ -150,11 +150,14 @@ public class BatchProcessingPresenterService {
 							AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
 							String metadataGroup, Object defaultValue, boolean isWriteNullValues) {
 						// Default value is always null
-						return super.newMetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels, enumClass,
-								taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory, metadataGroup,
-								null, isWriteNullValues);
+						return super
+								.newMetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
+										enumClass,
+										taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
+										structureFactory, metadataGroup,
+										null, isWriteNullValues);
 					}
-					
+
 				};
 			}
 		};
@@ -206,7 +209,7 @@ public class BatchProcessingPresenterService {
 			List<BatchProcessPossibleImpact> impacts = new ArrayList<>();
 			Record originalRecord = record.getCopyOfOriginalRecord();
 			for (Metadata metadata : record.getModifiedMetadatas(schemas.getTypes())) {
-				if (!metadata.hasSameCode(Schemas.MODIFIED_ON) && extensions
+				if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
 						.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
 					String valueBefore = convertToString(metadata, originalRecord.get(metadata));
 					String valueAfter = convertToString(metadata, record.get(metadata));
@@ -315,7 +318,7 @@ public class BatchProcessingPresenterService {
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(metadataCode);
 
-					if (types.isRecordTypeMetadata(metadata)) {
+					if (isNonEmptyValue(metadata, entry.getValue()) && types.isRecordTypeMetadata(metadata)) {
 						record.set(metadata, entry.getValue());
 						changeSchemaTypeAccordingToTypeLinkedSchema(record, types, new RecordProvider(recordServices), metadata);
 					}
@@ -329,7 +332,9 @@ public class BatchProcessingPresenterService {
 				String metadataCode = currentRecordSchema.getCode() + "_" + localMetadataCode;
 				if (currentRecordSchema.hasMetadataWithCode(metadataCode)) {
 					Metadata metadata = currentRecordSchema.get(currentRecordSchema.getCode() + "_" + localMetadataCode);
-					record.set(metadata, entry.getValue());
+					if (isNonEmptyValue(metadata, entry.getValue())) {
+						record.set(metadata, entry.getValue());
+					}
 				}
 			}
 
@@ -340,6 +345,14 @@ public class BatchProcessingPresenterService {
 		}
 
 		return transaction;
+	}
+
+	private boolean isNonEmptyValue(Metadata metadata, Object o) {
+		if (metadata.isMultivalue()) {
+			return o != null && o instanceof List && !((List) o).isEmpty();
+		} else {
+			return o != null && !"".equals(o);
+		}
 	}
 
 	public String getSchema(String schemaType, String typeId) {
@@ -359,8 +372,6 @@ public class BatchProcessingPresenterService {
 				new BatchProcessingRecordFactoryExtension.BatchProcessingFieldFactoryExtensionParams(
 						BatchProcessingRecordFactoryExtension.BATCH_PROCESSING_FIELD_FACTORY_KEY, null, schemaType);
 		params.setSelectedTypeId(selectedType).setSelectedRecords(selectedRecordIds);
-		//FIXME set this
-		//params.setRecordIdThatCopyRetentionRuleDependantOn()
 
 		RecordFieldFactory recordFieldFactory = null;
 		VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = appLayerFactory.getExtensions()
@@ -374,31 +385,5 @@ public class BatchProcessingPresenterService {
 		return recordFieldFactory;
 	}
 
-	private String getRecordIdThatCopyRetentionRuleDependsOn(String schemaType, List<String> selectedRecordIds) {
-		//TODO Francis
-		return null;
-	}
-
 }
-//		ConstellioFactories constellioFactories = fields.getConstellioFactories();
-//		SessionContext sessionContext = fields.getSessionContext();
-//		String collection = sessionContext.getCurrentCollection();
-//
-//		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-//		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-//
-//		if (fields.getSchemaType().equals(Folder.SCHEMA_TYPE)) {
-//			RetentionRule retentionRule = rm.getRetentionRule(dependencyRecordId);
-//			List<CopyRetentionRule> copyRetentionRules = new ArrayList<>(retentionRule.getCopyRetentionRules());
-//
-//			return copyRetentionRules;
-//		} else {
-//			Folder parentFolder = rm.getFolder(dependencyRecordId);
-//
-//			List<CopyRetentionRule> copyRetentionRules = new ArrayList<>();
-//			copyRetentionRules.addAll(parentFolder.getApplicableCopyRules());
-//
-//			return copyRetentionRules;
-//		}
-//
-//	}
+

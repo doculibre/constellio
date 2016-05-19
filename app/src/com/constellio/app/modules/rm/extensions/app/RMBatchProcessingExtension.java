@@ -27,11 +27,19 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 			Folder.COPY_RULES_EXPECTED_TRANSFER_DATES, Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES, Folder.DECOMMISSIONING_DATE,
 			Folder.FOLDER_TYPE);
 
+	final List<String> hiddenDocumentMetadatas = asList(Document.ALERT_USERS_WHEN_AVAILABLE, Document.APPLICABLE_COPY_RULES,
+			Document.CALENDAR_YEAR, Document.ACTUAL_DEPOSIT_DATE_ENTERED, Document.ACTUAL_DESTRUCTION_DATE_ENTERED,
+			Document.ACTUAL_TRANSFER_DATE_ENTERED, Document.INHERITED_FOLDER_RETENTION_RULE, Document.MAIN_COPY_RULE_ID_ENTERED);
+
 	@Override
 	public ExtensionBooleanResult isMetadataDisplayedWhenModified(IsMetadataDisplayedWhenModifiedParams params) {
 
 		if (params.isSchemaType(Folder.SCHEMA_TYPE)) {
 			return ExtensionBooleanResult.falseIf(hiddenFolderMetadatas.contains(params.getMetadata().getLocalCode()));
+		}
+
+		if (params.isSchemaType(Document.SCHEMA_TYPE)) {
+			return ExtensionBooleanResult.falseIf(hiddenDocumentMetadatas.contains(params.getMetadata().getLocalCode()));
 		}
 
 		return ExtensionBooleanResult.NOT_APPLICABLE;
