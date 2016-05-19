@@ -46,6 +46,11 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 	}
 
 	@Override
+	public void addCustomLabel(AddCustomLabelsParams params) {
+		params.setCustomLabelToValue("title", "Ze title");
+	}
+
+	@Override
 	public Field buildMetadataField(MetadataVO metadataVO, RecordVO recordVO) {
 		String metadataLocalCode = metadataVO.getLocalCode();
 		if (metadataLocalCode.equals(Folder.TYPE) || metadataLocalCode.equals(Document.TYPE) || metadataLocalCode

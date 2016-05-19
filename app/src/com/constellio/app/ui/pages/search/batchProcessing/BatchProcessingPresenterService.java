@@ -5,7 +5,6 @@ import static com.constellio.model.services.records.RecordUtils.changeSchemaType
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +32,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.BatchProcessingMode;
@@ -342,9 +342,14 @@ public class BatchProcessingPresenterService {
 	}
 
 	public Map<String, String> getCustomizedLabels(String schemaCode, Locale locale) {
-		Map<String, String> map = new HashMap<>();
-		map.put(schemaCode + "_title", "Ze title");
-		return map;
+		Provider<String, String> provider = new Provider<String, String>() {
+			@Override
+			public String get(String key) {
+				return $(key);
+			}
+		};
+		MetadataSchema schema = schemas.getTypes().getSchema(schemaCode);
+		return extensions.getCustomLabels(schema, provider);
 	}
 
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
