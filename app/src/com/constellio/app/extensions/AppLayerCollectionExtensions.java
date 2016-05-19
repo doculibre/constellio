@@ -3,6 +3,7 @@ package com.constellio.app.extensions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
@@ -252,10 +253,11 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
-	public Map<String, String> getCustomLabels(final MetadataSchema schema, final Provider<String, String> resourceProvider) {
+	public Map<String, String> getCustomLabels(final MetadataSchema schema, final Locale locale,
+			final Provider<String, String> resourceProvider) {
 		Map<String, String> customLabels = new HashMap<>();
 		for (BatchProcessingExtension extension : batchProcessingExtensions) {
-			extension.addCustomLabel(new AddCustomLabelsParams(schema, resourceProvider, customLabels));
+			extension.addCustomLabel(new AddCustomLabelsParams(schema, locale, resourceProvider, customLabels));
 		}
 		return customLabels;
 	}

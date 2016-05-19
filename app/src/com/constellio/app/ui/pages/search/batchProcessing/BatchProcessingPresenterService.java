@@ -20,6 +20,7 @@ import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -139,7 +140,7 @@ public class BatchProcessingPresenterService {
 	public RecordVO newRecordVO(String schemaCode, SessionContext sessionContext) {
 		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
-		
+
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder() {
 			@Override
@@ -163,7 +164,8 @@ public class BatchProcessingPresenterService {
 						// Default value is always null
 						required = false;
 						defaultValue = null;
-						return super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly,
+						return super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+								readOnly,
 								labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
 								structureFactory, metadataGroup, defaultValue, inputMask);
 					}
@@ -171,7 +173,7 @@ public class BatchProcessingPresenterService {
 			}
 		};
 		MetadataSchemaVO schemaVO = schemaVOBuilder.build(schema, RecordVO.VIEW_MODE.FORM, sessionContext);
-		
+
 		return new RecordToVOBuilder() {
 			@Override
 			protected Object getValue(Record record, Metadata metadata) {
@@ -378,6 +380,15 @@ public class BatchProcessingPresenterService {
 		return schemas.getLinkedSchemaOf(record);
 	}
 
+	public boolean isMetadataModifiable(String metadataCode) {
+		Metadata metadata = schemas.getTypes().getMetadata(metadataCode);
+		if (Folder.TITLE.equals(metadata.getLocalCode())) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public String getTypeSchemaType(String schemaType) {
 		return schemas.getRecordTypeMetadataOf(schemas.getTypes().getSchemaType(schemaType)).getReferencedSchemaType();
 	}
@@ -390,7 +401,7 @@ public class BatchProcessingPresenterService {
 			}
 		};
 		MetadataSchema schema = schemas.getTypes().getSchema(schemaCode);
-		return extensions.getCustomLabels(schema, provider);
+		return extensions.getCustomLabels(schema, locale, provider);
 	}
 
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {

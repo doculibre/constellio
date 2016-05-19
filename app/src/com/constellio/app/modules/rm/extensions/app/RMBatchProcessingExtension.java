@@ -47,7 +47,12 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 
 	@Override
 	public void addCustomLabel(AddCustomLabelsParams params) {
-		//params.setCustomLabelToValue(Folder.ADMINISTRATIVE_UNIT_ENTERED, "");
+		params.setCustomPrefixLabelWithKey(Folder.ADMINISTRATIVE_UNIT_ENTERED, "batchProceesing.only.root.folders");
+		params.setCustomPrefixLabelWithKey(Folder.CATEGORY_ENTERED, "batchProceesing.only.root.folders");
+		params.setCustomPrefixLabelWithKey(Folder.RETENTION_RULE_ENTERED, "batchProceesing.only.root.folders");
+
+		params.setCustomPrefixLabelWithKey(Folder.MAIN_COPY_RULE_ID_ENTERED, "batchProceesing.only.not.calculated");
+		params.setCustomPrefixLabelWithKey(Folder.COPY_STATUS_ENTERED, "batchProceesing.only.not.calculated");
 	}
 
 	@Override
