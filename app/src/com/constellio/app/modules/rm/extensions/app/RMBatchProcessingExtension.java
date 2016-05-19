@@ -24,7 +24,8 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 			Folder.MAIN_COPY_RULE_ID_ENTERED, Folder.APPLICABLE_COPY_RULES, Folder.ACTIVE_RETENTION_CODE,
 			Folder.ACTIVE_RETENTION_TYPE, Folder.SEMIACTIVE_RETENTION_CODE, Folder.SEMIACTIVE_RETENTION_TYPE,
 			Folder.INACTIVE_DISPOSAL_TYPE, Folder.RETENTION_RULE_ADMINISTRATIVE_UNITS, Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES,
-			Folder.COPY_RULES_EXPECTED_TRANSFER_DATES, Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES, Folder.DECOMMISSIONING_DATE);
+			Folder.COPY_RULES_EXPECTED_TRANSFER_DATES, Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES, Folder.DECOMMISSIONING_DATE,
+			Folder.FOLDER_TYPE);
 
 	@Override
 	public ExtensionBooleanResult isMetadataDisplayedWhenModified(IsMetadataDisplayedWhenModifiedParams params) {
@@ -39,12 +40,13 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 	@Override
 	public Field buildMetadataField(MetadataVO metadataVO, RecordVO recordVO) {
 		String metadataLocalCode = metadataVO.getLocalCode();
-		if(metadataLocalCode.equals(Folder.TYPE) || metadataLocalCode.equals(Document.TYPE) || metadataLocalCode.equals(ContainerRecord.TYPE)){
+		if (metadataLocalCode.equals(Folder.TYPE) || metadataLocalCode.equals(Document.TYPE) || metadataLocalCode
+				.equals(ContainerRecord.TYPE)) {
 			return null;
 		}
-		if(metadataLocalCode.equals(Folder.MAIN_COPY_RULE_ID_ENTERED)){
+		if (metadataLocalCode.equals(Folder.MAIN_COPY_RULE_ID_ENTERED)) {
 			CopyRetentionRule rule = getSelectedRule(recordVO);
-			if(rule != null && isMainCopy(recordVO)){
+			if (rule != null && isMainCopy(recordVO)) {
 				return new FolderCopyRuleFieldImpl(asList(rule));
 			}
 		}

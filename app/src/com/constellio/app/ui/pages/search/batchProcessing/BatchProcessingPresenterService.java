@@ -205,7 +205,7 @@ public class BatchProcessingPresenterService {
 
 			} else if (metadata.isMultivalue()) {
 				StringBuilder stringBuilder = new StringBuilder();
-				stringBuilder.append("{");
+				stringBuilder.append("[");
 				List<Object> list = (List<Object>) value;
 
 				for (Object item : list) {
@@ -215,7 +215,7 @@ public class BatchProcessingPresenterService {
 					stringBuilder.append(convertScalarToString(metadata, item));
 				}
 
-				stringBuilder.append("}");
+				stringBuilder.append("]");
 
 				return stringBuilder.toString();
 			} else {
@@ -252,7 +252,12 @@ public class BatchProcessingPresenterService {
 
 		case REFERENCE:
 			Record record = recordServices.getDocumentById(value.toString());
-			return record.getIdTitle();
+			String code = record.get(Schemas.CODE);
+			if (code == null) {
+				return record.getId() + " (" + record.getTitle() + ")";
+			} else {
+				return code + " (" + record.getTitle() + ")";
+			}
 
 		case CONTENT:
 			return ((Content) value).getCurrentVersion().getFilename();

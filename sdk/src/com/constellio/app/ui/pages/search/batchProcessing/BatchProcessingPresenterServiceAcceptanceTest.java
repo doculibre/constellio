@@ -177,14 +177,14 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_retentionRule", "ruleId_1:Rule #1", "ruleId_2:Rule #2"),
+				tuple("folder_default_retentionRule", "1 (Rule #1)", "2 (Rule #2)"),
 				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
 				tuple("folder_default_copyStatus", "Principal", "Secondaire")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A16).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_retentionRule", "ruleId_1:Rule #1", "ruleId_2:Rule #2"),
+				tuple("folder_default_retentionRule", "1 (Rule #1)", "2 (Rule #2)"),
 				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
 				tuple("folder_default_copyStatus", "Principal", "Secondaire"),
 				tuple("folder_default_expectedTransferDate", "2002-10-31", "2003-10-31"),
@@ -307,44 +307,107 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier"),
-				tuple("folder_default_stringsMeta", "{}", "{stringValue1, stringValue2}"),
+				tuple("folder_default_stringsMeta", "[]", "[stringValue1, stringValue2]"),
 				tuple("folder_default_textMeta", null, "zeTextValue"),
-				tuple("folder_default_textsMeta", "{}", "{textValue1, textValue2}"),
+				tuple("folder_default_textsMeta", "[]", "[textValue1, textValue2]"),
 				tuple("folder_default_dateMeta", null, date1String),
-				tuple("folder_default_datesMeta", "{}", "{" + date2String + ", " + date3String + "}"),
+				tuple("folder_default_datesMeta", "[]", "[" + date2String + ", " + date3String + "]"),
 				tuple("folder_default_dateTimeMeta", null, dateTime1String),
-				tuple("folder_default_dateTimesMeta", "{}", "{" + dateTime2String + ", " + dateTime3String + "}"),
+				tuple("folder_default_dateTimesMeta", "[]", "[" + dateTime2String + ", " + dateTime3String + "]"),
 				tuple("folder_default_booleanMeta", null, "Oui"),
-				tuple("folder_default_booleansMeta", "{}", "{Oui, Non}"),
+				tuple("folder_default_booleansMeta", "[]", "[Oui, Non]"),
 				tuple("folder_default_numberMeta", null, "66.6"),
-				tuple("folder_default_numbersMeta", "{}", "{66.6, 42}"),
+				tuple("folder_default_numbersMeta", "[]", "[66.6, 42]"),
 				tuple("folder_default_enumMeta", null, "Versé"),
-				tuple("folder_default_enumsMeta", "{}", "{Semi-actif, Actif}"),
-				tuple("folder_default_referencedFolderMeta", null, "A06:Bison"),
-				tuple("folder_default_referencedFoldersMeta", "{}", "{A07:Bouc, A08:Boeuf}")
+				tuple("folder_default_enumsMeta", "[]", "[Semi-actif, Actif]"),
+				tuple("folder_default_referencedFolderMeta", null, "A06 (Bison)"),
+				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier"),
-				tuple("folder_default_stringsMeta", "{}", "{stringValue1, stringValue2}"),
+				tuple("folder_default_stringsMeta", "[]", "[stringValue1, stringValue2]"),
 				tuple("folder_default_textMeta", null, "zeTextValue"),
-				tuple("folder_default_textsMeta", "{}", "{textValue1, textValue2}"),
+				tuple("folder_default_textsMeta", "[]", "[textValue1, textValue2]"),
 				tuple("folder_default_dateMeta", null, date1String),
-				tuple("folder_default_datesMeta", "{}", "{" + date2String + ", " + date3String + "}"),
+				tuple("folder_default_datesMeta", "[]", "[" + date2String + ", " + date3String + "]"),
 				tuple("folder_default_dateTimeMeta", null, dateTime1String),
-				tuple("folder_default_dateTimesMeta", "{}", "{" + dateTime2String + ", " + dateTime3String + "}"),
+				tuple("folder_default_dateTimesMeta", "[]", "[" + dateTime2String + ", " + dateTime3String + "]"),
 				tuple("folder_default_booleanMeta", null, "Oui"),
-				tuple("folder_default_booleansMeta", "{}", "{Oui, Non}"),
+				tuple("folder_default_booleansMeta", "[]", "[Oui, Non]"),
 				tuple("folder_default_numberMeta", null, "66.6"),
-				tuple("folder_default_numbersMeta", "{}", "{66.6, 42}"),
+				tuple("folder_default_numbersMeta", "[]", "[66.6, 42]"),
 				tuple("folder_default_enumMeta", null, "Versé"),
-				tuple("folder_default_enumsMeta", "{}", "{Semi-actif, Actif}"),
-				tuple("folder_default_referencedFolderMeta", null, "A06:Bison"),
-				tuple("folder_default_referencedFoldersMeta", "{}", "{A07:Bouc, A08:Boeuf}")
+				tuple("folder_default_enumsMeta", "[]", "[Semi-actif, Actif]"),
+				tuple("folder_default_referencedFolderMeta", null, "A06 (Bison)"),
+				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
 		);
 
+	}
+
+	@Test
+	public void whenChangingTypeThenKeepValuesWithSharedField()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.setType(records.getFolder_A01(), records.folderTypeEmploye())).set("subType", "customSubType")
+				.setTitle("zetest");
+		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye())).setTitle("zetest");
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A01, records.folder_A02))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting());
+
+		BatchProcessResults results = presenterService.execute(request);
+
+		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_meeting_type", "employe (Employé)", "meeting (Réunion)"),
+				tuple("folder_meeting_meetingDateTime", null, "2010-12-20-01-02-03"),
+				tuple("folder_employe_hireDate", "2010-12-20", null)
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_meeting_type", "employe (Employé)", "meeting (Réunion)"),
+				tuple("folder_meeting_subType", "Dossier d'employé général", "Meeting important"),
+				tuple("folder_meeting_meetingDateTime", null, "2010-12-20-01-02-03"),
+				tuple("folder_employe_hireDate", "2010-12-20", null)
+		);
+
+		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+
+		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A01, records.folder_A02))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
+		;
+
+		results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_employe_type", "meeting (Réunion)", "employe (Employé)"),
+				tuple("folder_meeting_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_employe_type", "meeting (Réunion)", "employe (Employé)"),
+				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
+				tuple("folder_meeting_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
+		);
+
+		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
 	}
 
 	@Test

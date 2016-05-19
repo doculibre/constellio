@@ -586,17 +586,20 @@ public class RMTestRecords {
 						.createCustomSchema("communicationTask");
 
 				employeFolderSchema.create("subType").setType(STRING).setDefaultValue("Dossier d'employé général");
-				employeFolderSchema.create("hireDate").setType(MetadataValueType.DATE).setDefaultValue(LocalDate.now());
+				employeFolderSchema.create("hireDate").setType(MetadataValueType.DATE)
+						.setDefaultValue(new LocalDate(2010, 12, 20));
 
 				meetingFolderSchema.create("subType").setType(STRING).setDefaultValue("Meeting important");
 				meetingFolderSchema.create("meetingDateTime").setType(MetadataValueType.DATE_TIME)
-						.setDefaultValue(LocalDateTime.now());
+						.setDefaultValue(new LocalDateTime(2010, 12, 20, 1, 2, 3, 4));
 
 				formDocumentSchema.create("subType").setType(STRING).setDefaultValue("Permit A-38 Form");
-				formDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE).setDefaultValue(LocalDate.now());
+				formDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE)
+						.setDefaultValue(new LocalDate(2011, 12, 21));
 
 				reportDocumentSchema.create("subType").setType(STRING).setDefaultValue("Financial report");
-				reportDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE).setDefaultValue(LocalDate.now());
+				reportDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE)
+						.setDefaultValue(new LocalDate(2012, 12, 22));
 
 				criticalTaskSchema.create("subType").setType(STRING).setDefaultValue("Dû pour hier");
 
