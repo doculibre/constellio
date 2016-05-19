@@ -74,7 +74,7 @@ public abstract class BatchProcessingExtension implements Serializable {
 		Map<String, String> customLabels;
 		Locale locale;
 
-		public AddCustomLabelsParams(Locale locale, MetadataSchema schema,
+		public AddCustomLabelsParams(MetadataSchema schema,
 				Provider<String, String> resourceProvider, Map<String, String> customLabels) {
 			this.schema = schema;
 			this.resourceProvider = resourceProvider;
