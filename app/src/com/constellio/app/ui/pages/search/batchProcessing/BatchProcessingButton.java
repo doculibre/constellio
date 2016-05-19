@@ -44,21 +44,20 @@ public class BatchProcessingButton extends WindowButton {
 		vLayout = new VerticalLayout();
 		String typeSchemaType = presenter.getTypeSchemaType(view.getSchemaType());
 		typeField = new LookupRecordField(typeSchemaType);
+		// FIXME All schemas don't have a type field
+		typeField.setCaption($("BatchProcessingButton.type"));
 		String originType = presenter.getOriginType(view.getSelectedRecordIds());
 		if (originType != null) {
 			typeField.setValue(originType);
 		}
-		typeField.addListener(new Property.ValueChangeListener() {
+		typeField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				refreshForm();
 			}
 		});
 		vLayout.addComponent(typeField);
-		String originSchema = presenter.getSchema(view.getSchemaType(), originType);
-
-		form = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
-				newFieldFactory(typeField.getValue()));
+		form = newForm();
 		vLayout.addComponent(form);
 
 		panel.setContent(vLayout);
@@ -67,13 +66,17 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	private void refreshForm() {
+		BatchProcessingForm newForm = newForm();
+		vLayout.replaceComponent(form, newForm);
+		form = newForm;
+	}
+	
+	private BatchProcessingForm newForm() {
 		String selectedType = typeField.getValue();
 		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
 		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
-		BatchProcessingForm newForm = new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
+		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
 				fieldFactory);
-		vLayout.replaceComponent(form, newForm);
-		form = newForm;
 	}
 
 	private RecordFieldFactory newFieldFactory(String selectedType) {
