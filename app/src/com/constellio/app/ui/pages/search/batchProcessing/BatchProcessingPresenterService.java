@@ -164,10 +164,10 @@ public class BatchProcessingPresenterService {
 						// Default value is always null
 						required = false;
 						defaultValue = null;
-						return super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+						return isMetadataModifiable(metadataCode) ? super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 								readOnly,
 								labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
-								structureFactory, metadataGroup, defaultValue, inputMask);
+								structureFactory, metadataGroup, defaultValue, inputMask) : null;
 					}
 				};
 			}
