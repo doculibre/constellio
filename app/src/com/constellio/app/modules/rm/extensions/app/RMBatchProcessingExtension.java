@@ -47,7 +47,7 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 
 	@Override
 	public void addCustomLabel(AddCustomLabelsParams params) {
-		params.setCustomLabelToValue("title", "Ze title");
+		//params.setCustomLabelToValue(Folder.ADMINISTRATIVE_UNIT_ENTERED, "");
 	}
 
 	@Override

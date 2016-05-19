@@ -1,6 +1,7 @@
 package com.constellio.app.api.extensions;
 
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.app.ui.entities.MetadataVO;
@@ -71,8 +72,9 @@ public abstract class BatchProcessingExtension implements Serializable {
 		MetadataSchema schema;
 		Provider<String, String> resourceProvider;
 		Map<String, String> customLabels;
+		Locale locale;
 
-		public AddCustomLabelsParams(MetadataSchema schema,
+		public AddCustomLabelsParams(Locale locale, MetadataSchema schema,
 				Provider<String, String> resourceProvider, Map<String, String> customLabels) {
 			this.schema = schema;
 			this.resourceProvider = resourceProvider;
@@ -83,6 +85,14 @@ public abstract class BatchProcessingExtension implements Serializable {
 			String value = getResource(key);
 			setCustomLabelToValue(codeOrLocalCode, value);
 		}
+
+		//		public void setCustomPrefixLabelWithKey(String codeOrLocalCode, String key) {
+		//			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(codeOrLocalCode);
+		//			String code = schema.getCode() + "_" + localCode;
+		//			String metadataLabel = schema.getMetadata(code).getLabel(Language.valueOf(locale.getLanguage()));
+		//
+		//			customLabels.put(code, value);
+		//		}
 
 		public void setCustomLabelToValue(String codeOrLocalCode, String value) {
 			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(codeOrLocalCode);
