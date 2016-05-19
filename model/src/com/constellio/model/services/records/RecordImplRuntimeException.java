@@ -37,7 +37,7 @@ public class RecordImplRuntimeException extends RuntimeException {
 
 	public static class RecordImplException_UnsupportedOperationOnUnsavedRecord extends RecordImplRuntimeException {
 
-		public RecordImplException_UnsupportedOperationOnUnsavedRecord(String recordId, String operation) {
+		public RecordImplException_UnsupportedOperationOnUnsavedRecord(String operation, String recordId) {
 			super("Operation '" + operation + "' is unsupported for unsaved record '" + recordId + "'");
 		}
 	}

@@ -30,6 +30,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -296,6 +297,11 @@ public class RecordImpl implements Record {
 	private Object getConvertedValue(Object rawValue, Metadata metadata) {
 
 		if (!isConvertedValue(metadata)) {
+
+			if (metadata.getType() == MetadataValueType.DATE && "".equals(rawValue)) {
+				return null;
+			}
+
 			return rawValue;
 		}
 
@@ -542,10 +548,17 @@ public class RecordImpl implements Record {
 		MetadataList modifiedMetadatas = new MetadataList();
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
-			String metadataCode = schemaCode + "_" + SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
+			String metadataCode = schemaCode + "_" + localCode;
 			try {
 				modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
 			} catch (NoSuchMetadata e) {
+				Record originalRecord = getCopyOfOriginalRecord();
+				try {
+					modifiedMetadatas.add(schemaTypes.getSchema(originalRecord.getSchemaCode()).getMetadata(localCode));
+				} catch (NoSuchMetadata e2) {
+
+				}
 			}
 		}
 

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +22,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -44,6 +46,8 @@ import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -382,17 +386,37 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return modelLayerFactory.getSearchBoostManager();
 	}
 
-	public BatchProcessRequest toRequest(List<String> selectedRecord, RecordVO formVO) {
+	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
+			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
+
+	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO) {
+
+		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
+		MetadataSchemaType type = coreSchemas().getTypes().getSchemaType(typeCode);
 		MetadataSchema schema = coreSchemas().getTypes().getSchema(formVO.getSchema().getCode());
 		Map<String, Object> fieldsModifications = new HashMap<>();
 		for (MetadataVO metadataVO : formVO.getMetadatas()) {
+			Metadata metadata = schema.get(metadataVO.getLocalCode());
 			Object value = formVO.get(metadataVO);
-			if (value != null) {
+
+			LOGGER.info(metadata.getCode() + ":" + value);
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+					&& value != null
+					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+
+				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
 			}
 		}
+		if(StringUtils.isNotBlank(selectedType)){
+			Metadata typeMetadata = coreSchemas().getRecordTypeMetadataOf(type);
+			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
+			fieldsModifications.put(typeMetadata.getCode(), selectedType);
+		}
 		User user = getCurrentUser();
 
-		return new BatchProcessRequest(selectedRecord, user, fieldsModifications);
+		return new BatchProcessRequest(selectedRecord, user, type, fieldsModifications);
 	}
 }

@@ -3,9 +3,11 @@ package com.constellio.app.extensions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
+import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
@@ -35,10 +37,12 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class AppLayerCollectionExtensions {
@@ -240,6 +244,24 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public boolean isMetadataDisplayedWhenModifiedInBatchProcessing(final Metadata metadata) {
+		return batchProcessingExtensions.getBooleanValue(true, new BooleanCaller<BatchProcessingExtension>() {
+			@Override
+			public ExtensionBooleanResult call(BatchProcessingExtension behavior) {
+				return behavior.isMetadataDisplayedWhenModified(new IsMetadataDisplayedWhenModifiedParams(metadata));
+			}
+		});
+	}
+
+	public Map<String, String> getCustomLabels(final MetadataSchema schema, final Locale locale,
+			final Provider<String, String> resourceProvider) {
+		Map<String, String> customLabels = new HashMap<>();
+		for (BatchProcessingExtension extension : batchProcessingExtensions) {
+			extension.addCustomLabel(new AddCustomLabelsParams(schema, locale, resourceProvider, customLabels));
+		}
+		return customLabels;
+	}
+
 	public RecordFieldFactory newRecordFieldFactory(RecordFieldFactoryExtensionParams params) {
 		RecordFieldFactory recordFieldFactory = null;
 		for (RecordFieldFactoryExtension extension : recordFieldFactoryExtensions) {
@@ -249,15 +271,6 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return recordFieldFactory;
-	}
-
-	public boolean isMetadataDisplayedWhenModifiedInBatchProcessing(final Metadata metadata) {
-		return batchProcessingExtensions.getBooleanValue(true, new BooleanCaller<BatchProcessingExtension>() {
-			@Override
-			public ExtensionBooleanResult call(BatchProcessingExtension behavior) {
-				return behavior.isMetadataDisplayedWhenModified(new IsMetadataDisplayedWhenModifiedParams(metadata));
-			}
-		});
 	}
 
 }
