@@ -161,9 +161,11 @@ public class BatchProcessingPresenterService {
 							}
 						}
 						// Default value is always null
+						required = false;
+						defaultValue = null;
 						return super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly,
 								labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
-								structureFactory, metadataGroup, null, inputMask);
+								structureFactory, metadataGroup, defaultValue, inputMask);
 					}
 				};
 			}
