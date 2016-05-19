@@ -6,6 +6,15 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.framework.buttons.LabelsButton;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
+import com.constellio.data.utils.Factory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -51,9 +60,63 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 		buttons.add(buildPrepareEmailButton());
 		buttons.add(buildBatchDuplicateButton());
+		buttons.add(buildFoldersBatchProcessingButton());
+		buttons.add(buildDocumentsBatchProcessingButton());
+		buttons.add(buildContainersBatchProcessingButton());
+		buttons.add(buildFoldersLabelsButton());
+		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
 		return buttons;
+	}
+
+	private Button buildFoldersLabelsButton() {
+		Button button = buildLabelsButton(Folder.SCHEMA_TYPE);
+		button.setCaption($("CartView.foldersLabelsButton"));
+		return button;
+	}
+
+	private Button buildContainersLabelsButton() {
+		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE);
+		button.setCaption($("CartView.containersLabelsButton"));
+		return button;
+	}
+
+	private Button buildLabelsButton(final String schemaType) {
+		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getTemplates(schemaType);
+			}
+		};
+		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), new LabelsRecordSelectorImpl(schemaType),
+				labelTemplatesFactory);
+		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
+		return labelsButton;
+	}
+
+	private Button buildContainersBatchProcessingButton() {
+		Button batchProcessingButton = buildBatchProcessingButton(Folder.SCHEMA_TYPE);
+		batchProcessingButton.setCaption($("CartView.containersBatchProcessingButton"));
+		return batchProcessingButton;
+	}
+
+	private Button buildBatchProcessingButton(String schemaType) {
+		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
+		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
+		return button;
+	}
+
+	private Button buildDocumentsBatchProcessingButton() {
+		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE);
+		button.setCaption($("CartView.documentsBatchProcessingButton"));
+		return button;
+	}
+
+	private Button buildFoldersBatchProcessingButton() {
+		Button button = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE);
+		button.setCaption($("CartView.foldersBatchProcessingButton"));
+		return button;
 	}
 
 	@Override
@@ -143,5 +206,39 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		});
 		return container;
+	}
+
+	private class BatchProcessingViewImpl implements BatchProcessingView{
+		private final String schemaType;
+		public BatchProcessingViewImpl(String schemaType) {
+			this.schemaType = schemaType;
+		}
+
+		@Override
+		public List<String> getSelectedRecordIds() {
+			return presenter.getRecordsIds(schemaType);
+		}
+
+		@Override
+		public String getSchemaType() {
+			return schemaType;
+		}
+
+		@Override
+		public SessionContext getSessionContext() {
+			return CartViewImpl.this.getSessionContext();
+		}
+	}
+
+	private class LabelsRecordSelectorImpl implements LabelsButton.RecordSelector {
+		private final String schemaType;
+		public LabelsRecordSelectorImpl(String schemaType) {
+			this.schemaType = schemaType;
+		}
+
+		@Override
+		public List<String> getSelectedRecordIds() {
+			return presenter.getRecordsIds(schemaType);
+		}
 	}
 }

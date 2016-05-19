@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -22,7 +24,10 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -30,7 +35,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
+public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter {
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
 	private String cartId;
@@ -233,5 +238,67 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 
 	public void forParams(String parameters) {
 		cartId = parameters;
+	}
+
+	public List<String> getRecordsIds(String schemaType) {
+		switch (schemaType){
+			case Folder.SCHEMA_TYPE : return cart().getFolders();
+			case Document.SCHEMA_TYPE : return cart().getDocuments();
+			case ContainerRecord.SCHEMA_TYPE : return cart().getContainers();
+			default : throw new RuntimeException("Unsupported type : " + schemaType);
+		}
+	}
+
+	@Override
+	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
+		//TODO N
+		return null;
+	}
+
+	@Override
+	public List<String> getDestinationSchemata(String originSchema) {
+		//TODO N
+		return null;
+	}
+
+	@Override
+	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
+		//TODO N
+		return null;
+	}
+
+	@Override
+	public void simulateButtonClicked(RecordVO viewObject) {
+		//TODO N
+
+	}
+
+	@Override
+	public void saveButtonClicked(RecordVO viewObject) {
+		//TODO N
+
+	}
+
+	@Override
+	public BatchProcessingMode getBatchProcessingMode() {
+		//TODO N
+		return null;
+	}
+
+	public List<LabelTemplate> getTemplates(String schemaType) {
+		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
+		return labelTemplateManager.listTemplates(schemaType);
+	}
+
+	public boolean isLabelsButtonVisible(String schemaType) {
+		switch (schemaType){
+			case Folder.SCHEMA_TYPE : return cart().getFolders().size() != 0;
+			case ContainerRecord.SCHEMA_TYPE : return cart().getContainers().size() != 0;
+			default : throw new RuntimeException("No labels for type : " + schemaType);
+		}
+	}
+
+	public boolean isBatchProcessingButtonVisible(String schemaType) {
+		return getRecordsIds(schemaType).size() != 0;
 	}
 }
