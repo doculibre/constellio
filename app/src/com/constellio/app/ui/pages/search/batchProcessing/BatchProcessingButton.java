@@ -133,7 +133,7 @@ public class BatchProcessingButton extends WindowButton {
 
 		@Override
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-			if (metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
+			if (metadataVO == null || metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
 				return null;
 			}
 			if (fieldFactory != null) {
