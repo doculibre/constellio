@@ -27,6 +27,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
@@ -224,6 +225,33 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
 				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+		);
+	}
+
+	@Test
+	public void whenModifyContainerParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
+			throws Exception {
+
+		ContainerRecord container1 = records.getContainerBac01();
+		ContainerRecord container2 = records.getContainerBac02();
+		ContainerRecord container3 = records.getContainerBac03();
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
+				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
+				.addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNIT, records.unitId_20d);
+
+		BatchProcessResults results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
+				tuple(container1.getId(), container1.getTitle()),
+				tuple(container2.getId(), container2.getTitle()),
+				tuple(container3.getId(), container3.getTitle()));
+
+		assertThat(results.getRecordModifications(container1.getId()).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("containerRecord_default_administrativeUnit", "30C (Unité 30-C)", "20D (Unité 20-D)"),
+				tuple("containerRecord_default_capacity", null, "42.0")
 		);
 	}
 
