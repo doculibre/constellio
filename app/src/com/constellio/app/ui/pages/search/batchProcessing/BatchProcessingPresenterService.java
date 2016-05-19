@@ -5,6 +5,7 @@ import static com.constellio.model.services.records.RecordUtils.changeSchemaType
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -338,6 +339,12 @@ public class BatchProcessingPresenterService {
 
 	public String getTypeSchemaType(String schemaType) {
 		return schemas.getRecordTypeMetadataOf(schemas.getTypes().getSchemaType(schemaType)).getReferencedSchemaType();
+	}
+
+	public Map<String, String> getCustomizedLabels(String schemaCode, Locale locale) {
+		Map<String, String> map = new HashMap<>();
+		map.put(schemaCode + "_title", "Ze title");
+		return map;
 	}
 
 	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> selectedRecordIds) {
