@@ -576,7 +576,7 @@ public class RMTestRecords {
 			public void alter(MetadataSchemaTypesBuilder types) {
 
 				MetadataSchemaBuilder employeFolderSchema = types.getSchemaType("folder").createCustomSchema("employe");
-				MetadataSchemaBuilder meetingFolderSchema = types.getSchemaType("folder").createCustomSchema("meeting");
+				MetadataSchemaBuilder meetingFolderSchema = types.getSchemaType("folder").createCustomSchema("meetingFolder");
 
 				MetadataSchemaBuilder formDocumentSchema = types.getSchemaType("document").createCustomSchema("form");
 				MetadataSchemaBuilder reportDocumentSchema = types.getSchemaType("document").createCustomSchema("report");
@@ -610,8 +610,8 @@ public class RMTestRecords {
 			}
 		});
 
-		transaction.add(rm.newFolderType().setCode("employe").setTitle("Employé").setLinkedSchema("folder_employe"));
-		transaction.add(rm.newFolderType().setCode("meeting").setTitle("Réunion").setLinkedSchema("folder_meeting"));
+		transaction.add(rm.newFolderType().setCode("employe").setTitle("Dossier employé").setLinkedSchema("folder_employe"));
+		transaction.add(rm.newFolderType().setCode("meetingFolder").setTitle("Réunion employé").setLinkedSchema("folder_meeting"));
 		transaction.add(rm.newFolderType().setCode("other").setTitle("Autre"));
 
 		transaction.add(rm.newDocumentType().setCode("form").setTitle("Formulaire").setLinkedSchema("document_form"));
@@ -3021,7 +3021,7 @@ public class RMTestRecords {
 	}
 
 	public FolderType folderTypeMeeting() {
-		return rm.getFolderTypeByCode("meeting");
+		return rm.getFolderTypeByCode("meetingFolder");
 	}
 
 	public FolderType folderTypeOther() {

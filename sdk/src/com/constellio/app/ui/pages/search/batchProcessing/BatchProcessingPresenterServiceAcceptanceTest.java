@@ -429,16 +429,16 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_meeting_type", "employe (Employé)", "meeting (Réunion)"),
-				tuple("folder_meeting_meetingDateTime", null, "2010-12-20-01-02-03"),
+				tuple("folder_meetingFolder_type", "employe (Dossier employé)", "meetingFolder (Réunion employé)"),
+				tuple("folder_meetingFolder_meetingDateTime", null, "2010-12-20-01-02-03"),
 				tuple("folder_employe_hireDate", "2010-12-20", null)
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_meeting_type", "employe (Employé)", "meeting (Réunion)"),
-				tuple("folder_meeting_subType", "Dossier d'employé général", "Meeting important"),
-				tuple("folder_meeting_meetingDateTime", null, "2010-12-20-01-02-03"),
+				tuple("folder_meetingFolder_type", "employe (Dossier employé)", "meetingFolder (Réunion employé)"),
+				tuple("folder_meetingFolder_subType", "Dossier d'employé général", "Meeting important"),
+				tuple("folder_meetingFolder_meetingDateTime", null, "2010-12-20-01-02-03"),
 				tuple("folder_employe_hireDate", "2010-12-20", null)
 		);
 
@@ -454,16 +454,16 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_employe_type", "meeting (Réunion)", "employe (Employé)"),
-				tuple("folder_meeting_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_employe_type", "meeting (Réunion)", "employe (Employé)"),
+				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
 				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
-				tuple("folder_meeting_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
 				tuple("folder_employe_hireDate", null, "2010-12-20")
 		);
 
