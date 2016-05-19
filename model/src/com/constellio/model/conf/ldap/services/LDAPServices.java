@@ -184,12 +184,15 @@ public class LDAPServices {
 		Attribute groupDNameAttribute = attrs.get(LDAPGroup.DISTINGUISHED_NAME);
 
 		String groupName;
-		String distinguishedName;
 		if (groupNameAttribute != null && groupNameAttribute.size() > 0) {
 			groupName = (String) groupNameAttribute.get(0);
-			distinguishedName = (String) groupDNameAttribute.get(0);
 		} else {
 			groupName = entry.getNameInNamespace();
+		}
+		String distinguishedName;
+		if (groupDNameAttribute != null && groupDNameAttribute.size() > 0) {
+			distinguishedName = (String) groupDNameAttribute.get(0);
+		} else {
 			distinguishedName = entry.getNameInNamespace();
 		}
 
