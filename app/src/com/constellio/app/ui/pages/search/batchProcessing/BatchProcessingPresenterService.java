@@ -20,7 +20,6 @@ import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -382,11 +381,8 @@ public class BatchProcessingPresenterService {
 
 	public boolean isMetadataModifiable(String metadataCode) {
 		Metadata metadata = schemas.getTypes().getMetadata(metadataCode);
-		if (Folder.TITLE.equals(metadata.getLocalCode())) {
-			return false;
-		}
 
-		return true;
+		return extensions.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata);
 	}
 
 	public String getTypeSchemaType(String schemaType) {

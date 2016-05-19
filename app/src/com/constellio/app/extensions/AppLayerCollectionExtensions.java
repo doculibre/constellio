@@ -9,6 +9,7 @@ import java.util.Map;
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
+import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.PageExtension;
@@ -249,6 +250,15 @@ public class AppLayerCollectionExtensions {
 			@Override
 			public ExtensionBooleanResult call(BatchProcessingExtension behavior) {
 				return behavior.isMetadataDisplayedWhenModified(new IsMetadataDisplayedWhenModifiedParams(metadata));
+			}
+		});
+	}
+
+	public boolean isMetadataModifiableInBatchProcessing(final Metadata metadata, final User user, final String recordId) {
+		return batchProcessingExtensions.getBooleanValue(true, new BooleanCaller<BatchProcessingExtension>() {
+			@Override
+			public ExtensionBooleanResult call(BatchProcessingExtension behavior) {
+				return behavior.isMetadataModifiable(new IsMetadataModifiableParams(metadata, user, recordId));
 			}
 		});
 	}
