@@ -72,7 +72,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		folderSchemaType = rm.folderSchemaType();
 		searchServices = getModelLayerFactory().newSearchServices();

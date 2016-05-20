@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -24,6 +25,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class CheckedOutDocumentsTable implements Serializable {
 	private transient ModelLayerFactory modelLayerFactory;
+	private transient AppLayerFactory appLayerFactory;
 	private transient SessionContext sessionContext;
 	private transient RMSchemasRecordsServices rm;
 	private transient User user;
@@ -48,7 +50,7 @@ public class CheckedOutDocumentsTable implements Serializable {
 	private void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.sessionContext = sessionContext;
-		rm = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), modelLayerFactory);
+		rm = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), appLayerFactory);
 		user = new PresenterService(modelLayerFactory).getCurrentUser(sessionContext);
 	}
 

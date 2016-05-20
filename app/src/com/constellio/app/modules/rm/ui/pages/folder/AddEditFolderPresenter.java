@@ -74,7 +74,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private void initTransientObjects() {
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override

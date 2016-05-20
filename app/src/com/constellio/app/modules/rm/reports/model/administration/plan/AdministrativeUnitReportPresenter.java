@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -27,6 +28,7 @@ import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 public class AdministrativeUnitReportPresenter {
 	private String collection;
 	private ModelLayerFactory modelLayerFactory;
+	private AppLayerFactory appLayerFactory;
 	private MetadataSchemaTypes types;
 	private TaxonomiesSearchOptions searchOptions;
 	private TaxonomiesSearchServices searchService;
@@ -181,7 +183,7 @@ public class AdministrativeUnitReportPresenter {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 

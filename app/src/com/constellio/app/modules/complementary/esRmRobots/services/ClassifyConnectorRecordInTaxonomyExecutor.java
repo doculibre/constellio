@@ -90,7 +90,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.record = record;
 		this.params = params;
 		this.currentUser = currentUser;
-		this.rm = new RMSchemasRecordsServices(record.getCollection(), modelLayerFactory);
+		this.rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		this.es = new ESSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		this.robots = new RobotSchemaRecordServices(record.getCollection(), appLayerFactory);
 		this.recordServices = modelLayerFactory.newRecordServices();
