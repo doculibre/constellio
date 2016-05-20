@@ -6,8 +6,11 @@ import java.util.List;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyRuleFieldImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -25,11 +28,15 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 	RMConfigs configs;
 	AppLayerFactory appLayerFactory;
 	String collection;
+	DecommissioningService decommissioningService;
+	RMSchemasRecordsServices rm;
 
 	public RMBatchProcessingExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		this.configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory.getModelLayerFactory());
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	final List<String> hiddenFolderMetadatasInReport = asList(Folder.CATEGORY_ENTERED, Folder.ADMINISTRATIVE_UNIT_ENTERED,
@@ -44,6 +51,11 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 			Document.APPLICABLE_COPY_RULES,
 			Document.CALENDAR_YEAR, Document.ACTUAL_DEPOSIT_DATE_ENTERED, Document.ACTUAL_DESTRUCTION_DATE_ENTERED,
 			Document.ACTUAL_TRANSFER_DATE_ENTERED, Document.INHERITED_FOLDER_RETENTION_RULE, Document.MAIN_COPY_RULE_ID_ENTERED);
+
+	final List<String> folderUnmodifiableMetadatas = asList(Folder.UNIFORM_SUBDIVISION_ENTERED);
+
+	final List<String> folderDecommissioningDates = asList(Folder.ACTUAL_DEPOSIT_DATE, Folder.ACTUAL_DESTRUCTION_DATE,
+			Folder.ACTUAL_TRANSFER_DATE);
 
 	@Override
 	public ExtensionBooleanResult isMetadataDisplayedWhenModified(IsMetadataDisplayedWhenModifiedParams params) {
@@ -65,6 +77,15 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 		User user = params.getUser();
 
 		if (params.isSchemaType(Folder.SCHEMA_TYPE)) {
+			Folder folder = rm.getFolder(params.getRecordId());
+
+			if (folderUnmodifiableMetadatas.contains(params.getMetadata().getLocalCode())) {
+				return ExtensionBooleanResult.FALSE;
+			}
+
+			if (folderDecommissioningDates.contains(params.getMetadata().getLocalCode())) {
+				return ExtensionBooleanResult.trueIf(user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder));
+			}
 		}
 
 		if (params.isSchemaType(Document.SCHEMA_TYPE)) {

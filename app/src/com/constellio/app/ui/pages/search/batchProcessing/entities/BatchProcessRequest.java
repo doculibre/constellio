@@ -66,6 +66,11 @@ public class BatchProcessRequest {
 		return this;
 	}
 
+	public BatchProcessRequest setSchemaType(MetadataSchemaType schemaType) {
+		this.schemaType = schemaType;
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		return "BatchProcessRequest{" +

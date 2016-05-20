@@ -44,6 +44,7 @@ import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -136,8 +137,9 @@ public class BatchProcessingPresenterService {
 		return schemataCodes;
 	}
 
-	public RecordVO newRecordVO(String schemaCode, SessionContext sessionContext) {
-		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(schemaCode);
+	public RecordVO newRecordVO(String schemaCode, final SessionContext sessionContext, final List<String> selectedRecordIds) {
+		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchema(schemaCode);
 		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
@@ -163,10 +165,14 @@ public class BatchProcessingPresenterService {
 						// Default value is always null
 						required = false;
 						defaultValue = null;
-						return isMetadataModifiable(metadataCode) ? super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
-								readOnly,
-								labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
-								structureFactory, metadataGroup, defaultValue, inputMask) : null;
+						User user = schemas.getUser(sessionContext.getCurrentUser().getId());
+						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
+								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+										readOnly,
+										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences,
+										enabled,
+										structureFactory, metadataGroup, defaultValue, inputMask) :
+								null;
 					}
 				};
 			}
@@ -187,7 +193,7 @@ public class BatchProcessingPresenterService {
 		System.out.println("**************** EXECUTE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		Transaction transaction = prepareTransaction(request);
+		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 		BatchProcessResults results = toBatchProcessResults(transaction);
 		recordServices.executeHandlingImpactsAsync(transaction);
@@ -202,7 +208,7 @@ public class BatchProcessingPresenterService {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
-		Transaction transaction = prepareTransaction(request);
+		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 		BatchProcessResults results = toBatchProcessResults(transaction);
 
@@ -320,7 +326,7 @@ public class BatchProcessingPresenterService {
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	public Transaction prepareTransaction(BatchProcessRequest request) {
+	public Transaction prepareTransaction(BatchProcessRequest request, boolean recalculate) {
 		Transaction transaction = new Transaction();
 		MetadataSchemaTypes types = schemas.getTypes();
 		for (String id : request.getIds()) {
@@ -356,8 +362,10 @@ public class BatchProcessingPresenterService {
 
 		}
 
-		for (Record record : transaction.getModifiedRecords()) {
-			recordServices.recalculate(record);
+		if (recalculate) {
+			for (Record record : transaction.getModifiedRecords()) {
+				recordServices.recalculate(record);
+			}
 		}
 
 		return transaction;
@@ -379,10 +387,14 @@ public class BatchProcessingPresenterService {
 		return schemas.getLinkedSchemaOf(record);
 	}
 
-	public boolean isMetadataModifiable(String metadataCode) {
-		Metadata metadata = schemas.getTypes().getMetadata(metadataCode);
+	public boolean isMetadataModifiable(String metadataCode, User user, List<String> selectedRecordIds) {
 
-		return extensions.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata);
+		boolean metadataModifiable = true;
+		for (String selectedRecordId : selectedRecordIds) {
+			Metadata metadata = schemas.getTypes().getMetadata(metadataCode);
+			metadataModifiable &= extensions.isMetadataModifiableInBatchProcessing(metadata, user, selectedRecordId);
+		}
+		return metadataModifiable;
 	}
 
 	public String getTypeSchemaType(String schemaType) {

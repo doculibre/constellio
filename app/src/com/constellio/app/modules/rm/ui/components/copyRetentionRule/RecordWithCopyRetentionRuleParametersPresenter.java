@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
@@ -33,6 +32,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
@@ -54,7 +54,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		}
 	}
 
-	private BatchProcessRequest toRequest() {
+	BatchProcessRequest toRequest() {
 		ConstellioFactories constellioFactories = fields.getConstellioFactories();
 		SessionContext sessionContext = fields.getSessionContext();
 		User user = presenterService(constellioFactories.getModelLayerFactory()).getCurrentUser(sessionContext);
@@ -69,13 +69,17 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 			Metadata typeMetadata = defaultSchema.getMetadata("type");
 			fieldsModifications.put(typeMetadata.getCode(), fields.getType());
 		}
-		String dependencyValue = fields.getCopyRetentionRuleDependencyField().getFieldValue();
+		String dependencyValue = getDependencyValue();
 		if (StringUtils.isNotBlank(dependencyValue)) {
 			Metadata copyRetentionRuleDependencyMetadata = getCopyRetentionRuleDependencyMetadata(defaultSchema);
 			fieldsModifications.put(copyRetentionRuleDependencyMetadata.getCode(), dependencyValue);
 		}
-		fieldsModifications.put(Folder.COPY_STATUS_ENTERED, CopyType.PRINCIPAL);
+		//fieldsModifications.put(Folder.COPY_STATUS_ENTERED, CopyType.PRINCIPAL);
 		return new BatchProcessRequest(fields.getSelectedRecords(), user, schemaType, fieldsModifications);
+	}
+
+	String getDependencyValue() {
+		return fields.getCopyRetentionRuleDependencyField().getFieldValue();
 	}
 
 	private Metadata getCopyRetentionRuleDependencyMetadata(MetadataSchema defaultSchema) {
@@ -105,27 +109,35 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		if (copyRetentionRules.size() == 1) {
 			copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
 		}
-		if (copyRetentionRules.size() == 0) {
+		if (copyRetentionRules.size() <= 1) {
 			copyRetentionRuleField.setVisible(false);
 		} else {
 			copyRetentionRuleField.setVisible(true);
 		}
 	}
 
-	private List<CopyRetentionRule> getOptions(BatchProcessRequest request) {
+	List<CopyRetentionRule> getOptions(BatchProcessRequest request) {
+
+		ConstellioFactories constellioFactories = fields.getConstellioFactories();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
+
 		String typeId = fields.getType();
-		AppLayerFactory appLayerFactory = fields.getConstellioFactories().getAppLayerFactory();
 		String collection = fields.getSessionContext().getCurrentCollection();
 		Locale locale = fields.getSessionContext().getCurrentLocale();
 		BatchProcessingPresenterService presenterService = new BatchProcessingPresenterService(collection, appLayerFactory,
 				locale);
 
-		Transaction transaction = presenterService.prepareTransaction(request);
-
+		Transaction transaction = presenterService.prepareTransaction(request, false);
+		for (Record record : transaction.getRecords()) {
+			rm.wrapFolder(record).setMediumTypes(new ArrayList<Object>());
+		}
+		for (Record record : transaction.getRecords()) {
+			recordServices.recalculate(record);
+		}
 		Set<String> sharedChoicesIds = null;
 		List<CopyRetentionRule> sharedChoices = null;
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 
 		for (Record record : transaction.getRecords()) {
 
