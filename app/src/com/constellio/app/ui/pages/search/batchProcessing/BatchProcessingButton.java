@@ -18,15 +18,15 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BatchProcessingButton extends WindowButton {
-    private AdvancedSearchPresenter presenter;
-    private final AdvancedSearchView view;
+    private BatchProcessingPresenter presenter;
+    private final BatchProcessingView view;
 
     //fields
     ComboBox schemaField;
     BatchProcessingForm form;
     VerticalLayout vLayout;
 
-    public BatchProcessingButton(AdvancedSearchPresenter presenter, AdvancedSearchView view) {
+    public BatchProcessingButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
         super($("AdvancedSearchView.batchProcessing"), $("AdvancedSearchView.batchProcessing"),new WindowConfiguration(true, true,
                 "75%", "75%"));
         this.presenter = presenter;
