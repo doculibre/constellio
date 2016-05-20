@@ -43,7 +43,7 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 				.withFoldersAndContainersOfEveryStatus());
 
 		recordServices = getModelLayerFactory().newRecordServices();
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = new DecommissioningSecurityService(zeCollection, getModelLayerFactory());
 		queryFactory = new DecommissioningListQueryFactory(zeCollection, getModelLayerFactory());
 

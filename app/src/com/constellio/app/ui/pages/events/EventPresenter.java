@@ -111,7 +111,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {
 		if (rmSchemasRecordsServices == null) {
-			rmSchemasRecordsServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmSchemasRecordsServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmSchemasRecordsServices;
 	}
@@ -269,7 +269,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			private RMSchemasRecordsServices schemas() {
 				if (schemas == null) {
-					schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 				}
 				return schemas;
 			}
@@ -309,7 +309,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			private RMSchemasRecordsServices schemas() {
 				if (schemas == null) {
-					schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 				}
 				return schemas;
 			}

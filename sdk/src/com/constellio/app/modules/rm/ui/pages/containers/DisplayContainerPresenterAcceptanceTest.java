@@ -133,7 +133,7 @@ public class DisplayContainerPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	private List<Record> getRecordsInContainer(String id) {
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		Metadata containerMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(containerMetadata).isEqualTo(id);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);

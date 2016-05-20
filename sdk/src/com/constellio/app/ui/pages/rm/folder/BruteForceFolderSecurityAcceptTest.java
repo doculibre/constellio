@@ -51,7 +51,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 
 		searchServices = getModelLayerFactory().newSearchServices();
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	private boolean isEnabled() {

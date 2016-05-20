@@ -665,7 +665,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private RMSchemasRecordsServices rmSchemas() {
-		return new RMSchemasRecordsServices(collection, modelLayerFactory);
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	private boolean areDocumentRetentionRulesEnabled() {

@@ -60,7 +60,7 @@ public class DeleteAllAuthorizationsMain {
 		//for (String collection : collectionsListManager.getCollections()) {
 		//currentCollection = collection;
 		currentCollection = "collection20151002";
-		rm = new RMSchemasRecordsServices(currentCollection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(currentCollection, appLayerFactory);
 		runScriptForCurrentCollection();
 		//}
 

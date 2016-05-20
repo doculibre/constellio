@@ -38,7 +38,7 @@ public class ConfigsManagementViewAcceptTest extends ConstellioTest {
 		);
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 	}

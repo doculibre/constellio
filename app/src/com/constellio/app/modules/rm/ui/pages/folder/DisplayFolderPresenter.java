@@ -107,7 +107,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private void initTransientObjects() {
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		folderVOBuilder = new FolderToVOBuilder();
 		documentVOBuilder = new DocumentToVOBuilder(modelLayerFactory);
@@ -479,7 +479,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setSubFolders(subFoldersDataProvider);
 		view.setTasks(tasksDataProvider);
 
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Folder folder = schemas.wrapFolder(toRecord(folderVO));
 		disableMenuItems(folder);
 		modelLayerFactory.newLoggingServices().logRecordView(folder.getWrappedRecord(), getCurrentUser());
@@ -578,7 +578,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {
-		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), modelLayerFactory);
+		return new RMSchemasRecordsServices(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
 	private boolean documentExists(String fileName) {
@@ -714,7 +714,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void alertWhenAvailable() {
 		try {
-			RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 			Folder folder = schemas.getFolder(folderVO.getId());
 			List<String> usersToAlert = folder.getAlertUsersWhenAvailable();
 			String currentUserId = getCurrentUser().getId();
@@ -812,7 +812,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void parentFolderButtonClicked(String parentId)
 			throws RecordServicesException {
-		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		String currentFolderId = folderVO.getId();
 		if (StringUtils.isNotBlank(parentId)) {

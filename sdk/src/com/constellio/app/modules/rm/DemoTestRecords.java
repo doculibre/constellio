@@ -357,7 +357,7 @@ public class DemoTestRecords {
 		edouard_managerInB_userInC = users.edouardIn(collection).getId();
 		gandalf_managerInABC = users.gandalfIn(collection).getId();
 		chuckNorris = users.chuckNorrisIn(collection).getId();
-		schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
