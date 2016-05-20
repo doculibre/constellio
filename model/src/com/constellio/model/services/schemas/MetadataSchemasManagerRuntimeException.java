@@ -32,4 +32,11 @@ public class MetadataSchemasManagerRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class MetadataSchemasManagerRuntimeException_NoSuchCollection extends MetadataSchemasManagerRuntimeException {
+
+		public MetadataSchemasManagerRuntimeException_NoSuchCollection(String collection) {
+			super("No such collection '" + collection + "'");
+		}
+	}
+
 }
