@@ -87,6 +87,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory());
 	}
 
+	@Deprecated
 	public RMSchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);
 	}
@@ -111,18 +112,22 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Administrative unit
 
+	@Deprecated
 	public MetadataSchema administrativeUnitSchema() {
 		return getTypes().getSchema(AdministrativeUnit.DEFAULT_SCHEMA);
 	}
 
+	@Deprecated
 	public MetadataSchemaType administrativeUnitSchemaType() {
 		return getTypes().getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
 	}
 
+	@Deprecated
 	public AdministrativeUnit wrapAdministrativeUnit(Record record) {
 		return record == null ? null : new AdministrativeUnit(record, getTypes());
 	}
 
+	@Deprecated
 	public List<AdministrativeUnit> wrapAdministrativeUnits(List<Record> records) {
 		List<AdministrativeUnit> administrativeUnits = new ArrayList<>();
 		for (Record record : records) {
@@ -131,34 +136,42 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return administrativeUnits;
 	}
 
+	@Deprecated
 	public AdministrativeUnit getAdministrativeUnit(String id) {
 		return new AdministrativeUnit(get(id), getTypes());
 	}
 
+	@Deprecated
 	public List<AdministrativeUnit> getAdministrativesUnits(List<String> stringList) {
 		return wrapAdministrativeUnits(get(stringList));
 	}
 
+	@Deprecated
 	public AdministrativeUnit getAdministrativeUnitWithCode(String code) {
 		return wrapAdministrativeUnit(getByCode(administrativeUnitSchemaType(), code));
 	}
 
+	@Deprecated
 	public AdministrativeUnit newAdministrativeUnit() {
 		return new AdministrativeUnit(create(administrativeUnitSchema()), getTypes());
 	}
 
+	@Deprecated
 	public AdministrativeUnit newAdministrativeUnitWithId(String id) {
 		return new AdministrativeUnit(create(administrativeUnitSchema(), id), getTypes());
 	}
 
+	@Deprecated
 	public Metadata administrativeUnitFilingSpaces() {
 		return administrativeUnitSchema().getMetadata(AdministrativeUnit.FILING_SPACES);
 	}
 
+	@Deprecated
 	public Metadata administrativeUnit_parent() {
 		return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
 	}
 
+	@Deprecated
 	public Metadata administrativeUnitParent() {
 		return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
 	}
@@ -753,16 +766,19 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return mediumTypes;
 	}
 
+	//KEEP
 	@Deprecated
 	public String PA() {
 		return getMediumTypeByCode("PA").getId();
 	}
 
+	//KEEP
 	@Deprecated
 	public String FI() {
 		return getMediumTypeByCode("FI").getId();
 	}
 
+	//KEEP
 	@Deprecated
 	public String DM() {
 		MediumType frenchMediumType = getMediumTypeByCode("DM");
@@ -1171,6 +1187,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.ADMINISTRATIVE_UNIT);
 	}
 
+	//KEEP
 	public RMObject wrapRMObject(Record record) {
 		if (record == null) {
 			return null;
@@ -1187,6 +1204,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		}
 	}
 
+	//KEEP
 	public String getSchemaCodeForDocumentTypeRecordId(String documentTypeRecordId) {
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -1196,6 +1214,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return linkedSchemaCode;
 	}
 
+	//KEEP
 	public String getSchemaCodeForFolderTypeRecordId(String folderTypeRecordId) {
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -1205,6 +1224,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return linkedSchemaCode;
 	}
 
+	//KEEP
 	public String getRecordIdForEmailSchema() {
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -1218,11 +1238,13 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return emailDocumentType.getId();
 	}
 
+	//KEEP
 	public boolean isEmail(String fileName) {
 		String extension = FilenameUtils.getExtension(fileName);
 		return extension.equalsIgnoreCase("eml") || extension.equalsIgnoreCase("msg");
 	}
 
+	//KEEP
 	public Map<String, Object> parseEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedMessage;
 		String extension = FilenameUtils.getExtension(fileName);
@@ -1236,6 +1258,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return parsedMessage;
 	}
 
+	//KEEP
 	@SuppressWarnings("unchecked")
 	public Email newEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedEmail = parseEmail(fileName, messageInputStream);
@@ -1270,6 +1293,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return email;
 	}
 
+	//KEEP
 	public Map<String, Object> parseEml(InputStream messageInputStream) {
 		Map<String, Object> parsed = new HashMap<String, Object>();
 
@@ -1340,6 +1364,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return parsed;
 	}
 
+	//KEEP
 	private static List<String> addressesAsStringList(Address[] addresses) {
 		List<String> addressesStr = new ArrayList<>();
 		if (addresses != null) {
@@ -1350,6 +1375,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return addressesStr;
 	}
 
+	//KEEP
 	public Map<String, Object> parseMsg(InputStream messageInputStream) {
 		Map<String, Object> parsed = new HashMap<String, Object>();
 		try {
@@ -1456,14 +1482,17 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return parsed;
 	}
 
+	//KEEP
 	private String getValue(StringChunk chunk) {
 		return chunk == null ? null : chunk.getValue();
 	}
 
+	//KEEP
 	private static List<String> splitAddresses(String addresses) {
 		return Arrays.asList(StringUtils.split(addresses, ";"));
 	}
 
+	//KEEP
 	private static void insertMsgAttachments(Map<String, Object> parsed, Message msg) {
 		Map<String, InputStream> attachments = new HashMap<String, InputStream>();
 		parsed.put(EMAIL_ATTACHMENTS, attachments);
@@ -1486,10 +1515,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		}
 	}
 
+	//KEEP
 	public AuthorizationBuilder newAuthorization() {
 		return new AuthorizationBuilder(getCollection());
 	}
 
+	//KEEP
 	public List<MetadataSchemaType> valueListSchemaTypes() {
 		List<MetadataSchemaType> returnedTypes = new ArrayList<>();
 
@@ -1502,15 +1533,18 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return returnedTypes;
 	}
 
+	//KEEP
 	public DocumentType emailDocumentType() {
 		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
 	}
 
+	//KEEP
 	public Folder setType(Folder folder, FolderType folderType) {
 		setType(folder.getWrappedRecord(), folderType == null ? null : folderType.getWrappedRecord());
 		return folder;
 	}
 
+	//KEEP
 	public Document setType(Document document, FolderType documentType) {
 		setType(document.getWrappedRecord(), documentType == null ? null : documentType.getWrappedRecord());
 		return document;
