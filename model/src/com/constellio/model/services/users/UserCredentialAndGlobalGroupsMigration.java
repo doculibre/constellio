@@ -147,19 +147,21 @@ public class UserCredentialAndGlobalGroupsMigration {
 		List<String> validUsernames = new ArrayList<>();
 		Map<String, SolrUserCredential> existingUsers = getExistingUsers(validUsernames, invalidUsernames);
 
-		for (GlobalGroup oldGroup : oldGroupManager.getAllGroups()) {
-			if (!existingGroups.contains(oldGroup.getCode())) {
-				SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
-				newGroup.setCode(oldGroup.getCode());
-				newGroup.setName(oldGroup.getName());
-				newGroup.setTitle(oldGroup.getName());
-				newGroup.setStatus(oldGroup.getStatus());
-				newGroup.setUsersAutomaticallyAddedToCollections(oldGroup.getUsersAutomaticallyAddedToCollections());
-				if (oldGroup.getParent() != null) {
-					newGroup.setParent(oldGroup.getParent());
-				}
-				if (isValid(newGroup)) {
-					transaction.add(newGroup);
+		if (oldGroupManager != null) {
+			for (GlobalGroup oldGroup : oldGroupManager.getAllGroups()) {
+				if (!existingGroups.contains(oldGroup.getCode())) {
+					SolrGlobalGroup newGroup = (SolrGlobalGroup) schemasRecordsServices.newGlobalGroup();
+					newGroup.setCode(oldGroup.getCode());
+					newGroup.setName(oldGroup.getName());
+					newGroup.setTitle(oldGroup.getName());
+					newGroup.setStatus(oldGroup.getStatus());
+					newGroup.setUsersAutomaticallyAddedToCollections(oldGroup.getUsersAutomaticallyAddedToCollections());
+					if (oldGroup.getParent() != null) {
+						newGroup.setParent(oldGroup.getParent());
+					}
+					if (isValid(newGroup)) {
+						transaction.add(newGroup);
+					}
 				}
 			}
 		}
@@ -238,10 +240,14 @@ public class UserCredentialAndGlobalGroupsMigration {
 		}
 
 		oldUserManager.close();
-		oldGroupManager.close();
+		if (oldGroupManager != null) {
+			oldGroupManager.close();
+		}
 
 		configManager.move(USER_CREDENTIALS_CONFIG, USER_CREDENTIALS_CONFIG + ".old");
-		configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
+		if (oldGroupManager != null) {
+			configManager.move(XmlGlobalGroupsManager.CONFIG_FILE, XmlGlobalGroupsManager.CONFIG_FILE + ".old");
+		}
 	}
 
 	private boolean isValid(SolrGlobalGroup group) {
