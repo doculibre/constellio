@@ -53,6 +53,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordProvider;
@@ -73,6 +74,7 @@ public class BatchProcessingPresenterService {
 	private final String collection;
 	private final Locale locale;
 	private final AppLayerCollectionExtensions extensions;
+	private final ModelLayerCollectionExtensions modelLayerExtensions;
 
 	public BatchProcessingPresenterService(String collection, AppLayerFactory appLayerFactory, Locale locale) {
 		this.appLayerFactory = appLayerFactory;
@@ -83,6 +85,7 @@ public class BatchProcessingPresenterService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.extensions = appLayerFactory.getExtensions().forCollection(collection);
+		this.modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(collection);
 	}
 
 	public String getOriginType(List<String> selectedRecordIds) {
@@ -430,5 +433,14 @@ public class BatchProcessingPresenterService {
 		return recordFieldFactory;
 	}
 
+	public boolean hasWriteAccessOnAllRecords(User user, List<String> selectedRecordIds) {
+
+		boolean writeAccess = true;
+		for (String selectedRecordId : selectedRecordIds) {
+			Record record = recordServices.getDocumentById(selectedRecordId);
+			writeAccess &= user.hasWriteAccess().on(record) && modelLayerExtensions.isRecordModifiableBy(record, user);
+		}
+		return writeAccess;
+	}
 }
 

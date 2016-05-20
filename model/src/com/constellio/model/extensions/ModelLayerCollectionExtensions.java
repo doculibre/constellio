@@ -3,7 +3,10 @@ package com.constellio.model.extensions;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
@@ -133,6 +136,17 @@ public class ModelLayerCollectionExtensions {
 			@Override
 			public ExtensionBooleanResult call(RecordExtension behavior) {
 				return behavior.isPhysicallyDeletable(event);
+			}
+		});
+	}
+
+	@Deprecated
+	//Use tokens instead
+	public boolean isRecordModifiableBy(final Record record, final User user) {
+		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExtension behavior) {
+				return behavior.isRecordModifiableBy(new IsRecordModifiableByParams(record, user));
 			}
 		});
 	}
