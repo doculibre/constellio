@@ -4,9 +4,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -23,6 +25,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.buttons.SaveButton;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -305,5 +308,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public void shareWithUsersRequested(List<String> userids) {
 		cart().setSharedWithUsers(userids);
 		addOrUpdate(cart().getWrappedRecord());
+	}
+
+	public List<Folder> getFoldersToDecommission(String adminUnitId, DecommissioningType decommissioningType) {
+		List<Folder> foldersToDecommission = new ArrayList<>();
+		// TODO FB Return correct folders from all folders in cart (getCartFolders())
+		// Folders must correspond to adminUnitId and decommissioningType
+		return foldersToDecommission;
 	}
 }
