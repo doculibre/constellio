@@ -49,9 +49,9 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	String quote3 = "Le S'Quatre novembre au soir";
 	String quote4 = "Je voudrais voudrais vous dire";
 
-	SearchableQuoteWord darthDocx = SearchableQuoteWord.french("darth.docx");
-	SearchableQuoteWord vadorDocx = SearchableQuoteWord.french("vador.docx");
-	SearchableQuoteWord gandalfDocx = SearchableQuoteWord.french("gandalf.docx");
+	SearchableQuoteWord darthDocx = SearchableQuoteWord.french("darth");
+	SearchableQuoteWord vadorDocx = SearchableQuoteWord.french("vador");
+	SearchableQuoteWord gandalfDocx = SearchableQuoteWord.french("gandalf");
 	List<SearchableQuoteWord> allFilenames = asList(darthDocx, gandalfDocx);
 
 	SearchableQuoteWord wordInQuote1 = SearchableQuoteWord.french("passerez");
@@ -440,7 +440,10 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	}
 
 	private ModifiableSolrParams paramsWithQ(String q) {
-		return new ModifiableSolrParams().set("q", q);
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", q);
+		params.set("fq", "schema_s:zeSchemaType_*");
+		return params;
 	}
 
 	private List<String> resultsIdsOf(SolrParams params)

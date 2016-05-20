@@ -60,7 +60,7 @@ public class ListCollectionUserPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate().to()).thenReturn(navigator);
 
 		List<String> collections = new ArrayList<>();
 		collections.add(zeCollection);
@@ -98,7 +98,7 @@ public class ListCollectionUserPresenterAcceptanceTest extends ConstellioTest {
 
 		presenter.displayButtonClicked(dakotaRecordVO);
 
-		verify(view.navigateTo()).displaySchemaRecord("dakotaId");
+		verify(view.navigate().to()).displaySchemaRecord("dakotaId");
 	}
 
 	//TODO Broken @Test
@@ -147,6 +147,6 @@ public class ListCollectionUserPresenterAcceptanceTest extends ConstellioTest {
 		Map<String, Object> globalGroupCodeMap = new HashMap();
 		globalGroupCodeMap.put("globalGroupCode", "heroes");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.COLLECTION_USER_LIST, globalGroupCodeMap);
-		verify(view.navigateTo()).displayGlobalGroup(params);
+		verify(view.navigate().to()).displayGlobalGroup(params);
 	}
 }

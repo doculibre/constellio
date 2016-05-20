@@ -35,17 +35,17 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 
 	public void backButtonClicked() {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().listSchemaRecords(schemaCode);
+		view.navigate().to().listSchemaRecords(schemaCode);
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().editSchemaRecord(schemaCode, recordVO.getId());
+		view.navigate().to().editSchemaRecord(schemaCode, recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().listSchemaRecords(schemaCode);
+		view.navigate().to().listSchemaRecords(schemaCode);
 	}
 
 	@Override

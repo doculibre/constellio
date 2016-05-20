@@ -382,8 +382,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 	private class CopyTypeFolderTypePanel extends VerticalLayout {
 		public CopyTypeFolderTypePanel(CopyRetentionRule rule) {
-			Label copyType = new Label($("CopyType." + rule.getCopyType().getCode()));
-			addComponent(copyType);
+			CopyType copyType = rule.getCopyType() == null ? CopyType.PRINCIPAL : rule.getCopyType();
+			Label copyTypeLabel = new Label($("CopyType." + copyType.getCode()));
+			addComponent(copyTypeLabel);
 
 			if (formMode) {
 				LookupRecordField folderType = new LookupRecordField(FolderType.SCHEMA_TYPE);

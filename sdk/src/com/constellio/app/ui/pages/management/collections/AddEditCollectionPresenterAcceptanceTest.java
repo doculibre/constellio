@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -40,7 +41,7 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 	AddEditCollectionPresenter presenterRelatedToZeCollection;
 	@Mock
 	AddEditCollectionView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	private CollectionsManager collectionsManager;
 	private ConstellioModulesManager modulesManager;
 
@@ -51,10 +52,11 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 		);
 
+        navigator = new MockedNavigation();
+
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
-		doNothing().when(navigator).listFacetConfiguration();
+		when(view.navigate()).thenReturn(navigator);
 
 		presenterRelatedToNewCollection = new AddEditCollectionPresenter(view, null);
 		presenterRelatedToZeCollection = new AddEditCollectionPresenter(view, zeCollection);

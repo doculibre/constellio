@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -42,6 +41,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
 @SlowTest
@@ -224,7 +224,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 		givenSystemAtVersion5_0_6();
 		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
 
-		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
+		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 		List<DecomListFolderDetail> decomListFolderDetailList = rmTestRecords.getList01().getFolderDetails();
 
 		assertThat(decomListFolderDetailList).isNotEmpty();

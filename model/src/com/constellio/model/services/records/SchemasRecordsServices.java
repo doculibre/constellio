@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -11,12 +12,14 @@ import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -45,6 +48,82 @@ public class SchemasRecordsServices {
 	//
 
 	//Generic
+
+	public Metadata getRecordTypeMetadataOf(MetadataSchemaType schemaType) {
+		return schemaType.getDefaultSchema().getMetadata("type");
+
+	}
+
+	public Metadata getRecordTypeMetadataOf(Record record) {
+		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		RecordProvider recordProvider = new RecordProvider(modelLayerFactory.newRecordServices());
+		return getTypes().getDefaultSchema(recordSchemaType).getMetadata("type");
+
+	}
+
+	public String getLinkedSchemaOf(RecordWrapper recordWrapper) {
+		return getLinkedSchemaOf(recordWrapper.getWrappedRecord());
+	}
+
+	//TODO Francis : Test
+	public String getLinkedSchemaOf(Record record) {
+		MetadataSchemaTypes types = getTypes();
+		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		MetadataSchema recordSchema = types.getSchema(record.getSchemaCode());
+
+		//The case where the record is a type
+		if (recordSchemaType.toLowerCase().contains("type")) {
+
+			if (!recordSchema.hasMetadataWithCode("linkedSchema")) {
+				throw new IllegalArgumentException(
+						"The record's schema '" + recordSchemaType + "' does not have 'linkedSchema' metadata");
+			}
+
+			Metadata linkedSchemaMetadata = recordSchema.getMetadata("linkedSchema");
+
+			String linkedSchema = record.get(linkedSchemaMetadata);
+			if (linkedSchema != null && linkedSchema.contains("_")) {
+				return linkedSchema;
+			} else {
+
+				String linkedSchemaType = null;
+				for (MetadataSchemaType type : types.getSchemaTypes()) {
+					if (type.getDefaultSchema().hasMetadataWithCode("type")) {
+						Metadata metadata = type.getDefaultSchema().getMetadata("type");
+						if (metadata.getType() == MetadataValueType.REFERENCE && recordSchemaType
+								.equals(metadata.getReferencedSchemaType())) {
+							linkedSchemaType = new SchemaUtils().getSchemaTypeCode(metadata.getSchemaCode());
+						}
+					}
+				}
+
+				if (linkedSchemaType == null) {
+					throw new IllegalArgumentException("No Schematype has a type referencing '" + recordSchemaType + "'");
+				}
+
+				return linkedSchemaType + "_" + (linkedSchema == null ? "default" : linkedSchema);
+			}
+
+		} else {
+			//The case where the record is an object with a type
+
+			RecordProvider recordProvider = new RecordProvider(modelLayerFactory.newRecordServices());
+			Metadata typeMetadata = getRecordTypeMetadataOf(record);
+			return RecordUtils.getSchemaAccordingToTypeLinkedSchema(record, types, recordProvider, typeMetadata);
+		}
+
+	}
+
+	public void setType(Record record, Record type) {
+		MetadataSchemaTypes types = getTypes();
+		MetadataSchema currentRecordSchema = types.getSchema(record.getSchemaCode());
+
+		Metadata recordTypeMetadata = getRecordTypeMetadataOf(record);
+
+		record.set(recordTypeMetadata, type);
+		RecordProvider recordProvider = new RecordProvider(getModelLayerFactory().newRecordServices());
+		changeSchemaTypeAccordingToTypeLinkedSchema(record, types, recordProvider, recordTypeMetadata);
+	}
 
 	public ModelLayerFactory getModelLayerFactory() {
 		return modelLayerFactory;
@@ -377,6 +456,10 @@ public class SchemasRecordsServices {
 
 	public User wrapUser(Record record) {
 		return new User(record, getTypes(), getRoles());
+	}
+
+	public UserCredential wrapUserCredential(Record record) {
+		return new SolrUserCredential(record, getTypes());
 	}
 
 	public List<User> wrapUsers(List<Record> records) {

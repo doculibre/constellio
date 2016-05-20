@@ -47,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -597,26 +598,28 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			document.setFolder(inRmFolder);
 
 			RecordUtils.copyMetadatas(connectorDocument, document);
-			/*------------------------------------------------------
-				TODO Manage versions
-					- Have to try catch unsupported exception, and keep old behaviour in catch.
-			 -------------------------------------------------------*/
 			try {
-				// TODO call stuff to manage multiple versions
 				List<String> availableVersions = connectorServices(connectorDocument)
 						.getAvailableVersions(connectorDocument.getConnector(), connectorDocument);
 				for (String availableVersion : availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument)
 							.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
-					addVersionToDocument(connectorDocument, majorVersions, newVersionDataSummary, document);
+					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
 				InputStream inputStream = connectorServices(connectorDocument).newContentInputStream(
 						connectorDocument, CLASSIFY_DOCUMENT);
 
+				String version;
+				if (document.getContent() != null) {
+					version = ContentImpl.getVersionAfter(document.getContent().getCurrentVersion().getVersion(), majorVersions);
+				} else {
+					version = (majorVersions ? "1.0" : "0.1");
+				}
+
 				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
-				addVersionToDocument(connectorDocument, majorVersions, newVersionDataSummary, document);
+				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
@@ -629,22 +632,17 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	}
 
-	private void addVersionToDocument(ConnectorDocument connectorDocument, Boolean majorVersions,
+	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
 			ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
-				document.getContent().updateContentWithName(
-						currentUser, newVersionDataSummary, majorVersions, connectorDocument.getTitle());
+				document.getContent().updateContentWithVersionAndName(
+						currentUser, newVersionDataSummary, versionNumber, connectorDocument.getTitle());
 				document.setContent(document.getContent());
 			}
 		} else {
-			Content content;
-			if (majorVersions) {
-				content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-			} else {
-				content = contentManager.createMinor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
-			}
-			document.setContent(content);
+			document.setContent(contentManager
+					.createWithVersion(currentUser, connectorDocument.getTitle(), newVersionDataSummary, versionNumber));
 		}
 	}
 

@@ -52,7 +52,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		try {
 			Record record = toRecord(recordVO);
 			addOrUpdate(record);
-			view.navigateTo().listSchemaRecords(schemaCode);
+			view.navigate().to().listSchemaRecords(schemaCode);
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			LOGGER.error(e.getMessage(), e);
@@ -61,7 +61,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	public void cancelButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().listSchemaRecords(schemaCode);
+		view.navigate().to().listSchemaRecords(schemaCode);
 	}
 
 	@Override

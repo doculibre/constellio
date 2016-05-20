@@ -3,9 +3,13 @@ package com.constellio.app.modules.es.ui.pages;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.modules.es.navigation.ESViews;
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +41,7 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 	RecordServices recordServices;
 	ESSchemasRecordsServices es;
 	UserServices userServices;
-	MockedNavigation navigator;
+    MockedNavigation navigator;
 
 	Users users = new Users();
 	ConnectorType connectorType;
@@ -55,9 +59,9 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-		navigator = new MockedNavigation();
-		when(view.navigate()).thenReturn(navigator);
-		when(view.navigateTo()).thenReturn(navigator.to(RMViews.class));
+        navigator = new MockedNavigation();
+        when(view.navigate()).thenReturn(navigator);
+
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();

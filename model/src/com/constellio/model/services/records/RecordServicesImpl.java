@@ -336,7 +336,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
-		RecordValidationServices validationServices = newRecordValidationServices();
+		RecordValidationServices validationServices = newRecordValidationServices(recordProvider);
 		RecordAutomaticMetadataServices automaticMetadataServices = newAutomaticMetadataServices();
 		TransactionRecordsReindexation reindexation = transaction.getRecordUpdateOptions().getTransactionRecordsReindexation();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(transaction.getCollection());
@@ -664,8 +664,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				modelFactory.getSystemConfigurationsManager(), modelFactory.getModelLayerLogger());
 	}
 
-	public RecordValidationServices newRecordValidationServices() {
-		return new RecordValidationServices(newConfigProvider(), modelFactory.getMetadataSchemasManager(),
+	public RecordValidationServices newRecordValidationServices(RecordProvider recordProvider) {
+		return new RecordValidationServices(newConfigProvider(), recordProvider, modelFactory.getMetadataSchemasManager(),
 				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices());
 	}
 

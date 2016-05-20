@@ -65,7 +65,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().previousView();
+		view.navigate().to().previousView();
 	}
 
 	public RecordVODataProvider getFolders() {

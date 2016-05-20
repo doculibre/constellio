@@ -41,7 +41,7 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public void backButtonClick() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void saveConfigurations(LDAPServerConfiguration ldapServerConfigurationVO,

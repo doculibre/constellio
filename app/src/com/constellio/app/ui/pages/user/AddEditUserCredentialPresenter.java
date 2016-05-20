@@ -216,7 +216,7 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		if (!backPage.endsWith("/") && !parameters.startsWith("/")) {
 			backPage += "/";
 		}
-		view.navigateTo().url(backPage + parameters);
+		view.navigate().to().url(backPage + parameters);
 	}
 
 	public boolean canAndOrModify(String usernameInEdition) {

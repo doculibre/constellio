@@ -125,7 +125,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public void licenseUploadSucceeded() {
 		appLayerFactory.newApplicationService().storeLicense(modelLayerFactory.getFoldersLocator().getUploadLicenseFile());
 		view.showMessage($("UpdateManagerViewImpl.licenseUpdated"));
-		view.navigateTo().updateManager();
+		view.navigate().to().updateManager();
 	}
 
 	public void licenseUploadCancelled() {

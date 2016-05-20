@@ -172,7 +172,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			if (parentId != null) {
 				view.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {
-				view.navigateTo().recordsManagement();
+				view.navigate().to().recordsManagement();
 			}
 		} else {
 			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());

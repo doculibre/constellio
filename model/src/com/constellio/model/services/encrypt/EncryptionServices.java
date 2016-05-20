@@ -20,11 +20,17 @@ public class EncryptionServices {
 	private static final String DEFAULT_ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding";
 	byte[] key = new byte[16];
 	byte[] iv = new byte[16];
+	boolean initialized = false;
 
-	public EncryptionServices(Key key)
+	public EncryptionServices withKey(Key key)
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		if (initialized) {
+			throw new RuntimeException("Already intialized");
+		}
 		System.arraycopy(key.getEncoded(), 0, this.iv, 0, 16);
 		System.arraycopy(key.getEncoded(), 16, this.key, 0, 16);
+		initialized = true;
+		return this;
 	}
 
 	public String encrypt(String toEncrypt, String algorithm) {
@@ -104,12 +110,17 @@ public class EncryptionServices {
 
 	public static EncryptionServices create(Key key) {
 		try {
-			return new EncryptionServices(key);
+
+			return new EncryptionServices().withKey(key);
 
 		} catch (InvalidKeySpecException e) {
 			throw new EncryptionServicesRuntimeException_InvalidKey(e);
 		} catch (NoSuchAlgorithmException | IOException e) {
 			throw new ImpossibleRuntimeException(e);
 		}
+	}
+
+	public boolean isInitialized() {
+		return initialized;
 	}
 }

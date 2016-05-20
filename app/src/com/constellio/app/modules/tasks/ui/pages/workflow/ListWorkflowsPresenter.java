@@ -26,7 +26,7 @@ public class ListWorkflowsPresenter extends SingleSchemaBasePresenter<ListWorkfl
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public RecordVODataProvider getWorkflows() {

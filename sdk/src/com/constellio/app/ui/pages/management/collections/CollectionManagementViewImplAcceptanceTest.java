@@ -35,7 +35,7 @@ public class CollectionManagementViewImplAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		rm.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 

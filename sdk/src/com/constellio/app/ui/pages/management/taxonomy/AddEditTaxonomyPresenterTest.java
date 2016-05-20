@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,7 +26,7 @@ import com.constellio.sdk.tests.MockedFactories;
 public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 	@Mock AddEditTaxonomyView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock ValueListServices valueListServices;
 	@Mock Taxonomy taxonomy1, taxonomy2, taxonomy3, taxonomy4, taxonomy5;
 	@Mock TaxonomiesManager taxonomiesManager;
@@ -40,9 +41,11 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		navigator = new MockedNavigation();
+
 		when(view.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		when(mockedFactories.getModelLayerFactory().getTaxonomiesManager()).thenReturn(taxonomiesManager);
 
@@ -71,7 +74,7 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		presenter.saveButtonClicked(taxonomyVO);
 
 		verify(valueListServices).createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true);
-		verify(view.navigateTo()).listTaxonomies();
+		verify(view.navigate().to()).listTaxonomies();
 	}
 
 	@Test
@@ -89,7 +92,7 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		verify(presenter).fetchTaxonomy(taxonomyVO.getCode());
 		verify(taxonomiesManager).editTaxonomy(taxonomy5);
-		verify(view.navigateTo()).listTaxonomies();
+		verify(view.navigate().to()).listTaxonomies();
 	}
 
 	@Test
@@ -112,6 +115,6 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 			throws Exception {
 		presenter.cancelButtonClicked();
 
-		verify(view.navigateTo()).listTaxonomies();
+		verify(view.navigate().to()).listTaxonomies();
 	}
 }

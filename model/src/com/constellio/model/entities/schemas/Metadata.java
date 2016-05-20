@@ -106,7 +106,7 @@ public class Metadata implements DataStoreField {
 			this.dataStoreType = null;
 			this.code = schemaCode + "_" + localCode;
 		}
-		this.labels = new HashMap<>();
+		this.labels = Collections.emptyMap();
 		this.recordMetadataValidators = null;
 		this.structureFactory = null;
 		this.enumClass = null;
@@ -128,7 +128,7 @@ public class Metadata implements DataStoreField {
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
-		this.labels = new HashMap<>(labels);
+		this.labels = Collections.unmodifiableMap(labels);
 		this.enabled = enabled;
 		this.type = type;
 		this.allowedReferences = allowedReferences;
@@ -155,7 +155,7 @@ public class Metadata implements DataStoreField {
 		this.code = code;
 		this.collection = inheritance.collection;
 		this.inheritance = inheritance;
-		this.labels = new HashMap<>(labels);
+		this.labels = Collections.unmodifiableMap(labels);
 		this.enabled = enabled;
 		this.type = inheritance.getType();
 		this.allowedReferences = inheritance.getAllowedReferences();
@@ -202,13 +202,12 @@ public class Metadata implements DataStoreField {
 	}
 
 	public Map<String, String> getLabelsByLanguageCodes() {
-		Map<String,String> labelsMap = new HashMap<>();
-		for(Language language: getLabels().keySet()) {
-			labelsMap.put(language.getCode(),getLabels().get(language));
+		Map<String, String> labelsMap = new HashMap<>();
+		for (Language language : getLabels().keySet()) {
+			labelsMap.put(language.getCode(), getLabels().get(language));
 		}
 		return labelsMap;
 	}
-
 
 	public boolean isEnabled() {
 		return enabled;
@@ -220,6 +219,10 @@ public class Metadata implements DataStoreField {
 
 	public MetadataValueType getType() {
 		return type;
+	}
+
+	public String getReferencedSchemaType() {
+		return getAllowedReferences().getTypeWithAllowedSchemas();
 	}
 
 	public AllowedReferences getAllowedReferences() {
@@ -433,5 +436,9 @@ public class Metadata implements DataStoreField {
 
 	public String getInputMask() {
 		return inputMask;
+	}
+
+	public boolean hasSameCode(Metadata metadata) {
+		return localCode.equals(metadata.getLocalCode());
 	}
 }

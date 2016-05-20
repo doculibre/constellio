@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -27,6 +27,8 @@ import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
+import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
@@ -53,6 +55,8 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -71,7 +75,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
-public class ConstellioRMModule implements InstallableModule {
+public class ConstellioRMModule implements InstallableSystemModule {
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
@@ -115,7 +119,9 @@ public class ConstellioRMModule implements InstallableModule {
 				new RMMigrationTo6_1(),
 				new RMMigrationTo6_1_4(),
 				new RMMigrationTo6_2(),
-				new RMMigrationTo6_2_0_7()
+				new RMMigrationTo6_2_0_7(),
+				new RMMigrationTo6_3(),
+				new RMMigrationTo6_4()
 		);
 	}
 
@@ -146,7 +152,7 @@ public class ConstellioRMModule implements InstallableModule {
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new RMNavigationConfiguration().configureNavigation(config);
+		RMNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -206,6 +212,8 @@ public class ConstellioRMModule implements InstallableModule {
 		extensions.recordAppExtensions.add(new RMRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension());
 		extensions.searchPageExtensions.add(new RMSearchPageExtension());
+		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension());
+		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
@@ -249,4 +257,13 @@ public class ConstellioRMModule implements InstallableModule {
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), 100));
 	}
 
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		RMNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+	}
+
+	@Override
+	public void stop(AppLayerFactory appLayerFactory) {
+
+	}
 }

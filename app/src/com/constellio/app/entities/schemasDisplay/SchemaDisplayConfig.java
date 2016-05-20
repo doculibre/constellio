@@ -1,5 +1,7 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -90,6 +92,42 @@ public class SchemaDisplayConfig {
 		List<String> formMetadatas = new ArrayList<>();
 		formMetadatas.addAll(this.formMetadataCodes);
 		formMetadatas.add(metadataCode);
+		return withFormMetadataCodes(formMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewFormAndDisplayMetadatas(String... metadataCodes) {
+
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.addAll(asList(metadataCodes));
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.addAll(asList(metadataCodes));
+		return withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(displayMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewFormMetadatas(String... metadataCodes) {
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.addAll(asList(metadataCodes));
+		return withFormMetadataCodes(formMetadatas);
+	}
+
+	public SchemaDisplayConfig withRemovedDisplayMetadatas(String... metadataCodes) {
+
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.removeAll(asList(metadataCodes));
+		return withDisplayMetadataCodes(displayMetadatas);
+	}
+
+	public SchemaDisplayConfig withRemovedFormMetadatas(String... metadataCodes) {
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.removeAll(asList(metadataCodes));
 		return withFormMetadataCodes(formMetadatas);
 	}
 

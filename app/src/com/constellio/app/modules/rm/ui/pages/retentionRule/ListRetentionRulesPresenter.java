@@ -43,7 +43,7 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void addButtonClicked() {

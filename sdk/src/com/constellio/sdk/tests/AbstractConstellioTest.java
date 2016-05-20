@@ -1073,7 +1073,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			for (CollectionPreparator preparator : preparators) {
 				if (preparator.rmTestRecords) {
-					preparator.rmTestRecordsObject.alreadySettedUp(getModelLayerFactory());
+					preparator.rmTestRecordsObject.alreadySettedUp(getAppLayerFactory());
 				}
 				if (preparator.demoTestRecords) {
 					preparator.demoTestRecordsObject.alreadySettedUp(getModelLayerFactory());
@@ -1111,7 +1111,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 				if (preparator.rmTestRecords) {
 					try {
-						RMTestRecords records = preparator.rmTestRecordsObject.setup(modelLayerFactory);
+						RMTestRecords records = preparator.rmTestRecordsObject.setup(getAppLayerFactory());
 						if (preparator.foldersAndContainersOfEveryStatus) {
 							records = records.withFoldersAndContainersOfEveryStatus();
 						}

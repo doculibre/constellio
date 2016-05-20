@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,7 +25,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 
 	@Mock ListMetadataExtractorsView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 
 	ListMetadataExtractorsPresenter presenter;
 	SessionContext sessionContext;
@@ -39,6 +40,8 @@ public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withRMTest(rmTestRecords).withAllTestUsers()
 		);
 
+		navigator = new MockedNavigation();
+
 		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
@@ -46,7 +49,7 @@ public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new ListMetadataExtractorsPresenter(view);
 	}
@@ -75,7 +78,7 @@ public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 
 		presenter.editButtonClicked(metadataExtractorVO);
 
-		verify(view.navigateTo()).editMetadataExtractor(metadataExtractorVO.getMetadataVO().getCode());
+		verify(view.navigate().to()).editMetadataExtractor(metadataExtractorVO.getMetadataVO().getCode());
 	}
 
 	@Test
@@ -84,7 +87,7 @@ public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 
 		presenter.addButtonClicked();
 
-		verify(view.navigateTo()).addMetadataExtractor();
+		verify(view.navigate().to()).addMetadataExtractor();
 	}
 
 	@Test
@@ -93,7 +96,7 @@ public class ListMetadataExtractorsPresenterAcceptTest extends ConstellioTest {
 
 		presenter.backButtonClicked();
 
-		verify(view.navigateTo()).adminModule();
+		verify(view.navigate().to()).adminModule();
 	}
 
 	@Test

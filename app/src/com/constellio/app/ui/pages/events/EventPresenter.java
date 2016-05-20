@@ -185,7 +185,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		parameters.put(EventViewParameters.EVENT_END_DATE, endDate);
 		parameters.put(EventViewParameters.BY_ID_EVENT_PARAMETER, id);
 		parameters.put(EventViewParameters.EVENT_CATEGORY, eventCategory);
-		view.navigateTo().showEventCategory(parameters);
+		view.navigate().to().showEventCategory(parameters);
 	}
 
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {

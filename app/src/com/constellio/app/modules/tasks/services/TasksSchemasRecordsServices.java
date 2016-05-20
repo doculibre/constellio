@@ -92,6 +92,14 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	public final SchemaTypeShortcuts_ddvTaskStatus_default ddvTaskStatus
 			= new SchemaTypeShortcuts_ddvTaskStatus_default("ddvTaskStatus_default");
 
+	public TaskType getTaskTypeByCode(String code) {
+		return wrapTaskType(getByCode(taskSchemaType(), code));
+	}
+
+	public TaskType wrapTaskType(Record record) {
+		return record == null ? null : new TaskType(record, getTypes());
+	}
+
 	public class SchemaTypeShortcuts_ddvTaskStatus_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvTaskStatus_default(String schemaCode) {
 			super(schemaCode);
@@ -439,6 +447,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		return getTypes().getSchema(Task.DEFAULT_SCHEMA);
 	}
 
+	public MetadataSchemaType taskTypeSchemaType() {
+		return getTypes().getSchemaType(TaskType.SCHEMA_TYPE);
+	}
+
 	public MetadataSchemaType taskSchemaType() {
 		return getTypes().getSchemaType(Task.SCHEMA_TYPE);
 	}
@@ -481,5 +493,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		status.addAll(searchTaskStatuss(where(ddvTaskStatus.statusType()).is(FINISHED)));
 		status.add(getTaskStatusWithCode(CLOSED_CODE));
 		return status;
+	}
+
+
+	public void setType(Task task, TaskType taskType) {
+		setType(task.getWrappedRecord(), taskType == null ? null : taskType.getWrappedRecord());
 	}
 }

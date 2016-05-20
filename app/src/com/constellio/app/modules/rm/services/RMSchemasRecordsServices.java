@@ -498,6 +498,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
 	}
 
+	public MetadataSchema folderSchema(String localCode) {
+		return getTypes().getSchemaType(Folder.SCHEMA_TYPE).getSchema(localCode);
+	}
+
 	public MetadataSchema folderSchemaFor(FolderType type) {
 		return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
 	}
@@ -1500,6 +1504,16 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public DocumentType emailDocumentType() {
 		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
+	}
+
+	public Folder setType(Folder folder, FolderType folderType) {
+		setType(folder.getWrappedRecord(), folderType == null ? null : folderType.getWrappedRecord());
+		return folder;
+	}
+
+	public Document setType(Document document, FolderType documentType) {
+		setType(document.getWrappedRecord(), documentType == null ? null : documentType.getWrappedRecord());
+		return document;
 	}
 
 }

@@ -98,7 +98,7 @@ public class BackgroundThreadsManagerAcceptTest extends ConstellioTest {
 
 		Thread.sleep(10000);
 
-		assertThat(counter.get()).isEqualTo(10);
+		assertThat(counter.get()).isBetween(9, 11);
 
 	}
 

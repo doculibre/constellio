@@ -46,7 +46,9 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.records.RecordServices;
@@ -1456,6 +1458,72 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenCreateAndUpdateContentWithCustomVersionLabelThenUsed()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5"))
+				.isSaved();
+
+		assertThat(theRecordContent()).isNot(emptyVersion);
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
+				.is(version("3.5")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+
+		when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "42", "ZeNewPdf.pdf")
+				.isSaved();
+
+		when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "66.6", "ZeNewPdf.pdf")
+				.isSaved();
+
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("66.6");
+		assertThat(theRecordContent().getHistoryVersions().get(1).getVersion()).isEqualTo("42.0");
+		assertThat(theRecordContent().getHistoryVersions().get(0).getVersion()).isEqualTo("3.5");
+	}
+
+	@Test
+	public void whenCreateAndUpdateContentWithBadCustomVersionThenException()
+			throws Exception {
+
+		try {
+			givenRecord()
+					.withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5a"));
+
+			fail("Invalid argument exception expected");
+		} catch (ContentImplRuntimeException_InvalidArgument e) {
+			//oK
+		}
+
+		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5"))
+				.isSaved();
+
+		try {
+			when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "42b", "ZeNewPdf.pdf");
+			fail("Invalid argument exception expected");
+		} catch (ContentImplRuntimeException_InvalidArgument e) {
+			//oK
+		}
+
+	}
+
+	@Test
+	public void whenCreateAndUpdateContentWithInferiorCustomVersionThenException()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3"))
+				.isSaved();
+
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
+				.is(version("3.0")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+
+		try {
+			when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "2.4", "ZeNewPdf.pdf");
+			fail("Invalid argument exception expected");
+		} catch (ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion e) {
+			//oK
+		}
+
+	}
+
 	//------------------------------------------------------------------
 
 	private void assertThatRecordCanBeObtainedWithKeywords(String... keywords) {
@@ -1882,6 +1950,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				String name) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.updateContentWithName(alice, contentVersionDataSummary, false, name);
+			return this;
+		}
+
+		public RecordPreparation hasItsContentUpdatedWithVersionAndName(User alice,
+				ContentVersionDataSummary contentVersionDataSummary, String version, String name) {
+			Content content = record.get(zeSchema.contentMetadata());
+			content.updateContentWithVersionAndName(alice, contentVersionDataSummary, version, name);
 			return this;
 		}
 

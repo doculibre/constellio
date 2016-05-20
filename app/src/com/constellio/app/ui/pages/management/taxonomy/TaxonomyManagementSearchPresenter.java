@@ -126,11 +126,11 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().taxonomyManagement(taxonomy.getCode(), recordVO.getId());
+		view.navigate().to().taxonomyManagement(taxonomy.getCode(), recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editTaxonomyConcept(taxonomy.getCode(), recordVO.getId(), recordVO.getSchema().getCode());
+		view.navigate().to().editTaxonomyConcept(taxonomy.getCode(), recordVO.getId(), recordVO.getSchema().getCode());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
@@ -151,7 +151,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().taxonomyManagement(taxonomy.getCode());
+		view.navigate().to().taxonomyManagement(taxonomy.getCode());
 	}
 
 	@Override
@@ -175,7 +175,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	}
 
 	public void searchConcept(String freeText) {
-		view.navigateTo().taxonomySearch(taxonomy.getCode(), freeText);
+		view.navigate().to().taxonomySearch(taxonomy.getCode(), freeText);
 	}
 
 	public String getQueryExpression() {

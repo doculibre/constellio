@@ -178,7 +178,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-		view.navigateTo().listSchemaMetadata(params);
+		view.navigate().to().listSchemaMetadata(params);
 	}
 
 	private void saveDisplayConfig(FormMetadataVO formMetadataVO, String code, MetadataSchemasManager schemasManager,
@@ -285,7 +285,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA, parameters);
-		view.navigateTo().listSchemaMetadata(params);
+		view.navigate().to().listSchemaMetadata(params);
 	}
 
 	public boolean isMetadataEnableStatusModifiable() {

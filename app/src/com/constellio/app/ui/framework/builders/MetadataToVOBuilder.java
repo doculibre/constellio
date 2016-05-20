@@ -126,13 +126,14 @@ public class MetadataToVOBuilder implements Serializable {
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
-		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
+		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
 				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
 				metadataGroup, metadata.getDefaultValue(), metadata.getInputMask());
 	}
 
 	protected MetadataVO newMetadataVO(
 			String metadataCode,
+			String datastoreCode,
 			MetadataValueType type,
 			String collection,
 			MetadataSchemaVO schemaVO,
@@ -149,10 +150,10 @@ public class MetadataToVOBuilder implements Serializable {
 			StructureFactory structureFactory,
 			String metadataGroup,
 			Object defaultValue,
-			boolean isWriteNullValues) {
-		return new MetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels, enumClass,
-				taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
-				metadataGroup, defaultValue);
+			String inputMask) {
+		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
+				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
+				metadataGroup, defaultValue, inputMask);
 	}
 
 }

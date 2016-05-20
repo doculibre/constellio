@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
@@ -87,6 +90,7 @@ public class ConstellioMenuPresenter implements Serializable {
 				modelLayerFactory.newRecordServices().update(newUser
 						.setLastLogin(TimeProvider.getLocalDateTime())
 						.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
+				sessionContext.setCurrentLocale(getSessionLanguage(newUser));
 
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
@@ -98,6 +102,33 @@ public class ConstellioMenuPresenter implements Serializable {
 			constellioMenu.updateUIContent();
 			constellioMenu.navigateTo().home();
 		}
+	}
+
+
+	//FIXME use service and remove redundant code in LoginPresenter
+	Locale getSessionLanguage(User userInLastCollection) {
+		String userPreferredLanguage = userInLastCollection.getLoginLanguageCode();
+		String systemLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		if(StringUtils.isBlank(userPreferredLanguage)){
+			return getLocale(systemLanguage);
+		} else {
+			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(userInLastCollection.getCollection());
+			if(collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages.contains(userPreferredLanguage)){
+				return getLocale(systemLanguage);
+			} else {
+				return getLocale(userPreferredLanguage);
+			}
+		}
+	}
+
+	private Locale getLocale(String languageCode) {
+		i18n.getSupportedLanguages();
+		for(Language language : Language.values()){
+			if(language.getCode().equals(languageCode)){
+				return new Locale(languageCode);
+			}
+		}
+		throw new ImpossibleRuntimeException("Invalid language " + languageCode);
 	}
 
 	public void editProfileButtonClicked(String params) {

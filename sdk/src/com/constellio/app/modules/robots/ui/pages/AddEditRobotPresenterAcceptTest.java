@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfiguration;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -59,7 +60,7 @@ import com.constellio.sdk.tests.setups.Users;
  */
 public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock AddEditRobotView view;
 	RobotsService robotsService;
 	AddEditRobotPresenter presenter;
@@ -109,7 +110,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		smbClassifyServices = new SmbClassifyServices(zeCollection, getAppLayerFactory(), users.adminIn(zeCollection));
 

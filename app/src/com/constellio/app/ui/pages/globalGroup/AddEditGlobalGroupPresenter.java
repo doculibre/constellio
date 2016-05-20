@@ -158,7 +158,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		String parameters = ParamUtils.addParams(breadCrumb, newParamsMap);
 		parameters = cleanParameters(parameters);
 		backPage = correctUrlSlash(backPage, parameters);
-		view.navigateTo().url(backPage + parameters);
+		view.navigate().to().url(backPage + parameters);
 	}
 
 	private String correctUrlSlash(String backPage, String parameters) {

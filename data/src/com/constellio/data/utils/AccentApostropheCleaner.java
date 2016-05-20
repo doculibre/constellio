@@ -2213,6 +2213,9 @@ public class AccentApostropheCleaner {
 	}
 
 	public static String cleanAll(String in) {
+		if (in == null) {
+			return null;
+		}
 		in = cleanPonctuation(in);
 		in = removeAccents(in);
 		in = removeApostrophe(in);

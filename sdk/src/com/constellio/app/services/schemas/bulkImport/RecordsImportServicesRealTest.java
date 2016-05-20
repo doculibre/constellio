@@ -22,7 +22,7 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -30,6 +30,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemRe
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -72,7 +73,6 @@ import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.validators.ValueRequirementValidator;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -820,9 +820,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
 					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("availableChoices", "[F, S]", "index", "3", "legacyId", "5", "invalidValue", "[FS, F]", "metadata", "withAnEnumMetadata"))
-					,newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("availableChoices", "[F, S]", "index", "1", "legacyId", "3", "invalidValue", "[S, SECOND_VALUE]", "metadata",
+							asMap("availableChoices", "[F, S]", "index", "3", "legacyId", "5", "invalidValue", "[FS, F]",
+									"metadata", "withAnEnumMetadata"))
+					, newZeSchemaValidationError(INVALID_ENUM_VALUE,
+							asMap("availableChoices", "[F, S]", "index", "1", "legacyId", "3", "invalidValue",
+									"[S, SECOND_VALUE]", "metadata",
 									"withAnEnumMetadata"))
 			);
 		}
@@ -1505,17 +1507,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "legacyId", "schemaType", "metadataCode", "metadataLabel",
+					"basedOnMetadatas")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "1", "3", zeSchema.typeCode(),
+							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
+							"[numberMetadata, booleanMetadata]")
+			);
 
-			Map<String, Object> expectedMap = asMap(
-					"index", "1",
-					"legacyId", "3",
-					"schemaType", zeSchema.typeCode(),
-					"metadataCode", "zeSchemaType_default_stringMetadata");
-			expectedMap.put("metadataLabel", asMap("fr", "A toAString metadata"));
-			expectedMap.put("basedOnMetadatas", "[numberMetadata, booleanMetadata]");
-			assertThat(errors).containsOnly(
-					new ValidationError(ValueRequirementValidator.class.getName() + "_requiredValueForMetadata", expectedMap));
 		}
 	}
 
@@ -1848,7 +1846,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return parameters;
 	}
 
-	private Map<String, Object> asMap(String key1, String value1, String key2, String value2,String key3, String value3) {
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3, String value3) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
@@ -1856,7 +1854,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return parameters;
 	}
 
-	private Map<String, Object> asMap(String key1, String value1, String key2, String value2,String key3, String value3, String key4, String value4) {
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3, String value3,
+			String key4, String value4) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
@@ -1865,7 +1864,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return parameters;
 	}
 
-	private Map<String, Object> asMap(String key1, String value1, String key2, String value2,String key3, String value3, String key4, String value4,String key5, String value5) {
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3, String value3,
+			String key4, String value4, String key5, String value5) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
