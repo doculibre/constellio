@@ -19,6 +19,8 @@ import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.Arrays;
+
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView> {
@@ -52,6 +54,16 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 			protected LogicalSearchQuery getQuery() {
 				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.OWNER))
 						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public RecordVODataProvider getSharedCartsDataProvider() {
+		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.SHARED_WITH_USERS))
+						.isContaining(Arrays.asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
 			}
 		};
 	}

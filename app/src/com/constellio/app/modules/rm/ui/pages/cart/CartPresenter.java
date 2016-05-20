@@ -127,7 +127,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 				builder.build(schema(Folder.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext()));
 	}
 
-	private Cart cart() {
+	Cart cart() {
 		if (cart == null) {
 //			cart = rm().getOrCreateUserCart(getCurrentUser());
 			cart = rm().getCart(cartId);
@@ -233,5 +233,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> {
 
 	public void forParams(String parameters) {
 		cartId = parameters;
+	}
+
+	public void shareWithUsersRequested(List<String> userids) {
+		cart().setSharedWithUsers(userids);
+		addOrUpdate(cart().getWrappedRecord());
 	}
 }

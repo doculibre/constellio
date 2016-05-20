@@ -6,6 +6,11 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.model.entities.records.wrappers.User;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -53,7 +58,36 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildBatchDuplicateButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
+		buttons.add(buildShareButton());
 		return buttons;
+	}
+
+	private Button buildShareButton() {
+		/* TODO Pat build the users selection tool
+			- Window button to select multiple users
+			- Probably use a multivalue lookup
+		 */
+		return new WindowButton("buttonLabel","windowLabel") {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+
+				final ListAddRemoveRecordLookupField lookup = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
+				lookup.setValue(presenter.cart().getSharedWithUsers());
+
+				layout.addComponent(lookup);
+
+				BaseButton saveButton = new BaseButton("caption") {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.shareWithUsersRequested(lookup.getValue());
+						getWindow().close();
+					}
+				};
+				layout.addComponent(saveButton);
+				return layout;
+			}
+		};
 	}
 
 	@Override

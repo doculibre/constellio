@@ -18,6 +18,7 @@ public class Cart extends RecordWrapper {
 	public static final String DOCUMENTS = "documents";
 	public static final String CONTAINERS = "containers";
 	public static final String OWNER = "owner";
+	public static final String SHARED_WITH_USERS = "sharedWithUsers";
 
 	public Cart(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -37,8 +38,6 @@ public class Cart extends RecordWrapper {
 		return this;
 	}
 
-	// TODO When implementing cart sharing, must add a list of 'shared with users'
-
 	public List<String> getFolders() {
 		return getList(FOLDERS);
 	}
@@ -54,6 +53,23 @@ public class Cart extends RecordWrapper {
 
 	public Cart removeFolder(String id) {
 		return removeFrom(FOLDERS, id);
+	}
+
+	public List<String> getSharedWithUsers() {
+		return getList(SHARED_WITH_USERS);
+	}
+
+	public Cart setSharedWithUsers(List<String> users) {
+		set(SHARED_WITH_USERS, users);
+		return this;
+	}
+
+	public Cart addSharedWithUsers(List<String> users) {
+		return addWithoutDuplicates(SHARED_WITH_USERS, users);
+	}
+
+	public Cart removeSharedWithUsers(String id) {
+		return removeFrom(SHARED_WITH_USERS, id);
 	}
 
 	public List<String> getDocuments() {

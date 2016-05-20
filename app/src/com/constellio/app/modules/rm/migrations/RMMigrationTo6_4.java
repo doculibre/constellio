@@ -7,6 +7,8 @@ import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -32,12 +34,15 @@ public class RMMigrationTo6_4 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).defineValidators().add(FolderValidator.class);
-			updateCartSchema(typesBuilder.getSchemaType(Cart.SCHEMA_TYPE).getDefaultSchema());
+			updateCartSchema(typesBuilder);
 		}
 
-		private void updateCartSchema(MetadataSchemaBuilder cart) {
+		private void updateCartSchema(MetadataSchemaTypesBuilder typesBuilder) {
+			MetadataSchemaBuilder cart = typesBuilder.getSchemaType(Cart.SCHEMA_TYPE).getDefaultSchema();
 			cart.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asManual();
 			cart.getMetadata(Cart.OWNER).setUniqueValue(false);
+			cart.createUndeletable(Cart.SHARED_WITH_USERS).setMultivalue(true)
+					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 		}
 	}
 }

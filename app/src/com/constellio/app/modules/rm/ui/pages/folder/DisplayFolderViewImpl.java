@@ -400,7 +400,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				TabSheet tabSheet = new TabSheet();
 
 				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartsListView.cartsTable"), ownedCartsContainer);
+				RecordVOTable ownedCartsTable = new RecordVOTable($("OwnedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
@@ -411,7 +411,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("SharedCarts"), ownedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
 				layout.addComponent(tabSheet);
 				return layout;
 			}
