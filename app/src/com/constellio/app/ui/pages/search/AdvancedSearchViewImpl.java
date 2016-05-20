@@ -127,7 +127,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				TabSheet tabSheet = new TabSheet();
 
 				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartsListView.cartsTable"), ownedCartsContainer);
+				RecordVOTable ownedCartsTable = new RecordVOTable($("OwnedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
@@ -136,9 +136,20 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					}
 				});
 
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("SharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(getSelectedRecordIds(),sharedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
 				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
 				layout.addComponent(tabSheet);
 				return layout;
 			}

@@ -413,11 +413,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				ownedCartsTable.setWidth("100%");
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
-				RecordVOTable sharedCartsTable = new RecordVOTable($("SharedCarts"), ownedCartsContainer);
+				RecordVOTable sharedCartsTable = new RecordVOTable($("SharedCarts"), sharedCartsContainer);
 				sharedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int)event.getItemId()));
 						getWindow().close();
 					}
 				});

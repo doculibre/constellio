@@ -293,6 +293,17 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		};
 	}
 
+	public RecordVODataProvider getSharedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
+						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
 	public boolean hasContent() {
 		return presenterUtils.hasContent();
 	}
