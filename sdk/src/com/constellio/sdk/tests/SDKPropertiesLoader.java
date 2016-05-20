@@ -1,9 +1,14 @@
 package com.constellio.sdk.tests;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 
@@ -44,6 +49,34 @@ public class SDKPropertiesLoader {
 		}
 
 		return PropertyFileUtils.loadKeyValues(sdkProperties);
+	}
+
+	public void writeValues(Map<String, String> values) {
+		File sdkProperties = new SDKFoldersLocator().getSDKProperties();
+		Properties prop = new Properties();
+
+		FileReader reader = null;
+		FileWriter writer = null;
+		try {
+			reader = new FileReader(sdkProperties);
+			prop.load(reader); // FileInputStream or whatever
+			closeQuietly(reader);
+
+			for (Map.Entry<String, String> entry : values.entrySet()) {
+				prop.setProperty(entry.getKey(), entry.getValue());
+			}
+			writer = new FileWriter(sdkProperties);
+
+			prop.store(writer, "");
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+
+		} finally {
+			closeQuietly(reader);
+			closeQuietly(writer);
+		}
+
 	}
 
 	public void setLocked(boolean locked) {

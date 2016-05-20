@@ -70,12 +70,12 @@ public class BatchProcessingButton extends WindowButton {
 		vLayout.replaceComponent(form, newForm);
 		form = newForm;
 	}
-	
+
 	private BatchProcessingForm newForm() {
 		String selectedType = typeField.getValue();
 		RecordFieldFactory fieldFactory = newFieldFactory(selectedType);
 		String originSchema = presenter.getSchema(view.getSchemaType(), selectedType);
-		return new BatchProcessingForm(presenter.newRecordVO(originSchema, view.getSessionContext()),
+		return new BatchProcessingForm(presenter.newRecordVO(view.getSelectedRecordIds(), originSchema, view.getSessionContext()),
 				fieldFactory);
 	}
 
@@ -133,7 +133,7 @@ public class BatchProcessingButton extends WindowButton {
 
 		@Override
 		public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-			if (metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
+			if (metadataVO == null || metadataVO.getType().equals(CONTENT) || metadataVO.getLocalCode().equals("type")) {
 				return null;
 			}
 			if (fieldFactory != null) {
