@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -25,12 +26,13 @@ public class BatchProcessManagerStartupAcceptanceTest extends ConstellioTest {
 		given_some_processed_batch_process_and_a_current_jammed_process();
 
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		AppLayerFactory appLayerFactory = getAppLayerFactory();
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
 		waitForBatchProcessAcceptingErrors();
 		assertThat(batchProcessesManager.getStandbyBatchProcesses()).isEmpty();
 		assertThat(batchProcessesManager.getCurrentBatchProcess()).isNull();
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		String xRubric = rm.getCategoryWithCode("X").getId();

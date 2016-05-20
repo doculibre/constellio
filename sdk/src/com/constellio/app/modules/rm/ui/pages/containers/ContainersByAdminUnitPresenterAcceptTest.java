@@ -44,7 +44,7 @@ public class ContainersByAdminUnitPresenterAcceptTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getCollection()).thenReturn(zeCollection);

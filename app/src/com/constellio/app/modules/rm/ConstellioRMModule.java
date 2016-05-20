@@ -167,7 +167,7 @@ public class ConstellioRMModule implements InstallableSystemModule {
 
 	@Override
 	public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Transaction transaction = new Transaction();
 
 		AdministrativeUnit adminUnit = rm.newAdministrativeUnit().setCode("1").setTitle($("RMDemoData.adminUnit"));

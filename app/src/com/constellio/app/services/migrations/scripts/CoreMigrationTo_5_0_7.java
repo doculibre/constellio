@@ -51,7 +51,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 	private void createDefaultCoreFacets(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = rm.getModelLayerFactory().newRecordServices();
 
 		recordServices.add(rm.newFacetField().setOrder(0).setTitle(migrationResourcesProvider.get("init.facet.type"))

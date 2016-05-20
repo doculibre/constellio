@@ -95,7 +95,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			record = newRecord();
 			addView = true;
 		} else {
-			Folder folder = new RMSchemasRecordsServices(collection, modelLayerFactory).getFolder(parentId);
+			Folder folder = new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(parentId);
 			record = new DecommissioningService(collection, modelLayerFactory).newSubFolderIn(folder).getWrappedRecord();
 			addView = true;
 		}
