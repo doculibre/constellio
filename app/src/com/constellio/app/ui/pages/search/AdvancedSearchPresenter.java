@@ -345,8 +345,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
-		return batchProcessingPresenterService().newRecordVO(schema, sessionContext);
+	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, selectedRecordIds);
 	}
 
 	@Override

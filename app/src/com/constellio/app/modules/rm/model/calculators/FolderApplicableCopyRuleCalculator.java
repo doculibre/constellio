@@ -60,6 +60,10 @@ public class FolderApplicableCopyRuleCalculator implements MetadataValueCalculat
 
 	private List<CopyRetentionRule> filterUsingFolderMediumTypes(List<CopyRetentionRule> copies, List<String> mediumTypes) {
 
+		if (mediumTypes.isEmpty()) {
+			return copies;
+		}
+
 		List<CopyRetentionRule> matches = new ArrayList<>();
 
 		for (CopyRetentionRule rulePrincipalCopyRule : copies) {

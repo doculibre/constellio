@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -52,16 +53,26 @@ public abstract class BatchProcessingExtension implements Serializable {
 	}
 
 	public static class IsMetadataModifiableParams {
+		String recordId;
 		Metadata metadata;
-		Map<String, Object> alreadyModifiedMetadatas;
+		User user;
 
-		public IsMetadataModifiableParams(Metadata metadata, Map<String, Object> alreadyModifiedMetadatas) {
+		public IsMetadataModifiableParams(Metadata metadata, User user, String recordId) {
 			this.metadata = metadata;
-			this.alreadyModifiedMetadatas = alreadyModifiedMetadatas;
+			this.user = user;
+			this.recordId = recordId;
 		}
 
 		public Metadata getMetadata() {
 			return metadata;
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public String getRecordId() {
+			return recordId;
 		}
 
 		public boolean isSchemaType(String schemaType) {
