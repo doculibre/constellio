@@ -251,7 +251,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state).withFakeEncryptionServices();
 		}
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	protected static File getStatesFolder(boolean old) {

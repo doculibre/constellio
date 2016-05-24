@@ -60,7 +60,7 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 				ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 
-				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), modelLayerFactory);
 				Content content = rm.wrapDocument(record).getContent();
 				if (content != null) {
 					ContentVersion contentVersion = content.getCurrentVersion();

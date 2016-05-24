@@ -145,7 +145,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<AdministrativeUnit> unit10Children = rm.wrapAdministrativeUnits(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.administrativeUnitSchemaType()).where(rm.administrativeUnit_parent()).isEqualTo(unit10))));
@@ -260,7 +260,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 	}
 
 	private AdministrativeUnit getExistingUnitWithCode(String code) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		AdministrativeUnit unit = rm.getAdministrativeUnitWithCode(code);
 		assertThat(unit).describedAs("Unit with code '" + code + "'").isNotNull();
 		return unit;

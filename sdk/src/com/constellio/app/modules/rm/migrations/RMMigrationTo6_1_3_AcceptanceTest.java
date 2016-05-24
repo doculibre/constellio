@@ -20,7 +20,7 @@ public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 		givenSystemAtVersion6_1_2();
 		waitForBatchProcess();
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		Folder testFolder = rm.wrapFolder(getModelLayerFactory().newRecordServices().getDocumentById("00000000400"));
 

@@ -28,7 +28,6 @@ import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 public class AdministrativeUnitReportPresenter {
 	private String collection;
 	private ModelLayerFactory modelLayerFactory;
-	private AppLayerFactory appLayerFactory;
 	private MetadataSchemaTypes types;
 	private TaxonomiesSearchOptions searchOptions;
 	private TaxonomiesSearchServices searchService;
@@ -183,7 +182,7 @@ public class AdministrativeUnitReportPresenter {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 	}
 

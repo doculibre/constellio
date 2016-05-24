@@ -59,7 +59,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchCondition condition = from(rm.folderSchemaType()).returnAll();
 		assertThat(searchServices.getResultsCount(condition)).isEqualTo(0);
@@ -74,7 +74,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		assertThat(records.getAdmin().has(CorePermissions.DELETE_CONTENT_VERSION).globally()).isTrue();
 		assertThat(records.getBob_userInAC().has(CorePermissions.DELETE_CONTENT_VERSION).globally()).isFalse();
 		assertThat(records.getCharles_userInA().has(CorePermissions.DELETE_CONTENT_VERSION).globally()).isFalse();
@@ -94,7 +94,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		Folder banane = rm.getFolder(records.folder_B02);
 		User edouard = users.edouardIn(zeCollection);
@@ -108,7 +108,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		long unit10FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
 				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_10a));
@@ -144,7 +144,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 
 	private org.assertj.core.api.LongAssert assertThatCountOfFoldersVisibleBy(User user) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		LogicalSearchCondition condition = from(rm.folderSchemaType()).returnAll();
 		return assertThat(searchServices.getResultsCount(new LogicalSearchQuery(condition).filteredWithUser(user)));
 	}
@@ -234,7 +234,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 	}
 
 	private DecommissioningList getListOrNull(String listId) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		try {
 			return rm.getDecommissioningList(listId);
 		} catch (NoSuchRecordWithId e) {
@@ -250,7 +250,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		assertThat(records.getContainerBac01().getId()).isEqualTo("bac01");
 		assertThat(records.getContainerBac01().getTemporaryIdentifier()).isEqualTo("30_C_01");
 		assertThat(records.getContainerBac01().getStorageSpace()).isEqualTo("S02-02");
@@ -393,7 +393,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchCondition condition = from(rm.folderSchemaType()).returnAll();
 		assertThat(searchServices.getResultsCount(condition)).isEqualTo(105);
@@ -1178,7 +1178,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		DecommissioningList list30 = rm.getDecommissioningList(records.list_30);
 		DecommissioningList list31 = rm.getDecommissioningList(records.list_31);

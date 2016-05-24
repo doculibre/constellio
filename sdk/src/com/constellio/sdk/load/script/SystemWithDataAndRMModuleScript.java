@@ -215,7 +215,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 			throws Exception {
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		User user = modelLayerFactory.newUserServices().getUserInCollection("admin", collection);
 		modelLayerFactory.newRecordServices().update(user.setUserRoles(asList(RMRoles.RGD)).setCollectionAllAccess(true));

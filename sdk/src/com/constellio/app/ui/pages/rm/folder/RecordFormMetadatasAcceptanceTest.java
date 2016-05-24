@@ -97,7 +97,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		createValueListAndTaxonomyWithRecords();
 	}
 

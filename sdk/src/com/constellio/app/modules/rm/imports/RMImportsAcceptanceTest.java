@@ -27,7 +27,7 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 				withZeCollection().withAllTestUsers().withConstellioRMModule()
 		);
 		importServices = new RecordsImportServices(getModelLayerFactory(), 1);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		ImportDataProvider importDataProvider = XMLImportDataProvider.forZipFile(
 				getModelLayerFactory(), getTestResourceFile("data.zip"));
