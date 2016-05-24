@@ -122,7 +122,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 	private void setupRMFacets(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
 			String collection)
 			throws RecordServicesException {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		RecordServices recordServices = rm.getModelLayerFactory().newRecordServices();
 
@@ -377,7 +377,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		private ReindexingServices reindexingServices;
 
 		private FilingSpaceMigration(String collection, AppLayerFactory appLayerFactory) {
-			this.rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+			this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 			this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 			this.authorizationsServices = appLayerFactory.getModelLayerFactory().newAuthorizationsServices();

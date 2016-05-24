@@ -45,7 +45,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			AppLayerFactory appLayerFactory) {
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		if (!rm.defaultFolderSchema().hasMetadataWithCode(Folder.LINEAR_SIZE)) {
 			new SchemaAlterationFor5_0_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -115,7 +115,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 	private void addVariablePeriod888And999(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		VariableRetentionPeriod period888 = rm.newVariableRetentionPeriod().setCode("888")
 				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
 		VariableRetentionPeriod period999 = rm.newVariableRetentionPeriod().setCode("999")

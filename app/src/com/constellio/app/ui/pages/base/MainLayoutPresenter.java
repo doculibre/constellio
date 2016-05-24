@@ -20,6 +20,7 @@ import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.eclipse.jetty.deploy.App;
 
 public class MainLayoutPresenter implements Serializable {
 
@@ -49,7 +50,8 @@ public class MainLayoutPresenter implements Serializable {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		UserVO userVO = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		return schemas.getUser(userVO.getId());
 
 	}
