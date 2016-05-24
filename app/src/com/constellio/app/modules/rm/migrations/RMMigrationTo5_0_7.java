@@ -411,7 +411,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 			moveFoldersToNewAdministrativeUnits();
 
-			boolean hasAdministrativeUnits = searchServices.hasResults(from(rm.administrativeUnitSchemaType()).returnAll());
+			boolean hasAdministrativeUnits = searchServices.hasResults(from(rm.administrativeUnit.schemaType()).returnAll());
 			if (hasAdministrativeUnits) {
 				reindexAll();
 
@@ -444,7 +444,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 				managersInFilingSpace.removeAll(managersAndRGDs);
 
-				List<AdministrativeUnit> newUnits = rm.getAdministrativesUnits(getNewUnits(filingSpace.getId()));
+				List<AdministrativeUnit> newUnits = rm.getAdministrativeUnits(getNewUnits(filingSpace.getId()));
 				for (AdministrativeUnit newUnit : newUnits) {
 					addAuthorizationOn(newUnit, usersWithReadWrite, asList(Role.READ, Role.WRITE));
 					addAuthorizationOn(newUnit, usersWithReadWriteDelete, asList(Role.READ, Role.WRITE, Role.DELETE));
@@ -473,7 +473,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void removedSyncedAuthorizations() {
 			for (AdministrativeUnit administrativeUnit : rm.wrapAdministrativeUnits(
-					search(from(rm.administrativeUnitSchemaType()).returnAll()))) {
+					search(from(rm.administrativeUnit.schemaType()).returnAll()))) {
 
 				List<String> authorizationIds = administrativeUnit.getAuthorizations();
 				for (String authorizationId : authorizationIds) {
@@ -495,7 +495,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		private void physicallyDeleteFilingSpaces() {
 			for (FilingSpace filingSpace : wrapFilingSpaces(search(from(rm.filingSpaceSchemaType()).returnAll()))) {
 				if (Boolean.TRUE.equals(filingSpace.getWrappedRecord().get(Schemas.LOGICALLY_DELETED_STATUS))) {
-					for (AdministrativeUnit newUnit : rm.getAdministrativesUnits(getNewUnits(filingSpace.getId()))) {
+					for (AdministrativeUnit newUnit : rm.getAdministrativeUnits(getNewUnits(filingSpace.getId()))) {
 						recordServices.logicallyDelete(newUnit.getWrappedRecord(), User.GOD);
 					}
 				} else {
@@ -563,7 +563,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void removeFilingSpacesInAdministrativeUnits(Transaction transaction) {
 			for (AdministrativeUnit administrativeUnit : rm.wrapAdministrativeUnits(
-					search(from(rm.administrativeUnitSchemaType()).returnAll()))) {
+					search(from(rm.administrativeUnit.schemaType()).returnAll()))) {
 
 				if (!administrativeUnit.getFilingSpaces().isEmpty()) {
 					transaction.add(administrativeUnit.setFilingSpaces(new ArrayList<FilingSpace>()));
@@ -576,8 +576,8 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		private void createNewAdministrativeUnit(Transaction transaction) {
 			for (FilingSpace filingSpace : wrapFilingSpaces(search(from(rm.filingSpaceSchemaType()).returnAll()))) {
 
-				List<AdministrativeUnit> units = rm.wrapAdministrativeUnits(search(from(rm.administrativeUnitSchemaType())
-						.where(rm.administrativeUnitFilingSpaces()).isEqualTo(filingSpace)));
+				List<AdministrativeUnit> units = rm.wrapAdministrativeUnits(search(from(rm.administrativeUnit.schemaType())
+						.where(rm.administrativeUnit.filingSpaces()).isEqualTo(filingSpace)));
 
 				for (AdministrativeUnit unit : units) {
 					ReplacedFilingSpaceKey key = new ReplacedFilingSpaceKey(unit.getId(), filingSpace.getId());

@@ -142,7 +142,7 @@ public class UserReportPresenter {
 
 	List<AdministrativeUnit> getAdministrativeUnits() {
 		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(
-				rmSchemasRecordsServices.administrativeUnitSchemaType()).returnAll()).filteredByStatus(StatusFilter.ACTIVES)
+				rmSchemasRecordsServices.administrativeUnit.schemaType()).returnAll()).filteredByStatus(StatusFilter.ACTIVES)
 				.sortAsc(Schemas.CODE).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.CODE));
 		return rmSchemasRecordsServices.wrapAdministrativeUnits(searchServices.search(allAdminUnitsQuery));
 

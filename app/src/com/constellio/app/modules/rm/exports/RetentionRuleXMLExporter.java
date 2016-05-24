@@ -152,7 +152,7 @@ public class RetentionRuleXMLExporter {
 			return "unités administratives responsables";
 		}
 
-		List<AdministrativeUnit> allAdministrativesUnits = rm.getAdministrativesUnits(rule.getAdministrativeUnits());
+		List<AdministrativeUnit> allAdministrativesUnits = rm.getAdministrativeUnits(rule.getAdministrativeUnits());
 
 		Collections.sort(allAdministrativesUnits, new Comparator<AdministrativeUnit>() {
 			@Override

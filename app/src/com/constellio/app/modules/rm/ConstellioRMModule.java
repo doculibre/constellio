@@ -243,7 +243,7 @@ public class ConstellioRMModule implements InstallableSystemModule {
 		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {
 			cache.removeCache(AdministrativeUnit.SCHEMA_TYPE);
 		}
-		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnitSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnit.schemaType()));
 
 		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
 			cache.removeCache(Category.SCHEMA_TYPE);

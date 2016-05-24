@@ -181,7 +181,7 @@ public class ConservationRulesReportPresenter {
 
 	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit() {
 
-		MetadataSchemaType administrativeUnitSchemaType = rm.administrativeUnitSchemaType();
+		MetadataSchemaType administrativeUnitSchemaType = rm.administrativeUnit.schemaType();
 		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
 
 		MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();

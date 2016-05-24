@@ -316,7 +316,7 @@ public class RMEventsSearchServices {
 			List<LogicalSearchValueCondition> ofTheseAdministrativeUnits = new ArrayList<>();
 			ofTheseAdministrativeUnits.add(isNull());
 			for (Record concept : searchServices.search(
-					new LogicalSearchQuery(from(schemas.administrativeUnitSchemaType()).where(Schemas.IDENTIFIER).isIn(ids)))) {
+					new LogicalSearchQuery(from(schemas.administrativeUnit.schemaType()).where(Schemas.IDENTIFIER).isIn(ids)))) {
 
 				List<String> paths = concept.get(Schemas.PATH);
 

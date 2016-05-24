@@ -179,7 +179,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	public void whenMigratingToCurrentVersionThenHasEssentialMetadatas()
 			throws Exception {
 
-		assertThat(rm.administrativeUnitFilingSpaces().isEssential()).isFalse();
+		assertThat(rm.administrativeUnit.filingSpaces().isEssential()).isFalse();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.CATEGORY_ENTERED).isEssential()).isTrue();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).isEssential()).isTrue();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.RETENTION_RULE_ENTERED).isEssential()).isTrue();

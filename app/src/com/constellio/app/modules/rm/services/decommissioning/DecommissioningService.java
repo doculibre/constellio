@@ -523,7 +523,7 @@ public class DecommissioningService {
 
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rm.administrativeUnitSchema()).returnAll();
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rm.administrativeUnit.schema()).returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {

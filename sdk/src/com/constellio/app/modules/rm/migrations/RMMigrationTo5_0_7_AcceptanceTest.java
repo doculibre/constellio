@@ -148,7 +148,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<AdministrativeUnit> unit10Children = rm.wrapAdministrativeUnits(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.administrativeUnitSchemaType()).where(rm.administrativeUnit_parent()).isEqualTo(unit10))));
+				.setCondition(from(rm.administrativeUnit.schemaType()).where(rm.administrativeUnit.parent()).isEqualTo(unit10))));
 
 		assertThat(unit10Children).extracting("code").containsOnly("11", "12", "A");
 
