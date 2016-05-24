@@ -60,8 +60,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 			}
 
 			List<UniformSubdivision> uniformSubdivisions = rm.wrapUniformSubdivisions(searchServices.search(
-					new LogicalSearchQuery().setCondition(from(rm.uniformSubdivisionSchemaType())
-							.where(rm.uniformSubdivisionRetentionRule()).isEqualTo(deletedRule))));
+					new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType())
+							.where(rm.uniformSubdivision.retentionRule()).isEqualTo(deletedRule))));
 			for (UniformSubdivision uniformSubdivision : uniformSubdivisions) {
 				List<String> rules = new ArrayList<>(uniformSubdivision.getRetentionRules());
 				rules.remove(deletedRule.getId());

@@ -967,43 +967,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Uniform subdivision
-
-	public MetadataSchema uniformSubdivisionSchema() {
-		return getTypes().getSchema(UniformSubdivision.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType uniformSubdivisionSchemaType() {
-		return getTypes().getSchemaType(UniformSubdivision.SCHEMA_TYPE);
-	}
-
-	public Metadata uniformSubdivisionRetentionRule() {
-		return uniformSubdivisionSchema().get(UniformSubdivision.RETENTION_RULE);
-	}
-
-	public UniformSubdivision wrapUniformSubdivision(Record record) {
-		return new UniformSubdivision(record, getTypes());
-	}
-
-	public List<UniformSubdivision> wrapUniformSubdivisions(List<Record> records) {
-		List<UniformSubdivision> uniformSubdivisions = new ArrayList<>();
-		for (Record record : records) {
-			uniformSubdivisions.add(wrapUniformSubdivision(record));
-		}
-		return uniformSubdivisions;
-	}
-
-	public UniformSubdivision getUniformSubdivision(String id) {
-		return new UniformSubdivision(get(id), getTypes());
-	}
-
-	public UniformSubdivision newUniformSubdivision() {
-		return new UniformSubdivision(create(uniformSubdivisionSchema()), getTypes());
-	}
-
-	public UniformSubdivision newUniformSubdivisionWithId(String id) {
-		return new UniformSubdivision(create(uniformSubdivisionSchema(), id), getTypes());
-	}
 
 	public MetadataSchemaType cartSchemaType() {
 		return getTypes().getSchemaType(Cart.SCHEMA_TYPE);
@@ -1054,7 +1017,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public UserDocument newUserDocument() {
-		return new UserDocument(create(uniformSubdivisionSchema()), getTypes());
+		return new UserDocument(create(uniformSubdivision.schema()), getTypes());
 	}
 
 	public UserDocument newUserDocumentWithId(String id) {
