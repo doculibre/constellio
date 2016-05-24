@@ -22,8 +22,17 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.*;
+import com.github.rjeschke.txtmark.Run;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +46,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
 	private final ConstellioHeader header;
+	private WindowButton batchProcess;
 
 	public AdvancedSearchViewImpl() {
 		presenter = new AdvancedSearchPresenter(this);
@@ -52,6 +62,22 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	@Override
 	public void setSearchCriteria(List<Criterion> criteria) {
 		header.setAdvancedSearchCriteria(criteria);
+	}
+
+	@Override
+	public void downloadBatchProcessingResults(final InputStream stream) {
+		Resource resource = new DownloadStreamResource(new StreamResource.StreamSource() {
+			@Override
+			public InputStream getStream() {
+				return stream;
+			}
+		}, "results.xls");
+		Page.getCurrent().open(resource, null, false);
+	}
+
+	@Override
+	public void closeBatchProcessingWindow() {
+		batchProcess.getWindow().close();
 	}
 
 	@Override
@@ -81,7 +107,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		String schemaType = getSchemaType();
 		List<Component> selectionActions = new ArrayList<>();
 
-		WindowButton batchProcess = newBatchProcessingButton();
+		batchProcess = newBatchProcessingButton();
 		batchProcess.addStyleName(ValoTheme.BUTTON_LINK);
 		batchProcess.addStyleName(BATCH_PROCESS_BUTTONSTYLE);
 		selectionActions.add(batchProcess);

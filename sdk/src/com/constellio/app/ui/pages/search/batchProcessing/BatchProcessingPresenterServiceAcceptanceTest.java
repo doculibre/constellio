@@ -8,12 +8,15 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.joda.time.LocalDate;
@@ -22,17 +25,22 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -40,6 +48,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -94,9 +103,39 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		dateTime2String = DateFormatUtils.format(dateTime2);
 		dateTime3String = DateFormatUtils.format(dateTime3);
 	}
-	
+
 	@Test
 	public void givenValidationExceptionsThenThrownInSimulation()
+			throws Exception {
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A05, records.folder_A16))
+				.addModifiedMetadata(Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
+
+		try {
+			BatchProcessResults results = presenterService.simulate(request);
+			fail("error expected!");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+			);
+		}
+
+		try {
+			BatchProcessResults results = presenterService.execute(request);
+			fail("error expected!");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getErrors(), "record", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A05, "folder_default_copyStatus"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", records.folder_A16, "folder_default_copyStatus")
+			);
+		}
+		assertThat(records.getFolder_A05().getRetentionRuleEntered()).isNotEqualTo(records.ruleId_2);
+
+	}
+
+	@Test
+	public void whenSetCopyRuleEnteredThenApplied()
 			throws Exception {
 		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
 				.setIds(asList(records.folder_A05, records.folder_A16))
@@ -147,14 +186,14 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_retentionRule", "ruleId_1:Rule #1", "ruleId_2:Rule #2"),
+				tuple("folder_default_retentionRule", "1 (Rule #1)", "2 (Rule #2)"),
 				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
 				tuple("folder_default_copyStatus", "Principal", "Secondaire")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A16).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
-				tuple("folder_default_retentionRule", "ruleId_1:Rule #1", "ruleId_2:Rule #2"),
+				tuple("folder_default_retentionRule", "1 (Rule #1)", "2 (Rule #2)"),
 				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
 				tuple("folder_default_copyStatus", "Principal", "Secondaire"),
 				tuple("folder_default_expectedTransferDate", "2002-10-31", "2003-10-31"),
@@ -162,6 +201,63 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_expectedDepositDate", "2007-10-31", null)
 		);
 
+	}
+
+	@Test
+	public void whenModifyDocumentParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
+			throws Exception {
+
+		List<Document> folderA04Documents = rm.searchDocuments(where(rm.document.folder()).isEqualTo(records.folder_A04));
+		Document document1 = folderA04Documents.get(0);
+		Document document2 = folderA04Documents.get(1);
+		Document document3 = folderA04Documents.get(2);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(document1.getId(), document2.getId(), document3.getId()))
+				.addModifiedMetadata(Document.FOLDER, records.folder_A07);
+
+		BatchProcessResults results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
+				tuple(document1.getId(), document1.getTitle()),
+				tuple(document2.getId(), document2.getTitle()),
+				tuple(document3.getId(), document3.getTitle()));
+
+		assertThat(results.getRecordModifications(document1.getId()).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+
+				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
+				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
+				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+		);
+	}
+
+	@Test
+	public void whenModifyContainerParentFolderInBatchOnlyHumanFriendlyMetadataAreShown()
+			throws Exception {
+
+		ContainerRecord container1 = records.getContainerBac01();
+		ContainerRecord container2 = records.getContainerBac02();
+		ContainerRecord container3 = records.getContainerBac03();
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(container1.getId(), container2.getId(), container3.getId()))
+				.addModifiedMetadata(ContainerRecord.CAPACITY, 42.0)
+				.addModifiedMetadata(ContainerRecord.ADMINISTRATIVE_UNIT, records.unitId_20d);
+
+		BatchProcessResults results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications()).extracting("recordId", "recordTitle").containsOnly(
+				tuple(container1.getId(), container1.getTitle()),
+				tuple(container2.getId(), container2.getTitle()),
+				tuple(container3.getId(), container3.getTitle()));
+
+		assertThat(results.getRecordModifications(container1.getId()).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("containerRecord_default_administrativeUnit", "30C (Unité 30-C)", "20D (Unité 20-D)"),
+				tuple("containerRecord_default_capacity", null, "42.0")
+		);
 	}
 
 	@Test
@@ -277,44 +373,252 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(results.getRecordModifications(records.folder_A03).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Alouette", "Mon dossier"),
-				tuple("folder_default_stringsMeta", "{}", "{stringValue1, stringValue2}"),
+				tuple("folder_default_stringsMeta", "[]", "[stringValue1, stringValue2]"),
 				tuple("folder_default_textMeta", null, "zeTextValue"),
-				tuple("folder_default_textsMeta", "{}", "{textValue1, textValue2}"),
+				tuple("folder_default_textsMeta", "[]", "[textValue1, textValue2]"),
 				tuple("folder_default_dateMeta", null, date1String),
-				tuple("folder_default_datesMeta", "{}", "{" + date2String + ", " + date3String + "}"),
+				tuple("folder_default_datesMeta", "[]", "[" + date2String + ", " + date3String + "]"),
 				tuple("folder_default_dateTimeMeta", null, dateTime1String),
-				tuple("folder_default_dateTimesMeta", "{}", "{" + dateTime2String + ", " + dateTime3String + "}"),
+				tuple("folder_default_dateTimesMeta", "[]", "[" + dateTime2String + ", " + dateTime3String + "]"),
 				tuple("folder_default_booleanMeta", null, "Oui"),
-				tuple("folder_default_booleansMeta", "{}", "{Oui, Non}"),
+				tuple("folder_default_booleansMeta", "[]", "[Oui, Non]"),
 				tuple("folder_default_numberMeta", null, "66.6"),
-				tuple("folder_default_numbersMeta", "{}", "{66.6, 42}"),
+				tuple("folder_default_numbersMeta", "[]", "[66.6, 42]"),
 				tuple("folder_default_enumMeta", null, "Versé"),
-				tuple("folder_default_enumsMeta", "{}", "{Semi-actif, Actif}"),
-				tuple("folder_default_referencedFolderMeta", null, "A06:Bison"),
-				tuple("folder_default_referencedFoldersMeta", "{}", "{A07:Bouc, A08:Boeuf}")
+				tuple("folder_default_enumsMeta", "[]", "[Semi-actif, Actif]"),
+				tuple("folder_default_referencedFolderMeta", null, "A06 (Bison)"),
+				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
 		);
 
 		assertThat(results.getRecordModifications(records.folder_A04).getImpacts()).isEmpty();
 		assertThat(results.getRecordModifications(records.folder_A04).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 				tuple("folder_default_title", "Baleine", "Mon dossier"),
-				tuple("folder_default_stringsMeta", "{}", "{stringValue1, stringValue2}"),
+				tuple("folder_default_stringsMeta", "[]", "[stringValue1, stringValue2]"),
 				tuple("folder_default_textMeta", null, "zeTextValue"),
-				tuple("folder_default_textsMeta", "{}", "{textValue1, textValue2}"),
+				tuple("folder_default_textsMeta", "[]", "[textValue1, textValue2]"),
 				tuple("folder_default_dateMeta", null, date1String),
-				tuple("folder_default_datesMeta", "{}", "{" + date2String + ", " + date3String + "}"),
+				tuple("folder_default_datesMeta", "[]", "[" + date2String + ", " + date3String + "]"),
 				tuple("folder_default_dateTimeMeta", null, dateTime1String),
-				tuple("folder_default_dateTimesMeta", "{}", "{" + dateTime2String + ", " + dateTime3String + "}"),
+				tuple("folder_default_dateTimesMeta", "[]", "[" + dateTime2String + ", " + dateTime3String + "]"),
 				tuple("folder_default_booleanMeta", null, "Oui"),
-				tuple("folder_default_booleansMeta", "{}", "{Oui, Non}"),
+				tuple("folder_default_booleansMeta", "[]", "[Oui, Non]"),
 				tuple("folder_default_numberMeta", null, "66.6"),
-				tuple("folder_default_numbersMeta", "{}", "{66.6, 42}"),
+				tuple("folder_default_numbersMeta", "[]", "[66.6, 42]"),
 				tuple("folder_default_enumMeta", null, "Versé"),
-				tuple("folder_default_enumsMeta", "{}", "{Semi-actif, Actif}"),
-				tuple("folder_default_referencedFolderMeta", null, "A06:Bison"),
-				tuple("folder_default_referencedFoldersMeta", "{}", "{A07:Bouc, A08:Boeuf}")
+				tuple("folder_default_enumsMeta", "[]", "[Semi-actif, Actif]"),
+				tuple("folder_default_referencedFolderMeta", null, "A06 (Bison)"),
+				tuple("folder_default_referencedFoldersMeta", "[]", "[A07 (Bouc), A08 (Boeuf)]")
 		);
 
 	}
 
+	@Test
+	public void whenChangingTypeThenKeepValuesWithSharedField()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.setType(records.getFolder_A01(), records.folderTypeEmploye())).set("subType", "customSubType")
+				.setTitle("zetest");
+		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye())).setTitle("zetest");
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Dossier d'employé général");
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A01, records.folder_A02))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeMeeting());
+
+		BatchProcessResults results = presenterService.execute(request);
+
+		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_meetingFolder_type", "employe (Dossier employé)", "meetingFolder (Réunion employé)"),
+				tuple("folder_meetingFolder_meetingDateTime", null, "2010-12-20-01-02-03"),
+				tuple("folder_employe_hireDate", "2010-12-20", null)
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_meetingFolder_type", "employe (Dossier employé)", "meetingFolder (Réunion employé)"),
+				tuple("folder_meetingFolder_subType", "Dossier d'employé général", "Meeting important"),
+				tuple("folder_meetingFolder_meetingDateTime", null, "2010-12-20-01-02-03"),
+				tuple("folder_employe_hireDate", "2010-12-20", null)
+		);
+
+		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+
+		request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setIds(asList(records.folder_A01, records.folder_A02))
+				.addModifiedMetadata(Folder.TYPE, records.folderTypeEmploye())
+				.addModifiedMetadata("subType", "");
+
+		results = presenterService.simulate(request);
+
+		assertThat(results.getRecordModifications(records.folder_A01).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
+		);
+
+		assertThat(results.getRecordModifications(records.folder_A02).getFieldsModifications())
+				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
+				tuple("folder_employe_type", "meetingFolder (Réunion employé)", "employe (Dossier employé)"),
+				tuple("folder_employe_subType", "Meeting important", "Dossier d'employé général"),
+				tuple("folder_meetingFolder_meetingDateTime", "2010-12-20-01-02-03", null),
+				tuple("folder_employe_hireDate", null, "2010-12-20")
+		);
+
+		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
+		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
+
+	}
+
+	public void whenBatchProcessingThenOriginalTypeIsNonNullIfEachRecordsHaveTheSameType()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.setType(records.getFolder_A01(), records.folderTypeEmploye()));
+		transaction.add(rm.setType(records.getFolder_A02(), records.folderTypeEmploye()));
+		transaction.add(rm.setType(records.getFolder_A03(), records.folderTypeMeeting()));
+		transaction.add(rm.setType(records.getFolder_A04(), records.folderTypeOther()));
+		transaction.add(rm.setType(records.getFolder_A05(), null));
+		transaction.add(rm.setType(records.getFolder_A06(), null));
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A03,
+				records.folder_A04, records.folder_A05, records.folder_A06))).isNull();
+
+		assertThat(presenterService.getOriginType(asList(records.folder_A04, records.folder_A06))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A05, records.folder_A06))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A03))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02, records.folder_A05))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A05, records.folder_A01, records.folder_A02))).isNull();
+		assertThat(presenterService.getOriginType(asList(records.folder_A04))).isEqualTo(records.folderTypeOther().getId());
+		assertThat(presenterService.getOriginType(asList(records.folder_A03))).isEqualTo(records.folderTypeMeeting().getId());
+		assertThat(presenterService.getOriginType(asList(records.folder_A01, records.folder_A02)))
+				.isEqualTo(records.folderTypeEmploye().getId());
+	}
+
+	@Test
+	public void whenModifyingFoldersThenUserCanOnlyModifyThemIfItHasThePermission()
+			throws Exception {
+
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+
+		Role role1 = new Role(zeCollection, "1", "1", asList(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS));
+		Role role2 = new Role(zeCollection, "2", "2", asList(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS));
+		getModelLayerFactory().getRolesManager().addRole(role1);
+		getModelLayerFactory().getRolesManager().addRole(role2);
+
+		User admin = users.adminIn(zeCollection);
+		User alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("A47", "A84", "A04", "C02"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("A47", "A48", "A04", "A84", "A85").givingReadWriteAccess(), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A84"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("A47", "A84").giving(role1), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A48"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("A47", "A84").giving(role2), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84", "A85"))).isFalse();
+
+	}
+
+	@Test
+	public void whenModifyingDocumentsThenUserCanOnlyModifyThemIfItHasThePermission()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.newDocumentWithId("dA04")).setFolder("A04").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA47")).setFolder("A47").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA48")).setFolder("A48").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA84")).setFolder("A84").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA85")).setFolder("A85").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dC02")).setFolder("C02").setTitle("dC02");
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+
+		Role role1 = new Role(zeCollection, "1", "1", asList(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT));
+		Role role2 = new Role(zeCollection, "2", "2", asList(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT));
+		getModelLayerFactory().getRolesManager().addRole(role1);
+		getModelLayerFactory().getRolesManager().addRole(role2);
+
+		User admin = users.adminIn(zeCollection);
+		User alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("dA47", "dA84", "dA04", "dC02"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("dA47", "dA48", "dA04", "dA84", "dA85").givingReadWriteAccess(), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA84"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("dA47", "dA84").giving(role1), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA48"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("dA47", "dA84").giving(role2), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84", "dA85"))).isFalse();
+
+	}
 }

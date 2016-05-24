@@ -24,4 +24,15 @@ public class BatchProcessResults {
 		}
 		return null;
 	}
+
+	@Override
+	public String toString() {
+
+		//StringBuilder sb = new StringBuilder();
+		//sb.append("")
+
+		return "BatchProcessResults{" +
+				"recordModifications=" + recordModifications +
+				'}';
+	}
 }

@@ -1510,4 +1510,14 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE);
 	}
 
+	public Folder setType(Folder folder, FolderType folderType) {
+		setType(folder.getWrappedRecord(), folderType == null ? null : folderType.getWrappedRecord());
+		return folder;
+	}
+
+	public Document setType(Document document, FolderType documentType) {
+		setType(document.getWrappedRecord(), documentType == null ? null : documentType.getWrappedRecord());
+		return document;
+	}
+
 }

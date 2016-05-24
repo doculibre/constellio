@@ -259,7 +259,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		return null;
 	}
 
-	protected T getViewObject() {
+	public T getViewObject() {
 		return viewObject;
 	}
 

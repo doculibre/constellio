@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class BatchProcessRequest {
 
@@ -16,10 +17,13 @@ public class BatchProcessRequest {
 
 	private User user;
 
+	private MetadataSchemaType schemaType;
+
 	public BatchProcessRequest(List<String> ids, User user,
-			Map<String, Object> modifiedMetadatas) {
+			MetadataSchemaType schemaType, Map<String, Object> modifiedMetadatas) {
 		this.ids = Collections.unmodifiableList(ids);
 		this.user = user;
+		this.schemaType = schemaType;
 		this.modifiedMetadatas = Collections.unmodifiableMap(modifiedMetadatas);
 	}
 
@@ -32,6 +36,10 @@ public class BatchProcessRequest {
 
 	public User getUser() {
 		return user;
+	}
+
+	public MetadataSchemaType getSchemaType() {
+		return schemaType;
 	}
 
 	public Map<String, Object> getModifiedMetadatas() {
@@ -56,5 +64,18 @@ public class BatchProcessRequest {
 	public BatchProcessRequest addModifiedMetadata(String metadataCode, Object value) {
 		modifiedMetadatas.put(metadataCode, value);
 		return this;
+	}
+
+	public BatchProcessRequest setSchemaType(MetadataSchemaType schemaType) {
+		this.schemaType = schemaType;
+		return this;
+	}
+
+	@Override
+	public String toString() {
+		return "BatchProcessRequest{" +
+				"modifiedMetadatas=" + modifiedMetadatas +
+				", ids=" + ids +
+				'}';
 	}
 }

@@ -166,4 +166,9 @@ public class Schemas {
 		}
 		return false;
 	}
+
+	public static boolean isGlobalMetadataExceptTitle(String metadata) {
+		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadata);
+		return !TITLE_CODE.equals(metadataLocalCode) && isGlobalMetadata(metadata);
+	}
 }

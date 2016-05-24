@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.naming.NamingException;
 import javax.naming.ldap.LdapContext;
 
+import com.constellio.model.services.users.UserUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 
@@ -95,7 +96,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
-		for (String url : serverConfiguration.getUrls()) {
+			for (String url : serverConfiguration.getUrls()) {
 			LdapContext ldapContext = ldapServices
 					.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
 							userSyncConfiguration.getPassword(), serverConfiguration.getFollowReferences(), activeDirectory);
@@ -160,7 +161,7 @@ public class LDAPUserSyncManager implements StatefulService {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
 				userServices.addUpdateUserCredential(userCredential);
-				updatedUsersAndGroups.addUsername(ldapUser.getName());
+				updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
 			}
 		}
 
