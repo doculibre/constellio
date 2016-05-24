@@ -1,31 +1,33 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Property;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.server.Page;
+import com.vaadin.server.Resource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
 public class BatchProcessingButton extends WindowButton {
-	private AdvancedSearchPresenter presenter;
-	private final AdvancedSearchView view;
+	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
+	private BatchProcessingPresenter presenter;
+	private final BatchProcessingView view;
 
 	//fields
 	LookupRecordField typeField;
@@ -33,7 +35,7 @@ public class BatchProcessingButton extends WindowButton {
 	BatchProcessingForm form;
 	VerticalLayout vLayout;
 
-	public BatchProcessingButton(AdvancedSearchPresenter presenter, AdvancedSearchView view) {
+	public BatchProcessingButton(BatchProcessingPresenter presenter, BatchProcessingView view) {
 		super($("AdvancedSearchView.batchProcessing"), $("AdvancedSearchView.batchProcessing"),
 				new WindowConfiguration(true, true,
 						"75%", "75%"));
@@ -89,7 +91,7 @@ public class BatchProcessingButton extends WindowButton {
 	}
 
 	private RecordFieldFactory newFieldFactory(String selectedType) {
-		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(selectedType);
+		RecordFieldFactory fieldFactory = presenter.newRecordFieldFactory(view.getSchemaType(), selectedType, view.getSelectedRecordIds());
 		return new RecordFieldFactoryWithNoTypeNoContent(fieldFactory);
 	}
 
@@ -103,7 +105,17 @@ public class BatchProcessingButton extends WindowButton {
 				@Override
 				public void buttonClick(ClickEvent event) {
 					form.commit();
-					presenter.simulateButtonClicked(typeField.getValue(), viewObject);
+					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
+
+					try {
+						InputStream inputStream = presenter.simulateButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+						downloadBatchProcessingResults(inputStream);
+					} catch (RecordServicesException.ValidationException e) {
+						view.showErrorMessage($(e.getErrors()));
+					} catch (Throwable e) {
+						LOGGER.error("Unexpected error while executing batch process", e);
+						batchProcessingView.showErrorMessage($(e.getMessage()));
+					}
 				}
 			});
 			processButton = new Button($("process"));
@@ -112,8 +124,23 @@ public class BatchProcessingButton extends WindowButton {
 				@Override
 				public void buttonClick(ClickEvent event) {
 					form.commit();
-					presenter.processBatchButtonClicked(typeField.getValue(), viewObject);
+					BatchProcessingView batchProcessingView = BatchProcessingButton.this.view;
+
+					try {
+						InputStream inputStream = presenter.processBatchButtonClicked(typeField.getValue(), batchProcessingView.getSelectedRecordIds(), viewObject);
+
+						getWindow().close();
+
+						downloadBatchProcessingResults(inputStream);
+						batchProcessingView.showMessage($("BatchProcessing.endedNormally"));
+					} catch (RecordServicesException.ValidationException e) {
+						view.showErrorMessage($(e.getErrors()));
+					} catch (Throwable e) {
+						LOGGER.error("Unexpected error while executing batch process", e);
+						batchProcessingView.showErrorMessage($(e.getMessage()));
+					}
 				}
+
 			});
 			buttonsLayout.addComponent(processButton);
 			buttonsLayout.addComponentAsFirst(simulateButton);
@@ -129,6 +156,16 @@ public class BatchProcessingButton extends WindowButton {
 		@Override
 		protected void cancelButtonClick(RecordVO viewObject) {
 			getWindow().close();
+		}
+
+		private void downloadBatchProcessingResults(final InputStream stream) {
+			Resource resource = new ReportViewer.DownloadStreamResource(new StreamResource.StreamSource() {
+				@Override
+				public InputStream getStream() {
+					return stream;
+				}
+			}, "results.xls");
+			Page.getCurrent().open(resource, null, false);
 		}
 
 	}

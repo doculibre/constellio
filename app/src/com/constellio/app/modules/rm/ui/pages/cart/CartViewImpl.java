@@ -65,8 +65,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 		buttons.add(buildPrepareEmailButton());
 		buttons.add(buildBatchDuplicateButton());
-		buttons.add(buildFoldersBatchProcessingButton());
 		buttons.add(buildDocumentsBatchProcessingButton());
+		buttons.add(buildFoldersBatchProcessingButton());
 		buttons.add(buildContainersBatchProcessingButton());
 		buttons.add(buildFoldersLabelsButton());
 		buttons.add(buildContainersLabelsButton());
@@ -102,7 +102,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildContainersBatchProcessingButton() {
-		Button batchProcessingButton = buildBatchProcessingButton(Folder.SCHEMA_TYPE);
+		Button batchProcessingButton = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE);
 		batchProcessingButton.setCaption($("CartView.containersBatchProcessingButton"));
 		return batchProcessingButton;
 	}
@@ -120,7 +120,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildFoldersBatchProcessingButton() {
-		Button button = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE);
+		Button button = buildBatchProcessingButton(Folder.SCHEMA_TYPE);
 		button.setCaption($("CartView.foldersBatchProcessingButton"));
 		return button;
 	}
@@ -261,6 +261,16 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		@Override
 		public SessionContext getSessionContext() {
 			return CartViewImpl.this.getSessionContext();
+		}
+
+		@Override
+		public void showErrorMessage(String error) {
+			CartViewImpl.this.showErrorMessage(error);
+		}
+
+		@Override
+		public void showMessage(String message) {
+			CartViewImpl.this.showMessage(message);
 		}
 	}
 

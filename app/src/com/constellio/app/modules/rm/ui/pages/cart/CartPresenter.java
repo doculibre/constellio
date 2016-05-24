@@ -7,7 +7,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
@@ -26,15 +28,19 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.SaveButton;
+import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -42,6 +48,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
 	private String cartId;
+
+	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 
 	public CartPresenter(CartView view) {
 		super(view, Cart.DEFAULT_SCHEMA);
@@ -252,40 +260,57 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 	}
 
+
 	@Override
-	public String getOriginSchema(String schemaType, List<String> selectedRecordIds) {
-		//TODO N
-		return null;
+	public String getOriginType(List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
 	}
 
 	@Override
-	public List<String> getDestinationSchemata(String originSchema) {
-		//TODO N
-		return null;
+	public RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext) {
+		return batchProcessingPresenterService().newRecordVO(schema, sessionContext, selectedRecordIds);
 	}
 
 	@Override
-	public RecordVO newRecordVO(String schema, SessionContext sessionContext) {
-		//TODO N
-		return null;
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, records, viewObject, getCurrentUser());
+		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public void simulateButtonClicked(RecordVO viewObject) {
-		//TODO N
-
+	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, records, viewObject, getCurrentUser());
+		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public void saveButtonClicked(RecordVO viewObject) {
-		//TODO N
-
+	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
 	}
 
 	@Override
 	public BatchProcessingMode getBatchProcessingMode() {
-		//TODO N
-		return null;
+		return batchProcessingPresenterService().getBatchProcessingMode();
+	}
+
+	@Override
+	public AppLayerCollectionExtensions getBatchProcessingExtension() {
+		return batchProcessingPresenterService().getBatchProcessingExtension();
+	}
+
+	@Override
+	public String getSchema(String schemaType, String type) {
+		return batchProcessingPresenterService().getSchema(schemaType, type);
+	}
+
+	@Override
+	public String getTypeSchemaType(String schemaType) {
+		return batchProcessingPresenterService().getTypeSchemaType(schemaType);
+	}
+
+	@Override
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, records);
 	}
 
 	public List<LabelTemplate> getTemplates(String schemaType) {
@@ -315,5 +340,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		// TODO FB Return correct folders from all folders in cart (getCartFolders())
 		// Folders must correspond to adminUnitId and decommissioningType
 		return foldersToDecommission;
+	}
+
+	BatchProcessingPresenterService batchProcessingPresenterService() {
+		if (batchProcessingPresenterService == null) {
+			Locale locale = view.getSessionContext().getCurrentLocale();
+			batchProcessingPresenterService = new BatchProcessingPresenterService(collection, appLayerFactory, locale);
+		}
+		return batchProcessingPresenterService;
 	}
 }

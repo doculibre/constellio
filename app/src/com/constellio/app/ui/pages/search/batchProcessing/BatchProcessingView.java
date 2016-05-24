@@ -10,4 +10,8 @@ public interface BatchProcessingView {
     String getSchemaType();
 
     SessionContext getSessionContext();
+
+    void showErrorMessage(String error);
+
+    void showMessage(String message);
 }

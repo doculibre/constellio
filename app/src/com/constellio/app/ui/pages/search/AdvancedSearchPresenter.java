@@ -5,12 +5,7 @@ import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +13,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.*;
 
-import org.apache.commons.compress.utils.IOUtils;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -34,8 +28,6 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportBuilder;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -47,18 +39,15 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_TooManyClosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
@@ -75,7 +64,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
-	private static final String TMP_BATCH_FILE = "AdvancedSearchPresenter-displayBatchProcessingResults";
 
 	String searchExpression;
 	String schemaTypeCode;
@@ -379,54 +367,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public void simulateButtonClicked(String selectedType, RecordVO viewObject) {
-		try {
-			BatchProcessRequest request = toRequest(selectedType, view.getSelectedRecordIds(), viewObject);
-			BatchProcessResults results = batchProcessingPresenterService().simulate(request);
-			displayBatchProcessingResults(results);
-		} catch (RecordServicesException.ValidationException e) {
-			view.showErrorMessage($(e.getErrors()));
-		} catch (RecordServicesException | RuntimeException e) {
-			LOGGER.error("Unexpected error while simulating batch process", e);
-			view.showErrorMessage($(e.getMessage()));
-		}
-	}
-
-	private void displayBatchProcessingResults(BatchProcessResults results) {
-		Language locale = i18n.getLanguage();
-		File resultsFile = null;
-		Closeable outputStream = null, inputStream = null;
-		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
-		try {
-			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE);
-			outputStream = new FileOutputStream(resultsFile);
-			new BatchProcessingResultReportBuilder(new BatchProcessingResultModel(results, locale), i18n.getLocale())
-					.build((OutputStream) outputStream);
-			IOUtils.closeQuietly(outputStream);
-			inputStream = new FileInputStream(resultsFile);
-			view.downloadBatchProcessingResults((InputStream) inputStream);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		} finally {
-			ioServices.deleteQuietly(resultsFile);
-			IOUtils.closeQuietly(outputStream);
-		}
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, records, viewObject, getCurrentUser());
+		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public void processBatchButtonClicked(String selectedType, RecordVO viewObject) {
-		try {
-			BatchProcessRequest request = toRequest(selectedType, view.getSelectedRecordIds(), viewObject);
-			BatchProcessResults results = batchProcessingPresenterService().execute(request);
-			view.closeBatchProcessingWindow();
-			view.showMessage($("BatchProcessing.endedNormally"));
-			displayBatchProcessingResults(results);
-		} catch (RecordServicesException.ValidationException e) {
-			view.showErrorMessage($(e.getErrors()));
-		} catch (Throwable e) {
-			LOGGER.error("Unexpected error while executing batch process", e);
-			view.showErrorMessage($(e.getMessage()));
-		}
+	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, records, viewObject, getCurrentUser());
+		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
@@ -436,7 +385,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	@Override
 	public AppLayerCollectionExtensions getBatchProcessingExtension() {
-		return appLayerFactory.getExtensions().forCollection(collection);
+		return batchProcessingPresenterService().getBatchProcessingExtension();
 	}
 
 	@Override
@@ -450,12 +399,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public RecordFieldFactory newRecordFieldFactory(String selectedType) {
-		List<String> records = view.getSelectedRecordIds();
-
-		return batchProcessingPresenterService().newRecordFieldFactory(view.getSchemaType(), selectedType, records);
+	public RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records) {
+		return batchProcessingPresenterService().newRecordFieldFactory(schemaType, selectedType, records);
 	}
 
+	@Override
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
 	}
