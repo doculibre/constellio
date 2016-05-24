@@ -34,6 +34,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -50,6 +51,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	protected transient DocumentToVOBuilder voBuilder;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient DecommissioningLoggingService decommissioningLoggingService;
+	private transient ModelLayerCollectionExtensions extensions;
 
 	public DocumentActionsPresenterUtils(T actionsComponent) {
 		this.actionsComponent = actionsComponent;
@@ -73,6 +75,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				presenterUtils.appLayerFactory());
 		voBuilder = new DocumentToVOBuilder(presenterUtils.modelLayerFactory());
 		decommissioningLoggingService = new DecommissioningLoggingService(presenterUtils.modelLayerFactory());
+		extensions = presenterUtils.modelLayerFactory().getExtensions().forCollection(presenterUtils.getCollection());
 	}
 
 	public DocumentVO getDocumentVO() {
@@ -93,30 +96,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	ComponentState getEditButtonState() {
-		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-
-		if (isEditDocumentPossible()) {
-			if (parentFolder.getArchivisticStatus().isInactive()) {
-				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
-					return ComponentState
-							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT).on(currentDocument()));
-				}
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT).on(currentDocument()));
-			}
-			if (parentFolder.getArchivisticStatus().isSemiActive()) {
-				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
-					return ComponentState
-							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT).on(currentDocument()));
-				}
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT).on(currentDocument()));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
+		Record record = currentDocument();
+		User user = getCurrentUser();
+		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
+				&& extensions.isRecordModifiableBy(record, user));
 	}
 
 	public void editDocumentButtonClicked() {

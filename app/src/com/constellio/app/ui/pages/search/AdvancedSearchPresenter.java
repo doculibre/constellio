@@ -427,4 +427,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return batchProcessingPresenterService().newRecordFieldFactory(view.getSchemaType(), selectedType, records);
 	}
 
+	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
+		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
+	}
 }
