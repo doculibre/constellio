@@ -675,8 +675,36 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
+    //Hierarchical value list item
 
-	//Medium type
+    public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
+        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+    }
+
+    public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
+        List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
+        for (Record record : records) {
+            hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
+        }
+        return hierarchicalValueListItems;
+    }
+
+    public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
+        Record record = get(id);
+        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+    }
+
+    public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
+        return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+    }
+
+    public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
+        return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
+    }
+
+
+
+    //Medium type
 
 	public MetadataSchema mediumTypeSchema() {
 		return getTypes().getSchema(MediumType.DEFAULT_SCHEMA);
