@@ -312,8 +312,8 @@ public class RetentionRuleXMLExporter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery(
-				from(rm.retentionRuleSchemaType())
-						.where(rm.retentionRuleApproved()).isTrue()
+				from(rm.retentionRule.schemaType())
+						.where(rm.retentionRule.approved()).isTrue()
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).sortAsc(CODE));
 
 		return new RetentionRuleXMLExporter(rm.wrapRetentionRules(records), exportFile, collection, modelLayerFactory);

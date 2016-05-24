@@ -555,7 +555,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void moveDecommissioningListInNewAdministrativeUnits(Transaction transaction) {
 			for (DecommissioningList decomList : rm.wrapDecommissioningLists(search(
-					from(rm.decommissioningListSchemaType()).returnAll()))) {
+					from(rm.decommissioningList.schemaType()).returnAll()))) {
 				String unit = getNewUnit(decomList.getAdministrativeUnit(), decomList.getFilingSpace());
 				transaction.add(decomList.setFilingSpace((String) null).setAdministrativeUnit(unit));
 			}

@@ -227,7 +227,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		importAndValidateDocumentType();
 		importAndValidateDocumentWithVersions();
 
-		RetentionRule rule111201Id = rm.getRetentionRuleByCode("111201");
+		RetentionRule rule111201Id = rm.getRetentionRule("111201");
 		String copy123Id = "?", copy456Id = "?", copy789Id = "?";
 		for (CopyRetentionRule copy : rule111201Id.getCopyRetentionRules()) {
 			if ("123".equals(copy.getCode())) {

@@ -461,7 +461,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {
 		MetadataSchema folderSchema = rm.defaultFolderSchema();
-		Metadata codeMetadata = rm.folderTypeSchema().getMetadata(Schemas.CODE.getLocalCode());
+		Metadata codeMetadata = rm.folder.schema().getMetadata(Schemas.CODE.getLocalCode());
 		String folderTypeCode = folderEntry.get(Folder.TYPE);
 		if (StringUtils.isNotBlank(folderTypeCode)) {
 			Record folderTypeRecord = recordServices.getRecordByMetadata(codeMetadata, folderTypeCode);

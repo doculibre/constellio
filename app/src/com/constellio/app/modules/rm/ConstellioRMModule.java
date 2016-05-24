@@ -250,8 +250,8 @@ public class ConstellioRMModule implements InstallableSystemModule {
 		}
 		cache.configureCache(CacheConfig.permanentCache(rm.categorySchemaType()));
 
-		cache.configureCache(CacheConfig.permanentCache(rm.retentionRuleSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivisionSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecordSchemaType()));
 		cache.configureCache(CacheConfig.volatileCache(rm.folderSchemaType(), 10000));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), 100));

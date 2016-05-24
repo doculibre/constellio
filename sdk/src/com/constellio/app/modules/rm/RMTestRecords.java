@@ -3017,15 +3017,15 @@ public class RMTestRecords {
 	}
 
 	public FolderType folderTypeEmploye() {
-		return rm.getFolderTypeByCode("employe");
+		return rm.getFolderType("employe");
 	}
 
 	public FolderType folderTypeMeeting() {
-		return rm.getFolderTypeByCode("meetingFolder");
+		return rm.getFolderType("meetingFolder");
 	}
 
 	public FolderType folderTypeOther() {
-		return rm.getFolderTypeByCode("other");
+		return rm.getFolderType("other");
 	}
 
 	public DocumentType documentTypeForm() {

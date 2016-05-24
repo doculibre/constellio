@@ -128,7 +128,7 @@ public class ConservationRulesReportPresenter {
 	}
 
 	private List<RetentionRule> getRetentionRules() {
-		MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();
+		MetadataSchemaType retentionRuleSchemaType = rm.retentionRule.schemaType();
 
 		LogicalSearchQuery allRetentionRules = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType).returnAll())
@@ -148,7 +148,7 @@ public class ConservationRulesReportPresenter {
 	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit(String administrativeUnitId) {
 
 		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
-		MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();
+		MetadataSchemaType retentionRuleSchemaType = rm.retentionRule.schemaType();
 		AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(administrativeUnitId);
 
 		List<RetentionRule> newRetentionRules = getRetentionRulesByAdministrativeUnit(administrativeUnit,
@@ -165,7 +165,7 @@ public class ConservationRulesReportPresenter {
 
 		LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType)
-						.where(rm.retentionRuleAdministrativeUnitsId())
+						.where(rm.retentionRule.administrativeUnits())
 						.isContaining(Arrays.asList(administrativeUnit.getId()))).sortAsc(Schemas.CODE);
 
 		List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
@@ -184,7 +184,7 @@ public class ConservationRulesReportPresenter {
 		MetadataSchemaType administrativeUnitSchemaType = rm.administrativeUnit.schemaType();
 		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
 
-		MetadataSchemaType retentionRuleSchemaType = rm.retentionRuleSchemaType();
+		MetadataSchemaType retentionRuleSchemaType = rm.retentionRule.schemaType();
 
 		LogicalSearchQuery alladministrativesUnits = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(administrativeUnitSchemaType).returnAll())

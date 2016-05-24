@@ -607,76 +607,36 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Folder type
+    //Hierarchical value list item
 
-	public MetadataSchema folderTypeSchema() {
-		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
-	}
+    public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
+        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+    }
 
-	public MetadataSchemaType folderTypeSchemaType() {
-		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
-	}
+    public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
+        List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
+        for (Record record : records) {
+            hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
+        }
+        return hierarchicalValueListItems;
+    }
 
-	public List<FolderType> wrapFolderTypes(List<Record> records) {
-		List<FolderType> folderTypes = new ArrayList<>();
-		for (Record record : records) {
-			folderTypes.add(wrapFolderType(record));
-		}
-		return folderTypes;
-	}
+    public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
+        Record record = get(id);
+        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+    }
 
-	public FolderType getFolderType(String id) {
-		return new FolderType(get(id), getTypes());
-	}
+    public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
+        return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+    }
 
-	public FolderType getFolderTypeByCode(String code) {
-		return wrapFolderType(getByCode(folderTypeSchemaType(), code));
-	}
+    public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
+        return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
+    }
 
-	public MetadataSchema defaultFolderTypeSchema() {
-		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
-	}
 
-	public FolderType newFolderType() {
-		return new FolderType(create(defaultFolderTypeSchema()), getTypes());
-	}
 
-	public FolderType newFolderTypeWithId(String id) {
-		return new FolderType(create(defaultFolderTypeSchema(), id), getTypes());
-	}
-
-	//
-
-	//Hierarchical value list item
-
-	public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
-		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-	}
-
-	public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
-		List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
-		for (Record record : records) {
-			hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
-		}
-		return hierarchicalValueListItems;
-	}
-
-	public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
-		Record record = get(id);
-		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-	}
-
-	public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
-		return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-	}
-
-	public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
-		return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
-	}
-
-	//
-
-	//Medium type
+    //Medium type
 
 	public MetadataSchema mediumTypeSchema() {
 		return getTypes().getSchema(MediumType.DEFAULT_SCHEMA);
@@ -743,62 +703,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Retention rule
 
-	public MetadataSchema retentionRuleSchema() {
-		return getTypes().getSchema(RetentionRule.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType retentionRuleSchemaType() {
-		return getTypes().getSchemaType(RetentionRule.SCHEMA_TYPE);
-	}
-
-	public RetentionRule wrapRetentionRule(Record record) {
-		return new RetentionRule(record, getTypes());
-	}
-
-	public List<RetentionRule> wrapRetentionRules(List<Record> records) {
-		List<RetentionRule> retentionRules = new ArrayList<>();
-		for (Record record : records) {
-			retentionRules.add(wrapRetentionRule(record));
-		}
-		return retentionRules;
-	}
-
-	public RetentionRule getRetentionRule(String id) {
-		return new RetentionRule(get(id), getTypes());
-	}
-
-	public RetentionRule getRetentionRuleByLegacyId(String id) {
-		Record record = getByLegacyId(RetentionRule.SCHEMA_TYPE, id);
-		return record == null ? null : new RetentionRule(record, getTypes());
-	}
-
-	public RetentionRule getRetentionRuleByCode(String code) {
-		return new RetentionRule(getByCode(retentionRuleSchemaType(), code), getTypes());
-	}
-
-	public RetentionRule newRetentionRule() {
-		return new RetentionRule(create(retentionRuleSchema()), getTypes());
-	}
-
-	public RetentionRule newRetentionRuleWithId(String id) {
-		return new RetentionRule(create(retentionRuleSchema(), id), getTypes());
-	}
-
-	public Metadata retentionRuleApproved() {
-		return retentionRuleSchema().getMetadata(RetentionRule.APPROVED);
-	}
-
-	public Metadata retentionRuleCopyRetentionRules() {
-		return retentionRuleSchema().getMetadata(RetentionRule.COPY_RETENTION_RULES);
-	}
-
-	public Metadata retentionRuleAdministrativeUnitsId() {
-		return retentionRuleSchema().getMetadata(RetentionRule.ADMINISTRATIVE_UNITS);
-	}
-
-	//
 
 	//Storage space
 
@@ -899,43 +804,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Uniform subdivision
-
-	public MetadataSchema uniformSubdivisionSchema() {
-		return getTypes().getSchema(UniformSubdivision.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType uniformSubdivisionSchemaType() {
-		return getTypes().getSchemaType(UniformSubdivision.SCHEMA_TYPE);
-	}
-
-	public Metadata uniformSubdivisionRetentionRule() {
-		return uniformSubdivisionSchema().get(UniformSubdivision.RETENTION_RULE);
-	}
-
-	public UniformSubdivision wrapUniformSubdivision(Record record) {
-		return new UniformSubdivision(record, getTypes());
-	}
-
-	public List<UniformSubdivision> wrapUniformSubdivisions(List<Record> records) {
-		List<UniformSubdivision> uniformSubdivisions = new ArrayList<>();
-		for (Record record : records) {
-			uniformSubdivisions.add(wrapUniformSubdivision(record));
-		}
-		return uniformSubdivisions;
-	}
-
-	public UniformSubdivision getUniformSubdivision(String id) {
-		return new UniformSubdivision(get(id), getTypes());
-	}
-
-	public UniformSubdivision newUniformSubdivision() {
-		return new UniformSubdivision(create(uniformSubdivisionSchema()), getTypes());
-	}
-
-	public UniformSubdivision newUniformSubdivisionWithId(String id) {
-		return new UniformSubdivision(create(uniformSubdivisionSchema(), id), getTypes());
-	}
 
 	public MetadataSchemaType cartSchemaType() {
 		return getTypes().getSchemaType(Cart.SCHEMA_TYPE);
@@ -986,7 +854,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public UserDocument newUserDocument() {
-		return new UserDocument(create(uniformSubdivisionSchema()), getTypes());
+		return new UserDocument(create(uniformSubdivision.schema()), getTypes());
 	}
 
 	public UserDocument newUserDocumentWithId(String id) {
@@ -1063,60 +931,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public VariableRetentionPeriod PERIOD_999() {
 		return getVariableRetentionPeriodWithCode("999");
-	}
-
-	//DecommissioningList
-
-	public List<DecommissioningList> wrapDecommissioningLists(List<Record> records) {
-		List<DecommissioningList> decommissioningLists = new ArrayList<>();
-		for (Record record : records) {
-			decommissioningLists.add(wrapDecommissioningList(record));
-		}
-		return decommissioningLists;
-	}
-
-	public DecommissioningList wrapDecommissioningList(Record record) {
-		return new DecommissioningList(record, getTypes());
-	}
-
-	public DecommissioningList getDecommissioningList(String id) {
-		return new DecommissioningList(get(id), getTypes());
-	}
-
-	public DecommissioningList newDecommissioningList() {
-		return new DecommissioningList(create(defaultDecommissioningListSchema()), getTypes());
-	}
-
-	public DecommissioningList newDecommissioningListWithId(String id) {
-		return new DecommissioningList(create(defaultDecommissioningListSchema(), id), getTypes());
-	}
-
-	public MetadataSchemaType decommissioningListSchemaType() {
-		return getTypes().getSchemaType(DecommissioningList.SCHEMA_TYPE);
-	}
-
-	public MetadataSchema defaultDecommissioningListSchema() {
-		return getTypes().getSchema(DecommissioningList.DEFAULT_SCHEMA);
-	}
-
-	public Metadata decommissioningListPendingValidations() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.PENDING_VALIDATIONS);
-	}
-
-	public Metadata decommissioningListApprovalUser() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_USER);
-	}
-
-	public Metadata decommissioningListStatus() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.STATUS);
-	}
-
-	public Metadata decommissioningListApprovalRequestor() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_REQUEST);
-	}
-
-	public Metadata decommissioningListAdminUnit() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.ADMINISTRATIVE_UNIT);
 	}
 
 	//KEEP
