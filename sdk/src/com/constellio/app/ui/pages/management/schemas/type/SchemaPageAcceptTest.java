@@ -64,7 +64,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		givenCollection("otherCollection");
 
-		errors.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		errors.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 

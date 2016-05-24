@@ -12,7 +12,7 @@ import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
-import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportSelector;
@@ -365,12 +365,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	}
 
 	protected Button buildSelectAllButton() {
-		return new LinkButton($("SearchView.selectCurrentPage")) {
+		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton() {
 			@Override
-			protected void buttonClick(ClickEvent event) {
+			protected void onSelectAll(ClickEvent event) {
 				results.selectCurrentPage();
 			}
+
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				results.deselectCurrentPage();
+			}
 		};
+		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return selectDeselectAllButton;
 	}
 
 	protected Button buildSavedSearchButton() {

@@ -39,7 +39,9 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 	@Override
 	public void setFieldChoices(List<CopyRetentionRule> rules) {
 		this.rules = rules;
-		updateTable();
+		if (table != null) {
+			updateTable();
+		}
 	}
 
 	@Override

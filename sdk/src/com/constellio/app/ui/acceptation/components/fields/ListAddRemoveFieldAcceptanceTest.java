@@ -125,7 +125,7 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 	public void givenRecordLookupFieldThenControllableByWebElement()
 			throws Exception {
 
-		RMTestRecords records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		RMTestRecords records = new RMTestRecords(zeCollection).setup(getAppLayerFactory());
 
 		DummyProperty<String> dummyReferenceProperty = new DummyProperty<>(new ArrayList<String>());
 		ListAddRemoveRecordLookupField addRemoveLookupField = new ListAddRemoveRecordLookupField(FilingSpace.DEFAULT_SCHEMA);
@@ -142,7 +142,7 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 	public void givenRecordComboboxThenControllableByWebElement()
 			throws Exception {
 
-		RMTestRecords records = new RMTestRecords(zeCollection).setup(getModelLayerFactory());
+		RMTestRecords records = new RMTestRecords(zeCollection).setup(getAppLayerFactory());
 
 		DummyProperty<String> dummyReferenceProperty = new DummyProperty<>(new ArrayList<String>());
 		ListAddRemoveRecordComboBox addRemoveLookupField = new ListAddRemoveRecordComboBox(RetentionRule.DEFAULT_SCHEMA);

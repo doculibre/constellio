@@ -202,13 +202,12 @@ public class Metadata implements DataStoreField {
 	}
 
 	public Map<String, String> getLabelsByLanguageCodes() {
-		Map<String,String> labelsMap = new HashMap<>();
-		for(Language language: getLabels().keySet()) {
-			labelsMap.put(language.getCode(),getLabels().get(language));
+		Map<String, String> labelsMap = new HashMap<>();
+		for (Language language : getLabels().keySet()) {
+			labelsMap.put(language.getCode(), getLabels().get(language));
 		}
 		return labelsMap;
 	}
-
 
 	public boolean isEnabled() {
 		return enabled;
@@ -220,6 +219,10 @@ public class Metadata implements DataStoreField {
 
 	public MetadataValueType getType() {
 		return type;
+	}
+
+	public String getReferencedSchemaType() {
+		return getAllowedReferences().getTypeWithAllowedSchemas();
 	}
 
 	public AllowedReferences getAllowedReferences() {
@@ -433,5 +436,9 @@ public class Metadata implements DataStoreField {
 
 	public String getInputMask() {
 		return inputMask;
+	}
+
+	public boolean hasSameCode(Metadata metadata) {
+		return localCode.equals(metadata.getLocalCode());
 	}
 }

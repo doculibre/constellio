@@ -5,15 +5,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -21,6 +22,7 @@ import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
@@ -31,7 +33,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 
-public class FolderExtension extends RecordExtension {
+public class RMFolderExtension extends RecordExtension {
 	private final RMSchemasRecordsServices rmSchema;
 	final String collection;
 
@@ -40,8 +42,9 @@ public class FolderExtension extends RecordExtension {
 	final SearchServices searchServices;
 	final TaxonomiesSearchServices taxonomiesSearchServices;
 	final TaxonomiesManager taxonomyManager;
+	final RMSchemasRecordsServices rm;
 
-	public FolderExtension(String collection, ModelLayerFactory modelLayerFactory) {
+	public RMFolderExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		rmSchema = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -49,6 +52,7 @@ public class FolderExtension extends RecordExtension {
 		searchServices = modelLayerFactory.newSearchServices();
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		taxonomyManager = modelLayerFactory.getTaxonomiesManager();
+		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 	}
 
 	@Override
@@ -149,5 +153,36 @@ public class FolderExtension extends RecordExtension {
 			returnList.add(record.getId());
 		}
 		return returnList;
+	}
+
+	@Override
+	public ExtensionBooleanResult isRecordModifiableBy(IsRecordModifiableByParams params) {
+		User user = params.getUser();
+		if (params.isSchemaType(Folder.SCHEMA_TYPE)) {
+			Folder folder = rm.wrapFolder(params.getRecord());
+
+			if (user.hasWriteAccess().on(folder)) {
+				if (folder.getPermissionStatus().isInactive()) {
+					if (folder.getBorrowed() != null && folder.getBorrowed()) {
+						return ExtensionBooleanResult
+								.trueIf((user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
+										.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder)));
+					}
+					return ExtensionBooleanResult.trueIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
+				}
+				if (folder.getPermissionStatus().isSemiActive()) {
+					if (folder.getBorrowed() != null && folder.getBorrowed()) {
+						return ExtensionBooleanResult
+								.trueIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
+										.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
+					}
+					return ExtensionBooleanResult.trueIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
+				}
+				return ExtensionBooleanResult.TRUE;
+			}
+
+			return ExtensionBooleanResult.FALSE;
+		}
+		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 }

@@ -182,7 +182,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 	@Test
 	public void whenCalculatingModificationImpactOfSchemaTypeThenReturnModificationImpactBasedOnReferences()
 			throws Exception {
-		when(searchServices.hasResults(any(LogicalSearchCondition.class))).thenReturn(true);
+		when(searchServices.getResultsCount(any(LogicalSearchCondition.class))).thenReturn(1L);
 		List<Metadata> firstMetadataReferences = asList(firstReference, secondReference);
 		List<Metadata> secondMetadataReferences = asList(secondReference, thirdReference);
 		List<Metadata> thirdMetadataReferences = new ArrayList<>();
@@ -216,7 +216,7 @@ public class ModificationImpactCalculatorTest extends ConstellioTest {
 	@Test
 	public void givenAMetadataAlreadyReindexedWhenCalculatingModificationImpactOfSchemaTypeThenReturnModificationImpactWithoutTheMetadata()
 			throws Exception {
-		when(searchServices.hasResults(any(LogicalSearchCondition.class))).thenReturn(true);
+		when(searchServices.getResultsCount(any(LogicalSearchCondition.class))).thenReturn(1L);
 
 		alreadyReindexedMetadata.add(firstAutomaticMetadata);
 

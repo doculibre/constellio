@@ -51,13 +51,14 @@ public class ValidationError {
 					stringBuilder.append(",");
 				}
 				Object parameterValue = parameter.getValue();
-				if(parameterValue instanceof String) {
+				if (parameterValue instanceof String) {
 					stringBuilder.append(parameter.getKey() + "=" + parameterValue);
-				} else if(parameterValue instanceof Map){
+				} else if (parameterValue instanceof Map) {
 					// TODO Pat manage Map value here...
-					Map<String,String> labelsMap = (Map<String,String>) parameterValue;
+					Map<String, String> labelsMap = (Map<String, String>) parameterValue;
 					boolean firstLabel = true;
-					for(Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
+					stringBuilder.append(" ");
+					for (Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
 						if (!firstLabel) {
 							stringBuilder.append(",");
 						}
@@ -77,13 +78,13 @@ public class ValidationError {
 		sb.append(code);
 		for (Map.Entry<String, Object> entry : parameters.entrySet()) {
 			Object entryValue = entry.getValue();
-			if(entryValue instanceof String) {
+			if (entryValue instanceof String) {
 				sb.append("\n\t" + entry.getKey() + "=" + entryValue);
 			} else if (entryValue instanceof Map) {
 				// TODO Pat manage Map value here...
-				Map<String,String> labelsMap = (Map<String,String>) entryValue;
+				Map<String, String> labelsMap = (Map<String, String>) entryValue;
 				boolean firstLabel = true;
-				for(Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
+				for (Map.Entry<String, String> labelsEntry : labelsMap.entrySet()) {
 					if (!firstLabel) {
 						sb.append(",");
 					}

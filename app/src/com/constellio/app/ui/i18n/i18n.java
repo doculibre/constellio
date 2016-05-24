@@ -10,6 +10,7 @@ import java.util.ResourceBundle;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,5 +200,16 @@ public class i18n {
 
 	public static void clearBundles() {
 		registeredBundles.clear();
+	}
+
+	public static Language getLanguage() {
+		Locale loc = getLocale();
+		Language[] languages = Language.values();
+		for (Language language : languages) {
+			if (loc.getLanguage().equals(language.getCode())) {
+				return language;
+			}
+		}
+		throw new RuntimeException("Current locale"+ loc + " does not correspond to any language" + StringUtils.join(languages, ","));
 	}
 }

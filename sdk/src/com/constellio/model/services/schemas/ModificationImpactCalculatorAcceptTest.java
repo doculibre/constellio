@@ -121,7 +121,8 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isIn(asList(record)).andWhere(Schemas.IDENTIFIER)
 				.isNotIn(asList(record.getId()));
 		assertThat(anotherSchemaImpact).isEqualTo(
-				new ModificationImpact(anotherSchemaType.metadataUsingZeSchemaDateAndString(), anotherSchemaCondition));
+				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
+						anotherSchemaCondition, 1));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record))
@@ -129,7 +130,8 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isNotIn(asList(record.getId()));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
-				new ModificationImpact(thirdSchemaType.metadataUsingZeSchemaDateAndString(), thirdSchemaCondition));
+				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
+						thirdSchemaCondition, 1));
 
 	}
 
@@ -164,13 +166,15 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.whereAny(asList(anotherSchemaType.reference1ToZeSchema(), anotherSchemaType.reference2ToZeSchema()))
 				.isIn(asList(record));
 		assertThat(anotherSchemaImpact).isEqualTo(
-				new ModificationImpact(anotherSchemaType.metadataUsingZeSchemaDateAndString(), anotherSchemaCondition));
+				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
+						anotherSchemaCondition, 1));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
-				new ModificationImpact(thirdSchemaType.metadataUsingZeSchemaDateAndString(), thirdSchemaCondition));
+				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
+						thirdSchemaCondition, 1));
 
 	}
 

@@ -1017,7 +1017,8 @@ public class BigVaultRecordDao implements RecordDao {
 					convertedFieldValue = convertNullToSolrValue(fieldName);
 				}
 			} else if (fieldName.endsWith("_da")) {
-				convertedFieldValue = convertLocalDateToSolrDate((LocalDate) fieldValue);
+				convertedFieldValue = convertLocalDateToSolrDate(
+						("".equals(fieldValue)) ? SolrUtils.NULL_ITEM_LOCALDATE : (LocalDate) fieldValue);
 
 			} else if (fieldName.endsWith("_das") && fieldValue instanceof List) {
 				List<LocalDate> localDates = (List<LocalDate>) fieldValue;

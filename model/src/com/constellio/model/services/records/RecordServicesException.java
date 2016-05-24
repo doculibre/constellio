@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 
 @SuppressWarnings("serial")
@@ -78,6 +79,11 @@ public class RecordServicesException extends Exception {
 
 		private final ValidationErrors errors;
 
+		public ValidationException(Transaction transaction, ValidationErrors errors) {
+			super(newMessage(transaction, errors));
+			this.errors = errors;
+		}
+
 		public ValidationException(Record record, ValidationErrors errors) {
 			super(newMessage(record, errors));
 			this.errors = errors;
@@ -90,6 +96,14 @@ public class RecordServicesException extends Exception {
 			sb.append("' of type '");
 			sb.append(record.getSchemaCode());
 			sb.append("' failed. : \n\nValidation errors :\n");
+			sb.append(errors.toMultilineErrorsSummaryString());
+			sb.append("\n\nStack trace :");
+			return sb.toString();
+		}
+
+		private static String newMessage(Transaction transaction, ValidationErrors errors) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Validation of transaction failed. : \n\nValidation errors :\n");
 			sb.append(errors.toMultilineErrorsSummaryString());
 			sb.append("\n\nStack trace :");
 			return sb.toString();
