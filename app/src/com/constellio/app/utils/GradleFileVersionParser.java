@@ -24,7 +24,7 @@ public class GradleFileVersionParser {
 	}
 
 	private static String findVersion() {
-		File appLayerBuildGradleFile = new File(new FoldersLocator().getAppProject(), "build.gradle");
+		File appLayerBuildGradleFile = new File(new FoldersLocator().getConstellioWebappFolder(), "build.gradle");
 
 		try {
 			List<String> appLayerBuildGradleFileLines = FileUtils.readLines(appLayerBuildGradleFile);
@@ -32,17 +32,16 @@ public class GradleFileVersionParser {
 			for (int i = 0; i < appLayerBuildGradleFileLines.size(); i++) {
 				String line = appLayerBuildGradleFileLines.get(i);
 
-				if (line.contains("baseName = 'core-app'")) {
-					String nextLine = appLayerBuildGradleFileLines.get(i + 1);
-					int firstQuote = nextLine.indexOf("'");
+				if (line.contains("version = ")) {
+					int firstQuote = line.indexOf("'");
 					int secondQuote;
 					if(firstQuote == -1){
-						firstQuote = nextLine.indexOf("\"");
-						secondQuote = nextLine.indexOf("\"", firstQuote + 1);
-					}else{
-						secondQuote = nextLine.indexOf("'", firstQuote + 1);
+						firstQuote = line.indexOf("\"");
+						secondQuote = line.indexOf("\"", firstQuote + 1);
+					} else {
+						secondQuote = line.indexOf("'", firstQuote + 1);
 					}
-					return nextLine.substring(firstQuote + 1, secondQuote);
+					return line.substring(firstQuote + 1, secondQuote);
 				}
 
 			}
