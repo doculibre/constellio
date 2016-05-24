@@ -146,7 +146,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private RecordVODataProvider buildDataProvider(final String tabId) {
-		MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
+		MetadataSchema schema = rmRecordServices().decommissioningList.schema();
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override

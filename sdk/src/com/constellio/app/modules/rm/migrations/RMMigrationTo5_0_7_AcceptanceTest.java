@@ -193,7 +193,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 		Metadata folderFilingSpace = rm.defaultFolderSchema().getMetadata(Folder.FILING_SPACE);
 		Metadata containerFilingSpace = rm.defaultContainerRecordSchema().getMetadata(ContainerRecord.FILING_SPACE);
-		Metadata decomListFilingSpace = rm.defaultDecommissioningListSchema().getMetadata(DecommissioningList.FILING_SPACE);
+		Metadata decomListFilingSpace = rm.decommissioningList.schema().getMetadata(DecommissioningList.FILING_SPACE);
 
 		assertThatRecord(searchServices.searchSingleResult(from(rm.folderSchemaType()).where(TITLE).is("Banane")))
 				.hasMetadataValue(rm.folderAdministrativeUnit(), unit12b.getId())
@@ -208,12 +208,12 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 				.hasNoMetadataValue(containerFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(
-				from(rm.defaultDecommissioningListSchema()).where(IDENTIFIER).isEqualTo("list10")))
+				from(rm.decommissioningList.schema()).where(IDENTIFIER).isEqualTo("list10")))
 				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(decomListFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(
-				from(rm.defaultDecommissioningListSchema()).where(IDENTIFIER).isEqualTo("list08")))
+				from(rm.decommissioningList.schema()).where(IDENTIFIER).isEqualTo("list08")))
 				.hasMetadataValue(rm.folderAdministrativeUnit(), unit20.getId())
 				.hasNoMetadataValue(decomListFilingSpace);
 	}

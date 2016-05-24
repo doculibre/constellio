@@ -1133,60 +1133,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getVariableRetentionPeriodWithCode("999");
 	}
 
-	//DecommissioningList
-
-	public List<DecommissioningList> wrapDecommissioningLists(List<Record> records) {
-		List<DecommissioningList> decommissioningLists = new ArrayList<>();
-		for (Record record : records) {
-			decommissioningLists.add(wrapDecommissioningList(record));
-		}
-		return decommissioningLists;
-	}
-
-	public DecommissioningList wrapDecommissioningList(Record record) {
-		return new DecommissioningList(record, getTypes());
-	}
-
-	public DecommissioningList getDecommissioningList(String id) {
-		return new DecommissioningList(get(id), getTypes());
-	}
-
-	public DecommissioningList newDecommissioningList() {
-		return new DecommissioningList(create(defaultDecommissioningListSchema()), getTypes());
-	}
-
-	public DecommissioningList newDecommissioningListWithId(String id) {
-		return new DecommissioningList(create(defaultDecommissioningListSchema(), id), getTypes());
-	}
-
-	public MetadataSchemaType decommissioningListSchemaType() {
-		return getTypes().getSchemaType(DecommissioningList.SCHEMA_TYPE);
-	}
-
-	public MetadataSchema defaultDecommissioningListSchema() {
-		return getTypes().getSchema(DecommissioningList.DEFAULT_SCHEMA);
-	}
-
-	public Metadata decommissioningListPendingValidations() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.PENDING_VALIDATIONS);
-	}
-
-	public Metadata decommissioningListApprovalUser() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_USER);
-	}
-
-	public Metadata decommissioningListStatus() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.STATUS);
-	}
-
-	public Metadata decommissioningListApprovalRequestor() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.APPROVAL_REQUEST);
-	}
-
-	public Metadata decommissioningListAdminUnit() {
-		return defaultDecommissioningListSchema().getMetadata(DecommissioningList.ADMINISTRATIVE_UNIT);
-	}
-
 	//KEEP
 	public RMObject wrapRMObject(Record record) {
 		if (record == null) {
