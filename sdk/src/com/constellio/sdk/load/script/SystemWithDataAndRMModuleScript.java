@@ -222,7 +222,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
 		LogicalSearchQuery allUsersQuery = new LogicalSearchQuery(from(rm.userSchemaType()).returnAll());
 		LogicalSearchQuery allGroupsQuery = new LogicalSearchQuery(from(rm.groupSchemaType()).returnAll());
-		LogicalSearchQuery allRulesQuery = new LogicalSearchQuery(from(rm.retentionRuleSchemaType()).returnAll());
+		LogicalSearchQuery allRulesQuery = new LogicalSearchQuery(from(rm.retentionRule.schemaType()).returnAll());
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LinkableRecordsList<User> users = new LinkableRecordsList<>(rm.wrapUsers(searchServices.search(allUsersQuery)));

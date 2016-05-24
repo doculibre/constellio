@@ -38,7 +38,7 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 
 		importServices.bulkImport(importDataProvider, progressionListener, admin);
 
-		RetentionRule rule1 = rm.getRetentionRuleByCode("111200");
+		RetentionRule rule1 = rm.getRetentionRule("111200");
 		assertThat(rule1.getDocumentTypesDetails()).isNotEmpty();
 		assertThat(rule1.getDocumentTypes()).isNotEmpty();
 
