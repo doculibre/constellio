@@ -84,7 +84,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 				transaction.setSkippingRequiredValuesValidation(true);
 				recordServices.executeWithImpactHandler(transaction, new UnhandledRecordModificationImpactHandler());
 			}
-		}.execute(from(rm.retentionRuleSchemaType()).returnAll());
+		}.execute(from(rm.retentionRule.schemaType()).returnAll());
 	}
 
 	public static class SchemaAlterationsFor6_2 extends MetadataSchemasAlterationHelper {

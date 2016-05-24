@@ -675,74 +675,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Folder type
-
-	public MetadataSchema folderTypeSchema() {
-		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType folderTypeSchemaType() {
-		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
-	}
-
-	public List<FolderType> wrapFolderTypes(List<Record> records) {
-		List<FolderType> folderTypes = new ArrayList<>();
-		for (Record record : records) {
-			folderTypes.add(wrapFolderType(record));
-		}
-		return folderTypes;
-	}
-
-	public FolderType getFolderType(String id) {
-		return new FolderType(get(id), getTypes());
-	}
-
-	public FolderType getFolderTypeByCode(String code) {
-		return wrapFolderType(getByCode(folderTypeSchemaType(), code));
-	}
-
-	public MetadataSchema defaultFolderTypeSchema() {
-		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
-	}
-
-	public FolderType newFolderType() {
-		return new FolderType(create(defaultFolderTypeSchema()), getTypes());
-	}
-
-	public FolderType newFolderTypeWithId(String id) {
-		return new FolderType(create(defaultFolderTypeSchema(), id), getTypes());
-	}
-
-	//
-
-	//Hierarchical value list item
-
-	public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
-		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-	}
-
-	public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
-		List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
-		for (Record record : records) {
-			hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
-		}
-		return hierarchicalValueListItems;
-	}
-
-	public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
-		Record record = get(id);
-		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-	}
-
-	public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
-		return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-	}
-
-	public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
-		return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
-	}
-
-	//
 
 	//Medium type
 
@@ -811,62 +743,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Retention rule
 
-	public MetadataSchema retentionRuleSchema() {
-		return getTypes().getSchema(RetentionRule.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType retentionRuleSchemaType() {
-		return getTypes().getSchemaType(RetentionRule.SCHEMA_TYPE);
-	}
-
-	public RetentionRule wrapRetentionRule(Record record) {
-		return new RetentionRule(record, getTypes());
-	}
-
-	public List<RetentionRule> wrapRetentionRules(List<Record> records) {
-		List<RetentionRule> retentionRules = new ArrayList<>();
-		for (Record record : records) {
-			retentionRules.add(wrapRetentionRule(record));
-		}
-		return retentionRules;
-	}
-
-	public RetentionRule getRetentionRule(String id) {
-		return new RetentionRule(get(id), getTypes());
-	}
-
-	public RetentionRule getRetentionRuleByLegacyId(String id) {
-		Record record = getByLegacyId(RetentionRule.SCHEMA_TYPE, id);
-		return record == null ? null : new RetentionRule(record, getTypes());
-	}
-
-	public RetentionRule getRetentionRuleByCode(String code) {
-		return new RetentionRule(getByCode(retentionRuleSchemaType(), code), getTypes());
-	}
-
-	public RetentionRule newRetentionRule() {
-		return new RetentionRule(create(retentionRuleSchema()), getTypes());
-	}
-
-	public RetentionRule newRetentionRuleWithId(String id) {
-		return new RetentionRule(create(retentionRuleSchema(), id), getTypes());
-	}
-
-	public Metadata retentionRuleApproved() {
-		return retentionRuleSchema().getMetadata(RetentionRule.APPROVED);
-	}
-
-	public Metadata retentionRuleCopyRetentionRules() {
-		return retentionRuleSchema().getMetadata(RetentionRule.COPY_RETENTION_RULES);
-	}
-
-	public Metadata retentionRuleAdministrativeUnitsId() {
-		return retentionRuleSchema().getMetadata(RetentionRule.ADMINISTRATIVE_UNITS);
-	}
-
-	//
 
 	//Storage space
 

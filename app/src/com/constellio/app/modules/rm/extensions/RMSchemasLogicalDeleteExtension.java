@@ -111,8 +111,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		if (code.equals("888") || code.equals("999")) {
 			return ExtensionBooleanResult.FALSE;
 		} else {
-			long count = searchServices.getResultsCount(from(rm.retentionRuleSchemaType())
-					.where(rm.retentionRuleCopyRetentionRules()).is(variablePeriodCode(code)));
+			long count = searchServices.getResultsCount(from(rm.retentionRule.schemaType())
+					.where(rm.retentionRule.copyRetentionRules()).is(variablePeriodCode(code)));
 			return ExtensionBooleanResult.trueIf(count == 0);
 		}
 	}
