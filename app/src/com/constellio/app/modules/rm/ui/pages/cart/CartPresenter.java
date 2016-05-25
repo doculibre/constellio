@@ -339,7 +339,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		addOrUpdate(cart().getWrappedRecord());
 	}
 
-	public String getFoldersAdministrativeUnits() {
+	public String getFoldersDecommissioningType() {
+		// TODO FB Return decommissioning type for all folders in "getCartFolders()"
+		// If folders are not compatible, show error.
+		return null;
+	}
+
+	public String getFoldersAdministrativeUnit() {
 		// TODO FB Return administrative unit for all folders in "getCartFolders()"
 		// If folders are not compatible, show error.
 		return null;
