@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -25,7 +25,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.SaveButton;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -137,7 +136,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	Cart cart() {
 		if (cart == null) {
-//			cart = rm().getOrCreateUserCart(getCurrentUser());
+			//			cart = rm().getOrCreateUserCart(getCurrentUser());
 			cart = rm().getCart(cartId);
 		}
 		return cart;
@@ -244,11 +243,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public List<String> getRecordsIds(String schemaType) {
-		switch (schemaType){
-			case Folder.SCHEMA_TYPE : return cart().getFolders();
-			case Document.SCHEMA_TYPE : return cart().getDocuments();
-			case ContainerRecord.SCHEMA_TYPE : return cart().getContainers();
-			default : throw new RuntimeException("Unsupported type : " + schemaType);
+		switch (schemaType) {
+		case Folder.SCHEMA_TYPE:
+			return cart().getFolders();
+		case Document.SCHEMA_TYPE:
+			return cart().getDocuments();
+		case ContainerRecord.SCHEMA_TYPE:
+			return cart().getContainers();
+		default:
+			throw new RuntimeException("Unsupported type : " + schemaType);
 		}
 	}
 
@@ -294,10 +297,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public boolean isLabelsButtonVisible(String schemaType) {
-		switch (schemaType){
-			case Folder.SCHEMA_TYPE : return cart().getFolders().size() != 0;
-			case ContainerRecord.SCHEMA_TYPE : return cart().getContainers().size() != 0;
-			default : throw new RuntimeException("No labels for type : " + schemaType);
+		switch (schemaType) {
+		case Folder.SCHEMA_TYPE:
+			return cart().getFolders().size() != 0;
+		case ContainerRecord.SCHEMA_TYPE:
+			return cart().getContainers().size() != 0;
+		default:
+			throw new RuntimeException("No labels for type : " + schemaType);
 		}
 	}
 
@@ -311,6 +317,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public List<Folder> getFoldersToDecommission(String adminUnitId, DecommissioningType decommissioningType) {
+
 		List<Folder> foldersToDecommission = new ArrayList<>();
 		// TODO FB Return correct folders from all folders in cart (getCartFolders())
 		// Folders must correspond to adminUnitId and decommissioningType
