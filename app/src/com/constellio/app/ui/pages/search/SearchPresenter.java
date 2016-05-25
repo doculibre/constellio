@@ -376,7 +376,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return true;
 	}
 
-	protected abstract void saveTemporarySearch();
+	protected abstract void saveTemporarySearch(boolean refreshPage);
 
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;
