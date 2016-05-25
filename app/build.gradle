@@ -84,12 +84,12 @@ dependencies {
     compile "com.jgoodies:jgoodies-common:1.7.0"
     compile files("libs/vaadin-mediaelementjs-player-1.2.6.jar")
     compile "nl.bitwalker:UserAgentUtils:1.2.4"
-	compile "org.jasig.cas:cas-client-core:3.1.10"
+    compile "org.jasig.cas:cas-client-core:3.1.10"
 }
 
 war {
     baseName = "constellio-app"
-    version = '6.3.4.2'
+    version = '6.3.4.3'
 
     webInf {
         from 'WebContent/'
@@ -117,7 +117,7 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.3.4.2'
+    version = '6.3.4.3'
 }
 
 configurations.archives.artifacts.with { archives ->
