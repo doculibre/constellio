@@ -18,10 +18,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -335,11 +332,16 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		addOrUpdate(cart().getWrappedRecord());
 	}
 
-	public List<Folder> getFoldersToDecommission(String adminUnitId, DecommissioningType decommissioningType) {
-		List<Folder> foldersToDecommission = new ArrayList<>();
-		// TODO FB Return correct folders from all folders in cart (getCartFolders())
-		// Folders must correspond to adminUnitId and decommissioningType
-		return foldersToDecommission;
+	public DecommissioningType getFoldersDecommissioningType() {
+		// TODO FB Return decommissioning type for all folders in "getCartFolders()"
+		// If folders are not compatible, show error.
+		return null;
+	}
+
+	public String getFoldersAdministrativeUnits() {
+		// TODO FB Return administrative unit for all folders in "getCartFolders()"
+		// If folders are not compatible, show error.
+		return null;
 	}
 
 	BatchProcessingPresenterService batchProcessingPresenterService() {
@@ -349,4 +351,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 		return batchProcessingPresenterService;
 	}
+
+//	public void buildDecommissioningListRequested(String adminUnitId, Object decomType) {
+//		DecommissioningList list = rm.newDecommissioningList();
+//		list.setAdministrativeUnit(adminUnitId);
+//		list.setFolderDetailsFrom(getCartFolders());
+//
+//		try {
+//			recordServices().add(list);
+//			view.navigate().to(RMViews.class).displayDecommissioningList(list.getId());
+//		} catch (RecordServicesException e) {
+//			e.printStackTrace();
+//		}
+//		// Save list
+//		// Navigate to list's page
+//	}
 }

@@ -6,8 +6,11 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.entities.records.wrappers.User;
@@ -73,6 +76,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
+//		buttons.add(buildDecommissionButton());
 		return buttons;
 	}
 
@@ -126,11 +130,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		/* TODO Pat build the users selection tool
-			- Window button to select multiple users
-			- Probably use a multivalue lookup
-		 */
-		return new WindowButton("buttonLabel","windowLabel") {
+		return new WindowButton("shareLabel","windowLabel") {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -152,6 +152,30 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 	}
+
+//	private Button buildDecommissionButton() {
+//		return new WindowButton("decomLabel","windowLabel") {
+//			@Override
+//			protected Component buildWindowContent() {
+//				VerticalLayout layout = new VerticalLayout();
+//
+//				final LookupRecordField lookup = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
+//				layout.addComponent(lookup);
+//
+//				final EnumWithSmallCodeComboBox<DecommissioningType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningType.class);
+//
+//				BaseButton saveButton = new BaseButton("caption") {
+//					@Override
+//					protected void buttonClick(ClickEvent event) {
+//						presenter.buildDecommissioningListRequested(lookup.getValue(),decomTypeField.getValue());
+//						getWindow().close();
+//					}
+//				};
+//				layout.addComponent(saveButton);
+//				return layout;
+//			}
+//		};
+//	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
