@@ -130,7 +130,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		return new WindowButton("shareLabel","windowLabel") {
+		return new WindowButton($("CartView.share"),$("CartView.shareWindow")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -140,7 +140,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 				layout.addComponent(lookup);
 
-				BaseButton saveButton = new BaseButton("caption") {
+				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.shareWithUsersRequested(lookup.getValue());

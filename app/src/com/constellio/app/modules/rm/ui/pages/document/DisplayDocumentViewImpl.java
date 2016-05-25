@@ -456,7 +456,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				TabSheet tabSheet = new TabSheet();
 
 				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("OwnedCarts"), ownedCartsContainer);
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
@@ -469,7 +469,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				ownedCartsTable.setWidth("100%");
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
-				RecordVOTable sharedCartsTable = new RecordVOTable($("SharedCarts"), sharedCartsContainer);
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
 				sharedCartsTable.addItemClickListener(new ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {

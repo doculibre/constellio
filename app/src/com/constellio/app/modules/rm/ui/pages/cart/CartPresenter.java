@@ -360,18 +360,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return batchProcessingPresenterService;
 	}
 
-//	public void buildDecommissioningListRequested(String adminUnitId, Object decomType) {
-//		DecommissioningList list = rm.newDecommissioningList();
-//		list.setAdministrativeUnit(adminUnitId);
-//		list.setFolderDetailsFrom(getCartFolders());
-//
-//		try {
-//			recordServices().add(list);
-//			view.navigate().to(RMViews.class).displayDecommissioningList(list.getId());
-//		} catch (RecordServicesException e) {
-//			e.printStackTrace();
-//		}
-//		// Save list
-//		// Navigate to list's page
-//	}
+	public void buildDecommissioningListRequested() {
+		DecommissioningList list = rm.newDecommissioningList();
+		list.setAdministrativeUnit(getFoldersAdministrativeUnit());
+		list.setDecommissioningListType(getFoldersDecommissioningType());
+		list.setFolderDetailsFrom(getCartFolders());
+
+		try {
+			recordServices().add(list);
+			view.navigate().to(RMViews.class).displayDecommissioningList(list.getId());
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		// Save list
+		// Navigate to list's page
+	}
 }

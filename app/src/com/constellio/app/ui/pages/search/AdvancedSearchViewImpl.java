@@ -146,40 +146,44 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	private WindowButton buildAddToCartButton() {
-		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart")) {
+		WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
 				TabSheet tabSheet = new TabSheet();
 
 				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("OwnedCarts"), ownedCartsContainer);
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(),ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(getSelectedRecordIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
-				RecordVOTable sharedCartsTable = new RecordVOTable($("SharedCarts"), sharedCartsContainer);
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
 				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 					@Override
 					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(),sharedCartsContainer.getRecordVO((int)event.getItemId()));
+						presenter.addToCartRequested(getSelectedRecordIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
 						getWindow().close();
 					}
 				});
 
 				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
 				ownedCartsTable.setWidth("100%");
+				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
 				layout.addComponent(tabSheet);
 				return layout;
 			}
 		};
+		windowButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return windowButton;
 	}
 
 	private WindowButton newBatchProcessingButton() {

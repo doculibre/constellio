@@ -43,7 +43,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 
 	private Layout buildOwnedCartsTab() {
 		VerticalLayout tabLayout = new VerticalLayout();
-		tabLayout.setCaption("OwnedCarts");
+		tabLayout.setCaption($("CartView.ownedCarts"));
 		Button addButton = new WindowButton($("add"),$("CartsListView.creatingCart")) {
 			@Override
 			protected Component buildWindowContent() {
@@ -109,7 +109,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 
 	private Layout buildSharedCartsTab() {
 		VerticalLayout tabLayout = new VerticalLayout();
-		tabLayout.setCaption("SharedCarts");
+		tabLayout.setCaption($("CartView.sharedCarts"));
 		RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
 
 		final ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(container);
