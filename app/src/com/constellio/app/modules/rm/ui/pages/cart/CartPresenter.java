@@ -1,31 +1,36 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.SaveButton;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -225,7 +230,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return true;
 	}
 
-	private List<Folder> getCartFolders() {
+	List<Folder> getCartFolders() {
 		return rm().wrapFolders(recordServices().getRecordsById(view.getCollection(), cart().getFolders()));
 	}
 
@@ -262,7 +267,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 	}
 
-
 	@Override
 	public String getOriginType(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().getOriginType(selectedRecordIds);
@@ -274,14 +278,18 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().simulate(selectedType, records, viewObject, getCurrentUser());
+	public InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+			throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService()
+				.simulate(selectedType, records, viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
 	@Override
-	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException {
-		BatchProcessResults results = batchProcessingPresenterService().execute(selectedType, records, viewObject, getCurrentUser());
+	public InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+			throws RecordServicesException {
+		BatchProcessResults results = batchProcessingPresenterService()
+				.execute(selectedType, records, viewObject, getCurrentUser());
 		return batchProcessingPresenterService().formatBatchProcessingResults(results);
 	}
 
@@ -360,6 +368,92 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return batchProcessingPresenterService;
 	}
 
+	List<DecommissioningListType> getCommonDecommissioningListTypes(List<Folder> folders) {
+		List<DecommissioningListType> commonTypes = new ArrayList<>();
+		boolean first = true;
+
+		FolderStatus folderStatus = null;
+
+		for (Folder folder : folders) {
+			if (folderStatus == null) {
+				folderStatus = folder.getArchivisticStatus();
+			} else if (folderStatus != folder.getArchivisticStatus()) {
+				return commonTypes;
+			}
+		}
+
+		for (Folder folder : folders) {
+			if (first) {
+				commonTypes.addAll(findDecommissioningListTypes(folder));
+
+				first = false;
+			} else {
+				List<DecommissioningListType> types = findDecommissioningListTypes(folder);
+				Iterator<DecommissioningListType> commonTypesIterator = commonTypes.iterator();
+				while (commonTypesIterator.hasNext()) {
+					if (!types.contains(commonTypesIterator.next())) {
+						commonTypesIterator.remove();
+					}
+				}
+			}
+
+		}
+
+		return commonTypes;
+	}
+
+	private List<DecommissioningListType> findDecommissioningListTypes(Folder folder) {
+		List<DecommissioningListType> types = new ArrayList<>();
+		if (folder.getCloseDate() == null) {
+			types.add(DecommissioningListType.FOLDERS_TO_CLOSE);
+
+		} else {
+			if (folder.getArchivisticStatus() == ACTIVE) {
+				types.add(DecommissioningListType.FOLDERS_TO_TRANSFER);
+			}
+			if (folder.getArchivisticStatus() == SEMI_ACTIVE || folder.getArchivisticStatus() == ACTIVE) {
+				if (folder.getExpectedDepositDate() != null) {
+					types.add(DecommissioningListType.FOLDERS_TO_DEPOSIT);
+				}
+				if (folder.getExpectedDestructionDate() != null) {
+					types.add(DecommissioningListType.FOLDERS_TO_DESTROY);
+				}
+			}
+		}
+
+		return types;
+	}
+
+	String getCommonAdministrativeUnit(List<Folder> folders) {
+		String administrativeUnit = null;
+
+		for (Folder folder : folders) {
+			if (administrativeUnit == null) {
+				administrativeUnit = folder.getAdministrativeUnit();
+			} else {
+				if (!administrativeUnit.equals(folder.getAdministrativeUnit())) {
+					return null;
+				}
+			}
+		}
+
+		return administrativeUnit;
+	}
+
+	//	public void buildDecommissioningListRequested(String adminUnitId, Object decomType) {
+	//		DecommissioningList list = rm.newDecommissioningList();
+	//		list.setAdministrativeUnit(adminUnitId);
+	//		list.setFolderDetailsFrom(getCartFolders());
+	//
+	//		try {
+	//			recordServices().add(list);
+	//			view.navigate().to(RMViews.class).displayDecommissioningList(list.getId());
+	//		} catch (RecordServicesException e) {
+	//			e.printStackTrace();
+	//		}
+	//		// Save list
+	//		// Navigate to list's page
+	//	}
 	public void buildDecommissioningListRequested() {
 		DecommissioningList list = rm.newDecommissioningList();
 		list.setAdministrativeUnit(getFoldersAdministrativeUnit());
