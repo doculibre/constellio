@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
@@ -339,7 +340,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		addOrUpdate(cart().getWrappedRecord());
 	}
 
-	public String getFoldersDecommissioningType() {
+	public DecommissioningListType getFoldersDecommissioningType() {
 		// TODO FB Return decommissioning type for all folders in "getCartFolders()"
 		// If folders are not compatible, show error.
 		return null;
