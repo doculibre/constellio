@@ -7,4 +7,5 @@ import com.constellio.app.ui.pages.viewGroups.CartViewGroup;
 
 public interface CartView extends BaseView, CartViewGroup {
 	void startDownload(InputStream stream);
+
 }

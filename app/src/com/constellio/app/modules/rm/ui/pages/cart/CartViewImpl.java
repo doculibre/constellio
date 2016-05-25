@@ -6,34 +6,30 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.constellio.model.entities.records.wrappers.User;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.framework.buttons.LabelsButton;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
-import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
-import com.constellio.data.utils.Factory;
-import org.vaadin.dialogs.ConfirmDialog;
-
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -76,7 +72,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
-//		buttons.add(buildDecommissionButton());
+		//		buttons.add(buildDecommissionButton());
 		return buttons;
 	}
 
@@ -99,7 +95,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return presenter.getTemplates(schemaType);
 			}
 		};
-		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), new LabelsRecordSelectorImpl(schemaType),
+		LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"),
+				new LabelsRecordSelectorImpl(schemaType),
 				labelTemplatesFactory);
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;
@@ -130,7 +127,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		return new WindowButton("shareLabel","windowLabel") {
+		return new WindowButton("shareLabel", "windowLabel") {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -153,29 +150,29 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
-//	private Button buildDecommissionButton() {
-//		return new WindowButton("decomLabel","windowLabel") {
-//			@Override
-//			protected Component buildWindowContent() {
-//				VerticalLayout layout = new VerticalLayout();
-//
-//				final LookupRecordField lookup = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
-//				layout.addComponent(lookup);
-//
-//				final EnumWithSmallCodeComboBox<DecommissioningType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningType.class);
-//
-//				BaseButton saveButton = new BaseButton("caption") {
-//					@Override
-//					protected void buttonClick(ClickEvent event) {
-//						presenter.buildDecommissioningListRequested(lookup.getValue(),decomTypeField.getValue());
-//						getWindow().close();
-//					}
-//				};
-//				layout.addComponent(saveButton);
-//				return layout;
-//			}
-//		};
-//	}
+	//	private Button buildDecommissionButton() {
+	//		return new WindowButton("decomLabel","windowLabel") {
+	//			@Override
+	//			protected Component buildWindowContent() {
+	//				VerticalLayout layout = new VerticalLayout();
+	//
+	//				final LookupRecordField lookup = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
+	//				layout.addComponent(lookup);
+	//
+	//				final EnumWithSmallCodeComboBox<DecommissioningType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningType.class);
+	//
+	//				BaseButton saveButton = new BaseButton("caption") {
+	//					@Override
+	//					protected void buttonClick(ClickEvent event) {
+	//						presenter.buildDecommissioningListRequested(lookup.getValue(),decomTypeField.getValue());
+	//						getWindow().close();
+	//					}
+	//				};
+	//				layout.addComponent(saveButton);
+	//				return layout;
+	//			}
+	//		};
+	//	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
@@ -266,8 +263,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return container;
 	}
 
-	private class BatchProcessingViewImpl implements BatchProcessingView{
+	private class BatchProcessingViewImpl implements BatchProcessingView {
 		private final String schemaType;
+
 		public BatchProcessingViewImpl(String schemaType) {
 			this.schemaType = schemaType;
 		}
@@ -300,6 +298,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	private class LabelsRecordSelectorImpl implements LabelsButton.RecordSelector {
 		private final String schemaType;
+
 		public LabelsRecordSelectorImpl(String schemaType) {
 			this.schemaType = schemaType;
 		}
