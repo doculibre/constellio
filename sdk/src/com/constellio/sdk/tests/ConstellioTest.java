@@ -97,4 +97,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 		map.put("fr", fr);
 		return map;
 	}
+
+	public static void disableCleanStartup() {
+		IS_FIRST_EXECUTED_TEST = false;
+	}
 }

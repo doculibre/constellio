@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -47,13 +48,50 @@ public abstract class ReportBuilderTestFramework extends ConstellioTest {
 
 	}
 
-	protected void build(ReportBuilder reportBuilder) {
+	protected File build(ReportBuilder reportBuilder) {
 		String name = getTestName();
 		File outputFile = new File(outputFolder, name + "." + reportBuilder.getFileExtension());
 		try {
 			reportBuilder.build(new FileOutputStream(outputFile));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+
+		return outputFile;
+	}
+
+	protected void buildAndOpen(ReportBuilder reportBuilder) {
+		File outputFile = build(reportBuilder);
+		open(outputFile.getAbsolutePath());
+	}
+
+	protected void open(String filepath) {
+
+		try {
+			String openCommand;
+			if (SystemUtils.IS_OS_WINDOWS) {
+				openCommand = "explorer.exe \"" + filepath + "\"";
+			} else if (SystemUtils.IS_OS_LINUX) {
+				openCommand = "xdg-open " + "\"" + filepath + "\"";
+			} else if (SystemUtils.IS_OS_MAC) {
+				openCommand = "open " + "\"" + filepath + "\"";
+			} else {
+				openCommand = null;
+			}
+			executeCommand(openCommand);
+		} catch (Exception e) {
+
+		}
+
+	}
+
+	private Process executeCommand(String command)
+			throws IOException {
+		if (SystemUtils.IS_OS_WINDOWS) {
+			return Runtime.getRuntime().exec(command);
+		} else {
+			String[] arguments = new String[] { "/bin/sh", "-c", command };
+			return Runtime.getRuntime().exec(arguments);
 		}
 	}
 
