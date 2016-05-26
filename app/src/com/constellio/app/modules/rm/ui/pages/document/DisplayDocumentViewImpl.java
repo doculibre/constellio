@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -262,12 +263,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
-		addToCartButton = new LinkButton($("DocumentActionsComponent.addToCart")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addToCartRequested();
-			}
-		};
+		addToCartButton = buildAddToCartButton();
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -450,6 +446,46 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(startWorkflowButton);
 
 		return actionMenuButtons;
+	}
+
+	private WindowButton buildAddToCartButton() {
+		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				TabSheet tabSheet = new TabSheet();
+
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
+				ownedCartsTable.addItemClickListener(new ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				ownedCartsTable.setWidth("100%");
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
+				layout.addComponent(tabSheet);
+				return layout;
+			}
+		};
 	}
 
 	private void initUploadWindow() {

@@ -550,9 +550,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
-	public void addToCartRequested() {
-		Cart cart = rmSchemasRecordsServices.getOrCreateUserCart(getCurrentUser())
-				.addDocuments(Arrays.asList(documentVO.getId()));
+	public void addToCartRequested(RecordVO cartVO) {
+		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId()).addDocuments(Arrays.asList(documentVO.getId()));
 		presenterUtils.addOrUpdate(cart.getWrappedRecord());
 		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
 	}

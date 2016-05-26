@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import java.io.InputStream;
 import java.util.List;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -7,15 +8,16 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.services.records.RecordServicesException;
 
 public interface BatchProcessingPresenter {
 	String getOriginType(List<String> selectedRecordIds);
 
 	RecordVO newRecordVO(List<String> selectedRecordIds, String schema, SessionContext sessionContext);
 
-	void simulateButtonClicked(String selectedType, RecordVO viewObject);
+	InputStream simulateButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
 
-	void processBatchButtonClicked(String selectedType, RecordVO viewObject);
+	InputStream processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject) throws RecordServicesException;
 
 	BatchProcessingMode getBatchProcessingMode();
 
@@ -25,5 +27,7 @@ public interface BatchProcessingPresenter {
 
 	String getTypeSchemaType(String schemaType);
 
-	RecordFieldFactory newRecordFieldFactory(String selectedType);
+	RecordFieldFactory newRecordFieldFactory(String schemaType, String selectedType, List<String> records);
+
+	boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds);
 }

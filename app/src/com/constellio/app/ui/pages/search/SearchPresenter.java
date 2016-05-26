@@ -386,37 +386,4 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return modelLayerFactory.getSearchBoostManager();
 	}
 
-	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
-			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
-
-	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO) {
-
-		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
-		MetadataSchemaType type = coreSchemas().getTypes().getSchemaType(typeCode);
-		MetadataSchema schema = coreSchemas().getTypes().getSchema(formVO.getSchema().getCode());
-		Map<String, Object> fieldsModifications = new HashMap<>();
-		for (MetadataVO metadataVO : formVO.getMetadatas()) {
-			Metadata metadata = schema.get(metadataVO.getLocalCode());
-			Object value = formVO.get(metadataVO);
-
-			LOGGER.info(metadata.getCode() + ":" + value);
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
-
-				LOGGER.info("");
-				fieldsModifications.put(metadataVO.getCode(), value);
-			}
-		}
-		if(StringUtils.isNotBlank(selectedType)){
-			Metadata typeMetadata = coreSchemas().getRecordTypeMetadataOf(type);
-			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
-			fieldsModifications.put(typeMetadata.getCode(), selectedType);
-		}
-		User user = getCurrentUser();
-
-		return new BatchProcessRequest(selectedRecord, user, type, fieldsModifications);
-	}
 }

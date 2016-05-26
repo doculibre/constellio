@@ -320,12 +320,22 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
-		addToCartButton = new LinkButton($("DisplayFolderView.addToCart")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addToCartRequested();
-			}
-		};
+		/* TODO Change addtoCart button to a WindowButton
+			The popup should contain a tab sheet with two tabs:
+				- Owned carts
+				- Carts shared with me (added when carts are sharable)
+			Each tab should contain a record table, each having a click listener
+			to call the presenter's "addToCartRequested" method with the proper ID
+			as a parameter.
+		 */
+		addToCartButton = buildAddToCartButton();
+
+//		addToCartButton = new LinkButton($("DisplayFolderView.addToCart")) {
+//			@Override
+//			protected void buttonClick(ClickEvent event) {
+//				presenter.addToCartRequested();
+//			}
+//		};
 
 		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
@@ -380,6 +390,46 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(startWorkflowButton);
 
 		return actionMenuButtons;
+	}
+
+	private WindowButton buildAddToCartButton() {
+		return new WindowButton($("DisplayFolderView.addToCart"),$("DisplayFolderView.selectCart")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				TabSheet tabSheet = new TabSheet();
+
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
+				ownedCartsTable.addItemClickListener(new ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				ownedCartsTable.setWidth("100%");
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int)event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
+				layout.addComponent(tabSheet);
+				return layout;
+			}
+		};
 	}
 
 	@Override

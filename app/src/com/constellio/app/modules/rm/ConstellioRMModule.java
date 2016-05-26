@@ -57,6 +57,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
+import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
