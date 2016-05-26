@@ -8,6 +8,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
@@ -24,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -34,9 +36,11 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -44,6 +48,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -472,7 +477,6 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 	}
 
-	@Test
 	public void whenBatchProcessingThenOriginalTypeIsNonNullIfEachRecordsHaveTheSameType()
 			throws Exception {
 
@@ -500,4 +504,121 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.isEqualTo(records.folderTypeEmploye().getId());
 	}
 
+	@Test
+	public void whenModifyingFoldersThenUserCanOnlyModifyThemIfItHasThePermission()
+			throws Exception {
+
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+
+		Role role1 = new Role(zeCollection, "1", "1", asList(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS));
+		Role role2 = new Role(zeCollection, "2", "2", asList(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS));
+		getModelLayerFactory().getRolesManager().addRole(role1);
+		getModelLayerFactory().getRolesManager().addRole(role2);
+
+		User admin = users.adminIn(zeCollection);
+		User alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("A47", "A84", "A04", "C02"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("A47", "A48", "A04", "A84", "A85").givingReadWriteAccess(), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A84"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("A47", "A84").giving(role1), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A48"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("A47", "A84").giving(role2), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84", "A85"))).isFalse();
+
+	}
+
+	@Test
+	public void whenModifyingDocumentsThenUserCanOnlyModifyThemIfItHasThePermission()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.newDocumentWithId("dA04")).setFolder("A04").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA47")).setFolder("A47").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA48")).setFolder("A48").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA84")).setFolder("A84").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA85")).setFolder("A85").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dC02")).setFolder("C02").setTitle("dC02");
+
+		getModelLayerFactory().newRecordServices().execute(transaction);
+
+		AuthorizationsServices authServices = getModelLayerFactory().newAuthorizationsServices();
+
+		Role role1 = new Role(zeCollection, "1", "1", asList(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT));
+		Role role2 = new Role(zeCollection, "2", "2", asList(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT));
+		getModelLayerFactory().getRolesManager().addRole(role1);
+		getModelLayerFactory().getRolesManager().addRole(role2);
+
+		User admin = users.adminIn(zeCollection);
+		User alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("dA47", "dA84", "dA04", "dC02"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("dA47", "dA48", "dA04", "dA84", "dA85").givingReadWriteAccess(), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA84"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("dA47", "dA84").giving(role1), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA48"))).isFalse();
+
+		authServices.add(authorizationForUsers(alice).on("dA47", "dA84").giving(role2), admin);
+		waitForBatchProcess();
+		alice = users.aliceIn(zeCollection);
+
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84", "dA85"))).isFalse();
+
+	}
 }

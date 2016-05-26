@@ -11,12 +11,17 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.ui.*;
 import com.github.rjeschke.txtmark.Run;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -36,7 +41,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
-public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView {
+public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
 	public static final String LABELS_BUTTONSTYLE = "searchLabelsButton";
 
@@ -130,12 +135,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Button addToCart = new LinkButton($("SearchView.addToCart")) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.addToCartRequested(getSelectedRecordIds());
-				}
-			};
+			Button addToCart = buildAddToCartButton();
 			selectionActions.add(addToCart);
 		}
 
@@ -143,6 +143,47 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 
 		return results.createSummary(actions, selectionActions);
+	}
+
+	private WindowButton buildAddToCartButton() {
+		WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				TabSheet tabSheet = new TabSheet();
+
+				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
+				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
+				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(getSelectedRecordIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(getSelectedRecordIds(), sharedCartsContainer.getRecordVO((int) event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				ownedCartsTable.setWidth("100%");
+				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
+				layout.addComponent(tabSheet);
+				return layout;
+			}
+		};
+		windowButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return windowButton;
 	}
 
 	private WindowButton newBatchProcessingButton() {

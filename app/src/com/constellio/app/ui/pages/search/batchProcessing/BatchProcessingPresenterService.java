@@ -2,15 +2,21 @@ package com.constellio.app.ui.pages.search.batchProcessing;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportBuilder;
+import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -45,14 +51,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordProvider;
@@ -64,6 +63,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 
 public class BatchProcessingPresenterService {
+	private static final String TMP_BATCH_FILE = "BatchProcessingPresenterService-formatBatchProcessingResults";
 	private static final Logger LOGGER = getLogger(BatchProcessingPresenterService.class);
 	private final SchemasRecordsServices schemas;
 	private final AppLayerFactory appLayerFactory;
@@ -73,6 +73,7 @@ public class BatchProcessingPresenterService {
 	private final String collection;
 	private final Locale locale;
 	private final AppLayerCollectionExtensions extensions;
+	private final ModelLayerCollectionExtensions modelLayerExtensions;
 
 	public BatchProcessingPresenterService(String collection, AppLayerFactory appLayerFactory, Locale locale) {
 		this.appLayerFactory = appLayerFactory;
@@ -83,6 +84,7 @@ public class BatchProcessingPresenterService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.extensions = appLayerFactory.getExtensions().forCollection(collection);
+		this.modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(collection);
 	}
 
 	public String getOriginType(List<String> selectedRecordIds) {
@@ -187,8 +189,14 @@ public class BatchProcessingPresenterService {
 		}.build(tmpRecord, RecordVO.VIEW_MODE.FORM, schemaVO, sessionContext);
 	}
 
-	public BatchProcessResults execute(BatchProcessRequest request)
+	public BatchProcessResults execute(String selectedType, List<String> records, RecordVO viewObject, User user)
 			throws RecordServicesException {
+		BatchProcessRequest request = toRequest(selectedType, records, viewObject, user);
+		return execute(request);
+
+	}
+
+	public BatchProcessResults execute(BatchProcessRequest request) throws RecordServicesException {
 
 		System.out.println("**************** EXECUTE ****************");
 		System.out.println("REQUEST : ");
@@ -203,8 +211,13 @@ public class BatchProcessingPresenterService {
 		return results;
 	}
 
-	public BatchProcessResults simulate(BatchProcessRequest request)
+	public BatchProcessResults simulate(String selectedType, List<String> records, RecordVO viewObject, User user)
 			throws RecordServicesException {
+		BatchProcessRequest request = toRequest(selectedType, records, viewObject, user);
+		return simulate(request);
+	}
+
+	public BatchProcessResults simulate(BatchProcessRequest request) throws RecordServicesException.ValidationException {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
@@ -430,5 +443,71 @@ public class BatchProcessingPresenterService {
 		return recordFieldFactory;
 	}
 
+	public boolean hasWriteAccessOnAllRecords(User user, List<String> selectedRecordIds) {
+
+		boolean writeAccess = true;
+		for (String selectedRecordId : selectedRecordIds) {
+			Record record = recordServices.getDocumentById(selectedRecordId);
+			writeAccess &= user.hasWriteAccess().on(record) && modelLayerExtensions.isRecordModifiableBy(record, user);
+		}
+		return writeAccess;
+	}
+
+	public AppLayerCollectionExtensions getBatchProcessingExtension() {
+		return appLayerFactory.getExtensions().forCollection(collection);
+	}
+
+	private static List<String> excludedMetadatas = asList(Schemas.IDENTIFIER.getLocalCode(), Schemas.CREATED_ON.getLocalCode(),
+			Schemas.MODIFIED_ON.getLocalCode(), RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_ON);
+
+	public BatchProcessRequest toRequest(String selectedType, List<String> selectedRecord, RecordVO formVO, User user) {
+
+		String typeCode = new SchemaUtils().getSchemaTypeCode(formVO.getSchema().getCode());
+		MetadataSchemaType type = schemas.getTypes().getSchemaType(typeCode);
+		MetadataSchema schema = schemas.getTypes().getSchema(formVO.getSchema().getCode());
+		Map<String, Object> fieldsModifications = new HashMap<>();
+		for (MetadataVO metadataVO : formVO.getMetadatas()) {
+			Metadata metadata = schema.get(metadataVO.getLocalCode());
+			Object value = formVO.get(metadataVO);
+
+			LOGGER.info(metadata.getCode() + ":" + value);
+			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
+					&& value != null
+					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+
+				LOGGER.info("");
+				fieldsModifications.put(metadataVO.getCode(), value);
+			}
+		}
+		if(org.apache.commons.lang3.StringUtils.isNotBlank(selectedType)){
+			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(type);
+			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
+			fieldsModifications.put(typeMetadata.getCode(), selectedType);
+		}
+
+		return new BatchProcessRequest(selectedRecord, user, type, fieldsModifications);
+	}
+
+	public InputStream formatBatchProcessingResults(BatchProcessResults results) {
+		Language locale = i18n.getLanguage();
+		File resultsFile = null;
+		Closeable outputStream = null;
+		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		try {
+			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE);
+			outputStream = new FileOutputStream(resultsFile);
+			new BatchProcessingResultReportBuilder(new BatchProcessingResultModel(results, locale), i18n.getLocale())
+					.build((OutputStream) outputStream);
+			IOUtils.closeQuietly(outputStream);
+			return new FileInputStream(resultsFile);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			ioServices.deleteQuietly(resultsFile);
+			IOUtils.closeQuietly(outputStream);
+		}
+	}
 }
 

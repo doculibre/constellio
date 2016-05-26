@@ -133,10 +133,18 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.LIST_USER_DOCUMENTS);
 	}
 
-	// CART
+	// CARTS
+
+	public void listCarts() {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_CARTS);
+	}
 
 	public void cart() {
 		navigator.navigateTo(RMNavigationConfiguration.CART);
+	}
+
+	public void cart(String cartId) {
+		navigator.navigateTo(RMNavigationConfiguration.CART + "/" + cartId);
 	}
 
 	// AUDIT EVENTS

@@ -39,7 +39,6 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			if ("s".equals(parts[0])) {
 				SavedSearch search = getSavedSearch(parts[1]);
 				setSavedSearch(search);
-
 			} else {
 				searchExpression = parts[1];
 			}
@@ -164,7 +163,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return null;
 	}
 
-	protected void saveTemporarySearch() {
+	protected void saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -183,7 +182,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageNumber(pageNumber);
 		try {
 			recordServices().update(search);
-			view.navigate().to().simpleSearchReplay(search.getId());
+			if (refreshPage) {
+				view.navigate().to().simpleSearchReplay(search.getId());
+			}
 		} catch (RecordServicesException e) {
 			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}

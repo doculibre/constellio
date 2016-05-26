@@ -1001,6 +1001,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return cartSchema().getMetadata(Cart.OWNER);
 	}
 
+	public Metadata cartSharedWithUsers() {
+		return cartSchema().getMetadata(Cart.SHARED_WITH_USERS);
+	}
+
 	//Cart
 	public Cart getOrCreateUserCart(User user) {
 		Record record = modelLayerFactory.newSearchServices().searchSingleResult(

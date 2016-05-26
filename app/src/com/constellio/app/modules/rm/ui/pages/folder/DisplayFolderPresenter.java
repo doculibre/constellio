@@ -65,6 +65,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -90,6 +91,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient BorrowingServices borrowingServices;
 	private transient MetadataSchemasManager metadataSchemasManager;
 	private transient RecordServices recordServices;
+	private transient ModelLayerCollectionExtensions extensions;
 
 	public DisplayFolderPresenter(DisplayFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -113,7 +115,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		documentVOBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		recordServices = modelLayerFactory.newRecordServices();
-
+		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
@@ -390,24 +392,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
-		if (user.hasWriteAccess().on(folder)) {
-			if (folder.getPermissionStatus().isInactive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
-			}
-			if (folder.getPermissionStatus().isSemiActive()) {
-				if (folder.getBorrowed() != null && folder.getBorrowed()) {
-					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user
-							.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-				}
-				return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_FOLDERS).on(folder));
-			}
-			return ComponentState.ENABLED;
-		}
-		return ComponentState.INVISIBLE;
+		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
+				&& extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
 	}
 
 	ComponentState getAddFolderButtonState(User user, Folder folder) {
@@ -804,10 +790,32 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return hasContent && hasAccess;
 	}
 
-	public void addToCartRequested() {
-		Cart cart = rmSchemasRecordsServices.getOrCreateUserCart(getCurrentUser()).addFolders(Arrays.asList(folderVO.getId()));
+	public void addToCartRequested(RecordVO recordVO) {
+		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId()).addFolders(Arrays.asList(folderVO.getId()));
 		addOrUpdate(cart.getWrappedRecord());
 		view.showMessage($("DisplayFolderView.addedToCart"));
+	}
+
+	public RecordVODataProvider getOwnedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartOwner())
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public RecordVODataProvider getSharedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rmSchemasRecordsServices.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rmSchemasRecordsServices.cartSchema()).where(rmSchemasRecordsServices.cartSharedWithUsers())
+						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+			}
+		};
 	}
 
 	public void parentFolderButtonClicked(String parentId)

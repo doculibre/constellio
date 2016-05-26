@@ -10,6 +10,8 @@ import com.constellio.app.modules.rm.ui.pages.agent.AgentRequestViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
+import com.constellio.app.modules.rm.ui.pages.cart.CartsListPresenter;
+import com.constellio.app.modules.rm.ui.pages.cart.CartsListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrativeUnitViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
@@ -89,6 +91,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String USER_DOCUMENTS = "userDocuments";
 	public static final String AGENT = "agent";
 	public static final String CART = "cart";
+	public static final String LIST_CARTS = "listCarts";
 	public static final String LOGS = "logs";
     public static final String REPORTS = "reports";
     public static final String REQUEST_AGENT = "requestAgent";
@@ -131,6 +134,7 @@ public class RMNavigationConfiguration implements Serializable {
         service.register(AGENT_SETUP, AgentSetupViewImpl.class);
         service.register(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class);
         service.register(CART, CartViewImpl.class);
+        service.register(LIST_CARTS, CartsListViewImpl.class);
         service.register(EDIT_CONTAINER, AddEditContainerViewImpl.class);
         service.register(CONTAINERS_BY_ADMIN_UNITS, ContainersByAdministrativeUnitsViewImpl.class);
         service.register(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS, ContainersInAdministrativeUnitViewImpl.class);
@@ -344,10 +348,10 @@ public class RMNavigationConfiguration implements Serializable {
 				return ComponentState.ENABLED;
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(CART, CartViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LIST_CARTS, CartViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).cart();
+				navigate.to(RMViews.class).listCarts();
 			}
 
 			@Override
