@@ -9,9 +9,11 @@ import java.util.List;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -19,11 +21,6 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.LabelsButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -79,7 +76,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
-				buttons.add(buildDecommissionButton());
+		buttons.add(buildDecommissionButton());
 		return buttons;
 	}
 
@@ -160,7 +157,19 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 		private Button buildDecommissionButton() {
-			return new WindowButton($("CartView.decommissioningList"),$("CartView.createDecommissioningList")) {
+			WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
+
+				@Override
+				public void buttonClick(ClickEvent event) {
+					if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
+						showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
+					} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
+						showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+					} else {
+						super.buttonClick(event);
+					}
+				}
+
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout layout = new VerticalLayout();
@@ -177,7 +186,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					BaseButton saveButton = new BaseButton($("save")) {
 						@Override
 						protected void buttonClick(ClickEvent event) {
-							presenter.buildDecommissioningListRequested(titleField.getValue(),(DecommissioningListType)decomTypeField.getValue());
+							presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
 							getWindow().close();
 						}
 					};
@@ -187,12 +196,22 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					return layout;
 				}
 			};
+			windowButton.setEnabled(!presenter.getCartFolders().isEmpty());
+			return windowButton;
 		}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		Container container = buildContainer(presenter.getRecords());
+		final RecordVOWithDistinctSchemasDataProvider dataProvider = presenter.getRecords();
+		final Container container = buildContainer(dataProvider);
 		Table table = new RecordVOTable($("CartView.records", container.size()), container);
+		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				int itemId = (int) event.getItemId();
+				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
+			}
+		});
 		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("init.allTypes.allSchemas.title"));
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
@@ -249,9 +268,14 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildEmptyButton() {
-		Button button = new LinkButton($("CartView.empty")) {
+		Button button = new ConfirmDialogButton($("CartView.empty")) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
+			protected String getConfirmDialogMessage() {
+				return $("CartView.emptyCartConfirmation");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.cartEmptyingRequested();
 			}
 		};

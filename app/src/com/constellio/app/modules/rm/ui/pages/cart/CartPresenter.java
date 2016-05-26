@@ -439,7 +439,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
-		// Save list
-		// Navigate to list's page
+	}
+
+	public void displayRecordRequested(RecordVO recordVO) {
+		switch (recordVO.getSchema().getTypeCode()) {
+			case Folder.SCHEMA_TYPE:
+				view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
+				break;
+			case Document.SCHEMA_TYPE:
+				view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				view.navigate().to(RMViews.class).displayContainer(recordVO.getId());
+				break;
+		}
 	}
 }
