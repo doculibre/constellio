@@ -59,6 +59,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 				layout.addComponent(titleField);
 				layout.addComponent(saveButton);
+				layout.setSpacing(true);
 				return layout;
 			}
 		};

@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -137,6 +138,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
+				layout.setSpacing(true);
 
 				final ListAddRemoveRecordLookupField lookup = new ListAddRemoveRecordLookupField(User.SCHEMA_TYPE);
 				lookup.setValue(presenter.cart().getSharedWithUsers());
@@ -150,6 +152,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 						getWindow().close();
 					}
 				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 				layout.addComponent(saveButton);
 				return layout;
 			}
@@ -168,6 +171,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
 					decomTypeField.removeAllItems();
 					decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
+					decomTypeField.setCaption($("CartView.decommissioningTypeField"));
 					layout.addComponent(decomTypeField);
 
 					BaseButton saveButton = new BaseButton($("save")) {
@@ -177,7 +181,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 							getWindow().close();
 						}
 					};
+					saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 					layout.addComponent(saveButton);
+					layout.setSpacing(true);
 					return layout;
 				}
 			};
