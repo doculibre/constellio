@@ -26,7 +26,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
-public class FolderExtensionAcceptanceTest extends ConstellioTest {
+public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	DecommissioningService service;
 	RMSchemasRecordsServices rm;

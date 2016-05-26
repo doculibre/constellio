@@ -3,6 +3,8 @@ package com.constellio.app.ui.pages.search.batchProcessing;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
+import java.util.List;
+
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -16,6 +18,7 @@ import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -40,6 +43,12 @@ public class BatchProcessingButton extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
+
+		List<String> records = view.getSelectedRecordIds();
+		if (!presenter.hasWriteAccessOnAllRecords(view.getSelectedRecordIds())) {
+			return new Label($("AdvancedSearchView.requireWriteAccess"));
+		}
+
 		Panel panel = new Panel();
 		vLayout = new VerticalLayout();
 		String typeSchemaType = presenter.getTypeSchemaType(view.getSchemaType());

@@ -34,6 +34,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;
@@ -129,9 +130,14 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		BatchProcessingPresenterService presenterService = new BatchProcessingPresenterService(collection, appLayerFactory,
 				locale);
 
+		SchemaUtils schemaUtils = new SchemaUtils();
 		Transaction transaction = presenterService.prepareTransaction(request, false);
 		for (Record record : transaction.getRecords()) {
-			rm.wrapFolder(record).setMediumTypes(new ArrayList<Object>());
+			String schemaCode = record.getSchemaCode();
+			String schemaTypeCode = schemaUtils.getSchemaTypeCode(schemaCode);
+			if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
+				rm.wrapFolder(record).setMediumTypes(new ArrayList<Object>());
+			}
 		}
 		for (Record record : transaction.getRecords()) {
 			recordServices.recalculate(record);

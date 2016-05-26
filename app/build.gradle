@@ -88,7 +88,7 @@ dependencies {
 
 war {
     baseName = "constellio-app"
-    version = '6.3.3'
+    version = '6.3.4'
 
     webInf {
         from 'WebContent/'
@@ -116,7 +116,6 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.3.3'
 }
 
 configurations.archives.artifacts.with { archives ->
