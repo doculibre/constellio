@@ -102,7 +102,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			resetFacetSelection();
 			schemaTypeCode = view.getSchemaType();
 			pageNumber = 1;
-			saveTemporarySearch();
+			saveTemporarySearch(true);
 		}
 		return this;
 	}
@@ -312,7 +312,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return null;
 	}
 
-	protected void saveTemporarySearch() {
+	protected void saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -333,7 +333,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageNumber(pageNumber);
 		try {
 			recordServices().update(search);
-			view.navigate().to().advancedSearchReplay(search.getId());
+			if(refreshPage) {
+				view.navigate().to().advancedSearchReplay(search.getId());
+			}
 		} catch (RecordServicesException e) {
 			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}

@@ -116,7 +116,6 @@ eclipse {
 jar {
     from sourceSets.main.allJava
     baseName = 'core-app'
-    version = '6.3.4'
 }
 
 configurations.archives.artifacts.with { archives ->

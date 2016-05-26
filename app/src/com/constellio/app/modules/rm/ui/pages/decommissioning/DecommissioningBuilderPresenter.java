@@ -262,7 +262,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		}
 	}
 
-	protected void saveTemporarySearch() {
+	protected void saveTemporarySearch(boolean refreshPage) {
 		Record tmpSearchRecord = getTemporarySearchRecord();
 		if (tmpSearchRecord == null) {
 			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
@@ -281,11 +281,12 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setSelectedFacets(this.getFacetSelections().getNestedMap());
 		try {
 			recordServices().update(search);
-			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
+			if (refreshPage) {
+				view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
+			}
 		} catch (RecordServicesException e) {
 			LOGGER.info("TEMPORARY SAVE ERROR", e);
 		}
-
 	}
 
 	@Override

@@ -109,7 +109,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	@Override
 	public void refreshSearchResults(boolean temporarySave) {
 		if (temporarySave) {
-			presenter.saveTemporarySearch();
+			presenter.saveTemporarySearch(true);
 		}
 
 		suggestions.removeAllComponents();
@@ -181,7 +181,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		table.addListener(new SearchResultTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
-				presenter.saveTemporarySearch();
+				presenter.saveTemporarySearch(true);
 			}
 		});
 
