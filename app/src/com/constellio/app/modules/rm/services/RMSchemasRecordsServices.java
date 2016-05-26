@@ -383,7 +383,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
     //Administrative unit
 
-    @Deprecated
+    /*@Deprecated
     public MetadataSchema administrativeUnitSchema() {
         return getTypes().getSchema(AdministrativeUnit.DEFAULT_SCHEMA);
     }
@@ -445,7 +445,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
     @Deprecated
     public Metadata administrativeUnitParent() {
         return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
-    }
+    }*/
 
     //
 
@@ -675,6 +675,46 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	//
+
+    //Folder type
+
+    public MetadataSchema folderTypeSchema() {
+        return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
+    }
+
+    public MetadataSchemaType folderTypeSchemaType() {
+        return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
+    }
+
+    public List<FolderType> wrapFolderTypes(List<Record> records) {
+        List<FolderType> folderTypes = new ArrayList<>();
+        for (Record record : records) {
+            folderTypes.add(wrapFolderType(record));
+        }
+        return folderTypes;
+    }
+
+    public FolderType getFolderType(String id) {
+        return new FolderType(get(id), getTypes());
+    }
+
+    public FolderType getFolderTypeByCode(String code) {
+        return wrapFolderType(getByCode(folderTypeSchemaType(), code));
+    }
+
+    public MetadataSchema defaultFolderTypeSchema() {
+        return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
+    }
+
+    public FolderType newFolderType() {
+        return new FolderType(create(defaultFolderTypeSchema()), getTypes());
+    }
+
+    public FolderType newFolderTypeWithId(String id) {
+        return new FolderType(create(defaultFolderTypeSchema(), id), getTypes());
+    }
+
+    //
 
     //Hierarchical value list item
 
