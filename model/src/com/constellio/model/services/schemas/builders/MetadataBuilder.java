@@ -75,6 +75,7 @@ public class MetadataBuilder {
 	private MetadataPopulateConfigsBuilder populateConfigsBuilder;
 	private ClassProvider classProvider;
 	private String inputMask;
+	private boolean duplicatable = false;
 
 	MetadataBuilder() {
 	}
@@ -175,6 +176,7 @@ public class MetadataBuilder {
 			builder.allowedReferencesBuilder = new AllowedReferencesBuilder(metadata.getAllowedReferences());
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
+		builder.duplicatable = metadata.isDuplicatable();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -233,6 +235,7 @@ public class MetadataBuilder {
 			builder.setDefaultRequirement(null);
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
+		builder.duplicatable = metadata.isDuplicatable();
 	}
 
 	public MetadataBuilder getInheritance() {
@@ -503,6 +506,16 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public boolean isDuplicatable() {
+		return duplicatable;
+	}
+
+	public MetadataBuilder setDuplicatable(boolean duplicatable) {
+        ensureCanModify("duplicatable");
+		this.duplicatable = duplicatable;
+		return this;
+	}
+
 	public AllowedReferencesBuilder defineReferences() {
 		ensureCanModify("defineReferences");
 		if (type == null) {
@@ -641,7 +654,7 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary, multiLingual);
+				essential, encrypted, essentialInSummary, multiLingual, duplicatable);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

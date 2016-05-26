@@ -20,11 +20,12 @@ public class InheritedMetadataBehaviors {
 	final boolean encrypted;
 	final boolean essentialInSummary;
 	final boolean multiLingual;
+	final boolean duplicatable;
 
 	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
 			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean encrypted, boolean essentialInSummary,
-			boolean multiLingual) {
+			boolean multiLingual, boolean duplicatable) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -39,6 +40,7 @@ public class InheritedMetadataBehaviors {
 		this.encrypted = encrypted;
 		this.essentialInSummary = essentialInSummary;
 		this.multiLingual = multiLingual;
+		this.duplicatable = duplicatable;
 	}
 
 	public boolean isUndeletable() {
@@ -106,4 +108,6 @@ public class InheritedMetadataBehaviors {
 	public boolean isMultiLingual() {
 		return multiLingual;
 	}
+
+	public boolean isDuplicatable() { return duplicatable; }
 }
