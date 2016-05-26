@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.vaadin.event.ItemClickEvent;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -40,13 +41,12 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
+	private BaseTextField filterField;
+	private VerticalLayout mainLayout;
+	private Table table;
 
 	public CartViewImpl() {
 		presenter = new CartPresenter(this);
@@ -156,6 +156,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
+	private HorizontalLayout buildFilterComponent() {
+		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
+		filterField = new BaseTextField();
+		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.filterButtonClicked();
+			}
+		};
+		filterComponent.addComponents(filterField, filterButton);
+		return filterComponent;
+	}
+
 		private Button buildDecommissionButton() {
 			WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
 
@@ -203,6 +217,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		final RecordVOWithDistinctSchemasDataProvider dataProvider = presenter.getRecords();
+		table = buildTable(dataProvider);
+		mainLayout = new VerticalLayout(buildFilterComponent(), table);
+		mainLayout.setSizeFull();
+		return mainLayout;
+	}
+
+	private Table buildTable(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		final Container container = buildContainer(dataProvider);
 		Table table = new RecordVOTable($("CartView.records", container.size()), container);
 		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
@@ -217,10 +238,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
 		table.setPageLength(Math.min(15, container.size()));
 		table.setSizeFull();
-
-		VerticalLayout layout = new VerticalLayout(table);
-		layout.setSizeFull();
-		return layout;
+		return table;
 	}
 
 	@Override
@@ -232,6 +250,19 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		}, "cart.eml");
 		Page.getCurrent().open(resource, null, false);
+	}
+
+	@Override
+	public void filterTable() {
+		final RecordVOWithDistinctSchemasDataProvider dataProvider;
+		if(filterField.isEmpty()) {
+			dataProvider = presenter.getRecords();
+		} else {
+			dataProvider = presenter.getFilteredRecords(filterField.getValue());
+		}
+		Table newTable = buildTable(dataProvider);
+		mainLayout.replaceComponent(table,newTable);
+		table = newTable;
 	}
 
 	private Button buildPrepareEmailButton() {

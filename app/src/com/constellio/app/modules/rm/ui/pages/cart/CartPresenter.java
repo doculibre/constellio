@@ -454,4 +454,20 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				break;
 		}
 	}
+
+	public void filterButtonClicked() {
+		view.filterTable();
+	}
+
+	public RecordVOWithDistinctSchemasDataProvider getFilteredRecords(final String freeText) {
+		return new RecordVOWithDistinctSchemasDataProvider(
+				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+	}
 }
