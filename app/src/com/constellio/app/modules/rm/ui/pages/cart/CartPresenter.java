@@ -22,16 +22,14 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -348,18 +346,6 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		addOrUpdate(cart().getWrappedRecord());
 	}
 
-	public DecommissioningListType getFoldersDecommissioningType() {
-		// TODO FB Return decommissioning type for all folders in "getCartFolders()"
-		// If folders are not compatible, show error.
-		return null;
-	}
-
-	public String getFoldersAdministrativeUnit() {
-		// TODO FB Return administrative unit for all folders in "getCartFolders()"
-		// If folders are not compatible, show error.
-		return null;
-	}
-
 	BatchProcessingPresenterService batchProcessingPresenterService() {
 		if (batchProcessingPresenterService == null) {
 			Locale locale = view.getSessionContext().getCurrentLocale();
@@ -440,24 +426,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return administrativeUnit;
 	}
 
-	//	public void buildDecommissioningListRequested(String adminUnitId, Object decomType) {
-	//		DecommissioningList list = rm.newDecommissioningList();
-	//		list.setAdministrativeUnit(adminUnitId);
-	//		list.setFolderDetailsFrom(getCartFolders());
-	//
-	//		try {
-	//			recordServices().add(list);
-	//			view.navigate().to(RMViews.class).displayDecommissioningList(list.getId());
-	//		} catch (RecordServicesException e) {
-	//			e.printStackTrace();
-	//		}
-	//		// Save list
-	//		// Navigate to list's page
-	//	}
-	public void buildDecommissioningListRequested() {
+	public void buildDecommissioningListRequested(String title, DecommissioningListType decomType) {
 		DecommissioningList list = rm.newDecommissioningList();
-		list.setAdministrativeUnit(getFoldersAdministrativeUnit());
-		list.setDecommissioningListType(getFoldersDecommissioningType());
+		list.setTitle(title);
+		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
+		list.setDecommissioningListType(decomType);
 		list.setFolderDetailsFrom(getCartFolders());
 
 		try {

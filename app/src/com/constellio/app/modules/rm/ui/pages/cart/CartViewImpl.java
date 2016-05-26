@@ -6,6 +6,12 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -72,7 +78,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
 		buttons.add(buildShareButton());
-		//		buttons.add(buildDecommissionButton());
+				buttons.add(buildDecommissionButton());
 		return buttons;
 	}
 
@@ -150,29 +156,32 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
-	//	private Button buildDecommissionButton() {
-	//		return new WindowButton("decomLabel","windowLabel") {
-	//			@Override
-	//			protected Component buildWindowContent() {
-	//				VerticalLayout layout = new VerticalLayout();
-	//
-	//				final LookupRecordField lookup = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
-	//				layout.addComponent(lookup);
-	//
-	//				final EnumWithSmallCodeComboBox<DecommissioningType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningType.class);
-	//
-	//				BaseButton saveButton = new BaseButton("caption") {
-	//					@Override
-	//					protected void buttonClick(ClickEvent event) {
-	//						presenter.buildDecommissioningListRequested(lookup.getValue(),decomTypeField.getValue());
-	//						getWindow().close();
-	//					}
-	//				};
-	//				layout.addComponent(saveButton);
-	//				return layout;
-	//			}
-	//		};
-	//	}
+		private Button buildDecommissionButton() {
+			return new WindowButton($("CartView.decommissioningList"),$("CartView.createDecommissioningList")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout layout = new VerticalLayout();
+
+					final BaseTextField titleField = new BaseTextField($("title"));
+					layout.addComponent(titleField);
+
+					final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
+					decomTypeField.removeAllItems();
+					decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
+					layout.addComponent(decomTypeField);
+
+					BaseButton saveButton = new BaseButton($("save")) {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							presenter.buildDecommissioningListRequested(titleField.getValue(),(DecommissioningListType)decomTypeField.getValue());
+							getWindow().close();
+						}
+					};
+					layout.addComponent(saveButton);
+					return layout;
+				}
+			};
+		}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
