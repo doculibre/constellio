@@ -17,7 +17,7 @@ dao.settings.type=filesystem
 skip.slowtests=false
 skip.uitests=false
 skip.drivertests=false
-skip.loadtests=false
+skip.loadtests=true
 skip.internettests=false
 skip.indevelopment=false
 
