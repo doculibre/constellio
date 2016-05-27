@@ -16,7 +16,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 public class FakeEncryptionServicesUtils extends EncryptionServices {
 	public FakeEncryptionServicesUtils()
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		super();
+		super(true);
 	}
 
 	@Override
