@@ -65,6 +65,8 @@ public class Metadata implements DataStoreField {
 
 	final String inputMask;
 
+	final boolean duplicatable;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
 	}
@@ -81,7 +83,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual, false);
+				false, false, false, false, false, false, multiLingual);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -112,6 +114,7 @@ public class Metadata implements DataStoreField {
 		this.enumClass = null;
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
+		this.duplicatable = false;
 
 	}
 
@@ -121,7 +124,7 @@ public class Metadata implements DataStoreField {
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
 			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
 			Object defaultValue, String inputMask, MetadataPopulateConfigs populateConfigs,
-			Factory<EncryptionServices> encryptionServices) {
+			Factory<EncryptionServices> encryptionServices, Boolean duplicatbale) {
 		super();
 
 		this.inheritance = null;
@@ -144,11 +147,12 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
+		this.duplicatable = duplicatbale;
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
-			MetadataPopulateConfigs populateConfigs) {
+			MetadataPopulateConfigs populateConfigs, boolean duplicatable) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -171,6 +175,7 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
+		this.duplicatable = duplicatable;
 	}
 
 	public String getCode() {
@@ -442,6 +447,6 @@ public class Metadata implements DataStoreField {
 		return localCode.equals(metadata.getLocalCode());
 	}
 
-	public boolean isDuplicatable() { return getInheritedMetadataBehaviors().isDuplicatable(); }
+	public boolean isDuplicatable() { return duplicatable; }
 
 }

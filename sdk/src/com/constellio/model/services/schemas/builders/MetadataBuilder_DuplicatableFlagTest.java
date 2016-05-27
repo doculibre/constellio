@@ -7,99 +7,104 @@ import org.junit.Test;
 
 public class MetadataBuilder_DuplicatableFlagTest extends MetadataBuilderTest {
 
-	@Test
-	public void givenDuplicatableFlagNotDefinedOnMetadataWithoutInheritanceWhenBuildingThenSetToFalse()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithoutInheritanceIsNullWhenBuildingThenSetToTrue() {
+        metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(null);
 
-		build();
+        build();
 
-		assertThat(metadataWithoutInheritance.isDuplicatable()).isFalse();
-	}
+        assertThat(metadataWithoutInheritance.isDuplicatable()).isFalse();
+    }
 
-	@Test
-	public void givenDuplicatableFlagSetToFalseOnMetadataWithoutInheritanceWhenBuildingThenSetToFalse()
-			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(false);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithoutInheritanceIsNullWhenModifyingThenSetToTrue() {
+        metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(null);
 
-		build();
+        buildAndModify();
 
-		assertThat(metadataWithoutInheritance.isDuplicatable()).isFalse();
-	}
+        assertThat(metadataWithoutInheritanceBuilder.isDuplicatable()).isFalse();
+    }
 
-	@Test
-	public void givenDuplicatableFlagNotDefinedOnMetadataWithoutInheritanceWhenModifyingThenSetToFalse()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithoutInheritanceIsNotDefinedWhenBuildingThenSetToTrue() {
+        metadataWithoutInheritanceBuilder.setType(STRING);
 
-		buildAndModify();
+        build();
 
-		assertThat(metadataWithoutInheritanceBuilder.isDuplicatable()).isFalse();
-	}
+        assertThat(metadataWithoutInheritance.isDuplicatable()).isFalse();
+    }
 
-	@Test
-	public void givenDuplicatableFlagSetToFalseOnMetadataWithoutInheritanceWhenModifyingThenSetToFalse()
-			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(false);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithoutInheritanceIsFalseWhenBuildingThenSetToFalse() {
+        metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(false);
 
-		buildAndModify();
+        build();
 
-		assertThat(metadataWithoutInheritanceBuilder.isDuplicatable()).isFalse();
-	}
+        assertThat(metadataWithInheritance.isDuplicatable()).isFalse();
+    }
 
-	@Test
-	public void givenDuplicatableFlagSetToTrueOnMetadataWithoutInheritanceWhenBuildingThenSetToTrue()
-			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(true);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithoutInheritanceIsFalseWhenModifyingThenSetToFalse() {
+        metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(false);
 
-		build();
+        buildAndModify();
 
-		assertThat(metadataWithoutInheritance.isDuplicatable()).isTrue();
-	}
+        assertThat(metadataWithoutInheritanceBuilder.isDuplicatable()).isFalse();
+    }
 
-	@Test
-	public void givenDuplicatableFlagSetToTrueOnMetadataWithoutInheritanceWhenModifyingThenSetToTrue()
-			throws Exception {
-		metadataWithoutInheritanceBuilder.setType(STRING).setDuplicatable(true);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithInheritanceIsDifferentWhenBuildingThenSetToCustomizedValue() {
+        inheritedMetadataBuilder.setType(STRING).setDuplicatable(false);
+        metadataWithInheritanceBuilder.setDuplicatable(true);
 
-		buildAndModify();
+        build();
 
-		assertThat(metadataWithoutInheritanceBuilder.isDuplicatable()).isTrue();
-	}
+        assertThat(inheritedMetadata.isDuplicatable()).isFalse();
+        assertThat(metadataWithInheritance.isDuplicatable()).isTrue();
+    }
 
-	@Test
-	public void givenDuplicatableFlagOnMetadataWithInheritanceWhenBuildingThenSetToInheritedValue()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setDuplicatable(true);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithInheritanceIsDifferentWhenModifyingThenSetToCustomizedValue() {
+        inheritedMetadataBuilder.setType(STRING).setDuplicatable(false);
+        metadataWithInheritanceBuilder.setDuplicatable(true);
 
-		build();
+        buildAndModify();
 
-		assertThat(metadataWithInheritance.isDuplicatable()).isTrue();
-	}
+        assertThat(inheritedMetadataBuilder.isDuplicatable()).isFalse();
+        assertThat(metadataWithInheritanceBuilder.isDuplicatable()).isTrue();
+    }
 
-	@Test
-	public void givenDuplicatableFlagOnMetadataWithInheritanceWhenModifyingThenSetToInheritedValue()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setDuplicatable(true);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithInheritanceIsNullWhenBuildingThenSetToInheritedValue() {
+        inheritedMetadataBuilder.setType(STRING).setDuplicatable(false);
+        metadataWithInheritanceBuilder.setDuplicatable(null);
 
-		buildAndModify();
+        build();
 
-		assertThat(metadataWithInheritanceBuilder.isDuplicatable()).isTrue();
-	}
+        assertThat(inheritedMetadata.isDuplicatable()).isFalse();
+        assertThat(metadataWithInheritance.isDuplicatable()).isFalse();
+    }
 
-	@Test
-	public void givenTrueFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setDuplicatable(true);
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithInheritanceIsNullWhenModifyingThenSetToNull() {
+        inheritedMetadataBuilder.setType(STRING).setDuplicatable(false);
+        metadataWithInheritanceBuilder.setDuplicatable(null);
 
-		assertThat(metadataWithInheritanceBuilder.isDuplicatable()).isTrue();
-	}
+        buildAndModify();
 
-	@Test
-	public void givenFalseFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setDuplicatable(false);
+        assertThat(inheritedMetadataBuilder.isDuplicatable()).isFalse();
+        assertThat(metadataWithInheritanceBuilder.isDuplicatable()).isNull();
+    }
 
-		assertThat(metadataWithInheritanceBuilder.isDuplicatable()).isFalse();
-	}
+    @Test
+    public void givenDuplicatableFlagOfMetadataWithInheritanceIsSameAsInheritanceWhenModifyingThenSetToNull() {
+        inheritedMetadataBuilder.setType(STRING).setDuplicatable(false);
+        metadataWithInheritanceBuilder.setDuplicatable(false);
+
+        buildAndModify();
+
+        assertThat(inheritedMetadataBuilder.isDuplicatable()).isFalse();
+        assertThat(metadataWithInheritanceBuilder.isDuplicatable()).isNull();
+    }
+
 }

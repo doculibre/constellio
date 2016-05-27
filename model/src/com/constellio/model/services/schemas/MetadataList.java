@@ -533,4 +533,14 @@ public class MetadataList implements List<Metadata> {
 	public boolean containsMetadataWithLocalCode(String localCode) {
 		return localCodeIndex.containsKey(localCode);
 	}
+
+	public MetadataList onlyDuplicatable() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isDuplicatable()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
 }
