@@ -73,8 +73,15 @@ dependencies {
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
     compile "com.sun.messaging.mq:jaxm-api:4.4.1"
-    compile files("libs/jcifs_gcm_322.jar")
-    compile files("libs/vaadin-breadcrumb-1.7.3.jar")
+    
+    compile "org.samba.jcifs:jcifs_gcm:322"
+    compile "vaadin:breadcrumb:1.7.3"
+    compile "vaadin:mediaelementjs-player:1.2.6"
+
+    //compile files("libs/jcifs_gcm_322.jar")
+    //compile files("libs/vaadin-breadcrumb-1.7.3.jar")
+    //compile files("libs/vaadin-mediaelementjs-player-1.2.6.jar")
+
     compile "juh:juh:3.2.1"
     compile "jurt:jurt:3.2.1"
     compile "ridl:ridl:3.2.1"
@@ -82,7 +89,6 @@ dependencies {
     compile "org.mockito:mockito-all:1.10.8"
     compile "net.sf.barcode4j:barcode4j:2.1"
     compile "com.jgoodies:jgoodies-common:1.7.0"
-    compile files("libs/vaadin-mediaelementjs-player-1.2.6.jar")
     compile "nl.bitwalker:UserAgentUtils:1.2.4"
 }
 
