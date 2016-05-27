@@ -143,6 +143,8 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder.setDefaultValue(defaultValue);
 		}
 
+		metadataBuilder.setDuplicatable(false);
+
 		setPopulateConfigs(metadataBuilder, metadataElement);
 	}
 
@@ -165,6 +167,7 @@ public class MetadataSchemaXMLReader2 {
 				metadataBuilder.setDefaultRequirement(readBoolean(defaultRequirementStringValue));
 			}
 
+			metadataBuilder.setDuplicatable(false);
 		}
 
 		MetadataBuilder globalMetadataInCollectionSchema = null;

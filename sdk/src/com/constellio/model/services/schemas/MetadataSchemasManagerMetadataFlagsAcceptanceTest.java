@@ -3,6 +3,7 @@ package com.constellio.model.services.schemas;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDuplicatable;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -28,7 +29,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	TestsSchemasSetup schemas = new TestsSchemasSetup();
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 
-	@Test
+    @Test
 	public void whenAddUpdateSchemasThenSaveEssentialFlag()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsEssential).withABooleanMetadata());
@@ -88,6 +89,26 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 		assertThat(zeSchema.stringMetadata().isEssentialInSummary()).isTrue();
 		assertThat(zeSchema.anotherStringMetadata().isEncrypted()).isFalse();
 	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveDuplicatableFlag()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsDuplicatable).withABooleanMetadata());
+
+		assertThat(zeSchema.stringMetadata().isDuplicatable()).isTrue();
+		assertThat(zeSchema.booleanMetadata().isDuplicatable()).isFalse();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setDuplicatable(false);
+				types.getSchema(zeSchema.code()).get(zeSchema.booleanMetadata().getLocalCode()).setDuplicatable(true);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().isDuplicatable()).isFalse();
+		assertThat(zeSchema.booleanMetadata().isDuplicatable()).isTrue();
+    }
 
 	@Before
 	public void setUp()
