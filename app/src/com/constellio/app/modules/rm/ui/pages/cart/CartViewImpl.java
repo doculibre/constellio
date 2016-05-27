@@ -44,9 +44,15 @@ import com.vaadin.server.StreamResource.StreamSource;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 	private final CartPresenter presenter;
-	private BaseTextField filterField;
-	private VerticalLayout mainLayout;
-	private Table table;
+	private VerticalLayout folderLayout;
+	private VerticalLayout documentLayout;
+	private VerticalLayout containerLayout;
+	private Table folderTable;
+	private Table documentTable;
+	private Table containerTable;
+	private BaseTextField folderFilterField;
+	private BaseTextField documentFilterField;
+	private BaseTextField containerFilterField;
 
 	public CartViewImpl() {
 		presenter = new CartPresenter(this);
@@ -103,6 +109,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				new LabelsRecordSelectorImpl(schemaType),
 				labelTemplatesFactory);
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
+		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
 		return labelsButton;
 	}
 
@@ -115,6 +122,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private Button buildBatchProcessingButton(String schemaType) {
 		BatchProcessingButton button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
 		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
+		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
 		return button;
 	}
 
@@ -156,17 +164,45 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		};
 	}
 
-	private HorizontalLayout buildFilterComponent() {
+	private HorizontalLayout buildFolderFilterComponent() {
 		HorizontalLayout filterComponent = new HorizontalLayout();
 		filterComponent.setSpacing(true);
-		filterField = new BaseTextField();
+		folderFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.filterButtonClicked();
+				presenter.folderFilterButtonClicked();
 			}
 		};
-		filterComponent.addComponents(filterField, filterButton);
+		filterComponent.addComponents(folderFilterField, filterButton);
+		return filterComponent;
+	}
+
+	private HorizontalLayout buildDocumentFilterComponent() {
+		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
+		documentFilterField = new BaseTextField();
+		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.documentFilterButtonClicked();
+			}
+		};
+		filterComponent.addComponents(documentFilterField, filterButton);
+		return filterComponent;
+	}
+
+	private HorizontalLayout buildContainerFilterComponent() {
+		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
+		containerFilterField = new BaseTextField();
+		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.containerFilterButtonClicked();
+			}
+		};
+		filterComponent.addComponents(containerFilterField, filterButton);
 		return filterComponent;
 	}
 
@@ -211,14 +247,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				}
 			};
 			windowButton.setEnabled(!presenter.getCartFolders().isEmpty());
+			windowButton.setVisible(!presenter.getCartFolders().isEmpty());
 			return windowButton;
 		}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		final RecordVOWithDistinctSchemasDataProvider dataProvider = presenter.getRecords();
-		table = buildTable(dataProvider);
-		mainLayout = new VerticalLayout(buildFilterComponent(), table);
+		TabSheet tabSheet = new TabSheet();
+		folderTable = buildTable(presenter.getFolderRecords());
+		documentTable = buildTable(presenter.getDocumentRecords());
+		containerTable = buildTable(presenter.getContainerRecords());
+		tabSheet.addTab(folderLayout = new VerticalLayout(buildFolderFilterComponent(),folderTable)).setCaption($("CartView.foldersTab"));
+		tabSheet.addTab(documentLayout = new VerticalLayout(buildDocumentFilterComponent(),documentTable)).setCaption($("CartView.documentsTab"));
+		tabSheet.addTab(containerLayout = new VerticalLayout(buildContainerFilterComponent(),containerTable)).setCaption($("CartView.containersTab"));
+		VerticalLayout mainLayout = new VerticalLayout(tabSheet);
 		mainLayout.setSizeFull();
 		return mainLayout;
 	}
@@ -253,16 +295,42 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	public void filterTable() {
+	public void filterFolderTable() {
 		final RecordVOWithDistinctSchemasDataProvider dataProvider;
-		if(filterField.isEmpty()) {
-			dataProvider = presenter.getRecords();
+		if(folderFilterField.isEmpty()) {
+			dataProvider = presenter.getFolderRecords();
 		} else {
-			dataProvider = presenter.getFilteredRecords(filterField.getValue());
+			dataProvider = presenter.getFilteredFolderRecords(folderFilterField.getValue());
 		}
 		Table newTable = buildTable(dataProvider);
-		mainLayout.replaceComponent(table,newTable);
-		table = newTable;
+		folderLayout.replaceComponent(folderTable,newTable);
+		folderTable = newTable;
+	}
+
+	@Override
+	public void filterDocumentTable() {
+		final RecordVOWithDistinctSchemasDataProvider dataProvider;
+		if(documentFilterField.isEmpty()) {
+			dataProvider = presenter.getDocumentRecords();
+		} else {
+			dataProvider = presenter.getFilteredDocumentRecords(documentFilterField.getValue());
+		}
+		Table newTable = buildTable(dataProvider);
+		documentLayout.replaceComponent(documentTable,newTable);
+		documentTable = newTable;
+	}
+
+	@Override
+	public void filterContainerTable() {
+		final RecordVOWithDistinctSchemasDataProvider dataProvider;
+		if(containerFilterField.isEmpty()) {
+			dataProvider = presenter.getContainerRecords();
+		} else {
+			dataProvider = presenter.getFilteredContainerRecords(containerFilterField.getValue());
+		}
+		Table newTable = buildTable(dataProvider);
+		containerLayout.replaceComponent(containerTable,newTable);
+		containerTable = newTable;
 	}
 
 	private Button buildPrepareEmailButton() {
@@ -273,6 +341,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 		button.setEnabled(presenter.canPrepareEmail());
+		button.setVisible(presenter.canPrepareEmail());
 		return button;
 	}
 
@@ -283,7 +352,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.duplicationRequested();
 			}
 		};
-		button.setEnabled(presenter.canDelete());
+		button.setEnabled(presenter.canDuplicate());
+		button.setVisible(presenter.canDuplicate());
 		return button;
 	}
 
@@ -295,6 +365,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 		button.setEnabled(presenter.canDelete());
+		button.setVisible(presenter.canDelete());
 		return button;
 	}
 
@@ -311,6 +382,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		};
 		button.setEnabled(presenter.canEmptyCart());
+		button.setVisible(presenter.canEmptyCart());
 		return button;
 	}
 
