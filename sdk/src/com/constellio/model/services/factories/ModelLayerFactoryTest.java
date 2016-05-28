@@ -2,9 +2,7 @@ package com.constellio.model.services.factories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 
@@ -188,7 +186,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	public void whenNewAuthorizationsServicesThenNotNull() {
 		assertThat(modelLayerFactory.newAuthorizationsServices()).isNotNull();
 		verify(modelLayerFactory).getAuthorizationDetailsManager();
-		verify(modelLayerFactory).getRolesManager();
+		verify(modelLayerFactory,times(2)).getRolesManager();
 		verify(modelLayerFactory).getTaxonomiesManager();
 	}
 
