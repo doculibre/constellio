@@ -102,6 +102,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	public void execute() {
 		transaction = new Transaction();
+		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
 		//TODO Test
 		//transaction.setSkippingRequiredValuesValidation(true);

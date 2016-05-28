@@ -13,6 +13,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
@@ -71,19 +72,19 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		setSizeUndefined();
 
 		setCompositionRoot(buildContent());
-//		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
-//			@Override
-//			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
-//				hideMenu();
-//			}
-//		});
+		//		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
+		//			@Override
+		//			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
+		//				hideMenu();
+		//			}
+		//		});
 	}
 
 	@Override
 	public void setCollections(List<String> collections) {
 		this.collections = collections;
 	}
-	
+
 	protected void hideMenu() {
 		Component compositionRoot = getCompositionRoot();
 		if (compositionRoot.getStyleName().contains(STYLE_VISIBLE)) {
@@ -131,20 +132,23 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			MenuItem collectionSubMenu = collectionMenu.addItem(
 					$("ConstellioMenu.collection", presenter.getCollectionCaption(currentCollection)), null);
 			for (final String collection : collections) {
-				String collectionCaption = presenter.getCollectionCaption(collection);
-				MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-						presenter.collectionClicked(collection);
-						List<MenuItem> menuItems = selectedItem.getParent().getChildren();
-						for (MenuItem menuItem : menuItems) {
-							menuItem.setChecked(false);
+
+				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
+					String collectionCaption = presenter.getCollectionCaption(collection);
+					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.collectionClicked(collection);
+							List<MenuItem> menuItems = selectedItem.getParent().getChildren();
+							for (MenuItem menuItem : menuItems) {
+								menuItem.setChecked(false);
+							}
+							selectedItem.setChecked(true);
 						}
-						selectedItem.setChecked(true);
-					}
-				});
-				collectionMenuItem.setCheckable(true);
-				collectionMenuItem.setChecked(currentCollection.equals(collection));
+					});
+					collectionMenuItem.setCheckable(true);
+					collectionMenuItem.setChecked(currentCollection.equals(collection));
+				}
 			}
 			HorizontalLayout collectionMenuWrapper = new HorizontalLayout(collectionMenu);
 			collectionMenuWrapper.setComponentAlignment(collectionMenu, Alignment.MIDDLE_CENTER);
@@ -251,11 +255,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		String firstName = currentUser.getFirstName();
 		String lastName = currentUser.getLastName();
 
-//		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
-//			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
-//
-//		} else
-        if (!presenter.hasCurrentUserPhoto()) {
+		//		if (currentUser.getEmail() != null && currentUser.getEmail().startsWith("elizabeth.madera")) {
+		//			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/egg2.jpg"), null);
+		//
+		//		} else
+		if (!presenter.hasCurrentUserPhoto()) {
 			userSettingsItem = userMenu.addItem("", new ThemeResource("images/profiles/default.jpg"), null);
 
 		} else {
@@ -288,7 +292,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		//			}
 		//		});
 		final String collection = sessionContext.getCurrentCollection();
-		for(String language : presenter.getCollectionLanguages(collection)){
+		for (String language : presenter.getCollectionLanguages(collection)) {
 			userSettingsItem.addSeparator();
 			userSettingsItem.addItem(language, new Command() {
 				@Override
@@ -297,7 +301,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 				}
 			}).setStyleName("language-item-" + language);
 		}
-
 
 		userSettingsItem.addSeparator();
 
