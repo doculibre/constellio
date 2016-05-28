@@ -49,6 +49,7 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 		table = new Generator().attachedTo(new Table());
 		table.setWidth("100%");
 		updateTable();
+		this.setVisible(rules.size() >= 2);
 		return table;
 	}
 
@@ -66,6 +67,7 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 			table.addItem(rule);
 		}
 		table.setPageLength(rules.size());
+		this.setVisible(rules.size() >= 2);
 	}
 
 	private class Generator implements ColumnGenerator {

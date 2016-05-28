@@ -30,6 +30,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setEditButtonState(ComponentState state);
 
+	void setMoveInFolderState(ComponentState state);
+
 	void setAddDocumentButtonState(ComponentState state);
 
 	void setAddSubFolderButtonState(ComponentState state);

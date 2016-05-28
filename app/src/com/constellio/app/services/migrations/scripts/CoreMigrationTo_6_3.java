@@ -36,6 +36,7 @@ public class CoreMigrationTo_6_3 implements MigrationScript {
             throws Exception {
         //FIXME is called several times for the different installed modules!!
         new CoreSchemaAlterationFor6_3(collection, provider, appLayerFactory).migrate();
+        appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
         //initializeUsersLanguages(collection, appLayerFactory);
     }
 

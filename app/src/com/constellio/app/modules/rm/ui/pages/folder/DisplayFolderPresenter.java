@@ -14,17 +14,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
@@ -68,7 +67,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -247,6 +245,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		User user = getCurrentUser();
 		view.setLogicallyDeletable(getDeleteButtonState(user, folder));
 		view.setEditButtonState(getEditButtonState(user, folder));
+		view.setMoveInFolderState(getMoveInFolderButtonState(user, folder));
 		view.setAddSubFolderButtonState(getAddFolderButtonState(user, folder));
 		view.setAddDocumentButtonState(getAddDocumentButtonState(user, folder));
 		view.setDuplicateFolderButtonState(getDuplicateFolderButtonState(user, folder));
@@ -384,6 +383,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
+	}
+
+	ComponentState getMoveInFolderButtonState(User user, Folder folder) {
+		return getEditButtonState(user, folder);
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
@@ -807,15 +810,18 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.showMessage($("DisplayFolderView.addedToCart"));
 	}
 
-	public void parentFolderButtonClicked(String parentId) throws RecordServicesException {
+	public void parentFolderButtonClicked(String parentId)
+			throws RecordServicesException {
 		RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
 
 		String currentFolderId = folderVO.getId();
-		if(StringUtils.isBlank(parentId)){
-			//FIXME francis traitement particulier?
-			parentId = null;
+		if (StringUtils.isNotBlank(parentId)) {
+			try {
+				recordServices.update(rmSchemas.getFolder(currentFolderId).setParentFolder(parentId));
+				view.navigate().to(RMViews.class).displayFolder(currentFolderId);
+			} catch (RecordServicesException.ValidationException e) {
+				view.showErrorMessage($(e.getErrors()));
+			}
 		}
-		recordServices.add(rmSchemas.getFolder(currentFolderId).setParentFolder(parentId));
-		view.navigate().to(RMViews.class).displayFolder(currentFolderId);
 	}
 }

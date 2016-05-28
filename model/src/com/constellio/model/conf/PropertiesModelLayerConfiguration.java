@@ -7,6 +7,8 @@ import org.joda.time.Duration;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesConfiguration;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class PropertiesModelLayerConfiguration extends PropertiesConfiguration implements ModelLayerConfiguration {
 
@@ -103,6 +105,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
+	public DataLayerConfiguration getDataLayerConfiguration() {
+		return dataLayerConfiguration;
+	}
+
+	@Override
 	public void setBatchProcessesEnabled(boolean enabled) {
 		this.batchProcessesEnabled = enabled;
 	}
@@ -111,4 +118,15 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	public boolean isBatchProcessesThreadEnabled() {
 		return batchProcessesEnabled;
 	}
+
+	@Override
+	public Factory<EncryptionServices> getEncryptionServicesFactory() {
+		return new Factory<EncryptionServices>() {
+			@Override
+			public EncryptionServices get() {
+				return new EncryptionServices();
+			}
+		};
+	}
+
 }
