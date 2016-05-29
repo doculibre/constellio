@@ -42,7 +42,7 @@ public class MetadataSchemaTypesBuilder {
 
 	private static final String UNDERSCORE = "_";
 	private static final String DEFAULT = "default";
-	private final int version;
+	private int version;
 	private final List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
 	private final String collection;
 	private ClassProvider classProvider;
@@ -458,5 +458,9 @@ public class MetadataSchemaTypesBuilder {
 
 	public ClassProvider getClassProvider() {
 		return classProvider;
+	}
+
+	public void setVersion(int version) {
+		this.version = version;
 	}
 }

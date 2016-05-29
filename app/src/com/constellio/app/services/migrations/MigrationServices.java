@@ -134,7 +134,7 @@ public class MigrationServices {
 		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
 
 		if (isNewCollection(collection) && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled()) {
-			migrateWithoutException(new FastCoreMigration(), null, collection);
+			migrateWithoutException(new CoreMigrationCombo(), null, collection);
 		}
 
 		List<Migration> migrations = getAllMigrationsFor(collection);
@@ -280,7 +280,7 @@ public class MigrationServices {
 		moduleId = moduleId == null ? "core" : moduleId;
 
 		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
-				"fast", ioServices, moduleResourcesLocator);
+				"combo", ioServices, moduleResourcesLocator);
 
 		try {
 			fastMigrationScript.migrate(collectionId, migrationResourcesProvider, appLayerFactory);
