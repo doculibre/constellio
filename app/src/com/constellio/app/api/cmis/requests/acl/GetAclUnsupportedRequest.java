@@ -6,12 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.builders.object.AclBuilder;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
 
 public class GetAclUnsupportedRequest extends CmisCollectionRequest<Acl> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GetAclUnsupportedRequest.class);
 	private final String objectId;
 
 	public GetAclUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
@@ -25,7 +27,8 @@ public class GetAclUnsupportedRequest extends CmisCollectionRequest<Acl> {
 	 */
 	@Override
 	public Acl process() {
-		throw new UnsupportedOperationException();
+		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
+		return new AclBuilder(repository, modelLayerFactory).build(record);
 	}
 
 	@Override

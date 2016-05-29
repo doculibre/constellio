@@ -67,11 +67,13 @@ public class CollectionRepositoryTypesDefinitionBuilder {
 		taxoType.setDisplayName(TAXONOMY);
 		taxoType.setDescription(TAXONOMY);
 		typeDefinitions.put(taxoType.getId(), taxoType);
-		
+
 		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
 			for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
 				MutableFolderTypeDefinition folder = typeDefinitionFactory.createFolderTypeDefinition(CmisVersion.CMIS_1_1,
 						baseFolderType.getId());
+				//TODO Francis ACL
+				folder.setIsControllableAcl(true);
 				folder.setId(metadataSchema.getCode());
 				folder.setLocalName(metadataSchema.getCode());
 				folder.setDisplayName(metadataSchema.getCode());

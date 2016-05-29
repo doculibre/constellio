@@ -40,6 +40,7 @@ public class AllowableActionsBuilder {
 			addAction(aas, Action.CAN_MOVE_OBJECT, !userReadOnly);
 			addAction(aas, Action.CAN_DELETE_OBJECT, !userReadOnly);
 			addAction(aas, Action.CAN_GET_ACL, true);
+			addAction(aas, Action.CAN_APPLY_ACL, true);
 
 			//if (isFolder) {
 			addAction(aas, Action.CAN_GET_DESCENDANTS, true);

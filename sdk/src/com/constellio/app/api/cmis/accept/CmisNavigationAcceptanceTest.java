@@ -11,6 +11,7 @@ import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
+import org.junit.Test;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.data.utils.LangUtils;
@@ -34,6 +35,8 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 	Records zeCollectionRecords;
 	TaxonomiesSearchServices taxonomiesSearchServices;
 
+	private String adminToken;
+
 	//	Session cmisSession;
 	Session session;
 
@@ -55,14 +58,14 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-
-		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
-		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
+		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
+		userServices.addUserToCollection(users.admin(), zeCollection);
+		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
+		adminToken = userServices.generateToken(admin);
 
 	}
 
+	@Test
 	public void test()
 			throws Exception {
 		session = givenAdminSessionOnZeCollection();
@@ -152,7 +155,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 	}
 
 	private Session givenAdminSessionOnZeCollection() {
-		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
+		return newCmisSessionBuilder().authenticatedBy("admin-key", adminToken).onCollection(zeCollection).build();
 	}
 
 	private List<CmisObject> getChildren(Folder folder) {

@@ -65,10 +65,10 @@ public class ObjectDataBuilder {
 
 		callExtensions(result, propertiesBuilder, record);
 
-		//		if (includeAcl) {
-		//			builtProperties.setAcl(new AclBuilder(repository).build(file));
-		//			builtProperties.setIsExactAcl(true);
-		//		}
+		//if (includeAcl) {
+		result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
+		result.setIsExactAcl(true);
+		//}
 
 		if (context.isObjectInfoRequired()) {
 			objectInfo.setObject(result);
@@ -180,7 +180,7 @@ public class ObjectDataBuilder {
 		objectInfo.setTypeId(typeId);
 		objectInfo.setContentType(null);
 		objectInfo.setFileName(null);
-		objectInfo.setHasAcl(false);
+		objectInfo.setHasAcl(true);
 		objectInfo.setHasContent(false);
 		objectInfo.setVersionSeriesId(null);
 		objectInfo.setIsCurrentVersion(true);
