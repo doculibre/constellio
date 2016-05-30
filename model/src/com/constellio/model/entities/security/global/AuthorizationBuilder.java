@@ -87,4 +87,8 @@ public class AuthorizationBuilder {
 		return withRoles(asList(roles));
 	}
 
+	public Authorization giving(List<String> roles) {
+		return withRoles(roles);
+	}
+
 }

@@ -81,7 +81,7 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 					.getSchemaTypes(repository.getCollection());
 			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types);
 			return newContentObjectDataBuilder()
-					.build(context, content, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+					.build(appLayerFactory, context, content, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
 		} else {
 			Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId, user);
 			return newObjectDataBuilder()

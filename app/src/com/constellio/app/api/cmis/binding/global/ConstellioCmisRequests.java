@@ -22,6 +22,7 @@ import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
@@ -32,7 +33,8 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.acl.GetAclUnsupportedRequest;
+import com.constellio.app.api.cmis.requests.acl.ApplyAclRequest;
+import com.constellio.app.api.cmis.requests.acl.GetAclRequest;
 import com.constellio.app.api.cmis.requests.discovery.QueryUnsupportedRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetChildrenRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetDescendantsUnsupportedRequest;
@@ -388,8 +390,21 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions, ExtensionsData extension) {
-		return new GetAclUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
+		return new GetAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
 				.processRequest();
+	}
+
+	@Override
+	public Acl applyAcl(String repositoryId, String objectId, Acl addAces, Acl removeAces, AclPropagation aclPropagation,
+			ExtensionsData extension) {
+		return new ApplyAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
+				repositoryId, objectId, addAces, removeAces, aclPropagation, extension).processRequest();
+	}
+
+	@Override
+	public Acl applyAcl(String repositoryId, String objectId, Acl aces, AclPropagation aclPropagation) {
+		return new ApplyAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
+				repositoryId, objectId, aces, aclPropagation).processRequest();
 	}
 
 	// --- discovery service ---
