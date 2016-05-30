@@ -76,23 +76,25 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		table.addStyleName(GROUP_TABLE);
 
 		for (final String group : presenter.getMetadataGroupList()) {
-			table.addItem(group);
-			table.getContainerProperty(group, "code").setValue(group);
+			if (group != null) {
+				table.addItem(group);
+				table.getContainerProperty(group, "code").setValue(group);
 
-			for (String language : presenter.getCollectionLanguages()) {
-				String groupLabel = presenter.getGroupLabel(group, language);
-				table.getContainerProperty(group, language).setValue(groupLabel);
-			}
-
-			Button deleteButton = new DeleteButton() {
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteGroupMetadata(group);
+				for (String language : presenter.getCollectionLanguages()) {
+					String groupLabel = presenter.getGroupLabel(group, language);
+					table.getContainerProperty(group, language).setValue(groupLabel);
 				}
-			};
-			deleteButton.addStyleName(GROUP_DELETE_BUTTON);
 
-			table.getContainerProperty(group, "button").setValue(deleteButton);
+				Button deleteButton = new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteGroupMetadata(group);
+					}
+				};
+				deleteButton.addStyleName(GROUP_DELETE_BUTTON);
+
+				table.getContainerProperty(group, "button").setValue(deleteButton);
+			}
 		}
 
 		return table;

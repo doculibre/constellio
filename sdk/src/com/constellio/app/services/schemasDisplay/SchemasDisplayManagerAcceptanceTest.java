@@ -4,7 +4,6 @@ import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.TEXTAREA;
 import static com.constellio.app.services.schemasDisplay.SchemasDisplayManager.REQUIRED_METADATA_IN_FORM_LIST;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -382,10 +381,9 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 
 		Map<String, Object> titleParams = asMap(
 				"code", "mySchemaType_default_title");
-		Map<String, Object> titleLabels = asMap("fr","Ze title");
+		Map<String, Object> titleLabels = asMap("fr", "Ze title");
 		titleLabels.put("en", "Ze title en");
 		titleParams.put("label", titleLabels);
-
 
 		Map<String, Object> codeParams = asMap(
 				"code", "mySchemaType_default_code");
@@ -637,7 +635,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenNewCollectionWhenAddingMetadataGroupInSchemaTypeThenInformationsConserved()
+	public void givenNewCollectionWhenAddModifyMetadataGroupsInSchemaTypeThenInformationsConserved()
 			throws Exception {
 
 		SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, "user");
@@ -650,6 +648,14 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(3);
 		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("zeGroup", "zeRequiredGroup", "zeOptionalGroup");
+
+		typeDisplay = typeDisplay
+				.withMetadataGroup(configureLabels(Arrays.asList("group1", "group2", "group3", "group4")));
+		manager.saveType(typeDisplay);
+
+		typeDisplay = manager.getType(zeCollection, "user");
+		assertThat(typeDisplay.getMetadataGroup()).hasSize(4);
+		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("group1", "group2", "group3", "group4");
 	}
 
 	private Map<String, Map<Language, String>> configureLabels(List<String> values) {
