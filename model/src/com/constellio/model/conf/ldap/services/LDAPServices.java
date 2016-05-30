@@ -212,18 +212,17 @@ public class LDAPServices {
 	public LdapContext connectToLDAP(List<String> domains, String url, String user, String password, Boolean followReferences,
 			boolean activeDirectory) {
 		LDAPFastBind ldapFastBind = new LDAPFastBind(url, followReferences, activeDirectory);
-		boolean authenticated = false;
-		for (String domain : domains) {
-			String username = user + "@" + domain;
-			authenticated = ldapFastBind.authenticate(username, password);
-			if (authenticated) {
-				break;
+		boolean authenticated = ldapFastBind.authenticate(user, password);
+		if(!authenticated){
+			for (String domain : domains) {
+				String username = user + "@" + domain;
+				authenticated = ldapFastBind.authenticate(username, password);
+				if (authenticated) {
+					break;
+				}
 			}
 		}
-		if (authenticated) {
-			return ldapFastBind.ctx;
-		}
-		authenticated = ldapFastBind.authenticate(user, password);
+
 		if (!authenticated) {
 			throw new LDAPConnectionFailure(domains.toArray(), url, user);
 		}
@@ -288,6 +287,10 @@ public class LDAPServices {
 	}
 
 	public boolean isUser(LDAPDirectoryType directoryType, String groupMemberId, LdapContext ctx) {
+		if(directoryType == LDAPDirectoryType.E_DIRECTORY){
+			//FIXME
+			return true;
+		}
 		try {
 			LDAPUserBuilder userBuilder = LDAPUserBuilderFactory.getUserBuilder(directoryType);
 			if (groupMemberId.contains("\\")) {
@@ -325,5 +328,47 @@ public class LDAPServices {
 			}
 		});
 		return users;
+	}
+
+	public String dnForUser(LdapContext dirContext, String username, List<String> baseSearch) {
+		if(baseSearch == null || baseSearch.isEmpty()){
+			return null;
+		}
+		try {
+			String[] returnAttribute = { "dn" };
+			SearchControls srchControls = new SearchControls();
+			srchControls.setReturningAttributes(returnAttribute);
+			srchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			String searchFilter = "(&(objectClass=user)(sAMAccountName=" + username + "))";
+			//ceci ne fonctionne pas toujours ex : LDAPServicesAcceptanceTest#whenDnForUserThenOk
+			//String searchFilter = "(&(objectClass=inetOrgPerson)(|(uid=" + cnORuid + ")(cn=" + cnORuid + ")))";
+
+			//FIXME search in all baseSearch elements
+			NamingEnumeration<SearchResult> srchResponse = dirContext.search(baseSearch.get(0), searchFilter, srchControls);
+			if (srchResponse.hasMore()) {
+				return srchResponse.next().getNameInNamespace();
+			}
+		} catch (NamingException namEx) {
+			namEx.printStackTrace();
+		}
+		return null;
+	}
+
+	public String dnForEdirectoryUser(LdapContext dirContext, String searchBase, String cnORuid) {
+		try {
+			String[] returnAttribute = { "dn" };
+			SearchControls srchControls = new SearchControls();
+			srchControls.setReturningAttributes(returnAttribute);
+			srchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			String searchFilter = "(&(objectClass=inetOrgPerson)(|(uid=" + cnORuid + ")(cn=" + cnORuid + ")))";
+
+			NamingEnumeration<SearchResult> srchResponse = dirContext.search(searchBase, searchFilter, srchControls);
+			if (srchResponse.hasMore()) {
+				return srchResponse.next().getNameInNamespace();
+			}
+		} catch (NamingException namEx) {
+			namEx.printStackTrace();
+		}
+		return null;
 	}
 }

@@ -94,4 +94,14 @@ public class LDAPServicesAcceptanceTest {
 
 		System.out.println(subgroupLevel1);
 	}
+
+	@Test
+	public void whenDnForUserThenOk()
+			throws Exception {
+		LdapContext ldapContext = getValidContext();
+		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
+		String dn = new LDAPServices().dnForUser(ldapContext, "username0", Arrays.asList(ouWith3001Users));
+		assertThat(dn).isEqualTo("CN=username0,OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca");
+		System.out.println(dn);
+	}
 }
