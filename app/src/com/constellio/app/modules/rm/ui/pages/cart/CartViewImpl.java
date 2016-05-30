@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -53,6 +54,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private BaseTextField folderFilterField;
 	private BaseTextField documentFilterField;
 	private BaseTextField containerFilterField;
+	private String currentSchemaType;
+	private ReportSelector reportSelector;
+	private VerticalLayout mainLayout;
 
 	public CartViewImpl() {
 		presenter = new CartPresenter(this);
@@ -62,6 +66,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		super.initBeforeCreateComponents(event);
 		presenter.forParams(event.getParameters());
+		currentSchemaType = Folder.SCHEMA_TYPE;
 	}
 
 	@Override
@@ -257,11 +262,28 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		folderTable = buildTable(presenter.getFolderRecords());
 		documentTable = buildTable(presenter.getDocumentRecords());
 		containerTable = buildTable(presenter.getContainerRecords());
-		tabSheet.addTab(folderLayout = new VerticalLayout(buildFolderFilterComponent(),folderTable)).setCaption($("CartView.foldersTab"));
-		tabSheet.addTab(documentLayout = new VerticalLayout(buildDocumentFilterComponent(),documentTable)).setCaption($("CartView.documentsTab"));
-		tabSheet.addTab(containerLayout = new VerticalLayout(buildContainerFilterComponent(),containerTable)).setCaption($("CartView.containersTab"));
-		VerticalLayout mainLayout = new VerticalLayout(tabSheet);
+		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new VerticalLayout(buildFolderFilterComponent(),folderTable));
+		folderTab.setCaption($("CartView.foldersTab"));
+		folderLayout.setDescription(Folder.SCHEMA_TYPE);
+		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new VerticalLayout(buildDocumentFilterComponent(),documentTable));
+		documentTab.setCaption($("CartView.documentsTab"));
+		documentLayout.setDescription(Document.SCHEMA_TYPE);
+		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new VerticalLayout(buildContainerFilterComponent(),containerTable));
+		containerTab.setCaption($("CartView.containersTab"));
+		containerLayout.setDescription(ContainerRecord.SCHEMA_TYPE);
+		mainLayout = new VerticalLayout(reportSelector = new ReportSelector(presenter));
 		mainLayout.setSizeFull();
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				Component selectedTab = event.getTabSheet().getSelectedTab();
+				currentSchemaType = selectedTab.getDescription();
+				ReportSelector newReportSelector = new ReportSelector(presenter);
+				mainLayout.replaceComponent(reportSelector, newReportSelector);
+				reportSelector = newReportSelector;
+			}
+		});
+		mainLayout.addComponent(tabSheet);
 		return mainLayout;
 	}
 
@@ -403,6 +425,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 		});
 		return container;
+	}
+
+	@Override
+	public String getCurrentSchemaType() {
+		return currentSchemaType;
 	}
 
 	private class BatchProcessingViewImpl implements BatchProcessingView {

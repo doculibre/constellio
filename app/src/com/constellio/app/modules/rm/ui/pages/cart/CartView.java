@@ -10,5 +10,6 @@ public interface CartView extends BaseView, CartViewGroup {
 	void filterFolderTable();
 	void filterDocumentTable();
 	void filterContainerTable();
+	String getCurrentSchemaType();
 
 }
