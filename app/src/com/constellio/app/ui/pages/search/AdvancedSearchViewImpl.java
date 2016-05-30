@@ -5,12 +5,14 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
@@ -150,8 +152,23 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
-				TabSheet tabSheet = new TabSheet();
 
+				HorizontalLayout newCartLayout = new HorizontalLayout();
+				newCartLayout.setSpacing(true);
+				newCartLayout.addComponent(new Label("New cart: "));
+				final BaseTextField newCartTitleField;
+				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				BaseButton saveButton;
+				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+						getWindow().close();
+					}
+				});
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				TabSheet tabSheet = new TabSheet();
 				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
 				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
@@ -178,7 +195,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
-				layout.addComponent(tabSheet);
+				layout.addComponents(newCartLayout,tabSheet);
 				return layout;
 			}
 		};
