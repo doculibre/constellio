@@ -39,7 +39,7 @@ public class RMMigrationTo6_4 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).defineValidators().add(FolderValidator.class);
 			updateCartSchema(typesBuilder);
-			setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicatable(typesBuilder);
+			setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicable(typesBuilder);
 		}
 
 		private void updateCartSchema(MetadataSchemaTypesBuilder typesBuilder) {
@@ -50,12 +50,12 @@ public class RMMigrationTo6_4 implements MigrationScript {
 					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 		}
 
-		private void setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicatable(final MetadataSchemaTypesBuilder typesBuilder) {
+		private void setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicable(final MetadataSchemaTypesBuilder typesBuilder) {
             final Set<MetadataBuilder> metadataBuilders = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getAllMetadatas();
             metadataBuilders.addAll(typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getAllMetadatas());
 			for (final MetadataBuilder metadataBuilder : metadataBuilders) {
 				if ((metadataBuilder != null) && metadataBuilder.getEnabled() && !metadataBuilder.isSystemReserved() && ((metadataBuilder.getDataEntry() != null) && DataEntryType.MANUAL.equals(metadataBuilder.getDataEntry().getType()))) {
-					metadataBuilder.setDuplicatable(true);
+					metadataBuilder.setDuplicable(true);
 				}
 			}
 		}

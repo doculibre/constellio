@@ -65,7 +65,7 @@ public class Metadata implements DataStoreField {
 
 	final String inputMask;
 
-	final boolean duplicatable;
+	final boolean duplicable;
 
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
@@ -114,7 +114,7 @@ public class Metadata implements DataStoreField {
 		this.enumClass = null;
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
-		this.duplicatable = false;
+		this.duplicable = false;
 
 	}
 
@@ -147,12 +147,12 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
-		this.duplicatable = duplicatbale;
+		this.duplicable = duplicatbale;
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
-			MetadataPopulateConfigs populateConfigs, boolean duplicatable) {
+			MetadataPopulateConfigs populateConfigs, boolean duplicable) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -175,7 +175,7 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
-		this.duplicatable = duplicatable;
+		this.duplicable = duplicable;
 	}
 
 	public String getCode() {
@@ -447,6 +447,6 @@ public class Metadata implements DataStoreField {
 		return localCode.equals(metadata.getLocalCode());
 	}
 
-	public boolean isDuplicatable() { return duplicatable; }
+	public boolean isDuplicable() { return duplicable; }
 
 }

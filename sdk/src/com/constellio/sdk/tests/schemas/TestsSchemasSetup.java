@@ -298,11 +298,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
-	public static MetadataBuilderConfigurator whichIsDuplicatable = new MetadataBuilderConfigurator() {
+	public static MetadataBuilderConfigurator whichIsDuplicable = new MetadataBuilderConfigurator() {
 
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
-			builder.setDuplicatable(true);
+			builder.setDuplicable(true);
 		}
 
 	};

@@ -47,23 +47,23 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				whenMigratingToCurrentVersionThenConfigHasValidDefaultValue();
 				whenMigratingToCurrentVersionThenTaskModuleIsEnabledAndExtraRMMetadatasAreCreated();
 				whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3();
-                whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicatable(metadataSchemaTypes);
+                whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(metadataSchemaTypes);
 			}
 		}
 	}
 
-	private void whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicatable(final MetadataSchemaTypes metadataSchemaTypes) {
+	private void whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(final MetadataSchemaTypes metadataSchemaTypes) {
 		final MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
-		assertThat(folderSchema.getMetadata(Folder.TITLE).isDuplicatable()).isTrue();
-		assertThat(folderSchema.getMetadata(Folder.TYPE).isDuplicatable()).isTrue();
-        assertThat(folderSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicatable()).isFalse();
-        assertThat(folderSchema.getMetadata(Schemas.PATH.getCode()).isDuplicatable()).isFalse();
+		assertThat(folderSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
+		assertThat(folderSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
+        assertThat(folderSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
+        assertThat(folderSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
 
         final MetadataSchema documentSchema = metadataSchemaTypes.getSchema(Document.DEFAULT_SCHEMA);
-        assertThat(documentSchema.getMetadata(Folder.TITLE).isDuplicatable()).isTrue();
-        assertThat(documentSchema.getMetadata(Folder.TYPE).isDuplicatable()).isTrue();
-        assertThat(documentSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicatable()).isFalse();
-        assertThat(documentSchema.getMetadata(Schemas.PATH.getCode()).isDuplicatable()).isFalse();
+        assertThat(documentSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
+        assertThat(documentSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
+        assertThat(documentSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
+        assertThat(documentSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
 	}
 
 	private void whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3() {

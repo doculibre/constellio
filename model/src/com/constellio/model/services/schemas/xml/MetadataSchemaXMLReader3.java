@@ -141,7 +141,7 @@ public class MetadataSchemaXMLReader3 {
 		String enabledStringValue = metadataElement.getAttributeValue("enabled");
 		String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
 		String inputMask = metadataElement.getAttributeValue("inputMask");
-		String duplicatableStringValue = metadataElement.getAttributeValue("duplicatable");
+		String duplicableStringValue = metadataElement.getAttributeValue("duplicable");
 
 		List<String> validatorsClassNames = parseValidators(metadataElement, null);
 		for (String validatorsClassName : validatorsClassNames) {
@@ -166,8 +166,8 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setDefaultValue(defaultValue);
 		}
 
-		if (duplicatableStringValue != null) {
-			metadataBuilder.setDuplicatable(readBoolean(duplicatableStringValue));
+		if (duplicableStringValue != null) {
+			metadataBuilder.setDuplicable(readBoolean(duplicableStringValue));
 		}
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
@@ -178,7 +178,7 @@ public class MetadataSchemaXMLReader3 {
 		if (!metadataBuilder.isSystemReserved()) {
 			String enabledStringValue = metadataElement.getAttributeValue("enabled");
 			String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
-			String duplicatableStringValue = metadataElement.getAttributeValue("duplicatable");
+			String duplicableStringValue = metadataElement.getAttributeValue("duplicable");
 
 			if (enabledStringValue == null) {
 				metadataBuilder.setEnabled(true);
@@ -192,10 +192,10 @@ public class MetadataSchemaXMLReader3 {
 				metadataBuilder.setDefaultRequirement(readBoolean(defaultRequirementStringValue));
 			}
 
-			if (duplicatableStringValue == null) {
-				metadataBuilder.setDuplicatable(false);
+			if (duplicableStringValue == null) {
+				metadataBuilder.setDuplicable(false);
 			} else {
-				metadataBuilder.setDuplicatable(readBoolean(duplicatableStringValue));
+				metadataBuilder.setDuplicable(readBoolean(duplicableStringValue));
 			}
 		}
 

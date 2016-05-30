@@ -534,10 +534,10 @@ public class MetadataList implements List<Metadata> {
 		return localCodeIndex.containsKey(localCode);
 	}
 
-	public MetadataList onlyDuplicatable() {
+	public MetadataList onlyDuplicable() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			if (metadata.isDuplicatable()) {
+			if (metadata.isDuplicable()) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
