@@ -1,7 +1,11 @@
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
+import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +13,8 @@ import java.util.List;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +26,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
@@ -40,9 +45,18 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 	Records zeCollectionRecords;
 	TaxonomiesSearchServices taxonomiesSearchServices;
 
+	List<String> R = asList("cmis:read");
+	List<String> RW = asList("cmis:read", "cmis:write");
+	List<String> constellio_R = asList(READ);
+	List<String> constellio_RW = asList(READ, WRITE);
+
 	//	Session cmisSession;
 	Session session;
 	String adminToken;
+
+	AuthorizationsServices authorizationsServices;
+
+	String aliceId, bobId, charlesId, dakotaId, edouardId, chuckId, gandalfId, robinId, heroesId;
 
 	@Before
 	public void setUp()
@@ -81,7 +95,17 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);
+		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
+		aliceId = users.aliceIn(zeCollection).getId();
+		bobId = users.bobIn(zeCollection).getId();
+		charlesId = users.charlesIn(zeCollection).getId();
+		dakotaId = users.dakotaIn(zeCollection).getId();
+		edouardId = users.edouardIn(zeCollection).getId();
+		gandalfId = users.gandalfIn(zeCollection).getId();
+		chuckId = users.chuckNorrisIn(zeCollection).getId();
+		heroesId = users.heroesIn(zeCollection).getId();
+		robinId = users.robinIn(zeCollection).getId();
 	}
 
 	@Test
@@ -95,48 +119,78 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		assertThatRecord(zeCollectionRecords.folder2).onlyUserWithReadPermissionAre(chuckNorris, admin, edouard);
 		assertThatRecord(zeCollectionRecords.folder2_1).onlyUserWithWritePermissionAre(admin, edouard);
 
-		//assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
 		session.getDefaultContext().setIncludeAcls(true);
 
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
-		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId").containsOnly(
-				Tuple.tuple(false, asList("cmis:read", "cmis:write"), "edouard")
-		);
-
-		Ace heroesReadWriteACE = session.getObjectFactory().createAce("heroes", asList("cmis:read"));
-		Ace bobGrattonReadWriteACE = session.getObjectFactory().createAce(bobGratton, asList("cmis:read", "cmis:write"));
-
 		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
+				.containsOnly(tuple(false, RW, "edouard"));
 
-		cmisFolder2.addAcl(asList(heroesReadWriteACE, bobGrattonReadWriteACE), AclPropagation.REPOSITORYDETERMINED);
+		//Add two ACE
+		cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW)), REPOSITORYDETERMINED);
 		waitForBatchProcess();
-		//		session.getBinding().getAclService().applyAcl(session.getRepositoryInfo().getId(), cmisFolder2.getId(),
-		//				new AccessControlListImpl(asList(heroesReadWriteACE)), null, AclPropagation.REPOSITORYDETERMINED, null);
-
-		//cmisFolder2.setAcl(asList(heroesReadWriteACE, bobGrattonReadWriteACE));
-		giveReadAccessToHeroesGroupUsingCMIS();
 
 		assertThatRecord(zeCollectionRecords.folder2)
-				.onlyUserWithReadPermissionAre(chuckNorris, admin, gandalf, charlesFrancoisXavier, dakota, bobGratton, edouard,
-						robin);
-		assertThatRecord(zeCollectionRecords.folder2_1).onlyUserWithWritePermissionAre(admin, bobGratton, edouard);
+				.onlyUserWithReadPermissionAre(chuckNorris, admin, gandalf, charles, dakota, bobGratton, edouard, robin)
+				.onlyUserWithWritePermissionAre(admin, bobGratton, edouard);
 
-		cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
-		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId").containsOnly(
-				Tuple.tuple(false, asList("cmis:read", "cmis:write"), edouard),
-				Tuple.tuple(true, asList("cmis:read"), "heroes"),
-				Tuple.tuple(true, asList("cmis:read", "cmis:write"), bobGratton)
+		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
+				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_R, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
+				tuple(constellio_RW, asList(bobId), asList(zeCollectionRecords.folder2.getId()))
 		);
 
+		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
+				tuple(false, RW, edouard), tuple(true, R, "heroes"), tuple(true, RW, bobGratton));
+
+		//Add the same bob ACE and a RW auth for heroes
+		cmisFolder2.addAcl(asList(ace("heroes", RW), ace(bobGratton, RW)), REPOSITORYDETERMINED);
+		waitForBatchProcess();
+
+		assertThatRecord(zeCollectionRecords.folder2)
+				.onlyUserWithReadPermissionAre(chuckNorris, admin, gandalf, charles, dakota, bobGratton, edouard, robin)
+				.onlyUserWithWritePermissionAre(admin, bobGratton, edouard, gandalf, dakota, robin, charles);
+
+		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
+				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_R, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
+				tuple(constellio_RW, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
+				tuple(constellio_RW, asList(bobId), asList(zeCollectionRecords.folder2.getId()))
+		);
+
+		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
+				tuple(false, RW, edouard), tuple(true, R, "heroes"), tuple(true, RW, "heroes"), tuple(true, RW, bobGratton));
+
+//		cmisFolder2.removeAcl(asList(ace("heroes", R)), REPOSITORYDETERMINED);
+		//
+		//		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
+		//				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
+		//				tuple(constellio_RW, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
+		//				tuple(constellio_RW, asList(bobId), asList(zeCollectionRecords.folder2.getId()))
+		//		);
+		//
+		//		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
+		//				tuple(false, RW, edouard), tuple(true, RW, "heroes"), tuple(true, RW, bobGratton));
+
+	}
+
+	private ListAssert<Tuple> assertThatAcesOf(Record record) {
+		return assertThat(cmisFolder(record).getAcl().getAces()).extracting("direct", "permissions", "principalId");
+	}
+
+	private ListAssert<Tuple> assertThatRecordAuthorizations(Record record) {
+		recordServices.refresh(record);
+
+		return assertThat(authorizationsServices.getRecordAuthorizations(record))
+				.extracting("detail.roles", "grantedToPrincipals", "grantedOnRecords");
+	}
+
+	private Ace ace(String principal, List<String> permissions) {
+		return session.getObjectFactory().createAce(principal, permissions);
 	}
 
 	private Folder cmisFolder(Record record) {
 		return (Folder) session.getObject(record.getId());
-	}
-
-	private void giveReadAccessToHeroesGroupUsingCMIS() {
-
-		// REPOSITORYDETERMINED("repositorydetermined"), OBJECTONLY("objectonly"), PROPAGATE("propagate")
 	}
 
 	private void givenFolderInheritingTaxonomyAuthorizations() {
@@ -162,7 +216,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 			this.folderId = folderId;
 		}
 
-		private void onlyUserWithReadPermissionAre(String... users) {
+		private FolderRecordValidator onlyUserWithReadPermissionAre(String... users) {
 
 			List<String> userWithReadAccess = new ArrayList<>();
 			UserServices userServices = getModelLayerFactory().newUserServices();
@@ -172,10 +226,11 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 					userWithReadAccess.add(user.getUsername());
 				}
 			}
-			assertThat(userWithReadAccess).containsOnly(users);
+			assertThat(userWithReadAccess).describedAs("users with read access").containsOnly(users);
+			return this;
 		}
 
-		private void onlyUserWithWritePermissionAre(String... users) {
+		private FolderRecordValidator onlyUserWithWritePermissionAre(String... users) {
 
 			List<String> userWithWriteAccess = new ArrayList<>();
 			UserServices userServices = getModelLayerFactory().newUserServices();
@@ -185,7 +240,18 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 					userWithWriteAccess.add(user.getUsername());
 				}
 			}
-			assertThat(userWithWriteAccess).containsOnly(users);
+			assertThat(userWithWriteAccess).describedAs("users with write access").containsOnly(users);
+			return this;
+		}
+
+		private FolderRecordValidator hasAutorizationsCount(int expectedCount) {
+
+			List<String> userWithWriteAccess = new ArrayList<>();
+			UserServices userServices = getModelLayerFactory().newUserServices();
+			Record record = getModelLayerFactory().newRecordServices().getDocumentById(folderId);
+			List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(record);
+			assertThat(authorizations).describedAs("authorizations").hasSize(expectedCount);
+			return this;
 		}
 
 	}

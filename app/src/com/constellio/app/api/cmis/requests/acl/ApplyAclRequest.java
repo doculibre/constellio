@@ -1,5 +1,7 @@
 package com.constellio.app.api.cmis.requests.acl;
 
+import static com.constellio.data.utils.LangUtils.isEqual;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,37 +70,91 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	@Override
 	public Acl process() {
 		User user = (User) context.get(ConstellioCmisContextParameters.USER);
+		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, objectId).process().getAces();
 
-		if (addAces != null) {
+		List<Ace> acesToAdd = getAcesToAdd(currentAces);
+		List<Ace> acesToRemove = getAcesToRemove(currentAces);
 
-			List<Authorization> authorizations = new ArrayList<>();
-			for (Ace ace : addAces.getAces()) {
-				List<String> permissions = toConstellioPermissions(ace.getPermissions());
-				authorizations.add(new AuthorizationBuilder(repository.getCollection())
-						.forPrincipalsIds(getPrincipalRecordId(ace.getPrincipalId())).on(objectId).giving(permissions));
-			}
+		createNewAuthorizations(user, acesToAdd);
+		removeAuthorizations(user, acesToRemove);
 
-			for (Authorization authorization : authorizations) {
-				modelLayerFactory.newAuthorizationsServices().add(authorization, user);
-			}
+		return new GetAclRequest(repository, appLayerFactory, objectId).process();
+	}
+
+	private void removeAuthorizations(User user, List<Ace> acesToRemove) {
+		//		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		//		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
+		//		for (Authorization authorization : authorizationsServices.getRecordAuthorizations(record)) {
+		//			for (Ace aceToRemove : acesToRemove) {
+		//				if (isAuthorizationOf(acesToRemove)) {
+		//
+		//				}
+		//			}
+		//		}
+	}
+
+	private void createNewAuthorizations(User user, List<Ace> acesToAdd) {
+		List<Authorization> authorizations = new ArrayList<>();
+		for (Ace ace : acesToAdd) {
+			List<String> permissions = toConstellioPermissions(ace.getPermissions());
+			authorizations.add(new AuthorizationBuilder(repository.getCollection())
+					.forPrincipalsIds(getPrincipalRecordId(ace.getPrincipalId())).on(objectId).giving(permissions));
 		}
 
+		for (Authorization authorization : authorizations) {
+			modelLayerFactory.newAuthorizationsServices().add(authorization, user);
+		}
+	}
+
+	private List<Ace> getAcesToAdd(List<Ace> currentAces) {
+		List<Ace> acesToAdd = new ArrayList<>();
 		if (aces != null) {
-
-			List<Authorization> authorizations = new ArrayList<>();
 			for (Ace ace : aces.getAces()) {
-				List<String> permissions = toConstellioPermissions(ace.getPermissions());
-				authorizations.add(new AuthorizationBuilder(repository.getCollection())
-						.forPrincipalsIds(getPrincipalRecordId(ace.getPrincipalId())).on(objectId).giving(permissions));
+				boolean found = false;
+				for (Ace newAce : currentAces) {
+					if (areEquals(ace, newAce)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					acesToAdd.add(ace);
+				}
 			}
-
-			for (Authorization authorization : authorizations) {
-				modelLayerFactory.newAuthorizationsServices().add(authorization, user);
+		} else {
+			if (addAces != null) {
+				acesToAdd.addAll(addAces.getAces());
 			}
 		}
+		return acesToAdd;
+	}
 
-		GetAclUnsupportedRequest aclUnsupportedRequest = new GetAclUnsupportedRequest(repository, appLayerFactory, objectId);
-		return aclUnsupportedRequest.process();
+	private List<Ace> getAcesToRemove(List<Ace> currentAces) {
+		List<Ace> acesToRemove = new ArrayList<>();
+		if (aces != null) {
+			for (Ace ace : currentAces) {
+				boolean found = false;
+				for (Ace newAce : aces.getAces()) {
+					if (areEquals(ace, newAce)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					acesToRemove.add(ace);
+				}
+			}
+
+		} else {
+			if (removeAces != null) {
+				acesToRemove.addAll(removeAces.getAces());
+			}
+		}
+		return acesToRemove;
+	}
+
+	private boolean areEquals(Ace ace1, Ace ace2) {
+		return isEqual(ace1.getPrincipalId(), ace2.getPrincipalId()) && isEqual(ace1.getPermissions(), ace2.getPermissions());
 	}
 
 	private List<String> toConstellioPermissions(List<String> permissions) {

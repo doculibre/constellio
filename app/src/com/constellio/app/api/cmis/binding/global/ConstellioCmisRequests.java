@@ -34,7 +34,7 @@ import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmis
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.requests.acl.ApplyAclRequest;
-import com.constellio.app.api.cmis.requests.acl.GetAclUnsupportedRequest;
+import com.constellio.app.api.cmis.requests.acl.GetAclRequest;
 import com.constellio.app.api.cmis.requests.discovery.QueryUnsupportedRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetChildrenRequest;
 import com.constellio.app.api.cmis.requests.navigation.GetDescendantsUnsupportedRequest;
@@ -390,7 +390,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions, ExtensionsData extension) {
-		return new GetAclUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
+		return new GetAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
 				.processRequest();
 	}
 

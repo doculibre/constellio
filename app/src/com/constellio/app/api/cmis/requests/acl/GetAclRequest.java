@@ -11,12 +11,12 @@ import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 
-public class GetAclUnsupportedRequest extends CmisCollectionRequest<Acl> {
+public class GetAclRequest extends CmisCollectionRequest<Acl> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(GetAclUnsupportedRequest.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(GetAclRequest.class);
 	private final String objectId;
 
-	public GetAclUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
+	public GetAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			String objectId) {
 		super(repository, appLayerFactory);
 		this.objectId = objectId;

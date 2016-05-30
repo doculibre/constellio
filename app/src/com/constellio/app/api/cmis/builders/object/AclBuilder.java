@@ -32,6 +32,8 @@ public class AclBuilder {
 		this.schemas = new SchemasRecordsServices(repository.getCollection(), modelLayerFactory);
 	}
 
+	//public static List<Ace> to
+
 	/**
 	 * Compiles the ACL for a file or folder.
 	 */
