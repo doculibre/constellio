@@ -169,7 +169,7 @@ public class ModelLayerFactory extends LayerFactory {
 						dataLayerFactory.getBackgroundThreadsManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
-						ioServicesFactory.newHashingService()));
+						ioServicesFactory.newHashingService(), newUserServices()));
 		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
 				ioServicesFactory.newHashingService());
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,

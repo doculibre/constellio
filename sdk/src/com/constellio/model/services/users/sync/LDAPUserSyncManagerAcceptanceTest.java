@@ -79,13 +79,14 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 			assertThat(ldapConfigurationManager.getLDAPUserSyncConfiguration().isGroupAccepted(username)).isTrue();
 		}
 
-		int ldapActiveUsersCount = 13;
+		int ldapActiveUsersCount = 14;
 		assertThat(usersCountAfterSync).isEqualTo(ldapActiveUsersCount);
 		UserCredential importedUser = user("bfay");
 		assertThat(importedUser.getFirstName()).isEqualTo("Nicolas");
 		assertThat(importedUser.getLastName()).isEqualTo("Belisle");
-		assertThat(importedUser.getEmail()).isEqualTo("");
+		//assertThat(importedUser.getEmail()).isEqualTo("");
 		assertThat(importedUser.getMsExchDelegateListBL()).isEmpty();
+		assertThat(importedUser.getDn()).isEqualTo("CN=bfay,CN=Users,DC=test,DC=doculibre,DC=ca");
 
 		for (GlobalGroup group : globalGroupsManager.getAllGroups()) {
 			String code = group.getName();
