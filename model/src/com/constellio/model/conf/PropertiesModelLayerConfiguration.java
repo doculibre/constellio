@@ -94,6 +94,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
+	public boolean isPreviousPrivateKeyLost() {
+		return getBoolean("previousPrivateKeyLost", false);
+	}
+
+	@Override
 	public void setMainDataLanguage(String language) {
 		setString("mainDataLanguage", language);
 
@@ -124,7 +129,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return new Factory<EncryptionServices>() {
 			@Override
 			public EncryptionServices get() {
-				return new EncryptionServices();
+				return new EncryptionServices(isPreviousPrivateKeyLost());
 			}
 		};
 	}

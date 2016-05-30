@@ -114,7 +114,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 					public EncryptionServices get() {
 						Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
 						try {
-							return new EncryptionServices().withKey(key);
+							return new EncryptionServices(false).withKey(key);
 						} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 							throw new RuntimeException(e);
 						}

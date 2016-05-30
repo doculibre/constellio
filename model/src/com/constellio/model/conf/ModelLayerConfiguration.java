@@ -49,4 +49,6 @@ public interface ModelLayerConfiguration {
 	File getConstellioEncryptionFile();
 
 	DataLayerConfiguration getDataLayerConfiguration();
+
+	boolean isPreviousPrivateKeyLost();
 }
