@@ -55,7 +55,8 @@ public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 		if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 			ContentCmisDocument contentCmisDocument = createDocumentRequest.process();
-			return newContentObjectDataBuilder().build(context, contentCmisDocument, null, false, userReadOnly, objectInfos);
+			return newContentObjectDataBuilder()
+					.build(appLayerFactory, context, contentCmisDocument, null, false, userReadOnly, objectInfos);
 		} else if (type.getBaseTypeId() == BaseTypeId.CMIS_FOLDER) {
 			String objectId = createFolderRequest.process();
 			return newObjectDataBuilder().build(context, modelLayerFactory.newRecordServices()

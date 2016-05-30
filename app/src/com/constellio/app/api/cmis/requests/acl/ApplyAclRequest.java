@@ -32,6 +32,13 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
+/**
+ * Limitations of this service :
+ * - The propagation mode OBJECTONLY is not supported, only PROPAGATE
+ * - Cannot remove  an inherited authorisation
+ * - Apache chemistry automatically remove duplicate an ACE if there is another one with better permissions
+ * - Delete access and roles (ex. user/manager) are not handled
+ */
 public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApplyAclRequest.class);

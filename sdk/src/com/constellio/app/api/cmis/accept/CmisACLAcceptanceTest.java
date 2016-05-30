@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -74,6 +77,17 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(zeCollectionSchemas);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeCollectionSchemas.administrativeUnit.type().getCode()).setSecurity(true);
+				types.getSchemaType(zeCollectionSchemas.classificationStation.type().getCode()).setSecurity(true);
+				types.getSchemaType(zeCollectionSchemas.documentFond.type().getCode()).setSecurity(false);
+				types.getSchemaType(zeCollectionSchemas.category.type().getCode()).setSecurity(false);
+				types.getSchemaType(zeCollectionSchemas.folderSchema.type().getCode()).setSecurity(true);
+				types.getSchemaType(zeCollectionSchemas.documentSchema.type().getCode()).setSecurity(true);
+			}
+		});
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
 		userServices.addUserToCollection(users.alice(), zeCollection);
@@ -109,6 +123,33 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void applyACLOnlyEnabledOnRecordClassifiedInPrincipalTaxonomy()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW)), REPOSITORYDETERMINED);
+
+		//Can configure acl on principal taxonomy
+		Folder cmisPrincipalTaxoRecord = cmisFolder(zeCollectionRecords.taxo2_unit1);
+		assertThat(cmisPrincipalTaxoRecord.getAllowableActions().getAllowableActions())
+				.contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		cmisPrincipalTaxoRecord.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW)), REPOSITORYDETERMINED);
+
+		//Can configure acl on secondary taxonomy
+		Folder cmisSecondaryTaxoRecord = cmisFolder(zeCollectionRecords.taxo1_category2_1);
+		assertThat(cmisSecondaryTaxoRecord.getAllowableActions().getAllowableActions())
+				.doesNotContain(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		try {
+			cmisSecondaryTaxoRecord.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW)), REPOSITORYDETERMINED);
+			fail("Exception expected");
+		} catch (Exception e) {
+			//OK
+		}
+	}
+
+	@Test
 	public void whenSetACLThenAuthorizationsCreated()
 			throws Exception {
 		session = givenAdminSessionOnZeCollection();
@@ -122,7 +163,6 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		session.getDefaultContext().setIncludeAcls(true);
 
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
-		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
 		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
 				.containsOnly(tuple(false, RW, "edouard"));
 
@@ -179,6 +219,9 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
 				tuple(false, RW, edouard), tuple(true, RW, gandalf), tuple(true, RW, dakota));
+
+		assertThatAcesOf(zeCollectionRecords.folder2_1).containsOnly(
+				tuple(false, RW, edouard), tuple(false, RW, gandalf), tuple(false, RW, dakota));
 
 		cmisFolder2.applyAcl(asList(ace(aliceWonderland, RW), ace(charles, RW)), asList(ace(gandalf, RW)), REPOSITORYDETERMINED);
 

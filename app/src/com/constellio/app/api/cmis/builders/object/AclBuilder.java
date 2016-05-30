@@ -38,6 +38,7 @@ public class AclBuilder {
 	 * Compiles the ACL for a file or folder.
 	 */
 	public Acl build(Record record) {
+
 		AccessControlListImpl result = new AccessControlListImpl();
 		result.setAces(new ArrayList<Ace>());
 		result.setExact(false);
