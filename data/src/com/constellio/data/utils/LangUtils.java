@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections.ArrayStack;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
@@ -189,6 +188,12 @@ public class LangUtils {
 		String normalizedValue1 = AccentApostropheCleaner.removeAccents(value1);
 		String normalizedValue2 = AccentApostropheCleaner.removeAccents(value2);
 		return normalizedValue1.compareTo(normalizedValue2);
+	}
+
+	public static <T> boolean hasSameElementsNoMatterTheOrder(List<T> list1, List<T> list2) {
+		Set<T> set1 = new HashSet<>(list1);
+		Set<T> set2 = new HashSet<>(list2);
+		return set1.equals(set2);
 	}
 
 	public static class ListComparisonResults<T> {

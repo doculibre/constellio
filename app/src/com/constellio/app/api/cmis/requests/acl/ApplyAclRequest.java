@@ -1,5 +1,6 @@
 package com.constellio.app.api.cmis.requests.acl;
 
+import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
 
 import java.util.ArrayList;
@@ -18,10 +19,16 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
@@ -36,6 +43,8 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	private final AclPropagation aclPropagation;
 	private final ExtensionsData extension;
 	private final CallContext context;
+	private final AuthorizationsServices authorizationsServices;
+	private final RecordServices recordServices;
 
 	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
 			String repositoryId, String objectId, Acl addAces, Acl removeAces, AclPropagation aclPropagation,
@@ -49,6 +58,8 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		this.removeAces = removeAces;
 		this.aclPropagation = aclPropagation;
 		this.extension = extension;
+		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		this.recordServices = modelLayerFactory.newRecordServices();
 	}
 
 	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
@@ -62,6 +73,8 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		this.aces = aces;
 		this.aclPropagation = aclPropagation;
 		this.extension = null;
+		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		this.recordServices = modelLayerFactory.newRecordServices();
 	}
 
 	/**
@@ -82,28 +95,73 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	}
 
 	private void removeAuthorizations(User user, List<Ace> acesToRemove) {
-		//		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		//		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
-		//		for (Authorization authorization : authorizationsServices.getRecordAuthorizations(record)) {
-		//			for (Ace aceToRemove : acesToRemove) {
-		//				if (isAuthorizationOf(acesToRemove)) {
-		//
-		//				}
-		//			}
-		//		}
+		List<String> authorizationsPotentiallyEmpty = new ArrayList<>();
+		for (Ace ace : acesToRemove) {
+			List<String> permissions = toConstellioPermissions(ace.getPermissions());
+			List<AuthorizationDetails> authorizationDetailses = getObjectAuthorizationsWithPermission(objectId, permissions);
+			Record principal = getPrincipalRecord(ace.getPrincipalId());
+			List<String> authorizationsIds = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
+			for (AuthorizationDetails authorizationDetails : authorizationDetailses) {
+				authorizationsIds.remove(authorizationDetails.getId());
+				authorizationsPotentiallyEmpty.add(authorizationDetails.getId());
+			}
+			try {
+				recordServices.updateAsync(principal.set(Schemas.AUTHORIZATIONS, authorizationsIds));
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		for (String auth : authorizationsPotentiallyEmpty) {
+			Authorization authorization = authorizationsServices.getAuthorization(repository.getCollection(), auth);
+			if (authorization.getGrantedToPrincipals().isEmpty()) {
+				authorizationsServices.delete(authorization.getDetail(), user);
+			}
+		}
 	}
 
 	private void createNewAuthorizations(User user, List<Ace> acesToAdd) {
-		List<Authorization> authorizations = new ArrayList<>();
 		for (Ace ace : acesToAdd) {
 			List<String> permissions = toConstellioPermissions(ace.getPermissions());
-			authorizations.add(new AuthorizationBuilder(repository.getCollection())
-					.forPrincipalsIds(getPrincipalRecordId(ace.getPrincipalId())).on(objectId).giving(permissions));
+			AuthorizationDetails authorizationDetails = getObjectAuthorizationWithPermission(objectId, permissions);
+			Record principal = getPrincipalRecord(ace.getPrincipalId());
+			if (authorizationDetails == null) {
+				Authorization auth = new AuthorizationBuilder(repository.getCollection())
+						.forPrincipalsIds(principal.getId()).on(objectId).giving(permissions);
+				authorizationsServices.add(auth, user);
+
+			} else {
+				List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
+				authorizations.add(authorizationDetails.getId());
+				principal.set(Schemas.AUTHORIZATIONS, authorizations);
+				try {
+					modelLayerFactory.newRecordServices().updateAsync(principal);
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
+	AuthorizationDetails getObjectAuthorizationWithPermission(String objectId, List<String> permissions) {
+		List<AuthorizationDetails> detailses = getObjectAuthorizationsWithPermission(objectId, permissions);
+		return detailses.isEmpty() ? null : detailses.get(0);
+	}
+
+	List<AuthorizationDetails> getObjectAuthorizationsWithPermission(String objectId, List<String> permissions) {
+		Record record = recordServices.getDocumentById(objectId);
+		List<String> authorizations = record.get(Schemas.AUTHORIZATIONS);
+		List<AuthorizationDetails> detailses = new ArrayList<>();
+
+		for (String authorization : authorizations) {
+			AuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager()
+					.get(record.getCollection(), authorization);
+
+			if (details != null && hasSameElementsNoMatterTheOrder(details.getRoles(), permissions)) {
+				detailses.add(details);
+			}
 		}
 
-		for (Authorization authorization : authorizations) {
-			modelLayerFactory.newAuthorizationsServices().add(authorization, user);
-		}
+		return detailses;
 	}
 
 	private List<Ace> getAcesToAdd(List<Ace> currentAces) {
@@ -133,15 +191,17 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		List<Ace> acesToRemove = new ArrayList<>();
 		if (aces != null) {
 			for (Ace ace : currentAces) {
-				boolean found = false;
-				for (Ace newAce : aces.getAces()) {
-					if (areEquals(ace, newAce)) {
-						found = true;
-						break;
+				if (ace.isDirect()) {
+					boolean found = false;
+					for (Ace newAce : aces.getAces()) {
+						if (areEquals(ace, newAce)) {
+							found = true;
+							break;
+						}
 					}
-				}
-				if (!found) {
-					acesToRemove.add(ace);
+					if (!found) {
+						acesToRemove.add(ace);
+					}
 				}
 			}
 
@@ -154,7 +214,8 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	}
 
 	private boolean areEquals(Ace ace1, Ace ace2) {
-		return isEqual(ace1.getPrincipalId(), ace2.getPrincipalId()) && isEqual(ace1.getPermissions(), ace2.getPermissions());
+		return isEqual(ace1.getPrincipalId(), ace2.getPrincipalId())
+				&& hasSameElementsNoMatterTheOrder(ace1.getPermissions(), ace2.getPermissions());
 	}
 
 	private List<String> toConstellioPermissions(List<String> permissions) {
@@ -171,12 +232,12 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		return constellioPermissions;
 	}
 
-	private String getPrincipalRecordId(String principalId) {
+	private Record getPrincipalRecord(String principalId) {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		try {
-			return userServices.getUserInCollection(principalId, repository.getCollection()).getId();
+			return userServices.getUserInCollection(principalId, repository.getCollection()).getWrappedRecord();
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
-			return userServices.getGroupInCollection(principalId, repository.getCollection()).getId();
+			return userServices.getGroupInCollection(principalId, repository.getCollection()).getWrappedRecord();
 		}
 	}
 

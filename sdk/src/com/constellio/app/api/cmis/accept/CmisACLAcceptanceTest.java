@@ -127,21 +127,21 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 				.containsOnly(tuple(false, RW, "edouard"));
 
 		//Add two ACE
-		cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW)), REPOSITORYDETERMINED);
+		cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW)), REPOSITORYDETERMINED);
 		waitForBatchProcess();
 
 		assertThatRecord(zeCollectionRecords.folder2)
 				.onlyUserWithReadPermissionAre(chuckNorris, admin, gandalf, charles, dakota, bobGratton, edouard, robin)
-				.onlyUserWithWritePermissionAre(admin, bobGratton, edouard);
+				.onlyUserWithWritePermissionAre(admin, bobGratton, edouard, gandalf);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
 				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
 				tuple(constellio_R, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
-				tuple(constellio_RW, asList(bobId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asList(bobId, gandalfId), asList(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
-				tuple(false, RW, edouard), tuple(true, R, "heroes"), tuple(true, RW, bobGratton));
+				tuple(false, RW, edouard), tuple(true, R, "heroes"), tuple(true, RW, bobGratton), tuple(true, RW, gandalf));
 
 		//Add the same bob ACE and a RW auth for heroes
 		cmisFolder2.addAcl(asList(ace("heroes", RW), ace(bobGratton, RW)), REPOSITORYDETERMINED);
@@ -153,24 +153,42 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
 				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
-				tuple(constellio_R, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
-				tuple(constellio_RW, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
-				tuple(constellio_RW, asList(bobId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asList(bobId, gandalfId, heroesId), asList(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
-				tuple(false, RW, edouard), tuple(true, R, "heroes"), tuple(true, RW, "heroes"), tuple(true, RW, bobGratton));
+				tuple(false, RW, edouard), tuple(true, RW, "heroes"), tuple(true, RW, bobGratton),
+				tuple(true, RW, gandalf));
 
-//		cmisFolder2.removeAcl(asList(ace("heroes", R)), REPOSITORYDETERMINED);
-		//
-		//		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-		//				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
-		//				tuple(constellio_RW, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
-		//				tuple(constellio_RW, asList(bobId), asList(zeCollectionRecords.folder2.getId()))
-		//		);
-		//
-		//		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
-		//				tuple(false, RW, edouard), tuple(true, RW, "heroes"), tuple(true, RW, bobGratton));
+		cmisFolder2.removeAcl(asList(ace("heroes", RW), ace(bobGratton, RW)), REPOSITORYDETERMINED);
+
+		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
+				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_RW, asList(gandalfId), asList(zeCollectionRecords.folder2.getId()))
+		);
+
+		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
+				tuple(false, RW, edouard), tuple(true, RW, gandalf));
+
+		cmisFolder2.setAcl(asList(ace(gandalf, RW), ace(dakota, RW)));
+
+		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
+				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_RW, asList(gandalfId, dakotaId), asList(zeCollectionRecords.folder2.getId()))
+		);
+
+		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
+				tuple(false, RW, edouard), tuple(true, RW, gandalf), tuple(true, RW, dakota));
+
+		cmisFolder2.applyAcl(asList(ace(aliceWonderland, RW), ace(charles, RW)), asList(ace(gandalf, RW)), REPOSITORYDETERMINED);
+
+		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
+				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_RW, asList(dakotaId, aliceId, charlesId), asList(zeCollectionRecords.folder2.getId()))
+		);
+
+		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
+				tuple(false, RW, edouard), tuple(true, RW, aliceWonderland), tuple(true, RW, charles), tuple(true, RW, dakota));
 
 	}
 
