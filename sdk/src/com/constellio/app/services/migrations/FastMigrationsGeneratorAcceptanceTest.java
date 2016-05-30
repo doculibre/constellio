@@ -6,7 +6,9 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.Modifier;
@@ -16,10 +18,18 @@ import org.junit.Test;
 
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -35,6 +45,9 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.dev.tools.i18n.CombinePropertyFilesServices;
@@ -74,6 +87,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				.addMethod(generateTypes())
+				.addMethod(generateDisplayConfigs())
 				.addMethod(generateRoles())
 				.addMethod(generateConstructor())
 				.build();
@@ -137,6 +151,93 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	private MethodSpec generateDisplayConfigs() {
+		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		Builder main = MethodSpec.methodBuilder("applySchemasDisplay")
+				.addModifiers(Modifier.PUBLIC)
+				.addParameter(SchemasDisplayManager.class, "manager")
+				.returns(void.class);
+
+		List<String> codes = manager.rewriteInOrderAndGetCodes(zeCollection);
+
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(zeCollection);
+		main.addStatement("SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection)");
+		main.addStatement("SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection)");
+
+		if (codes.contains("SchemaTypesDisplayConfig")) {
+			main.addStatement("transaction.setModifiedCollectionTypes(manager.getTypes(collection).withFacetMetadataCodes($L))",
+					asListLitteral(typesDisplay.getFacetMetadataCodes()));
+		}
+
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, type.getCode());
+			if (codes.contains(typeDisplay.getSchemaType())) {
+				main.addStatement("transaction.add(manager.getType(collection, $S).withSimpleSearchStatus($L)"
+								+ ".withAdvancedSearchStatus($L).withManageableStatus($L).withMetadataGroup($L))", type.getCode(),
+						typeDisplay.isSimpleSearch(), typeDisplay.isAdvancedSearch(), typeDisplay.isManageable(),
+						"new HashMap<String, Map<Language, String>>()");
+			}
+
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				SchemaDisplayConfig schemaDisplay = manager.getSchema(zeCollection, schema.getCode());
+				if (codes.contains(schemaDisplay.getSchemaCode())) {
+					main.addStatement("transaction.add(manager.getSchema(collection, $S).withFormMetadataCodes($L)"
+									+ ".withDisplayMetadataCodes($L).withSearchResultsMetadataCodes($L).withTableMetadataCodes($L))"
+							, schema.getCode(), asListLitteral(schemaDisplay.getFormMetadataCodes())
+							, asListLitteral(schemaDisplay.getDisplayMetadataCodes())
+							, asListLitteral(schemaDisplay.getSearchResultsMetadataCodes())
+							, asListLitteral(schemaDisplay.getTableMetadataCodes()));
+				}
+
+				for (Metadata metadata : schema.getMetadatas()) {
+					MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, metadata.getCode());
+
+					if (codes.contains(metadataDisplay.getMetadataCode())) {
+						main.addStatement("transaction.add(manager.getMetadata(collection, $S).withMetadataGroup($S)"
+										+ ".withInputType($T.$L).withHighlightStatus($L).withVisibleInAdvancedSearchStatus($L))",
+								metadata.getCode(), metadataDisplay.getMetadataGroupCode(), MetadataInputType.class,
+								metadataDisplay.getInputType().name(), metadataDisplay.isHighlight(),
+								metadataDisplay.isVisibleInAdvancedSearch());
+					}
+				}
+
+			}
+
+		}
+
+		main.addStatement("manager.execute(transaction.build())");
+
+		;
+		//		)
+		//
+		//		for (MEt role : schemasDisplayManager.getTypes(zeCollection)) {
+		//
+		//			main.addStatement("rolesManager.addRole(new $T(collection, $S, $S, $L))", Role.class, role.getCode(), role.getTitle(),
+		//					asListLitteral(role.getOperationPermissions()));
+		//
+		//		}
+
+		MethodSpec spec = main.build();
+		System.out.println(spec.toString());
+		return spec;
+	}
+
+	private void applySchemasDisplay(SchemasDisplayManager manager) {
+		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(zeCollection);
+
+		transaction.setModifiedCollectionTypes(manager.getTypes(zeCollection).withFacetMetadataCodes(asList("")));
+
+		transaction.add(manager.getType(zeCollection, "user").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
+				.withManageableStatus(true).withMetadataGroup(new HashMap<String, Map<Language, String>>()));
+
+		transaction.add(manager.getSchema(zeCollection, "user_default").withFormMetadataCodes(null).withDisplayMetadataCodes(null)
+				.withSearchResultsMetadataCodes(null).withTableMetadataCodes(null));
+
+		transaction.add(manager.getMetadata(zeCollection, "user_default").withMetadataGroup("group").withInputType(
+				MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+	}
+
 	private MethodSpec generateRoles() {
 		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
 		Builder main = MethodSpec.methodBuilder("applyGeneratedRoles")
@@ -168,15 +269,15 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
 
-			main.addStatement("MetadataSchemaTypeBuilder $LSchemaType = typesBuilder.createNewSchemaType($S)$L",
-					type.getCode(), type.getCode(), typeAlterations(type));
+			main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaType($S)$L",
+					MetadataSchemaTypeBuilder.class, type.getCode(), type.getCode(), typeAlterations(type));
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				if ("default".equals(schema.getLocalCode())) {
-					main.addStatement("MetadataSchemaBuilder $L = $LSchemaType.getDefaultSchema()",
-							variableOf(schema), type.getCode());
+					main.addStatement("$T $L = $LSchemaType.getDefaultSchema()",
+							MetadataSchemaBuilder.class, variableOf(schema), type.getCode());
 				} else {
-					main.addStatement("MetadataSchemaBuilder $L = $LSchemaType.createCustomSchema($S)",
-							variableOf(schema), type.getCode(), schema.getLocalCode());
+					main.addStatement("$T $L = $LSchemaType.createCustomSchema($S)",
+							MetadataSchemaBuilder.class, variableOf(schema), type.getCode(), schema.getLocalCode());
 				}
 				for (RecordValidator validator : type.getDefaultSchema().getValidators()) {
 					main.addStatement("$L.defineValidators().add($T)", variableOf(schema), validator.getClass());
@@ -187,17 +288,18 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		for (MetadataSchemaType type : metadataSchemaTypes) {
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
+					String variable = variableOf(metadata);
 					if (metadata.getInheritance() == null) {
 						if (!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
-							main.addStatement(
-									"MetadataBuilder $L = $L.create($S).setType(MetadataValueType.$L)$L",
-									variableOf(metadata), variableOf(schema), metadata.getLocalCode(), metadata.getType().name(),
-									metadataAlterations(metadata));
+							main.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
+									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
+									metadata.getType().name());
+							configureMetadata(main, variable, metadata);
 						} else {
-							main.addStatement(
-									"MetadataBuilder $L = $L.get($S)$L",
-									variableOf(metadata), variableOf(schema), metadata.getLocalCode(),
-									metadataAlterations(metadata));
+
+							main.addStatement("$T $L = $L.get($S)",
+									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
+							configureMetadata(main, variable, metadata);
 						}
 						for (RecordMetadataValidator validator : metadata.getValidators()) {
 							main.addStatement("$L.defineValidators().add($T.class)", variableOf(metadata), validator.getClass());
@@ -339,69 +441,69 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return stringBuilder.toString();
 	}
 
-	private String metadataAlterations(Metadata metadata) {
-		StringBuilder stringBuilder = new StringBuilder();
+	private void configureMetadata(Builder method, String variable, Metadata metadata) {
 
 		if (metadata.isMultivalue()) {
-			stringBuilder.append(".setMultivalue(true)");
+			method.addStatement("$L.setMultivalue(true)", variable);
 		}
 
 		if (metadata.isDefaultRequirement()) {
-			stringBuilder.append(".setDefaultRequirement(true)");
+			method.addStatement("$L.setDefaultRequirement(true)", variable);
 		}
 
 		if (metadata.isSystemReserved()) {
-			stringBuilder.append(".setSystemReserved(true)");
+			method.addStatement("$L.setSystemReserved(true)", variable);
 		}
 
 		if (metadata.isUndeletable()) {
-			stringBuilder.append(".setUndeletable(true)");
+			method.addStatement("$L.setUndeletable(true)", variable);
 		}
 
 		if (!metadata.isEnabled()) {
-			stringBuilder.append(".setEnabled(false)");
+			method.addStatement("$L.setEnabled(false)", variable);
 		}
 
 		if (metadata.isEssential()) {
-			stringBuilder.append(".setEssential(true)");
+			method.addStatement("$L.setEssential(true)", variable);
 		}
 
 		if (metadata.isEssentialInSummary()) {
-			stringBuilder.append(".setEssentialInSummary(true)");
+			method.addStatement("$L.setEssentialInSummary(true)", variable);
 		}
 
 		if (metadata.isSchemaAutocomplete()) {
-			stringBuilder.append(".setSchemaAutocomplete(true)");
+			method.addStatement("$L.setSchemaAutocomplete(true)", variable);
 		}
 
 		if (metadata.isSearchable()) {
-			stringBuilder.append(".setSearchable(true)");
+			method.addStatement("$L.setSearchable(true)", variable);
 		}
 
 		if (metadata.isSortable()) {
-			stringBuilder.append(".setSortable(true)");
+			method.addStatement("$L.setSortable(true)", variable);
 		}
 
 		if (metadata.isUniqueValue()) {
-			stringBuilder.append(".setUniqueValue(true)");
+
+			method.addStatement("$L.setUniqueValue(true)", variable);
 		}
 
 		if (metadata.isUnmodifiable()) {
-			stringBuilder.append(".setUnmodifiable(true)");
+			method.addStatement("$L.setUnmodifiable(true)", variable);
 		}
 
-		if (metadata.getDefaultValue() != null) {
+		Object defaultValue = metadata.getDefaultValue();
+		if (defaultValue != null) {
 			if (metadata.getDefaultValue().getClass().equals(String.class)) {
-				stringBuilder.append(".setDefaultValue(\"" + metadata.getDefaultValue() + "\")");
+				method.addStatement("$L.setDefaultValue($S)", variable, defaultValue);
 
 			} else if (metadata.getDefaultValue().getClass().equals(Double.class)
 					|| metadata.getDefaultValue().getClass().equals(Integer.class)
 					|| metadata.getDefaultValue().getClass().equals(Boolean.class)) {
-				stringBuilder.append(".setDefaultValue(" + metadata.getDefaultValue() + ")");
+				method.addStatement("$L.setDefaultValue($L)", variable, defaultValue);
 
 			} else if (metadata.getDefaultValue() instanceof EnumWithSmallCode) {
-				stringBuilder.append(".setDefaultValue(" + metadata.getDefaultValue().getClass().getName() + "." +
-						((Enum) metadata.getDefaultValue()).name() + ")");
+				method.addStatement("$L.setDefaultValue($T.$L)", variable, defaultValue.getClass(), ((Enum) defaultValue).name());
 
 			} else {
 				throw new ImpossibleRuntimeException("Unsupported type '" + metadata.getDefaultValue().getClass() + "'");
@@ -410,13 +512,11 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		if (metadata.getStructureFactory() != null) {
-			stringBuilder
-					.append(".defineStructureFactory(" + metadata.getStructureFactory().getClass().getName().replace("$", ".")
-							+ ".class)");
+			method.addStatement("$L.defineStructureFactory($T.class)", variable, metadata.getStructureFactory().getClass());
 		}
 
 		if (metadata.getEnumClass() != null) {
-			stringBuilder.append(".defineAsEnum(" + metadata.getEnumClass().getName().replace("$", ".") + ".class)");
+			method.addStatement("$L.defineAsEnum($T.class)", variable, metadata.getEnumClass());
 		}
 
 		if (metadata.getType() == MetadataValueType.REFERENCE && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
@@ -425,13 +525,13 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();
 				String referencedTypeVariable = variableOf(types.getSchemaType(referencedType));
 				if (metadata.isTaxonomyRelationship()) {
-					stringBuilder.append(".defineTaxonomyRelationshipToType(" + referencedTypeVariable + ")");
+					method.addStatement("$L.defineTaxonomyRelationshipToType($L)", variable, referencedTypeVariable);
 
 				} else if (metadata.isChildOfRelationship()) {
-					stringBuilder.append(".defineChildOfRelationshipToType(" + referencedTypeVariable + ")");
+					method.addStatement("$L.defineChildOfRelationshipToType($L)", variable, referencedTypeVariable);
 
 				} else {
-					stringBuilder.append(".defineReferencesTo(" + referencedTypeVariable + ")");
+					method.addStatement("$L.defineReferencesTo($L)", variable, referencedTypeVariable);
 
 				}
 			} else {
@@ -442,20 +542,19 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				}
 				String argument = asListLitteralWithoutQuotes(referencedSchemasVariables);
 				if (metadata.isTaxonomyRelationship()) {
-					stringBuilder.append(".defineTaxonomyRelationshipToType(" + argument + ")");
+					method.addStatement("$L.defineTaxonomyRelationshipToType($L)", variable, argument);
 
 				} else if (metadata.isChildOfRelationship()) {
-					stringBuilder.append(".defineChildOfRelationshipToType(" + argument + ")");
+					method.addStatement("$L.defineChildOfRelationshipToType($L)", variable, argument);
 
 				} else {
-					stringBuilder.append(".defineReferencesTo(" + argument + ")");
+					method.addStatement("$L.defineReferencesTo($L)", variable, argument);
 
 				}
 			}
 
 		}
 
-		return stringBuilder.toString();
 	}
 
 }

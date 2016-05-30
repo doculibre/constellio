@@ -61,6 +61,7 @@ public class CoreMigrationCombo implements FastMigrationScript {
 		new SchemaAlteration(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		CoreMigrationTo_5_1_3.initEncryption(collection, migrationResourcesProvider, appLayerFactory);
 		generatedFastCoreMigration.applyGeneratedRoles();
+		generatedFastCoreMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
 				new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", $("title"), 20.0));

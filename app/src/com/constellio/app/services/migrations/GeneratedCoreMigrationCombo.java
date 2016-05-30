@@ -2,13 +2,29 @@ package com.constellio.app.services.migrations;
 
 import static java.util.Arrays.asList;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
+import com.constellio.app.ui.pages.search.criteria.FacetSelectionsFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
+import com.constellio.model.entities.records.wrappers.structure.FacetType;
+import com.constellio.model.entities.records.wrappers.structure.ReportedMetadataFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.structures.EmailAddressFactory;
+import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -42,13 +58,6 @@ public final class GeneratedCoreMigrationCombo {
 		this.resourcesProvider = resourcesProvider;
 	}
 
-	public void applyGeneratedSchemaDisplay(SchemasDisplayManager manager,
-			SchemaTypesDisplayTransactionBuilder typesDisplayTransaction) {
-		//Metadata
-		//typesDisplayTransaction.add(manager.getType(collection, "zeType").withAdvancedSearchStatus())
-
-	}
-
 	public void applyGeneratedSchemaAlteration(MetadataSchemaTypesBuilder typesBuilder) {
 		MetadataSchemaTypeBuilder collectionSchemaType = typesBuilder.createNewSchemaType("collection").setSecurity(false);
 		MetadataSchemaBuilder collectionSchema = collectionSchemaType.getDefaultSchema();
@@ -73,692 +82,1362 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
 		MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.createNewSchemaType("userDocument").setSecurity(false);
 		MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
-		MetadataBuilder collection_allauthorizations = collectionSchema.get("allauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_authorizations = collectionSchema.get("authorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_code = collectionSchema.create("code").setType(MetadataValueType.STRING).setUndeletable(true)
-				.setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder collection_createdOn = collectionSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder collection_deleted = collectionSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_denyTokens = collectionSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder collection_allauthorizations = collectionSchema.get("allauthorizations");
+		collection_allauthorizations.setMultivalue(true);
+		collection_allauthorizations.setSystemReserved(true);
+		collection_allauthorizations.setUndeletable(true);
+		MetadataBuilder collection_authorizations = collectionSchema.get("authorizations");
+		collection_authorizations.setMultivalue(true);
+		collection_authorizations.setSystemReserved(true);
+		collection_authorizations.setUndeletable(true);
+		MetadataBuilder collection_code = collectionSchema.create("code").setType(MetadataValueType.STRING);
+		collection_code.setUndeletable(true);
+		collection_code.setUniqueValue(true);
+		collection_code.setUnmodifiable(true);
+		MetadataBuilder collection_createdOn = collectionSchema.get("createdOn");
+		collection_createdOn.setSystemReserved(true);
+		collection_createdOn.setUndeletable(true);
+		collection_createdOn.setSortable(true);
+		MetadataBuilder collection_deleted = collectionSchema.get("deleted");
+		collection_deleted.setSystemReserved(true);
+		collection_deleted.setUndeletable(true);
+		MetadataBuilder collection_denyTokens = collectionSchema.get("denyTokens");
+		collection_denyTokens.setMultivalue(true);
+		collection_denyTokens.setSystemReserved(true);
+		collection_denyTokens.setUndeletable(true);
 		collection_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder collection_detachedauthorizations = collectionSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_followers = collectionSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder collection_id = collectionSchema.get("id").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder collection_inheritedauthorizations = collectionSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_languages = collectionSchema.create("languages").setType(MetadataValueType.STRING)
-				.setMultivalue(true).setUndeletable(true).setUnmodifiable(true);
-		MetadataBuilder collection_legacyIdentifier = collectionSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder collection_manualTokens = collectionSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder collection_detachedauthorizations = collectionSchema.get("detachedauthorizations");
+		collection_detachedauthorizations.setSystemReserved(true);
+		collection_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder collection_followers = collectionSchema.get("followers");
+		collection_followers.setMultivalue(true);
+		collection_followers.setSystemReserved(true);
+		collection_followers.setUndeletable(true);
+		collection_followers.setSearchable(true);
+		MetadataBuilder collection_id = collectionSchema.get("id");
+		collection_id.setDefaultRequirement(true);
+		collection_id.setSystemReserved(true);
+		collection_id.setUndeletable(true);
+		collection_id.setSearchable(true);
+		collection_id.setSortable(true);
+		collection_id.setUniqueValue(true);
+		collection_id.setUnmodifiable(true);
+		MetadataBuilder collection_inheritedauthorizations = collectionSchema.get("inheritedauthorizations");
+		collection_inheritedauthorizations.setMultivalue(true);
+		collection_inheritedauthorizations.setSystemReserved(true);
+		collection_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder collection_languages = collectionSchema.create("languages").setType(MetadataValueType.STRING);
+		collection_languages.setMultivalue(true);
+		collection_languages.setUndeletable(true);
+		collection_languages.setUnmodifiable(true);
+		MetadataBuilder collection_legacyIdentifier = collectionSchema.get("legacyIdentifier");
+		collection_legacyIdentifier.setDefaultRequirement(true);
+		collection_legacyIdentifier.setSystemReserved(true);
+		collection_legacyIdentifier.setUndeletable(true);
+		collection_legacyIdentifier.setSearchable(true);
+		collection_legacyIdentifier.setUniqueValue(true);
+		collection_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder collection_manualTokens = collectionSchema.get("manualTokens");
+		collection_manualTokens.setMultivalue(true);
+		collection_manualTokens.setSystemReserved(true);
+		collection_manualTokens.setUndeletable(true);
 		collection_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder collection_markedForPreviewConversion = collectionSchema.get("markedForPreviewConversion")
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_modifiedOn = collectionSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder collection_name = collectionSchema.create("name").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder collection_parentpath = collectionSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_path = collectionSchema.get("path").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_pathParts = collectionSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_principalpath = collectionSchema.get("principalpath").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_removedauthorizations = collectionSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_schema = collectionSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_searchable = collectionSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder collection_shareDenyTokens = collectionSchema.get("shareDenyTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder collection_markedForPreviewConversion = collectionSchema.get("markedForPreviewConversion");
+		collection_markedForPreviewConversion.setSystemReserved(true);
+		collection_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder collection_modifiedOn = collectionSchema.get("modifiedOn");
+		collection_modifiedOn.setSystemReserved(true);
+		collection_modifiedOn.setUndeletable(true);
+		collection_modifiedOn.setSortable(true);
+		MetadataBuilder collection_name = collectionSchema.create("name").setType(MetadataValueType.STRING);
+		collection_name.setUndeletable(true);
+		MetadataBuilder collection_parentpath = collectionSchema.get("parentpath");
+		collection_parentpath.setMultivalue(true);
+		collection_parentpath.setSystemReserved(true);
+		collection_parentpath.setUndeletable(true);
+		MetadataBuilder collection_path = collectionSchema.get("path");
+		collection_path.setMultivalue(true);
+		collection_path.setSystemReserved(true);
+		collection_path.setUndeletable(true);
+		MetadataBuilder collection_pathParts = collectionSchema.get("pathParts");
+		collection_pathParts.setMultivalue(true);
+		collection_pathParts.setSystemReserved(true);
+		collection_pathParts.setUndeletable(true);
+		MetadataBuilder collection_principalpath = collectionSchema.get("principalpath");
+		collection_principalpath.setSystemReserved(true);
+		collection_principalpath.setUndeletable(true);
+		MetadataBuilder collection_removedauthorizations = collectionSchema.get("removedauthorizations");
+		collection_removedauthorizations.setMultivalue(true);
+		collection_removedauthorizations.setSystemReserved(true);
+		collection_removedauthorizations.setUndeletable(true);
+		MetadataBuilder collection_schema = collectionSchema.get("schema");
+		collection_schema.setDefaultRequirement(true);
+		collection_schema.setSystemReserved(true);
+		collection_schema.setUndeletable(true);
+		MetadataBuilder collection_searchable = collectionSchema.get("searchable");
+		collection_searchable.setSystemReserved(true);
+		collection_searchable.setUndeletable(true);
+		MetadataBuilder collection_shareDenyTokens = collectionSchema.get("shareDenyTokens");
+		collection_shareDenyTokens.setMultivalue(true);
+		collection_shareDenyTokens.setSystemReserved(true);
+		collection_shareDenyTokens.setUndeletable(true);
 		collection_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder collection_shareTokens = collectionSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder collection_shareTokens = collectionSchema.get("shareTokens");
+		collection_shareTokens.setMultivalue(true);
+		collection_shareTokens.setSystemReserved(true);
+		collection_shareTokens.setUndeletable(true);
 		collection_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder collection_title = collectionSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder collection_tokens = collectionSchema.get("tokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder collection_visibleInTrees = collectionSchema.get("visibleInTrees").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_allauthorizations = groupSchema.get("allauthorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_authorizations = groupSchema.get("authorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_code = groupSchema.create("code").setType(MetadataValueType.STRING).setUndeletable(true)
-				.setSchemaAutocomplete(true).setUniqueValue(true);
-		MetadataBuilder group_createdOn = groupSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder group_deleted = groupSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_denyTokens = groupSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder collection_title = collectionSchema.get("title");
+		collection_title.setUndeletable(true);
+		collection_title.setSchemaAutocomplete(true);
+		collection_title.setSearchable(true);
+		MetadataBuilder collection_tokens = collectionSchema.get("tokens");
+		collection_tokens.setMultivalue(true);
+		collection_tokens.setSystemReserved(true);
+		collection_tokens.setUndeletable(true);
+		MetadataBuilder collection_visibleInTrees = collectionSchema.get("visibleInTrees");
+		collection_visibleInTrees.setSystemReserved(true);
+		collection_visibleInTrees.setUndeletable(true);
+		MetadataBuilder group_allauthorizations = groupSchema.get("allauthorizations");
+		group_allauthorizations.setMultivalue(true);
+		group_allauthorizations.setSystemReserved(true);
+		group_allauthorizations.setUndeletable(true);
+		MetadataBuilder group_authorizations = groupSchema.get("authorizations");
+		group_authorizations.setMultivalue(true);
+		group_authorizations.setSystemReserved(true);
+		group_authorizations.setUndeletable(true);
+		MetadataBuilder group_code = groupSchema.create("code").setType(MetadataValueType.STRING);
+		group_code.setUndeletable(true);
+		group_code.setSchemaAutocomplete(true);
+		group_code.setUniqueValue(true);
+		MetadataBuilder group_createdOn = groupSchema.get("createdOn");
+		group_createdOn.setSystemReserved(true);
+		group_createdOn.setUndeletable(true);
+		group_createdOn.setSortable(true);
+		MetadataBuilder group_deleted = groupSchema.get("deleted");
+		group_deleted.setSystemReserved(true);
+		group_deleted.setUndeletable(true);
+		MetadataBuilder group_denyTokens = groupSchema.get("denyTokens");
+		group_denyTokens.setMultivalue(true);
+		group_denyTokens.setSystemReserved(true);
+		group_denyTokens.setUndeletable(true);
 		group_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder group_detachedauthorizations = groupSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_followers = groupSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder group_id = groupSchema.get("id").setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true)
-				.setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder group_inheritedauthorizations = groupSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_isGlobal = groupSchema.create("isGlobal").setType(MetadataValueType.BOOLEAN).setUndeletable(true);
-		MetadataBuilder group_legacyIdentifier = groupSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder group_manualTokens = groupSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder group_detachedauthorizations = groupSchema.get("detachedauthorizations");
+		group_detachedauthorizations.setSystemReserved(true);
+		group_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder group_followers = groupSchema.get("followers");
+		group_followers.setMultivalue(true);
+		group_followers.setSystemReserved(true);
+		group_followers.setUndeletable(true);
+		group_followers.setSearchable(true);
+		MetadataBuilder group_id = groupSchema.get("id");
+		group_id.setDefaultRequirement(true);
+		group_id.setSystemReserved(true);
+		group_id.setUndeletable(true);
+		group_id.setSearchable(true);
+		group_id.setSortable(true);
+		group_id.setUniqueValue(true);
+		group_id.setUnmodifiable(true);
+		MetadataBuilder group_inheritedauthorizations = groupSchema.get("inheritedauthorizations");
+		group_inheritedauthorizations.setMultivalue(true);
+		group_inheritedauthorizations.setSystemReserved(true);
+		group_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder group_isGlobal = groupSchema.create("isGlobal").setType(MetadataValueType.BOOLEAN);
+		group_isGlobal.setUndeletable(true);
+		MetadataBuilder group_legacyIdentifier = groupSchema.get("legacyIdentifier");
+		group_legacyIdentifier.setDefaultRequirement(true);
+		group_legacyIdentifier.setSystemReserved(true);
+		group_legacyIdentifier.setUndeletable(true);
+		group_legacyIdentifier.setSearchable(true);
+		group_legacyIdentifier.setUniqueValue(true);
+		group_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder group_manualTokens = groupSchema.get("manualTokens");
+		group_manualTokens.setMultivalue(true);
+		group_manualTokens.setSystemReserved(true);
+		group_manualTokens.setUndeletable(true);
 		group_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder group_markedForPreviewConversion = groupSchema.get("markedForPreviewConversion").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_modifiedOn = groupSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder group_parent = groupSchema.create("parent").setType(MetadataValueType.REFERENCE).setUndeletable(true)
-				.defineReferencesTo(asList(groupSchema));
-		MetadataBuilder group_parentpath = groupSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_path = groupSchema.get("path").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_pathParts = groupSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_principalpath = groupSchema.get("principalpath").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_removedauthorizations = groupSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_roles = groupSchema.create("roles").setType(MetadataValueType.STRING).setMultivalue(true)
-				.setUndeletable(true);
-		MetadataBuilder group_schema = groupSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder group_searchable = groupSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_shareDenyTokens = groupSchema.get("shareDenyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder group_markedForPreviewConversion = groupSchema.get("markedForPreviewConversion");
+		group_markedForPreviewConversion.setSystemReserved(true);
+		group_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder group_modifiedOn = groupSchema.get("modifiedOn");
+		group_modifiedOn.setSystemReserved(true);
+		group_modifiedOn.setUndeletable(true);
+		group_modifiedOn.setSortable(true);
+		MetadataBuilder group_parent = groupSchema.create("parent").setType(MetadataValueType.REFERENCE);
+		group_parent.setUndeletable(true);
+		group_parent.defineReferencesTo(asList(groupSchema));
+		MetadataBuilder group_parentpath = groupSchema.get("parentpath");
+		group_parentpath.setMultivalue(true);
+		group_parentpath.setSystemReserved(true);
+		group_parentpath.setUndeletable(true);
+		MetadataBuilder group_path = groupSchema.get("path");
+		group_path.setMultivalue(true);
+		group_path.setSystemReserved(true);
+		group_path.setUndeletable(true);
+		MetadataBuilder group_pathParts = groupSchema.get("pathParts");
+		group_pathParts.setMultivalue(true);
+		group_pathParts.setSystemReserved(true);
+		group_pathParts.setUndeletable(true);
+		MetadataBuilder group_principalpath = groupSchema.get("principalpath");
+		group_principalpath.setSystemReserved(true);
+		group_principalpath.setUndeletable(true);
+		MetadataBuilder group_removedauthorizations = groupSchema.get("removedauthorizations");
+		group_removedauthorizations.setMultivalue(true);
+		group_removedauthorizations.setSystemReserved(true);
+		group_removedauthorizations.setUndeletable(true);
+		MetadataBuilder group_roles = groupSchema.create("roles").setType(MetadataValueType.STRING);
+		group_roles.setMultivalue(true);
+		group_roles.setUndeletable(true);
+		MetadataBuilder group_schema = groupSchema.get("schema");
+		group_schema.setDefaultRequirement(true);
+		group_schema.setSystemReserved(true);
+		group_schema.setUndeletable(true);
+		MetadataBuilder group_searchable = groupSchema.get("searchable");
+		group_searchable.setSystemReserved(true);
+		group_searchable.setUndeletable(true);
+		MetadataBuilder group_shareDenyTokens = groupSchema.get("shareDenyTokens");
+		group_shareDenyTokens.setMultivalue(true);
+		group_shareDenyTokens.setSystemReserved(true);
+		group_shareDenyTokens.setUndeletable(true);
 		group_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder group_shareTokens = groupSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder group_shareTokens = groupSchema.get("shareTokens");
+		group_shareTokens.setMultivalue(true);
+		group_shareTokens.setSystemReserved(true);
+		group_shareTokens.setUndeletable(true);
 		group_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder group_title = groupSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder group_tokens = groupSchema.get("tokens").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder group_visibleInTrees = groupSchema.get("visibleInTrees").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_allauthorizations = userSchema.get("allauthorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder user_allroles = userSchema.create("allroles").setType(MetadataValueType.STRING).setMultivalue(true)
-				.setUndeletable(true);
-		MetadataBuilder user_alluserauthorizations = userSchema.create("alluserauthorizations").setType(MetadataValueType.STRING)
-				.setMultivalue(true).setUndeletable(true);
-		MetadataBuilder user_authorizations = userSchema.get("authorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder group_title = groupSchema.get("title");
+		group_title.setUndeletable(true);
+		group_title.setSchemaAutocomplete(true);
+		group_title.setSearchable(true);
+		MetadataBuilder group_tokens = groupSchema.get("tokens");
+		group_tokens.setMultivalue(true);
+		group_tokens.setSystemReserved(true);
+		group_tokens.setUndeletable(true);
+		MetadataBuilder group_visibleInTrees = groupSchema.get("visibleInTrees");
+		group_visibleInTrees.setSystemReserved(true);
+		group_visibleInTrees.setUndeletable(true);
+		MetadataBuilder user_allauthorizations = userSchema.get("allauthorizations");
+		user_allauthorizations.setMultivalue(true);
+		user_allauthorizations.setSystemReserved(true);
+		user_allauthorizations.setUndeletable(true);
+		MetadataBuilder user_allroles = userSchema.create("allroles").setType(MetadataValueType.STRING);
+		user_allroles.setMultivalue(true);
+		user_allroles.setUndeletable(true);
+		MetadataBuilder user_alluserauthorizations = userSchema.create("alluserauthorizations").setType(MetadataValueType.STRING);
+		user_alluserauthorizations.setMultivalue(true);
+		user_alluserauthorizations.setUndeletable(true);
+		MetadataBuilder user_authorizations = userSchema.get("authorizations");
+		user_authorizations.setMultivalue(true);
+		user_authorizations.setSystemReserved(true);
+		user_authorizations.setUndeletable(true);
 		MetadataBuilder user_collectionDeleteAccess = userSchema.create("collectionDeleteAccess")
-				.setType(MetadataValueType.BOOLEAN).setUndeletable(true);
-		MetadataBuilder user_collectionReadAccess = userSchema.create("collectionReadAccess").setType(MetadataValueType.BOOLEAN)
-				.setUndeletable(true);
-		MetadataBuilder user_collectionWriteAccess = userSchema.create("collectionWriteAccess").setType(MetadataValueType.BOOLEAN)
-				.setUndeletable(true);
-		MetadataBuilder user_createdOn = userSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
+				.setType(MetadataValueType.BOOLEAN);
+		user_collectionDeleteAccess.setUndeletable(true);
+		MetadataBuilder user_collectionReadAccess = userSchema.create("collectionReadAccess").setType(MetadataValueType.BOOLEAN);
+		user_collectionReadAccess.setUndeletable(true);
+		MetadataBuilder user_collectionWriteAccess = userSchema.create("collectionWriteAccess")
+				.setType(MetadataValueType.BOOLEAN);
+		user_collectionWriteAccess.setUndeletable(true);
+		MetadataBuilder user_createdOn = userSchema.get("createdOn");
+		user_createdOn.setSystemReserved(true);
+		user_createdOn.setUndeletable(true);
+		user_createdOn.setSortable(true);
 		MetadataBuilder user_defaultTabInFolderDisplay = userSchema.create("defaultTabInFolderDisplay")
-				.setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder user_defaultTaxonomy = userSchema.create("defaultTaxonomy").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder user_deleted = userSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_denyTokens = userSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+				.setType(MetadataValueType.STRING);
+		user_defaultTabInFolderDisplay.setUndeletable(true);
+		MetadataBuilder user_defaultTaxonomy = userSchema.create("defaultTaxonomy").setType(MetadataValueType.STRING);
+		user_defaultTaxonomy.setUndeletable(true);
+		MetadataBuilder user_deleted = userSchema.get("deleted");
+		user_deleted.setSystemReserved(true);
+		user_deleted.setUndeletable(true);
+		MetadataBuilder user_denyTokens = userSchema.get("denyTokens");
+		user_denyTokens.setMultivalue(true);
+		user_denyTokens.setSystemReserved(true);
+		user_denyTokens.setUndeletable(true);
 		user_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder user_detachedauthorizations = userSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder user_email = userSchema.create("email").setType(MetadataValueType.STRING).setUndeletable(true);
+		MetadataBuilder user_detachedauthorizations = userSchema.get("detachedauthorizations");
+		user_detachedauthorizations.setSystemReserved(true);
+		user_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder user_email = userSchema.create("email").setType(MetadataValueType.STRING);
+		user_email.setUndeletable(true);
 		user_email.defineValidators().add(EmailValidator.class);
-		MetadataBuilder user_firstname = userSchema.create("firstname").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder user_followers = userSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder user_groups = userSchema.create("groups").setType(MetadataValueType.REFERENCE).setMultivalue(true)
-				.setUndeletable(true).defineReferencesTo(groupSchemaType);
-		MetadataBuilder user_groupsauthorizations = userSchema.create("groupsauthorizations").setType(MetadataValueType.STRING)
-				.setMultivalue(true).setUndeletable(true);
-		MetadataBuilder user_id = userSchema.get("id").setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true)
-				.setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder user_inheritedauthorizations = userSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_jobTitle = userSchema.create("jobTitle").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder user_lastIPAddress = userSchema.create("lastIPAddress").setType(MetadataValueType.STRING)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_lastLogin = userSchema.create("lastLogin").setType(MetadataValueType.DATE_TIME)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_lastname = userSchema.create("lastname").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder user_legacyIdentifier = userSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder user_loginLanguageCode = userSchema.create("loginLanguageCode").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder user_manualTokens = userSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder user_firstname = userSchema.create("firstname").setType(MetadataValueType.STRING);
+		user_firstname.setUndeletable(true);
+		MetadataBuilder user_followers = userSchema.get("followers");
+		user_followers.setMultivalue(true);
+		user_followers.setSystemReserved(true);
+		user_followers.setUndeletable(true);
+		user_followers.setSearchable(true);
+		MetadataBuilder user_groups = userSchema.create("groups").setType(MetadataValueType.REFERENCE);
+		user_groups.setMultivalue(true);
+		user_groups.setUndeletable(true);
+		user_groups.defineReferencesTo(groupSchemaType);
+		MetadataBuilder user_groupsauthorizations = userSchema.create("groupsauthorizations").setType(MetadataValueType.STRING);
+		user_groupsauthorizations.setMultivalue(true);
+		user_groupsauthorizations.setUndeletable(true);
+		MetadataBuilder user_id = userSchema.get("id");
+		user_id.setDefaultRequirement(true);
+		user_id.setSystemReserved(true);
+		user_id.setUndeletable(true);
+		user_id.setSearchable(true);
+		user_id.setSortable(true);
+		user_id.setUniqueValue(true);
+		user_id.setUnmodifiable(true);
+		MetadataBuilder user_inheritedauthorizations = userSchema.get("inheritedauthorizations");
+		user_inheritedauthorizations.setMultivalue(true);
+		user_inheritedauthorizations.setSystemReserved(true);
+		user_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder user_jobTitle = userSchema.create("jobTitle").setType(MetadataValueType.STRING);
+		user_jobTitle.setUndeletable(true);
+		MetadataBuilder user_lastIPAddress = userSchema.create("lastIPAddress").setType(MetadataValueType.STRING);
+		user_lastIPAddress.setSystemReserved(true);
+		user_lastIPAddress.setUndeletable(true);
+		MetadataBuilder user_lastLogin = userSchema.create("lastLogin").setType(MetadataValueType.DATE_TIME);
+		user_lastLogin.setSystemReserved(true);
+		user_lastLogin.setUndeletable(true);
+		MetadataBuilder user_lastname = userSchema.create("lastname").setType(MetadataValueType.STRING);
+		user_lastname.setUndeletable(true);
+		MetadataBuilder user_legacyIdentifier = userSchema.get("legacyIdentifier");
+		user_legacyIdentifier.setDefaultRequirement(true);
+		user_legacyIdentifier.setSystemReserved(true);
+		user_legacyIdentifier.setUndeletable(true);
+		user_legacyIdentifier.setSearchable(true);
+		user_legacyIdentifier.setUniqueValue(true);
+		user_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder user_loginLanguageCode = userSchema.create("loginLanguageCode").setType(MetadataValueType.STRING);
+		user_loginLanguageCode.setUndeletable(true);
+		MetadataBuilder user_manualTokens = userSchema.get("manualTokens");
+		user_manualTokens.setMultivalue(true);
+		user_manualTokens.setSystemReserved(true);
+		user_manualTokens.setUndeletable(true);
 		user_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder user_markedForPreviewConversion = userSchema.get("markedForPreviewConversion").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder user_modifiedOn = userSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder user_parentpath = userSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder user_path = userSchema.get("path").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_pathParts = userSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder user_phone = userSchema.create("phone").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder user_principalpath = userSchema.get("principalpath").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_removedauthorizations = userSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_schema = userSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder user_searchable = userSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_shareDenyTokens = userSchema.get("shareDenyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder user_markedForPreviewConversion = userSchema.get("markedForPreviewConversion");
+		user_markedForPreviewConversion.setSystemReserved(true);
+		user_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder user_modifiedOn = userSchema.get("modifiedOn");
+		user_modifiedOn.setSystemReserved(true);
+		user_modifiedOn.setUndeletable(true);
+		user_modifiedOn.setSortable(true);
+		MetadataBuilder user_parentpath = userSchema.get("parentpath");
+		user_parentpath.setMultivalue(true);
+		user_parentpath.setSystemReserved(true);
+		user_parentpath.setUndeletable(true);
+		MetadataBuilder user_path = userSchema.get("path");
+		user_path.setMultivalue(true);
+		user_path.setSystemReserved(true);
+		user_path.setUndeletable(true);
+		MetadataBuilder user_pathParts = userSchema.get("pathParts");
+		user_pathParts.setMultivalue(true);
+		user_pathParts.setSystemReserved(true);
+		user_pathParts.setUndeletable(true);
+		MetadataBuilder user_phone = userSchema.create("phone").setType(MetadataValueType.STRING);
+		user_phone.setUndeletable(true);
+		MetadataBuilder user_principalpath = userSchema.get("principalpath");
+		user_principalpath.setSystemReserved(true);
+		user_principalpath.setUndeletable(true);
+		MetadataBuilder user_removedauthorizations = userSchema.get("removedauthorizations");
+		user_removedauthorizations.setMultivalue(true);
+		user_removedauthorizations.setSystemReserved(true);
+		user_removedauthorizations.setUndeletable(true);
+		MetadataBuilder user_schema = userSchema.get("schema");
+		user_schema.setDefaultRequirement(true);
+		user_schema.setSystemReserved(true);
+		user_schema.setUndeletable(true);
+		MetadataBuilder user_searchable = userSchema.get("searchable");
+		user_searchable.setSystemReserved(true);
+		user_searchable.setUndeletable(true);
+		MetadataBuilder user_shareDenyTokens = userSchema.get("shareDenyTokens");
+		user_shareDenyTokens.setMultivalue(true);
+		user_shareDenyTokens.setSystemReserved(true);
+		user_shareDenyTokens.setUndeletable(true);
 		user_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder user_shareTokens = userSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder user_shareTokens = userSchema.get("shareTokens");
+		user_shareTokens.setMultivalue(true);
+		user_shareTokens.setSystemReserved(true);
+		user_shareTokens.setUndeletable(true);
 		user_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder user_signature = userSchema.create("signature").setType(MetadataValueType.TEXT).setUndeletable(true);
-		MetadataBuilder user_startTab = userSchema.create("startTab").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder user_status = userSchema.create("status").setType(MetadataValueType.ENUM).setUndeletable(true)
-				.defineAsEnum(com.constellio.model.entities.security.global.UserCredentialStatus.class);
-		MetadataBuilder user_systemAdmin = userSchema.create("systemAdmin").setType(MetadataValueType.BOOLEAN)
-				.setUndeletable(true);
-		MetadataBuilder user_title = userSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true).setSearchable(true);
-		MetadataBuilder user_tokens = userSchema.get("tokens").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder user_username = userSchema.create("username").setType(MetadataValueType.STRING).setUndeletable(true)
-				.setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder user_userroles = userSchema.create("userroles").setType(MetadataValueType.STRING).setMultivalue(true)
-				.setUndeletable(true);
-		MetadataBuilder user_usertokens = userSchema.create("usertokens").setType(MetadataValueType.STRING).setMultivalue(true)
-				.setUndeletable(true);
-		MetadataBuilder user_visibleInTrees = userSchema.get("visibleInTrees").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_BCC = emailToSendSchema.create("BCC").setType(MetadataValueType.STRUCTURE).setMultivalue(true)
-				.setUndeletable(true).defineStructureFactory(com.constellio.model.entities.structures.EmailAddressFactory.class);
-		MetadataBuilder emailToSend_CC = emailToSendSchema.create("CC").setType(MetadataValueType.STRUCTURE).setMultivalue(true)
-				.setUndeletable(true).defineStructureFactory(com.constellio.model.entities.structures.EmailAddressFactory.class);
-		MetadataBuilder emailToSend_allauthorizations = emailToSendSchema.get("allauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_authorizations = emailToSendSchema.get("authorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_createdBy = emailToSendSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_createdOn = emailToSendSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder emailToSend_deleted = emailToSendSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_denyTokens = emailToSendSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder user_signature = userSchema.create("signature").setType(MetadataValueType.TEXT);
+		user_signature.setUndeletable(true);
+		MetadataBuilder user_startTab = userSchema.create("startTab").setType(MetadataValueType.STRING);
+		user_startTab.setUndeletable(true);
+		MetadataBuilder user_status = userSchema.create("status").setType(MetadataValueType.ENUM);
+		user_status.setUndeletable(true);
+		user_status.defineAsEnum(UserCredentialStatus.class);
+		MetadataBuilder user_systemAdmin = userSchema.create("systemAdmin").setType(MetadataValueType.BOOLEAN);
+		user_systemAdmin.setUndeletable(true);
+		MetadataBuilder user_title = userSchema.get("title");
+		user_title.setUndeletable(true);
+		user_title.setSchemaAutocomplete(true);
+		user_title.setSearchable(true);
+		MetadataBuilder user_tokens = userSchema.get("tokens");
+		user_tokens.setMultivalue(true);
+		user_tokens.setSystemReserved(true);
+		user_tokens.setUndeletable(true);
+		MetadataBuilder user_username = userSchema.create("username").setType(MetadataValueType.STRING);
+		user_username.setUndeletable(true);
+		user_username.setUniqueValue(true);
+		user_username.setUnmodifiable(true);
+		MetadataBuilder user_userroles = userSchema.create("userroles").setType(MetadataValueType.STRING);
+		user_userroles.setMultivalue(true);
+		user_userroles.setUndeletable(true);
+		MetadataBuilder user_usertokens = userSchema.create("usertokens").setType(MetadataValueType.STRING);
+		user_usertokens.setMultivalue(true);
+		user_usertokens.setUndeletable(true);
+		MetadataBuilder user_visibleInTrees = userSchema.get("visibleInTrees");
+		user_visibleInTrees.setSystemReserved(true);
+		user_visibleInTrees.setUndeletable(true);
+		MetadataBuilder emailToSend_BCC = emailToSendSchema.create("BCC").setType(MetadataValueType.STRUCTURE);
+		emailToSend_BCC.setMultivalue(true);
+		emailToSend_BCC.setUndeletable(true);
+		emailToSend_BCC.defineStructureFactory(EmailAddressFactory.class);
+		MetadataBuilder emailToSend_CC = emailToSendSchema.create("CC").setType(MetadataValueType.STRUCTURE);
+		emailToSend_CC.setMultivalue(true);
+		emailToSend_CC.setUndeletable(true);
+		emailToSend_CC.defineStructureFactory(EmailAddressFactory.class);
+		MetadataBuilder emailToSend_allauthorizations = emailToSendSchema.get("allauthorizations");
+		emailToSend_allauthorizations.setMultivalue(true);
+		emailToSend_allauthorizations.setSystemReserved(true);
+		emailToSend_allauthorizations.setUndeletable(true);
+		MetadataBuilder emailToSend_authorizations = emailToSendSchema.get("authorizations");
+		emailToSend_authorizations.setMultivalue(true);
+		emailToSend_authorizations.setSystemReserved(true);
+		emailToSend_authorizations.setUndeletable(true);
+		MetadataBuilder emailToSend_createdBy = emailToSendSchema.get("createdBy");
+		emailToSend_createdBy.setSystemReserved(true);
+		emailToSend_createdBy.setUndeletable(true);
+		MetadataBuilder emailToSend_createdOn = emailToSendSchema.get("createdOn");
+		emailToSend_createdOn.setSystemReserved(true);
+		emailToSend_createdOn.setUndeletable(true);
+		emailToSend_createdOn.setSortable(true);
+		MetadataBuilder emailToSend_deleted = emailToSendSchema.get("deleted");
+		emailToSend_deleted.setSystemReserved(true);
+		emailToSend_deleted.setUndeletable(true);
+		MetadataBuilder emailToSend_denyTokens = emailToSendSchema.get("denyTokens");
+		emailToSend_denyTokens.setMultivalue(true);
+		emailToSend_denyTokens.setSystemReserved(true);
+		emailToSend_denyTokens.setUndeletable(true);
 		emailToSend_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder emailToSend_detachedauthorizations = emailToSendSchema.get("detachedauthorizations")
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_error = emailToSendSchema.create("error").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_followers = emailToSendSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder emailToSend_from = emailToSendSchema.create("from").setType(MetadataValueType.STRUCTURE)
-				.setUndeletable(true).defineStructureFactory(com.constellio.model.entities.structures.EmailAddressFactory.class);
-		MetadataBuilder emailToSend_id = emailToSendSchema.get("id").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder emailToSend_inheritedauthorizations = emailToSendSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_legacyIdentifier = emailToSendSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder emailToSend_manualTokens = emailToSendSchema.get("manualTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder emailToSend_detachedauthorizations = emailToSendSchema.get("detachedauthorizations");
+		emailToSend_detachedauthorizations.setSystemReserved(true);
+		emailToSend_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder emailToSend_error = emailToSendSchema.create("error").setType(MetadataValueType.STRING);
+		emailToSend_error.setUndeletable(true);
+		MetadataBuilder emailToSend_followers = emailToSendSchema.get("followers");
+		emailToSend_followers.setMultivalue(true);
+		emailToSend_followers.setSystemReserved(true);
+		emailToSend_followers.setUndeletable(true);
+		emailToSend_followers.setSearchable(true);
+		MetadataBuilder emailToSend_from = emailToSendSchema.create("from").setType(MetadataValueType.STRUCTURE);
+		emailToSend_from.setUndeletable(true);
+		emailToSend_from.defineStructureFactory(EmailAddressFactory.class);
+		MetadataBuilder emailToSend_id = emailToSendSchema.get("id");
+		emailToSend_id.setDefaultRequirement(true);
+		emailToSend_id.setSystemReserved(true);
+		emailToSend_id.setUndeletable(true);
+		emailToSend_id.setSearchable(true);
+		emailToSend_id.setSortable(true);
+		emailToSend_id.setUniqueValue(true);
+		emailToSend_id.setUnmodifiable(true);
+		MetadataBuilder emailToSend_inheritedauthorizations = emailToSendSchema.get("inheritedauthorizations");
+		emailToSend_inheritedauthorizations.setMultivalue(true);
+		emailToSend_inheritedauthorizations.setSystemReserved(true);
+		emailToSend_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder emailToSend_legacyIdentifier = emailToSendSchema.get("legacyIdentifier");
+		emailToSend_legacyIdentifier.setDefaultRequirement(true);
+		emailToSend_legacyIdentifier.setSystemReserved(true);
+		emailToSend_legacyIdentifier.setUndeletable(true);
+		emailToSend_legacyIdentifier.setSearchable(true);
+		emailToSend_legacyIdentifier.setUniqueValue(true);
+		emailToSend_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder emailToSend_manualTokens = emailToSendSchema.get("manualTokens");
+		emailToSend_manualTokens.setMultivalue(true);
+		emailToSend_manualTokens.setSystemReserved(true);
+		emailToSend_manualTokens.setUndeletable(true);
 		emailToSend_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder emailToSend_markedForPreviewConversion = emailToSendSchema.get("markedForPreviewConversion")
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_modifiedBy = emailToSendSchema.get("modifiedBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_modifiedOn = emailToSendSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder emailToSend_parameters = emailToSendSchema.create("parameters").setType(MetadataValueType.STRING)
-				.setMultivalue(true).setUndeletable(true);
-		MetadataBuilder emailToSend_parentpath = emailToSendSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_path = emailToSendSchema.get("path").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_pathParts = emailToSendSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_principalpath = emailToSendSchema.get("principalpath").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_removedauthorizations = emailToSendSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_schema = emailToSendSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_searchable = emailToSendSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder emailToSend_sendOn = emailToSendSchema.create("sendOn").setType(MetadataValueType.DATE_TIME)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_shareDenyTokens = emailToSendSchema.get("shareDenyTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder emailToSend_markedForPreviewConversion = emailToSendSchema.get("markedForPreviewConversion");
+		emailToSend_markedForPreviewConversion.setSystemReserved(true);
+		emailToSend_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder emailToSend_modifiedBy = emailToSendSchema.get("modifiedBy");
+		emailToSend_modifiedBy.setSystemReserved(true);
+		emailToSend_modifiedBy.setUndeletable(true);
+		MetadataBuilder emailToSend_modifiedOn = emailToSendSchema.get("modifiedOn");
+		emailToSend_modifiedOn.setSystemReserved(true);
+		emailToSend_modifiedOn.setUndeletable(true);
+		emailToSend_modifiedOn.setSortable(true);
+		MetadataBuilder emailToSend_parameters = emailToSendSchema.create("parameters").setType(MetadataValueType.STRING);
+		emailToSend_parameters.setMultivalue(true);
+		emailToSend_parameters.setUndeletable(true);
+		MetadataBuilder emailToSend_parentpath = emailToSendSchema.get("parentpath");
+		emailToSend_parentpath.setMultivalue(true);
+		emailToSend_parentpath.setSystemReserved(true);
+		emailToSend_parentpath.setUndeletable(true);
+		MetadataBuilder emailToSend_path = emailToSendSchema.get("path");
+		emailToSend_path.setMultivalue(true);
+		emailToSend_path.setSystemReserved(true);
+		emailToSend_path.setUndeletable(true);
+		MetadataBuilder emailToSend_pathParts = emailToSendSchema.get("pathParts");
+		emailToSend_pathParts.setMultivalue(true);
+		emailToSend_pathParts.setSystemReserved(true);
+		emailToSend_pathParts.setUndeletable(true);
+		MetadataBuilder emailToSend_principalpath = emailToSendSchema.get("principalpath");
+		emailToSend_principalpath.setSystemReserved(true);
+		emailToSend_principalpath.setUndeletable(true);
+		MetadataBuilder emailToSend_removedauthorizations = emailToSendSchema.get("removedauthorizations");
+		emailToSend_removedauthorizations.setMultivalue(true);
+		emailToSend_removedauthorizations.setSystemReserved(true);
+		emailToSend_removedauthorizations.setUndeletable(true);
+		MetadataBuilder emailToSend_schema = emailToSendSchema.get("schema");
+		emailToSend_schema.setDefaultRequirement(true);
+		emailToSend_schema.setSystemReserved(true);
+		emailToSend_schema.setUndeletable(true);
+		MetadataBuilder emailToSend_searchable = emailToSendSchema.get("searchable");
+		emailToSend_searchable.setSystemReserved(true);
+		emailToSend_searchable.setUndeletable(true);
+		MetadataBuilder emailToSend_sendOn = emailToSendSchema.create("sendOn").setType(MetadataValueType.DATE_TIME);
+		emailToSend_sendOn.setUndeletable(true);
+		MetadataBuilder emailToSend_shareDenyTokens = emailToSendSchema.get("shareDenyTokens");
+		emailToSend_shareDenyTokens.setMultivalue(true);
+		emailToSend_shareDenyTokens.setSystemReserved(true);
+		emailToSend_shareDenyTokens.setUndeletable(true);
 		emailToSend_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder emailToSend_shareTokens = emailToSendSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder emailToSend_shareTokens = emailToSendSchema.get("shareTokens");
+		emailToSend_shareTokens.setMultivalue(true);
+		emailToSend_shareTokens.setSystemReserved(true);
+		emailToSend_shareTokens.setUndeletable(true);
 		emailToSend_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder emailToSend_subject = emailToSendSchema.create("subject").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_template = emailToSendSchema.create("template").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_title = emailToSendSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder emailToSend_to = emailToSendSchema.create("to").setType(MetadataValueType.STRUCTURE).setMultivalue(true)
-				.setUndeletable(true).defineStructureFactory(com.constellio.model.entities.structures.EmailAddressFactory.class);
-		MetadataBuilder emailToSend_tokens = emailToSendSchema.get("tokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder emailToSend_tryingCount = emailToSendSchema.create("tryingCount").setType(MetadataValueType.NUMBER)
-				.setDefaultRequirement(true).setUndeletable(true).setDefaultValue(0.0);
-		MetadataBuilder emailToSend_visibleInTrees = emailToSendSchema.get("visibleInTrees").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_allauthorizations = eventSchema.get("allauthorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_authorizations = eventSchema.get("authorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_createdBy = eventSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_createdOn = eventSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder event_deleted = eventSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_delta = eventSchema.create("delta").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder event_denyTokens = eventSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder emailToSend_subject = emailToSendSchema.create("subject").setType(MetadataValueType.STRING);
+		emailToSend_subject.setUndeletable(true);
+		MetadataBuilder emailToSend_template = emailToSendSchema.create("template").setType(MetadataValueType.STRING);
+		emailToSend_template.setUndeletable(true);
+		MetadataBuilder emailToSend_title = emailToSendSchema.get("title");
+		emailToSend_title.setUndeletable(true);
+		emailToSend_title.setSchemaAutocomplete(true);
+		emailToSend_title.setSearchable(true);
+		MetadataBuilder emailToSend_to = emailToSendSchema.create("to").setType(MetadataValueType.STRUCTURE);
+		emailToSend_to.setMultivalue(true);
+		emailToSend_to.setUndeletable(true);
+		emailToSend_to.defineStructureFactory(EmailAddressFactory.class);
+		MetadataBuilder emailToSend_tokens = emailToSendSchema.get("tokens");
+		emailToSend_tokens.setMultivalue(true);
+		emailToSend_tokens.setSystemReserved(true);
+		emailToSend_tokens.setUndeletable(true);
+		MetadataBuilder emailToSend_tryingCount = emailToSendSchema.create("tryingCount").setType(MetadataValueType.NUMBER);
+		emailToSend_tryingCount.setDefaultRequirement(true);
+		emailToSend_tryingCount.setUndeletable(true);
+		emailToSend_tryingCount.setDefaultValue(0.0);
+		MetadataBuilder emailToSend_visibleInTrees = emailToSendSchema.get("visibleInTrees");
+		emailToSend_visibleInTrees.setSystemReserved(true);
+		emailToSend_visibleInTrees.setUndeletable(true);
+		MetadataBuilder event_allauthorizations = eventSchema.get("allauthorizations");
+		event_allauthorizations.setMultivalue(true);
+		event_allauthorizations.setSystemReserved(true);
+		event_allauthorizations.setUndeletable(true);
+		MetadataBuilder event_authorizations = eventSchema.get("authorizations");
+		event_authorizations.setMultivalue(true);
+		event_authorizations.setSystemReserved(true);
+		event_authorizations.setUndeletable(true);
+		MetadataBuilder event_createdBy = eventSchema.get("createdBy");
+		event_createdBy.setSystemReserved(true);
+		event_createdBy.setUndeletable(true);
+		MetadataBuilder event_createdOn = eventSchema.get("createdOn");
+		event_createdOn.setSystemReserved(true);
+		event_createdOn.setUndeletable(true);
+		event_createdOn.setSortable(true);
+		MetadataBuilder event_deleted = eventSchema.get("deleted");
+		event_deleted.setSystemReserved(true);
+		event_deleted.setUndeletable(true);
+		MetadataBuilder event_delta = eventSchema.create("delta").setType(MetadataValueType.STRING);
+		event_delta.setUndeletable(true);
+		MetadataBuilder event_denyTokens = eventSchema.get("denyTokens");
+		event_denyTokens.setMultivalue(true);
+		event_denyTokens.setSystemReserved(true);
+		event_denyTokens.setUndeletable(true);
 		event_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder event_detachedauthorizations = eventSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_eventPrincipalPath = eventSchema.create("eventPrincipalPath").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder event_followers = eventSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder event_id = eventSchema.get("id").setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true)
-				.setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder event_inheritedauthorizations = eventSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_ip = eventSchema.create("ip").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder event_legacyIdentifier = eventSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder event_manualTokens = eventSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder event_detachedauthorizations = eventSchema.get("detachedauthorizations");
+		event_detachedauthorizations.setSystemReserved(true);
+		event_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder event_eventPrincipalPath = eventSchema.create("eventPrincipalPath").setType(MetadataValueType.STRING);
+		event_eventPrincipalPath.setUndeletable(true);
+		MetadataBuilder event_followers = eventSchema.get("followers");
+		event_followers.setMultivalue(true);
+		event_followers.setSystemReserved(true);
+		event_followers.setUndeletable(true);
+		event_followers.setSearchable(true);
+		MetadataBuilder event_id = eventSchema.get("id");
+		event_id.setDefaultRequirement(true);
+		event_id.setSystemReserved(true);
+		event_id.setUndeletable(true);
+		event_id.setSearchable(true);
+		event_id.setSortable(true);
+		event_id.setUniqueValue(true);
+		event_id.setUnmodifiable(true);
+		MetadataBuilder event_inheritedauthorizations = eventSchema.get("inheritedauthorizations");
+		event_inheritedauthorizations.setMultivalue(true);
+		event_inheritedauthorizations.setSystemReserved(true);
+		event_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder event_ip = eventSchema.create("ip").setType(MetadataValueType.STRING);
+		event_ip.setUndeletable(true);
+		MetadataBuilder event_legacyIdentifier = eventSchema.get("legacyIdentifier");
+		event_legacyIdentifier.setDefaultRequirement(true);
+		event_legacyIdentifier.setSystemReserved(true);
+		event_legacyIdentifier.setUndeletable(true);
+		event_legacyIdentifier.setSearchable(true);
+		event_legacyIdentifier.setUniqueValue(true);
+		event_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder event_manualTokens = eventSchema.get("manualTokens");
+		event_manualTokens.setMultivalue(true);
+		event_manualTokens.setSystemReserved(true);
+		event_manualTokens.setUndeletable(true);
 		event_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder event_markedForPreviewConversion = eventSchema.get("markedForPreviewConversion").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_modifiedBy = eventSchema.get("modifiedBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_modifiedOn = eventSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder event_parentpath = eventSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_path = eventSchema.get("path").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_pathParts = eventSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_permissionDateRange = eventSchema.create("permissionDateRange").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder event_permissionRoles = eventSchema.create("permissionRoles").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder event_permissionUsers = eventSchema.create("permissionUsers").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder event_principalpath = eventSchema.get("principalpath").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_reason = eventSchema.create("reason").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder event_recordIdentifier = eventSchema.create("recordIdentifier").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder event_removedauthorizations = eventSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_schema = eventSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder event_searchable = eventSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_shareDenyTokens = eventSchema.get("shareDenyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder event_markedForPreviewConversion = eventSchema.get("markedForPreviewConversion");
+		event_markedForPreviewConversion.setSystemReserved(true);
+		event_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder event_modifiedBy = eventSchema.get("modifiedBy");
+		event_modifiedBy.setSystemReserved(true);
+		event_modifiedBy.setUndeletable(true);
+		MetadataBuilder event_modifiedOn = eventSchema.get("modifiedOn");
+		event_modifiedOn.setSystemReserved(true);
+		event_modifiedOn.setUndeletable(true);
+		event_modifiedOn.setSortable(true);
+		MetadataBuilder event_parentpath = eventSchema.get("parentpath");
+		event_parentpath.setMultivalue(true);
+		event_parentpath.setSystemReserved(true);
+		event_parentpath.setUndeletable(true);
+		MetadataBuilder event_path = eventSchema.get("path");
+		event_path.setMultivalue(true);
+		event_path.setSystemReserved(true);
+		event_path.setUndeletable(true);
+		MetadataBuilder event_pathParts = eventSchema.get("pathParts");
+		event_pathParts.setMultivalue(true);
+		event_pathParts.setSystemReserved(true);
+		event_pathParts.setUndeletable(true);
+		MetadataBuilder event_permissionDateRange = eventSchema.create("permissionDateRange").setType(MetadataValueType.STRING);
+		event_permissionDateRange.setUndeletable(true);
+		MetadataBuilder event_permissionRoles = eventSchema.create("permissionRoles").setType(MetadataValueType.STRING);
+		event_permissionRoles.setUndeletable(true);
+		MetadataBuilder event_permissionUsers = eventSchema.create("permissionUsers").setType(MetadataValueType.STRING);
+		event_permissionUsers.setUndeletable(true);
+		MetadataBuilder event_principalpath = eventSchema.get("principalpath");
+		event_principalpath.setSystemReserved(true);
+		event_principalpath.setUndeletable(true);
+		MetadataBuilder event_reason = eventSchema.create("reason").setType(MetadataValueType.STRING);
+		event_reason.setUndeletable(true);
+		MetadataBuilder event_recordIdentifier = eventSchema.create("recordIdentifier").setType(MetadataValueType.STRING);
+		event_recordIdentifier.setUndeletable(true);
+		MetadataBuilder event_removedauthorizations = eventSchema.get("removedauthorizations");
+		event_removedauthorizations.setMultivalue(true);
+		event_removedauthorizations.setSystemReserved(true);
+		event_removedauthorizations.setUndeletable(true);
+		MetadataBuilder event_schema = eventSchema.get("schema");
+		event_schema.setDefaultRequirement(true);
+		event_schema.setSystemReserved(true);
+		event_schema.setUndeletable(true);
+		MetadataBuilder event_searchable = eventSchema.get("searchable");
+		event_searchable.setSystemReserved(true);
+		event_searchable.setUndeletable(true);
+		MetadataBuilder event_shareDenyTokens = eventSchema.get("shareDenyTokens");
+		event_shareDenyTokens.setMultivalue(true);
+		event_shareDenyTokens.setSystemReserved(true);
+		event_shareDenyTokens.setUndeletable(true);
 		event_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder event_shareTokens = eventSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder event_shareTokens = eventSchema.get("shareTokens");
+		event_shareTokens.setMultivalue(true);
+		event_shareTokens.setSystemReserved(true);
+		event_shareTokens.setUndeletable(true);
 		event_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder event_title = eventSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder event_tokens = eventSchema.get("tokens").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder event_type = eventSchema.create("type").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder event_userRoles = eventSchema.create("userRoles").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder event_username = eventSchema.create("username").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder event_visibleInTrees = eventSchema.get("visibleInTrees").setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder event_title = eventSchema.get("title");
+		event_title.setUndeletable(true);
+		event_title.setSchemaAutocomplete(true);
+		event_title.setSearchable(true);
+		MetadataBuilder event_tokens = eventSchema.get("tokens");
+		event_tokens.setMultivalue(true);
+		event_tokens.setSystemReserved(true);
+		event_tokens.setUndeletable(true);
+		MetadataBuilder event_type = eventSchema.create("type").setType(MetadataValueType.STRING);
+		event_type.setUndeletable(true);
+		MetadataBuilder event_userRoles = eventSchema.create("userRoles").setType(MetadataValueType.STRING);
+		event_userRoles.setUndeletable(true);
+		MetadataBuilder event_username = eventSchema.create("username").setType(MetadataValueType.STRING);
+		event_username.setUndeletable(true);
+		MetadataBuilder event_visibleInTrees = eventSchema.get("visibleInTrees");
+		event_visibleInTrees.setSystemReserved(true);
+		event_visibleInTrees.setUndeletable(true);
 		MetadataBuilder facet_field_fieldValuesLabel = facet_fieldSchema.create("fieldValuesLabel")
-				.setType(MetadataValueType.STRUCTURE).setUndeletable(true)
-				.defineStructureFactory(com.constellio.model.entities.structures.MapStringStringStructureFactory.class);
-		MetadataBuilder facet_query_listQueries = facet_querySchema.create("listQueries").setType(MetadataValueType.STRUCTURE)
-				.setUndeletable(true)
-				.defineStructureFactory(com.constellio.model.entities.structures.MapStringStringStructureFactory.class);
-		MetadataBuilder facet_active = facetSchema.create("active").setType(MetadataValueType.BOOLEAN).setUndeletable(true)
-				.setDefaultValue(true);
-		MetadataBuilder facet_allauthorizations = facetSchema.get("allauthorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_authorizations = facetSchema.get("authorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_createdBy = facetSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_createdOn = facetSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder facet_deleted = facetSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_denyTokens = facetSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+				.setType(MetadataValueType.STRUCTURE);
+		facet_field_fieldValuesLabel.setUndeletable(true);
+		facet_field_fieldValuesLabel.defineStructureFactory(MapStringStringStructureFactory.class);
+		MetadataBuilder facet_query_listQueries = facet_querySchema.create("listQueries").setType(MetadataValueType.STRUCTURE);
+		facet_query_listQueries.setUndeletable(true);
+		facet_query_listQueries.defineStructureFactory(MapStringStringStructureFactory.class);
+		MetadataBuilder facet_active = facetSchema.create("active").setType(MetadataValueType.BOOLEAN);
+		facet_active.setUndeletable(true);
+		facet_active.setDefaultValue(true);
+		MetadataBuilder facet_allauthorizations = facetSchema.get("allauthorizations");
+		facet_allauthorizations.setMultivalue(true);
+		facet_allauthorizations.setSystemReserved(true);
+		facet_allauthorizations.setUndeletable(true);
+		MetadataBuilder facet_authorizations = facetSchema.get("authorizations");
+		facet_authorizations.setMultivalue(true);
+		facet_authorizations.setSystemReserved(true);
+		facet_authorizations.setUndeletable(true);
+		MetadataBuilder facet_createdBy = facetSchema.get("createdBy");
+		facet_createdBy.setSystemReserved(true);
+		facet_createdBy.setUndeletable(true);
+		MetadataBuilder facet_createdOn = facetSchema.get("createdOn");
+		facet_createdOn.setSystemReserved(true);
+		facet_createdOn.setUndeletable(true);
+		facet_createdOn.setSortable(true);
+		MetadataBuilder facet_deleted = facetSchema.get("deleted");
+		facet_deleted.setSystemReserved(true);
+		facet_deleted.setUndeletable(true);
+		MetadataBuilder facet_denyTokens = facetSchema.get("denyTokens");
+		facet_denyTokens.setMultivalue(true);
+		facet_denyTokens.setSystemReserved(true);
+		facet_denyTokens.setUndeletable(true);
 		facet_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder facet_detachedauthorizations = facetSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_elementPerPage = facetSchema.create("elementPerPage").setType(MetadataValueType.NUMBER)
-				.setDefaultRequirement(true).setUndeletable(true).setDefaultValue(5);
-		MetadataBuilder facet_facetType = facetSchema.create("facetType").setType(MetadataValueType.ENUM)
-				.setDefaultRequirement(true).setUndeletable(true)
-				.defineAsEnum(com.constellio.model.entities.records.wrappers.structure.FacetType.class);
-		MetadataBuilder facet_fieldDatastoreCode = facetSchema.create("fieldDatastoreCode").setType(MetadataValueType.STRING)
-				.setUndeletable(true).setEssential(true);
-		MetadataBuilder facet_followers = facetSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder facet_id = facetSchema.get("id").setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true)
-				.setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder facet_inheritedauthorizations = facetSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_legacyIdentifier = facetSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder facet_manualTokens = facetSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder facet_detachedauthorizations = facetSchema.get("detachedauthorizations");
+		facet_detachedauthorizations.setSystemReserved(true);
+		facet_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder facet_elementPerPage = facetSchema.create("elementPerPage").setType(MetadataValueType.NUMBER);
+		facet_elementPerPage.setDefaultRequirement(true);
+		facet_elementPerPage.setUndeletable(true);
+		facet_elementPerPage.setDefaultValue(5);
+		MetadataBuilder facet_facetType = facetSchema.create("facetType").setType(MetadataValueType.ENUM);
+		facet_facetType.setDefaultRequirement(true);
+		facet_facetType.setUndeletable(true);
+		facet_facetType.defineAsEnum(FacetType.class);
+		MetadataBuilder facet_fieldDatastoreCode = facetSchema.create("fieldDatastoreCode").setType(MetadataValueType.STRING);
+		facet_fieldDatastoreCode.setUndeletable(true);
+		facet_fieldDatastoreCode.setEssential(true);
+		MetadataBuilder facet_followers = facetSchema.get("followers");
+		facet_followers.setMultivalue(true);
+		facet_followers.setSystemReserved(true);
+		facet_followers.setUndeletable(true);
+		facet_followers.setSearchable(true);
+		MetadataBuilder facet_id = facetSchema.get("id");
+		facet_id.setDefaultRequirement(true);
+		facet_id.setSystemReserved(true);
+		facet_id.setUndeletable(true);
+		facet_id.setSearchable(true);
+		facet_id.setSortable(true);
+		facet_id.setUniqueValue(true);
+		facet_id.setUnmodifiable(true);
+		MetadataBuilder facet_inheritedauthorizations = facetSchema.get("inheritedauthorizations");
+		facet_inheritedauthorizations.setMultivalue(true);
+		facet_inheritedauthorizations.setSystemReserved(true);
+		facet_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder facet_legacyIdentifier = facetSchema.get("legacyIdentifier");
+		facet_legacyIdentifier.setDefaultRequirement(true);
+		facet_legacyIdentifier.setSystemReserved(true);
+		facet_legacyIdentifier.setUndeletable(true);
+		facet_legacyIdentifier.setSearchable(true);
+		facet_legacyIdentifier.setUniqueValue(true);
+		facet_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder facet_manualTokens = facetSchema.get("manualTokens");
+		facet_manualTokens.setMultivalue(true);
+		facet_manualTokens.setSystemReserved(true);
+		facet_manualTokens.setUndeletable(true);
 		facet_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder facet_markedForPreviewConversion = facetSchema.get("markedForPreviewConversion").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_modifiedBy = facetSchema.get("modifiedBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_modifiedOn = facetSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder facet_openByDefault = facetSchema.create("openByDefault").setType(MetadataValueType.BOOLEAN)
-				.setUndeletable(true).setDefaultValue(true);
-		MetadataBuilder facet_order = facetSchema.create("order").setType(MetadataValueType.NUMBER).setUndeletable(true);
-		MetadataBuilder facet_orderResult = facetSchema.create("orderResult").setType(MetadataValueType.ENUM)
-				.setDefaultRequirement(true).setUndeletable(true)
-				.setDefaultValue(com.constellio.model.entities.records.wrappers.structure.FacetOrderType.RELEVANCE)
-				.defineAsEnum(com.constellio.model.entities.records.wrappers.structure.FacetOrderType.class);
-		MetadataBuilder facet_pages = facetSchema.create("pages").setType(MetadataValueType.NUMBER).setUndeletable(true)
-				.setDefaultValue(1);
-		MetadataBuilder facet_parentpath = facetSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_path = facetSchema.get("path").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_pathParts = facetSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_principalpath = facetSchema.get("principalpath").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_removedauthorizations = facetSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_schema = facetSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder facet_searchable = facetSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_shareDenyTokens = facetSchema.get("shareDenyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder facet_markedForPreviewConversion = facetSchema.get("markedForPreviewConversion");
+		facet_markedForPreviewConversion.setSystemReserved(true);
+		facet_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder facet_modifiedBy = facetSchema.get("modifiedBy");
+		facet_modifiedBy.setSystemReserved(true);
+		facet_modifiedBy.setUndeletable(true);
+		MetadataBuilder facet_modifiedOn = facetSchema.get("modifiedOn");
+		facet_modifiedOn.setSystemReserved(true);
+		facet_modifiedOn.setUndeletable(true);
+		facet_modifiedOn.setSortable(true);
+		MetadataBuilder facet_openByDefault = facetSchema.create("openByDefault").setType(MetadataValueType.BOOLEAN);
+		facet_openByDefault.setUndeletable(true);
+		facet_openByDefault.setDefaultValue(true);
+		MetadataBuilder facet_order = facetSchema.create("order").setType(MetadataValueType.NUMBER);
+		facet_order.setUndeletable(true);
+		MetadataBuilder facet_orderResult = facetSchema.create("orderResult").setType(MetadataValueType.ENUM);
+		facet_orderResult.setDefaultRequirement(true);
+		facet_orderResult.setUndeletable(true);
+		facet_orderResult.setDefaultValue(FacetOrderType.RELEVANCE);
+		facet_orderResult.defineAsEnum(FacetOrderType.class);
+		MetadataBuilder facet_pages = facetSchema.create("pages").setType(MetadataValueType.NUMBER);
+		facet_pages.setUndeletable(true);
+		facet_pages.setDefaultValue(1);
+		MetadataBuilder facet_parentpath = facetSchema.get("parentpath");
+		facet_parentpath.setMultivalue(true);
+		facet_parentpath.setSystemReserved(true);
+		facet_parentpath.setUndeletable(true);
+		MetadataBuilder facet_path = facetSchema.get("path");
+		facet_path.setMultivalue(true);
+		facet_path.setSystemReserved(true);
+		facet_path.setUndeletable(true);
+		MetadataBuilder facet_pathParts = facetSchema.get("pathParts");
+		facet_pathParts.setMultivalue(true);
+		facet_pathParts.setSystemReserved(true);
+		facet_pathParts.setUndeletable(true);
+		MetadataBuilder facet_principalpath = facetSchema.get("principalpath");
+		facet_principalpath.setSystemReserved(true);
+		facet_principalpath.setUndeletable(true);
+		MetadataBuilder facet_removedauthorizations = facetSchema.get("removedauthorizations");
+		facet_removedauthorizations.setMultivalue(true);
+		facet_removedauthorizations.setSystemReserved(true);
+		facet_removedauthorizations.setUndeletable(true);
+		MetadataBuilder facet_schema = facetSchema.get("schema");
+		facet_schema.setDefaultRequirement(true);
+		facet_schema.setSystemReserved(true);
+		facet_schema.setUndeletable(true);
+		MetadataBuilder facet_searchable = facetSchema.get("searchable");
+		facet_searchable.setSystemReserved(true);
+		facet_searchable.setUndeletable(true);
+		MetadataBuilder facet_shareDenyTokens = facetSchema.get("shareDenyTokens");
+		facet_shareDenyTokens.setMultivalue(true);
+		facet_shareDenyTokens.setSystemReserved(true);
+		facet_shareDenyTokens.setUndeletable(true);
 		facet_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder facet_shareTokens = facetSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder facet_shareTokens = facetSchema.get("shareTokens");
+		facet_shareTokens.setMultivalue(true);
+		facet_shareTokens.setSystemReserved(true);
+		facet_shareTokens.setUndeletable(true);
 		facet_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder facet_title = facetSchema.get("title").setDefaultRequirement(true).setUndeletable(true)
-				.setSchemaAutocomplete(true).setSearchable(true);
-		MetadataBuilder facet_tokens = facetSchema.get("tokens").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_usedByModule = facetSchema.create("usedByModule").setType(MetadataValueType.STRING)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder facet_visibleInTrees = facetSchema.get("visibleInTrees").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_allauthorizations = reportSchema.get("allauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_authorizations = reportSchema.get("authorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_columnsCount = reportSchema.create("columnsCount").setType(MetadataValueType.NUMBER)
-				.setUndeletable(true);
-		MetadataBuilder report_createdBy = reportSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_createdOn = reportSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder report_deleted = reportSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_denyTokens = reportSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder facet_title = facetSchema.get("title");
+		facet_title.setDefaultRequirement(true);
+		facet_title.setUndeletable(true);
+		facet_title.setSchemaAutocomplete(true);
+		facet_title.setSearchable(true);
+		MetadataBuilder facet_tokens = facetSchema.get("tokens");
+		facet_tokens.setMultivalue(true);
+		facet_tokens.setSystemReserved(true);
+		facet_tokens.setUndeletable(true);
+		MetadataBuilder facet_usedByModule = facetSchema.create("usedByModule").setType(MetadataValueType.STRING);
+		facet_usedByModule.setSystemReserved(true);
+		facet_usedByModule.setUndeletable(true);
+		MetadataBuilder facet_visibleInTrees = facetSchema.get("visibleInTrees");
+		facet_visibleInTrees.setSystemReserved(true);
+		facet_visibleInTrees.setUndeletable(true);
+		MetadataBuilder report_allauthorizations = reportSchema.get("allauthorizations");
+		report_allauthorizations.setMultivalue(true);
+		report_allauthorizations.setSystemReserved(true);
+		report_allauthorizations.setUndeletable(true);
+		MetadataBuilder report_authorizations = reportSchema.get("authorizations");
+		report_authorizations.setMultivalue(true);
+		report_authorizations.setSystemReserved(true);
+		report_authorizations.setUndeletable(true);
+		MetadataBuilder report_columnsCount = reportSchema.create("columnsCount").setType(MetadataValueType.NUMBER);
+		report_columnsCount.setUndeletable(true);
+		MetadataBuilder report_createdBy = reportSchema.get("createdBy");
+		report_createdBy.setSystemReserved(true);
+		report_createdBy.setUndeletable(true);
+		MetadataBuilder report_createdOn = reportSchema.get("createdOn");
+		report_createdOn.setSystemReserved(true);
+		report_createdOn.setUndeletable(true);
+		report_createdOn.setSortable(true);
+		MetadataBuilder report_deleted = reportSchema.get("deleted");
+		report_deleted.setSystemReserved(true);
+		report_deleted.setUndeletable(true);
+		MetadataBuilder report_denyTokens = reportSchema.get("denyTokens");
+		report_denyTokens.setMultivalue(true);
+		report_denyTokens.setSystemReserved(true);
+		report_denyTokens.setUndeletable(true);
 		report_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder report_detachedauthorizations = reportSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_followers = reportSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder report_id = reportSchema.get("id").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder report_inheritedauthorizations = reportSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_legacyIdentifier = reportSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder report_linesCount = reportSchema.create("linesCount").setType(MetadataValueType.NUMBER)
-				.setDefaultRequirement(true).setUndeletable(true);
-		MetadataBuilder report_manualTokens = reportSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder report_detachedauthorizations = reportSchema.get("detachedauthorizations");
+		report_detachedauthorizations.setSystemReserved(true);
+		report_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder report_followers = reportSchema.get("followers");
+		report_followers.setMultivalue(true);
+		report_followers.setSystemReserved(true);
+		report_followers.setUndeletable(true);
+		report_followers.setSearchable(true);
+		MetadataBuilder report_id = reportSchema.get("id");
+		report_id.setDefaultRequirement(true);
+		report_id.setSystemReserved(true);
+		report_id.setUndeletable(true);
+		report_id.setSearchable(true);
+		report_id.setSortable(true);
+		report_id.setUniqueValue(true);
+		report_id.setUnmodifiable(true);
+		MetadataBuilder report_inheritedauthorizations = reportSchema.get("inheritedauthorizations");
+		report_inheritedauthorizations.setMultivalue(true);
+		report_inheritedauthorizations.setSystemReserved(true);
+		report_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder report_legacyIdentifier = reportSchema.get("legacyIdentifier");
+		report_legacyIdentifier.setDefaultRequirement(true);
+		report_legacyIdentifier.setSystemReserved(true);
+		report_legacyIdentifier.setUndeletable(true);
+		report_legacyIdentifier.setSearchable(true);
+		report_legacyIdentifier.setUniqueValue(true);
+		report_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder report_linesCount = reportSchema.create("linesCount").setType(MetadataValueType.NUMBER);
+		report_linesCount.setDefaultRequirement(true);
+		report_linesCount.setUndeletable(true);
+		MetadataBuilder report_manualTokens = reportSchema.get("manualTokens");
+		report_manualTokens.setMultivalue(true);
+		report_manualTokens.setSystemReserved(true);
+		report_manualTokens.setUndeletable(true);
 		report_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder report_markedForPreviewConversion = reportSchema.get("markedForPreviewConversion").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_modifiedBy = reportSchema.get("modifiedBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_modifiedOn = reportSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder report_parentpath = reportSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_path = reportSchema.get("path").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_pathParts = reportSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_principalpath = reportSchema.get("principalpath").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_removedauthorizations = reportSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_reportedMetadata = reportSchema.create("reportedMetadata").setType(MetadataValueType.STRUCTURE)
-				.setMultivalue(true).setUndeletable(true)
-				.defineStructureFactory(com.constellio.model.entities.records.wrappers.structure.ReportedMetadataFactory.class);
-		MetadataBuilder report_schema = reportSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_schemaTypeCode = reportSchema.create("schemaTypeCode").setType(MetadataValueType.STRING)
-				.setDefaultRequirement(true).setUndeletable(true);
-		MetadataBuilder report_searchable = reportSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder report_separator = reportSchema.create("separator").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder report_shareDenyTokens = reportSchema.get("shareDenyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder report_markedForPreviewConversion = reportSchema.get("markedForPreviewConversion");
+		report_markedForPreviewConversion.setSystemReserved(true);
+		report_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder report_modifiedBy = reportSchema.get("modifiedBy");
+		report_modifiedBy.setSystemReserved(true);
+		report_modifiedBy.setUndeletable(true);
+		MetadataBuilder report_modifiedOn = reportSchema.get("modifiedOn");
+		report_modifiedOn.setSystemReserved(true);
+		report_modifiedOn.setUndeletable(true);
+		report_modifiedOn.setSortable(true);
+		MetadataBuilder report_parentpath = reportSchema.get("parentpath");
+		report_parentpath.setMultivalue(true);
+		report_parentpath.setSystemReserved(true);
+		report_parentpath.setUndeletable(true);
+		MetadataBuilder report_path = reportSchema.get("path");
+		report_path.setMultivalue(true);
+		report_path.setSystemReserved(true);
+		report_path.setUndeletable(true);
+		MetadataBuilder report_pathParts = reportSchema.get("pathParts");
+		report_pathParts.setMultivalue(true);
+		report_pathParts.setSystemReserved(true);
+		report_pathParts.setUndeletable(true);
+		MetadataBuilder report_principalpath = reportSchema.get("principalpath");
+		report_principalpath.setSystemReserved(true);
+		report_principalpath.setUndeletable(true);
+		MetadataBuilder report_removedauthorizations = reportSchema.get("removedauthorizations");
+		report_removedauthorizations.setMultivalue(true);
+		report_removedauthorizations.setSystemReserved(true);
+		report_removedauthorizations.setUndeletable(true);
+		MetadataBuilder report_reportedMetadata = reportSchema.create("reportedMetadata").setType(MetadataValueType.STRUCTURE);
+		report_reportedMetadata.setMultivalue(true);
+		report_reportedMetadata.setUndeletable(true);
+		report_reportedMetadata.defineStructureFactory(ReportedMetadataFactory.class);
+		MetadataBuilder report_schema = reportSchema.get("schema");
+		report_schema.setDefaultRequirement(true);
+		report_schema.setSystemReserved(true);
+		report_schema.setUndeletable(true);
+		MetadataBuilder report_schemaTypeCode = reportSchema.create("schemaTypeCode").setType(MetadataValueType.STRING);
+		report_schemaTypeCode.setDefaultRequirement(true);
+		report_schemaTypeCode.setUndeletable(true);
+		MetadataBuilder report_searchable = reportSchema.get("searchable");
+		report_searchable.setSystemReserved(true);
+		report_searchable.setUndeletable(true);
+		MetadataBuilder report_separator = reportSchema.create("separator").setType(MetadataValueType.STRING);
+		report_separator.setUndeletable(true);
+		MetadataBuilder report_shareDenyTokens = reportSchema.get("shareDenyTokens");
+		report_shareDenyTokens.setMultivalue(true);
+		report_shareDenyTokens.setSystemReserved(true);
+		report_shareDenyTokens.setUndeletable(true);
 		report_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder report_shareTokens = reportSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder report_shareTokens = reportSchema.get("shareTokens");
+		report_shareTokens.setMultivalue(true);
+		report_shareTokens.setSystemReserved(true);
+		report_shareTokens.setUndeletable(true);
 		report_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder report_title = reportSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder report_tokens = reportSchema.get("tokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder report_username = reportSchema.create("username").setType(MetadataValueType.STRING).setUndeletable(true);
-		MetadataBuilder report_visibleInTrees = reportSchema.get("visibleInTrees").setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder report_title = reportSchema.get("title");
+		report_title.setUndeletable(true);
+		report_title.setSchemaAutocomplete(true);
+		report_title.setSearchable(true);
+		MetadataBuilder report_tokens = reportSchema.get("tokens");
+		report_tokens.setMultivalue(true);
+		report_tokens.setSystemReserved(true);
+		report_tokens.setUndeletable(true);
+		MetadataBuilder report_username = reportSchema.create("username").setType(MetadataValueType.STRING);
+		report_username.setUndeletable(true);
+		MetadataBuilder report_visibleInTrees = reportSchema.get("visibleInTrees");
+		report_visibleInTrees.setSystemReserved(true);
+		report_visibleInTrees.setUndeletable(true);
 		MetadataBuilder savedSearch_advancedSearch = savedSearchSchema.create("advancedSearch")
-				.setType(MetadataValueType.STRUCTURE).setMultivalue(true).setUndeletable(true)
-				.defineStructureFactory(com.constellio.app.ui.pages.search.criteria.CriterionFactory.class);
-		MetadataBuilder savedSearch_allauthorizations = savedSearchSchema.get("allauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_authorizations = savedSearchSchema.get("authorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_createdBy = savedSearchSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_createdOn = savedSearchSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder savedSearch_deleted = savedSearchSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_denyTokens = savedSearchSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+				.setType(MetadataValueType.STRUCTURE);
+		savedSearch_advancedSearch.setMultivalue(true);
+		savedSearch_advancedSearch.setUndeletable(true);
+		savedSearch_advancedSearch.defineStructureFactory(CriterionFactory.class);
+		MetadataBuilder savedSearch_allauthorizations = savedSearchSchema.get("allauthorizations");
+		savedSearch_allauthorizations.setMultivalue(true);
+		savedSearch_allauthorizations.setSystemReserved(true);
+		savedSearch_allauthorizations.setUndeletable(true);
+		MetadataBuilder savedSearch_authorizations = savedSearchSchema.get("authorizations");
+		savedSearch_authorizations.setMultivalue(true);
+		savedSearch_authorizations.setSystemReserved(true);
+		savedSearch_authorizations.setUndeletable(true);
+		MetadataBuilder savedSearch_createdBy = savedSearchSchema.get("createdBy");
+		savedSearch_createdBy.setSystemReserved(true);
+		savedSearch_createdBy.setUndeletable(true);
+		MetadataBuilder savedSearch_createdOn = savedSearchSchema.get("createdOn");
+		savedSearch_createdOn.setSystemReserved(true);
+		savedSearch_createdOn.setUndeletable(true);
+		savedSearch_createdOn.setSortable(true);
+		MetadataBuilder savedSearch_deleted = savedSearchSchema.get("deleted");
+		savedSearch_deleted.setSystemReserved(true);
+		savedSearch_deleted.setUndeletable(true);
+		MetadataBuilder savedSearch_denyTokens = savedSearchSchema.get("denyTokens");
+		savedSearch_denyTokens.setMultivalue(true);
+		savedSearch_denyTokens.setSystemReserved(true);
+		savedSearch_denyTokens.setUndeletable(true);
 		savedSearch_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder savedSearch_detachedauthorizations = savedSearchSchema.get("detachedauthorizations")
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder savedSearch_detachedauthorizations = savedSearchSchema.get("detachedauthorizations");
+		savedSearch_detachedauthorizations.setSystemReserved(true);
+		savedSearch_detachedauthorizations.setUndeletable(true);
 		MetadataBuilder savedSearch_facetSelections = savedSearchSchema.create("facetSelections")
-				.setType(MetadataValueType.STRUCTURE).setMultivalue(true).setUndeletable(true)
-				.defineStructureFactory(com.constellio.app.ui.pages.search.criteria.FacetSelectionsFactory.class);
-		MetadataBuilder savedSearch_followers = savedSearchSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder savedSearch_freeTextSearch = savedSearchSchema.create("freeTextSearch").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_id = savedSearchSchema.get("id").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder savedSearch_inheritedauthorizations = savedSearchSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_legacyIdentifier = savedSearchSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder savedSearch_manualTokens = savedSearchSchema.get("manualTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+				.setType(MetadataValueType.STRUCTURE);
+		savedSearch_facetSelections.setMultivalue(true);
+		savedSearch_facetSelections.setUndeletable(true);
+		savedSearch_facetSelections.defineStructureFactory(FacetSelectionsFactory.class);
+		MetadataBuilder savedSearch_followers = savedSearchSchema.get("followers");
+		savedSearch_followers.setMultivalue(true);
+		savedSearch_followers.setSystemReserved(true);
+		savedSearch_followers.setUndeletable(true);
+		savedSearch_followers.setSearchable(true);
+		MetadataBuilder savedSearch_freeTextSearch = savedSearchSchema.create("freeTextSearch").setType(MetadataValueType.STRING);
+		savedSearch_freeTextSearch.setUndeletable(true);
+		MetadataBuilder savedSearch_id = savedSearchSchema.get("id");
+		savedSearch_id.setDefaultRequirement(true);
+		savedSearch_id.setSystemReserved(true);
+		savedSearch_id.setUndeletable(true);
+		savedSearch_id.setSearchable(true);
+		savedSearch_id.setSortable(true);
+		savedSearch_id.setUniqueValue(true);
+		savedSearch_id.setUnmodifiable(true);
+		MetadataBuilder savedSearch_inheritedauthorizations = savedSearchSchema.get("inheritedauthorizations");
+		savedSearch_inheritedauthorizations.setMultivalue(true);
+		savedSearch_inheritedauthorizations.setSystemReserved(true);
+		savedSearch_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder savedSearch_legacyIdentifier = savedSearchSchema.get("legacyIdentifier");
+		savedSearch_legacyIdentifier.setDefaultRequirement(true);
+		savedSearch_legacyIdentifier.setSystemReserved(true);
+		savedSearch_legacyIdentifier.setUndeletable(true);
+		savedSearch_legacyIdentifier.setSearchable(true);
+		savedSearch_legacyIdentifier.setUniqueValue(true);
+		savedSearch_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder savedSearch_manualTokens = savedSearchSchema.get("manualTokens");
+		savedSearch_manualTokens.setMultivalue(true);
+		savedSearch_manualTokens.setSystemReserved(true);
+		savedSearch_manualTokens.setUndeletable(true);
 		savedSearch_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder savedSearch_markedForPreviewConversion = savedSearchSchema.get("markedForPreviewConversion")
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_modifiedBy = savedSearchSchema.get("modifiedBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_modifiedOn = savedSearchSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder savedSearch_pageNumber = savedSearchSchema.create("pageNumber").setType(MetadataValueType.NUMBER)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_parentpath = savedSearchSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_path = savedSearchSchema.get("path").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_pathParts = savedSearchSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_principalpath = savedSearchSchema.get("principalpath").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_public = savedSearchSchema.create("public").setType(MetadataValueType.BOOLEAN)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_removedauthorizations = savedSearchSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_schema = savedSearchSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_schemaFilter = savedSearchSchema.create("schemaFilter").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_searchType = savedSearchSchema.create("searchType").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_searchable = savedSearchSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder savedSearch_shareDenyTokens = savedSearchSchema.get("shareDenyTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder savedSearch_markedForPreviewConversion = savedSearchSchema.get("markedForPreviewConversion");
+		savedSearch_markedForPreviewConversion.setSystemReserved(true);
+		savedSearch_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder savedSearch_modifiedBy = savedSearchSchema.get("modifiedBy");
+		savedSearch_modifiedBy.setSystemReserved(true);
+		savedSearch_modifiedBy.setUndeletable(true);
+		MetadataBuilder savedSearch_modifiedOn = savedSearchSchema.get("modifiedOn");
+		savedSearch_modifiedOn.setSystemReserved(true);
+		savedSearch_modifiedOn.setUndeletable(true);
+		savedSearch_modifiedOn.setSortable(true);
+		MetadataBuilder savedSearch_pageNumber = savedSearchSchema.create("pageNumber").setType(MetadataValueType.NUMBER);
+		savedSearch_pageNumber.setUndeletable(true);
+		MetadataBuilder savedSearch_parentpath = savedSearchSchema.get("parentpath");
+		savedSearch_parentpath.setMultivalue(true);
+		savedSearch_parentpath.setSystemReserved(true);
+		savedSearch_parentpath.setUndeletable(true);
+		MetadataBuilder savedSearch_path = savedSearchSchema.get("path");
+		savedSearch_path.setMultivalue(true);
+		savedSearch_path.setSystemReserved(true);
+		savedSearch_path.setUndeletable(true);
+		MetadataBuilder savedSearch_pathParts = savedSearchSchema.get("pathParts");
+		savedSearch_pathParts.setMultivalue(true);
+		savedSearch_pathParts.setSystemReserved(true);
+		savedSearch_pathParts.setUndeletable(true);
+		MetadataBuilder savedSearch_principalpath = savedSearchSchema.get("principalpath");
+		savedSearch_principalpath.setSystemReserved(true);
+		savedSearch_principalpath.setUndeletable(true);
+		MetadataBuilder savedSearch_public = savedSearchSchema.create("public").setType(MetadataValueType.BOOLEAN);
+		savedSearch_public.setUndeletable(true);
+		MetadataBuilder savedSearch_removedauthorizations = savedSearchSchema.get("removedauthorizations");
+		savedSearch_removedauthorizations.setMultivalue(true);
+		savedSearch_removedauthorizations.setSystemReserved(true);
+		savedSearch_removedauthorizations.setUndeletable(true);
+		MetadataBuilder savedSearch_schema = savedSearchSchema.get("schema");
+		savedSearch_schema.setDefaultRequirement(true);
+		savedSearch_schema.setSystemReserved(true);
+		savedSearch_schema.setUndeletable(true);
+		MetadataBuilder savedSearch_schemaFilter = savedSearchSchema.create("schemaFilter").setType(MetadataValueType.STRING);
+		savedSearch_schemaFilter.setUndeletable(true);
+		MetadataBuilder savedSearch_searchType = savedSearchSchema.create("searchType").setType(MetadataValueType.STRING);
+		savedSearch_searchType.setUndeletable(true);
+		MetadataBuilder savedSearch_searchable = savedSearchSchema.get("searchable");
+		savedSearch_searchable.setSystemReserved(true);
+		savedSearch_searchable.setUndeletable(true);
+		MetadataBuilder savedSearch_shareDenyTokens = savedSearchSchema.get("shareDenyTokens");
+		savedSearch_shareDenyTokens.setMultivalue(true);
+		savedSearch_shareDenyTokens.setSystemReserved(true);
+		savedSearch_shareDenyTokens.setUndeletable(true);
 		savedSearch_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder savedSearch_shareTokens = savedSearchSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder savedSearch_shareTokens = savedSearchSchema.get("shareTokens");
+		savedSearch_shareTokens.setMultivalue(true);
+		savedSearch_shareTokens.setSystemReserved(true);
+		savedSearch_shareTokens.setUndeletable(true);
 		savedSearch_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder savedSearch_sortField = savedSearchSchema.create("sortField").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_sortOrder = savedSearchSchema.create("sortOrder").setType(MetadataValueType.ENUM)
-				.setUndeletable(true).defineAsEnum(com.constellio.model.entities.records.wrappers.SavedSearch.SortOrder.class);
-		MetadataBuilder savedSearch_temporary = savedSearchSchema.create("temporary").setType(MetadataValueType.BOOLEAN)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_title = savedSearchSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder savedSearch_tokens = savedSearchSchema.get("tokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder savedSearch_user = savedSearchSchema.create("user").setType(MetadataValueType.REFERENCE)
-				.setUndeletable(true).defineReferencesTo(userSchemaType);
-		MetadataBuilder savedSearch_visibleInTrees = savedSearchSchema.get("visibleInTrees").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_approval_decision = task_approvalSchema.create("decision").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
+		MetadataBuilder savedSearch_sortField = savedSearchSchema.create("sortField").setType(MetadataValueType.STRING);
+		savedSearch_sortField.setUndeletable(true);
+		MetadataBuilder savedSearch_sortOrder = savedSearchSchema.create("sortOrder").setType(MetadataValueType.ENUM);
+		savedSearch_sortOrder.setUndeletable(true);
+		savedSearch_sortOrder.defineAsEnum(SavedSearch.SortOrder.class);
+		MetadataBuilder savedSearch_temporary = savedSearchSchema.create("temporary").setType(MetadataValueType.BOOLEAN);
+		savedSearch_temporary.setUndeletable(true);
+		MetadataBuilder savedSearch_title = savedSearchSchema.get("title");
+		savedSearch_title.setUndeletable(true);
+		savedSearch_title.setSchemaAutocomplete(true);
+		savedSearch_title.setSearchable(true);
+		MetadataBuilder savedSearch_tokens = savedSearchSchema.get("tokens");
+		savedSearch_tokens.setMultivalue(true);
+		savedSearch_tokens.setSystemReserved(true);
+		savedSearch_tokens.setUndeletable(true);
+		MetadataBuilder savedSearch_user = savedSearchSchema.create("user").setType(MetadataValueType.REFERENCE);
+		savedSearch_user.setUndeletable(true);
+		savedSearch_user.defineReferencesTo(userSchemaType);
+		MetadataBuilder savedSearch_visibleInTrees = savedSearchSchema.get("visibleInTrees");
+		savedSearch_visibleInTrees.setSystemReserved(true);
+		savedSearch_visibleInTrees.setUndeletable(true);
+		MetadataBuilder task_approval_decision = task_approvalSchema.create("decision").setType(MetadataValueType.STRING);
+		task_approval_decision.setUndeletable(true);
 		task_approval_decision.defineValidators().add(DecisionValidator.class);
-		MetadataBuilder task_allauthorizations = taskSchema.get("allauthorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_assignCandidates = taskSchema.create("assignCandidates").setType(MetadataValueType.REFERENCE)
-				.setMultivalue(true).setUndeletable(true).defineReferencesTo(userSchemaType);
-		MetadataBuilder task_assignedOn = taskSchema.create("assignedOn").setType(MetadataValueType.DATE_TIME)
-				.setUndeletable(true);
-		MetadataBuilder task_assignedTo = taskSchema.create("assignedTo").setType(MetadataValueType.REFERENCE)
-				.setUndeletable(true).defineReferencesTo(userSchemaType);
-		MetadataBuilder task_authorizations = taskSchema.get("authorizations").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_createdBy = taskSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_createdOn = taskSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder task_deleted = taskSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_denyTokens = taskSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder task_allauthorizations = taskSchema.get("allauthorizations");
+		task_allauthorizations.setMultivalue(true);
+		task_allauthorizations.setSystemReserved(true);
+		task_allauthorizations.setUndeletable(true);
+		MetadataBuilder task_assignCandidates = taskSchema.create("assignCandidates").setType(MetadataValueType.REFERENCE);
+		task_assignCandidates.setMultivalue(true);
+		task_assignCandidates.setUndeletable(true);
+		task_assignCandidates.defineReferencesTo(userSchemaType);
+		MetadataBuilder task_assignedOn = taskSchema.create("assignedOn").setType(MetadataValueType.DATE_TIME);
+		task_assignedOn.setUndeletable(true);
+		MetadataBuilder task_assignedTo = taskSchema.create("assignedTo").setType(MetadataValueType.REFERENCE);
+		task_assignedTo.setUndeletable(true);
+		task_assignedTo.defineReferencesTo(userSchemaType);
+		MetadataBuilder task_authorizations = taskSchema.get("authorizations");
+		task_authorizations.setMultivalue(true);
+		task_authorizations.setSystemReserved(true);
+		task_authorizations.setUndeletable(true);
+		MetadataBuilder task_createdBy = taskSchema.get("createdBy");
+		task_createdBy.setSystemReserved(true);
+		task_createdBy.setUndeletable(true);
+		MetadataBuilder task_createdOn = taskSchema.get("createdOn");
+		task_createdOn.setSystemReserved(true);
+		task_createdOn.setUndeletable(true);
+		task_createdOn.setSortable(true);
+		MetadataBuilder task_deleted = taskSchema.get("deleted");
+		task_deleted.setSystemReserved(true);
+		task_deleted.setUndeletable(true);
+		MetadataBuilder task_denyTokens = taskSchema.get("denyTokens");
+		task_denyTokens.setMultivalue(true);
+		task_denyTokens.setSystemReserved(true);
+		task_denyTokens.setUndeletable(true);
 		task_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder task_detachedauthorizations = taskSchema.get("detachedauthorizations").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_dueDate = taskSchema.create("dueDate").setType(MetadataValueType.DATE_TIME).setUndeletable(true);
-		MetadataBuilder task_finishedBy = taskSchema.create("finishedBy").setType(MetadataValueType.REFERENCE)
-				.setUndeletable(true).defineReferencesTo(userSchemaType);
-		MetadataBuilder task_finishedOn = taskSchema.create("finishedOn").setType(MetadataValueType.DATE_TIME)
-				.setUndeletable(true);
-		MetadataBuilder task_followers = taskSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder task_id = taskSchema.get("id").setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true)
-				.setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder task_inheritedauthorizations = taskSchema.get("inheritedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_legacyIdentifier = taskSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder task_manualTokens = taskSchema.get("manualTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder task_detachedauthorizations = taskSchema.get("detachedauthorizations");
+		task_detachedauthorizations.setSystemReserved(true);
+		task_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder task_dueDate = taskSchema.create("dueDate").setType(MetadataValueType.DATE_TIME);
+		task_dueDate.setUndeletable(true);
+		MetadataBuilder task_finishedBy = taskSchema.create("finishedBy").setType(MetadataValueType.REFERENCE);
+		task_finishedBy.setUndeletable(true);
+		task_finishedBy.defineReferencesTo(userSchemaType);
+		MetadataBuilder task_finishedOn = taskSchema.create("finishedOn").setType(MetadataValueType.DATE_TIME);
+		task_finishedOn.setUndeletable(true);
+		MetadataBuilder task_followers = taskSchema.get("followers");
+		task_followers.setMultivalue(true);
+		task_followers.setSystemReserved(true);
+		task_followers.setUndeletable(true);
+		task_followers.setSearchable(true);
+		MetadataBuilder task_id = taskSchema.get("id");
+		task_id.setDefaultRequirement(true);
+		task_id.setSystemReserved(true);
+		task_id.setUndeletable(true);
+		task_id.setSearchable(true);
+		task_id.setSortable(true);
+		task_id.setUniqueValue(true);
+		task_id.setUnmodifiable(true);
+		MetadataBuilder task_inheritedauthorizations = taskSchema.get("inheritedauthorizations");
+		task_inheritedauthorizations.setMultivalue(true);
+		task_inheritedauthorizations.setSystemReserved(true);
+		task_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder task_legacyIdentifier = taskSchema.get("legacyIdentifier");
+		task_legacyIdentifier.setDefaultRequirement(true);
+		task_legacyIdentifier.setSystemReserved(true);
+		task_legacyIdentifier.setUndeletable(true);
+		task_legacyIdentifier.setSearchable(true);
+		task_legacyIdentifier.setUniqueValue(true);
+		task_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder task_manualTokens = taskSchema.get("manualTokens");
+		task_manualTokens.setMultivalue(true);
+		task_manualTokens.setSystemReserved(true);
+		task_manualTokens.setUndeletable(true);
 		task_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder task_markedForPreviewConversion = taskSchema.get("markedForPreviewConversion").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_modifiedBy = taskSchema.get("modifiedBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_modifiedOn = taskSchema.get("modifiedOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder task_parentpath = taskSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_path = taskSchema.get("path").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_pathParts = taskSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_principalpath = taskSchema.get("principalpath").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_removedauthorizations = taskSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_schema = taskSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder task_searchable = taskSchema.get("searchable").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_shareDenyTokens = taskSchema.get("shareDenyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder task_markedForPreviewConversion = taskSchema.get("markedForPreviewConversion");
+		task_markedForPreviewConversion.setSystemReserved(true);
+		task_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder task_modifiedBy = taskSchema.get("modifiedBy");
+		task_modifiedBy.setSystemReserved(true);
+		task_modifiedBy.setUndeletable(true);
+		MetadataBuilder task_modifiedOn = taskSchema.get("modifiedOn");
+		task_modifiedOn.setSystemReserved(true);
+		task_modifiedOn.setUndeletable(true);
+		task_modifiedOn.setSortable(true);
+		MetadataBuilder task_parentpath = taskSchema.get("parentpath");
+		task_parentpath.setMultivalue(true);
+		task_parentpath.setSystemReserved(true);
+		task_parentpath.setUndeletable(true);
+		MetadataBuilder task_path = taskSchema.get("path");
+		task_path.setMultivalue(true);
+		task_path.setSystemReserved(true);
+		task_path.setUndeletable(true);
+		MetadataBuilder task_pathParts = taskSchema.get("pathParts");
+		task_pathParts.setMultivalue(true);
+		task_pathParts.setSystemReserved(true);
+		task_pathParts.setUndeletable(true);
+		MetadataBuilder task_principalpath = taskSchema.get("principalpath");
+		task_principalpath.setSystemReserved(true);
+		task_principalpath.setUndeletable(true);
+		MetadataBuilder task_removedauthorizations = taskSchema.get("removedauthorizations");
+		task_removedauthorizations.setMultivalue(true);
+		task_removedauthorizations.setSystemReserved(true);
+		task_removedauthorizations.setUndeletable(true);
+		MetadataBuilder task_schema = taskSchema.get("schema");
+		task_schema.setDefaultRequirement(true);
+		task_schema.setSystemReserved(true);
+		task_schema.setUndeletable(true);
+		MetadataBuilder task_searchable = taskSchema.get("searchable");
+		task_searchable.setSystemReserved(true);
+		task_searchable.setUndeletable(true);
+		MetadataBuilder task_shareDenyTokens = taskSchema.get("shareDenyTokens");
+		task_shareDenyTokens.setMultivalue(true);
+		task_shareDenyTokens.setSystemReserved(true);
+		task_shareDenyTokens.setUndeletable(true);
 		task_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder task_shareTokens = taskSchema.get("shareTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder task_shareTokens = taskSchema.get("shareTokens");
+		task_shareTokens.setMultivalue(true);
+		task_shareTokens.setSystemReserved(true);
+		task_shareTokens.setUndeletable(true);
 		task_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder task_title = taskSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true).setSearchable(true);
-		MetadataBuilder task_tokens = taskSchema.get("tokens").setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_visibleInTrees = taskSchema.get("visibleInTrees").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder task_workflowIdentifier = taskSchema.create("workflowIdentifier").setType(MetadataValueType.STRING)
-				.setUndeletable(true);
+		MetadataBuilder task_title = taskSchema.get("title");
+		task_title.setUndeletable(true);
+		task_title.setSchemaAutocomplete(true);
+		task_title.setSearchable(true);
+		MetadataBuilder task_tokens = taskSchema.get("tokens");
+		task_tokens.setMultivalue(true);
+		task_tokens.setSystemReserved(true);
+		task_tokens.setUndeletable(true);
+		MetadataBuilder task_visibleInTrees = taskSchema.get("visibleInTrees");
+		task_visibleInTrees.setSystemReserved(true);
+		task_visibleInTrees.setUndeletable(true);
+		MetadataBuilder task_workflowIdentifier = taskSchema.create("workflowIdentifier").setType(MetadataValueType.STRING);
+		task_workflowIdentifier.setUndeletable(true);
 		MetadataBuilder task_workflowRecordIdentifiers = taskSchema.create("workflowRecordIdentifiers")
-				.setType(MetadataValueType.STRING).setMultivalue(true).setUndeletable(true);
-		MetadataBuilder userDocument_allauthorizations = userDocumentSchema.get("allauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_authorizations = userDocumentSchema.get("authorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_content = userDocumentSchema.create("content").setType(MetadataValueType.CONTENT)
-				.setUndeletable(true).setSearchable(true)
-				.defineStructureFactory(com.constellio.model.services.contents.ContentFactory.class);
-		MetadataBuilder userDocument_createdBy = userDocumentSchema.get("createdBy").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_createdOn = userDocumentSchema.get("createdOn").setSystemReserved(true).setUndeletable(true)
-				.setSortable(true);
-		MetadataBuilder userDocument_deleted = userDocumentSchema.get("deleted").setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_denyTokens = userDocumentSchema.get("denyTokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
+				.setType(MetadataValueType.STRING);
+		task_workflowRecordIdentifiers.setMultivalue(true);
+		task_workflowRecordIdentifiers.setUndeletable(true);
+		MetadataBuilder userDocument_allauthorizations = userDocumentSchema.get("allauthorizations");
+		userDocument_allauthorizations.setMultivalue(true);
+		userDocument_allauthorizations.setSystemReserved(true);
+		userDocument_allauthorizations.setUndeletable(true);
+		MetadataBuilder userDocument_authorizations = userDocumentSchema.get("authorizations");
+		userDocument_authorizations.setMultivalue(true);
+		userDocument_authorizations.setSystemReserved(true);
+		userDocument_authorizations.setUndeletable(true);
+		MetadataBuilder userDocument_content = userDocumentSchema.create("content").setType(MetadataValueType.CONTENT);
+		userDocument_content.setUndeletable(true);
+		userDocument_content.setSearchable(true);
+		userDocument_content.defineStructureFactory(ContentFactory.class);
+		MetadataBuilder userDocument_createdBy = userDocumentSchema.get("createdBy");
+		userDocument_createdBy.setSystemReserved(true);
+		userDocument_createdBy.setUndeletable(true);
+		MetadataBuilder userDocument_createdOn = userDocumentSchema.get("createdOn");
+		userDocument_createdOn.setSystemReserved(true);
+		userDocument_createdOn.setUndeletable(true);
+		userDocument_createdOn.setSortable(true);
+		MetadataBuilder userDocument_deleted = userDocumentSchema.get("deleted");
+		userDocument_deleted.setSystemReserved(true);
+		userDocument_deleted.setUndeletable(true);
+		MetadataBuilder userDocument_denyTokens = userDocumentSchema.get("denyTokens");
+		userDocument_denyTokens.setMultivalue(true);
+		userDocument_denyTokens.setSystemReserved(true);
+		userDocument_denyTokens.setUndeletable(true);
 		userDocument_denyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder userDocument_detachedauthorizations = userDocumentSchema.get("detachedauthorizations")
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_followers = userDocumentSchema.get("followers").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true);
-		MetadataBuilder userDocument_id = userDocumentSchema.get("id").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true).setSearchable(true).setSortable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder userDocument_inheritedauthorizations = userDocumentSchema.get("inheritedauthorizations")
-				.setMultivalue(true).setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_legacyIdentifier = userDocumentSchema.get("legacyIdentifier").setDefaultRequirement(true)
-				.setSystemReserved(true).setUndeletable(true).setSearchable(true).setUniqueValue(true).setUnmodifiable(true);
-		MetadataBuilder userDocument_manualTokens = userDocumentSchema.get("manualTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder userDocument_detachedauthorizations = userDocumentSchema.get("detachedauthorizations");
+		userDocument_detachedauthorizations.setSystemReserved(true);
+		userDocument_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder userDocument_followers = userDocumentSchema.get("followers");
+		userDocument_followers.setMultivalue(true);
+		userDocument_followers.setSystemReserved(true);
+		userDocument_followers.setUndeletable(true);
+		userDocument_followers.setSearchable(true);
+		MetadataBuilder userDocument_id = userDocumentSchema.get("id");
+		userDocument_id.setDefaultRequirement(true);
+		userDocument_id.setSystemReserved(true);
+		userDocument_id.setUndeletable(true);
+		userDocument_id.setSearchable(true);
+		userDocument_id.setSortable(true);
+		userDocument_id.setUniqueValue(true);
+		userDocument_id.setUnmodifiable(true);
+		MetadataBuilder userDocument_inheritedauthorizations = userDocumentSchema.get("inheritedauthorizations");
+		userDocument_inheritedauthorizations.setMultivalue(true);
+		userDocument_inheritedauthorizations.setSystemReserved(true);
+		userDocument_inheritedauthorizations.setUndeletable(true);
+		MetadataBuilder userDocument_legacyIdentifier = userDocumentSchema.get("legacyIdentifier");
+		userDocument_legacyIdentifier.setDefaultRequirement(true);
+		userDocument_legacyIdentifier.setSystemReserved(true);
+		userDocument_legacyIdentifier.setUndeletable(true);
+		userDocument_legacyIdentifier.setSearchable(true);
+		userDocument_legacyIdentifier.setUniqueValue(true);
+		userDocument_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder userDocument_manualTokens = userDocumentSchema.get("manualTokens");
+		userDocument_manualTokens.setMultivalue(true);
+		userDocument_manualTokens.setSystemReserved(true);
+		userDocument_manualTokens.setUndeletable(true);
 		userDocument_manualTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder userDocument_markedForPreviewConversion = userDocumentSchema.get("markedForPreviewConversion")
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_modifiedBy = userDocumentSchema.get("modifiedBy").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_modifiedOn = userDocumentSchema.get("modifiedOn").setSystemReserved(true)
-				.setUndeletable(true).setSortable(true);
-		MetadataBuilder userDocument_parentpath = userDocumentSchema.get("parentpath").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_path = userDocumentSchema.get("path").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_pathParts = userDocumentSchema.get("pathParts").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_principalpath = userDocumentSchema.get("principalpath").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_removedauthorizations = userDocumentSchema.get("removedauthorizations").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
-		MetadataBuilder userDocument_schema = userDocumentSchema.get("schema").setDefaultRequirement(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_searchable = userDocumentSchema.get("searchable").setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_shareDenyTokens = userDocumentSchema.get("shareDenyTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder userDocument_markedForPreviewConversion = userDocumentSchema.get("markedForPreviewConversion");
+		userDocument_markedForPreviewConversion.setSystemReserved(true);
+		userDocument_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder userDocument_modifiedBy = userDocumentSchema.get("modifiedBy");
+		userDocument_modifiedBy.setSystemReserved(true);
+		userDocument_modifiedBy.setUndeletable(true);
+		MetadataBuilder userDocument_modifiedOn = userDocumentSchema.get("modifiedOn");
+		userDocument_modifiedOn.setSystemReserved(true);
+		userDocument_modifiedOn.setUndeletable(true);
+		userDocument_modifiedOn.setSortable(true);
+		MetadataBuilder userDocument_parentpath = userDocumentSchema.get("parentpath");
+		userDocument_parentpath.setMultivalue(true);
+		userDocument_parentpath.setSystemReserved(true);
+		userDocument_parentpath.setUndeletable(true);
+		MetadataBuilder userDocument_path = userDocumentSchema.get("path");
+		userDocument_path.setMultivalue(true);
+		userDocument_path.setSystemReserved(true);
+		userDocument_path.setUndeletable(true);
+		MetadataBuilder userDocument_pathParts = userDocumentSchema.get("pathParts");
+		userDocument_pathParts.setMultivalue(true);
+		userDocument_pathParts.setSystemReserved(true);
+		userDocument_pathParts.setUndeletable(true);
+		MetadataBuilder userDocument_principalpath = userDocumentSchema.get("principalpath");
+		userDocument_principalpath.setSystemReserved(true);
+		userDocument_principalpath.setUndeletable(true);
+		MetadataBuilder userDocument_removedauthorizations = userDocumentSchema.get("removedauthorizations");
+		userDocument_removedauthorizations.setMultivalue(true);
+		userDocument_removedauthorizations.setSystemReserved(true);
+		userDocument_removedauthorizations.setUndeletable(true);
+		MetadataBuilder userDocument_schema = userDocumentSchema.get("schema");
+		userDocument_schema.setDefaultRequirement(true);
+		userDocument_schema.setSystemReserved(true);
+		userDocument_schema.setUndeletable(true);
+		MetadataBuilder userDocument_searchable = userDocumentSchema.get("searchable");
+		userDocument_searchable.setSystemReserved(true);
+		userDocument_searchable.setUndeletable(true);
+		MetadataBuilder userDocument_shareDenyTokens = userDocumentSchema.get("shareDenyTokens");
+		userDocument_shareDenyTokens.setMultivalue(true);
+		userDocument_shareDenyTokens.setSystemReserved(true);
+		userDocument_shareDenyTokens.setUndeletable(true);
 		userDocument_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder userDocument_shareTokens = userDocumentSchema.get("shareTokens").setMultivalue(true)
-				.setSystemReserved(true).setUndeletable(true);
+		MetadataBuilder userDocument_shareTokens = userDocumentSchema.get("shareTokens");
+		userDocument_shareTokens.setMultivalue(true);
+		userDocument_shareTokens.setSystemReserved(true);
+		userDocument_shareTokens.setUndeletable(true);
 		userDocument_shareTokens.defineValidators().add(ManualTokenValidator.class);
-		MetadataBuilder userDocument_title = userDocumentSchema.get("title").setUndeletable(true).setSchemaAutocomplete(true)
-				.setSearchable(true);
-		MetadataBuilder userDocument_tokens = userDocumentSchema.get("tokens").setMultivalue(true).setSystemReserved(true)
-				.setUndeletable(true);
-		MetadataBuilder userDocument_user = userDocumentSchema.create("user").setType(MetadataValueType.REFERENCE)
-				.setUndeletable(true).defineReferencesTo(userSchemaType);
-		MetadataBuilder userDocument_visibleInTrees = userDocumentSchema.get("visibleInTrees").setSystemReserved(true)
-				.setUndeletable(true);
+		MetadataBuilder userDocument_title = userDocumentSchema.get("title");
+		userDocument_title.setUndeletable(true);
+		userDocument_title.setSchemaAutocomplete(true);
+		userDocument_title.setSearchable(true);
+		MetadataBuilder userDocument_tokens = userDocumentSchema.get("tokens");
+		userDocument_tokens.setMultivalue(true);
+		userDocument_tokens.setSystemReserved(true);
+		userDocument_tokens.setUndeletable(true);
+		MetadataBuilder userDocument_user = userDocumentSchema.create("user").setType(MetadataValueType.REFERENCE);
+		userDocument_user.setUndeletable(true);
+		userDocument_user.defineReferencesTo(userSchemaType);
+		MetadataBuilder userDocument_visibleInTrees = userDocumentSchema.get("visibleInTrees");
+		userDocument_visibleInTrees.setSystemReserved(true);
+		userDocument_visibleInTrees.setUndeletable(true);
 		collection_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		collection_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		collection_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -834,6 +1513,34 @@ public final class GeneratedCoreMigrationCombo {
 		userDocument_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		userDocument_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		userDocument_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+	}
+
+	public void applySchemasDisplay(SchemasDisplayManager manager) {
+		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
+		SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
+		transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
+				.withManageableStatus(false).withMetadataGroup(new HashMap<String, Map<Language, String>>()));
+		transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel").withMetadataGroup("Valeurs")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_query_listQueries").withMetadataGroup("Requêtes")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_active").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_elementPerPage").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_facetType").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_fieldDatastoreCode").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_openByDefault").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_orderResult").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_title").withMetadataGroup("Configuration")
+				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		manager.execute(transaction.build());
 	}
 
 	public void applyGeneratedRoles() {

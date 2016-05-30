@@ -206,4 +206,5 @@ public class SchemasDisplayManagerCache {
 
 		return types.get(0);
 	}
+
 }

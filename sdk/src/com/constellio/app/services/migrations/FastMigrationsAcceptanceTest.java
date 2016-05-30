@@ -21,6 +21,7 @@ import org.junit.rules.TemporaryFolder;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
@@ -119,6 +120,8 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 		LocalDateTime time = new LocalDateTime();
 		givenTimeIs(time);
 		setupScript.setupCollection();
+		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
+		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
 		File settingsFolder = getDataLayerFactory().getDataLayerConfiguration().getSettingsFileSystemBaseFolder();
 		File settings1 = temporaryFolder.newFolder("settings1");
 		FileUtils.copyDirectory(settingsFolder, settings1);
@@ -147,6 +150,8 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 
 		givenTimeIs(time);
 		setupScript.setupCollection();
+		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
+		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
 		settingsFolder = getDataLayerFactory().getDataLayerConfiguration().getSettingsFileSystemBaseFolder();
 		File settings2 = temporaryFolder.newFolder("settings2");
 		FileUtils.copyDirectory(settingsFolder, settings2);
@@ -182,11 +187,11 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 			File file1 = new File(folderOfSettings1, file);
 			File file2 = new File(folderOfSettings2, file);
 			String fileAbsolutePath = folderAbsolutePath + file;
-			if (!file1.getName().contains("schemasDisplay.xml")) {
-				assertThat(contentExceptVersion(file1)).describedAs("Content of file '" + fileAbsolutePath + "")
-						.isEqualTo(contentExceptVersion(file2));
-				System.out.println(file1.getName() + " is OK");
-			}
+			//if (!file1.getName().contains("schemasDisplay.xml")) {
+			assertThat(contentExceptVersion(file1)).describedAs("Content of file '" + fileAbsolutePath + "")
+					.isEqualTo(contentExceptVersion(file2));
+			System.out.println(file1.getName() + " is OK");
+			//}
 		}
 
 		List<String> foldersInFolder1 = getFoldersInFolder(folderOfSettings1);
