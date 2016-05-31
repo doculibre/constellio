@@ -72,8 +72,6 @@ public class CoreMigrationCombo implements FastMigrationScript {
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
 				new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", $("title"), 20.0));
 
-		List<Record> records = new ArrayList<>();
-
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
