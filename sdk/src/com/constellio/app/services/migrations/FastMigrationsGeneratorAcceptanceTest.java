@@ -65,6 +65,7 @@ import com.constellio.sdk.dev.tools.i18n.CombinePropertyFilesServices;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
@@ -73,6 +74,7 @@ import com.steadystate.css.util.LangUtils;
 
 public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
+	@InDevelopmentTest
 	@Test
 	public void genereCoreMigrations()
 			throws Exception {

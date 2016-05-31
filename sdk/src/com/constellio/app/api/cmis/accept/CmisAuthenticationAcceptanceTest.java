@@ -17,7 +17,8 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 	String bobServiceKey = "bobKey";
 	String chuckNorrisServiceKey = "chuckKey";
-	String adminServiceKey, adminToken, bobToken, chuckNorrisToken;
+	String adminServiceKey = "adminKey";
+	String adminToken, bobToken, chuckNorrisToken;
 
 	@Before
 	public void setUp()
@@ -29,11 +30,12 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 
-		adminServiceKey = users.admin().getServiceKey();
 		adminToken = userServices.generateToken(users.admin().getUsername());
 
 		userServices.addUpdateUserCredential(users.bob().withServiceKey(bobServiceKey));
 		bobToken = userServices.generateToken(users.bob().getUsername());
+
+		userServices.addUpdateUserCredential(users.admin().withServiceKey(adminServiceKey));
 
 		userServices
 				.addUpdateUserCredential(users.chuckNorris().withServiceKey(chuckNorrisServiceKey).withSystemAdminPermission());
