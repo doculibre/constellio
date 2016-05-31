@@ -2,9 +2,6 @@ package com.constellio.app.services.migrations;
 
 import static java.util.Arrays.asList;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -13,7 +10,6 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.pages.search.criteria.FacetSelectionsFactory;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
@@ -1519,27 +1515,37 @@ public final class GeneratedCoreMigrationCombo {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 		SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
 		transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
-				.withManageableStatus(false).withMetadataGroup(new HashMap<String, Map<Language, String>>()));
-		transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel").withMetadataGroup("Valeurs")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_listQueries").withMetadataGroup("Requêtes")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_active").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_elementPerPage").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_facetType").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_fieldDatastoreCode").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_openByDefault").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_orderResult").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_title").withMetadataGroup("Configuration")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
+						asList("init.facetConfiguration.values", "init.facetConfiguration.query",
+								"init.facetConfiguration.configuration"))));
+		transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel")
+				.withMetadataGroup("init.facetConfiguration.values").withInputType(MetadataInputType.FIELD)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction
+				.add(manager.getMetadata(collection, "facet_query_listQueries").withMetadataGroup("init.facetConfiguration.query")
+						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+						.withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_active")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_elementPerPage")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_facetType")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_fieldDatastoreCode")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_openByDefault")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_orderResult")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getMetadata(collection, "facet_default_title")
+				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		manager.execute(transaction.build());
 	}
 

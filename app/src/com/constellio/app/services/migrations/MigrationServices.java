@@ -19,6 +19,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
 import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -48,6 +49,7 @@ public class MigrationServices {
 	DataLayerFactory dataLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	ModuleResourcesLocator moduleResourcesLocator;
+	CollectionsManager collectionsManager;
 
 	public MigrationServices(ConstellioEIM constellioEIM, AppLayerFactory appLayerFactory,
 			ConstellioModulesManagerImpl constellioModulesManager, ConstellioPluginManager constellioPluginManager) {
@@ -60,6 +62,7 @@ public class MigrationServices {
 		this.constellioModulesManager = constellioModulesManager;
 		this.constellioPluginManager = constellioPluginManager;
 		this.configManager = dataLayerFactory.getConfigManager();
+		this.collectionsManager = appLayerFactory.getCollectionsManager();
 		this.moduleResourcesLocator = PropertiesLocatorFactory.get();
 	}
 
@@ -242,7 +245,8 @@ public class MigrationServices {
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
 		String moduleId = migration.getModuleId() == null ? "core" : migration.getModuleId();
 		String version = migration.getVersion();
-		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
+		List<Language> languages = Language.withCodes(collectionsManager.getCollectionLanguages(migration.getCollection()));
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language, languages,
 				version, ioServices, moduleResourcesLocator);
 
 		try {
@@ -277,9 +281,10 @@ public class MigrationServices {
 				"' updating to version '" + highestVersion + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
+		List<Language> languages = Language.withCodes(collectionsManager.getCollectionLanguages(collectionId));
 		moduleId = moduleId == null ? "core" : moduleId;
 
-		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language, languages,
 				"combo", ioServices, moduleResourcesLocator);
 
 		try {

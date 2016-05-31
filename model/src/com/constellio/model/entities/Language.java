@@ -80,4 +80,14 @@ public enum Language {
 	public static List<Language> getAvailableLanguages() {
 		return Arrays.asList(values());
 	}
+
+	public static List<Language> withCodes(List<String> codes) {
+		List<Language> languages = new ArrayList<>();
+
+		for(String code : codes) {
+			languages.add(withCode(code));
+		}
+
+		return languages;
+	}
 }

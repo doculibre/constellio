@@ -109,7 +109,6 @@ public class CollectionsManager implements StatefulService {
 			createAdminUser();
 		}
 
-
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
 			for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
@@ -290,6 +289,10 @@ public class CollectionsManager implements StatefulService {
 
 	public List<String> getCollectionLanguages(final String collection) {
 
+		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
+			return asList(modelLayerFactory.getConfiguration().getMainDataLanguage());
+		}
+
 		List<String> collectionLanguages = collectionLanguagesCache.get(collection);
 
 		if (collectionLanguages == null) {
@@ -356,6 +359,7 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 
+		collectionLanguagesCache.put(code, languages);
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages);
 		Set<String> returnList = new HashSet<>();

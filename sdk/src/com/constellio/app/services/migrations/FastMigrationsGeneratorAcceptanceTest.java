@@ -174,9 +174,10 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, type.getCode());
 			if (codes.contains(typeDisplay.getSchemaType())) {
 				main.addStatement("transaction.add(manager.getType(collection, $S).withSimpleSearchStatus($L)"
-								+ ".withAdvancedSearchStatus($L).withManageableStatus($L).withMetadataGroup($L))", type.getCode(),
+								+ ".withAdvancedSearchStatus($L).withManageableStatus($L)"
+								+ ".withMetadataGroup(resourcesProvider.getLanguageMapWithKeys($L)))", type.getCode(),
 						typeDisplay.isSimpleSearch(), typeDisplay.isAdvancedSearch(), typeDisplay.isManageable(),
-						"new HashMap<String, Map<Language, String>>()");
+						asListLitteral(new ArrayList<String>(typeDisplay.getMetadataGroup().keySet())));
 			}
 
 			for (MetadataSchema schema : type.getAllSchemas()) {

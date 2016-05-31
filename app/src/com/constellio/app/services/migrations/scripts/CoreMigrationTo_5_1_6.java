@@ -1,6 +1,7 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.HashMap;
+import static java.util.Arrays.asList;
+
 import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
@@ -52,22 +53,13 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 			MigrationResourcesProvider migrationResourcesProvider) {
 
 		Language language = migrationResourcesProvider.getLanguage();
-		Map<String, Map<Language, String>> groups = new HashMap<>();
 
-		String configurationTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.configuration");
-		Map<Language, String> labels = new HashMap<>();
-		labels.put(language, configurationTab);
-		groups.put("init.facetConfiguration.configuration", labels);
+		String configurationTab = "init.facetConfiguration.configuration";
+		String valeursTab = "init.facetConfiguration.values";
+		String queryTab = "init.facetConfiguration.query";
 
-		String valeursTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.values");
-		labels = new HashMap<>();
-		labels.put(language, valeursTab);
-		groups.put("init.facetConfiguration.values", labels);
-
-		String queryTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.query");
-		labels = new HashMap<>();
-		labels.put(language, queryTab);
-		groups.put("init.facetConfiguration.query", labels);
+		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMapWithKeys(
+				asList(configurationTab, valeursTab, queryTab));
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();

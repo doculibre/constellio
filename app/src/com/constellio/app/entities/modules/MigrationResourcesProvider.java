@@ -2,7 +2,10 @@ package com.constellio.app.entities.modules;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import com.constellio.app.entities.modules.MigrationResourcesProviderRuntimeException.MigrationResourcesProviderRuntimeException_NoBundle;
@@ -19,13 +22,16 @@ public class MigrationResourcesProvider {
 	IOServices ioServices;
 	File propertiesFolder;
 	Language language;
+	List<Language> collectionLanguages;
 
-	public MigrationResourcesProvider(String module, Language language, String version, IOServices ioServices,
+	public MigrationResourcesProvider(String module, Language language, List<Language> collectionLanguages, String version,
+			IOServices ioServices,
 			ModuleResourcesLocator moduleResourcesLocator) {
 		this.module = module;
 		this.version = version;
 		this.ioServices = ioServices;
 		this.language = language;
+		this.collectionLanguages = collectionLanguages;
 		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, version);
 		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, version);
 
@@ -81,5 +87,19 @@ public class MigrationResourcesProvider {
 
 	public Language getLanguage() {
 		return language;
+	}
+
+	public Map<String, Map<Language, String>> getLanguageMapWithKeys(List<String> keys) {
+		Map<String, Map<Language, String>> languageMap = new HashMap<>();
+
+		for (String key : keys) {
+			Map<Language, String> values = new HashMap<>();
+			languageMap.put(key, values);
+			for (Language collectionLanguage : collectionLanguages) {
+				values.put(collectionLanguage, getString(key, language.getLocale()));
+			}
+		}
+
+		return languageMap;
 	}
 }
