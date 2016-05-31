@@ -112,4 +112,8 @@ public class Category extends RecordWrapper {
 	public List<CopyRetentionRuleInRule> getCopyRetentionRulesOnDocumentTypes() {
 		return getList(COPY_RETENTION_RULES_ON_DOCUMENT_TYPES);
 	}
+
+	public static Category wrap(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new Category(record, types);
+	}
 }

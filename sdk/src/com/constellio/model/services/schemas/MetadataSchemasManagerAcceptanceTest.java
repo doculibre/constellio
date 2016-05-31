@@ -79,6 +79,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
 import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
@@ -1050,6 +1051,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
 		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
+	}
+
+	@Test(expected = MetadataSchemasManagerRuntimeException_NoSuchCollection.class)
+	public void whenGetTypesOfInvalidCollectionThenException()
+			throws Exception {
+		schemasManager.getSchemaTypes("invalidCollection");
 	}
 
 	@Test(expected = MetadataSchemaBuilderRuntimeException.CannotModifyAttributeOfInheritingMetadata.class)

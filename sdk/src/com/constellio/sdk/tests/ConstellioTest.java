@@ -1,5 +1,8 @@
 package com.constellio.sdk.tests;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
@@ -31,7 +34,7 @@ public class ConstellioTest extends AbstractConstellioTest {
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
 			try {
-				testSession.getFactoriesTestFeatures().withFakeEncryptionServices().getConstellioFactories();
+				testSession.getFactoriesTestFeatures().getConstellioFactories();
 			} catch (Exception e) {
 
 			}
@@ -80,5 +83,28 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	public static boolean isCurrentPreservingState() {
 		return isCurrentPreservingState;
+	}
+
+	public static Map<String, String> fr_en(String fr, String en) {
+		Map<String, String> map = new HashMap<>();
+		map.put("fr", fr);
+		map.put("en", en);
+		return map;
+	}
+
+	public static Map<String, String> en(String en) {
+		Map<String, String> map = new HashMap<>();
+		map.put("en", en);
+		return map;
+	}
+
+	public static Map<String, String> fr(String fr) {
+		Map<String, String> map = new HashMap<>();
+		map.put("fr", fr);
+		return map;
+	}
+
+	public static void disableCleanStartup() {
+		IS_FIRST_EXECUTED_TEST = false;
 	}
 }

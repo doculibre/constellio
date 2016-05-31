@@ -46,6 +46,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		presenter = new DecommissioningBuilderPresenter(this);
 		presenter.resetFacetAndOrder();
 		criteria = new AdvancedSearchCriteriaComponent(presenter);
+
 		adminUnit = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE);
 		addStyleName("search-decommissioning");
 	}
@@ -143,6 +144,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			public void valueChange(ValueChangeEvent event) {
 				searchButton.setEnabled(adminUnit.getValue() != null);
 				presenter.administrativeUnitSelected(adminUnit.getValue());
+				presenter.saveTemporarySearch(false);
 			}
 		});
 		adminUnit.addStyleName(ADMIN_UNIT);

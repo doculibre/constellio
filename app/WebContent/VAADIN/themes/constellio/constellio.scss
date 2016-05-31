@@ -501,6 +501,12 @@ $popup-view-z-index: 3;
 				padding-left: 10px;
 				margin-top: 5px;
 			}
+		
+			.v-panel {
+				.v-scrollable {
+					overflow: auto;
+				}
+			}
 		}
 		
 		.v-table {

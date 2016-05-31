@@ -106,6 +106,10 @@ allprojects {
 //		compile.exclude module: "asm"
         compile.exclude module: "org.objectweb.asm"
     }
+
+    jar {
+        version = '6.3.43'
+    }
 }
 
 war {

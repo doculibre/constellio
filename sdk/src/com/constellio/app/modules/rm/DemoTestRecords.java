@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
@@ -326,6 +325,9 @@ public class DemoTestRecords {
 		MV = schemas.FI();
 		PA_MD = asList(PA, MD);
 
+		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		systemConfigurationsManager.setValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
+
 		Transaction transaction = new Transaction();
 		setupUsers(transaction, userServices);
 		setupCategories(transaction);
@@ -337,7 +339,6 @@ public class DemoTestRecords {
 		setupAdministrativeUnitsAuthorizations();
 		//setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
 		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
-		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
 		return this;
 	}
@@ -662,7 +663,6 @@ public class DemoTestRecords {
 	public DemoTestRecords withFoldersAndContainersOfEveryStatus() {
 		//Calculation of closing date is disabled because we want some folders without close date
 		systemConfigurationsManager.setValue(RMConfigs.CALCULATED_CLOSING_DATE, false);
-
 		systemConfigurationsManager.setValue(RMConfigs.YEAR_END_DATE, "10/31");
 
 		Transaction transaction = new Transaction();

@@ -9,7 +9,9 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 
 public abstract class BaseRecordServices implements RecordServices {
 
@@ -117,4 +119,21 @@ public abstract class BaseRecordServices implements RecordServices {
 		}
 	}
 
+	@Override
+	public void validateTransaction(Transaction transaction)
+			throws ValidationException {
+		ValidationErrors errors = new ValidationErrors();
+		for (Record record : transaction.getModifiedRecords()) {
+			try {
+				validateRecord(record);
+			} catch (ValidationException e) {
+				errors.addAll(e.getErrors().getValidationErrors());
+			}
+
+		}
+		if (!errors.isEmpty()) {
+			throw new ValidationException(transaction, errors);
+		}
+
+	}
 }

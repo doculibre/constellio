@@ -89,6 +89,12 @@ public class SearchResultTable extends BasePagedTable<SearchResultContainer> {
 		fireSelectionChangeEvent();
 	}
 
+	public void deselectCurrentPage() {
+		selected.removeAll(container.getItemIds((getCurrentPage() - 1) * getPageLength(), getPageLength()));
+		refreshRowCache();
+		fireSelectionChangeEvent();
+	}
+
 	public void addSelectionChangeListener(SelectionChangeListener listener) {
 		listeners.add(listener);
 	}

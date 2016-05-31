@@ -44,10 +44,10 @@ public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<Co
 		if (mainCopyRule == null) {
 
 			for (int i = 0; i < input.copyRules.size(); i++) {
-				LocalDate dateAtIndex;
-				if (input.expectedDestructionDates.get(i) != null) {
+				LocalDate dateAtIndex = null;
+				if (input.expectedDestructionDates.size() > i && input.expectedDestructionDates.get(i) != null) {
 					dateAtIndex = input.expectedDestructionDates.get(i);
-				} else {
+				} else if (input.expectedDepositDates.size() > i) {
 					dateAtIndex = input.expectedDepositDates.get(i);
 				}
 				if (mainCopyRule == null || (dateAtIndex != null && dateAtIndex.isBefore(smallestDate))) {

@@ -9,11 +9,13 @@ import java.util.Map;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
@@ -23,6 +25,7 @@ import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.tests.ConstellioTestSession;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
 import com.constellio.sdk.tests.SkipTestsRule;
 import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
@@ -184,7 +187,31 @@ public class SeleniumTestFeatures {
 			openedWebDriver.manage().deleteAllCookies();
 		}
 
-		openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+		boolean customWindowPosition = ConstellioTestSession.get().isDeveloperTest();
+
+		if (customWindowPosition) {
+			String positionXConfig = sdkProperties.get("window.position.x");
+			String positionYConfig = sdkProperties.get("window.position.y");
+			String widthConfig = sdkProperties.get("window.width");
+			String heightConfig = sdkProperties.get("window.height");
+
+			if (StringUtils.isNotBlank(positionXConfig) && StringUtils.isNotBlank(positionYConfig)) {
+				int positionX = Integer.valueOf(positionXConfig);
+				int positionY = Integer.valueOf(positionYConfig);
+				openedWebDriver.manage().window().setPosition(new Point(positionX, positionY));
+			}
+
+			if (StringUtils.isNotBlank(widthConfig) && StringUtils.isNotBlank(heightConfig)) {
+				int width = Integer.valueOf(widthConfig);
+				int height = Integer.valueOf(heightConfig);
+				openedWebDriver.manage().window().setSize(new Dimension(width, height));
+			} else {
+				openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+			}
+
+		} else {
+			openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+		}
 
 		boolean ready = false;
 
@@ -374,4 +401,7 @@ public class SeleniumTestFeatures {
 
 	}
 
+	public ConstellioWebDriver getLastWebDriver() {
+		return openedWebDriver;
+	}
 }

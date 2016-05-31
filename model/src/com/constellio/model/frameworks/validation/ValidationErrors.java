@@ -53,4 +53,12 @@ public class ValidationErrors {
 	public List<ValidationError> getValidationErrors() {
 		return Collections.unmodifiableList(validationErrors);
 	}
+
+	public boolean isEmpty() {
+		return validationErrors.isEmpty();
+	}
+
+	public void addAll(List<ValidationError> validationErrors) {
+		this.validationErrors.addAll(validationErrors);
+	}
 }

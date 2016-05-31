@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -11,6 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.services.records.RecordServicesException;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -53,6 +58,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	protected DocumentActionsPresenterUtils<DisplayDocumentView> presenterUtils;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private RecordVODataProvider tasksDataProvider;
+	private RMSchemasRecordsServices rm;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
 		super(view);
@@ -66,6 +72,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		};
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection,appLayerFactory);
 
 	}
 
@@ -279,6 +286,28 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public RecordVODataProvider getOwnedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
+						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public RecordVODataProvider getSharedCartsDataProvider() {
+		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartSharedWithUsers())
+						.isContaining(asList(getCurrentUser().getId()))).sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
 	public boolean hasContent() {
 		return presenterUtils.hasContent();
 	}
@@ -287,8 +316,8 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		view.navigate().to(TaskViews.class).displayTask(taskVO.getId());
 	}
 
-	public void addToCartRequested() {
-		presenterUtils.addToCartRequested();
+	public void addToCartRequested(RecordVO recordVO) {
+		presenterUtils.addToCartRequested(recordVO);
 	}
 
 	public InputStream getSignatureInputStream(String certificate, String password) {
@@ -314,6 +343,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
 			view.navigate().to(RMViews.class).displayDocument(document.getId());
+		}
+	}
+
+	public void createNewCartAndAddToItRequested(String title) {
+		Cart cart = rm.newCart();
+		cart.setTitle(title);
+		cart.setOwner(getCurrentUser());
+		try {
+			cart.addDocuments(Arrays.asList(presenterUtils.getDocumentVO().getId()));
+			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			view.showMessage($("DocumentActionsComponent.addedToCart"));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
 		}
 	}
 }

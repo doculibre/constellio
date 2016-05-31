@@ -91,4 +91,16 @@ public class AuthorizationBuilder {
 		return withRoles(roles);
 	}
 
+	public Authorization giving(Role... roles) {
+		List<String> rolesCodes = new ArrayList<>();
+		for (Role role : roles) {
+			rolesCodes.add(role.getCode());
+		}
+		return withRoles(rolesCodes);
+	}
+
+	public static AuthorizationBuilder authorizationForUsers(User... users) {
+		return new AuthorizationBuilder(users[0].getCollection()).forUsers(users);
+	}
+
 }

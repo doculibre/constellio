@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -33,13 +32,14 @@ public class ValueRequirementValidator implements Validator<Record> {
 			Object value = record.get(metadata);
 			if (metadata.isDefaultRequirement() && (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
 					&& metadata.isEnabled()) {
-				addValidationErrors(validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
+				addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
 			}
 		}
 	}
 
-	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Metadata metadata) {
+	private void addValidationErrors(String recordId, ValidationErrors validationErrors, String errorCode, Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(RECORD, recordId);
 		parameters.put(METADATA_CODE, metadata.getCode());
 		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
 		if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {

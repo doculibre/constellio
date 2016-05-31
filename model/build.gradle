@@ -24,5 +24,4 @@ eclipse {
 
 jar {
     baseName = 'core-model'
-    version = "6.3.6"
 }

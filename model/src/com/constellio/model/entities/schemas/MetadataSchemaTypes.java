@@ -1,5 +1,7 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -240,5 +242,13 @@ public class MetadataSchemaTypes {
 			metadatas.addAll(schemaType.getAllMetadataIncludingInheritedOnes());
 		}
 		return metadatas;
+	}
+
+	public boolean isRecordTypeMetadata(Metadata metadata) {
+		if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
+			MetadataSchema referencedSchema = getDefaultSchema(metadata.getReferencedSchemaType());
+			return referencedSchema.hasMetadataWithCode("linkedSchema");
+		}
+		return false;
 	}
 }

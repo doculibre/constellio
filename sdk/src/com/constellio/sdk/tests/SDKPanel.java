@@ -3,10 +3,16 @@ package com.constellio.sdk.tests;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.WebDriver;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -51,7 +57,7 @@ public class SDKPanel extends HorizontalLayout {
 		addComponent(newShowUpdatesButton());
 		addComponent(newResetButton(loadLabel));
 		addComponent(newReindexButton());
-
+		addComponent(newSaveWindowPositionButtom());
 		addComponent(loadLabel);
 	}
 
@@ -63,6 +69,31 @@ public class SDKPanel extends HorizontalLayout {
 			public synchronized void buttonClick(ClickEvent event) {
 				ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 				modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
+			}
+
+		});
+		return resetButton;
+	}
+
+	private Button newSaveWindowPositionButtom() {
+		final Button resetButton = new Button("Set as prefered window position and size");
+		resetButton.addClickListener(new ClickListener() {
+
+			@Override
+			public synchronized void buttonClick(ClickEvent event) {
+
+				WebDriver webDriver = ConstellioTestSession.get().getSeleniumTestFeatures().getLastWebDriver();
+				Point position = webDriver.manage().window().getPosition();
+				Dimension dimension = webDriver.manage().window().getSize();
+
+				Map<String, String> params = new HashMap<String, String>();
+				params.put("window.position.x", "" + position.getX());
+				params.put("window.position.y", "" + position.getY());
+				params.put("window.width", "" + dimension.getWidth());
+				params.put("window.height", "" + dimension.getHeight());
+
+				ConstellioTest.sdkPropertiesLoader.writeValues(params);
 
 			}
 

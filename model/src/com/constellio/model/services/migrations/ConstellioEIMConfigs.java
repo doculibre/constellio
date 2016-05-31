@@ -8,6 +8,7 @@ import java.util.List;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -30,6 +31,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration CONSTELLIO_URL;
 	public static final SystemConfiguration CLEAN_DURING_INSTALL;
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
+	public static final SystemConfiguration BATCH_PROCESSING_MODE;
 
 	public static final SystemConfiguration DATE_FORMAT;
 	public static final SystemConfiguration DATE_TIME_FORMAT;
@@ -64,6 +66,8 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
+		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
+				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -112,6 +116,10 @@ public class ConstellioEIMConfigs {
 
 	public String getDateTimeFormat() {
 		return manager.getValue(DATE_TIME_FORMAT);
+	}
+
+	public BatchProcessingMode getBatchProcessingMode() {
+		return manager.getValue(BATCH_PROCESSING_MODE);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {
