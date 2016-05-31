@@ -11,9 +11,9 @@ import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
+import org.junit.Test;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -33,6 +33,8 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 	CmisAcceptanceTestSetup zeCollectionSchemas = new CmisAcceptanceTestSetup(zeCollection);
 	Records zeCollectionRecords;
 	TaxonomiesSearchServices taxonomiesSearchServices;
+
+	private String adminToken;
 
 	//	Session cmisSession;
 	Session session;
@@ -55,14 +57,15 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-
-		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
-		getModelLayerFactory().newAuthenticationService().changePassword(chuckNorris, "1qaz2wsx");
+		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
+		userServices.addUserToCollection(users.admin(), zeCollection);
+		recordServices.update(userServices.getUserInCollection(admin, zeCollection).setCollectionWriteAccess(true));
+		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
+		adminToken = userServices.generateToken(admin);
 
 	}
 
+	@Test
 	public void test()
 			throws Exception {
 		session = givenAdminSessionOnZeCollection();
@@ -83,76 +86,85 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		CmisObject object = session.getObjectByPath("/");
-		assertThat(object).has(property("cmis:code", "zeCollection")).has(property("cmis:path", "/"))
-				.has(property("cmis:type", "collection_default"));
+		assertThat(object).has(property("cmis:path", "/")).has(property("cmis:objectTypeId", "collection_default"));
 	}
 
 	private void whenGetTaxonomyThenReturnTaxonomy()
 			throws Exception {
-		String path = "/taxo1";
+		String path = "/taxo_taxo1";
 		CmisObject object = session.getObjectByPath(path);
-		assertThat(object).has(property("cmis:code", "zeCollection")).has(property("cmis:path", path)).has(property("cmis:type",
-				"taxonomy_default"));
+		assertThat(object).has(property("cmis:path", "/taxo_taxo1"))
+				.has(property("cmis:objectTypeId", "taxonomy"));
 	}
 
 	private void whenGetFirstLevelConceptThenReturnFirstLevelConcept()
 			throws Exception {
-		String path = "/taxo1/" + zeCollectionRecords.taxo1_fond1;
+		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1;
 		CmisObject object = session.getObjectByPath("/taxo1/" + zeCollectionRecords.taxo1_fond1);
-		assertThat(object).has(property("cmis:code", "zeCollection")).has(property("cmis:path", path))
-				.has(property("cmis:type", "fond_default"));
+		assertThat(object).has(property("cmis:path", path))
+				.has(property("cmis:objectTypeId", "documentFond_default"));
 	}
 
 	private void whenGetSecondLevelConceptThenReturnSecondLevelConcept()
 			throws Exception {
-		String path = "/taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2;
+		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2;
 		CmisObject object = session.getObjectByPath(path);
-		assertThat(object).has(property("cmis:code", "zeCollection")).has(property("cmis:path", path))
-				.has(property("cmis:type", "category_default"));
+		assertThat(object).has(property("cmis:path", path))
+				.has(property("cmis:objectTypeId", "category_default"));
 	}
 
 	private void whenGetARootFolderThenReturnTheFolder()
 			throws Exception {
-		String path = "/taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2 + "/"
+		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2 + "/"
 				+ zeCollectionRecords.folder4;
 		CmisObject object = session.getObjectByPath(path);
-		assertThat(object).has(property("cmis:code", "zeCollection")).has(property("cmis:path", "folder_default"));
+		assertThat(object).has(property("cmis:path", "folder_default"));
 	}
 
 	private void givenRootWhenGetChildrenThenObtainTaxonomies() {
 		String path = "/";
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
-		assertThat(children).hasSize(2);
-		assertThat(children.get(0)).has(id("taxo1")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
-		assertThat(children.get(1)).has(id("taxo2")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
+		assertThat(children).hasSize(1);
+		assertThat(children.get(0)).has(id("taxo_taxo1")).has(property("cmis:path", "/taxo_taxo1"))
+				.has(property("cmis:objectTypeId", "taxonomy"));
+		//assertThat(children.get(1)).has(id("taxo2")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
 	}
 
 	private void givenTaxo1WhenGetChildrenThenObtainRootConcepts() {
-		String path = "/taxo1";
+		String path = "/taxo_taxo1";
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(1);
-		assertThat(children.get(0)).has(id("taxo1")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
+		assertThat(children.get(0)).has(id("zetaxo1_fond1")).has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1"))
+				.has(property("cmis:objectTypeId", "documentFond_default"));
 	}
 
 	private void givenRootConceptWhenGetChildrenThenObtainSubConcepts() {
-		String path = "/taxo1/" + zeCollectionRecords.taxo1_fond1;
+		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1;
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(2);
-		assertThat(children.get(0)).has(id("taxo1")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
-		assertThat(children.get(1)).has(id("taxo2")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
+		assertThat(children.get(0)).has(id("zetaxo1_category2"))
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2"))
+				.has(property("cmis:objectTypeId", "category_default"));
+		assertThat(children.get(1)).has(id("zetaxo1_fond1_1"))
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1"))
+				.has(property("cmis:objectTypeId", "documentFond_default"));
 	}
 
 	private void givenSubConceptWhenGetChildrenThenObtainSubSubConceptsAndRecords() {
-		String path = "/taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2;
+		String path = "/taxo_taxo1/" + zeCollectionRecords.taxo1_fond1 + "/" + zeCollectionRecords.taxo1_category2;
 		List<CmisObject> children = getChildren((Folder) session.getObjectByPath(path));
 		assertThat(children).hasSize(2);
-		assertThat(children.get(0)).has(id("taxo1")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
-		assertThat(children.get(1)).has(id("taxo2")).has(property("cmis:path", path)).has(property("cmis:type", "taxonomy"));
+		assertThat(children.get(0)).has(id("folder4"))
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/folder4"))
+				.has(property("cmis:objectTypeId", "folder_default"));
+		assertThat(children.get(1)).has(id("zetaxo1_category2_1"))
+				.has(property("cmis:path", "/taxo_taxo1/zetaxo1_fond1/zetaxo1_category2/zetaxo1_category2_1"))
+				.has(property("cmis:objectTypeId", "category_default"));
 
 	}
 
 	private Session givenAdminSessionOnZeCollection() {
-		return newCmisSessionBuilder().authenticatedBy(chuckNorris, "1qaz2wsx").onCollection(zeCollection).build();
+		return newCmisSessionBuilder().authenticatedBy("admin-key", adminToken).onCollection(zeCollection).build();
 	}
 
 	private List<CmisObject> getChildren(Folder folder) {
@@ -168,7 +180,8 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		return new Condition<CmisObject>() {
 			@Override
 			public boolean matches(CmisObject objectData) {
-				return LangUtils.areNullableEqual(objectData.getId(), id);
+				assertThat(objectData.getId()).describedAs("id").isEqualTo(id);
+				return true;
 			}
 		};
 	}
@@ -177,7 +190,8 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		return new Condition<CmisObject>() {
 			@Override
 			public boolean matches(CmisObject objectData) {
-				return LangUtils.areNullableEqual(objectData.getProperty(key), value);
+				assertThat(objectData.getPropertyValue(key)).describedAs(key).isEqualTo(value);
+				return true;
 			}
 		};
 	}

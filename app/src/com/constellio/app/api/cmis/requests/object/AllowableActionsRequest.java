@@ -29,7 +29,7 @@ public class AllowableActionsRequest extends CmisCollectionRequest<AllowableActi
 	public AllowableActions process() {
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
 
-		return new AllowableActionsBuilder(repository, record).build();
+		return new AllowableActionsBuilder(appLayerFactory, repository, record).build();
 	}
 
 	@Override

@@ -216,7 +216,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		}
 		UserCredential returnUserCredentials = userServices.createUserCredential(
 				username, firstName, lastName, email, globalGroups, new ArrayList<>(collections), userStatus, "",
-				msExchDelegateListBL, ldapUser.getId());
+				msExchDelegateListBL, ldapUser.getId()).withDN(ldapUser.getId());
 
 		try {
 			UserCredential currentUserCredential = userServices.getUser(username);

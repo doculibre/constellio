@@ -24,6 +24,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 
@@ -36,7 +37,8 @@ public class ContentObjectDataBuilder {
 		this.repository = repository;
 	}
 
-	public ObjectData build(CallContext context, ContentCmisDocument contentCmisDocument, Set<String> filter,
+	public ObjectData build(AppLayerFactory appLayerFactory, CallContext context, ContentCmisDocument contentCmisDocument,
+			Set<String> filter,
 			boolean includeAllowableActions, boolean includeAcl, ObjectInfoHandler objectInfos) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
@@ -44,7 +46,8 @@ public class ContentObjectDataBuilder {
 		result.setProperties(compileProperties(contentCmisDocument, filter, objectInfo));
 
 		if (includeAllowableActions) {
-			result.setAllowableActions(new AllowableActionsBuilder(repository, contentCmisDocument.getRecord()).build());
+			result.setAllowableActions(
+					new AllowableActionsBuilder(appLayerFactory, repository, contentCmisDocument.getRecord()).build());
 		}
 
 		if (context.isObjectInfoRequired()) {
