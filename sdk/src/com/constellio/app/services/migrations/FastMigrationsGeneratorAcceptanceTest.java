@@ -1,12 +1,14 @@
 package com.constellio.app.services.migrations;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,7 +16,6 @@ import java.util.Set;
 import javax.lang.model.element.Modifier;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
@@ -30,12 +31,12 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -44,6 +45,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -51,10 +53,13 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.dev.tools.i18n.CombinePropertyFilesServices;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
@@ -64,6 +69,7 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
+import com.steadystate.css.util.LangUtils;
 
 public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
@@ -100,7 +106,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(String.class, "collection")
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
-				.addMethod(generateRecords())
+				//.addMethod(generateRecords())
 				.addMethod(generateTypes())
 				.addMethod(generateDisplayConfigs())
 				.addMethod(generateRoles())
@@ -250,49 +256,76 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	}
 
 	private MethodSpec generateRecords() {
-		Builder main = MethodSpec.methodBuilder("addBaseRecords")
+		Builder main = MethodSpec.methodBuilder("createRecordTransaction")
 				.addModifiers(Modifier.PUBLIC)
-				.returns(void.class)
-				.addParameter(List.class, "records");
+				.returns(Transaction.class)
+				.addParameter(RecordServices.class, "recordServices")
+				.addParameter(MetadataSchemaTypes.class, "types");
 
-		main.addStatement("LocalDateTime dateTime = TimeProvider.getLocalDateTime()");
-		main.addStatement("LocalDate date = TimeProvider.getLocalDate()");
+		main.addStatement("List<Record> records = new ArrayList<>()");
 
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.add("q", "*:*");
-		params.add("rows", "10000000");
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		RecordDao recordDao = getModelLayerFactory().getDataLayerFactory().newRecordDao();
-		recordDao.query(params);
-
-		for (RecordDTO record : recordDao.query(params).getResults()) {
-
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		List<Record> records = searchServices.search(new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll()));
+		Map<String, Integer> mapping = new HashMap<>();
+		int i = 0;
+		for (Record record : records) {
 			if (!record.getId().contains(zeCollection) && !record.getId().contains(SYSTEM_COLLECTION)) {
-				String entries = toEntriesMethodCalls(record);
-				main.addStatement("records.add(new RecordDTO($S, stringObjectMap()$L.build()));", record.getId(), entries);
+				mapping.put(record.getId(), i++);
+				main.addStatement("records.add(recordServices.newRecordWithSchema(types.getSchema($S)))", record.getId());
+			}
+		}
+		i = 0;
+		for (Record record : records) {
+			if (!record.getId().contains(zeCollection) && !record.getId().contains(SYSTEM_COLLECTION)) {
+				main.addStatement("records.get($L)$L", i, toEntriesMethodCalls(types, record, mapping));
 			}
 		}
 
+		main.addStatement("return new Transaction(records)");
 		MethodSpec spec = main.build();
 		System.out.println(spec.toString());
 		return spec;
 	}
 
-	private String toEntriesMethodCalls(RecordDTO record) {
+	private String toEntriesMethodCalls(MetadataSchemaTypes types, Record record, Map<String, Integer> mapping) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		for (Map.Entry<String, Object> entry : record.getFields().entrySet()) {
-			if (entry.getKey().equals("collection_s") && zeCollection.equals(entry.getValue())) {
-				stringBuilder.append(".entry(\"collection_s\",collection)");
+		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas().onlyManuals()) {
+			if (!metadata.getDataStoreCode().equals("modifiedOn_dt") && !metadata.getDataStoreCode().equals("createdOn_dt")) {
 
-			} else if (entry.getKey().equals("modifiedOn_dt")) {
-				stringBuilder.append(".entry(\"modifiedOn_dt\",dateTime)");
+				if (metadata.isMultivalue()) {
+					if (!LangUtils.equals(record.getList(metadata), metadata.getDefaultValue())) {
 
-			} else if (entry.getKey().equals("createdOn_dt")) {
-				stringBuilder.append(".entry(\"createdOn_dt\",dateTime)");
+						String value = toValue(record.get(metadata));
 
-			} else if (!entry.getKey().equals("_version_")) {
-				stringBuilder.append(".entry(\"" + entry.getKey() + "\", " + toValue(entry.getValue()) + ")");
+						stringBuilder.append(
+								".set(types.getMetadata(\"" + metadata.getCode() + "\"), " + value + ")");
+					}
+
+				} else {
+
+					if (!LangUtils.equals(record.get(metadata), metadata.getDefaultValue())) {
+
+						String value;
+						if (metadata.getType() == MetadataValueType.REFERENCE) {
+							value = "records.get(" + mapping.get((String) record.get(metadata)) + ")";
+
+						} else if (metadata.getType() == MetadataValueType.STRUCTURE) {
+							String strStructure = metadata.getStructureFactory()
+									.toString((ModifiableStructure) record.get(metadata))
+									.replace("\"", "\\\"");
+							value = "new " + metadata.getStructureFactory().getClass().getName() + "().build(\"" + strStructure
+									+ "\")";
+						} else {
+							value = toValue(record.get(metadata));
+						}
+
+						stringBuilder.append(
+								".set(types.getMetadata(\"" + metadata.getCode() + "\"), " + value + ")");
+					}
+				}
 			}
 		}
 
@@ -303,7 +336,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		if (value == null) {
 			return null;
 		}
-		if (value.getClass().equals(ArrayList.class)) {
+		if (List.class.isAssignableFrom(value.getClass())) {
 			List<Object> values = (List) value;
 			List<String> convertedValues = new ArrayList<>();
 			for (Object item : values) {
@@ -316,6 +349,9 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		} else if (value.getClass().equals(Long.class)) {
 			return value.toString() + "L";
+
+		} else if (value instanceof Enum) {
+			return value.getClass().getName().replace("$", ".") + "." + ((Enum) value).name();
 
 		} else if (value.getClass().equals(Double.class)
 				|| value.getClass().equals(Integer.class)

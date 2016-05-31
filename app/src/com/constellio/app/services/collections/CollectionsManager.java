@@ -136,7 +136,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	private void createAdminUser() {
-		String serviceKey = "adminkey";
+		//String serviceKey = "adminkey";
 		String password = "password";
 		String username = "admin";
 		String firstName = "System";
@@ -150,7 +150,7 @@ public class CollectionsManager implements StatefulService {
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		UserCredential adminCredentials = userServices.createUserCredential(
-				username, firstName, lastName, email, serviceKey, isSystemAdmin, globalGroups, collections,
+				username, firstName, lastName, email, null, isSystemAdmin, globalGroups, collections,
 				new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
 		userServices.addUpdateUserCredential(adminCredentials);
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();

@@ -21,6 +21,7 @@ import org.junit.rules.TemporaryFolder;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -122,6 +123,9 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 		setupScript.setupCollection();
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
+		DataLayerFactory dataLayerFactory = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory();
+		String nextSequence1 = dataLayerFactory.getUniqueIdGenerator().next();
+		String nextSecondarySequence1 = dataLayerFactory.getSecondaryUniqueIdGenerator().next();
 		File settingsFolder = getDataLayerFactory().getDataLayerConfiguration().getSettingsFileSystemBaseFolder();
 		File settings1 = temporaryFolder.newFolder("settings1");
 		FileUtils.copyDirectory(settingsFolder, settings1);
@@ -152,6 +156,9 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 		setupScript.setupCollection();
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
+		dataLayerFactory = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory();
+		String nextSequence2 = dataLayerFactory.getUniqueIdGenerator().next();
+		String nextSecondarySequence2 = dataLayerFactory.getSecondaryUniqueIdGenerator().next();
 		settingsFolder = getDataLayerFactory().getDataLayerConfiguration().getSettingsFileSystemBaseFolder();
 		File settings2 = temporaryFolder.newFolder("settings2");
 		FileUtils.copyDirectory(settingsFolder, settings2);
@@ -161,6 +168,8 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 
 		compareFolder(settings1, settings2);
 		tools.ensureSameSnapshots("", snapshot1, snapshot2);
+		assertThat(nextSequence1).isEqualTo(nextSequence2);
+		assertThat(nextSecondarySequence1).isEqualTo(nextSecondarySequence2);
 	}
 
 	private String contentExceptVersion(File file) {
