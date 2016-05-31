@@ -7,8 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -76,7 +78,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
-public class ConstellioRMModule implements InstallableSystemModule {
+public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
@@ -124,6 +126,11 @@ public class ConstellioRMModule implements InstallableSystemModule {
 				new RMMigrationTo6_3(),
 				new RMMigrationTo6_4()
 		);
+	}
+
+	@Override
+	public ComboMigrationScript getComboMigrationScript() {
+		return new RMMigrationCombo();
 	}
 
 	@Override

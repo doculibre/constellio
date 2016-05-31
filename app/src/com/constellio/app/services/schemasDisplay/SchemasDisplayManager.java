@@ -369,7 +369,6 @@ public class SchemasDisplayManager
 	}
 
 	private void getCodesOfElements(Element element, List<String> codes) {
-		System.out.println(element.getName());
 		codes.add(element.getName());
 
 		for (Element child : element.getChildren()) {

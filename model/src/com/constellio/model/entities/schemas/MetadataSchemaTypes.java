@@ -190,6 +190,11 @@ public class MetadataSchemaTypes {
 
 	public boolean hasMetadata(String metadataCode) {
 
+		String schemaCode = new SchemaUtils().getSchemaCode(metadataCode);
+		if (!hasSchema(schemaCode)) {
+			return false;
+		}
+
 		try {
 			getMetadata(metadataCode);
 			return true;

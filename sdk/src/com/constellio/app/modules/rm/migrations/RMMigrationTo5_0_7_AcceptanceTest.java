@@ -222,7 +222,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 	public void whenUpdatingFrom5_0_6ThenMigrateDecomListFolderDetail()
 			throws OptimisticLockingConfiguration {
 		givenSystemAtVersion5_0_6();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
 
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 		List<DecomListFolderDetail> decomListFolderDetailList = rmTestRecords.getList01().getFolderDetails();

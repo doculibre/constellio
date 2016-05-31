@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 
-public interface FastMigrationScript {
+public interface ComboMigrationScript extends MigrationScript {
 
 	public List<MigrationScript> getVersions();
 

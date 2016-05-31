@@ -62,7 +62,7 @@ public class RMMigrationTo5_0_4_AcceptanceTest extends ConstellioTest {
 			throws OptimisticLockingConfiguration {
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_3();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		assertThat(searchServices.getResultsCount(

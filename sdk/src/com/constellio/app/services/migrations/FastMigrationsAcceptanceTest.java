@@ -60,44 +60,44 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void validateCoreESMigrationHighway()
-			throws Exception {
-
-		validate(new SetupScript() {
-			@Override
-			public void setupCollection() {
-				givenCollection(zeCollection).withConstellioESModule();
-			}
-		});
-
-	}
-
-	@Test
-	public void validateCoreRMESMigrationHighway()
-			throws Exception {
-
-		validate(new SetupScript() {
-			@Override
-			public void setupCollection() {
-				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
-			}
-		});
-
-	}
-
-	@Test
-	public void validateCoreRMESRobotsMigrationHighway()
-			throws Exception {
-
-		validate(new SetupScript() {
-			@Override
-			public void setupCollection() {
-				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule().withRobotsModule();
-			}
-		});
-
-	}
+//	@Test
+	//	public void validateCoreESMigrationHighway()
+	//			throws Exception {
+	//
+	//		validate(new SetupScript() {
+	//			@Override
+	//			public void setupCollection() {
+	//				givenCollection(zeCollection).withConstellioESModule();
+	//			}
+	//		});
+	//
+	//	}
+	//
+	//	@Test
+	//	public void validateCoreRMESMigrationHighway()
+	//			throws Exception {
+	//
+	//		validate(new SetupScript() {
+	//			@Override
+	//			public void setupCollection() {
+	//				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
+	//			}
+	//		});
+	//
+	//	}
+	//
+	//	@Test
+	//	public void validateCoreRMESRobotsMigrationHighway()
+	//			throws Exception {
+	//
+	//		validate(new SetupScript() {
+	//			@Override
+	//			public void setupCollection() {
+	//				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule().withRobotsModule();
+	//			}
+	//		});
+	//
+	//	}
 
 	public void validate(SetupScript setupScript)
 			throws Exception {

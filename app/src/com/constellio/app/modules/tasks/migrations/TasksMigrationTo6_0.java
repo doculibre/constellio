@@ -121,6 +121,7 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 					.defineDataEntry().asCalculated(DecisionsTasksCalculator.class);
 			taskSchema.create(Task.NEXT_TASKS_DECISIONS).defineStructureFactory(MapStringStringStructureFactory.class);
 			taskSchema.create(Task.RELATIVE_DUE_DATE).setType(MetadataValueType.NUMBER);
+
 		}
 	}
 }

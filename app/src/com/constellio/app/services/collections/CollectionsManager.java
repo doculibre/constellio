@@ -364,7 +364,7 @@ public class CollectionsManager implements StatefulService {
 		collectionsListManager.addCollection(code, languages);
 		Set<String> returnList = new HashSet<>();
 		try {
-			returnList.addAll(migrationServicesDelayed.get().migrate(code, version));
+			returnList.addAll(migrationServicesDelayed.get().migrate(code, version, true));
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new CollectionsManagerRuntimeException_CannotMigrateCollection(code, version, optimisticLockingConfiguration);
 		} finally {

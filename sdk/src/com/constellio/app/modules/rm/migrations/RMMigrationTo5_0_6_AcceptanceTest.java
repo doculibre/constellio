@@ -28,7 +28,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
@@ -85,7 +85,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
 
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 
@@ -99,7 +99,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5_withRootLinkable();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
 
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());

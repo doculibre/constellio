@@ -5,7 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.entities.modules.FastMigrationScript;
+import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -33,7 +33,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
 
-public class CoreMigrationCombo implements FastMigrationScript {
+public class CoreMigrationCombo implements ComboMigrationScript {
 	@Override
 	public List<MigrationScript> getVersions() {
 		List<MigrationScript> scripts = new ArrayList<>();
@@ -56,6 +56,11 @@ public class CoreMigrationCombo implements FastMigrationScript {
 	}
 
 	GeneratedCoreMigrationCombo generatedFastCoreMigration;
+
+	@Override
+	public String getVersion() {
+		return getVersions().get(getVersions().size() - 1).getVersion();
+	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
