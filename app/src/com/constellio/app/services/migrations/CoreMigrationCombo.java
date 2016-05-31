@@ -1,6 +1,7 @@
 package com.constellio.app.services.migrations;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,10 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_3;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
 
@@ -65,6 +70,18 @@ public class CoreMigrationCombo implements FastMigrationScript {
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
 				new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", $("title"), 20.0));
+
+		List<RecordDTO> records = new ArrayList<>();
+
+		generatedFastCoreMigration.addBaseRecords(records);
+		try {
+			for (RecordDTO record : records) {
+				appLayerFactory.getModelLayerFactory().getDataLayerFactory().newRecordDao().execute(
+						new TransactionDTO(RecordsFlushing.NOW()).withNewRecords(asList(record)));
+			}
+		} catch (OptimisticLocking optimisticLocking) {
+			throw new RuntimeException(optimisticLocking);
+		}
 	}
 
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {

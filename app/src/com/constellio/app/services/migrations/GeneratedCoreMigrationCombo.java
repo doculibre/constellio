@@ -1,6 +1,12 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
 import static java.util.Arrays.asList;
+
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -10,6 +16,8 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.pages.search.criteria.FacetSelectionsFactory;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
@@ -52,6 +60,98 @@ public final class GeneratedCoreMigrationCombo {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.resourcesProvider = resourcesProvider;
+	}
+
+	public void addBaseRecords(List records) {
+		LocalDateTime dateTime = TimeProvider.getLocalDateTime();
+		LocalDate date = TimeProvider.getLocalDate();
+		records.add(new RecordDTO("idx_act_00000000001",
+				stringObjectMap().entry("id", "idx_act_00000000001").entry("type_s", "index").entry("collection_s", "_system_")
+						.build()));
+		;
+		records.add(new RecordDTO("idx_rfc_00000000001",
+				stringObjectMap().entry("id", "idx_rfc_00000000001").entry("type_s", "index").entry("collection_s", "_system_")
+						.entry("refs_d", 0.0).build()));
+		;
+		records.add(new RecordDTO("idx_act_00000000002",
+				stringObjectMap().entry("id", "idx_act_00000000002").entry("type_s", "index").entry("collection_s", "_system_")
+						.build()));
+		;
+		records.add(new RecordDTO("idx_rfc_00000000002",
+				stringObjectMap().entry("id", "idx_rfc_00000000002").entry("type_s", "index").entry("collection_s", "_system_")
+						.entry("refs_d", 0.0).build()));
+		;
+		records.add(new RecordDTO("the_private_key",
+				stringObjectMap().entry("id", "the_private_key").entry("value_s", "123-456-789").build()));
+		;
+		records.add(new RecordDTO("00000000001",
+				stringObjectMap().entry("title_s", "Type").entry("openByDefault_s", true).entry("facetType_s", "F")
+						.entry("fieldDatastoreCode_s", "schema_s").entry("path_ss", asList("/00000000001"))
+						.entry("active_s", true).entry("order_d", 0.0).entry("elementPerPage_d", 5.0)
+						.entry("modifiedOn_dt", dateTime).entry("orderResult_s", "R").entry("id", "00000000001")
+						.entry("schema_s", "facet_field").entry("autocomplete_ss", asList("type")).entry("pages_d", 1.0)
+						.entry("createdOn_dt", dateTime).entry("collection_s", "_system_").build()));
+		;
+		records.add(new RecordDTO("00000000002",
+				stringObjectMap().entry("title_s", "Création/Modification date").entry("openByDefault_s", true)
+						.entry("facetType_s", "Q").entry("path_ss", asList("/00000000002")).entry("active_s", true)
+						.entry("order_d", 1.0).entry("elementPerPage_d", 5.0).entry("modifiedOn_dt", dateTime)
+						.entry("orderResult_s", "R").entry("id", "00000000002").entry("schema_s", "facet_query")
+						.entry("autocomplete_ss", asList("creation/modification", "date")).entry("pages_d", 1.0)
+						.entry("createdOn_dt", dateTime).entry("collection_s", "_system_").entry("listQueries_s",
+						"{\"modifiedOn_dt:[NOW-1MONTH TO NOW]\":\"Modifiés les 30 derniers jours\",\"createdOn_dt:[NOW-7DAY TO NOW]\":\"Créés les 7 derniers jours\",\"modifiedOn_dt:[NOW-7DAY TO NOW]\":\"Modifiés les 7 derniers jours\",\"createdOn_dt:[NOW-1MONTH TO NOW]\":\"Créés les 30 derniers jours\"}")
+						.build()));
+		;
+		records.add(new RecordDTO("00000000003",
+				stringObjectMap().entry("status_s", "a").entry("serviceKey_s", "uxcF46XD4H0QLI+o/Ea6DQ==")
+						.entry("title_s", "System Admin").entry("path_ss", asList("/00000000003")).entry("username_s", "admin")
+						.entry("modifiedOn_dt", dateTime).entry("id", "00000000003").entry("schema_s", "userCredential_default")
+						.entry("autocomplete_ss", asList("system", "admin")).entry("email_s", "admin@organization.com")
+						.entry("createdOn_dt", dateTime).entry("collection_s", "_system_").entry("firstname_s", "System")
+						.entry("systemAdmin_s", true).entry("lastname_s", "Admin").build()));
+		;
+		records.add(new RecordDTO("idx_act_00000000003",
+				stringObjectMap().entry("id", "idx_act_00000000003").entry("type_s", "index").entry("collection_s", "_system_")
+						.build()));
+		;
+		records.add(new RecordDTO("idx_rfc_00000000003",
+				stringObjectMap().entry("id", "idx_rfc_00000000003").entry("type_s", "index").entry("collection_s", "_system_")
+						.entry("refs_d", 0.0).build()));
+		;
+		records.add(new RecordDTO("idx_act_00000000004",
+				stringObjectMap().entry("id", "idx_act_00000000004").entry("type_s", "index").entry("collection_s", collection)
+						.build()));
+		;
+		records.add(new RecordDTO("idx_rfc_00000000004",
+				stringObjectMap().entry("id", "idx_rfc_00000000004").entry("type_s", "index").entry("collection_s", collection)
+						.entry("refs_d", 0.0).build()));
+		;
+		records.add(new RecordDTO("idx_act_00000000005",
+				stringObjectMap().entry("id", "idx_act_00000000005").entry("type_s", "index").entry("collection_s", collection)
+						.build()));
+		;
+		records.add(new RecordDTO("idx_rfc_00000000005",
+				stringObjectMap().entry("id", "idx_rfc_00000000005").entry("type_s", "index").entry("collection_s", collection)
+						.entry("refs_d", 0.0).build()));
+		;
+		records.add(new RecordDTO("00000000004",
+				stringObjectMap().entry("title_s", "Type").entry("openByDefault_s", true).entry("facetType_s", "F")
+						.entry("fieldDatastoreCode_s", "schema_s").entry("path_ss", asList("/00000000004"))
+						.entry("active_s", true).entry("order_d", 0.0).entry("elementPerPage_d", 5.0)
+						.entry("modifiedOn_dt", dateTime).entry("orderResult_s", "R").entry("id", "00000000004")
+						.entry("schema_s", "facet_field").entry("autocomplete_ss", asList("type")).entry("pages_d", 1.0)
+						.entry("createdOn_dt", dateTime).entry("collection_s", collection).build()));
+		;
+		records.add(new RecordDTO("00000000005",
+				stringObjectMap().entry("title_s", "Création/Modification date").entry("openByDefault_s", true)
+						.entry("facetType_s", "Q").entry("path_ss", asList("/00000000005")).entry("active_s", true)
+						.entry("order_d", 1.0).entry("elementPerPage_d", 5.0).entry("modifiedOn_dt", dateTime)
+						.entry("orderResult_s", "R").entry("id", "00000000005").entry("schema_s", "facet_query")
+						.entry("autocomplete_ss", asList("creation/modification", "date")).entry("pages_d", 1.0)
+						.entry("createdOn_dt", dateTime).entry("collection_s", collection).entry("listQueries_s",
+						"{\"modifiedOn_dt:[NOW-1MONTH TO NOW]\":\"Modifiés les 30 derniers jours\",\"createdOn_dt:[NOW-7DAY TO NOW]\":\"Créés les 7 derniers jours\",\"modifiedOn_dt:[NOW-7DAY TO NOW]\":\"Modifiés les 7 derniers jours\",\"createdOn_dt:[NOW-1MONTH TO NOW]\":\"Créés les 30 derniers jours\"}")
+						.build()));
+		;
 	}
 
 	public void applyGeneratedSchemaAlteration(MetadataSchemaTypesBuilder typesBuilder) {

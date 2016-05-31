@@ -161,8 +161,12 @@ public class MetadataSchemaXMLWriter2 {
 	}
 
 	private void writeLabels(Element schemaElement, Map<Language, String> labels) {
-		for (Map.Entry<Language, String> labelEntry : labels.entrySet()) {
-			schemaElement.setAttribute("label_" + labelEntry.getKey().getCode(), labelEntry.getValue());
+
+		for (Language language : Language.values()) {
+
+			if (labels.containsKey(language)) {
+				schemaElement.setAttribute("label_" + language.getCode(), labels.get(language));
+			}
 		}
 	}
 

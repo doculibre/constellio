@@ -1,12 +1,12 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +14,9 @@ import java.util.Set;
 import javax.lang.model.element.Modifier;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
 import com.constellio.app.conf.AppLayerConfiguration;
@@ -24,12 +27,15 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -53,6 +59,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.dev.tools.i18n.CombinePropertyFilesServices;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
@@ -64,6 +71,13 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	public void genereCoreMigrations()
 			throws Exception {
 
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
 			public void alter(AppLayerConfiguration configuration) {
@@ -86,6 +100,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(String.class, "collection")
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				.addMethod(generateRecords())
 				.addMethod(generateTypes())
 				.addMethod(generateDisplayConfigs())
 				.addMethod(generateRoles())
@@ -94,6 +109,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		JavaFile file = JavaFile.builder("com.constellio.app.services.migrations", generatedClassSpec)
 				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
 		File dest = new File(
@@ -209,34 +225,9 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		main.addStatement("manager.execute(transaction.build())");
 
-		;
-		//		)
-		//
-		//		for (MEt role : schemasDisplayManager.getTypes(zeCollection)) {
-		//
-		//			main.addStatement("rolesManager.addRole(new $T(collection, $S, $S, $L))", Role.class, role.getCode(), role.getTitle(),
-		//					asListLitteral(role.getOperationPermissions()));
-		//
-		//		}
-
 		MethodSpec spec = main.build();
 		System.out.println(spec.toString());
 		return spec;
-	}
-
-	private void applySchemasDisplay(SchemasDisplayManager manager) {
-		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(zeCollection);
-
-		transaction.setModifiedCollectionTypes(manager.getTypes(zeCollection).withFacetMetadataCodes(asList("")));
-
-		transaction.add(manager.getType(zeCollection, "user").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
-				.withManageableStatus(true).withMetadataGroup(new HashMap<String, Map<Language, String>>()));
-
-		transaction.add(manager.getSchema(zeCollection, "user_default").withFormMetadataCodes(null).withDisplayMetadataCodes(null)
-				.withSearchResultsMetadataCodes(null).withTableMetadataCodes(null));
-
-		transaction.add(manager.getMetadata(zeCollection, "user_default").withMetadataGroup("group").withInputType(
-				MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 	}
 
 	private MethodSpec generateRoles() {
@@ -256,6 +247,94 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec spec = main.build();
 		System.out.println(spec.toString());
 		return spec;
+	}
+
+	private MethodSpec generateRecords() {
+		Builder main = MethodSpec.methodBuilder("addBaseRecords")
+				.addModifiers(Modifier.PUBLIC)
+				.returns(void.class)
+				.addParameter(List.class, "records");
+
+		main.addStatement("LocalDateTime dateTime = TimeProvider.getLocalDateTime()");
+		main.addStatement("LocalDate date = TimeProvider.getLocalDate()");
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.add("q", "*:*");
+		params.add("rows", "10000000");
+
+		RecordDao recordDao = getModelLayerFactory().getDataLayerFactory().newRecordDao();
+		recordDao.query(params);
+
+		for (RecordDTO record : recordDao.query(params).getResults()) {
+
+			if (!record.getId().contains(zeCollection) && !record.getId().contains(SYSTEM_COLLECTION)) {
+				String entries = toEntriesMethodCalls(record);
+				main.addStatement("records.add(new RecordDTO($S, stringObjectMap()$L.build()));", record.getId(), entries);
+			}
+		}
+
+		MethodSpec spec = main.build();
+		System.out.println(spec.toString());
+		return spec;
+	}
+
+	private String toEntriesMethodCalls(RecordDTO record) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (Map.Entry<String, Object> entry : record.getFields().entrySet()) {
+			if (entry.getKey().equals("collection_s") && zeCollection.equals(entry.getValue())) {
+				stringBuilder.append(".entry(\"collection_s\",collection)");
+
+			} else if (entry.getKey().equals("modifiedOn_dt")) {
+				stringBuilder.append(".entry(\"modifiedOn_dt\",dateTime)");
+
+			} else if (entry.getKey().equals("createdOn_dt")) {
+				stringBuilder.append(".entry(\"createdOn_dt\",dateTime)");
+
+			} else if (!entry.getKey().equals("_version_")) {
+				stringBuilder.append(".entry(\"" + entry.getKey() + "\", " + toValue(entry.getValue()) + ")");
+			}
+		}
+
+		return stringBuilder.toString();
+	}
+
+	private String toValue(Object value) {
+		if (value == null) {
+			return null;
+		}
+		if (value.getClass().equals(ArrayList.class)) {
+			List<Object> values = (List) value;
+			List<String> convertedValues = new ArrayList<>();
+			for (Object item : values) {
+				convertedValues.add(toValue(item));
+			}
+			return asListLitteralWithoutQuotes(convertedValues);
+		}
+		if (value.getClass().equals(String.class)) {
+			return "\"" + value.toString().replace("\"", "\\\"") + "\"";
+
+		} else if (value.getClass().equals(Long.class)) {
+			return value.toString() + "L";
+
+		} else if (value.getClass().equals(Double.class)
+				|| value.getClass().equals(Integer.class)
+				|| value.getClass().equals(Boolean.class)) {
+			return value.toString();
+
+		} else if (value instanceof LocalDate) {
+			LocalDate date = (LocalDate) value;
+			return "new LocalDate(" + date.getYear() + ", " + date.getMonthOfYear() + ", " + date.getDayOfMonth() + ")";
+
+		} else if (value instanceof LocalDateTime) {
+			LocalDateTime date = (LocalDateTime) value;
+			return "new LocalDateTime(" + date.getYear() + ", " + date.getMonthOfYear() + ", " + date.getDayOfMonth() + ", " +
+					date.getHourOfDay() + ", " + date.getMinuteOfHour() + ", " + date.getSecondOfMinute() + ", " +
+					date.getMillisOfSecond() + ")";
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported type '" + value.getClass() + "'");
+		}
 	}
 
 	private MethodSpec generateTypes() {
@@ -495,19 +574,10 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		Object defaultValue = metadata.getDefaultValue();
 		if (defaultValue != null) {
-			if (metadata.getDefaultValue().getClass().equals(String.class)) {
-				method.addStatement("$L.setDefaultValue($S)", variable, defaultValue);
-
-			} else if (metadata.getDefaultValue().getClass().equals(Double.class)
-					|| metadata.getDefaultValue().getClass().equals(Integer.class)
-					|| metadata.getDefaultValue().getClass().equals(Boolean.class)) {
-				method.addStatement("$L.setDefaultValue($L)", variable, defaultValue);
-
-			} else if (metadata.getDefaultValue() instanceof EnumWithSmallCode) {
+			if (metadata.getDefaultValue() instanceof EnumWithSmallCode) {
 				method.addStatement("$L.setDefaultValue($T.$L)", variable, defaultValue.getClass(), ((Enum) defaultValue).name());
-
 			} else {
-				throw new ImpossibleRuntimeException("Unsupported type '" + metadata.getDefaultValue().getClass() + "'");
+				method.addStatement("$L.setDefaultValue($L)", variable, toValue(defaultValue));
 			}
 
 		}
