@@ -26,7 +26,6 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_3;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
