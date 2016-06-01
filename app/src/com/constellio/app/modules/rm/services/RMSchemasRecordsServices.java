@@ -112,7 +112,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Category
 
-	public MetadataSchema categorySchema() {
+	/*public MetadataSchema categorySchema() {
 		return getTypes().getSchema(Category.DEFAULT_SCHEMA);
 	}
 
@@ -150,7 +150,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public Category newCategoryWithId(String id) {
 		return new Category(create(categorySchema(), id), getTypes());
-	}
+	}*/
 
 	//
 
@@ -380,74 +380,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	//
-
-    //Administrative unit
-
-    /*@Deprecated
-    public MetadataSchema administrativeUnitSchema() {
-        return getTypes().getSchema(AdministrativeUnit.DEFAULT_SCHEMA);
-    }
-
-    @Deprecated
-    public MetadataSchemaType administrativeUnitSchemaType() {
-        return getTypes().getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
-    }
-
-    @Deprecated
-    public AdministrativeUnit wrapAdministrativeUnit(Record record) {
-        return record == null ? null : new AdministrativeUnit(record, getTypes());
-    }
-
-    @Deprecated
-    public List<AdministrativeUnit> wrapAdministrativeUnits(List<Record> records) {
-        List<AdministrativeUnit> administrativeUnits = new ArrayList<>();
-        for (Record record : records) {
-            administrativeUnits.add(new AdministrativeUnit(record, getTypes()));
-        }
-        return administrativeUnits;
-    }
-
-    @Deprecated
-    public AdministrativeUnit getAdministrativeUnit(String id) {
-        return new AdministrativeUnit(get(id), getTypes());
-    }
-
-    @Deprecated
-    public List<AdministrativeUnit> getAdministrativesUnits(List<String> stringList) {
-        return wrapAdministrativeUnits(get(stringList));
-    }
-
-    @Deprecated
-    public AdministrativeUnit getAdministrativeUnitWithCode(String code) {
-        return wrapAdministrativeUnit(getByCode(administrativeUnitSchemaType(), code));
-    }
-
-    @Deprecated
-    public AdministrativeUnit newAdministrativeUnit() {
-        return new AdministrativeUnit(create(administrativeUnitSchema()), getTypes());
-    }
-
-    @Deprecated
-    public AdministrativeUnit newAdministrativeUnitWithId(String id) {
-        return new AdministrativeUnit(create(administrativeUnitSchema(), id), getTypes());
-    }
-
-    @Deprecated
-    public Metadata administrativeUnitFilingSpaces() {
-        return administrativeUnitSchema().getMetadata(AdministrativeUnit.FILING_SPACES);
-    }
-
-    @Deprecated
-    public Metadata administrativeUnit_parent() {
-        return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
-    }
-
-    @Deprecated
-    public Metadata administrativeUnitParent() {
-        return administrativeUnitSchema().getMetadata(AdministrativeUnit.PARENT);
-    }*/
-
-    //
 
 
 	//Document type

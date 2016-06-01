@@ -272,9 +272,9 @@ public class RetentionRuleXMLExporter {
 	private String getCategoriesTitlesToString(RetentionRule rule) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)).sortAsc(CODE));
+				.setCondition(from(rm.category.schemaType()).where(rm.category.retentionRules()).isEqualTo(rule)).sortAsc(CODE));
 
-		List<Category> categories = rm.wrapCategories(records);
+		List<Category> categories = rm.wrapCategorys(records);
 		String categoriesTitles = "";
 
 		for (Category zeCategory : categories) {
@@ -291,9 +291,9 @@ public class RetentionRuleXMLExporter {
 	private String getCategoriesCodeToString(RetentionRule rule) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)).sortAsc(CODE));
+				.setCondition(from(rm.category.schemaType()).where(rm.category.retentionRules()).isEqualTo(rule)).sortAsc(CODE));
 
-		List<Category> categories = rm.wrapCategories(records);
+		List<Category> categories = rm.wrapCategorys(records);
 		String categoriesCodes = "";
 
 		for (Category zeCategory : categories) {
