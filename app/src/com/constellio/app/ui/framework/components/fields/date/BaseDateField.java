@@ -1,16 +1,22 @@
 package com.constellio.app.ui.framework.components.fields.date;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.constellio.app.ui.util.DateFormatUtils;
+import com.google.common.base.CharMatcher;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.ui.DateField;
+import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
 
 public class BaseDateField extends DateField {
-	public BaseDateField() {
+
+    private static final String DATE_WITHOUT_SEPARATOR_PATTERN = "\\d{8}";
+
+    private static final String SEPARATOR_PATTERN = "[ ./-]";
+
+    public BaseDateField() {
 		super();
 		init();
 	}
@@ -43,18 +49,31 @@ public class BaseDateField extends DateField {
 	@Override
 	protected Date handleUnparsableDateString(String dateString)
 			throws ConversionException {
-		if (dateString.matches("\\d{8}")) {
-			try {
-				String format = DateFormatUtils.getDateFormat();
-				int first = format.indexOf("-");
-				int second = format.indexOf("-", first + 1) - 1;
-				String corrected = dateString.substring(0, first) + "-" + dateString.substring(4, second) + "-" +
-						dateString.substring(second);
-				return new SimpleDateFormat(DateFormatUtils.getDateFormat()).parse(corrected);
-			} catch (ParseException e) {
-				throw new ConversionException(e);
-			}
-		}
-		return super.handleUnparsableDateString(dateString);
+        return handleUnparsableDateString(dateString, DateFormatUtils.getDateFormat());
 	}
+
+    static Date handleUnparsableDateString(final String dateString, final String dateFormat) {
+        final CharMatcher separatorCharMatcher = CharMatcher.anyOf(SEPARATOR_PATTERN).precomputed();
+        if (dateString.matches(DATE_WITHOUT_SEPARATOR_PATTERN)) {
+            final String dateFormatWithoutSeparator = separatorCharMatcher.removeFrom(dateFormat);
+            return parseBidirectionallyDateString(dateString, dateFormatWithoutSeparator);
+        } else {
+            final String dateFormatSeparator = String.valueOf(separatorCharMatcher.retainFrom(dateFormat).charAt(1));
+            final String dateStringWithDateFormatSeparator = dateString.replaceAll(SEPARATOR_PATTERN, dateFormatSeparator);
+            return parseBidirectionallyDateString(dateStringWithDateFormatSeparator, dateFormat);
+        }
+    }
+
+    private static Date parseBidirectionallyDateString(final String dateString, final String dateFormat) {
+        try {
+            return LocalDate.parse(dateString, DateTimeFormat.forPattern(dateFormat)).toDate();
+        } catch (final IllegalArgumentException e1) {
+            try {
+                final String reversedDateFormat= new StringBuilder(dateFormat).reverse().toString();
+                return LocalDate.parse(dateString, DateTimeFormat.forPattern(reversedDateFormat)).toDate();
+            } catch (final IllegalArgumentException e2) {
+                throw new ConversionException(e2.getLocalizedMessage());
+            }
+        }
+    }
 }
