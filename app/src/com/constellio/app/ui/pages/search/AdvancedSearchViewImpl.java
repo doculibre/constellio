@@ -7,10 +7,11 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -24,7 +25,6 @@ import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.*;
-import com.github.rjeschke.txtmark.Run;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
@@ -141,10 +141,47 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			selectionActions.add(addToCart);
 		}
 
+		Button switchViewMode = buildSwitchViewMode();
+
+		// TODO Build SelectAllButton properly for table mode
+//		List<Component> actions = Arrays.asList(
+//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
 
 		return results.createSummary(actions, selectionActions);
+	}
+
+	private Button buildSwitchViewMode() {
+		Button switchViewMode = new Button($("Switch view"));
+		switchViewMode.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				if(presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+					presenter.switchToTableView();
+				} else if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+					presenter.switchToDetailedView();
+				}
+			}
+		});
+		switchViewMode.addStyleName(ValoTheme.BUTTON_LINK);
+		return switchViewMode;
+	}
+
+	@Override
+	SearchResultTable buildResultTable() {
+		// TODO Table should take all space, since facets and sort are hidden.
+		if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+			return buildSimpleResultsTable();
+		} else {
+			return buildDetailedResultsTable();
+		}
+	}
+
+	private SearchResultTable buildSimpleResultsTable() {
+		SearchResultSimpleTable table = new SearchResultSimpleTable(new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs()));
+		table.setWidth("100%");
+		return table;
 	}
 
 	private WindowButton buildAddToCartButton() {

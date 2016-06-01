@@ -14,16 +14,18 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
 import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.*;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
-import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.jensjansson.pagedtable.PagedTable;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -48,6 +50,7 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 
 public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseViewImpl implements SearchView, RecordSelector {
 	public static final String SUGGESTION_STYLE = "spell-checker-suggestion";
@@ -120,8 +123,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
 
-		resultsArea.removeAllComponents();
-		resultsArea.addComponents(results, results.createControls());
+		if(isDetailedView()) {
+			resultsArea.removeAllComponents();
+			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
+		} else {
+			resultsArea.removeAllComponents();
+			resultsArea.addComponent(results);
+		}
+	}
+
+	private boolean isDetailedView() {
+		return presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED);
 	}
 
 	@Override
@@ -174,18 +186,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return main;
 	}
 
-	private SearchResultTable buildResultTable() {
-		SearchResultTable table = new SearchResultTable(buildResultContainer());
-		table.setWidth("100%");
-		table.setCurrentPage(presenter.getPageNumber());
-		table.addListener(new SearchResultTable.PageChangeListener() {
+	SearchResultTable buildResultTable() {
+		return buildDetailedResultsTable();
+	}
+
+	protected SearchResultTable buildDetailedResultsTable() {
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(buildResultContainer());
+		srTable.setCurrentPage(presenter.getPageNumber());
+		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(true);
 			}
 		});
-
-		return table;
+		srTable.setWidth("100%");
+		return srTable;
 	}
 
 	private SearchResultContainer buildResultContainer() {
@@ -264,6 +279,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(sortBy, inner);
 		layout.setWidth("95%");
 		layout.addStyleName(SORT_BOX_STYLE);
+		layout.setVisible(isDetailedView());
 
 		return layout;
 	}
@@ -359,24 +375,30 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		});
 
 		layout.addComponent(table);
-		layout.setVisible(!facet.getValues().isEmpty());
+		layout.setVisible(!facet.getValues().isEmpty() && isDetailedView());
 		layout.addStyleName(FACET_BOX_STYLE);
 		return layout;
 	}
 
 	protected Button buildSelectAllButton() {
-		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton() {
-			@Override
-			protected void onSelectAll(ClickEvent event) {
-				results.selectCurrentPage();
-			}
+		SelectDeselectAllButton selectDeselectAllButton;
+		if(isDetailedView()) {
+			selectDeselectAllButton = new SelectDeselectAllButton() {
+				@Override
+				protected void onSelectAll(ClickEvent event) {
+					((SearchResultDetailedTable)results).selectCurrentPage();
+				}
 
-			@Override
-			protected void onDeselectAll(ClickEvent event) {
-				results.deselectCurrentPage();
-			}
-		};
-		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+				@Override
+				protected void onDeselectAll(ClickEvent event) {
+					((SearchResultDetailedTable)results).deselectCurrentPage();
+				}
+			};
+		} else {
+			// TODO Build button for lazy table
+			selectDeselectAllButton = null;
+		}
+//		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
 	}
 
