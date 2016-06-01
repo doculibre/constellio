@@ -17,6 +17,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
@@ -276,6 +277,31 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($(e));
+		}
+	}
+
+	public void createNewCartAndAddToItRequested(String title) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		Cart cart = rm.newCart();
+		cart.setTitle(title);
+		cart.setOwner(getCurrentUser());
+		List<String> selectedRecords = view.getSelectedRecordIds();
+		switch (schemaTypeCode) {
+			case Folder.SCHEMA_TYPE:
+				cart.addFolders(selectedRecords);
+				break;
+			case Document.SCHEMA_TYPE:
+				cart.addDocuments(selectedRecords);
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				cart.addContainers(selectedRecords);
+				break;
+		}
+		try {
+			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			view.showMessage($("SearchView.addedToCart"));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
 		}
 	}
 

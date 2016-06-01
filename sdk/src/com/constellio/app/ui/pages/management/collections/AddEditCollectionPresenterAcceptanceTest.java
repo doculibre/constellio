@@ -88,8 +88,8 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 		zeCollectionVO = presenterRelatedToZeCollection.getCollectionVO();
 		assertThat(zeCollectionVO.getCode()).isEqualTo(zeCollectionRecord.getCode());
 		assertThat(zeCollectionVO.getName()).isEqualTo(zeCollectionRecord.getName());
-		enabledModulesForZeCollection = asList(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
-		assertThat(zeCollectionVO.getModules()).containsExactlyElementsOf(enabledModulesForZeCollection);
+		//enabledModulesForZeCollection = asList(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
+		assertThat(zeCollectionVO.getModules()).containsOnlyOnce(ConstellioRMModule.ID, TaskModule.ID, ConstellioESModule.ID);
 		assertThat(invalidModules).isEmpty();
 	}
 

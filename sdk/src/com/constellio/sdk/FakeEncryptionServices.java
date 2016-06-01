@@ -14,6 +14,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 public class FakeEncryptionServices extends EncryptionServices {
 
 	public FakeEncryptionServices() {
+		super(true);
 		try {
 			withKey(EncryptionKeyFactory.newApplicationKey("test", "test"));
 		} catch (NoSuchAlgorithmException e) {

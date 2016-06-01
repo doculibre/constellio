@@ -3,7 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.cart;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -29,8 +30,9 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
-import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
+import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -42,10 +44,11 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter {
+public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, ReportPresenter {
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
 	private String cartId;
@@ -124,12 +127,36 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		cartEmptyingRequested();
 	}
 
-	public RecordVOWithDistinctSchemasDataProvider getRecords() {
+	public RecordVOWithDistinctSchemasDataProvider getFolderRecords() {
 		return new RecordVOWithDistinctSchemasDataProvider(
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+				return new LogicalSearchQuery(from(rm.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES)
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public RecordVOWithDistinctSchemasDataProvider getDocumentRecords() {
+		return new RecordVOWithDistinctSchemasDataProvider(
+				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.documentSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES)
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public RecordVOWithDistinctSchemasDataProvider getContainerRecords() {
+		return new RecordVOWithDistinctSchemasDataProvider(
+				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.containerRecordSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
 						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES)
 						.sortAsc(Schemas.TITLE);
 			}
@@ -455,19 +482,66 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 	}
 
-	public void filterButtonClicked() {
-		view.filterTable();
+	public void folderFilterButtonClicked() {
+		view.filterFolderTable();
+	}
+	public void documentFilterButtonClicked() {
+		view.filterDocumentTable();
+	}
+	public void containerFilterButtonClicked() {
+		view.filterContainerTable();
 	}
 
-	public RecordVOWithDistinctSchemasDataProvider getFilteredRecords(final String freeText) {
+	public RecordVOWithDistinctSchemasDataProvider getFilteredFolderRecords(final String freeText) {
 		return new RecordVOWithDistinctSchemasDataProvider(
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(fromAllSchemasIn(collection).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+				return new LogicalSearchQuery(from(rm.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
 						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 						.sortAsc(Schemas.TITLE);
 			}
 		};
+	}
+
+	public RecordVOWithDistinctSchemasDataProvider getFilteredDocumentRecords(final String freeText) {
+		return new RecordVOWithDistinctSchemasDataProvider(
+				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.documentSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	public RecordVOWithDistinctSchemasDataProvider getFilteredContainerRecords(final String freeText) {
+		return new RecordVOWithDistinctSchemasDataProvider(
+				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(rm.containerRecordSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	@Override
+	public List<String> getSupportedReports() {
+		List<String> supportedReports = new ArrayList<>();
+		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
+		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getCurrentSchemaType());
+		supportedReports.addAll(userReports);
+		return supportedReports;
+	}
+
+	@Override
+	public ReportBuilderFactory getReport(String report) {
+		List<String> recordids = getRecordsIds(view.getCurrentSchemaType());
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.schemaType(view.getCurrentSchemaType())).returnAll());
+		return new SearchResultReportBuilderFactory(modelLayerFactory, recordids, view.getCurrentSchemaType(),
+				collection, report, getCurrentUser(), query);
 	}
 }

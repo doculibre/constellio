@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.records.Transaction;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -830,6 +831,19 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} catch (RecordServicesException.ValidationException e) {
 				view.showErrorMessage($(e.getErrors()));
 			}
+		}
+	}
+
+	public void createNewCartAndAddToItRequested(String title) {
+		Cart cart = rmSchemasRecordsServices.newCart();
+		cart.setTitle(title);
+		cart.setOwner(getCurrentUser());
+		try {
+			cart.addFolders(Arrays.asList(folderVO.getId()));
+			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			view.showMessage($("DisplayFolderView.addedToCart"));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
 		}
 	}
 }

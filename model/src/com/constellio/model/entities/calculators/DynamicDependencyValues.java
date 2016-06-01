@@ -6,6 +6,7 @@ import java.util.Map;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CalculatorIsUsingAnForbiddenMetadata;
 import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class DynamicDependencyValues {
 
@@ -49,5 +50,10 @@ public class DynamicDependencyValues {
 
 	public MetadataList getAvailableMetadatasWithAValue() {
 		return availableMetadatasWithValue;
+	}
+
+	public boolean isAvailable(String metadata) {
+		String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(metadata);
+		return getAvailableMetadatas().containsMetadataWithLocalCode(localCode);
 	}
 }

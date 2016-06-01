@@ -45,7 +45,8 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-
+		delete(toRecord(recordVO),true);
+		view.navigate().to(RMViews.class).listCarts();
 	}
 
 	public RecordVODataProvider getOwnedCartsDataProvider() {

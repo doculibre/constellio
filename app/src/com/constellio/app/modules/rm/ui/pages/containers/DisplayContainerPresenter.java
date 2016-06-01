@@ -7,13 +7,13 @@ import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories.ContainerRecordReportFactoryParams;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordDepositReportViewImpl;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordTransferReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -116,12 +116,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(containerId);
 		ContainerRecord containerRecord = new ContainerRecord(record, types());
 
-		if (containerRecord.getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE) {
-			return new ContainerRecordTransferReportViewImpl(containerId);
-		} else if (containerRecord.getDecommissioningType() == DecommissioningType.DEPOSIT) {
-			return new ContainerRecordDepositReportViewImpl(containerId);
-		}
-		throw new RuntimeException("BUG: Unknown report: " + report);
+		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories().build(new ContainerRecordReportFactoryParams(containerRecord));
 	}
 
 	public boolean canPrintReports() {
@@ -131,6 +127,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		try {
 			getReport("");
 		} catch (RuntimeException e) {
+			e.printStackTrace();
 			return false;
 		}
 		return true;
