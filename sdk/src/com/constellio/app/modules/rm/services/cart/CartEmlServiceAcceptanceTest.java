@@ -71,7 +71,7 @@ public class CartEmlServiceAcceptanceTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		users.setUp(getModelLayerFactory().newUserServices());

@@ -233,7 +233,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	private RMSchemasRecordsServices rmRecordServices() {
 		if (rmRecordServices == null) {
-			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
 	}

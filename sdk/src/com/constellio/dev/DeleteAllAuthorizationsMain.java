@@ -60,7 +60,7 @@ public class DeleteAllAuthorizationsMain {
 		//for (String collection : collectionsListManager.getCollections()) {
 		//currentCollection = collection;
 		currentCollection = "collection20151002";
-		rm = new RMSchemasRecordsServices(currentCollection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(currentCollection, appLayerFactory);
 		runScriptForCurrentCollection();
 		//}
 
@@ -119,7 +119,7 @@ public class DeleteAllAuthorizationsMain {
 				.execute(from(rm.userSchemaType()).returnAll());
 
 		new ResetRecordAuthorizationAction("Collection " + currentCollection + " - Delete administrative units authorisations")
-				.execute(from(rm.administrativeUnitSchemaType()).returnAll());
+				.execute(from(rm.administrativeUnit.schemaType()).returnAll());
 
 		new ResetRecordAuthorizationAction("Collection " + currentCollection + " - Delete folders authorisations")
 				.execute(from(rm.folderSchemaType()).returnAll());

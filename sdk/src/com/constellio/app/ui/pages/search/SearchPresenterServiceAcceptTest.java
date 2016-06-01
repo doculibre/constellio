@@ -57,7 +57,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		searchPresenterService = new SearchPresenterService(zeCollection, getModelLayerFactory());
 
 		allFolders = new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());

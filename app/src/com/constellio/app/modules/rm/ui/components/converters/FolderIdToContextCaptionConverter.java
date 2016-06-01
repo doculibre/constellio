@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.components.converters;
 import java.io.IOException;
 import java.util.Locale;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -36,7 +37,8 @@ public class FolderIdToContextCaptionConverter implements Converter<String, Stri
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override

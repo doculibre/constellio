@@ -31,7 +31,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		User admin = records.getAdmin();
 
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_X(), admin).isFalse();
@@ -83,7 +83,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		User admin = records.getAdmin();
 
 		assertThat(records.getCategory_ZE42().getRententionRules())
@@ -119,7 +119,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		User admin = records.getAdmin();
 
 		assertThatLogicallyDeletable(records.getCategory_X(), admin).isTrue();
@@ -164,7 +164,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		);
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.newVariableRetentionPeriod().setCode("42").setTitle("42"));

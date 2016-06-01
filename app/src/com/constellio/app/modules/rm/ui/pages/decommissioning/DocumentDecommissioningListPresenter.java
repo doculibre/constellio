@@ -138,7 +138,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	RMSchemasRecordsServices rmRecordsServices() {
 		if (rmRecordsServices == null) {
-			rmRecordsServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordsServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordsServices;
 	}

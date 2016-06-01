@@ -54,7 +54,7 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		foldersA01AndA02.add(records.folder_A01);
 		foldersA01AndA02.add(records.folder_A02);
 
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
 				.isIn(asList(records.folder_A01, records.folder_A02, records.folder_A03))).sortAsc(Schemas.TITLE);

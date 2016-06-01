@@ -48,7 +48,7 @@ public class DocumentsCertificateReportBuilderManualAcceptTest extends ReportBui
 		searchServices = getModelLayerFactory().newSearchServices();
 		decommissioningService = new DecommissioningService(zeCollection, getModelLayerFactory());
 		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	@Test

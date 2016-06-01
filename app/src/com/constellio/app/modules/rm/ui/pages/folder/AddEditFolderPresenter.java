@@ -74,7 +74,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private void initTransientObjects() {
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			record = newRecord();
 			addView = true;
 		} else {
-			Folder folder = new RMSchemasRecordsServices(collection, modelLayerFactory).getFolder(parentId);
+			Folder folder = new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(parentId);
 			record = new DecommissioningService(collection, modelLayerFactory).newSubFolderIn(folder).getWrappedRecord();
 			addView = true;
 		}
@@ -665,7 +665,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private RMSchemasRecordsServices rmSchemas() {
-		return new RMSchemasRecordsServices(collection, modelLayerFactory);
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	private boolean areDocumentRetentionRulesEnabled() {

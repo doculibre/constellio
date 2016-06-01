@@ -94,7 +94,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus());
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 

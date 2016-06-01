@@ -449,7 +449,7 @@ public class DecommissioningService {
 			UniformSubdivision uniformSubdivision = new UniformSubdivision(recordServices.getDocumentById(uniformSubdivisionId),
 					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
 			if (!uniformSubdivision.getRetentionRules().isEmpty()) {
-				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRuleSchemaType())
+				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRule.schemaType())
 						.where(Schemas.IDENTIFIER).isIn(uniformSubdivision.getRetentionRules())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).filteredByStatus(statusFilter)));
 			}
@@ -459,7 +459,7 @@ public class DecommissioningService {
 			Category category = new Category(recordServices.getDocumentById(categoryId),
 					modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
 			if (!category.getRententionRules().isEmpty()) {
-				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRuleSchemaType())
+				rules.addAll(searchServices.searchRecordIds(new LogicalSearchQuery(from(rm.retentionRule.schemaType())
 						.where(Schemas.IDENTIFIER).isIn(category.getRententionRules())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).filteredByStatus(statusFilter)));
 			}
@@ -523,7 +523,7 @@ public class DecommissioningService {
 
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rm.administrativeUnitSchema()).returnAll();
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rm.administrativeUnit.schema()).returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {

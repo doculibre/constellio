@@ -45,7 +45,7 @@ public class CoreMigrationTo_6_3 implements MigrationScript {
         final String collectionLanguageCode = appLayerFactory.getCollectionsManager().getCollection(collection).getLanguages().get(0);
         SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
         final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-        final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+        final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
         new ActionExecutorInBatch(searchServices, "Create users login languages.", 1000) {
             @Override
             public void doActionOnBatch(List<Record> records)

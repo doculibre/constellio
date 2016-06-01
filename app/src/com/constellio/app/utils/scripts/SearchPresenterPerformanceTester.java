@@ -58,7 +58,7 @@ public class SearchPresenterPerformanceTester {
 	public static void runTest(AppLayerFactory appLayerFactory, final String collection, String username, int nbOfThreads,
 			int nbOfExecute, final String search)
 			throws Exception {
-		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		user = modelLayerFactory.newUserServices()

@@ -60,8 +60,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 			}
 
 			List<UniformSubdivision> uniformSubdivisions = rm.wrapUniformSubdivisions(searchServices.search(
-					new LogicalSearchQuery().setCondition(from(rm.uniformSubdivisionSchemaType())
-							.where(rm.uniformSubdivisionRetentionRule()).isEqualTo(deletedRule))));
+					new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType())
+							.where(rm.uniformSubdivision.retentionRule()).isEqualTo(deletedRule))));
 			for (UniformSubdivision uniformSubdivision : uniformSubdivisions) {
 				List<String> rules = new ArrayList<>(uniformSubdivision.getRetentionRules());
 				rules.remove(deletedRule.getId());
@@ -111,8 +111,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		if (code.equals("888") || code.equals("999")) {
 			return ExtensionBooleanResult.FALSE;
 		} else {
-			long count = searchServices.getResultsCount(from(rm.retentionRuleSchemaType())
-					.where(rm.retentionRuleCopyRetentionRules()).is(variablePeriodCode(code)));
+			long count = searchServices.getResultsCount(from(rm.retentionRule.schemaType())
+					.where(rm.retentionRule.copyRetentionRules()).is(variablePeriodCode(code)));
 			return ExtensionBooleanResult.trueIf(count == 0);
 		}
 	}

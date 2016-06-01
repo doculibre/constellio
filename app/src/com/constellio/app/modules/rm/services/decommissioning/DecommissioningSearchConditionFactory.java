@@ -192,8 +192,8 @@ public class DecommissioningSearchConditionFactory {
 
 	public long getVisibleSubAdministrativeUnitCount(String administrativeUnitId) {
 
-		LogicalSearchCondition condition = from(schemas.administrativeUnitSchemaType())
-				.where(schemas.administrativeUnitParent()).is(administrativeUnitId)
+		LogicalSearchCondition condition = from(schemas.administrativeUnit.schemaType())
+				.where(schemas.administrativeUnit.parent()).is(administrativeUnitId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		return searchServices.getResultsCount(condition);
 	}

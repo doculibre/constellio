@@ -158,7 +158,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (capacity == null || capacity == 0.0) {
 			throw new ContainerWithoutCapacityException();
 		}
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Metadata containerMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(containerMetadata).isEqualTo(container.getId());
 		DataStoreField linearSizeMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
@@ -216,7 +216,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private RMSchemasRecordsServices rmRecordServices() {
 		if (rmRecordServices == null) {
-			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
 	}
