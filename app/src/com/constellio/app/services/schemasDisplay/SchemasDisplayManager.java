@@ -362,18 +362,32 @@ public class SchemasDisplayManager
 	}
 
 	private List<String> getCodesOfElements(Document newDocument) {
-
 		List<String> codes = new ArrayList<>();
 		getCodesOfElements(newDocument.getRootElement(), codes);
 		return codes;
 	}
 
 	private void getCodesOfElements(Element element, List<String> codes) {
-		codes.add(element.getName());
+		String value = element.getAttributeValue("code");
 
-		for (Element child : element.getChildren()) {
-			getCodesOfElements(child, codes);
+		if (value == null) {
+			value = element.getAttributeValue("SchemaCode");
 		}
+
+		if (value == null) {
+			value = element.getName();
+		}
+
+		codes.add(value);
+
+		if (!asList("SchemaTypesDisplayConfig", "DisplayMetadataCodes", "FormMetadataCodes", "SearchResultsMetadataCodes",
+				"TableMetadataCodes")
+				.contains(element.getName())) {
+			for (Element child : element.getChildren()) {
+				getCodesOfElements(child, codes);
+			}
+		}
+
 	}
 
 	private void sort(Element element) {
@@ -384,6 +398,14 @@ public class SchemasDisplayManager
 			public int compare(Element o1, Element o2) {
 				String n1 = o1.getAttributeValue("code");
 				String n2 = o2.getAttributeValue("code");
+
+				if (n1 == null) {
+					n1 = o1.getAttributeValue("SchemaCode");
+				}
+
+				if (n2 == null) {
+					n2 = o2.getAttributeValue("SchemaCode");
+				}
 
 				if (n1 == null) {
 					n1 = o1.getName();

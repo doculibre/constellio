@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -22,6 +23,10 @@ public class RMMigrationTo6_4 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory factory)
 			throws Exception {
 		new SchemaAlterationsFor6_4(collection, provider, factory).migrate();
+
+		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
+		displayManager.saveSchema(displayManager.getSchema(collection, "cart_default"));
+
 	}
 
 	public static class SchemaAlterationsFor6_4 extends MetadataSchemasAlterationHelper {

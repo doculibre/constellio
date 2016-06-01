@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,9 +9,12 @@ import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -69,11 +74,29 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		new SchemaAlteration(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		generatedComboMigration.applyGeneratedRoles();
 		generatedComboMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
+		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
+	}
+
+	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
+		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
+		//transaction.add(manager.getSchema(collection, "cart_default").withRemovedFormMetadatas("cart_default_title"));
+
+		SchemaDisplayConfig userTask = manager.getSchema(collection, "userTask_default");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_administrativeUnit", "userTask_default_assignedOn");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedDocuments", "userTask_default_modifiedOn");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedFolders", "userTask_default_modifiedOn");
+		userTask = userTask.withNewFormMetadataBefore("userTask_default_linkedDocuments", "userTask_default_parentTask");
+		userTask = userTask.withNewFormMetadataBefore("userTask_default_linkedFolders", "userTask_default_parentTask");
+		userTask = userTask.withTableMetadataCodes(
+				asList("userTask_default_assignee", "userTask_default_dueDate", "userTask_default_status",
+						"userTask_default_title"));
+		transaction.add(userTask);
+		manager.execute(transaction.build());
 	}
 
 	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,

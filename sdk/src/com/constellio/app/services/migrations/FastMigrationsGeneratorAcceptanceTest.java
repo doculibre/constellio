@@ -114,7 +114,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
 				.addMethod(generateTypes(null))
-				.addMethod(generateDisplayConfigs())
+				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
 				.addMethod(generateRoles(new ArrayList<Role>()))
 				.addMethod(generateConstructor())
 				.build();
@@ -155,6 +155,8 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new TaskModule());
 
 		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.rewriteInOrderAndGetCodes(zeCollection);
 		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
@@ -175,7 +177,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
 				.addMethod(generateTypes(typesBefore))
-				.addMethod(generateDisplayConfigs())
+				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
 				.build();
@@ -240,7 +242,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private MethodSpec generateDisplayConfigs() {
+	private MethodSpec generateDisplayConfigs(List<String> codesBefore) {
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		Builder main = MethodSpec.methodBuilder("applySchemasDisplay")
 				.addModifiers(Modifier.PUBLIC)
@@ -261,7 +263,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
 			SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, type.getCode());
-			if (codes.contains(typeDisplay.getSchemaType())) {
+			if (codes.contains(typeDisplay.getSchemaType()) && !codesBefore.contains(typeDisplay.getSchemaType())) {
 				main.addStatement("transaction.add(manager.getType(collection, $S).withSimpleSearchStatus($L)"
 								+ ".withAdvancedSearchStatus($L).withManageableStatus($L)"
 								+ ".withMetadataGroup(resourcesProvider.getLanguageMapWithKeys($L)))", type.getCode(),
@@ -271,7 +273,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				SchemaDisplayConfig schemaDisplay = manager.getSchema(zeCollection, schema.getCode());
-				if (codes.contains(schemaDisplay.getSchemaCode())) {
+				if (codes.contains(schemaDisplay.getSchemaCode()) && !codesBefore.contains(schemaDisplay.getSchemaCode())) {
 					main.addStatement("transaction.add(manager.getSchema(collection, $S).withFormMetadataCodes($L)"
 									+ ".withDisplayMetadataCodes($L).withSearchResultsMetadataCodes($L).withTableMetadataCodes($L))"
 							, schema.getCode(), asListLitteral(schemaDisplay.getFormMetadataCodes())
@@ -283,7 +285,8 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				for (Metadata metadata : schema.getMetadatas()) {
 					MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, metadata.getCode());
 
-					if (codes.contains(metadataDisplay.getMetadataCode())) {
+					if (codes.contains(metadataDisplay.getMetadataCode()) && !codesBefore
+							.contains(metadataDisplay.getMetadataCode())) {
 						main.addStatement("transaction.add(manager.getMetadata(collection, $S).withMetadataGroup($S)"
 										+ ".withInputType($T.$L).withHighlightStatus($L).withVisibleInAdvancedSearchStatus($L))",
 								metadata.getCode(), metadataDisplay.getMetadataGroupCode(), MetadataInputType.class,

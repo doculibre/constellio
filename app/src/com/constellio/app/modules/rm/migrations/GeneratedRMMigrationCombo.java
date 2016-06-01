@@ -2,6 +2,8 @@ package com.constellio.app.modules.rm.migrations;
 
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -3682,88 +3684,71 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getType(collection, "administrativeUnit").withSimpleSearchStatus(false)
 				.withAdvancedSearchStatus(false).withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
+		transaction.add(manager.getSchema(collection, "administrativeUnit_default").withFormMetadataCodes(
+				asList("administrativeUnit_default_adress", "administrativeUnit_default_code",
+						"administrativeUnit_default_decommissioningMonth", "administrativeUnit_default_description",
+						"administrativeUnit_default_parent", "administrativeUnit_default_title")).withDisplayMetadataCodes(
+				asList("administrativeUnit_default_code", "administrativeUnit_default_createdBy",
+						"administrativeUnit_default_createdOn", "administrativeUnit_default_decommissioningMonth",
+						"administrativeUnit_default_modifiedBy", "administrativeUnit_default_parent",
+						"administrativeUnit_default_title")).withSearchResultsMetadataCodes(
+				asList("administrativeUnit_default_modifiedOn", "administrativeUnit_default_title"))
+				.withTableMetadataCodes(asList("administrativeUnit_default_modifiedOn", "administrativeUnit_default_title")));
 		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_adress").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_decommissioningMonth").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_description").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_parent").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "administrativeUnit_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_containers").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_documents").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_folders").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_owner").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "cart_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "cart_default").withFormMetadataCodes(
+				asList("cart_default_containers", "cart_default_documents", "cart_default_folders", "cart_default_owner",
+						"cart_default_title")).withDisplayMetadataCodes(
+				asList("cart_default_containers", "cart_default_createdBy", "cart_default_createdOn", "cart_default_documents",
+						"cart_default_folders", "cart_default_modifiedBy", "cart_default_modifiedOn", "cart_default_owner",
+						"cart_default_title"))
+				.withSearchResultsMetadataCodes(asList("cart_default_modifiedOn", "cart_default_title"))
+				.withTableMetadataCodes(asList("cart_default_modifiedOn", "cart_default_title")));
 		transaction.add(manager.getType(collection, "category").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "category_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_keywords").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_parent").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_retentionRules").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "category_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "category_default").withFormMetadataCodes(
+				asList("category_default_code", "category_default_description", "category_default_keywords",
+						"category_default_parent", "category_default_retentionRules", "category_default_title"))
+				.withDisplayMetadataCodes(
+						asList("category_default_code", "category_default_comments", "category_default_createdBy",
+								"category_default_createdOn", "category_default_description", "category_default_keywords",
+								"category_default_modifiedBy", "category_default_parent", "category_default_retentionRules",
+								"category_default_title"))
+				.withSearchResultsMetadataCodes(asList("category_default_modifiedOn", "category_default_title"))
+				.withTableMetadataCodes(asList("category_default_modifiedOn", "category_default_title")));
 		transaction.add(manager.getType(collection, "collection").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "collection_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "collection_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "collection_default_languages").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "collection_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "collection_default_name").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "collection_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "collection_default").withFormMetadataCodes(
+				asList("collection_default_code", "collection_default_languages", "collection_default_name",
+						"collection_default_title")).withDisplayMetadataCodes(
+				asList("collection_default_code", "collection_default_createdOn", "collection_default_languages",
+						"collection_default_modifiedOn", "collection_default_name", "collection_default_title"))
+				.withSearchResultsMetadataCodes(asList("collection_default_modifiedOn", "collection_default_title"))
+				.withTableMetadataCodes(asList("collection_default_modifiedOn", "collection_default_title")));
 		transaction.add(manager.getType(collection, "containerRecord").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
+		transaction.add(manager.getSchema(collection, "containerRecord_default").withFormMetadataCodes(
+				asList("containerRecord_default_administrativeUnit", "containerRecord_default_borrowDate",
+						"containerRecord_default_borrower", "containerRecord_default_capacity",
+						"containerRecord_default_completionDate", "containerRecord_default_decommissioningType",
+						"containerRecord_default_description", "containerRecord_default_filingSpace",
+						"containerRecord_default_fillRatioEntered", "containerRecord_default_full",
+						"containerRecord_default_identifier", "containerRecord_default_planifiedReturnDate",
+						"containerRecord_default_position", "containerRecord_default_realDepositDate",
+						"containerRecord_default_realReturnDate", "containerRecord_default_realTransferDate",
+						"containerRecord_default_storageSpace", "containerRecord_default_temporaryIdentifier",
+						"containerRecord_default_type")).withDisplayMetadataCodes(
+				asList("containerRecord_default_administrativeUnit", "containerRecord_default_capacity",
+						"containerRecord_default_description", "containerRecord_default_full",
+						"containerRecord_default_identifier", "containerRecord_default_storageSpace",
+						"containerRecord_default_temporaryIdentifier", "containerRecord_default_type"))
+				.withSearchResultsMetadataCodes(asList("containerRecord_default_modifiedOn", "containerRecord_default_title"))
+				.withTableMetadataCodes(asList("containerRecord_default_modifiedOn", "containerRecord_default_title")));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_administrativeUnit").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_borrowDate").withMetadataGroup("")
@@ -3772,8 +3757,6 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_borrower").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "containerRecord_default_capacity").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_completionDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_decommissioningType").withMetadataGroup("")
@@ -3782,16 +3765,12 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_filingSpace").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "containerRecord_default_fillRatioEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_full").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_id").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_identifier").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "containerRecord_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_planifiedReturnDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_position").withMetadataGroup("")
@@ -3813,126 +3792,109 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getType(collection, "ddvContainerRecordType").withSimpleSearchStatus(false)
 				.withAdvancedSearchStatus(false).withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "ddvContainerRecordType_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvContainerRecordType_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvContainerRecordType_default_linkedSchema").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvContainerRecordType_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvContainerRecordType_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "ddvContainerRecordType_default").withFormMetadataCodes(
+				asList("ddvContainerRecordType_default_code", "ddvContainerRecordType_default_description",
+						"ddvContainerRecordType_default_linkedSchema", "ddvContainerRecordType_default_title"))
+				.withDisplayMetadataCodes(
+						asList("ddvContainerRecordType_default_code", "ddvContainerRecordType_default_description",
+								"ddvContainerRecordType_default_linkedSchema", "ddvContainerRecordType_default_title"))
+				.withSearchResultsMetadataCodes(
+						asList("ddvContainerRecordType_default_modifiedOn", "ddvContainerRecordType_default_title"))
+				.withTableMetadataCodes(
+						asList("ddvContainerRecordType_default_modifiedOn", "ddvContainerRecordType_default_title")));
 		transaction
 				.add(manager.getType(collection, "ddvDocumentType").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 						.withManageableStatus(false)
 						.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "ddvDocumentType_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvDocumentType_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvDocumentType_default_linkedSchema").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvDocumentType_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvDocumentType_default_templates").withMetadataGroup("")
-				.withInputType(MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvDocumentType_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "ddvDocumentType_default").withFormMetadataCodes(
+				asList("ddvDocumentType_default_code", "ddvDocumentType_default_description",
+						"ddvDocumentType_default_linkedSchema", "ddvDocumentType_default_templates",
+						"ddvDocumentType_default_title")).withDisplayMetadataCodes(
+				asList("ddvDocumentType_default_code", "ddvDocumentType_default_description",
+						"ddvDocumentType_default_linkedSchema", "ddvDocumentType_default_templates",
+						"ddvDocumentType_default_title"))
+				.withSearchResultsMetadataCodes(asList("ddvDocumentType_default_modifiedOn", "ddvDocumentType_default_title"))
+				.withTableMetadataCodes(asList("ddvDocumentType_default_modifiedOn", "ddvDocumentType_default_title")));
 		transaction.add(manager.getType(collection, "ddvFolderType").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "ddvFolderType_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvFolderType_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvFolderType_default_linkedSchema").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvFolderType_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvFolderType_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "ddvFolderType_default").withFormMetadataCodes(
+				asList("ddvFolderType_default_code", "ddvFolderType_default_description", "ddvFolderType_default_linkedSchema",
+						"ddvFolderType_default_title")).withDisplayMetadataCodes(
+				asList("ddvFolderType_default_code", "ddvFolderType_default_description", "ddvFolderType_default_linkedSchema",
+						"ddvFolderType_default_title"))
+				.withSearchResultsMetadataCodes(asList("ddvFolderType_default_modifiedOn", "ddvFolderType_default_title"))
+				.withTableMetadataCodes(asList("ddvFolderType_default_modifiedOn", "ddvFolderType_default_title")));
 		transaction.add(manager.getType(collection, "ddvMediumType").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "ddvMediumType_default_analogical").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvMediumType_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvMediumType_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvMediumType_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvMediumType_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "ddvMediumType_default").withFormMetadataCodes(
+				asList("ddvMediumType_default_analogical", "ddvMediumType_default_code", "ddvMediumType_default_description",
+						"ddvMediumType_default_title")).withDisplayMetadataCodes(
+				asList("ddvMediumType_default_analogical", "ddvMediumType_default_code", "ddvMediumType_default_description",
+						"ddvMediumType_default_title"))
+				.withSearchResultsMetadataCodes(asList("ddvMediumType_default_modifiedOn", "ddvMediumType_default_title"))
+				.withTableMetadataCodes(asList("ddvMediumType_default_modifiedOn", "ddvMediumType_default_title")));
 		transaction.add(manager.getType(collection, "ddvStorageSpaceType").withSimpleSearchStatus(false)
 				.withAdvancedSearchStatus(false).withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "ddvStorageSpaceType_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvStorageSpaceType_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvStorageSpaceType_default_linkedSchema").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvStorageSpaceType_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvStorageSpaceType_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_statusType").withMetadataGroup("")
-				.withInputType(MetadataInputType.DROPDOWN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_linkedSchema").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvTaskType_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "ddvVariablePeriod_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "ddvStorageSpaceType_default").withFormMetadataCodes(
+				asList("ddvStorageSpaceType_default_code", "ddvStorageSpaceType_default_description",
+						"ddvStorageSpaceType_default_linkedSchema", "ddvStorageSpaceType_default_title"))
+				.withDisplayMetadataCodes(asList("ddvStorageSpaceType_default_code", "ddvStorageSpaceType_default_description",
+						"ddvStorageSpaceType_default_linkedSchema", "ddvStorageSpaceType_default_title"))
+				.withSearchResultsMetadataCodes(
+						asList("ddvStorageSpaceType_default_modifiedOn", "ddvStorageSpaceType_default_title"))
+				.withTableMetadataCodes(asList("ddvStorageSpaceType_default_modifiedOn", "ddvStorageSpaceType_default_title")));
+		transaction.add(manager.getSchema(collection, "ddvTaskStatus_default").withFormMetadataCodes(
+				asList("ddvTaskStatus_default_code", "ddvTaskStatus_default_description", "ddvTaskStatus_default_statusType",
+						"ddvTaskStatus_default_title")).withDisplayMetadataCodes(
+				asList("ddvTaskStatus_default_code", "ddvTaskStatus_default_comments", "ddvTaskStatus_default_createdBy",
+						"ddvTaskStatus_default_createdOn", "ddvTaskStatus_default_description",
+						"ddvTaskStatus_default_modifiedBy", "ddvTaskStatus_default_modifiedOn",
+						"ddvTaskStatus_default_statusType", "ddvTaskStatus_default_title"))
+				.withSearchResultsMetadataCodes(asList("ddvTaskStatus_default_modifiedOn", "ddvTaskStatus_default_title"))
+				.withTableMetadataCodes(asList("ddvTaskStatus_default_modifiedOn", "ddvTaskStatus_default_title")));
+		transaction.add(manager.getSchema(collection, "ddvTaskType_default").withFormMetadataCodes(
+				asList("ddvTaskType_default_code", "ddvTaskType_default_description", "ddvTaskType_default_linkedSchema",
+						"ddvTaskType_default_title")).withDisplayMetadataCodes(
+				asList("ddvTaskType_default_code", "ddvTaskType_default_comments", "ddvTaskType_default_createdBy",
+						"ddvTaskType_default_createdOn", "ddvTaskType_default_description", "ddvTaskType_default_linkedSchema",
+						"ddvTaskType_default_modifiedBy", "ddvTaskType_default_modifiedOn", "ddvTaskType_default_title"))
+				.withSearchResultsMetadataCodes(asList("ddvTaskType_default_modifiedOn", "ddvTaskType_default_title"))
+				.withTableMetadataCodes(asList("ddvTaskType_default_modifiedOn", "ddvTaskType_default_title")));
+		transaction.add(manager.getSchema(collection, "ddvVariablePeriod_default").withFormMetadataCodes(
+				asList("ddvVariablePeriod_default_code", "ddvVariablePeriod_default_description",
+						"ddvVariablePeriod_default_title")).withDisplayMetadataCodes(
+				asList("ddvVariablePeriod_default_code", "ddvVariablePeriod_default_comments",
+						"ddvVariablePeriod_default_createdBy", "ddvVariablePeriod_default_createdOn",
+						"ddvVariablePeriod_default_description", "ddvVariablePeriod_default_modifiedBy",
+						"ddvVariablePeriod_default_modifiedOn", "ddvVariablePeriod_default_title"))
+				.withSearchResultsMetadataCodes(asList("ddvVariablePeriod_default_code", "ddvVariablePeriod_default_modifiedOn",
+						"ddvVariablePeriod_default_title")).withTableMetadataCodes(
+						asList("ddvVariablePeriod_default_code", "ddvVariablePeriod_default_modifiedOn",
+								"ddvVariablePeriod_default_title")));
 		transaction.add(manager.getType(collection, "decommissioningList").withSimpleSearchStatus(false)
 				.withAdvancedSearchStatus(false).withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
+		transaction.add(manager.getSchema(collection, "decommissioningList_default").withFormMetadataCodes(
+				asList("decommissioningList_default_administrativeUnit", "decommissioningList_default_approvalDate",
+						"decommissioningList_default_approvalRequest", "decommissioningList_default_approvalRequestDate",
+						"decommissioningList_default_approvalUser", "decommissioningList_default_containerDetails",
+						"decommissioningList_default_description", "decommissioningList_default_filingSpace",
+						"decommissioningList_default_folderDetails", "decommissioningList_default_processingDate",
+						"decommissioningList_default_processingUser", "decommissioningList_default_title"))
+				.withDisplayMetadataCodes(
+						asList("decommissioningList_default_administrativeUnit", "decommissioningList_default_approvalDate",
+								"decommissioningList_default_approvalUser", "decommissioningList_default_createdBy",
+								"decommissioningList_default_createdOn", "decommissioningList_default_description",
+								"decommissioningList_default_filingSpace", "decommissioningList_default_modifiedBy",
+								"decommissioningList_default_modifiedOn", "decommissioningList_default_status",
+								"decommissioningList_default_title", "decommissioningList_default_type",
+								"decommissioningList_default_uniformCategory", "decommissioningList_default_uniformRule"))
+				.withSearchResultsMetadataCodes(
+						asList("decommissioningList_default_modifiedOn", "decommissioningList_default_title"))
+				.withTableMetadataCodes(asList("decommissioningList_default_modifiedOn", "decommissioningList_default_title")));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_administrativeUnit").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_approvalDate").withMetadataGroup("")
@@ -3945,36 +3907,14 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_containerDetails").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_filingSpace").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_folderDetails").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_processingDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_processingUser").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_status").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_type").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_uniformCategory").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "decommissioningList_default_uniformRule").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_validationDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "decommissioningList_default_validationUser").withMetadataGroup("")
@@ -3982,28 +3922,28 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getType(collection, "document").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(
 						resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel", "classifiedInGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "document_email_actualDepositDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_actualDestructionDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_actualTransferDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_archivisticStatus").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_author").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_category").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_company").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_content").withMetadataGroup("")
-				.withInputType(MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_copyStatus").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "document_email").withFormMetadataCodes(
+				asList("document_email_author", "document_email_company", "document_email_content", "document_email_description",
+						"document_email_emailAttachmentsList", "document_email_emailBCCTo", "document_email_emailCCTo",
+						"document_email_emailCompany", "document_email_emailContent", "document_email_emailFrom",
+						"document_email_emailInNameOf", "document_email_emailObject", "document_email_emailReceivedOn",
+						"document_email_emailSentOn", "document_email_emailTo", "document_email_folder",
+						"document_email_keywords", "document_email_mainCopyRuleIdEntered", "document_email_subject",
+						"document_email_subjectToBroadcastRule", "document_email_title", "document_email_type"))
+				.withDisplayMetadataCodes(asList("document_email_actualDepositDate", "document_email_actualDestructionDate",
+						"document_email_actualTransferDate", "document_email_archivisticStatus", "document_email_author",
+						"document_email_category", "document_email_comments", "document_email_company", "document_email_content",
+						"document_email_copyStatus", "document_email_emailAttachmentsList", "document_email_emailBCCTo",
+						"document_email_emailCCTo", "document_email_emailContent", "document_email_emailFrom",
+						"document_email_emailInNameOf", "document_email_emailObject", "document_email_emailReceivedOn",
+						"document_email_emailSentOn", "document_email_emailTo", "document_email_expectedDepositDate",
+						"document_email_expectedDestructionDate", "document_email_expectedTransferDate", "document_email_folder",
+						"document_email_formCreatedBy", "document_email_formCreatedOn", "document_email_formModifiedBy",
+						"document_email_formModifiedOn", "document_email_keywords", "document_email_mainCopyRule",
+						"document_email_retentionRule", "document_email_subjectToBroadcastRule", "document_email_title",
+						"document_email_type"))
+				.withSearchResultsMetadataCodes(asList("document_email_modifiedOn", "document_email_title"))
+				.withTableMetadataCodes(new ArrayList<String>()));
 		transaction.add(manager.getMetadata(collection, "document_email_description").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_email_emailAttachmentsList").withMetadataGroup("")
@@ -4028,40 +3968,26 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_email_emailTo").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_expectedDepositDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_expectedDestructionDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_expectedTransferDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_folder").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_formCreatedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_formCreatedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_formModifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_formModifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_keywords").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_mainCopyRule").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_mainCopyRuleIdEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_email_retentionRule").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_email_subject").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "document_email_subjectToBroadcastRule").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_email_type").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+		transaction.add(manager.getSchema(collection, "document_default").withFormMetadataCodes(
+				asList("document_default_author", "document_default_company", "document_default_content",
+						"document_default_description", "document_default_folder", "document_default_keywords",
+						"document_default_mainCopyRuleIdEntered", "document_default_subject", "document_default_title",
+						"document_default_type")).withDisplayMetadataCodes(
+				asList("document_default_actualDepositDate", "document_default_actualDestructionDate",
+						"document_default_actualTransferDate", "document_default_archivisticStatus", "document_default_author",
+						"document_default_category", "document_default_comments", "document_default_company",
+						"document_default_content", "document_default_copyStatus", "document_default_description",
+						"document_default_expectedDepositDate", "document_default_expectedDestructionDate",
+						"document_default_expectedTransferDate", "document_default_folder", "document_default_formCreatedBy",
+						"document_default_formCreatedOn", "document_default_formModifiedBy", "document_default_formModifiedOn",
+						"document_default_keywords", "document_default_mainCopyRule", "document_default_retentionRule",
+						"document_default_subject", "document_default_title", "document_default_type"))
+				.withSearchResultsMetadataCodes(asList("document_default_modifiedOn", "document_default_title"))
+				.withTableMetadataCodes(asList("document_default_modifiedOn", "document_default_title")));
 		transaction.add(manager.getMetadata(collection, "document_default_actualDepositDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_default_actualDestructionDate").withMetadataGroup("")
@@ -4081,15 +4007,8 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_default_closingDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "document_default_company").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_default_content").withMetadataGroup("")
-				.withInputType(MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_default_copyStatus").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "document_default_description").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_default_expectedDepositDate").withMetadataGroup("")
@@ -4106,20 +4025,10 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "document_default_formCreatedOn").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_default_formModifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_default_formModifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "document_default_id").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_default_keywords").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "document_default_mainCopyRule").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_default_mainCopyRuleIdEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "document_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "document_default_openingDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_default_retentionRule").withMetadataGroup("")
@@ -4130,199 +4039,103 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "document_default_type").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_BCC").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_CC").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_error").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_from").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_parameters").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_sendOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_subject").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_template").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_to").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "emailToSend_default_tryingCount").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "emailToSend_default").withFormMetadataCodes(
+				asList("emailToSend_default_BCC", "emailToSend_default_CC", "emailToSend_default_error",
+						"emailToSend_default_from", "emailToSend_default_parameters", "emailToSend_default_sendOn",
+						"emailToSend_default_subject", "emailToSend_default_template", "emailToSend_default_title",
+						"emailToSend_default_to", "emailToSend_default_tryingCount")).withDisplayMetadataCodes(
+				asList("emailToSend_default_createdBy", "emailToSend_default_createdOn", "emailToSend_default_error",
+						"emailToSend_default_modifiedBy", "emailToSend_default_modifiedOn", "emailToSend_default_parameters",
+						"emailToSend_default_sendOn", "emailToSend_default_subject", "emailToSend_default_template",
+						"emailToSend_default_title", "emailToSend_default_tryingCount"))
+				.withSearchResultsMetadataCodes(asList("emailToSend_default_modifiedOn", "emailToSend_default_title"))
+				.withTableMetadataCodes(asList("emailToSend_default_modifiedOn", "emailToSend_default_title")));
 		transaction.add(manager.getType(collection, "event").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "event_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_delta").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_eventPrincipalPath").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_ip").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_permissionDateRange").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_permissionRoles").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_permissionUsers").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_reason").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_recordIdentifier").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_type").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_userRoles").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "event_default_username").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
-				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
-						asList("init.facetConfiguration.values", "init.facetConfiguration.query",
-								"init.facetConfiguration.configuration"))));
-		transaction.add(manager.getMetadata(collection, "facet_field_active")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_elementPerPage")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_facetType")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_fieldDatastoreCode")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel")
-				.withMetadataGroup("init.facetConfiguration.values").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_openByDefault")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_order").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_orderResult")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_pages").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_field_title")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_active")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_elementPerPage")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_facetType")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_fieldDatastoreCode")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction
-				.add(manager.getMetadata(collection, "facet_query_listQueries").withMetadataGroup("init.facetConfiguration.query")
-						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
-						.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_openByDefault")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_order").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_orderResult")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_pages").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_query_title")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_active")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_elementPerPage")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_facetType")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_fieldDatastoreCode")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_openByDefault")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_order").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_orderResult")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_pages").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "facet_default_title")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "event_default").withFormMetadataCodes(
+				asList("event_default_delta", "event_default_eventPrincipalPath", "event_default_ip",
+						"event_default_permissionDateRange", "event_default_permissionRoles", "event_default_permissionUsers",
+						"event_default_reason", "event_default_title", "event_default_type", "event_default_userRoles",
+						"event_default_username")).withDisplayMetadataCodes(
+				asList("event_default_createdBy", "event_default_createdOn", "event_default_delta",
+						"event_default_eventPrincipalPath", "event_default_ip", "event_default_modifiedBy",
+						"event_default_modifiedOn", "event_default_permissionDateRange", "event_default_permissionRoles",
+						"event_default_permissionUsers", "event_default_reason", "event_default_recordIdentifier",
+						"event_default_title", "event_default_type", "event_default_userRoles", "event_default_username"))
+				.withSearchResultsMetadataCodes(asList("event_default_modifiedOn", "event_default_title"))
+				.withTableMetadataCodes(asList("event_default_modifiedOn", "event_default_title")));
+		transaction.add(manager.getSchema(collection, "facet_field").withFormMetadataCodes(
+				asList("facet_field_active", "facet_field_elementPerPage", "facet_field_facetType",
+						"facet_field_fieldDatastoreCode", "facet_field_fieldValuesLabel", "facet_field_openByDefault",
+						"facet_field_order", "facet_field_orderResult", "facet_field_pages", "facet_field_title"))
+				.withDisplayMetadataCodes(asList("facet_field_active", "facet_field_createdBy", "facet_field_createdOn",
+						"facet_field_elementPerPage", "facet_field_facetType", "facet_field_fieldDatastoreCode",
+						"facet_field_fieldValuesLabel", "facet_field_modifiedBy", "facet_field_modifiedOn",
+						"facet_field_openByDefault", "facet_field_order", "facet_field_orderResult", "facet_field_pages",
+						"facet_field_title"))
+				.withSearchResultsMetadataCodes(asList("facet_field_modifiedOn", "facet_field_title"))
+				.withTableMetadataCodes(new ArrayList<String>()));
+		transaction.add(manager.getSchema(collection, "facet_query").withFormMetadataCodes(
+				asList("facet_query_active", "facet_query_elementPerPage", "facet_query_facetType",
+						"facet_query_fieldDatastoreCode", "facet_query_listQueries", "facet_query_openByDefault",
+						"facet_query_order", "facet_query_orderResult", "facet_query_pages", "facet_query_title"))
+				.withDisplayMetadataCodes(asList("facet_query_active", "facet_query_createdBy", "facet_query_createdOn",
+						"facet_query_elementPerPage", "facet_query_facetType", "facet_query_fieldDatastoreCode",
+						"facet_query_listQueries", "facet_query_modifiedBy", "facet_query_modifiedOn",
+						"facet_query_openByDefault", "facet_query_order", "facet_query_orderResult", "facet_query_pages",
+						"facet_query_title"))
+				.withSearchResultsMetadataCodes(asList("facet_query_modifiedOn", "facet_query_title"))
+				.withTableMetadataCodes(new ArrayList<String>()));
+		transaction.add(manager.getSchema(collection, "facet_default").withFormMetadataCodes(
+				asList("facet_default_active", "facet_default_elementPerPage", "facet_default_facetType",
+						"facet_default_fieldDatastoreCode", "facet_default_openByDefault", "facet_default_order",
+						"facet_default_orderResult", "facet_default_pages", "facet_default_title")).withDisplayMetadataCodes(
+				asList("facet_default_active", "facet_default_createdBy", "facet_default_createdOn",
+						"facet_default_elementPerPage", "facet_default_facetType", "facet_default_fieldDatastoreCode",
+						"facet_default_modifiedBy", "facet_default_modifiedOn", "facet_default_openByDefault",
+						"facet_default_order", "facet_default_orderResult", "facet_default_pages", "facet_default_title"))
+				.withSearchResultsMetadataCodes(asList("facet_default_modifiedOn", "facet_default_title"))
+				.withTableMetadataCodes(asList("facet_default_modifiedOn", "facet_default_title")));
 		transaction.add(manager.getType(collection, "filingSpace").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "filingSpace_default_administrators").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "filingSpace_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "filingSpace_default").withFormMetadataCodes(
+				asList("filingSpace_default_administrators", "filingSpace_default_code", "filingSpace_default_description",
+						"filingSpace_default_title", "filingSpace_default_users")).withDisplayMetadataCodes(
+				asList("filingSpace_default_administrators", "filingSpace_default_code", "filingSpace_default_description",
+						"filingSpace_default_title", "filingSpace_default_users"))
+				.withSearchResultsMetadataCodes(asList("filingSpace_default_modifiedOn", "filingSpace_default_title"))
+				.withTableMetadataCodes(asList("filingSpace_default_modifiedOn", "filingSpace_default_title")));
 		transaction.add(manager.getMetadata(collection, "filingSpace_default_description").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "filingSpace_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "filingSpace_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "filingSpace_default_users").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "folder").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(
 						resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel", "classifiedInGroupLabel"))));
+		transaction.add(manager.getSchema(collection, "folder_default").withFormMetadataCodes(
+				asList("folder_default_actualDepositDate", "folder_default_actualDestructionDate",
+						"folder_default_actualTransferDate", "folder_default_administrativeUnitEntered",
+						"folder_default_borrowPreviewReturnDate", "folder_default_categoryEntered", "folder_default_container",
+						"folder_default_copyStatusEntered", "folder_default_description", "folder_default_enteredClosingDate",
+						"folder_default_keywords", "folder_default_linearSize", "folder_default_mainCopyRuleIdEntered",
+						"folder_default_mediumTypes", "folder_default_openingDate", "folder_default_parentFolder",
+						"folder_default_retentionRuleEntered", "folder_default_title", "folder_default_type",
+						"folder_default_uniformSubdivisionEntered")).withDisplayMetadataCodes(
+				asList("folder_default_actualDepositDate", "folder_default_actualDestructionDate",
+						"folder_default_actualTransferDate", "folder_default_administrativeUnit",
+						"folder_default_archivisticStatus", "folder_default_borrowDate", "folder_default_borrowPreviewReturnDate",
+						"folder_default_borrowUserEntered", "folder_default_borrowed", "folder_default_borrowingType",
+						"folder_default_category", "folder_default_closingDate", "folder_default_comments",
+						"folder_default_container", "folder_default_copyStatus", "folder_default_description",
+						"folder_default_expectedDepositDate", "folder_default_expectedDestructionDate",
+						"folder_default_expectedTransferDate", "folder_default_filingSpace", "folder_default_followers",
+						"folder_default_formCreatedBy", "folder_default_formCreatedOn", "folder_default_formModifiedBy",
+						"folder_default_formModifiedOn", "folder_default_keywords", "folder_default_linearSize",
+						"folder_default_mainCopyRule", "folder_default_mediumTypes", "folder_default_openingDate",
+						"folder_default_parentFolder", "folder_default_retentionRule", "folder_default_title",
+						"folder_default_uniformSubdivision"))
+				.withSearchResultsMetadataCodes(asList("folder_default_modifiedOn", "folder_default_title"))
+				.withTableMetadataCodes(asList("folder_default_modifiedOn", "folder_default_title")));
 		transaction.add(manager.getMetadata(collection, "folder_default_activeRetentionType").withMetadataGroup("")
 				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(true));
@@ -4334,8 +4147,6 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_administrativeUnit").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_administrativeUnitEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_archivisticStatus").withMetadataGroup("")
 				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(true));
@@ -4347,23 +4158,14 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_borrowUser").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_borrowUserEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_borrowed").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_borrowingType").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_category").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_categoryCode").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_categoryEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_closingDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_container").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_copyRulesExpectedDepositDates").withMetadataGroup("")
@@ -4375,15 +4177,10 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getMetadata(collection, "folder_default_copyStatus").withMetadataGroup("")
 				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_copyStatusEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_decommissioningDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_description").withMetadataGroup("")
 				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_enteredClosingDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_expectedDepositDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_expectedDestructionDate").withMetadataGroup("")
@@ -4394,16 +4191,10 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_filingSpaceCode").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_followers").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_formCreatedBy").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_formCreatedOn").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "folder_default_formModifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "folder_default_formModifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_id").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_inactiveDisposalType").withMetadataGroup("")
@@ -4411,31 +4202,19 @@ public final class GeneratedRMMigrationCombo {
 				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_keywords").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_linearSize").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "folder_default_mainCopyRule").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "folder_default_mainCopyRuleIdEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_mediaType").withMetadataGroup("")
 				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_mediumTypes").withMetadataGroup("")
 				.withInputType(MetadataInputType.CHECKBOXES).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_openingDate").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_parentFolder").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_retentionRule").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_retentionRuleEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_ruleAdminUnit").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_schema").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "folder_default_semiactiveRetentionType").withMetadataGroup("")
 				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(true));
@@ -4445,390 +4224,166 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_uniformSubdivision").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_uniformSubdivisionEntered").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "group").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "group_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "group_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "group_default_isGlobal").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "group_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "group_default_parent").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "group_default_roles").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "group_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_columnsCount").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_linesCount").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_reportedMetadata").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_schemaTypeCode").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_separator").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "report_default_username").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "group_default").withFormMetadataCodes(
+				asList("group_default_code", "group_default_isGlobal", "group_default_parent", "group_default_roles",
+						"group_default_title")).withDisplayMetadataCodes(
+				asList("group_default_code", "group_default_createdOn", "group_default_isGlobal", "group_default_modifiedOn",
+						"group_default_parent", "group_default_roles", "group_default_title"))
+				.withSearchResultsMetadataCodes(asList("group_default_modifiedOn", "group_default_title"))
+				.withTableMetadataCodes(asList("group_default_modifiedOn", "group_default_title")));
+		transaction.add(manager.getSchema(collection, "report_default").withFormMetadataCodes(
+				asList("report_default_columnsCount", "report_default_linesCount", "report_default_reportedMetadata",
+						"report_default_schemaTypeCode", "report_default_separator", "report_default_title",
+						"report_default_username")).withDisplayMetadataCodes(
+				asList("report_default_columnsCount", "report_default_createdBy", "report_default_createdOn",
+						"report_default_linesCount", "report_default_modifiedBy", "report_default_modifiedOn",
+						"report_default_schemaTypeCode", "report_default_separator", "report_default_title",
+						"report_default_username"))
+				.withSearchResultsMetadataCodes(asList("report_default_modifiedOn", "report_default_title"))
+				.withTableMetadataCodes(asList("report_default_modifiedOn", "report_default_title")));
 		transaction.add(manager.getType(collection, "retentionRule").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_administrativeUnits").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_approvalDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_approved").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_confidentialDocuments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_copyRetentionRules").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_copyRulesComment").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_corpus").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_corpusRuleNumber").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_documentCopyRetentionRules").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_documentTypesDetails").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_essentialDocuments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_generalComment").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_history").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_juridicReference").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_keywords").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_principalDefaultDocumentCopyRetentionRule")
-				.withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction
-				.add(manager.getMetadata(collection, "retentionRule_default_responsibleAdministrativeUnits").withMetadataGroup("")
-						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
-						.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_scope").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_secondaryDefaultDocumentCopyRetentionRule")
-				.withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "retentionRule_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_advancedSearch").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_facetSelections").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_freeTextSearch").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_pageNumber").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_public").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_schemaFilter").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_searchType").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_sortField").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_sortOrder").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_temporary").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "savedSearch_default_user").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "retentionRule_default").withFormMetadataCodes(
+				asList("retentionRule_default_administrativeUnits", "retentionRule_default_approvalDate",
+						"retentionRule_default_approved", "retentionRule_default_code",
+						"retentionRule_default_confidentialDocuments", "retentionRule_default_copyRetentionRules",
+						"retentionRule_default_copyRulesComment", "retentionRule_default_corpus",
+						"retentionRule_default_corpusRuleNumber", "retentionRule_default_description",
+						"retentionRule_default_documentCopyRetentionRules", "retentionRule_default_documentTypesDetails",
+						"retentionRule_default_essentialDocuments", "retentionRule_default_generalComment",
+						"retentionRule_default_history", "retentionRule_default_juridicReference",
+						"retentionRule_default_keywords", "retentionRule_default_principalDefaultDocumentCopyRetentionRule",
+						"retentionRule_default_responsibleAdministrativeUnits", "retentionRule_default_scope",
+						"retentionRule_default_secondaryDefaultDocumentCopyRetentionRule", "retentionRule_default_title"))
+				.withDisplayMetadataCodes(
+						asList("retentionRule_default_administrativeUnits", "retentionRule_default_approvalDate",
+								"retentionRule_default_approved", "retentionRule_default_code",
+								"retentionRule_default_confidentialDocuments", "retentionRule_default_copyRetentionRules",
+								"retentionRule_default_copyRulesComment", "retentionRule_default_corpus",
+								"retentionRule_default_corpusRuleNumber", "retentionRule_default_description",
+								"retentionRule_default_documentCopyRetentionRules", "retentionRule_default_documentTypesDetails",
+								"retentionRule_default_essentialDocuments", "retentionRule_default_generalComment",
+								"retentionRule_default_history", "retentionRule_default_juridicReference",
+								"retentionRule_default_keywords",
+								"retentionRule_default_principalDefaultDocumentCopyRetentionRule",
+								"retentionRule_default_responsibleAdministrativeUnits", "retentionRule_default_scope",
+								"retentionRule_default_secondaryDefaultDocumentCopyRetentionRule", "retentionRule_default_title"))
+				.withSearchResultsMetadataCodes(
+						asList("retentionRule_default_code", "retentionRule_default_modifiedOn", "retentionRule_default_title"))
+				.withTableMetadataCodes(
+						asList("retentionRule_default_code", "retentionRule_default_modifiedOn", "retentionRule_default_title")));
+		transaction.add(manager.getSchema(collection, "savedSearch_default").withFormMetadataCodes(
+				asList("savedSearch_default_advancedSearch", "savedSearch_default_facetSelections",
+						"savedSearch_default_freeTextSearch", "savedSearch_default_pageNumber", "savedSearch_default_public",
+						"savedSearch_default_schemaFilter", "savedSearch_default_searchType", "savedSearch_default_sortField",
+						"savedSearch_default_sortOrder", "savedSearch_default_temporary", "savedSearch_default_title",
+						"savedSearch_default_user")).withDisplayMetadataCodes(
+				asList("savedSearch_default_createdBy", "savedSearch_default_createdOn", "savedSearch_default_freeTextSearch",
+						"savedSearch_default_modifiedBy", "savedSearch_default_modifiedOn", "savedSearch_default_pageNumber",
+						"savedSearch_default_public", "savedSearch_default_schemaFilter", "savedSearch_default_searchType",
+						"savedSearch_default_sortField", "savedSearch_default_sortOrder", "savedSearch_default_temporary",
+						"savedSearch_default_title", "savedSearch_default_user"))
+				.withSearchResultsMetadataCodes(asList("savedSearch_default_modifiedOn", "savedSearch_default_title"))
+				.withTableMetadataCodes(asList("savedSearch_default_modifiedOn", "savedSearch_default_title")));
 		transaction.add(manager.getType(collection, "storageSpace").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_capacity").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_decommissioningType").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_parentStorageSpace").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "storageSpace_default_type").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "storageSpace_default").withFormMetadataCodes(
+				asList("storageSpace_default_capacity", "storageSpace_default_code", "storageSpace_default_decommissioningType",
+						"storageSpace_default_description", "storageSpace_default_parentStorageSpace",
+						"storageSpace_default_title", "storageSpace_default_type")).withDisplayMetadataCodes(
+				asList("storageSpace_default_capacity", "storageSpace_default_code", "storageSpace_default_createdBy",
+						"storageSpace_default_createdOn", "storageSpace_default_decommissioningType",
+						"storageSpace_default_description", "storageSpace_default_modifiedOn",
+						"storageSpace_default_parentStorageSpace", "storageSpace_default_title", "storageSpace_default_type"))
+				.withSearchResultsMetadataCodes(asList("storageSpace_default_modifiedOn", "storageSpace_default_title"))
+				.withTableMetadataCodes(asList("storageSpace_default_modifiedOn", "storageSpace_default_title")));
 		transaction.add(manager.getType(collection, "task").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "task_approval_assignCandidates").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_assignedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_assignedTo").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_decision").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_dueDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_finishedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_finishedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_workflowIdentifier").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_approval_workflowRecordIdentifiers").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_assignCandidates").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_assignedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_assignedTo").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_dueDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_finishedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_finishedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_workflowIdentifier").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "task_default_workflowRecordIdentifiers").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "task_approval").withFormMetadataCodes(
+				asList("task_approval_assignCandidates", "task_approval_assignedOn", "task_approval_assignedTo",
+						"task_approval_decision", "task_approval_dueDate", "task_approval_finishedBy", "task_approval_finishedOn",
+						"task_approval_title", "task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers"))
+				.withDisplayMetadataCodes(
+						asList("task_approval_assignCandidates", "task_approval_assignedOn", "task_approval_assignedTo",
+								"task_approval_createdBy", "task_approval_createdOn", "task_approval_decision",
+								"task_approval_dueDate", "task_approval_finishedBy", "task_approval_finishedOn",
+								"task_approval_modifiedBy", "task_approval_modifiedOn", "task_approval_title",
+								"task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers"))
+				.withSearchResultsMetadataCodes(asList("task_approval_modifiedOn", "task_approval_title"))
+				.withTableMetadataCodes(new ArrayList<String>()));
+		transaction.add(manager.getSchema(collection, "task_default").withFormMetadataCodes(
+				asList("task_default_assignCandidates", "task_default_assignedOn", "task_default_assignedTo",
+						"task_default_dueDate", "task_default_finishedBy", "task_default_finishedOn", "task_default_title",
+						"task_default_workflowIdentifier", "task_default_workflowRecordIdentifiers")).withDisplayMetadataCodes(
+				asList("task_default_assignCandidates", "task_default_assignedOn", "task_default_assignedTo",
+						"task_default_createdBy", "task_default_createdOn", "task_default_dueDate", "task_default_finishedBy",
+						"task_default_finishedOn", "task_default_modifiedBy", "task_default_modifiedOn", "task_default_title",
+						"task_default_workflowIdentifier", "task_default_workflowRecordIdentifiers"))
+				.withSearchResultsMetadataCodes(asList("task_default_modifiedOn", "task_default_title"))
+				.withTableMetadataCodes(asList("task_default_modifiedOn", "task_default_title")));
 		transaction.add(manager.getType(collection, "uniformSubdivision").withSimpleSearchStatus(false)
 				.withAdvancedSearchStatus(false).withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "uniformSubdivision_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "uniformSubdivision_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "uniformSubdivision_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "uniformSubdivision_default_retentionRule").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "uniformSubdivision_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "uniformSubdivision_default").withFormMetadataCodes(
+				asList("uniformSubdivision_default_code", "uniformSubdivision_default_description",
+						"uniformSubdivision_default_retentionRule", "uniformSubdivision_default_title")).withDisplayMetadataCodes(
+				asList("uniformSubdivision_default_code", "uniformSubdivision_default_description",
+						"uniformSubdivision_default_retentionRule", "uniformSubdivision_default_title"))
+				.withSearchResultsMetadataCodes(
+						asList("uniformSubdivision_default_modifiedOn", "uniformSubdivision_default_title"))
+				.withTableMetadataCodes(asList("uniformSubdivision_default_modifiedOn", "uniformSubdivision_default_title")));
 		transaction.add(manager.getType(collection, "user").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "user_default_allroles").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_collectionDeleteAccess").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_collectionReadAccess").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_collectionWriteAccess").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_defaultTabInFolderDisplay").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_defaultTaxonomy").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_email").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_firstname").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_groups").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_jobTitle").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_lastname").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_loginLanguageCode").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_phone").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_signature").withMetadataGroup("")
-				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_startTab").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_status").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_systemAdmin").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_username").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "user_default_userroles").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(
+				asList("user_default_collectionDeleteAccess", "user_default_collectionReadAccess",
+						"user_default_collectionWriteAccess", "user_default_defaultTabInFolderDisplay",
+						"user_default_defaultTaxonomy", "user_default_email", "user_default_firstname", "user_default_groups",
+						"user_default_jobTitle", "user_default_lastname", "user_default_loginLanguageCode", "user_default_phone",
+						"user_default_signature", "user_default_startTab", "user_default_status", "user_default_systemAdmin",
+						"user_default_username", "user_default_userroles")).withDisplayMetadataCodes(
+				asList("user_default_allroles", "user_default_createdOn", "user_default_email", "user_default_firstname",
+						"user_default_groups", "user_default_jobTitle", "user_default_lastname", "user_default_modifiedOn",
+						"user_default_phone", "user_default_status", "user_default_title", "user_default_username",
+						"user_default_userroles"))
+				.withSearchResultsMetadataCodes(asList("user_default_modifiedOn", "user_default_title"))
+				.withTableMetadataCodes(asList("user_default_modifiedOn", "user_default_title")));
 		transaction.add(manager.getType(collection, "userDocument").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false)
 				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"))));
-		transaction.add(manager.getMetadata(collection, "userDocument_default_content").withMetadataGroup("")
-				.withInputType(MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userDocument_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userDocument_default_folder").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userDocument_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userDocument_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userDocument_default_user").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getType(collection, "userTask").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
-				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
-						asList("init.userTask.followersTab", "init.userTask.definition", "init.userTask.assignment",
-								"init.userTask.details", "init.userTask.remindersTab"))));
-		transaction.add(manager.getMetadata(collection, "userTask_default_administrativeUnit").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_assignedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_assignee").withMetadataGroup(" Assignation")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_assigneeGroupsCandidates")
-				.withMetadataGroup(" Assignation").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_assigneeUsersCandidates")
-				.withMetadataGroup(" Assignation").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_assigner").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_comments").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_contents").withMetadataGroup(" Fichiers")
-				.withInputType(MetadataInputType.CONTENT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_decision").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_description").withMetadataGroup("")
-				.withInputType(MetadataInputType.RICHTEXT).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_dueDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_endDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+		transaction.add(manager.getSchema(collection, "userDocument_default").withFormMetadataCodes(
+				asList("userDocument_default_content", "userDocument_default_folder", "userDocument_default_title",
+						"userDocument_default_user")).withDisplayMetadataCodes(
+				asList("userDocument_default_content", "userDocument_default_createdOn", "userDocument_default_folder",
+						"userDocument_default_modifiedOn", "userDocument_default_title", "userDocument_default_user"))
+				.withSearchResultsMetadataCodes(asList("userDocument_default_modifiedOn", "userDocument_default_title"))
+				.withTableMetadataCodes(asList("userDocument_default_modifiedOn", "userDocument_default_title")));
 		transaction.add(manager.getMetadata(collection, "userTask_default_linkedDocuments").withMetadataGroup(" Fichiers")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "userTask_default_linkedFolders").withMetadataGroup(" Fichiers")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_nextReminderOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_parentTask").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_parentTaskDueDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_progressPercentage").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_relativeDueDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_reminders").withMetadataGroup(" Rappels")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_startDate").withMetadataGroup("")
-				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_status").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_taskFollowers").withMetadataGroup(" Suivre")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_taskFollowersIds").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_type").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "userTask_default_workflow").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "userTask_default_workflowInstance").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflow_default_code").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflow_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflow_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflow_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflow_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflow_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_createdBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_createdOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_extraFields").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_modifiedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_modifiedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_startedBy").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_startedOn").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_status").withMetadataGroup("")
-				.withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
-				.withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_title").withMetadataGroup("")
-				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
-		transaction.add(manager.getMetadata(collection, "workflowInstance_default_workflow").withMetadataGroup("")
-				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "workflow_default")
+				.withFormMetadataCodes(asList("workflow_default_code", "workflow_default_title")).withDisplayMetadataCodes(
+						asList("workflow_default_code", "workflow_default_createdBy", "workflow_default_createdOn",
+								"workflow_default_modifiedBy", "workflow_default_modifiedOn", "workflow_default_title"))
+				.withSearchResultsMetadataCodes(asList("workflow_default_modifiedOn", "workflow_default_title"))
+				.withTableMetadataCodes(asList("workflow_default_modifiedOn", "workflow_default_title")));
+		transaction.add(manager.getSchema(collection, "workflowInstance_default").withFormMetadataCodes(
+				asList("workflowInstance_default_extraFields", "workflowInstance_default_startedBy",
+						"workflowInstance_default_startedOn", "workflowInstance_default_status", "workflowInstance_default_title",
+						"workflowInstance_default_workflow")).withDisplayMetadataCodes(
+				asList("workflowInstance_default_createdBy", "workflowInstance_default_createdOn",
+						"workflowInstance_default_modifiedBy", "workflowInstance_default_modifiedOn",
+						"workflowInstance_default_startedBy", "workflowInstance_default_startedOn",
+						"workflowInstance_default_status", "workflowInstance_default_title", "workflowInstance_default_workflow"))
+				.withSearchResultsMetadataCodes(asList("workflowInstance_default_modifiedOn", "workflowInstance_default_title"))
+				.withTableMetadataCodes(asList("workflowInstance_default_modifiedOn", "workflowInstance_default_title")));
 		manager.execute(transaction.build());
 	}
 
