@@ -2,6 +2,7 @@ package com.constellio.app.api.cmis.requests.acl;
 
 import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,8 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
  */
 public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
+	private static final String REMOVE_INHERITANCE_COMMAND = "constellio:removeInheritance";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApplyAclRequest.class);
 	private final String repositoryId;
 	private final String objectId;
@@ -52,6 +56,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	private final CallContext context;
 	private final AuthorizationsServices authorizationsServices;
 	private final RecordServices recordServices;
+	private final String collection;
 
 	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
 			String repositoryId, String objectId, Acl addAces, Acl removeAces, AclPropagation aclPropagation,
@@ -67,6 +72,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		this.extension = extension;
 		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.collection = repository.getCollection();
 	}
 
 	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
@@ -82,6 +88,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		this.extension = null;
 		this.authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.collection = repository.getCollection();
 	}
 
 	/**
@@ -90,6 +97,11 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	@Override
 	public Acl process() {
 		User user = (User) context.get(ConstellioCmisContextParameters.USER);
+
+		validateAces(aces);
+		validateAces(addAces);
+		validateAces(removeAces);
+
 		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, objectId).process().getAces();
 
 		List<Ace> acesToAdd = getAcesToAdd(currentAces);
@@ -98,20 +110,69 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		createNewAuthorizations(user, acesToAdd);
 		removeAuthorizations(user, acesToRemove);
 
+		if (hasCommandToRemoveAllInheritedAuthorizations()) {
+			Record record = recordServices.getDocumentById(objectId);
+			for (Authorization auth : getInheritedObjectAuthorizationsWithPermission(objectId)) {
+				authorizationsServices.removeAuthorizationOnRecord(auth, record, DETACH);
+			}
+
+		}
+
 		return new GetAclRequest(repository, appLayerFactory, objectId).process();
+	}
+
+	private void validateAces(Acl acl) {
+		if (acl != null) {
+			List<Ace> aces = acl.getAces();
+			for (Ace ace : aces) {
+				if (!REMOVE_INHERITANCE_COMMAND.equals(ace.getPrincipalId())) {
+					if (StringUtils.isBlank(ace.getPrincipalId())) {
+						throw new RuntimeException("An ace has no specified principal");
+					}
+
+					if (ace.getPermissions().isEmpty()) {
+						throw new RuntimeException("An ace has no permission");
+					}
+
+					for (String permission : ace.getPermissions()) {
+						if (!"cmis:read".equals(permission) && !"cmis:write".equals(permission)) {
+							throw new RuntimeException("An ace has unsupported permission '" + permission
+									+ "', only cmis:read/cmis:write are allowed");
+						}
+					}
+
+					try {
+						getPrincipalRecord(ace.getPrincipalId());
+					} catch (Exception e) {
+						throw new RuntimeException(
+								"An ace has invalid principal : No such user with username or"
+										+ " group with code : '" + ace.getPrincipalId() + "'");
+					}
+				}
+			}
+		}
+	}
+
+	private boolean hasCommandToRemoveAllInheritedAuthorizations() {
+		for (Ace ace : aces.getAces()) {
+			if (REMOVE_INHERITANCE_COMMAND.equals(ace.getPrincipalId())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void removeAuthorizations(User user, List<Ace> acesToRemove) {
 		List<String> authorizationsPotentiallyEmpty = new ArrayList<>();
 		for (Ace ace : acesToRemove) {
 			List<String> permissions = toConstellioPermissions(ace.getPermissions());
-			List<AuthorizationDetails> authorizationDetailses = getObjectAuthorizationsWithPermission(objectId, permissions);
 			Record principal = getPrincipalRecord(ace.getPrincipalId());
 			List<String> authorizationsIds = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
-			for (AuthorizationDetails authorizationDetails : authorizationDetailses) {
-				authorizationsIds.remove(authorizationDetails.getId());
-				authorizationsPotentiallyEmpty.add(authorizationDetails.getId());
+			for (AuthorizationDetails authDetails : getObjectAuthorizationsWithPermission(objectId, permissions)) {
+				authorizationsIds.remove(authDetails.getId());
+				authorizationsPotentiallyEmpty.add(authDetails.getId());
 			}
+
 			try {
 				recordServices.updateAsync(principal.set(Schemas.AUTHORIZATIONS, authorizationsIds));
 			} catch (RecordServicesException e) {
@@ -119,7 +180,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			}
 		}
 		for (String auth : authorizationsPotentiallyEmpty) {
-			Authorization authorization = authorizationsServices.getAuthorization(repository.getCollection(), auth);
+			Authorization authorization = authorizationsServices.getAuthorization(collection, auth);
 			if (authorization.getGrantedToPrincipals().isEmpty()) {
 				authorizationsServices.delete(authorization.getDetail(), user);
 			}
@@ -128,22 +189,24 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 	private void createNewAuthorizations(User user, List<Ace> acesToAdd) {
 		for (Ace ace : acesToAdd) {
-			List<String> permissions = toConstellioPermissions(ace.getPermissions());
-			AuthorizationDetails authorizationDetails = getObjectAuthorizationWithPermission(objectId, permissions);
-			Record principal = getPrincipalRecord(ace.getPrincipalId());
-			if (authorizationDetails == null) {
-				Authorization auth = new AuthorizationBuilder(repository.getCollection())
-						.forPrincipalsIds(principal.getId()).on(objectId).giving(permissions);
-				authorizationsServices.add(auth, user);
+			if (!REMOVE_INHERITANCE_COMMAND.equals(ace.getPrincipalId())) {
+				List<String> permissions = toConstellioPermissions(ace.getPermissions());
+				AuthorizationDetails authorizationDetails = getObjectAuthorizationWithPermission(objectId, permissions);
+				Record principal = getPrincipalRecord(ace.getPrincipalId());
+				if (authorizationDetails == null) {
+					Authorization auth = new AuthorizationBuilder(collection)
+							.forPrincipalsIds(principal.getId()).on(objectId).giving(permissions);
+					authorizationsServices.add(auth, user);
 
-			} else {
-				List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
-				authorizations.add(authorizationDetails.getId());
-				principal.set(Schemas.AUTHORIZATIONS, authorizations);
-				try {
-					modelLayerFactory.newRecordServices().updateAsync(principal);
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
+				} else {
+					List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
+					authorizations.add(authorizationDetails.getId());
+					principal.set(Schemas.AUTHORIZATIONS, authorizations);
+					try {
+						modelLayerFactory.newRecordServices().updateAsync(principal);
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
 		}
@@ -160,10 +223,25 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		List<AuthorizationDetails> detailses = new ArrayList<>();
 
 		for (String authorization : authorizations) {
-			AuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager()
-					.get(record.getCollection(), authorization);
+			AuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager().get(collection, authorization);
 
 			if (details != null && hasSameElementsNoMatterTheOrder(details.getRoles(), permissions)) {
+				detailses.add(details);
+			}
+		}
+
+		return detailses;
+	}
+
+	List<Authorization> getInheritedObjectAuthorizationsWithPermission(String objectId) {
+		Record record = recordServices.getDocumentById(objectId);
+		List<String> authorizations = record.get(Schemas.INHERITED_AUTHORIZATIONS);
+		List<Authorization> detailses = new ArrayList<>();
+
+		for (String authorization : authorizations) {
+			Authorization details = authorizationsServices.getAuthorization(collection, authorization);
+
+			if (details != null) {
 				detailses.add(details);
 			}
 		}
@@ -242,9 +320,9 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	private Record getPrincipalRecord(String principalId) {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		try {
-			return userServices.getUserInCollection(principalId, repository.getCollection()).getWrappedRecord();
+			return userServices.getUserInCollection(principalId, collection).getWrappedRecord();
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
-			return userServices.getGroupInCollection(principalId, repository.getCollection()).getWrappedRecord();
+			return userServices.getGroupInCollection(principalId, collection).getWrappedRecord();
 		}
 	}
 
@@ -257,4 +335,5 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
 	}
+
 }
