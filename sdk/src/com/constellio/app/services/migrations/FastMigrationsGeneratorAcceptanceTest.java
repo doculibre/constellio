@@ -218,6 +218,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			List<File> properties = new ArrayList<>();
 			List<File> frProperties = new ArrayList<>();
 			List<File> enProperties = new ArrayList<>();
+			List<File> resourcesFiles = new ArrayList<>();
 
 			for (File version : childFiles) {
 				if (version.isDirectory()) {
@@ -230,6 +231,8 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 								frProperties.add(file);
 							} else if (file.getName().endsWith(".properties")) {
 								properties.add(file);
+							} else {
+								resourcesFiles.add(file);
 							}
 						}
 					}
@@ -239,6 +242,10 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			CombinePropertyFilesServices.combine(properties, new File(comboFolder, module + "_combo.properties"));
 			CombinePropertyFilesServices.combine(enProperties, new File(comboFolder, module + "_combo_en.properties"));
 			CombinePropertyFilesServices.combine(frProperties, new File(comboFolder, module + "_combo_fr.properties"));
+
+			for (File resourceFile : resourcesFiles) {
+				FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getName()));
+			}
 		}
 	}
 

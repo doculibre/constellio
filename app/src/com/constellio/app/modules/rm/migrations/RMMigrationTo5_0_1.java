@@ -125,7 +125,42 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
 	}
 
-	private void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
+	private static void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+
+		setupClassificationPlanTaxonomies(collection, modelLayerFactory, migrationResourcesProvider);
+		setupStorageSpaceTaxonomy(collection, modelLayerFactory, migrationResourcesProvider);
+		setupAdminUnitTaxonomy(collection, modelLayerFactory, migrationResourcesProvider);
+	}
+
+	public static void setupStorageSpaceTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+
+		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, migrationResourcesProvider.getDefaultLanguageString(
+				"init.rm.containers"), collection,
+				StorageSpace.SCHEMA_TYPE);
+		taxonomiesManager.addTaxonomy(storagesTaxonomy, metadataSchemasManager);
+
+	}
+
+	public static void setupAdminUnitTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+
+		Taxonomy unitTaxonomy = Taxonomy.createPublic(
+				ADMINISTRATIVE_UNITS, migrationResourcesProvider.getDefaultLanguageString("init.rm.admUnits"), collection,
+				AdministrativeUnit.SCHEMA_TYPE);
+		taxonomiesManager.addTaxonomy(unitTaxonomy, metadataSchemasManager);
+
+		taxonomiesManager.setPrincipalTaxonomy(unitTaxonomy, metadataSchemasManager);
+	}
+
+	public static void setupClassificationPlanTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
@@ -136,17 +171,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 						"init.rm.plan"), collection,
 						Category.SCHEMA_TYPE), metadataSchemasManager);
 
-		Taxonomy unitTaxonomy = Taxonomy.createPublic(
-				ADMINISTRATIVE_UNITS, migrationResourcesProvider.getDefaultLanguageString("init.rm.admUnits"), collection,
-				AdministrativeUnit.SCHEMA_TYPE);
-		taxonomiesManager.addTaxonomy(unitTaxonomy, metadataSchemasManager);
-
-		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, migrationResourcesProvider.getDefaultLanguageString(
-				"init.rm.containers"), collection,
-				StorageSpace.SCHEMA_TYPE);
-		taxonomiesManager.addTaxonomy(storagesTaxonomy, metadataSchemasManager);
-
-		taxonomiesManager.setPrincipalTaxonomy(unitTaxonomy, metadataSchemasManager);
 	}
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory) {

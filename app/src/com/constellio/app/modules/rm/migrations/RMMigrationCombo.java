@@ -1,25 +1,35 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.emails.EmailTemplatesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -68,6 +78,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		generatedComboMigration = new GeneratedRMMigrationCombo(collection, appLayerFactory,
 				migrationResourcesProvider);
 
@@ -78,6 +89,11 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+
+		RMMigrationTo5_0_1.setupClassificationPlanTaxonomies(collection, modelLayerFactory, migrationResourcesProvider);
+		RMMigrationTo5_0_1.setupStorageSpaceTaxonomy(collection, modelLayerFactory, migrationResourcesProvider);
+		RMMigrationTo5_0_1.setupAdminUnitTaxonomy(collection, modelLayerFactory, migrationResourcesProvider);
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
 	}
@@ -104,6 +120,41 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		Transaction transaction = new Transaction();
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
+
+		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperTitle"))
+				.setAnalogical(true));
+
+		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmTitle"))
+				.setAnalogical(true));
+
+		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveTitle"))
+				.setAnalogical(false));
+
+		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
+				.setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
+
+		transaction.add(rm.newVariableRetentionPeriod().setCode("888")
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888")));
+
+		transaction.add(rm.newVariableRetentionPeriod().setCode("999")
+				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999")));
+
+		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("administrativeUnitId_s")
+				.setTitle(migrationResourcesProvider.get("init.facet.administrativeUnit")));
+		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("categoryId_s")
+				.setTitle(migrationResourcesProvider.get("init.facet.category")));
+		transaction.add(rm.newFacetField().setOrder(2).setFieldDataStoreCode("archivisticStatus_s")
+				.setTitle(migrationResourcesProvider.get("init.facet.archivisticStatus")));
+		transaction.add(rm.newFacetField().setOrder(3).setFieldDataStoreCode("copyStatus_s")
+				.setTitle(migrationResourcesProvider.get("init.facet.copyStatus")));
+
+		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.folderType"))
+				.setFieldDataStoreCode(rm.folderFolderType().getDataStoreCode()).setActive(false));
+		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.documentType"))
+				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 
 		return transaction;
 	}
@@ -152,5 +203,32 @@ public class RMMigrationCombo implements ComboMigrationScript {
 					.addProperty("subject");
 		}
 
+	}
+
+	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
+			String collection) {
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "remindReturnBorrowedFolderTemplate.html",
+				RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "approvalRequestForDecomListTemplate.html",
+				RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID);
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "validationRequestForDecomListTemplate.html",
+				RMEmailTemplateConstants.VALIDATION_REQUEST_TEMPLATE_ID);
+		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection, "alertAvailableTemplate.html",
+				RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+	}
+
+	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
+			String collection,
+			String templateFileName, String templateId) {
+		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
+		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
+				.getEmailTemplatesManager();
+		try {
+			emailTemplateManager.addCollectionTemplateIfInexistent(templateId, collection, templateInputStream);
+		} catch (IOException | OptimisticLockingConfiguration e) {
+			throw new RuntimeException(e);
+		} finally {
+			IOUtils.closeQuietly(templateInputStream);
+		}
 	}
 }
