@@ -14,6 +14,8 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.vaadin.data.Property;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -90,19 +92,20 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	}
 
 	public List<String> getSelectedRecordIds() {
-		List<String> result = new ArrayList<>(selected.size());
-		for (Object itemId : selected) {
-			RecordVO record = container.getRecordVO((int) itemId);
-			result.add(record.getId());
-		}
-		return result;
-	}
-
-	public List<String> getDeselectedRecordIds() {
-		List<String> result = new ArrayList<>(deselected.size());
-		for (Object itemId : deselected) {
-			RecordVO record = container.getRecordVO((int) itemId);
-			result.add(record.getId());
+		List<String> result = new ArrayList<>();
+		if (selectAll) {
+			// FIXME Not scalable
+			for (Object itemId : container.getItemIds()) {
+				if (!deselected.contains(itemId)) {
+					RecordVO record = container.getRecordVO((int) itemId);
+					result.add(record.getId());
+				}
+			}
+		} else {
+			for (Object itemId : selected) {
+				RecordVO record = container.getRecordVO((int) itemId);
+				result.add(record.getId());
+			}
 		}
 		return result;
 	}
