@@ -15,5 +15,4 @@ public class ESMigrationTo6_3 implements MigrationScript {
 			throws Exception {
 	}
 
-
 }

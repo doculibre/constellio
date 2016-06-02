@@ -57,7 +57,6 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		new SchemaAlteration(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		generatedComboMigration.applyGeneratedRoles();
 		generatedComboMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
-		//		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
 
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
@@ -66,18 +65,6 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
 	}
-
-	//	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
-	//		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
-	//		//transaction.add(manager.getSchema(collection, "cart_default").withRemovedFormMetadatas("cart_default_title"));
-	//
-	//		SchemaDisplayConfig userTask = manager.getSchema(collection, "userTask_default");
-	//		userTask = userTask.withTableMetadataCodes(
-	//				asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate",
-	//						"userTask_default_assignee"));
-	//		transaction.add(userTask);
-	//		manager.execute(transaction.build());
-	//	}
 
 	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {

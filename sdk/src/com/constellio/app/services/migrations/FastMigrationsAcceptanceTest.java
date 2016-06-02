@@ -86,6 +86,19 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void validateCoreESMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withConstellioESModule();
+			}
+		});
+
+	}
+
 	//	@Test
 	//	public void validateCoreESMigrationHighway()
 	//			throws Exception {

@@ -27,6 +27,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
@@ -81,7 +82,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	@InDevelopmentTest
 	@Test
-	public void genereCoreMigrations()
+	public void generateCoreMigrations()
 			throws Exception {
 
 		configure(new DataLayerConfigurationAlteration() {
@@ -132,7 +133,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	@InDevelopmentTest
 	@Test
-	public void genereRMMigrations()
+	public void generateRMMigrations()
 			throws Exception {
 
 		configure(new DataLayerConfigurationAlteration() {
@@ -195,7 +196,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	@InDevelopmentTest
 	@Test
-	public void genereTasksMigrations()
+	public void generateTasksMigrations()
 			throws Exception {
 
 		configure(new DataLayerConfigurationAlteration() {
@@ -256,7 +257,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	@InDevelopmentTest
 	@Test
-	public void genereRobotsMigrations()
+	public void generateRobotsMigrations()
 			throws Exception {
 
 		configure(new DataLayerConfigurationAlteration() {
@@ -312,6 +313,67 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(
 				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/robots/migrations/GeneratedRobotsMigrationCombo.java");
+		FileUtils.writeStringToFile(dest, file.toString());
+	}
+
+	@InDevelopmentTest
+	@Test
+	public void generateESMigrations()
+			throws Exception {
+
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(AppLayerConfiguration configuration) {
+				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			}
+		});
+
+		givenCollection(zeCollection);
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
+
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.rewriteInOrderAndGetCodes(zeCollection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioESModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioESModule());
+
+		System.out.println(" ------ Migration script ------");
+
+		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
+
+		generateI18n(new File(migrationsResources, "es"));
+
+		MethodSpec constructor = generateConstructor();
+
+		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedESMigrationCombo")
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
+
+		JavaFile file = JavaFile.builder("com.constellio.app.modules.es.migrations", generatedClassSpec)
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
+
+		File dest = new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -562,6 +624,9 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		} else if (value.getClass().equals(Long.class)) {
 			return value.toString() + "L";
 
+		} else if (value.getClass().equals(Float.class)) {
+			return value.toString() + "F";
+
 		} else if (value instanceof Enum) {
 			return value.getClass().getName().replace("$", ".") + "." + ((Enum) value).name();
 
@@ -638,7 +703,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					String variable = variableOf(metadata);
 					if (metadata.getInheritance() == null && (typesBeforeMigration == null || !typesBeforeMigration
 							.hasMetadata(metadata.getCode()))) {
-						if (!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+						if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) || "url".equals(metadata.getLocalCode())) {
 							main.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
 									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
 									metadata.getType().name());
@@ -827,6 +892,10 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isSearchable()) {
 			method.addStatement("$L.setSearchable(true)", variable);
+		}
+
+		if (metadata.isEncrypted()) {
+			method.addStatement("$L.setEncrypted(true)", variable);
 		}
 
 		if (metadata.isSortable()) {
