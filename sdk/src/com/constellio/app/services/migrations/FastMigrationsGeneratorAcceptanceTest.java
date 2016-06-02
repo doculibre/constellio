@@ -28,6 +28,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -189,6 +190,128 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(
 				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
+		FileUtils.writeStringToFile(dest, file.toString());
+	}
+
+	@InDevelopmentTest
+	@Test
+	public void genereTasksMigrations()
+			throws Exception {
+
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(AppLayerConfiguration configuration) {
+				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			}
+		});
+
+		givenCollection(zeCollection);
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
+
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.rewriteInOrderAndGetCodes(zeCollection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new TaskModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new TaskModule());
+
+		System.out.println(" ------ Migration script ------");
+
+		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
+
+		generateI18n(new File(migrationsResources, "tasks"));
+
+		MethodSpec constructor = generateConstructor();
+
+		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedTasksMigrationCombo")
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
+
+		JavaFile file = JavaFile.builder("com.constellio.app.modules.tasks.migrations", generatedClassSpec)
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
+
+		File dest = new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
+		FileUtils.writeStringToFile(dest, file.toString());
+	}
+
+	@InDevelopmentTest
+	@Test
+	public void genereRobotsMigrations()
+			throws Exception {
+
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(AppLayerConfiguration configuration) {
+				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			}
+		});
+
+		givenCollection(zeCollection);
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
+
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.rewriteInOrderAndGetCodes(zeCollection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRobotsModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRobotsModule());
+
+		System.out.println(" ------ Migration script ------");
+
+		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
+
+		generateI18n(new File(migrationsResources, "robots"));
+
+		MethodSpec constructor = generateConstructor();
+
+		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedRobotsMigrationCombo")
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
+
+		JavaFile file = JavaFile.builder("com.constellio.app.modules.robots.migrations", generatedClassSpec)
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
+
+		File dest = new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/robots/migrations/GeneratedRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 

@@ -5,9 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
@@ -15,6 +16,7 @@ import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension
 import com.constellio.app.modules.tasks.extensions.TaskSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationCombo;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_3;
@@ -28,7 +30,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 
-public class TaskModule implements InstallableSystemModule {
+public class TaskModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "tasks";
 	public static final String NAME = "Tasks";
 
@@ -136,5 +138,10 @@ public class TaskModule implements InstallableSystemModule {
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 
+	}
+
+	@Override
+	public ComboMigrationScript getComboMigrationScript() {
+		return new TasksMigrationCombo();
 	}
 }

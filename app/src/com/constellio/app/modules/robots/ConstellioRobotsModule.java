@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
+import com.constellio.app.modules.robots.migrations.RobotsMigrationCombo;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_2;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_3;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo6_3;
@@ -20,7 +22,7 @@ import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfigura
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 
-public class ConstellioRobotsModule implements InstallableSystemModule {
+public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "robots";
 	public static final String NAME = "Constellio Robots";
 
@@ -110,5 +112,10 @@ public class ConstellioRobotsModule implements InstallableSystemModule {
 	@Override
 	public void stop(AppLayerFactory appLayerFactory) {
 
+	}
+
+	@Override
+	public ComboMigrationScript getComboMigrationScript() {
+		return new RobotsMigrationCombo();
 	}
 }

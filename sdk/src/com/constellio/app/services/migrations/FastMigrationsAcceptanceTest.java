@@ -60,7 +60,33 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-//	@Test
+	@Test
+	public void validateCoreTasksMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withTaskModule();
+			}
+		});
+
+	}
+
+	@Test
+	public void validateCoreRobotsMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withRobotsModule();
+			}
+		});
+
+	}
+
+	//	@Test
 	//	public void validateCoreESMigrationHighway()
 	//			throws Exception {
 	//

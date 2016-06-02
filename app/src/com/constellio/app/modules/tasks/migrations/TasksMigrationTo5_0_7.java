@@ -21,8 +21,6 @@ import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -94,32 +92,12 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			MigrationResourcesProvider migrationResourcesProvider) {
 
 		Language language = migrationResourcesProvider.getLanguage();
-		Map<String, Map<Language, String>> groups = new HashMap<>();
 
-		String definitionTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.definition");
-		Map<Language, String> labelsDefinition = new HashMap<>();
-		labelsDefinition.put(language, definitionTab);
-		groups.put("init.userTask.definition", labelsDefinition);
-
-		String filesTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
-		Map<Language, String> labelsDetails = new HashMap<>();
-		labelsDetails.put(language, filesTab);
-		groups.put("init.userTask.details", labelsDetails);
-
-		String assignmentTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.assignment");
-		Map<Language, String> labelsAssignment = new HashMap<>();
-		labelsDetails.put(language, assignmentTab);
-		groups.put("init.userTask.assignment", labelsAssignment);
-
-		String remindersTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.remindersTab");
-		Map<Language, String> labelsReminders = new HashMap<>();
-		labelsDetails.put(language, remindersTab);
-		groups.put("init.userTask.remindersTab", labelsReminders);
-
-		String followersTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.followersTab");
-		Map<Language, String> labelsFollowers = new HashMap<>();
-		labelsDetails.put(language, followersTab);
-		groups.put("init.userTask.followersTab", labelsFollowers);
+		String definitionTab = "init.userTask.definition";
+		String filesTab = "init.userTask.details";
+		String assignmentTab = "init.userTask.assignment";
+		String remindersTab = "init.userTask.remindersTab";
+		String followersTab = "init.userTask.followersTab";
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
@@ -127,7 +105,8 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		SchemaDisplayConfig taskSchema = manager.getSchema(collection, Task.DEFAULT_SCHEMA);
 
 		transaction.add(taskSchemaType
-				.withMetadataGroup(groups)
+				.withMetadataGroup(migrationResourcesProvider.getLanguageMapWithKeys(asList(
+						definitionTab, filesTab, assignmentTab, remindersTab, followersTab)))
 				.withAdvancedSearchStatus(true).withSimpleSearchStatus(true));
 
 		transaction.add(taskSchema
