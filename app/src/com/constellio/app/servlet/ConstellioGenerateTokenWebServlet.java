@@ -96,6 +96,9 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 			if (authentifiedUser.isSystemAdmin()) {
 				try {
 					tokenForUser = userServices.getUserCredential(asUser);
+					if (tokenForUser == null) {
+						throw new UserServicesRuntimeException_NoSuchUser(asUser);
+					}
 				} catch (UserServicesRuntimeException_NoSuchUser e) {
 					resp.getWriter().write(BAD_ASUSER);
 					return;
@@ -107,7 +110,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		}
 
 		if (tokenForUser.getServiceKey() == null) {
-			tokenForUser = tokenForUser.withServiceKey("agent_" + username);
+			tokenForUser = tokenForUser.withServiceKey("agent_" + tokenForUser.getUsername());
 			userServices.addUpdateUserCredential(tokenForUser);
 		}
 

@@ -1,5 +1,12 @@
 package com.constellio.app.servlet;
 
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_ASUSER;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_DURATION;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_USERNAME_PASSWORD;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_DURATION_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_PASSWORD_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_USERNAME_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.REQUIRE_ADMIN_RIGHTS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -53,7 +60,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 
 			assertThat(callWebservice("admin", "1qaz2wsx", "2d", null, usingHeader))
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 4, 3, 0, 3)))
-					.has(returnedServiceKey("admin-key"));
+					.has(returnedServiceKey("adminkey"));
 
 			assertThat(callWebservice("bob", "1qaz2wsx", "3j", null, usingHeader))
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 5, 3, 0, 3)))
@@ -65,18 +72,19 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 
 			assertThat(callWebservice("admin", "1qaz2wsx", "26", "alice", usingHeader))
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 3, 5, 0, 3)))
-					.has(returnedServiceKey("agent_dakota"));
+					.has(returnedServiceKey("agent_alice"));
 
-			assertThat(callWebservice("", "wololo", "12h", null, usingHeader)).isEqualTo("Parameter 'username' required");
-			assertThat(callWebservice("admin", "", "12h", null, usingHeader)).isEqualTo("Parameter 'password' required");
-			assertThat(callWebservice("admin", "1qaz", "", null, usingHeader)).isEqualTo("Parameter 'duration' required");
-			assertThat(callWebservice("admin", "wololo", "12h", null, usingHeader)).isEqualTo("Bad username/password");
-			assertThat(callWebservice("dakota", "wololo", "12h", "alice", usingHeader))
-					.isEqualTo("asUser requires system admin rights");
+			assertThat(callWebservice("", "wololo", "12h", null, usingHeader)).isEqualTo(PARAM_USERNAME_REQUIRED);
+			assertThat(callWebservice("admin", "", "12h", null, usingHeader)).isEqualTo(PARAM_PASSWORD_REQUIRED);
+			assertThat(callWebservice("admin", "1qaz", "", null, usingHeader)).isEqualTo(PARAM_DURATION_REQUIRED);
+			assertThat(callWebservice("admin", "wololo", "12h", null, usingHeader)).isEqualTo(BAD_USERNAME_PASSWORD);
+			assertThat(callWebservice("dakota", "wololo", "12h", "alice", usingHeader)).isEqualTo(REQUIRE_ADMIN_RIGHTS);
+			assertThat(callWebservice("admin", "1qaz2wsx", "12h", "johny", usingHeader)).isEqualTo(BAD_ASUSER);
+			assertThat(callWebservice("admin", "1qaz2wsx", "12w", "alice", usingHeader)).isEqualTo(BAD_DURATION);
 		}
 	}
 
-	private Condition<? super String> returnedServiceKey(String key) {
+	private Condition<? super String> returnedServiceKey(final String key) {
 		return new Condition<String>() {
 			@Override
 			public boolean matches(String value) {
@@ -93,7 +101,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 
 					String serviceKey = document.getRootElement().getChild("serviceKey").getText();
 
-					assertThat(serviceKey).isEqualTo(serviceKey);
+					assertThat(serviceKey).isEqualTo(key);
 
 				} catch (JDOMException e) {
 					throw new RuntimeException(e);
