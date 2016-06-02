@@ -52,7 +52,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 		addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				if (event.isDoubleClick()) {
+//				if (event.isDoubleClick()) {
 					Object itemId = event.getItemId();
 					RecordVO recordVO = container.getRecordVO((int) itemId);
 					
@@ -67,7 +67,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 					for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
 						recordNavigationExtension.prepareLinkToView(navigationParams);
 					}
-				}
+//				}
 			}
 		});
 
@@ -109,6 +109,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 		}
 		this.container = container;
 		setContainerDataSource(this.container);
+		setColumnHeader(CHECKBOX_PROPERTY, "");
 //		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		if (withCheckBoxes) {
 			// TODO Find out how to access other columns to place checkbox correctly

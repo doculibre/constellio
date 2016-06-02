@@ -152,21 +152,32 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		return results.createSummary(actions, selectionActions);
 	}
+	
+	private String getSwitchViewModeCaption() {
+		String caption;
+		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+			caption = $("AdvancedSearchView.switchToTable");
+		} else {
+			caption = $("AdvancedSearchView.switchToList");
+		}
+		return caption;
+	}
 
 	private Button buildSwitchViewMode() {
-		Button switchViewMode = new Button($("Switch view"));
-		switchViewMode.addClickListener(new Button.ClickListener() {
+		final Button switchViewModeButton = new Button(getSwitchViewModeCaption());
+		switchViewModeButton.addClickListener(new Button.ClickListener() {
 			@Override
 			public void buttonClick(Button.ClickEvent event) {
-				if(presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+				if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
 					presenter.switchToTableView();
 				} else if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 					presenter.switchToDetailedView();
 				}
+				switchViewModeButton.setCaption(getSwitchViewModeCaption());
 			}
 		});
-		switchViewMode.addStyleName(ValoTheme.BUTTON_LINK);
-		return switchViewMode;
+		switchViewModeButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return switchViewModeButton;
 	}
 
 	@Override
