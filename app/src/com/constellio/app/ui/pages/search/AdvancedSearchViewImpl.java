@@ -20,8 +20,6 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable.SelectionChangeEvent;
-import com.constellio.app.ui.framework.components.SearchResultSimpleTable.SelectionChangeListener;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -182,12 +180,8 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	private SearchResultTable buildSimpleResultsTable() {
-		SearchResultSimpleTable table = new SearchResultSimpleTable(new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs()));
-		table.addSelectionChangeListener(new SelectionChangeListener() {
-			@Override
-			public void selectionChanged(SelectionChangeEvent event) {
-			}
-		});
+		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container);
 		table.setWidth("100%");
 		return table;
 	}

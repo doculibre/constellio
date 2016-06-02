@@ -203,7 +203,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return srTable;
 	}
 
-	private SearchResultContainer buildResultContainer() {
+	protected SearchResultContainer buildResultContainer() {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(presenter.getSearchResults());
 		return new SearchResultContainer(results, displayFactory);

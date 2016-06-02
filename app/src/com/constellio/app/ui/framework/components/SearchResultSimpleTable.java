@@ -9,13 +9,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.params.NavigationParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.Property;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.server.Page;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -39,8 +46,30 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 		this(container, true);
 	}
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container, boolean withCheckBoxes) {
+	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
 		super("",container);
+		
+		addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				if (event.isDoubleClick()) {
+					Object itemId = event.getItemId();
+					RecordVO recordVO = container.getRecordVO((int) itemId);
+					
+					final ConstellioUI ui = ConstellioUI.getCurrent();
+					String collection = ui.getSessionContext().getCurrentCollection();
+					AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
+					AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+					List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
+
+					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
+					NavigationParams navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(), SearchResultSimpleTable.this);
+					for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
+						recordNavigationExtension.prepareLinkToView(navigationParams);
+					}
+				}
+			}
+		});
 
 		// TODO Make header visible
 		// TODO Make all columns appear (DataProvider in AdvancedSearchPresenter
@@ -80,7 +109,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 		}
 		this.container = container;
 		setContainerDataSource(this.container);
-		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+//		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		if (withCheckBoxes) {
 			// TODO Find out how to access other columns to place checkbox correctly
 //			setVisibleColumns(CHECKBOX_PROPERTY,getContainerPropertyIds());
