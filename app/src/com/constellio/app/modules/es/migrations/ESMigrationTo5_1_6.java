@@ -624,7 +624,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		facet.withLabel(mimetype, this.migrationResourcesProvider.get("init.facet.mimetype." + mimetype));
 	}
 
-	private void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
+	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 		String title = migrationResourcesProvider.getDefaultLanguageString("init.taxoSmbFolders");
 		Taxonomy taxonomy = Taxonomy.createPublic(ESTaxonomies.SMB_FOLDERS, title, collection, ConnectorSmbFolder.SCHEMA_TYPE);

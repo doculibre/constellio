@@ -1,5 +1,7 @@
 package com.constellio.app.entities.modules;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -96,7 +98,12 @@ public class MigrationResourcesProvider {
 			Map<Language, String> values = new HashMap<>();
 			languageMap.put(key, values);
 			for (Language collectionLanguage : collectionLanguages) {
-				values.put(collectionLanguage, getString(key, language.getLocale()));
+				String value = getString(key, collectionLanguage.getLocale());
+				if (key.equals(value)) {
+					value = $(key, collectionLanguage.getLocale());
+				}
+				values.put(collectionLanguage, value);
+
 			}
 		}
 

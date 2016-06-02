@@ -23,6 +23,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -244,11 +245,13 @@ public class SchemasDisplayManager
 						rootElement == null ? null : rootElement.getAttributeValue(SchemasDisplayWriter.FORMAT_ATTRIBUTE);
 
 				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+				List<Language> languages = Language
+						.withCodes(collectionsListManager.getCollectionLanguages(types.getCollection()));
 				if (formatVersion == null) {
-					SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types);
+					SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types, languages);
 					return reader.readSchemaTypesDisplay(collection);
 				} else if (SchemasDisplayReader2.FORMAT_VERSION.equals(formatVersion)) {
-					SchemasDisplayReader2 reader = new SchemasDisplayReader2(document, types);
+					SchemasDisplayReader2 reader = new SchemasDisplayReader2(document, types, languages);
 					return reader.readSchemaTypesDisplay(collection);
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");

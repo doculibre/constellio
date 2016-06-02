@@ -50,17 +50,19 @@ public class SchemasDisplayReader1 {
 
 	MetadataSchemaTypes types;
 	Document document;
+	List<Language> languages;
 
-	public SchemasDisplayReader1(Document document, MetadataSchemaTypes types) {
+	public SchemasDisplayReader1(Document document, MetadataSchemaTypes types, List<Language> languages) {
 		this.document = document;
 		this.types = types;
+		this.languages = languages;
 	}
 
 	public SchemasDisplayManagerCache readSchemaTypesDisplay(String collection) {
 
 		Element rootElement = document.getRootElement();
 
-		SchemasDisplayManagerCache schemasDisplayManagerCache = new SchemasDisplayManagerCache(collection);
+		SchemasDisplayManagerCache schemasDisplayManagerCache = new SchemasDisplayManagerCache(collection, languages);
 
 		setSchemaTypesDisplayConfig(collection, rootElement, schemasDisplayManagerCache);
 
