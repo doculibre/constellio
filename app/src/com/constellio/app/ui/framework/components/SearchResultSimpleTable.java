@@ -1,27 +1,37 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
-import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Property;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultSimpleTable extends RecordVOTable implements SearchResultTable {
 	public static final String TABLE_STYLE = "search-result-table";
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
 	private Set<Object> selected;
+	private Set<Object> deselected;
 	private Set<SelectionChangeListener> listeners;
 	private RecordVOLazyContainer container;
+	private boolean selectAll;
 
 	public SearchResultSimpleTable(RecordVOLazyContainer container) {
 		this(container, true);
@@ -35,19 +45,28 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 
 		listeners = new HashSet<>();
 		selected = new HashSet<>();
+		deselected = new HashSet<>();
 		if (withCheckBoxes) {
 			addGeneratedColumn(CHECKBOX_PROPERTY, new ColumnGenerator() {
 				@Override
 				public Object generateCell(Table source, final Object itemId, Object columnId) {
 					final CheckBox checkBox = new CheckBox();
-					checkBox.setValue(selected.contains(itemId));
+					boolean checkBoxValue;
+					if (selectAll) {
+						checkBoxValue = !deselected.contains(itemId);
+					} else {
+						checkBoxValue = selected.contains(itemId);
+					}
+					checkBox.setValue(checkBoxValue);
 					checkBox.addValueChangeListener(new ValueChangeListener() {
 						@Override
 						public void valueChange(Property.ValueChangeEvent event) {
 							if (checkBox.getValue()) {
 								selected.add(itemId);
+								deselected.remove(itemId);
 							} else {
 								selected.remove(itemId);
+								deselected.add(itemId);
 							}
 							fireSelectionChangeEvent();
 						}
@@ -79,6 +98,19 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 		return result;
 	}
 
+	public List<String> getDeselectedRecordIds() {
+		List<String> result = new ArrayList<>(deselected.size());
+		for (Object itemId : deselected) {
+			RecordVO record = container.getRecordVO((int) itemId);
+			result.add(record.getId());
+		}
+		return result;
+	}
+	
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
 	public void addSelectionChangeListener(SelectionChangeListener listener) {
 		listeners.add(listener);
 	}
@@ -105,11 +137,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 			count.setComponentAlignment(component, Alignment.MIDDLE_LEFT);
 		}
 
-		final Label selectedCount = new Label($("SearchResultTable.selection", selected.size()));
-		selectedCount.setSizeUndefined();
-
-		final HorizontalLayout selection = new HorizontalLayout(selectedCount);
-		selection.setComponentAlignment(selectedCount, Alignment.MIDDLE_LEFT);
+		final HorizontalLayout selection = new HorizontalLayout();
 		selection.setSizeUndefined();
 		selection.setSpacing(true);
 		for (Component component : extra) {
@@ -124,9 +152,9 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 		addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
-				selectedCount.setValue($("SearchResultTable.selection", event.getSelectionSize()));
+				boolean somethingSelected = event.isSelectAll() || !event.getSelected().isEmpty();
 				for (Component component : extra) {
-					component.setEnabled(event.getSelectionSize() > 0);
+					component.setEnabled(somethingSelected);
 				}
 			}
 		});
@@ -135,11 +163,12 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	}
 
 	private void fireSelectionChangeEvent() {
+		((RecordVOLazyContainer) getContainerDataSource()).refresh();
 		if (listeners.isEmpty()) {
 			return;
 		}
 
-		SelectionChangeEvent event = new SelectionChangeEvent(this, selected.size());
+		SelectionChangeEvent event = new SelectionChangeEvent(this, selected, deselected, selectAll);
 		for (SelectionChangeListener listener : listeners) {
 			listener.selectionChanged(event);
 		}
@@ -147,23 +176,50 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 
 	public static class SelectionChangeEvent implements Serializable {
 		private final SearchResultSimpleTable table;
-		private final int selectionSize;
+		private final Set<Object> selected;
+		private final Set<Object> deselected;
+		private final boolean selectAll;
 
-		public SelectionChangeEvent(SearchResultSimpleTable table, int selectionSize) {
+		public SelectionChangeEvent(SearchResultSimpleTable table, Set<Object> selected, Set<Object> deselected, boolean selectAll) {
 			this.table = table;
-			this.selectionSize = selectionSize;
+			this.selected = selected;
+			this.deselected = deselected;
+			this.selectAll = selectAll;
 		}
 
 		public SearchResultSimpleTable getTable() {
 			return table;
 		}
+		
+		public Set<Object> getSelected() {
+			return selected;
+		}
 
-		public int getSelectionSize() {
-			return selectionSize;
+		public Set<Object> getDeselected() {
+			return deselected;
+		}
+
+		public boolean isSelectAll() {
+			return selectAll;
 		}
 	}
 
 	public interface SelectionChangeListener extends Serializable {
 		void selectionChanged(SelectionChangeEvent event);
 	}
+
+	public void selectAll() {
+		selectAll = true;
+		selected.clear();
+		deselected.clear();
+		fireSelectionChangeEvent();
+	}
+
+	public void deselectAll() {
+		selectAll = false;
+		selected.clear();
+		deselected.clear();
+		fireSelectionChangeEvent();
+	}
+	
 }

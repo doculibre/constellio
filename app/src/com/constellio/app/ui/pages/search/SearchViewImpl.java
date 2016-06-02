@@ -381,24 +381,26 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	}
 
 	protected Button buildSelectAllButton() {
-		SelectDeselectAllButton selectDeselectAllButton;
-		if(isDetailedView()) {
-			selectDeselectAllButton = new SelectDeselectAllButton() {
-				@Override
-				protected void onSelectAll(ClickEvent event) {
+		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton() {
+			@Override
+			protected void onSelectAll(ClickEvent event) {
+				if (isDetailedView()) {
 					((SearchResultDetailedTable)results).selectCurrentPage();
+				} else {
+					((SearchResultSimpleTable)results).selectAll();
 				}
+			}
 
-				@Override
-				protected void onDeselectAll(ClickEvent event) {
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				if (isDetailedView()) {
 					((SearchResultDetailedTable)results).deselectCurrentPage();
+				} else {
+					((SearchResultSimpleTable)results).deselectAll();
 				}
-			};
-		} else {
-			// TODO Build button for lazy table
-			selectDeselectAllButton = null;
-		}
-//		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+			}
+		};
+		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return selectDeselectAllButton;
 	}
 
