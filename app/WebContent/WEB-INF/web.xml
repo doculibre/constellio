@@ -178,6 +178,14 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+
+    <servlet>
+        <servlet-name>Generate token Service</servlet-name>
+        <servlet-class>com.constellio.app.servlet.ConstellioGenerateTokenWebServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+
     <servlet>
         <servlet-name>Get schema metadatas Service</servlet-name>
         <servlet-class>com.constellio.app.servlet.ConstellioGetSchemaMetadatasServlet</servlet-class>
@@ -358,6 +366,11 @@
     <servlet-mapping>
         <servlet-name>Create record Service</servlet-name>
         <url-pattern>/createRecord</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>Generate token Service</servlet-name>
+        <url-pattern>/generateToken</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
