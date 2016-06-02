@@ -391,38 +391,42 @@ public class SchemasDisplayManager
 	}
 
 	private void sort(Element element) {
-		List<Element> children = new ArrayList<Element>(element.getChildren());
-		element.removeContent();
 
-		Comparator<Element> comparator = new Comparator<Element>() {
-			public int compare(Element o1, Element o2) {
-				String n1 = o1.getAttributeValue("code");
-				String n2 = o2.getAttributeValue("code");
+		if (!asList("SchemaTypesDisplayConfig", "DisplayMetadataCodes", "FormMetadataCodes", "SearchResultsMetadataCodes",
+				"TableMetadataCodes").contains(element.getName())) {
 
-				if (n1 == null) {
-					n1 = o1.getAttributeValue("SchemaCode");
+			List<Element> children = new ArrayList<Element>(element.getChildren());
+			element.removeContent();
+
+			Comparator<Element> comparator = new Comparator<Element>() {
+				public int compare(Element o1, Element o2) {
+					String n1 = o1.getAttributeValue("code");
+					String n2 = o2.getAttributeValue("code");
+
+					if (n1 == null) {
+						n1 = o1.getAttributeValue("SchemaCode");
+					}
+
+					if (n2 == null) {
+						n2 = o2.getAttributeValue("SchemaCode");
+					}
+
+					if (n1 == null) {
+						n1 = o1.getName();
+					}
+
+					if (n2 == null) {
+						n2 = o2.getName();
+					}
+
+					return n1.compareTo(n2);
 				}
-
-				if (n2 == null) {
-					n2 = o2.getAttributeValue("SchemaCode");
-				}
-
-				if (n1 == null) {
-					n1 = o1.getName();
-				}
-
-				if (n2 == null) {
-					n2 = o2.getName();
-				}
-
-				return n1.compareTo(n2);
+			};
+			Collections.sort(children, comparator);
+			for (Element child : children) {
+				sort(child);
 			}
-		};
-		Collections.sort(children, comparator);
-		for (Element child : children) {
-			sort(child);
+			element.addContent(children);
 		}
-		element.addContent(children);
-
 	}
 }

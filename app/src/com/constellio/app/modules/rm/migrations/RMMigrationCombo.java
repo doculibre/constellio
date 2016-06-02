@@ -103,14 +103,14 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		//transaction.add(manager.getSchema(collection, "cart_default").withRemovedFormMetadatas("cart_default_title"));
 
 		SchemaDisplayConfig userTask = manager.getSchema(collection, "userTask_default");
-		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_administrativeUnit", "userTask_default_assignedOn");
-		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedDocuments", "userTask_default_modifiedOn");
-		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedFolders", "userTask_default_modifiedOn");
-		userTask = userTask.withNewFormMetadataBefore("userTask_default_linkedDocuments", "userTask_default_parentTask");
-		userTask = userTask.withNewFormMetadataBefore("userTask_default_linkedFolders", "userTask_default_parentTask");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_administrativeUnit", "userTask_default_comments");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedDocuments", "userTask_default_comments");
+		userTask = userTask.withNewDisplayMetadataBefore("userTask_default_linkedFolders", "userTask_default_comments");
+		userTask = userTask.withNewFormMetadata("userTask_default_linkedDocuments");
+		userTask = userTask.withNewFormMetadata("userTask_default_linkedFolders");
 		userTask = userTask.withTableMetadataCodes(
-				asList("userTask_default_assignee", "userTask_default_dueDate", "userTask_default_status",
-						"userTask_default_title"));
+				asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate",
+						"userTask_default_assignee"));
 		transaction.add(userTask);
 		manager.execute(transaction.build());
 	}
