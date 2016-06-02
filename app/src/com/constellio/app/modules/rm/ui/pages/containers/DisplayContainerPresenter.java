@@ -159,9 +159,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			throw new ContainerWithoutCapacityException();
 		}
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Metadata containerMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
-		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(containerMetadata).isEqualTo(container.getId());
-		DataStoreField linearSizeMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
+		Metadata containerMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
+		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata).isEqualTo(container.getId());
+		DataStoreField linearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata.getDataStoreCode());
 		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
 		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata.getDataStoreCode());
@@ -183,8 +183,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folderSchemaType())
-				.where(rmRecordServices().folderContainer()).isEqualTo(containerId);
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
+				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
 		return new LogicalSearchQuery(condition);
 	}
 

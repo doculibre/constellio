@@ -199,7 +199,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
 		FolderToVOBuilder voBuilder = new FolderToVOBuilder();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
-		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(rm.defaultFolderSchema(), VIEW_MODE.TABLE, sessionContext);
+		MetadataSchemaVO foldersSchemaVO = schemaVOBuilder.build(rm.folder.schema(), VIEW_MODE.TABLE, sessionContext);
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
@@ -211,7 +211,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	private MetadataSchemaTypeVO getFolderTypeVO(SessionContextProvider sessionContextProvider) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 		MetadataSchemaTypeToVOBuilder schemaTypeVOBuilder = new MetadataSchemaTypeToVOBuilder();
-		return schemaTypeVOBuilder.build(rm.folderSchemaType());
+		return schemaTypeVOBuilder.build(rm.folder.schemaType());
 	}
 
 	private Factory<LogicalSearchQuery> newFolderInAdministrativeUnitSearchQuery(
@@ -222,7 +222,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 				return new LogicalSearchQuery()
-						.setCondition(from(rm.folderSchemaType()).where(rm.folderAdministrativeUnit()).isEqualTo(conceptId))
+						.setCondition(from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).isEqualTo(conceptId))
 						.sortAsc(Schemas.TITLE);
 			}
 		};
@@ -236,7 +236,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			public LogicalSearchQuery get() {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 				return new LogicalSearchQuery()
-						.setCondition(from(rm.folderSchemaType()).where(rm.folderCategory()).isEqualTo(conceptId))
+						.setCondition(from(rm.folder.schemaType()).where(rm.folder.category()).isEqualTo(conceptId))
 						.sortAsc(Schemas.TITLE);
 			}
 		};

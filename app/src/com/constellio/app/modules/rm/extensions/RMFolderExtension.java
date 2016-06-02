@@ -80,7 +80,7 @@ public class RMFolderExtension extends RecordExtension {
 	@Override
 	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
 			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
-		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.getRecord().get(rmSchema.folderParentFolder()) != null) {
+		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.getRecord().get(rmSchema.folder.parentFolder()) != null) {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
 			folder.setAdministrativeUnitEntered((String) null);
 			folder.setCategoryEntered((String) null);

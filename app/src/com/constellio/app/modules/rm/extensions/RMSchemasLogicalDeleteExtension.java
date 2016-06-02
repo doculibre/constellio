@@ -99,8 +99,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	}
 
 	private ExtensionBooleanResult isRetentionRuleLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folderSchemaType())
-				.where(rm.folderRetentionRule()).isEqualTo(event.getRecord()));
+		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folder.schemaType())
+				.where(rm.folder.retentionRule()).isEqualTo(event.getRecord()));
 
 		return ExtensionBooleanResult.forceTrueIf(logicallyDeletable);
 	}

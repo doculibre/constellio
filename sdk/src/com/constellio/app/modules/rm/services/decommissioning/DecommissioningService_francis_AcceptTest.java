@@ -76,7 +76,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		assertThat(duplicatedFolder.getParentFolder()).isNull();
 
 		List<String> children = searchServices.searchRecordIds(new LogicalSearchQuery()
-				.setCondition(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isEqualTo(duplicatedFolder)));
+				.setCondition(from(rm.folderSchemaType()).where(rm.folder.parentFolder()).isEqualTo(duplicatedFolder)));
 
 		assertThat(children).isEmpty();
 	}
@@ -115,7 +115,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		assertThat(duplicatedFolder.getParentFolder()).isNull();
 
 		List<String> children = searchServices.searchRecordIds(new LogicalSearchQuery()
-				.setCondition(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isEqualTo(duplicatedFolder)));
+				.setCondition(from(rm.folderSchemaType()).where(rm.folder.parentFolder()).isEqualTo(duplicatedFolder)));
 
 		assertThat(children).hasSize(1);
 		Folder duplicatedSubFolder = rm.getFolder(children.get(0));

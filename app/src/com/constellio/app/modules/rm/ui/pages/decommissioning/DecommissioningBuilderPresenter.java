@@ -226,7 +226,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
 		MetadataSchemaType type = searchType.isFolderSearch() ?
-				rmRecordServices().folderSchemaType() : rmRecordServices().documentSchemaType();
+				rmRecordServices().folder.schemaType() : rmRecordServices().documentSchemaType();
 		return new ConditionBuilder(type).build(criteria);
 	}
 

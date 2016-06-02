@@ -111,19 +111,19 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		long unit10FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_10a));
+				.where(rm.folder.administrativeUnit()).isEqualTo(records.unitId_10a));
 
 		long unit11FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_11b));
+				.where(rm.folder.administrativeUnit()).isEqualTo(records.unitId_11b));
 
 		long unit12FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isIn(asList(records.unitId_12b, records.unitId_12c)));
+				.where(rm.folder.administrativeUnit()).isIn(asList(records.unitId_12b, records.unitId_12c)));
 
 		long unit20FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(asList(records.unitId_20d, records.unitId_20e)));
+				.where(rm.folder.administrativeUnit()).isEqualTo(asList(records.unitId_20d, records.unitId_20e)));
 
 		long unit30FolderCount = searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(records.unitId_30c));
+				.where(rm.folder.administrativeUnit()).isEqualTo(records.unitId_30c));
 
 		assertThatCountOfFoldersVisibleBy(records.getBob_userInAC())
 				.isEqualTo(unit10FolderCount + unit11FolderCount + unit12FolderCount + unit30FolderCount);

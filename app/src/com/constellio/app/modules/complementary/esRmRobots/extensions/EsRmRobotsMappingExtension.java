@@ -28,7 +28,7 @@ public class EsRmRobotsMappingExtension extends ConnectorMappingExtension {
 	public void beforeTargetMetadataCreation(TargetMetadataCreationParams params) {
 		if (params.hasTargetFlag(MAP_IN_RM_MODULE)) {
 			ConnectorMappingTransaction transaction = params.getTransaction();
-			transaction.createTargetUserMetadata(rm.defaultFolderSchema(), params.getTarget());
+			transaction.createTargetUserMetadata(rm.folder.schema(), params.getTarget());
 			transaction.createTargetUserMetadata(rm.defaultDocumentSchema(), params.getTarget());
 		}
 	}

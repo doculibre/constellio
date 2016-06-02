@@ -110,119 +110,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-	//Category
-
-	/*public MetadataSchema categorySchema() {
-		return getTypes().getSchema(Category.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType categorySchemaType() {
-		return getTypes().getSchemaType(Category.SCHEMA_TYPE);
-	}
-
-	public Metadata categoryRetentionRules() {
-		return categorySchema().getMetadata(Category.RETENTION_RULES);
-	}
-
-	public Category wrapCategory(Record record) {
-		return new Category(record, getTypes());
-	}
-
-	public List<Category> wrapCategories(List<Record> records) {
-		List<Category> categories = new ArrayList<>();
-		for (Record record : records) {
-			categories.add(wrapCategory(record));
-		}
-		return categories;
-	}
-
-	public Category getCategory(String id) {
-		return new Category(get(id), getTypes());
-	}
-
-	public Category getCategoryWithCode(String code) {
-		return new Category(getByCode(categorySchemaType(), code), getTypes());
-	}
-
-	public Category newCategory() {
-		return new Category(create(categorySchema()), getTypes());
-	}
-
-	public Category newCategoryWithId(String id) {
-		return new Category(create(categorySchema(), id), getTypes());
-	}*/
-
-	//
-
-	//Container record
-
-	public MetadataSchema defaultContainerRecordSchema() {
-		return getTypes().getSchema(ContainerRecord.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType containerRecordSchemaType() {
-		return getTypes().getSchemaType(ContainerRecord.SCHEMA_TYPE);
-	}
-
-	public MetadataSchema containerRecordSchemaFor(ContainerRecordType type) {
-		return getLinkedSchema(containerRecordSchemaType(), type);
-	}
-
-	public MetadataSchema containerRecordSchemaFor(String typeId) {
-		return containerRecordSchemaFor(getContainerRecordType(typeId));
-	}
-
-	public ContainerRecord wrapContainerRecord(Record record) {
-		return new ContainerRecord(record, getTypes());
-	}
-
-	public List<ContainerRecord> wrapContainerRecords(List<Record> records) {
-		List<ContainerRecord> containerRecords = new ArrayList<>();
-		for (Record record : records) {
-			containerRecords.add(wrapContainerRecord(record));
-		}
-		return containerRecords;
-	}
-
-	public ContainerRecord getContainerRecord(String id) {
-		return new ContainerRecord(get(id), getTypes());
-	}
-
-	public ContainerRecord newContainerRecord() {
-		return new ContainerRecord(create(defaultContainerRecordSchema()), getTypes());
-	}
-
-	public ContainerRecord newContainerRecordWithId(String id) {
-		return new ContainerRecord(create(defaultContainerRecordSchema(), id), getTypes());
-	}
-
-	public ContainerRecord newContainerRecordWithType(ContainerRecordType type) {
-		Record record = create(containerRecordSchemaFor(type));
-		return new ContainerRecord(record, getTypes()).setType(type);
-	}
-
-	public ContainerRecord newContainerRecordWithType(String typeId) {
-		Record record = create(containerRecordSchemaFor(typeId));
-		return new ContainerRecord(record, getTypes()).setType(typeId);
-	}
-
-	public Metadata containerFilingSpace() {
-		return defaultContainerRecordSchema().getMetadata(ContainerRecord.FILING_SPACE);
-	}
-
-	public Metadata containerAdministrativeUnit() {
-		return defaultContainerRecordSchema().getMetadata(ContainerRecord.ADMINISTRATIVE_UNIT);
-	}
-
-	public Metadata containerDecommissioningType() {
-		return defaultContainerRecordSchema().getMetadata(ContainerRecord.DECOMMISSIONING_TYPE);
-	}
-
-	public Metadata containerStorageSpace() {
-		return defaultContainerRecordSchema().getMetadata(ContainerRecord.STORAGE_SPACE);
-	}
-	//
-
 	//Container record type
 
 	public MetadataSchema containerRecordTypeSchema() {
@@ -436,24 +323,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Folder
 
-	public MetadataSchema defaultFolderSchema() {
-		return getTypes().getSchema(Folder.DEFAULT_SCHEMA);
-	}
-
-	public MetadataSchemaType folderSchemaType() {
-		return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
-	}
-
-	public MetadataSchema folderSchema(String localCode) {
+	/*public MetadataSchema folderSchema(String localCode) {
 		return getTypes().getSchemaType(Folder.SCHEMA_TYPE).getSchema(localCode);
-	}
-
-	public MetadataSchema folderSchemaFor(FolderType type) {
-		return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
-	}
-
-	public MetadataSchema folderSchemaFor(String typeId) {
-		return typeId == null ? defaultFolderSchema() : folderSchemaFor(getFolderType(typeId));
 	}
 
 	public Folder wrapFolder(Record record) {
@@ -484,15 +355,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return new Folder(create(defaultFolderSchema(), id), getTypes());
 	}
 
-	public Folder newFolderWithType(FolderType type) {
-		Record record = create(folderSchemaFor(type));
-		return new Folder(record, getTypes()).setType(type);
-	}
 
-	public Folder newFolderWithType(String typeId) {
-		Record record = create(folderSchemaFor(typeId));
-		return new Folder(record, getTypes()).setType(typeId);
-	}
+
+
 
 	public Metadata folderAdministrativeUnit() {
 		return defaultFolderSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT);
@@ -605,6 +470,34 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public Metadata folderFolderType() {
 		return defaultFolderSchema().getMetadata(Folder.FOLDER_TYPE);
 	}
+
+    */
+
+    public MetadataSchema folderSchemaFor(String typeId) {
+        return typeId == null ? defaultFolderSchema() : folderSchemaFor(getFolderType(typeId));
+    }
+
+    public Folder newFolderWithType(String typeId) {
+        Record record = create(folderSchemaFor(typeId));
+        return new Folder(record, getTypes()).setType(typeId);
+    }
+
+    public MetadataSchema defaultFolderSchema() {
+        return getTypes().getSchema(Folder.DEFAULT_SCHEMA);
+    }
+
+    public MetadataSchemaType folderSchemaType() {
+        return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
+    }
+
+    public MetadataSchema folderSchemaFor(FolderType type) {
+        return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
+    }
+
+    public Folder newFolderWithType(FolderType type) {
+        Record record = create(folderSchemaFor(type));
+        return new Folder(record, getTypes()).setType(type);
+    }
 
 	//
 

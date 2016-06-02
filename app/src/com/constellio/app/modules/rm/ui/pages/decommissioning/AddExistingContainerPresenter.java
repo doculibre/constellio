@@ -218,17 +218,17 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	private LogicalSearchCondition selectByDecommissioningListProperties() {
 		if (rmConfigs().areMixedContainersAllowed()) {
-			return from(rmRecordServices().containerRecordSchemaType())
-					.where(rmRecordServices().containerDecommissioningType()).isEqualTo(decommissioningType);
+			return from(rmRecordServices().containerRecord.schemaType())
+					.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
-		return from(rmRecordServices().containerRecordSchemaType())
-				.where(rmRecordServices().containerAdministrativeUnit()).isEqualTo(adminUnitId)
-				.andWhere(rmRecordServices().containerDecommissioningType()).isEqualTo(decommissioningType);
+		return from(rmRecordServices().containerRecord.schemaType())
+				.where(rmRecordServices().containerRecord.administrativeUnit()).isEqualTo(adminUnitId)
+				.andWhere(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 	}
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
-		return new ConditionBuilder(rmRecordServices().containerRecordSchemaType()).build(criteria);
+		return new ConditionBuilder(rmRecordServices().containerRecord.schemaType()).build(criteria);
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {

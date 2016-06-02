@@ -507,10 +507,10 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 
 		private void moveFoldersToNewAdministrativeUnits()
 				throws RecordServicesException {
-			Metadata folderFilingspaceEntered = rm.defaultFolderSchema().getMetadata(Folder.FILING_SPACE_ENTERED);
+			Metadata folderFilingspaceEntered = rm.folder.schema().getMetadata(Folder.FILING_SPACE_ENTERED);
 
 			Iterator<List<Record>> recordsBatchIterator = searchServices.recordsBatchIterator(new LogicalSearchQuery()
-					.setCondition(from(rm.folderSchemaType()).where(folderFilingspaceEntered).isNotNull()));
+					.setCondition(from(rm.folder.schemaType()).where(folderFilingspaceEntered).isNotNull()));
 
 			while (recordsBatchIterator.hasNext()) {
 				List<Folder> folders = rm.wrapFolders(recordsBatchIterator.next());
@@ -547,7 +547,7 @@ public class RMMigrationTo5_0_7 implements MigrationScript {
 		}
 
 		private void moveContainersInNewAdministrativeUnits(Transaction transaction) {
-			for (ContainerRecord container : rm.wrapContainerRecords(search(from(rm.containerRecordSchemaType()).returnAll()))) {
+			for (ContainerRecord container : rm.wrapContainerRecords(search(from(rm.containerRecord.schemaType()).returnAll()))) {
 				String unit = getNewUnit(container.getAdministrativeUnit(), container.getFilingSpace());
 				transaction.add(container.setFilingSpace((String) null).setAdministrativeUnit(unit));
 			}

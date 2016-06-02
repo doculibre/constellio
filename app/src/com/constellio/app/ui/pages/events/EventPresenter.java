@@ -244,7 +244,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			@Override
 			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
 					SessionContext sessionContext) {
-				MetadataSchema folderSchema = schemas().defaultFolderSchema();
+				MetadataSchema folderSchema = schemas().folder.schema();
 				Metadata borrowDateMetadata = folderSchema.getMetadata(Folder.BORROW_DATE);
 				LocalDateTime eventTime = record.get(borrowDateMetadata);
 
@@ -256,7 +256,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Metadata borrowedMetadata = folderSchema.getMetadata(Folder.BORROWED);
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
-				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().defaultFolderSchema())
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
 						.where(borrowedMetadata).isTrue()
 						.andWhere(borrowDateMetadata).isEqualTo(
 								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);

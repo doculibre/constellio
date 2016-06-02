@@ -143,7 +143,7 @@ public class DecomCertificateService {
 	}
 
 	private List<Folder> getDirectSubFolders(Folder folder) {
-		LogicalSearchCondition query = from(rm.folderSchemaType()).where(rm.folderParentFolder()).isEqualTo(folder.getId());
+		LogicalSearchCondition query = from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder.getId());
 		List<Record> records = searchServices.search(new LogicalSearchQuery(query));
 		return rm.wrapFolders(records);
 	}

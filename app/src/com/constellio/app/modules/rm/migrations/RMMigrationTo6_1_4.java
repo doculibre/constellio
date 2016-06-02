@@ -76,7 +76,7 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 				});
 
 			}
-		}.execute(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isNotNull());
+		}.execute(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isNotNull());
 
 		if (recordFixed.get()) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);

@@ -37,7 +37,7 @@ public class ESRMRobotsServices {
 		final RecordDeleteOptions deleteOptions = new RecordDeleteOptions().setReferencesToNull(true);
 		final LogicalSearchCondition documentsCondition = from(rm.documentSchemaType())
 				.where(rm.document.schema().get(Document.CREATED_BY_ROBOT)).isEqualTo(robotId);
-		final LogicalSearchCondition foldersCondition = from(rm.folderSchemaType())
+		final LogicalSearchCondition foldersCondition = from(rm.folder.schemaType())
 				.where(rm.folder.schema().get(Folder.CREATED_BY_ROBOT)).isEqualTo(robotId);
 
 		final RecordServices recordServices = modelLayerFactory.newRecordServices();

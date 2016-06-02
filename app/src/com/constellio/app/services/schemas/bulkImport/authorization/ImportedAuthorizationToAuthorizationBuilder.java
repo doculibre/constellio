@@ -199,7 +199,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 	}
 
 	private String getFolderIdOfFolderWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.defaultFolderSchema());
+		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.folder.schema());
 	}
 
 }
