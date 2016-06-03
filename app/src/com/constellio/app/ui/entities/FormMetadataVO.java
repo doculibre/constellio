@@ -31,12 +31,13 @@ public class FormMetadataVO implements Serializable {
 	Object defaultValue;
 	String inputMask;
 	String currentLanguageCode;
+	boolean duplicable;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO, String reference,
 			Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch,
 			boolean facet,
 			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup,
-			Object defaultValue, String inputMask, SessionContext sessionContext) {
+			Object defaultValue, String inputMask, boolean duplicable, SessionContext sessionContext) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
@@ -61,6 +62,7 @@ public class FormMetadataVO implements Serializable {
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
+		this.duplicable = duplicable;
 	}
 
 	public FormMetadataVO(SessionContext sessionContext) {
@@ -84,6 +86,8 @@ public class FormMetadataVO implements Serializable {
 		this.metadataGroup = "";
 		this.inputMask = "";
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
+		this.duplicable = false;
+
 	}
 
 	public String getCode() {
@@ -238,7 +242,15 @@ public class FormMetadataVO implements Serializable {
 		this.inputMask = inputMask;
 	}
 
-	@Override
+	public boolean isDuplicable() {
+		return duplicable;
+	}
+
+    public void setDuplicable(boolean duplicable) {
+        this.duplicable = duplicable;
+    }
+
+    @Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
