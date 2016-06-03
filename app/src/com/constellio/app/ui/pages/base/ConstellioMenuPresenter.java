@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -7,27 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.sso.KerberosServices;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConstellioMenuPresenter implements Serializable {
 
@@ -46,8 +45,6 @@ public class ConstellioMenuPresenter implements Serializable {
 	private transient ModelLayerFactory modelLayerFactory;
 
 	private transient UserServices userServices;
-
-	private KerberosServices kerberosServices;
 
 	public ConstellioMenuPresenter(ConstellioMenu constellioMenu) {
 		this.constellioMenu = constellioMenu;
