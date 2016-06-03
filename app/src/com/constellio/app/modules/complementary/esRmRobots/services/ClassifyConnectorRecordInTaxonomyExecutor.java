@@ -1,6 +1,7 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
+import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -359,6 +361,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy))
 				.get(0);
+		if (taxoMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+			taxoMetadata = getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(folderSchema, taxoMetadata);
+		}
+
 		newRmFolder.set(taxoMetadata.getLocalCode(), parentConcept.getId()).setTitle(pathPart);
 		newRmFolder.setLegacyId(fullConnectorDocPath);
 		return newRmFolder;

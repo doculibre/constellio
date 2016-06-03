@@ -13,7 +13,7 @@ import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.sso.KerberosServices;
+import com.constellio.app.services.sso.SSOServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
@@ -64,13 +64,13 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 	public final RequestHandler requestHandler = new ConstellioResourceHandler();
 
-	private KerberosServices kerberosServices;
+	private SSOServices ssoServices;
 
 	@Override
 	protected void init(VaadinRequest request) {
 		getSession().addRequestHandler(requestHandler);
 
-		kerberosServices = KerberosServices.getInstance();
+		ssoServices = SSOServices.getInstance();
 
 		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
 
@@ -201,7 +201,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
 			UserVO currentUserVO = sessionContext.getCurrentUser();
-			if (currentUserVO == null && kerberosServices.isEnabled() && !sessionContext.isForcedSignOut()) {
+			if (currentUserVO == null && ssoServices.isEnabled() && !sessionContext.isForcedSignOut()) {
 				currentUserVO = ssoAuthenticate();
 			}
 			if (currentUserVO != null) {

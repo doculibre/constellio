@@ -10,8 +10,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -19,6 +21,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -336,5 +339,26 @@ public class SchemaUtils {
 		}
 
 		return valid;
+	}
+
+	public static Metadata getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(MetadataSchema schema,
+			Metadata metadata) {
+
+		CalculatedDataEntry calculatedDataEntry = ((CalculatedDataEntry) metadata.getDataEntry());
+		for (Dependency calculatorDependency : calculatedDataEntry.getCalculator().getDependencies()) {
+			if (calculatorDependency instanceof LocalDependency) {
+				LocalDependency calculatorLocalDependency = (LocalDependency) calculatorDependency;
+				if (calculatorLocalDependency.getReturnType() == MetadataValueType.REFERENCE) {
+					Metadata otherMetadata = schema.get(calculatorLocalDependency.getLocalMetadataCode());
+					if (otherMetadata.getAllowedReferences().getTypeWithAllowedSchemas()
+							.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
+						return otherMetadata;
+					}
+				}
+			}
+		}
+
+		throw new ImpossibleRuntimeException("getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship - No such metadata!");
+
 	}
 }
