@@ -5,12 +5,17 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Set;
 
 public class RMMigrationTo6_4 implements MigrationScript {
 	@Override
@@ -34,7 +39,7 @@ public class RMMigrationTo6_4 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).defineValidators().add(FolderValidator.class);
 			updateCartSchema(typesBuilder);
-			updateFolderSchema(typesBuilder);
+			setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicable(typesBuilder);
 		}
 
 		private void updateCartSchema(MetadataSchemaTypesBuilder typesBuilder) {
@@ -45,13 +50,14 @@ public class RMMigrationTo6_4 implements MigrationScript {
 					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
 		}
 
-		private void updateFolderSchema(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder folder = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
-			//			folder.getMetadata(Folder.CATEGORY_ENTERED).setTaxonomyRelationship(false);
-			//			folder.getMetadata(Folder.CATEGORY).setTaxonomyRelationship(true);
-			//
-			//			folder.getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).setTaxonomyRelationship(false);
-			//			folder.getMetadata(Folder.ADMINISTRATIVE_UNIT).setTaxonomyRelationship(true);
+		private void setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicable(final MetadataSchemaTypesBuilder typesBuilder) {
+            final Set<MetadataBuilder> metadataBuilders = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getAllMetadatas();
+            metadataBuilders.addAll(typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getAllMetadatas());
+			for (final MetadataBuilder metadataBuilder : metadataBuilders) {
+				if ((metadataBuilder != null) && metadataBuilder.getEnabled() && !metadataBuilder.isSystemReserved() && ((metadataBuilder.getDataEntry() != null) && DataEntryType.MANUAL.equals(metadataBuilder.getDataEntry().getType()))) {
+					metadataBuilder.setDuplicable(true);
+				}
+			}
 		}
 	}
 }

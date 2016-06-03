@@ -100,6 +100,7 @@ public class MetadataSchemaXMLReader1 {
 		if (!metadataBuilder.isSystemReserved()) {
 			metadataBuilder.setEnabled(getBooleanFlagValue(metadataElement, "enabled"));
 			metadataBuilder.setDefaultRequirement(getBooleanFlagValue(metadataElement, "defaultRequirement"));
+			metadataBuilder.setDuplicable(false);
 		}
 
 		List<Element> validatorElements = parseValidators(metadataElement);

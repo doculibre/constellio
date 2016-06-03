@@ -453,8 +453,23 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
-				TabSheet tabSheet = new TabSheet();
 
+				HorizontalLayout newCartLayout = new HorizontalLayout();
+				newCartLayout.setSpacing(true);
+				newCartLayout.addComponent(new Label("New cart: "));
+				final BaseTextField newCartTitleField;
+				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				BaseButton saveButton;
+				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+						getWindow().close();
+					}
+				});
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				TabSheet tabSheet = new TabSheet();
 				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
 				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
 				ownedCartsTable.addItemClickListener(new ItemClickListener() {
@@ -482,7 +497,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
-				layout.addComponent(tabSheet);
+				layout.addComponents(newCartLayout,tabSheet);
 				return layout;
 			}
 		};

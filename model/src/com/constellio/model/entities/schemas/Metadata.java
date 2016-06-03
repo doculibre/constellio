@@ -65,6 +65,8 @@ public class Metadata implements DataStoreField {
 
 	final String inputMask;
 
+	final boolean duplicable;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
 	}
@@ -112,6 +114,7 @@ public class Metadata implements DataStoreField {
 		this.enumClass = null;
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
+		this.duplicable = false;
 
 	}
 
@@ -121,7 +124,7 @@ public class Metadata implements DataStoreField {
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, String dataStoreType,
 			MetadataAccessRestriction accessRestriction, StructureFactory structureFactory, Class<? extends Enum<?>> enumClass,
 			Object defaultValue, String inputMask, MetadataPopulateConfigs populateConfigs,
-			Factory<EncryptionServices> encryptionServices) {
+			Factory<EncryptionServices> encryptionServices, Boolean duplicatbale) {
 		super();
 
 		this.inheritance = null;
@@ -144,11 +147,12 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
+		this.duplicable = duplicatbale;
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
 			Set<RecordMetadataValidator<?>> recordMetadataValidators, Object defaultValue, String inputMask,
-			MetadataPopulateConfigs populateConfigs) {
+			MetadataPopulateConfigs populateConfigs, boolean duplicable) {
 		super();
 
 		this.localCode = inheritance.getLocalCode();
@@ -171,6 +175,7 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = defaultValue;
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
+		this.duplicable = duplicable;
 	}
 
 	public String getCode() {
@@ -441,4 +446,7 @@ public class Metadata implements DataStoreField {
 	public boolean hasSameCode(Metadata metadata) {
 		return localCode.equals(metadata.getLocalCode());
 	}
+
+	public boolean isDuplicable() { return duplicable; }
+
 }
