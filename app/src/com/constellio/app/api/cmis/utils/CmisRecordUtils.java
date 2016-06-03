@@ -1,5 +1,7 @@
 package com.constellio.app.api.cmis.utils;
 
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
+import static com.constellio.model.services.schemas.SchemaUtils.*;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -48,6 +50,11 @@ public class CmisRecordUtils {
 		allReferencesMetadatas.addAll(referencesMetadatas);
 
 		for (Metadata referenceMetadata : allReferencesMetadatas) {
+
+			if (referenceMetadata.isTaxonomyRelationship() && referenceMetadata.getDataEntry().getType() == CALCULATED) {
+				referenceMetadata = getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(schema, referenceMetadata);
+			}
+
 			if (targetSchema != null && referenceMetadata.getAllowedReferences().isAllowed(targetSchema)) {
 				record.set(referenceMetadata, newParentRecord);
 			}

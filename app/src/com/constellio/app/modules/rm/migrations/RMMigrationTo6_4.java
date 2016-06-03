@@ -66,7 +66,7 @@ public class RMMigrationTo6_4 implements MigrationScript {
 
 		private void updateFolderSchema(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder folder = typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
-						folder.getMetadata(Folder.CATEGORY_ENTERED).setTaxonomyRelationship(false);
+			folder.getMetadata(Folder.CATEGORY_ENTERED).setTaxonomyRelationship(false);
 			folder.getMetadata(Folder.CATEGORY).setTaxonomyRelationship(true);
 
 			folder.getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).setTaxonomyRelationship(false);
