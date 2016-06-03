@@ -50,8 +50,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		if (event.isSchemaType(RetentionRule.SCHEMA_TYPE)) {
 			Transaction transaction = new Transaction();
 
-			List<Category> categories = rm.wrapCategories(searchServices.search(new LogicalSearchQuery()
-					.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(deletedRule))));
+			List<Category> categories = rm.wrapCategorys(searchServices.search(new LogicalSearchQuery()
+					.setCondition(from(rm.category.schemaType()).where(rm.category.retentionRules()).isEqualTo(deletedRule))));
 			for (Category category : categories) {
 				List<String> rules = new ArrayList<>(category.getRententionRules());
 				rules.remove(deletedRule.getId());
@@ -99,8 +99,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	}
 
 	private ExtensionBooleanResult isRetentionRuleLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folderSchemaType())
-				.where(rm.folderRetentionRule()).isEqualTo(event.getRecord()));
+		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folder.schemaType())
+				.where(rm.folder.retentionRule()).isEqualTo(event.getRecord()));
 
 		return ExtensionBooleanResult.forceTrueIf(logicallyDeletable);
 	}

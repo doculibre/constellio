@@ -192,29 +192,29 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 				fromAllSchemasIn(zeCollection).where(SCHEMA).isStartingWithText("filingSpace"))).isZero();
 
 		Metadata folderFilingSpace = rm.defaultFolderSchema().getMetadata(Folder.FILING_SPACE);
-		Metadata containerFilingSpace = rm.defaultContainerRecordSchema().getMetadata(ContainerRecord.FILING_SPACE);
+		Metadata containerFilingSpace = rm.containerRecord.schema().getMetadata(ContainerRecord.FILING_SPACE);
 		Metadata decomListFilingSpace = rm.decommissioningList.schema().getMetadata(DecommissioningList.FILING_SPACE);
 
 		assertThatRecord(searchServices.searchSingleResult(from(rm.folderSchemaType()).where(TITLE).is("Banane")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit12b.getId())
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit12b.getId())
 				.hasNoMetadataValue(folderFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(from(rm.folderSchemaType()).where(TITLE).is("Perroquet")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(folderFilingSpace);
 
-		assertThatRecord(searchServices.searchSingleResult(from(rm.containerRecordSchemaType()).where(TITLE).is("10_A_12")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
+		assertThatRecord(searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(TITLE).is("10_A_12")))
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(containerFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(
 				from(rm.decommissioningList.schema()).where(IDENTIFIER).isEqualTo("list10")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(decomListFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(
 				from(rm.decommissioningList.schema()).where(IDENTIFIER).isEqualTo("list08")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit20.getId())
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit20.getId())
 				.hasNoMetadataValue(decomListFilingSpace);
 	}
 

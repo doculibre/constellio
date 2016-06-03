@@ -84,10 +84,10 @@ public class ClassificationPlanReportPresenter {
 
 			for (String retentionRulesId : retentionRulesIds) {
 
-				MetadataSchemaType categorySchemaType = rm.categorySchemaType();
+				MetadataSchemaType categorySchemaType = rm.category.schemaType();
 				LogicalSearchQuery categoriesQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(categorySchemaType)
-								.where(rm.categoryRetentionRules())
+								.where(rm.category.retentionRules())
 								.isContaining(Arrays.asList(retentionRulesId)))
 						.sortAsc(Schemas.CODE);
 

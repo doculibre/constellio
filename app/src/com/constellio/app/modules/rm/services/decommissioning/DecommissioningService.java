@@ -323,7 +323,7 @@ public class DecommissioningService {
 
 	public List<Folder> getFoldersForAdministrativeUnit(String administrativeUnitId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderAdministrativeUnit()).is(administrativeUnitId))
+				from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).is(administrativeUnitId))
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.sortAsc(Schemas.TITLE);
 		return rm.wrapFolders(searchServices.search(query));
@@ -331,7 +331,7 @@ public class DecommissioningService {
 
 	public List<Folder> getFoldersForClassificationPlan(String classificationPlanId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderCategory()).is(classificationPlanId))
+				from(rm.folder.schemaType()).where(rm.folder.category()).is(classificationPlanId))
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.sortAsc(Schemas.TITLE);
 		return rm.wrapFolders(searchServices.search(query));
@@ -339,7 +339,7 @@ public class DecommissioningService {
 
 	public long getFolderCountForRetentionRule(String retentionRuleId) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderRetentionRule()).is(retentionRuleId))
+				from(rm.folder.schemaType()).where(rm.folder.retentionRule()).is(retentionRuleId))
 				.filteredByStatus(StatusFilter.ACTIVES);
 		return searchServices.getResultsCount(query);
 	}
@@ -377,12 +377,12 @@ public class DecommissioningService {
 
 	private List<Folder> getFoldersInContainers(List<ContainerRecord> containers) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderContainer()).isIn(containers));
+				from(rm.folder.schemaType()).where(rm.folder.container()).isIn(containers));
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
 	private List<Folder> getFolders(List<String> folderIds) {
-		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(folderIds));
+		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isIn(folderIds));
 		return rm.wrapFolders(searchServices.search(query));
 	}
 
@@ -408,9 +408,9 @@ public class DecommissioningService {
 	}
 
 	private boolean hasFoldersToSort(DecommissioningList decommissioningList) {
-		LogicalSearchCondition condition = from(rm.folderSchemaType())
+		LogicalSearchCondition condition = from(rm.folder.schemaType())
 				.where(Schemas.IDENTIFIER).isIn(decommissioningList.getFolders())
-				.andWhere(rm.folderInactiveDisposalType()).isEqualTo(DisposalType.SORT);
+				.andWhere(rm.folder.inactiveDisposalType()).isEqualTo(DisposalType.SORT);
 		return searchServices.hasResults(condition);
 	}
 
@@ -585,8 +585,8 @@ public class DecommissioningService {
 
 	public LocalDate getDispositionDate(ContainerRecord container) {
 		LocalDate minimumDate = null;
-		List<Record> records = getFoldersInContainer(container, rm.folderExpectedDepositDate(),
-				rm.folderExpectedDestructionDate());
+		List<Record> records = getFoldersInContainer(container, rm.folder.expectedDepositDate(),
+				rm.folder.expectedDestructionDate());
 		for (Record record : records) {
 			minimumDate = getMinimumLocalDate(minimumDate, record);
 		}
@@ -596,7 +596,7 @@ public class DecommissioningService {
 	public List<String> getMediumTypesOf(ContainerRecord container) {
 		Set<String> mediumTypesSet = new HashSet<>();
 		List<String> mediumTypes = new ArrayList<>();
-		List<Record> records = getFoldersInContainer(container, rm.folderMediumTypes());
+		List<Record> records = getFoldersInContainer(container, rm.folder.mediumTypes());
 		for (Record record : records) {
 			Folder folder = rm.wrapFolder(record);
 			mediumTypesSet.addAll(folder.getMediumTypes());
@@ -606,7 +606,7 @@ public class DecommissioningService {
 	}
 
 	public boolean hasFolderToDeposit(ContainerRecord container) {
-		List<Record> records = getFoldersInContainer(container, rm.folderMainCopyRule(), rm.folderContainer());
+		List<Record> records = getFoldersInContainer(container, rm.folder.mainCopyRule(), rm.folder.container());
 		for (Record record : records) {
 			Folder folder = rm.wrapFolder(record);
 			if (DisposalType.DEPOSIT == folder.getMainCopyRule().getInactiveDisposalType()) {
@@ -647,7 +647,7 @@ public class DecommissioningService {
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isEqualTo(folder))));
+				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
 			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction);
 			duplicatedChild.setTitle(child.getTitle());
@@ -682,7 +682,7 @@ public class DecommissioningService {
 
 	private List<Record> getFoldersInContainer(ContainerRecord container, Metadata... metadatas) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
-				from(rm.folderSchemaType()).where(rm.folderContainer()).isEqualTo(container))
+				from(rm.folderSchemaType()).where(rm.folder.container()).isEqualTo(container))
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(metadatas));
 		return searchServices.search(query);
 	}

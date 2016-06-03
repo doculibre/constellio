@@ -243,13 +243,13 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 
 	private ExpectedFacetValue value(RetentionRule retentionRule) {
 		int count = (int) searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderRetentionRule()).isEqualTo(retentionRule));
+				.where(rm.folder.retentionRule()).isEqualTo(retentionRule));
 		return new ExpectedFacetValue(retentionRule.getId(), retentionRule.getTitle(), -1);
 	}
 
 	private ExpectedFacetValue value(AdministrativeUnit unit) {
 		int count = (int) searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(unit));
+				.where(rm.folder.administrativeUnit()).isEqualTo(unit));
 		return new ExpectedFacetValue(unit.getId(), unit.getTitle(), -1);
 	}
 

@@ -46,7 +46,7 @@ public class DecommissioningListReportPresenter {
 
 		DecommissioningListReportModel model = new DecommissioningListReportModel();
 
-		MetadataSchemaType folderSchemaType = rm.folderSchemaType();
+		MetadataSchemaType folderSchemaType = rm.folder.schemaType();
 		DecommissioningList decommissioningList = rm.getDecommissioningList(decommissioningListId);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery()

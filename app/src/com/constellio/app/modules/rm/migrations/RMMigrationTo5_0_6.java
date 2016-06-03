@@ -47,7 +47,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-		if (!rm.defaultFolderSchema().hasMetadataWithCode(Folder.LINEAR_SIZE)) {
+		if (!rm.folder.schema().hasMetadataWithCode(Folder.LINEAR_SIZE)) {
 			new SchemaAlterationFor5_0_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
 			updateFormAndDisplayConfigs(collection, appLayerFactory);
 		}
