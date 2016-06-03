@@ -3017,7 +3017,7 @@ public class RMTestRecords {
 	}
 
 	public FolderType folderTypeEmploye() {
-		return rm.getFolderType("employe");
+		return rm.getFolderTypeWithCode("employe");
 	}
 
 	public FolderType folderTypeMeeting() {
