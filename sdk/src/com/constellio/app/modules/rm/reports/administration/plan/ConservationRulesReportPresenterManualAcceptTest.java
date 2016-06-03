@@ -51,7 +51,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		presenter = new ConservationRulesReportPresenter(zeCollection, getModelLayerFactory());
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	@Test

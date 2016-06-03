@@ -107,7 +107,7 @@ public class UpdateFoldersActualDestructionDateScript {
 
         for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
             currentCollection = collection;
-            rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+            rm = new RMSchemasRecordsServices(collection, appLayerFactory);
             runScriptForCurrentCollection(targetObjectIds);
         }
     }

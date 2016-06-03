@@ -62,7 +62,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 
@@ -82,20 +82,20 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.setFieldDataStoreCode("archivisticStatus_s"));
 
 		allFolderDocumentsContainersCount = searchServices.getResultsCount(
-				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecordSchemaType())).returnAll());
+				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecord.schemaType())).returnAll());
 
 		allFolderDocumentsContainersCountWithRetentionRule1 = searchServices.getResultsCount(
-				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecordSchemaType()))
-						.where(rm.folderRetentionRule()).isEqualTo(records.ruleId_1));
+				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecord.schemaType()))
+						.where(rm.folder.retentionRule()).isEqualTo(records.ruleId_1));
 
 		allActiveFolderDocumentsContainersCountWithRetentionRule1 = searchServices.getResultsCount(
-				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecordSchemaType()))
-						.where(rm.folderRetentionRule()).isEqualTo(records.ruleId_1)
-						.andWhere(rm.folderArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE));
+				from(asList(rm.folderSchemaType(), rm.documentSchemaType(), rm.containerRecord.schemaType()))
+						.where(rm.folder.retentionRule()).isEqualTo(records.ruleId_1)
+						.andWhere(rm.folder.archivisticStatus()).isEqualTo(FolderStatus.ACTIVE));
 
 		foldersCount = searchServices.getResultsCount(from(rm.folderSchemaType()).returnAll());
 		documentsCount = searchServices.getResultsCount(from(rm.documentSchemaType()).returnAll());
-		containersCount = searchServices.getResultsCount(from(rm.containerRecordSchemaType()).returnAll());
+		containersCount = searchServices.getResultsCount(from(rm.containerRecord.schemaType()).returnAll());
 	}
 
 	@Test

@@ -68,7 +68,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		repositoryInfo.setChangesIncomplete(true);
 
 		RepositoryCapabilitiesImpl capabilities = new RepositoryCapabilitiesImpl();
-		capabilities.setCapabilityAcl(CapabilityAcl.DISCOVER);
+		capabilities.setCapabilityAcl(CapabilityAcl.MANAGE);
 		capabilities.setAllVersionsSearchable(false);
 		capabilities.setCapabilityJoin(CapabilityJoin.NONE);
 		capabilities.setSupportsMultifiling(false);
@@ -88,7 +88,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 			//capabilities.setOrderByCapability(CapabilityOrderBy.NONE);
 
 			NewTypeSettableAttributesImpl typeSetAttributes = new NewTypeSettableAttributesImpl();
-			typeSetAttributes.setCanSetControllableAcl(false);
+			typeSetAttributes.setCanSetControllableAcl(true);
 			typeSetAttributes.setCanSetControllablePolicy(false);
 			typeSetAttributes.setCanSetCreatable(false);
 			typeSetAttributes.setCanSetDescription(false);
@@ -112,7 +112,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 
 		AclCapabilitiesDataImpl aclCapability = new AclCapabilitiesDataImpl();
 		aclCapability.setSupportedPermissions(SupportedPermissions.BASIC);
-		aclCapability.setAclPropagation(AclPropagation.OBJECTONLY);
+		aclCapability.setAclPropagation(AclPropagation.REPOSITORYDETERMINED);
 
 		// permissions
 		List<PermissionDefinition> permissions = new ArrayList<PermissionDefinition>();
@@ -129,6 +129,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		list.add(createMapping(PermissionMapping.CAN_DELETE_OBJECT, CMIS_ALL));
 		list.add(createMapping(PermissionMapping.CAN_DELETE_TREE_FOLDER, CMIS_ALL));
 		list.add(createMapping(PermissionMapping.CAN_GET_ACL_OBJECT, CMIS_READ));
+		list.add(createMapping(PermissionMapping.CAN_APPLY_ACL_OBJECT, CMIS_READ));
 		list.add(createMapping(PermissionMapping.CAN_GET_ALL_VERSIONS_VERSION_SERIES, CMIS_READ));
 		list.add(createMapping(PermissionMapping.CAN_GET_CHILDREN_FOLDER, CMIS_READ));
 		list.add(createMapping(PermissionMapping.CAN_GET_DESCENDENTS_FOLDER, CMIS_READ));

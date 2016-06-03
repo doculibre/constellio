@@ -72,7 +72,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected void initTransientObjects() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(presenterUtils.getCollection(),
-				presenterUtils.modelLayerFactory());
+				presenterUtils.appLayerFactory());
 		voBuilder = new DocumentToVOBuilder(presenterUtils.modelLayerFactory());
 		decommissioningLoggingService = new DecommissioningLoggingService(presenterUtils.modelLayerFactory());
 		extensions = presenterUtils.modelLayerFactory().getExtensions().forCollection(presenterUtils.getCollection());
@@ -529,7 +529,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void alertWhenAvailable() {
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(presenterUtils.getCollection(),
-				presenterUtils.modelLayerFactory());
+				presenterUtils.appLayerFactory());
 		Document document = schemas.getDocument(documentVO.getId());
 		List<String> usersToAlert = document.getAlertUsersWhenAvailable();
 		String currentUserId = getCurrentUser().getId();

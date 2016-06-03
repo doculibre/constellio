@@ -17,7 +17,7 @@ public class ExecuteSPEQueries {
 		AppLayerFactory appLayerFactory = startLayerFactoriesWithoutBackgroundThreads();
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(COLLECTION, modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(COLLECTION, appLayerFactory);
 
 		long foldersCount = searchServices.getResultsCount(from(rm.folderSchemaType()).returnAll());
 		long documentsCount = searchServices.getResultsCount(from(rm.documentSchemaType()).returnAll());

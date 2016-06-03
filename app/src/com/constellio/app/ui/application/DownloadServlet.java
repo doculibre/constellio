@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.ContentVersion;
@@ -28,12 +29,13 @@ public class DownloadServlet extends HttpServlet {
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(documentId);
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		Document document = rm.wrapDocument(record);
 
 		if (document.isPublished() && document.getContent() != null) {

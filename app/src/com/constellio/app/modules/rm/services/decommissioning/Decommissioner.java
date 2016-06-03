@@ -351,7 +351,7 @@ public abstract class Decommissioner {
 	protected abstract void processContainer(ContainerRecord container, DecomListContainerDetail detail);
 
 	protected boolean isContainerEmpty(ContainerRecord container, List<String> destroyedFolders) {
-		LogicalSearchCondition condition = from(rm.folderSchemaType()).where(rm.folderContainer()).isEqualTo(container);
+		LogicalSearchCondition condition = from(rm.folder.schemaType()).where(rm.folder.container()).isEqualTo(container);
 		if (!destroyedFolders.isEmpty()) {
 			condition = condition.andWhere(Schemas.IDENTIFIER).isNotIn(destroyedFolders);
 		}

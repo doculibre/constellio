@@ -47,7 +47,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		recordServices = getModelLayerFactory().newRecordServices();
 

@@ -171,7 +171,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		contentManager = getModelLayerFactory().getContentManager();
@@ -551,8 +551,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 				);
 
 		//2- Logically delete two folders and one document
-		recordServices.logicallyDelete(rm.getFolderByLegacyId(folderAANoTaxoURL).getWrappedRecord(), User.GOD);
-		recordServices.logicallyDelete(rm.getFolderByLegacyId(folderBNoTaxoURL).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(rm.getFolderWithLegacyId(folderAANoTaxoURL).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(rm.getFolderWithLegacyId(folderBNoTaxoURL).getWrappedRecord(), User.GOD);
 		recordServices.logicallyDelete(rm.getDocumentByLegacyId(documentA1NoTaxoURL).getWrappedRecord(), User.GOD);
 		assertThat(rm.searchFolders(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
 				.extracting("legacyId", "title").containsOnly(
@@ -1164,12 +1164,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThatRecord(recordServices.getDocumentById(folderB))
 				.hasMetadataValue(Schemas.FETCHED, true).hasNoMetadataValue(Schemas.LOGICALLY_DELETED_STATUS);
 
-		assertThat(rm.getFolderByLegacyId(folderATaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderAATaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderAAATaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderAABTaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderABTaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderBTaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderATaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderAATaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderAAATaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderAABTaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderABTaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderBTaxoURL)).isNull();
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1215,12 +1215,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThatRecord(recordServices.getDocumentById(folderB))
 				.hasMetadataValue(Schemas.FETCHED, true).hasNoMetadataValue(Schemas.LOGICALLY_DELETED_STATUS);
 
-		assertThat(rm.getFolderByLegacyId(folderATaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderAATaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderAAATaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderAABTaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderABTaxoURL)).isNull();
-		assertThat(rm.getFolderByLegacyId(folderBTaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderATaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderAATaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderAAATaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderAABTaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderABTaxoURL)).isNull();
+		assertThat(rm.getFolderWithLegacyId(folderBTaxoURL)).isNull();
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}
@@ -1685,37 +1685,37 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		List<RobotLog> loggedErrors = getRobotLogsForRobot("terminator");
 		assertThat(loggedErrors.size()).isEqualTo(1);
 
-		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/")).isNull();
-		assertThatRecord(rm.getFolderByLegacyId("smb://AU1 Ze admin unit/AU11 Ze child admin unit/")).isNull();
+		assertThatRecord(rm.getFolderWithLegacyId("smb://AU1 Ze admin unit/")).isNull();
+		assertThatRecord(rm.getFolderWithLegacyId("smb://AU1 Ze admin unit/AU11 Ze child admin unit/")).isNull();
 
-		Folder classifiedSmbFolder4 = rm.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/");
-		Folder classifiedSmbFolder5 = rm.getFolderByLegacyId(
+		Folder classifiedSmbFolder4 = rm.getFolderWithLegacyId("smb://AU1 Ze admin unit/Folder A/");
+		Folder classifiedSmbFolder5 = rm.getFolderWithLegacyId(
 				"smb://AU1 Ze admin unit/Folder A/Sub folder in A/");
 		Folder classifiedSmbFolder6 = rm
-				.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/Sub folder in A/Sub sub folder in A/");
-		Folder classifiedSmbFolder7 = rm.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/");
+				.getFolderWithLegacyId("smb://AU1 Ze admin unit/Folder A/Sub folder in A/Sub sub folder in A/");
+		Folder classifiedSmbFolder7 = rm.getFolderWithLegacyId("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/");
 		Folder classifiedSmbFolder8 = rm
-				.getFolderByLegacyId("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/AU1 Ze folder/");
+				.getFolderWithLegacyId("smb://AU1 Ze admin unit/Folder A/AU1 Another sub folder in A/AU1 Ze folder/");
 
 		assertThatRecord(classifiedSmbFolder4)
-				.hasMetadata(rm.folderParentFolder(), null)
-				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+				.hasMetadata(rm.folder.parentFolder(), null)
+				.hasMetadata(rm.folder.administrativeUnit(), adminUnit1);
 
 		assertThatRecord(classifiedSmbFolder5)
-				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder4.getId())
-				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+				.hasMetadata(rm.folder.parentFolder(), classifiedSmbFolder4.getId())
+				.hasMetadata(rm.folder.administrativeUnit(), adminUnit1);
 
 		assertThatRecord(classifiedSmbFolder6)
-				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder5.getId())
-				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+				.hasMetadata(rm.folder.parentFolder(), classifiedSmbFolder5.getId())
+				.hasMetadata(rm.folder.administrativeUnit(), adminUnit1);
 
 		assertThatRecord(classifiedSmbFolder7)
-				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder4.getId())
-				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+				.hasMetadata(rm.folder.parentFolder(), classifiedSmbFolder4.getId())
+				.hasMetadata(rm.folder.administrativeUnit(), adminUnit1);
 
 		assertThatRecord(classifiedSmbFolder8)
-				.hasMetadata(rm.folderParentFolder(), classifiedSmbFolder7.getId())
-				.hasMetadata(rm.folderAdministrativeUnit(), adminUnit1);
+				.hasMetadata(rm.folder.parentFolder(), classifiedSmbFolder7.getId())
+				.hasMetadata(rm.folder.administrativeUnit(), adminUnit1);
 	}
 
 	//When delete, given error in transaction, then not deleted

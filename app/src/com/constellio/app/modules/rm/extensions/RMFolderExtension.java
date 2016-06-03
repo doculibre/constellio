@@ -80,7 +80,7 @@ public class RMFolderExtension extends RecordExtension {
 	@Override
 	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
 			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
-		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.getRecord().get(rmSchema.folderParentFolder()) != null) {
+		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.getRecord().get(rmSchema.folder.parentFolder()) != null) {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
 			folder.setAdministrativeUnitEntered((String) null);
 			folder.setCategoryEntered((String) null);
@@ -146,7 +146,7 @@ public class RMFolderExtension extends RecordExtension {
 
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnitSchema()).returnAll();
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema()).returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {

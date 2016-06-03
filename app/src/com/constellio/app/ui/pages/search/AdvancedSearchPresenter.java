@@ -259,8 +259,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
 		// TODO: Create an extension for this
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		Cart cart = rm.getCart(cartVO.getId());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Cart cart = rm.getOrCreateUserCart(getCurrentUser());
 		switch (schemaTypeCode) {
 		case Folder.SCHEMA_TYPE:
 			cart.addFolders(recordIds);

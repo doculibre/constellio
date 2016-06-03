@@ -36,7 +36,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 						.withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
 		);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());

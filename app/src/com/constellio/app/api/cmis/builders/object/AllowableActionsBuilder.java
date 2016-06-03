@@ -8,7 +8,10 @@ import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AllowableActionsImpl;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class AllowableActionsBuilder {
 
@@ -16,12 +19,21 @@ public class AllowableActionsBuilder {
 
 	private final ConstellioCollectionRepository repository;
 
-	public AllowableActionsBuilder(ConstellioCollectionRepository repository, Record record) {
+	private final AppLayerFactory appLayerFactory;
+
+	public AllowableActionsBuilder(AppLayerFactory appLayerFactory, ConstellioCollectionRepository repository,
+			Record record) {
 		this.record = record;
 		this.repository = repository;
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	public AllowableActions build() {
+
+		MetadataSchemaType type = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(repository.getCollection())
+				.getSchemaType(new SchemaUtils().getSchemaTypeCode(record.getSchemaCode()));
+
 		boolean userReadOnly = false;
 		if (record == null) {
 			throw new IllegalArgumentException("File must not be null!");
@@ -39,7 +51,10 @@ public class AllowableActionsBuilder {
 			addAction(aas, Action.CAN_UPDATE_PROPERTIES, !userReadOnly);
 			addAction(aas, Action.CAN_MOVE_OBJECT, !userReadOnly);
 			addAction(aas, Action.CAN_DELETE_OBJECT, !userReadOnly);
-			addAction(aas, Action.CAN_GET_ACL, true);
+			if (type.hasSecurity()) {
+				addAction(aas, Action.CAN_GET_ACL, true);
+				addAction(aas, Action.CAN_APPLY_ACL, true);
+			}
 
 			//if (isFolder) {
 			addAction(aas, Action.CAN_GET_DESCENDANTS, true);

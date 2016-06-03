@@ -24,7 +24,7 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		Folder folder = records.getFolder_A02();
 
@@ -34,20 +34,20 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 	public void validateLinkedSchemaUtilsMethods()
 			throws Exception {
 
-		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeByCode("meetingFolder"))).isEqualTo("folder_meeting");
-		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeByCode("employe"))).isEqualTo("folder_employe");
-		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeByCode("other"))).isEqualTo("folder_default");
+		assertThat(rm.getLinkedSchemaOf(rm.getFolderType("meetingFolder"))).isEqualTo("folder_meeting");
+		assertThat(rm.getLinkedSchemaOf(rm.getFolderType("employe"))).isEqualTo("folder_employe");
+		assertThat(rm.getLinkedSchemaOf(rm.getFolderType("other"))).isEqualTo("folder_default");
 
 		Folder folder = records.getFolder_A05();
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_default");
 
-		folder.setType(rm.getFolderTypeByCode("meetingFolder"));
+		folder.setType(rm.getFolderType("meetingFolder"));
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_meeting");
 
-		folder.setType(rm.getFolderTypeByCode("employe"));
+		folder.setType(rm.getFolderType("employe"));
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_employe");
 
-		folder.setType(rm.getFolderTypeByCode("other"));
+		folder.setType(rm.getFolderType("other"));
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_default");
 
 	}

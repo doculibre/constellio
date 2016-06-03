@@ -76,7 +76,7 @@ public class RecordWithCopyRetentionRuleParametersPresenterAcceptanceTest extend
 
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		searchServices = getModelLayerFactory().newSearchServices();
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		//		Transaction transaction = new Transaction();

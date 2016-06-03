@@ -44,7 +44,7 @@ public class RMMigrationTo5_1_5 implements MigrationScript {
 	private void createFolderTypeAndDocumentTypeFacets(Transaction transaction, RMSchemasRecordsServices rm,
 			MigrationResourcesProvider provider) {
 		transaction.add(rm.newFacetField().setTitle(provider.getDefaultLanguageString("facets.folderType"))
-				.setFieldDataStoreCode(rm.folderFolderType().getDataStoreCode()).setActive(false));
+				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
 		transaction.add(rm.newFacetField().setTitle(provider.getDefaultLanguageString("facets.documentType"))
 				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 	}

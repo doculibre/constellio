@@ -56,7 +56,7 @@ public class DecommissioningService_openHolder_AcceptTest extends ConstellioTest
 						.withFoldersAndContainersOfEveryStatus().withAllTestUsers()
 		);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = new DecommissioningService(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();

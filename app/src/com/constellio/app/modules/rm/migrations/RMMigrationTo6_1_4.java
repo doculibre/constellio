@@ -35,7 +35,7 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final AtomicBoolean recordFixed = new AtomicBoolean(false);
 
 		new ActionExecutorInBatch(searchServices, "Set sub-folders entered values to null", 250) {
@@ -76,7 +76,7 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 				});
 
 			}
-		}.execute(from(rm.folderSchemaType()).where(rm.folderParentFolder()).isNotNull());
+		}.execute(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isNotNull());
 
 		if (recordFixed.get()) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
