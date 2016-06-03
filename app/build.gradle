@@ -73,7 +73,7 @@ dependencies {
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
     compile "com.sun.messaging.mq:jaxm-api:4.4.1"
-    
+
     compile "org.samba.jcifs:jcifs_gcm:322"
     compile "vaadin:breadcrumb:1.7.3"
     compile "vaadin:mediaelementjs-player:1.2.6"
@@ -90,6 +90,7 @@ dependencies {
     compile "net.sf.barcode4j:barcode4j:2.1"
     compile "com.jgoodies:jgoodies-common:1.7.0"
     compile "nl.bitwalker:UserAgentUtils:1.2.4"
+    compile "org.jasig.cas:cas-client-core:3.1.10"
 }
 
 war {
