@@ -670,7 +670,7 @@ public class DecommissioningService {
 		Folder newFolder = rm.newFolderWithType(folder.getType());
 		MetadataSchema schema = newFolder.getSchema();
 
-		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals()) {
+		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
 			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
 		newFolder.setTitle(folder.getTitle() + " (Copie)");
