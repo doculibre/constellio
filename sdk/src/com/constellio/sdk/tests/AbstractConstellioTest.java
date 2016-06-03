@@ -124,6 +124,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String bobGratton = "bob";
 	protected String chuckNorris = "chuck";
 	protected String charlesFrancoisXavier = "charles";
+	protected String charles = "charles";
 	protected String dakota = "dakota";
 	protected String edouard = "edouard";
 	protected String gandalf = "gandalf";

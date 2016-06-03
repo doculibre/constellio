@@ -32,9 +32,9 @@ public class DecomListContainerDetail implements ModifiableStructure {
 		return full;
 	}
 
-	public DecomListContainerDetail setFull(boolean full) {
+	public DecomListContainerDetail setFull(Boolean full) {
 		dirty = true;
-		this.full = full;
+		this.full = Boolean.TRUE.equals(full);
 		return this;
 	}
 

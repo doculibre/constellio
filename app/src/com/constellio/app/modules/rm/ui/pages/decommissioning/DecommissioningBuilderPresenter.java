@@ -47,6 +47,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
+
 	SearchType searchType;
 	String adminUnitId;
 	boolean displayResults;
@@ -148,6 +149,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
 			}
 		} catch (Exception e) {
+			LOGGER.error("Error while creating decommissioning list", e);
 			view.showErrorMessage($("DecommissioningBuilderView.unableToSave"));
 		}
 	}

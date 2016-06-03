@@ -61,7 +61,7 @@ public class GetAllVersionsRequest extends CmisCollectionRequest<List<ObjectData
 
 		for (ContentCmisDocument version : CmisContentUtils.getAllVersions(objectId, recordServices, types, user)) {
 			versions.add(newContentObjectDataBuilder()
-					.build(callContext, version, null, includeAllowableActions, false, objectInfos));
+					.build(appLayerFactory, callContext, version, null, includeAllowableActions, false, objectInfos));
 
 		}
 
