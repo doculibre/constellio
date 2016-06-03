@@ -34,10 +34,17 @@ public class ListOptionGroup extends OptionGroup {
 	}
 	
 	private void init() {
-		setConverter(new ObjectToListConverter());
 	}
 
-    /**
+    @Override
+	public void attach() {
+		if (isMultiSelect()) {
+			setConverter(new ObjectToListConverter());
+		}
+		super.attach();
+	}
+
+	/**
      * Returns the type of the property. <code>getValue</code> and
      * <code>setValue</code> methods must be compatible with this type: one can
      * safely cast <code>getValue</code> to given type and pass any variable
