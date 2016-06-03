@@ -3021,11 +3021,11 @@ public class RMTestRecords {
 	}
 
 	public FolderType folderTypeMeeting() {
-		return rm.getFolderType("meetingFolder");
+		return rm.getFolderTypeWithCode("meetingFolder");
 	}
 
 	public FolderType folderTypeOther() {
-		return rm.getFolderType("other");
+		return rm.getFolderTypeWithCode("other");
 	}
 
 	public DocumentType documentTypeForm() {

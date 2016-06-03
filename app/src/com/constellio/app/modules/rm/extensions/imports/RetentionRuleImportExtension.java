@@ -373,9 +373,9 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		if(StringUtils.isNotBlank(typeIdRawValue)) {
 			if(typeIdRawValue.startsWith("code:")) {
 				if(rulesType.equals(RULES_TYPE_FOLDER)) {
-					copyRetentionRule.setTypeId(rm.getFolderType(typeIdRawValue.split(":")[1]));
+					copyRetentionRule.setTypeId(rm.getFolderTypeWithCode(typeIdRawValue.split(":")[1]));
 				} else {
-					copyRetentionRule.setTypeId(rm.getDocumentTypeByCode(typeIdRawValue.split(":")[1]));
+					copyRetentionRule.setTypeId(rm.getDocumentTypeWithCode(typeIdRawValue.split(":")[1]));
 				}
 			} else {
 				copyRetentionRule.setTypeId(typeIdRawValue);
