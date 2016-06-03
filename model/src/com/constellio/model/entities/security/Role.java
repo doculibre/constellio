@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,5 +71,11 @@ public class Role {
 
 	public Role withPermissions(List<String> operationPermissions) {
 		return new Role(collection, code, title, operationPermissions);
+	}
+
+	public Role withNewPermissions(List<String> operationPermissions) {
+		List<String> allPermissions = new ArrayList<>(this.operationPermissions);
+		allPermissions.addAll(operationPermissions);
+		return new Role(collection, code, title, allPermissions);
 	}
 }

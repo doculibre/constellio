@@ -27,10 +27,12 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.complementary.ESRMRobotsModule;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.conf.DataLayerConfiguration;
@@ -374,6 +376,77 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(
 				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
+		FileUtils.writeStringToFile(dest, file.toString());
+	}
+
+	@InDevelopmentTest
+	@Test
+	public void generateESRMRobotsMigrations()
+			throws Exception {
+
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(AppLayerConfiguration configuration) {
+				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			}
+		});
+
+		givenCollection(zeCollection);
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
+
+		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).unregisterModule(new ESRMRobotsModule());
+
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioESModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioESModule());
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRMModule());
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRobotsModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRobotsModule());
+
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.rewriteInOrderAndGetCodes(zeCollection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).registerModule(new ESRMRobotsModule());
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ESRMRobotsModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ESRMRobotsModule());
+
+		System.out.println(" ------ Migration script ------");
+
+		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
+
+		generateI18n(new File(migrationsResources, "es_rm_robots"));
+
+		MethodSpec constructor = generateConstructor();
+
+		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedESRMRobotsMigrationCombo")
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
+
+		JavaFile file = JavaFile.builder("com.constellio.app.modules.complementary.esRmRobots.migrations", generatedClassSpec)
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
+
+		File dest = new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedESRMRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 

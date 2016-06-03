@@ -23,6 +23,8 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
@@ -94,6 +96,38 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void setupCollection() {
 				givenCollection(zeCollection).withConstellioESModule();
+			}
+		});
+
+	}
+
+	@Test
+	public void validateCoreESRMMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withConstellioESModule().withConstellioRMModule();
+				getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getMetadata("userTask_default_status").setDefaultValue(null);
+					}
+				});
+			}
+		});
+
+	}
+
+	@Test
+	public void validateCoreESRMRobotsMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule().withRobotsModule();
 			}
 		});
 
