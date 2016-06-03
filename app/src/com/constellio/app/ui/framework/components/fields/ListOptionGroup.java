@@ -34,17 +34,10 @@ public class ListOptionGroup extends OptionGroup {
 	}
 	
 	private void init() {
+		setConverter(new ObjectToCollectionConverter());
 	}
 
-    @Override
-	public void attach() {
-		if (isMultiSelect()) {
-			setConverter(new ObjectToListConverter());
-		}
-		super.attach();
-	}
-
-	/**
+    /**
      * Returns the type of the property. <code>getValue</code> and
      * <code>setValue</code> methods must be compatible with this type: one can
      * safely cast <code>getValue</code> to given type and pass any variable
@@ -61,10 +54,10 @@ public class ListOptionGroup extends OptionGroup {
         }
     }
 	
-	private static class ObjectToListConverter implements Converter<Object, List<?>> {
+	private static class ObjectToCollectionConverter implements Converter<Object, Collection<?>> {
 
 		@Override
-		public List<?> convertToModel(Object value, Class<? extends List<?>> targetType, Locale locale)
+		public List<?> convertToModel(Object value, Class<? extends Collection<?>> targetType, Locale locale)
 				throws com.vaadin.data.util.converter.Converter.ConversionException {
 			List<?> model;
 			if (value instanceof List) {
@@ -72,13 +65,13 @@ public class ListOptionGroup extends OptionGroup {
 			} else if (value instanceof Collection) {
 				model = new ArrayList<Object>((Collection<?>) value);
 			} else {
-				model = null;
+				model = new ArrayList<Object>();
 			}
 			return model;
 		}
 
 		@Override
-		public Object convertToPresentation(List<?> value, Class<? extends Object> targetType, Locale locale)
+		public Object convertToPresentation(Collection<?> value, Class<? extends Object> targetType, Locale locale)
 				throws com.vaadin.data.util.converter.Converter.ConversionException {
 			return value;
 		}
@@ -86,7 +79,7 @@ public class ListOptionGroup extends OptionGroup {
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public Class getModelType() {
-			return List.class;
+			return Collection.class;
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
