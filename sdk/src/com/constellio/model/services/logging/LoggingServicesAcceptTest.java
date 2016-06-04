@@ -78,7 +78,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
 		UserServices userServices = getModelLayerFactory().newUserServices();

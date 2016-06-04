@@ -7,13 +7,13 @@ import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories.ContainerRecordReportFactoryParams;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordDepositReportViewImpl;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordTransferReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -116,12 +116,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(containerId);
 		ContainerRecord containerRecord = new ContainerRecord(record, types());
 
-		if (containerRecord.getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE) {
-			return new ContainerRecordTransferReportViewImpl(containerId);
-		} else if (containerRecord.getDecommissioningType() == DecommissioningType.DEPOSIT) {
-			return new ContainerRecordDepositReportViewImpl(containerId);
-		}
-		throw new RuntimeException("BUG: Unknown report: " + report);
+		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories().build(new ContainerRecordReportFactoryParams(containerRecord));
 	}
 
 	public boolean canPrintReports() {
@@ -131,6 +127,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		try {
 			getReport("");
 		} catch (RuntimeException e) {
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -161,10 +158,10 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (capacity == null || capacity == 0.0) {
 			throw new ContainerWithoutCapacityException();
 		}
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		Metadata containerMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
-		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(containerMetadata).isEqualTo(container.getId());
-		DataStoreField linearSizeMetadata = schemas.folderSchemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		Metadata containerMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
+		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata).isEqualTo(container.getId());
+		DataStoreField linearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata.getDataStoreCode());
 		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
 		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata.getDataStoreCode());
@@ -186,8 +183,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	private LogicalSearchQuery getFoldersQuery() {
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folderSchemaType())
-				.where(rmRecordServices().folderContainer()).isEqualTo(containerId);
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(rmRecordServices().folder.schemaType())
+				.where(rmRecordServices().folder.container()).isEqualTo(containerId);
 		return new LogicalSearchQuery(condition);
 	}
 
@@ -219,7 +216,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private RMSchemasRecordsServices rmRecordServices() {
 		if (rmRecordServices == null) {
-			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
 	}

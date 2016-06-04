@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;

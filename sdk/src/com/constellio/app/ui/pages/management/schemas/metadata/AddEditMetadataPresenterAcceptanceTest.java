@@ -90,7 +90,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		newLabels.put("fr", "zeTitle");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null, view.getSessionContext());
+				null, null, false, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -106,6 +106,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isSchemaAutocomplete()).isFalse();
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isFalse();
+		assertThat(result.isDuplicable()).isFalse();
 	}
 
 	//TODO Maxime Broken @Test@Test
@@ -117,7 +118,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		newLabels.put("fr", "zeTitle");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(zeSchema.code() + "_zeMetadataCode", MetadataValueType.BOOLEAN, false,
 				null, "", newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null, view.getSessionContext());
+				null, null, false, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, false);
 
@@ -133,6 +134,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isSchemaAutocomplete()).isFalse();
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isFalse();
+		assertThat(result.isDuplicable()).isFalse();
 	}
 
 	@Test
@@ -144,7 +146,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null, view.getSessionContext());
+				null, null, false, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
@@ -160,6 +162,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isSchemaAutocomplete()).isFalse();
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isFalse();
+		assertThat(result.isDuplicable()).isFalse();
 	}
 
 	@Test
@@ -171,7 +174,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		newLabels.put("fr", "zeTitleChanged");
 		FormMetadataVO newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.STRING, false, null, "",
 				newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
-				null, null, view.getSessionContext());
+				null, null, false, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, true);
 
@@ -187,6 +190,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isSchemaAutocomplete()).isFalse();
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isTrue();
+		assertThat(result.isDuplicable()).isFalse();
 	}
 
 }

@@ -114,7 +114,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 		smbClassifyServices = new SmbClassifyServices(zeCollection, getAppLayerFactory(), users.adminIn(zeCollection));
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		robotsService = new RobotsService(zeCollection, getAppLayerFactory());

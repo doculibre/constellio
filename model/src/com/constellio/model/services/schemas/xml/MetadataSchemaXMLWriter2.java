@@ -282,6 +282,9 @@ public class MetadataSchemaXMLWriter2 {
 		if (!metadata.getPopulateConfigs().isEmpty()) {
 			metadataElement.addContent(toPopulateConfigsElement(metadata.getPopulateConfigs()));
 		}
+		if (metadata.isDuplicable()) {
+			metadataElement.setAttribute("duplicable", writeBoolean(metadata.isDuplicable()));
+		}
 	}
 
 	private boolean writeGlobalMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
@@ -405,6 +408,10 @@ public class MetadataSchemaXMLWriter2 {
 			metadataElement.addContent(toPopulateConfigsElement(metadata.getPopulateConfigs()));
 			different = true;
 		}
+		if (globalMetadataInCollection.isDuplicable() != metadata.isDuplicable()) {
+			metadataElement.setAttribute("duplicable", writeBoolean(metadata.isDuplicable()));
+			different = true;
+		}
 
 		return different;
 	}
@@ -440,6 +447,10 @@ public class MetadataSchemaXMLWriter2 {
 				.equals(metadata.getInheritance().getDefaultValue())) {
 			ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
 			utils.toElement(metadata.getDefaultValue(), metadataElement, "defaultValue");
+			differentFromInheritance = true;
+		}
+		if (metadata.getInheritance().isDuplicable() != metadata.isDuplicable()) {
+			metadataElement.setAttribute("duplicable", writeBoolean(metadata.isDuplicable()));
 			differentFromInheritance = true;
 		}
 		return differentFromInheritance;

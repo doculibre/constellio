@@ -84,8 +84,7 @@ dependencies {
     compile "org.apache.solr:solr-core:5.0.0"
     compile "org.apache.zookeeper:zookeeper:3.4.6"
     compile "javax.validation:validation-api:1.1.0.Final"
-    // jbex-v1.4.8-pro.jar  License for 3 devs.
-    compile files("libs/jbex-v1.4.8-pro.jar")
+
 }
 configurations {
     compile.exclude group: "org.ow2.asm:asm:asm-debug-all-5.0.1"

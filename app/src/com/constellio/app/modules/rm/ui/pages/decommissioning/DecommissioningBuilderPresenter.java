@@ -47,6 +47,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
+
 	SearchType searchType;
 	String adminUnitId;
 	boolean displayResults;
@@ -148,6 +149,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				view.navigate().to(RMViews.class).displayDocumentDecommissioningList(decommissioningList.getId());
 			}
 		} catch (Exception e) {
+			LOGGER.error("Error while creating decommissioning list", e);
 			view.showErrorMessage($("DecommissioningBuilderView.unableToSave"));
 		}
 	}
@@ -226,7 +228,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
 		MetadataSchemaType type = searchType.isFolderSearch() ?
-				rmRecordServices().folderSchemaType() : rmRecordServices().documentSchemaType();
+				rmRecordServices().folder.schemaType() : rmRecordServices().documentSchemaType();
 		return new ConditionBuilder(type).build(criteria);
 	}
 
@@ -239,7 +241,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 	private RMSchemasRecordsServices rmRecordServices() {
 		if (rmRecordServices == null) {
-			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
 	}

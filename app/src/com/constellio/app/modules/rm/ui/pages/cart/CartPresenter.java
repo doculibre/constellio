@@ -132,7 +132,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+				return new LogicalSearchQuery(from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
 						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES)
 						.sortAsc(Schemas.TITLE);
 			}
@@ -156,7 +156,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.containerRecordSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+				return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
 						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES)
 						.sortAsc(Schemas.TITLE);
 			}
@@ -497,7 +497,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+				return new LogicalSearchQuery(from(rm.folder.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
 						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 						.sortAsc(Schemas.TITLE);
 			}
@@ -521,7 +521,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				getSchemas(), new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.containerRecordSchemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
+				return new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isIn(cart().getAllItems()))
 						.filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES).setFreeTextQuery(freeText)
 						.sortAsc(Schemas.TITLE);
 			}

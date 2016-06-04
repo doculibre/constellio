@@ -50,7 +50,7 @@ public class ScriptExemple {
 	private static LogicalSearchQuery getQuery() {
 		//TODO Build a query to find records to modify or to return all records
 		return new LogicalSearchQuery(from(rm.folderSchemaType())
-				.where(rm.containerAdministrativeUnit()).isEqualTo("42"));
+				.where(rm.containerRecord.administrativeUnit()).isEqualTo("42"));
 
 		//return new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());
 
@@ -104,7 +104,7 @@ public class ScriptExemple {
 
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			currentCollection = collection;
-			rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 			runScriptForCurrentCollection();
 		}
 

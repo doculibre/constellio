@@ -32,7 +32,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		VariableRetentionPeriod period888 = rm.PERIOD_888();
 		VariableRetentionPeriod period999 = rm.PERIOD_999();
 		assertThat(period888).isNotNull();
@@ -102,7 +102,7 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
 
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		assertThat(rmTestRecords.getCategory_X().isLinkable()).isTrue();
 		assertThat(rmTestRecords.getCategory_Z().isLinkable()).isFalse();

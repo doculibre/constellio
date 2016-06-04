@@ -371,7 +371,7 @@ public class RMTestRecords {
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices);
 
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> userRecords = searchServices.search(new LogicalSearchQuery()
@@ -436,7 +436,7 @@ public class RMTestRecords {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
 		loggingServices = modelLayerFactory.newLoggingServices();
@@ -3017,15 +3017,15 @@ public class RMTestRecords {
 	}
 
 	public FolderType folderTypeEmploye() {
-		return rm.getFolderTypeByCode("employe");
+		return rm.getFolderTypeWithCode("employe");
 	}
 
 	public FolderType folderTypeMeeting() {
-		return rm.getFolderTypeByCode("meetingFolder");
+		return rm.getFolderTypeWithCode("meetingFolder");
 	}
 
 	public FolderType folderTypeOther() {
-		return rm.getFolderTypeByCode("other");
+		return rm.getFolderTypeWithCode("other");
 	}
 
 	public DocumentType documentTypeForm() {

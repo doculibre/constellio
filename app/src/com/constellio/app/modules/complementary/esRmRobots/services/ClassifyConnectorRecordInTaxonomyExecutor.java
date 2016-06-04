@@ -1,6 +1,7 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
+import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentImpl;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -90,7 +92,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		this.record = record;
 		this.params = params;
 		this.currentUser = currentUser;
-		this.rm = new RMSchemasRecordsServices(record.getCollection(), modelLayerFactory);
+		this.rm = new RMSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		this.es = new ESSchemasRecordsServices(record.getCollection(), appLayerFactory);
 		this.robots = new RobotSchemaRecordServices(record.getCollection(), appLayerFactory);
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -226,7 +228,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			Metadata codeMetadata, String parent, String folderName) {
 		LOGGER.info("processFolder(" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode() + ", "
 				+ parent + ", " + folderName + ")");
-		MetadataSchema folderSchema = rm.defaultFolderSchema();
+		MetadataSchema folderSchema = rm.folder.schema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, fullConnectorDocPath);
 		Folder rmFolder;
@@ -260,14 +262,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void processFolderWithoutTaxonomy(String folderName, String url) {
-		MetadataSchema folderSchema = rm.defaultFolderSchema();
+		MetadataSchema folderSchema = rm.folder.schema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, url);
 		Folder rmFolder;
 		if (rmRecord == null) {
 
 			String parentPath = getParentPath(url, folderName);
-			Folder parentFolder = rm.getFolderByLegacyId(parentPath);
+			Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
 
 			rmFolder = rm.newFolder().setTitle(folderName);
 			rmFolder.setCreatedByRobot(robotId);
@@ -342,7 +344,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart) {
 		String parentPath = getParentPath(fullConnectorDocPath, pathPart);
 
-		Folder parentFolder = rm.getFolderByLegacyId(parentPath);
+		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
 		Folder newRmFolder = rm.newFolder();
 		newRmFolder.setCreatedByRobot(robotId);
 		if (parentFolder != null) {
@@ -359,6 +361,10 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		newRmFolder.setCreatedByRobot(robotId);
 		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy))
 				.get(0);
+		if (taxoMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+			taxoMetadata = getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(folderSchema, taxoMetadata);
+		}
+
 		newRmFolder.set(taxoMetadata.getLocalCode(), parentConcept.getId()).setTitle(pathPart);
 		newRmFolder.setLegacyId(fullConnectorDocPath);
 		return newRmFolder;
@@ -461,14 +467,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {
-		MetadataSchema folderSchema = rm.defaultFolderSchema();
+		MetadataSchema folderSchema = rm.folder.schema();
 		Metadata codeMetadata = rm.folderTypeSchema().getMetadata(Schemas.CODE.getLocalCode());
 		String folderTypeCode = folderEntry.get(Folder.TYPE);
 		if (StringUtils.isNotBlank(folderTypeCode)) {
 			Record folderTypeRecord = recordServices.getRecordByMetadata(codeMetadata, folderTypeCode);
 			FolderType folderType = rm.wrapFolderType(folderTypeRecord);
 			folderSchema = rm.folderSchemaFor(folderType);
-			rmFolder.getWrappedRecord().changeSchema(rm.defaultFolderSchema(), folderSchema);
+			rmFolder.getWrappedRecord().changeSchema(rm.folder.schema(), folderSchema);
 		}
 		return folderSchema;
 	}

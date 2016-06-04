@@ -41,7 +41,7 @@ public class StatsReportBuilderFactoryAcceptanceTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		searchServices = getModelLayerFactory().newSearchServices();
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);

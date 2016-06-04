@@ -15,6 +15,7 @@ import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
@@ -147,6 +148,72 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		} catch (Exception e) {
 			//OK
 		}
+
+	}
+
+	@Test
+	public void whenSetInvalidUserOrGroupInACLThenNoModificationsAndHelpfulMessage()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		assertThat(session.getBinding().getAclService()).isNotNull();
+
+		givenFolderInheritingTaxonomyAuthorizations();
+		assertThatRecord(zeCollectionRecords.folder2).onlyUserWithReadPermissionAre(chuckNorris, admin, edouard);
+		assertThatRecord(zeCollectionRecords.folder2_1).onlyUserWithWritePermissionAre(admin, edouard);
+
+		session.getDefaultContext().setIncludeAcls(true);
+
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
+				.containsOnly(tuple(false, RW, "edouard"));
+
+		//Add two ACE
+
+		try {
+
+			cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW), ace("roger", RW)),
+					REPOSITORYDETERMINED);
+			fail("exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo(
+					"An ace has invalid principal : No such user with username or group with code : 'roger'");
+		}
+		System.out.println("----------");
+		try {
+
+			cmisFolder2.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW), ace(dakota, asList("READ"))),
+					REPOSITORYDETERMINED);
+			fail("exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage())
+					.isEqualTo("An ace has unsupported permission 'READ', only cmis:read/cmis:write are allowed");
+		}
+		System.out.println("----------");
+		//		try {
+		//
+		//			cmisFolder2
+		//					.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW), ace(dakota, new ArrayList<String>())),
+		//							REPOSITORYDETERMINED);
+		//			fail("exception expected");
+		//		} catch (CmisRuntimeException e) {
+		//			assertThat(e.getMessage()).isEqualTo("An ace has no permission");
+		//		}
+		System.out.println("----------");
+		try {
+
+			cmisFolder2
+					.addAcl(asList(ace("heroes", R), ace(bobGratton, RW), ace(gandalf, RW), ace("", RW)),
+							REPOSITORYDETERMINED);
+			fail("exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("An ace has no specified principal");
+		}
+
+		waitForBatchProcess();
+
+		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
+				.containsOnly(tuple(false, RW, "edouard"));
 	}
 
 	@Test
@@ -210,28 +277,27 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
 				tuple(false, RW, edouard), tuple(true, RW, gandalf));
 
-		cmisFolder2.setAcl(asList(ace(gandalf, RW), ace(dakota, RW)));
+		cmisFolder2
+				.setAcl(asList(ace("constellio:removeInheritance", new ArrayList<String>()), ace(gandalf, RW), ace(dakota, RW)));
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
 				tuple(constellio_RW, asList(gandalfId, dakotaId), asList(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
-				tuple(false, RW, edouard), tuple(true, RW, gandalf), tuple(true, RW, dakota));
+				tuple(true, RW, gandalf), tuple(true, RW, dakota));
 
 		assertThatAcesOf(zeCollectionRecords.folder2_1).containsOnly(
-				tuple(false, RW, edouard), tuple(false, RW, gandalf), tuple(false, RW, dakota));
+				tuple(false, RW, gandalf), tuple(false, RW, dakota));
 
 		cmisFolder2.applyAcl(asList(ace(aliceWonderland, RW), ace(charles, RW)), asList(ace(gandalf, RW)), REPOSITORYDETERMINED);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
 				tuple(constellio_RW, asList(dakotaId, aliceId, charlesId), asList(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
-				tuple(false, RW, edouard), tuple(true, RW, aliceWonderland), tuple(true, RW, charles), tuple(true, RW, dakota));
+				tuple(true, RW, aliceWonderland), tuple(true, RW, charles), tuple(true, RW, dakota));
 
 	}
 

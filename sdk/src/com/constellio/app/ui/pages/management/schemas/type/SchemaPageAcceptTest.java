@@ -59,7 +59,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		givenCollection("otherCollection");

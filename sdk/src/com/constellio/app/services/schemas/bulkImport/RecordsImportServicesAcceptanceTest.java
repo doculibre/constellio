@@ -75,7 +75,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	@Test
@@ -106,25 +106,25 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		LocalDateTime shishOClock = new LocalDateTime().minusDays(1);
 		givenTimeIs(shishOClock);
 
-		Folder folder660 = rm.getFolderByLegacyId("660");
+		Folder folder660 = rm.getFolderWithLegacyId("660");
 		assertThat(folder660.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
 		assertThat(folder660.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
 		assertThat(folder660.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
 		assertThat(folder660.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
 
-		Folder folder670 = rm.getFolderByLegacyId("670");
+		Folder folder670 = rm.getFolderWithLegacyId("670");
 		assertThat(folder670.getFormCreatedBy()).isEqualTo(users.charlesIn(zeCollection).getId());
 		assertThat(folder670.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
 		assertThat(folder670.getFormModifiedBy()).isEqualTo(users.dakotaLIndienIn(zeCollection).getId());
 		assertThat(folder670.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
 
-		Folder folder661 = rm.getFolderByLegacyId("661");
+		Folder folder661 = rm.getFolderWithLegacyId("661");
 		assertThat(folder661.getFormCreatedBy()).isEqualTo(users.edouardIn(zeCollection).getId());
 		assertThat(folder661.getFormCreatedOn()).isEqualTo(new LocalDateTime(2003, 3, 3, 3, 3, 3));
 		assertThat(folder661.getFormModifiedBy()).isEqualTo(users.gandalfIn(zeCollection).getId());
 		assertThat(folder661.getFormModifiedOn()).isEqualTo(new LocalDateTime(2004, 4, 4, 4, 4, 4));
 
-		Folder folder662 = rm.getFolderByLegacyId("662");
+		Folder folder662 = rm.getFolderWithLegacyId("662");
 		assertThat(folder662.getFormCreatedBy()).isNull();
 		assertThat(folder662.getFormCreatedOn()).isNull();
 		assertThat(folder662.getFormModifiedBy()).isNull();
@@ -154,25 +154,25 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 				"documentWithCreationModificationInfos2.xml:document.xml", "retentionRule.xml", "ddvDocumentType.xml");
 		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
 
-		folder660 = rm.getFolderByLegacyId("660");
+		folder660 = rm.getFolderWithLegacyId("660");
 		assertThat(folder660.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
 		assertThat(folder660.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
 		assertThat(folder660.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
 		assertThat(folder660.getFormModifiedOn()).isEqualTo(new LocalDateTime(2002, 2, 2, 2, 2, 2));
 
-		folder670 = rm.getFolderByLegacyId("670");
+		folder670 = rm.getFolderWithLegacyId("670");
 		assertThat(folder670.getFormCreatedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
 		assertThat(folder670.getFormCreatedOn()).isEqualTo(new LocalDateTime(3001, 1, 1, 1, 1, 1));
 		assertThat(folder670.getFormModifiedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
 		assertThat(folder670.getFormModifiedOn()).isEqualTo(new LocalDateTime(3002, 2, 2, 2, 2, 2));
 
-		folder661 = rm.getFolderByLegacyId("661");
+		folder661 = rm.getFolderWithLegacyId("661");
 		assertThat(folder661.getFormCreatedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
 		assertThat(folder661.getFormCreatedOn()).isEqualTo(new LocalDateTime(3003, 3, 3, 3, 3, 3));
 		assertThat(folder661.getFormModifiedBy()).isEqualTo(users.chuckNorrisIn(zeCollection).getId());
 		assertThat(folder661.getFormModifiedOn()).isEqualTo(new LocalDateTime(3004, 4, 4, 4, 4, 4));
 
-		folder662 = rm.getFolderByLegacyId("662");
+		folder662 = rm.getFolderWithLegacyId("662");
 		assertThat(folder662.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
 		assertThat(folder662.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
 		assertThat(folder662.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
@@ -227,7 +227,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		importAndValidateDocumentType();
 		importAndValidateDocumentWithVersions();
 
-		RetentionRule rule111201Id = rm.getRetentionRuleByCode("111201");
+		RetentionRule rule111201Id = rm.getRetentionRuleWithCode("111201");
 		String copy123Id = "?", copy456Id = "?", copy789Id = "?";
 		for (CopyRetentionRule copy : rule111201Id.getCopyRetentionRules()) {
 			if ("123".equals(copy.getCode())) {

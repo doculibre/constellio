@@ -29,6 +29,7 @@ import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
@@ -175,7 +176,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 	@Override
 	public void addDemoData(String collection, AppLayerFactory appLayerFactory) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Transaction transaction = new Transaction();
 
 		AdministrativeUnit adminUnit = rm.newAdministrativeUnit().setCode("1").setTitle($("RMDemoData.adminUnit"));
@@ -222,6 +223,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchPageExtensions.add(new RMSearchPageExtension());
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
+		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions());
 	}
 
 	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
@@ -251,17 +253,17 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {
 			cache.removeCache(AdministrativeUnit.SCHEMA_TYPE);
 		}
-		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnitSchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.administrativeUnit.schemaType()));
 
 		if (cache.isConfigured(Category.SCHEMA_TYPE)) {
 			cache.removeCache(Category.SCHEMA_TYPE);
 		}
-		cache.configureCache(CacheConfig.permanentCache(rm.categorySchemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.category.schemaType()));
 
-		cache.configureCache(CacheConfig.permanentCache(rm.retentionRuleSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivisionSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(rm.containerRecordSchemaType()));
-		cache.configureCache(CacheConfig.volatileCache(rm.folderSchemaType(), 10000));
+		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
+		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
+		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), 10000));
 		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), 100));
 	}
 

@@ -106,4 +106,5 @@ public class InheritedMetadataBehaviors {
 	public boolean isMultiLingual() {
 		return multiLingual;
 	}
+
 }

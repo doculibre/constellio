@@ -23,7 +23,7 @@ public class RMCmisExtension extends CmisExtension {
 	RMSchemasRecordsServices rm;
 
 	public RMCmisExtension(String collection, AppLayerFactory appLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	@Override

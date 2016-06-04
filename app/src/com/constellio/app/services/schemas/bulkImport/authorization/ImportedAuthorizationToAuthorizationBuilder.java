@@ -191,7 +191,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 	}
 
 	private String getAdminUnitIdOfAdminUnitWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.administrativeUnitSchema());
+		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.administrativeUnit.schema());
 	}
 
 	private String getDocumentIdOfDocumentWithLegacyId(String legacyId) {
@@ -199,7 +199,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 	}
 
 	private String getFolderIdOfFolderWithLegacyId(String legacyId) {
-		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.defaultFolderSchema());
+		return getRecordIdOfRecordWithLegacyId(legacyId, rmSchemas.folder.schema());
 	}
 
 }

@@ -88,7 +88,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private void initTransientObjects() {
 		ConstellioFactories constellioFactories = view.getConstellioFactories();
 		SessionContext sessionContext = view.getSessionContext();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		userDocumentPresenterUtils = new SchemaPresenterUtils(UserDocument.DEFAULT_SCHEMA, constellioFactories, sessionContext);
 		contentVersionToVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
@@ -339,7 +339,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	private RMSchemasRecordsServices rmSchemas() {
-		return new RMSchemasRecordsServices(collection, modelLayerFactory);
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	public void customFieldValueChanged(CustomDocumentField<?> customField) {

@@ -63,7 +63,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 			throws Exception {
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		new ActionExecutorInBatch(searchServices, "Set copy retention rule ids", 250) {
 			@Override
 			public void doActionOnBatch(List<Record> records)
@@ -84,7 +84,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 				transaction.setSkippingRequiredValuesValidation(true);
 				recordServices.executeWithImpactHandler(transaction, new UnhandledRecordModificationImpactHandler());
 			}
-		}.execute(from(rm.retentionRuleSchemaType()).returnAll());
+		}.execute(from(rm.retentionRule.schemaType()).returnAll());
 	}
 
 	public static class SchemaAlterationsFor6_2 extends MetadataSchemasAlterationHelper {

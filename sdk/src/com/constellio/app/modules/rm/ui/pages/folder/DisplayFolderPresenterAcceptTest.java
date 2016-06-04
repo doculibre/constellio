@@ -81,7 +81,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
 
