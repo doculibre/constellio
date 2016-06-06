@@ -73,12 +73,14 @@ import com.constellio.sdk.dev.tools.i18n.CombinePropertyFilesServices;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
 import com.steadystate.css.util.LangUtils;
 
+@InDevelopmentTest
 public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	@Test
