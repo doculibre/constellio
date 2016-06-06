@@ -71,6 +71,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private VerticalLayout mainLayout;
 	private Label borrowedLabel;
 	private DocumentVO documentVO;
+	private String taxonomyCode;
 	private TabSheet tabSheet;
 	private ContentViewer contentViewer;
 	private RecordDisplay recordDisplay;
@@ -170,7 +171,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId());
+		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode);
 	}
 
 	@Override
@@ -646,6 +647,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
+	}
+
+	@Override
+	public void setTaxonomyCode(String taxonomyCode) {
+		this.taxonomyCode = taxonomyCode;
 	}
 
 	private class StartWorkflowButton extends WindowButton {

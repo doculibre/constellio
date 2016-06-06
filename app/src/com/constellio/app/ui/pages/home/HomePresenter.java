@@ -50,8 +50,12 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	public String getDefaultTab() {
 		return getCurrentUser().getStartTab();
 	}
+	
+	public void tabSelected(String tabCode) {
+		currentTab = tabCode;
+	}
 
-	public void recordClicked(String id) {
+	public void recordClicked(String id, String taxonomyCode) {
 		if (id != null && !id.startsWith("dummy")) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 			try {
@@ -59,9 +63,9 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.navigate().to(RMViews.class).displayFolder(id);
+					view.navigate().to(RMViews.class).displayFolder(id, taxonomyCode);
 				} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					view.navigate().to(RMViews.class).displayDocument(id);
+					view.navigate().to(RMViews.class).displayDocument(id, taxonomyCode);
 				} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					view.navigate().to(RMViews.class).displayContainer(id);
 				} else if (ConstellioAgentUtils.isAgentSupported()) {
