@@ -456,7 +456,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 				HorizontalLayout newCartLayout = new HorizontalLayout();
 				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label("New cart: "));
+				newCartLayout.addComponent(new Label($("CartView.newCart")));
 				final BaseTextField newCartTitleField;
 				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
 				BaseButton saveButton;

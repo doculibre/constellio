@@ -313,22 +313,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
-		/* TODO Change addtoCart button to a WindowButton
-			The popup should contain a tab sheet with two tabs:
-				- Owned carts
-				- Carts shared with me (added when carts are sharable)
-			Each tab should contain a record table, each having a click listener
-			to call the presenter's "addToCartRequested" method with the proper ID
-			as a parameter.
-		 */
 		addToCartButton = buildAddToCartButton();
-
-//		addToCartButton = new LinkButton($("DisplayFolderView.addToCart")) {
-//			@Override
-//			protected void buttonClick(ClickEvent event) {
-//				presenter.addToCartRequested();
-//			}
-//		};
 
 		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
@@ -393,7 +378,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				HorizontalLayout newCartLayout = new HorizontalLayout();
 				newCartLayout.setSpacing(true);
-				newCartLayout.addComponent(new Label("New cart: "));
+				newCartLayout.addComponent(new Label($("CartView.newCart")));
 				final BaseTextField newCartTitleField;
 				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
 				BaseButton saveButton;
