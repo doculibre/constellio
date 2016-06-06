@@ -58,10 +58,13 @@ public class RMMigrationTo6_4 implements MigrationScript {
 
 		private void updateCartSchema(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder cart = typesBuilder.getSchemaType(Cart.SCHEMA_TYPE).getDefaultSchema();
-			cart.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asManual();
-			cart.getMetadata(Cart.OWNER).setUniqueValue(false);
-			cart.createUndeletable(Cart.SHARED_WITH_USERS).setMultivalue(true)
-					.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+			if (!cart.hasMetadata(Cart.SHARED_WITH_USERS)) {
+				cart.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asManual();
+				cart.getMetadata(Cart.OWNER).setUniqueValue(false);
+
+				cart.createUndeletable(Cart.SHARED_WITH_USERS).setMultivalue(true)
+						.defineReferencesTo(typesBuilder.getSchemaType(User.SCHEMA_TYPE));
+			}
 		}
 
 		private void setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicable(
