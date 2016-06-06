@@ -5,9 +5,8 @@ import java.util.List;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 
-public interface BaseView extends Serializable, SessionContextProvider {
+public interface BaseView extends Serializable, SessionContextProvider, UIContextProvider {
 
 	String getCollection();
 

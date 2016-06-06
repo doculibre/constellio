@@ -328,6 +328,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return ConstellioFactories.getInstance();
 	}
 
+	@Override
+	public UIContext getUIContext() {
+		return ConstellioUI.getCurrent();
+	}
+
 	protected ClickListener getBackButtonClickListener() {
 		return null;
 	}

@@ -20,6 +20,7 @@ import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -38,6 +39,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -73,7 +75,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection,appLayerFactory);
-
 	}
 
 	@Override
@@ -82,7 +83,17 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void forParams(String params) {
-		Record record = getRecord(params);
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+		String id = paramsMap.get("id");
+		String taxonomyCode = paramsMap.get(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		if (taxonomyCode != null) {
+			view.getUIContext().setAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+		} else {
+			taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		}
+		view.setTaxonomyCode(taxonomyCode);
+		
+		Record record = getRecord(id);
 		final DocumentVO documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setDocumentVO(documentVO);
 		presenterUtils.setRecordVO(documentVO);
