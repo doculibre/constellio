@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.joda.time.LocalDateTime;
 
@@ -26,6 +27,7 @@ import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
@@ -38,6 +40,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.annotations.Theme;
 import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.Navigator;
@@ -55,12 +58,14 @@ import com.vaadin.ui.UI;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
-public class ConstellioUI extends UI implements SessionContextProvider {
+public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
+	
+	private Map<String, Object> uiContext = new HashMap<>();
 
 	public final RequestHandler requestHandler = new ConstellioResourceHandler();
 
@@ -320,6 +325,17 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 	public static ConstellioUI getCurrent() {
 		return (ConstellioUI) UI.getCurrent();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getAttribute(String key) {
+		return (T) uiContext.get(key);
+	}
+
+	@Override
+	public <T> void setAttribute(String key, T value) {
+		uiContext.put(key, value);
 	}
 
 }

@@ -13,6 +13,7 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
+import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -46,6 +47,7 @@ import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Tree.TreeDragMode;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	private final HomePresenter presenter;
@@ -116,8 +118,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 
 		int position = tabSheet.getTabPosition(tab);
-		tabSheet.setSelectedTab(position);
 		PageItem item = tabs.get(position);
+		
+		presenter.tabSelected(item.getCode());
+		tabSheet.setSelectedTab(position);
 
 		PlaceHolder tabComponent = (PlaceHolder) tab.getComponent();
 		if (tabComponent.getComponentCount() == 0) {
@@ -169,7 +173,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				if (event.getButton() == MouseButton.LEFT) {
 					RecordVOItem recordItem = (RecordVOItem) event.getItem();
 					RecordVO recordVO = recordItem.getRecord();
-					presenter.recordClicked(recordVO.getId());
+					presenter.recordClicked(recordVO.getId(), null);
 				}
 			}
 		});
@@ -185,23 +189,23 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private RecordLazyTreeTabSheet buildRecordMultiTree(final RecordTree recordTree, List<RecordLazyTreeDataProvider> providers) {
-		RecordLazyTreeTabSheet tabSheet = new RecordLazyTreeTabSheet(providers) {
+		final RecordLazyTreeTabSheet subTabSheet = new RecordLazyTreeTabSheet(providers) {
 			@Override
 			protected RecordLazyTree newLazyTree(RecordLazyTreeDataProvider dataProvider, int bufferSize) {
 				return buildRecordTree(recordTree, dataProvider);
 			}
 		};
-		return tabSheet;
+		return subTabSheet;
 	}
 
-	private RecordLazyTree buildRecordTree(RecordTree recordTree, RecordLazyTreeDataProvider provider) {
+	private RecordLazyTree buildRecordTree(RecordTree recordTree, final RecordLazyTreeDataProvider provider) {
 		RecordLazyTree tree = new RecordLazyTree(provider, 20);
 		tree.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
 				if (event.getButton() == MouseButton.LEFT) {
 					String recordId = (String) event.getItemId();
-					presenter.recordClicked(recordId);
+					presenter.recordClicked(recordId, provider.getTaxonomyCode());
 				}
 			}
 		});
@@ -209,6 +213,14 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		if (menu != null) {
 			menu.setAsTreeContextMenu(tree.getNestedTree());
 		}
+		
+		tree.getNestedTree().setDragMode(TreeDragMode.NODE);
+		tree.getNestedTree().setDropHandler(new RMTreeDropHandlerImpl() {
+			@Override
+			public void showErrorMessage(String errorMessage) {
+				HomeViewImpl.this.showErrorMessage(errorMessage);
+			}
+		});
 		return tree;
 	}
 
@@ -245,7 +257,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					if (event.getButton() == MouseButton.LEFT) {
 						@SuppressWarnings("unchecked")
 						BeanItem<RecentItem> item = (BeanItem<RecentItem>) event.getItem();
-						presenter.recordClicked(item.getBean().getId());
+						presenter.recordClicked(item.getBean().getId(), null);
 					}
 				}
 			});
