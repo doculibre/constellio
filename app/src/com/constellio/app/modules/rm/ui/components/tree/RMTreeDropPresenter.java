@@ -15,7 +15,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -40,10 +39,10 @@ public class RMTreeDropPresenter implements Serializable {
 	String recordDropped(String sourceRecordId, String targetRecordId) {
 		String newParentId;
         
-        SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+        SessionContext sessionContext = dropHandler.getSessionContext();
         String collection = sessionContext.getCurrentCollection();
         
-        ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
+        ConstellioFactories constellioFactories = dropHandler.getConstellioFactories();
         AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
         ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
         RecordServices recordServices = modelLayerFactory.newRecordServices();
