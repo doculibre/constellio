@@ -113,7 +113,7 @@ public class MetadataToVOBuilder implements Serializable {
 				if (groups.keySet().isEmpty()) {
 					metadataGroup = null;
 				} else {
-					metadataGroup = null;
+					metadataGroup = groups.entrySet().iterator().next().getValue().get(language);
 					for (Map.Entry<String, Map<Language, String>> entry : groups.entrySet()) {
 						if (entry.getKey().startsWith("default")) {
 							metadataGroup = entry.getValue().get(language);
