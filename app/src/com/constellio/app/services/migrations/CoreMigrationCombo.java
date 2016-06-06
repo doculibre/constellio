@@ -1,6 +1,7 @@
 package com.constellio.app.services.migrations;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,9 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_1_7;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_6_4;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -52,6 +56,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_5_2());
 		scripts.add(new CoreMigrationTo_6_1());
 		scripts.add(new CoreMigrationTo_6_3());
+		scripts.add(new CoreMigrationTo_6_4());
 		return scripts;
 	}
 
@@ -72,6 +77,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		CoreMigrationTo_5_1_3.initEncryption(collection, migrationResourcesProvider, appLayerFactory);
 		generatedFastCoreMigration.applyGeneratedRoles();
 		generatedFastCoreMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
+		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
 				new SearchBoost(SearchBoost.QUERY_TYPE, "title_s", $("title"), 20.0));
@@ -80,6 +86,28 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
+	}
+
+	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
+		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
+
+		transaction.add(manager.getSchema(collection, "user_default").withDisplayMetadataCodes(asList(
+				"user_default_username",
+				"user_default_firstname",
+				"user_default_lastname",
+				"user_default_title",
+				"user_default_email",
+				"user_default_userroles",
+				"user_default_groups",
+				"user_default_jobTitle",
+				"user_default_phone",
+				"user_default_status",
+				"user_default_createdOn",
+				"user_default_modifiedOn",
+				"user_default_allroles"
+		)));
+
+		manager.execute(transaction.build());
 	}
 
 	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,

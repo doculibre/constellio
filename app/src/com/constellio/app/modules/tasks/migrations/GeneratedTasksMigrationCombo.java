@@ -21,7 +21,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.contents.ContentFactory;
@@ -838,8 +837,8 @@ public final class GeneratedTasksMigrationCombo {
 		transaction.add(manager.getMetadata(collection, "ddvTaskStatus_default_statusType").withMetadataGroup("")
 				.withInputType(MetadataInputType.DROPDOWN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getType(collection, "userTask").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
-				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
-						asList("init.userTask.followersTab", "init.userTask.definition", "init.userTask.assignment",
+				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
+						asList("init.userTask.followersTab", "init.userTask.assignment", "default:init.userTask.definition",
 								"init.userTask.details", "init.userTask.remindersTab"))));
 		transaction.add(manager.getSchema(collection, "userTask_default").withFormMetadataCodes(
 				asList("userTask_default_title", "userTask_default_type", "userTask_default_assignee",
@@ -910,13 +909,13 @@ public final class GeneratedTasksMigrationCombo {
 	public void applyGeneratedRoles() {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 		;
-		rolesManager.updateRole(new Role(collection, "ADM", "Administrateur",
-				asList("core.deleteContentVersion", "core.viewEvents", "core.manageFacets", "core.manageTaxonomies",
-						"core.manageValueList", "core.manageMetadataSchemas", "core.manageSecurity",
-						"core.manageMetadataExtractor", "core.manageConnectors", "core.manageSearchEngine", "core.manageTrash",
-						"core.manageSearchReports", "core.manageEmailServer", "core.manageSystemConfiguration",
-						"core.manageSystemGroups", "core.manageSystemUsers", "core.manageSystemCollections",
-						"core.manageSystemModules", "core.manageSystemDataImports", "core.manageSystemServers",
-						"core.manageSystemUpdates", "core.ldapConfigurationManagement", "tasks.manageWorkflows")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(
+				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
+						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
+						"core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports",
+						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
+						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
+						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
+						"core.manageTrash", "core.manageValueList", "core.viewEvents", "tasks.manageWorkflows")));
 	}
 }

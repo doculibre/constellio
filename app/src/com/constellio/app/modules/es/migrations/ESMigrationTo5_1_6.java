@@ -105,9 +105,8 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
-		Language language = migrationResourcesProvider.getLanguage();
 
-		configurationTab = "connectors.configurationTab";
+		configurationTab = "default:connectors.configurationTab";
 
 		executionTab = "connectors.executionTab";
 
@@ -115,7 +114,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 		ldapUserTab = "connectors.ldapUserTab";
 		groups = migrationResourcesProvider
-				.getLanguageMapWithKeys(asList(configurationTab, executionTab, credentialsTab, ldapUserTab));
+				.getLanguageMap(asList(configurationTab, executionTab, credentialsTab, ldapUserTab));
 
 		clearExistingRecordsAndSchemas(collection, appLayerFactory);
 		deleteESFacets(collection, appLayerFactory);

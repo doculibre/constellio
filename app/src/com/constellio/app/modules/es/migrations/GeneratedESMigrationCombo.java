@@ -2,6 +2,8 @@ package com.constellio.app.modules.es.migrations;
 
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -18,7 +20,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -1439,9 +1440,16 @@ public final class GeneratedESMigrationCombo {
 	public void applySchemasDisplay(SchemasDisplayManager manager) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 		SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
+		transaction.add(manager.getSchema(collection, "collection_default").withFormMetadataCodes(
+				asList("collection_default_code", "collection_default_title", "collection_default_languages",
+						"collection_default_name")).withDisplayMetadataCodes(
+				asList("collection_default_code", "collection_default_title", "collection_default_createdOn",
+						"collection_default_modifiedOn", "collection_default_languages", "collection_default_name"))
+				.withSearchResultsMetadataCodes(asList("collection_default_title", "collection_default_modifiedOn"))
+				.withTableMetadataCodes(asList("collection_default_title", "collection_default_modifiedOn")));
 		transaction.add(manager.getType(collection, "connectorHttpDocument").withSimpleSearchStatus(true)
 				.withAdvancedSearchStatus(true).withManageableStatus(false)
-				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("default"))));
+				.withMetadataGroup(resourcesProvider.getLanguageMap(asList("default"))));
 		transaction.add(manager.getSchema(collection, "connectorHttpDocument_default").withFormMetadataCodes(
 				asList("connectorHttpDocument_default_title", "connectorHttpDocument_default_charset",
 						"connectorHttpDocument_default_connector", "connectorHttpDocument_default_connectorType",
@@ -1476,7 +1484,8 @@ public final class GeneratedESMigrationCombo {
 				.withSearchResultsMetadataCodes(
 						asList("connectorHttpDocument_default_title", "connectorHttpDocument_default_modifiedOn",
 								"connectorHttpDocument_default_url")).withTableMetadataCodes(
-						asList("connectorHttpDocument_default_title", "connectorHttpDocument_default_modifiedOn")));
+						asList("connectorHttpDocument_default_title", "connectorHttpDocument_default_modifiedOn",
+								"connectorHttpDocument_default_url")));
 		transaction.add(manager.getMetadata(collection, "connectorHttpDocument_default_connector").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "connectorHttpDocument_default_contentType").withMetadataGroup("")
@@ -1492,10 +1501,9 @@ public final class GeneratedESMigrationCombo {
 		transaction.add(manager.getMetadata(collection, "connectorHttpDocument_default_url").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getType(collection, "connectorInstance").withSimpleSearchStatus(false)
-				.withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider
-						.getLanguageMapWithKeys(
-								asList("connectors.advanced", "connectors.ldapUserTab", "connectors.credentialsTab",
-										"connectors.configurationTab", "connectors.executionTab"))));
+				.withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
+						asList("connectors.advanced", "default:connectors.configurationTab", "connectors.ldapUserTab",
+								"connectors.credentialsTab", "connectors.executionTab"))));
 		transaction.add(manager.getSchema(collection, "connectorInstance_http").withFormMetadataCodes(
 				asList("connectorInstance_http_code", "connectorInstance_http_title", "connectorInstance_http_connectorType",
 						"connectorInstance_http_traversalCode", "connectorInstance_http_lastTraversalOn",
@@ -1517,8 +1525,7 @@ public final class GeneratedESMigrationCombo {
 						"connectorInstance_http_seeds", "connectorInstance_http_username", "connectorInstance_http_modifiedOn",
 						"connectorInstance_http_includePatterns", "connectorInstance_http_excludePatterns"))
 				.withSearchResultsMetadataCodes(asList("connectorInstance_http_title", "connectorInstance_http_connectorType",
-						"connectorInstance_http_traversalCode"))
-				.withTableMetadataCodes(asList("connectorInstance_http_title", "connectorInstance_http_modifiedOn")));
+						"connectorInstance_http_traversalCode")).withTableMetadataCodes(new ArrayList<String>()));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_http_authenticationScheme")
 				.withMetadataGroup("connectors.credentialsTab").withInputType(MetadataInputType.RADIO_BUTTONS)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
@@ -1562,8 +1569,7 @@ public final class GeneratedESMigrationCombo {
 								"connectorInstance_ldap_usersBaseContextList", "connectorInstance_ldap_includeRegex",
 								"connectorInstance_ldap_excludeRegex")).withSearchResultsMetadataCodes(
 						asList("connectorInstance_ldap_title", "connectorInstance_ldap_connectorType",
-								"connectorInstance_ldap_traversalCode"))
-				.withTableMetadataCodes(asList("connectorInstance_ldap_title", "connectorInstance_ldap_modifiedOn")));
+								"connectorInstance_ldap_traversalCode")).withTableMetadataCodes(new ArrayList<String>()));
 		transaction
 				.add(manager.getMetadata(collection, "connectorInstance_ldap_address").withMetadataGroup("connectors.ldapUserTab")
 						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
@@ -1573,13 +1579,13 @@ public final class GeneratedESMigrationCombo {
 						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_connectionUsername")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_department")
 				.withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_directoryType")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.RADIO_BUTTONS)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.RADIO_BUTTONS)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_displayName")
 				.withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
@@ -1597,13 +1603,13 @@ public final class GeneratedESMigrationCombo {
 				.withMetadataGroup("connectors.executionTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_fetchUsers")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_firstName")
 				.withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_followReferences")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_jobTitle")
 				.withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
@@ -1619,7 +1625,7 @@ public final class GeneratedESMigrationCombo {
 						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_password")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.PASSWORD)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.PASSWORD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_telephone")
 				.withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
@@ -1628,13 +1634,13 @@ public final class GeneratedESMigrationCombo {
 				.withMetadataGroup("connectors.executionTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_url")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_username")
 				.withMetadataGroup("connectors.ldapUserTab").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_ldap_usersBaseContextList")
-				.withMetadataGroup("connectors.configurationTab").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:connectors.configurationTab").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getSchema(collection, "connectorInstance_smb").withFormMetadataCodes(
 				asList("connectorInstance_smb_code", "connectorInstance_smb_title", "connectorInstance_smb_domain",
@@ -1646,8 +1652,7 @@ public final class GeneratedESMigrationCombo {
 								"connectorInstance_smb_username", "connectorInstance_smb_smbSeeds",
 								"connectorInstance_smb_exclusions", "connectorInstance_smb_inclusions"))
 				.withSearchResultsMetadataCodes(asList("connectorInstance_smb_title", "connectorInstance_smb_connectorType",
-						"connectorInstance_smb_traversalCode"))
-				.withTableMetadataCodes(asList("connectorInstance_smb_title", "connectorInstance_smb_modifiedOn")));
+						"connectorInstance_smb_traversalCode")).withTableMetadataCodes(new ArrayList<String>()));
 		transaction
 				.add(manager.getMetadata(collection, "connectorInstance_smb_enabled").withMetadataGroup("connectors.executionTab")
 						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
@@ -1673,13 +1678,14 @@ public final class GeneratedESMigrationCombo {
 						"connectorInstance_default_lastTraversalOn", "connectorInstance_default_modifiedOn"))
 				.withSearchResultsMetadataCodes(
 						asList("connectorInstance_default_title", "connectorInstance_default_connectorType",
-								"connectorInstance_default_traversalCode"))
-				.withTableMetadataCodes(asList("connectorInstance_default_title", "connectorInstance_default_modifiedOn")));
+								"connectorInstance_default_traversalCode")).withTableMetadataCodes(
+						asList("connectorInstance_default_title", "connectorInstance_default_connectorType",
+								"connectorInstance_default_traversalCode")));
 		transaction.add(manager.getMetadata(collection, "connectorInstance_default_connectorType").withMetadataGroup("")
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "connectorLdapUserDocument").withSimpleSearchStatus(true)
 				.withAdvancedSearchStatus(true).withManageableStatus(false)
-				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("default"))));
+				.withMetadataGroup(resourcesProvider.getLanguageMap(asList("default"))));
 		transaction.add(manager.getSchema(collection, "connectorLdapUserDocument_default").withFormMetadataCodes(
 				asList("connectorLdapUserDocument_default_title", "connectorLdapUserDocument_default_company",
 						"connectorLdapUserDocument_default_connector", "connectorLdapUserDocument_default_connectorType",
@@ -1717,7 +1723,9 @@ public final class GeneratedESMigrationCombo {
 						"connectorLdapUserDocument_default_telephone", "connectorLdapUserDocument_default_email",
 						"connectorLdapUserDocument_default_address", "connectorLdapUserDocument_default_title"))
 				.withTableMetadataCodes(
-						asList("connectorLdapUserDocument_default_title", "connectorLdapUserDocument_default_modifiedOn")));
+						asList("connectorLdapUserDocument_default_firstName", "connectorLdapUserDocument_default_lastName",
+								"connectorLdapUserDocument_default_telephone", "connectorLdapUserDocument_default_email",
+								"connectorLdapUserDocument_default_address", "connectorLdapUserDocument_default_title")));
 		transaction.add(manager.getMetadata(collection, "connectorLdapUserDocument_default_address").withMetadataGroup("")
 				.withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "connectorLdapUserDocument_default_connector").withMetadataGroup("")
@@ -1734,7 +1742,40 @@ public final class GeneratedESMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getType(collection, "connectorSmbDocument").withSimpleSearchStatus(true)
 				.withAdvancedSearchStatus(true).withManageableStatus(false)
-				.withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(asList("default"))));
+				.withMetadataGroup(resourcesProvider.getLanguageMap(asList("default"))));
+		transaction.add(manager.getSchema(collection, "connectorSmbDocument_default").withFormMetadataCodes(
+				asList("connectorSmbDocument_default_title", "connectorSmbDocument_default_connector",
+						"connectorSmbDocument_default_connectorType", "connectorSmbDocument_default_errorCode",
+						"connectorSmbDocument_default_errorMessage", "connectorSmbDocument_default_errorsCount",
+						"connectorSmbDocument_default_extension", "connectorSmbDocument_default_fetchDelay",
+						"connectorSmbDocument_default_frequency", "connectorSmbDocument_default_language",
+						"connectorSmbDocument_default_lastFetchAttemptDetails",
+						"connectorSmbDocument_default_lastFetchAttemptStatus", "connectorSmbDocument_default_mimetype",
+						"connectorSmbDocument_default_parent", "connectorSmbDocument_default_permissionsHash",
+						"connectorSmbDocument_default_size", "connectorSmbDocument_default_status",
+						"connectorSmbDocument_default_traversalCode", "connectorSmbDocument_default_url",
+						"connectorSmbDocument_default_fetchedDateTime", "connectorSmbDocument_default_lastFetchAttempt",
+						"connectorSmbDocument_default_lastModified", "connectorSmbDocument_default_fetched",
+						"connectorSmbDocument_default_neverFetch", "connectorSmbDocument_default_errorStackTrace",
+						"connectorSmbDocument_default_parsedContent")).withDisplayMetadataCodes(
+				asList("connectorSmbDocument_default_title", "connectorSmbDocument_default_createdBy",
+						"connectorSmbDocument_default_createdOn", "connectorSmbDocument_default_modifiedBy",
+						"connectorSmbDocument_default_modifiedOn", "connectorSmbDocument_default_connector",
+						"connectorSmbDocument_default_connectorType", "connectorSmbDocument_default_errorCode",
+						"connectorSmbDocument_default_errorMessage", "connectorSmbDocument_default_errorsCount",
+						"connectorSmbDocument_default_extension", "connectorSmbDocument_default_fetchDelay",
+						"connectorSmbDocument_default_fetched", "connectorSmbDocument_default_fetchedDateTime",
+						"connectorSmbDocument_default_frequency", "connectorSmbDocument_default_language",
+						"connectorSmbDocument_default_lastFetchAttempt", "connectorSmbDocument_default_lastFetchAttemptDetails",
+						"connectorSmbDocument_default_lastFetchAttemptStatus", "connectorSmbDocument_default_lastModified",
+						"connectorSmbDocument_default_mimetype", "connectorSmbDocument_default_neverFetch",
+						"connectorSmbDocument_default_nextFetch", "connectorSmbDocument_default_parent",
+						"connectorSmbDocument_default_permissionsHash", "connectorSmbDocument_default_size",
+						"connectorSmbDocument_default_status", "connectorSmbDocument_default_traversalCode",
+						"connectorSmbDocument_default_errorStackTrace", "connectorSmbDocument_default_parsedContent"))
+				.withSearchResultsMetadataCodes(
+						asList("connectorSmbDocument_default_title", "connectorSmbDocument_default_modifiedOn"))
+				.withTableMetadataCodes(asList("connectorSmbDocument_default_title", "connectorSmbDocument_default_modifiedOn")));
 		transaction.add(manager.getMetadata(collection, "connectorSmbDocument_default_connector").withMetadataGroup("")
 				.withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "connectorSmbDocument_default_errorCode").withMetadataGroup("")
@@ -1753,19 +1794,169 @@ public final class GeneratedESMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "connectorSmbDocument_default_url").withMetadataGroup("")
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
+		transaction.add(manager.getSchema(collection, "connectorSmbFolder_default").withFormMetadataCodes(
+				asList("connectorSmbFolder_default_title", "connectorSmbFolder_default_connector",
+						"connectorSmbFolder_default_connectorType", "connectorSmbFolder_default_errorCode",
+						"connectorSmbFolder_default_errorMessage", "connectorSmbFolder_default_errorsCount",
+						"connectorSmbFolder_default_fetchDelay", "connectorSmbFolder_default_frequency",
+						"connectorSmbFolder_default_lastFetchedStatus", "connectorSmbFolder_default_mimetype",
+						"connectorSmbFolder_default_parent", "connectorSmbFolder_default_status",
+						"connectorSmbFolder_default_traversalCode", "connectorSmbFolder_default_url",
+						"connectorSmbFolder_default_fetchedDateTime", "connectorSmbFolder_default_lastFetchAttempt",
+						"connectorSmbFolder_default_lastModified", "connectorSmbFolder_default_fetched",
+						"connectorSmbFolder_default_neverFetch", "connectorSmbFolder_default_errorStackTrace"))
+				.withDisplayMetadataCodes(asList("connectorSmbFolder_default_title", "connectorSmbFolder_default_createdBy",
+						"connectorSmbFolder_default_createdOn", "connectorSmbFolder_default_modifiedBy",
+						"connectorSmbFolder_default_modifiedOn", "connectorSmbFolder_default_connector",
+						"connectorSmbFolder_default_connectorType", "connectorSmbFolder_default_errorCode",
+						"connectorSmbFolder_default_errorMessage", "connectorSmbFolder_default_errorsCount",
+						"connectorSmbFolder_default_fetchDelay", "connectorSmbFolder_default_fetched",
+						"connectorSmbFolder_default_fetchedDateTime", "connectorSmbFolder_default_frequency",
+						"connectorSmbFolder_default_lastFetchAttempt", "connectorSmbFolder_default_lastFetchedStatus",
+						"connectorSmbFolder_default_lastModified", "connectorSmbFolder_default_mimetype",
+						"connectorSmbFolder_default_neverFetch", "connectorSmbFolder_default_nextFetch",
+						"connectorSmbFolder_default_parent", "connectorSmbFolder_default_status",
+						"connectorSmbFolder_default_traversalCode", "connectorSmbFolder_default_errorStackTrace"))
+				.withSearchResultsMetadataCodes(
+						asList("connectorSmbFolder_default_title", "connectorSmbFolder_default_modifiedOn"))
+				.withTableMetadataCodes(asList("connectorSmbFolder_default_title", "connectorSmbFolder_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "connectorType_default").withFormMetadataCodes(
+				asList("connectorType_default_code", "connectorType_default_title", "connectorType_default_connectorClassName",
+						"connectorType_default_linkedSchema", "connectorType_default_defaultAvailableFields"))
+				.withDisplayMetadataCodes(
+						asList("connectorType_default_code", "connectorType_default_title", "connectorType_default_createdBy",
+								"connectorType_default_createdOn", "connectorType_default_modifiedBy",
+								"connectorType_default_modifiedOn", "connectorType_default_connectorClassName",
+								"connectorType_default_linkedSchema"))
+				.withSearchResultsMetadataCodes(asList("connectorType_default_title", "connectorType_default_modifiedOn"))
+				.withTableMetadataCodes(asList("connectorType_default_title", "connectorType_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "emailToSend_default").withFormMetadataCodes(
+				asList("emailToSend_default_title", "emailToSend_default_error", "emailToSend_default_parameters",
+						"emailToSend_default_subject", "emailToSend_default_template", "emailToSend_default_tryingCount",
+						"emailToSend_default_sendOn", "emailToSend_default_BCC", "emailToSend_default_CC",
+						"emailToSend_default_from", "emailToSend_default_to")).withDisplayMetadataCodes(
+				asList("emailToSend_default_title", "emailToSend_default_createdBy", "emailToSend_default_createdOn",
+						"emailToSend_default_modifiedBy", "emailToSend_default_modifiedOn", "emailToSend_default_error",
+						"emailToSend_default_parameters", "emailToSend_default_sendOn", "emailToSend_default_subject",
+						"emailToSend_default_template", "emailToSend_default_tryingCount"))
+				.withSearchResultsMetadataCodes(asList("emailToSend_default_title", "emailToSend_default_modifiedOn"))
+				.withTableMetadataCodes(asList("emailToSend_default_title", "emailToSend_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "event_default").withFormMetadataCodes(
+				asList("event_default_title", "event_default_type", "event_default_delta", "event_default_eventPrincipalPath",
+						"event_default_ip", "event_default_permissionDateRange", "event_default_permissionRoles",
+						"event_default_permissionUsers", "event_default_reason", "event_default_userRoles",
+						"event_default_username")).withDisplayMetadataCodes(
+				asList("event_default_title", "event_default_type", "event_default_createdBy", "event_default_createdOn",
+						"event_default_modifiedBy", "event_default_modifiedOn", "event_default_delta",
+						"event_default_eventPrincipalPath", "event_default_ip", "event_default_permissionDateRange",
+						"event_default_permissionRoles", "event_default_permissionUsers", "event_default_reason",
+						"event_default_recordIdentifier", "event_default_userRoles", "event_default_username"))
+				.withSearchResultsMetadataCodes(asList("event_default_title", "event_default_modifiedOn"))
+				.withTableMetadataCodes(asList("event_default_title", "event_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "facet_field").withFormMetadataCodes(
+				asList("facet_field_title", "facet_field_elementPerPage", "facet_field_facetType",
+						"facet_field_fieldDatastoreCode", "facet_field_order", "facet_field_orderResult", "facet_field_pages",
+						"facet_field_active", "facet_field_openByDefault", "facet_field_fieldValuesLabel"))
+				.withDisplayMetadataCodes(
+						asList("facet_field_title", "facet_field_createdBy", "facet_field_createdOn", "facet_field_modifiedBy",
+								"facet_field_modifiedOn", "facet_field_active", "facet_field_elementPerPage",
+								"facet_field_facetType", "facet_field_fieldDatastoreCode", "facet_field_openByDefault",
+								"facet_field_order", "facet_field_orderResult", "facet_field_pages",
+								"facet_field_fieldValuesLabel"))
+				.withSearchResultsMetadataCodes(asList("facet_field_title", "facet_field_modifiedOn"))
+				.withTableMetadataCodes(new ArrayList<String>()));
+		transaction.add(manager.getSchema(collection, "facet_query").withFormMetadataCodes(
+				asList("facet_query_title", "facet_query_elementPerPage", "facet_query_facetType",
+						"facet_query_fieldDatastoreCode", "facet_query_order", "facet_query_orderResult", "facet_query_pages",
+						"facet_query_active", "facet_query_openByDefault", "facet_query_listQueries")).withDisplayMetadataCodes(
+				asList("facet_query_title", "facet_query_createdBy", "facet_query_createdOn", "facet_query_modifiedBy",
+						"facet_query_modifiedOn", "facet_query_active", "facet_query_elementPerPage", "facet_query_facetType",
+						"facet_query_fieldDatastoreCode", "facet_query_openByDefault", "facet_query_order",
+						"facet_query_orderResult", "facet_query_pages", "facet_query_listQueries"))
+				.withSearchResultsMetadataCodes(asList("facet_query_title", "facet_query_modifiedOn"))
+				.withTableMetadataCodes(new ArrayList<String>()));
+		transaction.add(manager.getSchema(collection, "facet_default").withFormMetadataCodes(
+				asList("facet_default_title", "facet_default_elementPerPage", "facet_default_facetType",
+						"facet_default_fieldDatastoreCode", "facet_default_order", "facet_default_orderResult",
+						"facet_default_pages", "facet_default_active", "facet_default_openByDefault")).withDisplayMetadataCodes(
+				asList("facet_default_title", "facet_default_createdBy", "facet_default_createdOn", "facet_default_modifiedBy",
+						"facet_default_modifiedOn", "facet_default_active", "facet_default_elementPerPage",
+						"facet_default_facetType", "facet_default_fieldDatastoreCode", "facet_default_openByDefault",
+						"facet_default_order", "facet_default_orderResult", "facet_default_pages"))
+				.withSearchResultsMetadataCodes(asList("facet_default_title", "facet_default_modifiedOn"))
+				.withTableMetadataCodes(asList("facet_default_title", "facet_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "group_default").withFormMetadataCodes(
+				asList("group_default_code", "group_default_title", "group_default_parent", "group_default_roles",
+						"group_default_isGlobal")).withDisplayMetadataCodes(
+				asList("group_default_code", "group_default_title", "group_default_createdOn", "group_default_modifiedOn",
+						"group_default_isGlobal", "group_default_parent", "group_default_roles"))
+				.withSearchResultsMetadataCodes(asList("group_default_title", "group_default_modifiedOn"))
+				.withTableMetadataCodes(asList("group_default_title", "group_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "report_default").withFormMetadataCodes(
+				asList("report_default_title", "report_default_columnsCount", "report_default_linesCount",
+						"report_default_schemaTypeCode", "report_default_separator", "report_default_username",
+						"report_default_reportedMetadata")).withDisplayMetadataCodes(
+				asList("report_default_title", "report_default_createdBy", "report_default_createdOn",
+						"report_default_modifiedBy", "report_default_modifiedOn", "report_default_columnsCount",
+						"report_default_linesCount", "report_default_schemaTypeCode", "report_default_separator",
+						"report_default_username"))
+				.withSearchResultsMetadataCodes(asList("report_default_title", "report_default_modifiedOn"))
+				.withTableMetadataCodes(asList("report_default_title", "report_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "savedSearch_default").withFormMetadataCodes(
+				asList("savedSearch_default_title", "savedSearch_default_freeTextSearch", "savedSearch_default_pageNumber",
+						"savedSearch_default_schemaFilter", "savedSearch_default_searchType", "savedSearch_default_sortField",
+						"savedSearch_default_sortOrder", "savedSearch_default_user", "savedSearch_default_public",
+						"savedSearch_default_temporary", "savedSearch_default_advancedSearch",
+						"savedSearch_default_facetSelections")).withDisplayMetadataCodes(
+				asList("savedSearch_default_title", "savedSearch_default_createdBy", "savedSearch_default_createdOn",
+						"savedSearch_default_modifiedBy", "savedSearch_default_modifiedOn", "savedSearch_default_freeTextSearch",
+						"savedSearch_default_pageNumber", "savedSearch_default_public", "savedSearch_default_schemaFilter",
+						"savedSearch_default_searchType", "savedSearch_default_sortField", "savedSearch_default_sortOrder",
+						"savedSearch_default_temporary", "savedSearch_default_user"))
+				.withSearchResultsMetadataCodes(asList("savedSearch_default_title", "savedSearch_default_modifiedOn"))
+				.withTableMetadataCodes(asList("savedSearch_default_title", "savedSearch_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "task_approval").withFormMetadataCodes(
+				asList("task_approval_title", "task_approval_assignCandidates", "task_approval_assignedTo",
+						"task_approval_finishedBy", "task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers",
+						"task_approval_assignedOn", "task_approval_dueDate", "task_approval_finishedOn",
+						"task_approval_decision")).withDisplayMetadataCodes(
+				asList("task_approval_title", "task_approval_createdBy", "task_approval_createdOn", "task_approval_modifiedBy",
+						"task_approval_modifiedOn", "task_approval_assignCandidates", "task_approval_assignedOn",
+						"task_approval_assignedTo", "task_approval_dueDate", "task_approval_finishedBy",
+						"task_approval_finishedOn", "task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers",
+						"task_approval_decision"))
+				.withSearchResultsMetadataCodes(asList("task_approval_title", "task_approval_modifiedOn"))
+				.withTableMetadataCodes(new ArrayList<String>()));
+		transaction.add(manager.getSchema(collection, "task_default").withFormMetadataCodes(
+				asList("task_default_title", "task_default_assignCandidates", "task_default_assignedTo",
+						"task_default_finishedBy", "task_default_workflowIdentifier", "task_default_workflowRecordIdentifiers",
+						"task_default_assignedOn", "task_default_dueDate", "task_default_finishedOn")).withDisplayMetadataCodes(
+				asList("task_default_title", "task_default_createdBy", "task_default_createdOn", "task_default_modifiedBy",
+						"task_default_modifiedOn", "task_default_assignCandidates", "task_default_assignedOn",
+						"task_default_assignedTo", "task_default_dueDate", "task_default_finishedBy", "task_default_finishedOn",
+						"task_default_workflowIdentifier", "task_default_workflowRecordIdentifiers"))
+				.withSearchResultsMetadataCodes(asList("task_default_title", "task_default_modifiedOn"))
+				.withTableMetadataCodes(asList("task_default_title", "task_default_modifiedOn")));
+		transaction.add(manager.getSchema(collection, "userDocument_default").withFormMetadataCodes(
+				asList("userDocument_default_title", "userDocument_default_user", "userDocument_default_content"))
+				.withDisplayMetadataCodes(
+						asList("userDocument_default_title", "userDocument_default_createdOn", "userDocument_default_modifiedOn",
+								"userDocument_default_user", "userDocument_default_content"))
+				.withSearchResultsMetadataCodes(asList("userDocument_default_title", "userDocument_default_modifiedOn"))
+				.withTableMetadataCodes(asList("userDocument_default_title", "userDocument_default_modifiedOn")));
 		manager.execute(transaction.build());
 	}
 
 	public void applyGeneratedRoles() {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 		;
-		rolesManager.updateRole(new Role(collection, "ADM", "Administrateur",
-				asList("core.deleteContentVersion", "core.viewEvents", "core.manageFacets", "core.manageTaxonomies",
-						"core.manageValueList", "core.manageMetadataSchemas", "core.manageSecurity",
-						"core.manageMetadataExtractor", "core.manageConnectors", "core.manageSearchEngine", "core.manageTrash",
-						"core.manageSearchReports", "core.manageEmailServer", "core.manageSystemConfiguration",
-						"core.manageSystemGroups", "core.manageSystemUsers", "core.manageSystemCollections",
-						"core.manageSystemModules", "core.manageSystemDataImports", "core.manageSystemServers",
-						"core.manageSystemUpdates", "core.ldapConfigurationManagement")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(
+				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
+						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
+						"core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports",
+						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
+						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
+						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
+						"core.manageTrash", "core.manageValueList", "core.viewEvents")));
 	}
 }

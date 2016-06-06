@@ -34,12 +34,14 @@ public class RobotsMigrationTo6_3 implements MigrationScript {
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection)
 				.in(Robot.SCHEMA_TYPE).addToForm(Robot.AUTO_EXECUTE).atTheEnd();
-		
+
 		List<String> metas = new ArrayList<>();
 		metas.addAll(manager.getSchema(collection, RobotLog.DEFAULT_SCHEMA).getTableMetadataCodes());
 		metas.add(RobotLog.DEFAULT_SCHEMA + "_" + RobotLog.COUNT);
 
 		transactionBuilder.add(manager.getSchema(collection, RobotLog.DEFAULT_SCHEMA).withTableMetadataCodes(metas));
+
+		transactionBuilder.add(manager.getSchema(collection, "robotLog_default").withNewTableMetadatas("robotLog_default_count"));
 
 		manager.execute(transactionBuilder.build());
 	}

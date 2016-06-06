@@ -6,12 +6,12 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
+import com.constellio.app.modules.complementary.esRmRobots.validators.ClassifyConnectorTaxonomyActionParametersValidator;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -42,15 +42,17 @@ public final class GeneratedESRMRobotsMigrationCombo {
 		MetadataSchemaBuilder userSchema = userSchemaType.getDefaultSchema();
 		MetadataSchemaTypeBuilder actionParametersSchemaType = typesBuilder.getSchemaType("actionParameters");
 		MetadataSchemaBuilder actionParameters_classifyConnectorFolderDirectlyInThePlanSchema = actionParametersSchemaType
-				.getCustomSchema("classifyConnectorFolderDirectlyInThePlan");
+				.createCustomSchema("classifyConnectorFolderDirectlyInThePlan");
 		MetadataSchemaBuilder actionParameters_classifyConnectorFolderInParentFolderSchema = actionParametersSchemaType
-				.getCustomSchema("classifyConnectorFolderInParentFolder");
+				.createCustomSchema("classifyConnectorFolderInParentFolder");
 		MetadataSchemaBuilder actionParameters_classifyConnectorTaxonomySchema = actionParametersSchemaType
-				.getCustomSchema("classifyConnectorTaxonomy");
+				.createCustomSchema("classifyConnectorTaxonomy");
+		actionParameters_classifyConnectorTaxonomySchema.defineValidators()
+				.add(ClassifyConnectorTaxonomyActionParametersValidator.class);
 		MetadataSchemaBuilder actionParameters_classifySmbDocumentInFolderSchema = actionParametersSchemaType
-				.getCustomSchema("classifySmbDocumentInFolder");
+				.createCustomSchema("classifySmbDocumentInFolder");
 		MetadataSchemaBuilder actionParameters_classifySmbFolderInFolderSchema = actionParametersSchemaType
-				.getCustomSchema("classifySmbFolderInFolder");
+				.createCustomSchema("classifySmbFolderInFolder");
 		MetadataSchemaBuilder actionParametersSchema = actionParametersSchemaType.getDefaultSchema();
 		MetadataSchemaTypeBuilder administrativeUnitSchemaType = typesBuilder.getSchemaType("administrativeUnit");
 		MetadataSchemaBuilder administrativeUnitSchema = administrativeUnitSchemaType.getDefaultSchema();
@@ -134,7 +136,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
 		MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.getSchemaType("workflowInstance");
 		MetadataSchemaBuilder workflowInstanceSchema = workflowInstanceSchemaType.getDefaultSchema();
 		MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema
-				.create("actionAfterClassification").setType(MetadataValueType.ENUM);
+				.create("actionAfterClassification").setType(
+						MetadataValueType.ENUM);
 		actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification.setDefaultRequirement(true);
 		actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification
 				.setDefaultValue(ActionAfterClassification.DO_NOTHING);
@@ -271,8 +274,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
 						"folder_default_copyStatus")));
 		transaction
 				.add(manager.getType(collection, "actionParameters").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
-						.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
-								asList("tab.taxonomy", "default", "tab.mappings", "tab.defaultValues", "tab.options",
+						.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
+								asList("default", "tab.mappings", "tab.defaultValues", "default:tab.taxonomy", "tab.options",
 										"tab.advanced"))));
 		transaction.add(manager.getSchema(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan")
 				.withFormMetadataCodes(asList("actionParameters_classifyConnectorFolderDirectlyInThePlan_defaultAdminUnit",
@@ -298,34 +301,34 @@ public final class GeneratedESRMRobotsMigrationCombo {
 								"actionParameters_classifyConnectorFolderDirectlyInThePlan_modifiedOn")));
 		transaction.add(manager
 				.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification")
-				.withMetadataGroup(" Options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withMetadataGroup("tab.options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction
 				.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_defaultAdminUnit")
-						.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP)
-						.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+						.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+						.withVisibleInAdvancedSearchStatus(false));
 		transaction
 				.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_defaultCategory")
-						.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP)
-						.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+						.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager
 				.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_defaultCopyStatus")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction
 				.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_defaultOpenDate")
-						.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+						.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager
 				.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_defaultRetentionRule")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction
 				.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_documentMapping")
-						.withMetadataGroup(" Avancé").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
+						.withMetadataGroup("tab.advanced").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
 						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderDirectlyInThePlan_folderMapping")
-				.withMetadataGroup(" Avancé").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
+				.withMetadataGroup("tab.advanced").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getSchema(collection, "actionParameters_classifyConnectorFolderInParentFolder")
 				.withFormMetadataCodes(asList("actionParameters_classifyConnectorFolderInParentFolder_defaultParentFolder",
@@ -345,20 +348,20 @@ public final class GeneratedESRMRobotsMigrationCombo {
 								"actionParameters_classifyConnectorFolderInParentFolder_modifiedOn")));
 		transaction.add(manager
 				.getMetadata(collection, "actionParameters_classifyConnectorFolderInParentFolder_actionAfterClassification")
-				.withMetadataGroup(" Options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withMetadataGroup("tab.options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderInParentFolder_defaultOpenDate")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction
 				.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderInParentFolder_defaultParentFolder")
-						.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP)
-						.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+						.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderInParentFolder_documentMapping")
-				.withMetadataGroup(" Avancé").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
+				.withMetadataGroup("tab.advanced").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorFolderInParentFolder_folderMapping")
-				.withMetadataGroup(" Avancé").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
+				.withMetadataGroup("tab.advanced").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getSchema(collection, "actionParameters_classifyConnectorTaxonomy").withFormMetadataCodes(
 				asList("actionParameters_classifyConnectorTaxonomy_inTaxonomy",
@@ -391,41 +394,41 @@ public final class GeneratedESRMRobotsMigrationCombo {
 				asList("actionParameters_classifyConnectorTaxonomy_title",
 						"actionParameters_classifyConnectorTaxonomy_modifiedOn")));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_actionAfterClassification")
-				.withMetadataGroup(" Options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withMetadataGroup("tab.options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_defaultAdminUnit")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_defaultCategory")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_defaultCopyStatus")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_defaultOpenDate")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_defaultParentFolder")
 				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_defaultRetentionRule")
-				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
+				.withMetadataGroup("tab.defaultValues").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_delimiter")
-				.withMetadataGroup(" Classification basée sur un espace virtuel").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+				.withMetadataGroup("default:tab.taxonomy").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_documentMapping")
-				.withMetadataGroup(" Tables de concordance").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
+				.withMetadataGroup("tab.mappings").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_folderMapping")
-				.withMetadataGroup(" Tables de concordance").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
+				.withMetadataGroup("tab.mappings").withInputType(MetadataInputType.CONTENT).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_inTaxonomy")
-				.withMetadataGroup(" Classification basée sur un espace virtuel").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+				.withMetadataGroup("default:tab.taxonomy").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifyConnectorTaxonomy_pathPrefix")
-				.withMetadataGroup(" Classification basée sur un espace virtuel").withInputType(MetadataInputType.FIELD)
-				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+				.withMetadataGroup("default:tab.taxonomy").withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
+				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getSchema(collection, "actionParameters_classifySmbDocumentInFolder").withFormMetadataCodes(
 				asList("actionParameters_classifySmbDocumentInFolder_inFolder",
 						"actionParameters_classifySmbDocumentInFolder_documentType",
@@ -440,7 +443,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
 				asList("actionParameters_classifySmbDocumentInFolder_title",
 						"actionParameters_classifySmbDocumentInFolder_modifiedOn")));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifySmbDocumentInFolder_actionAfterClassification")
-				.withMetadataGroup(" Options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
+				.withMetadataGroup("tab.options").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false)
 				.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "actionParameters_classifySmbDocumentInFolder_documentType")
 				.withMetadataGroup("Valeurs par défaut").withInputType(MetadataInputType.LOOKUP).withHighlightStatus(false)
@@ -457,59 +460,59 @@ public final class GeneratedESRMRobotsMigrationCombo {
 	public void applyGeneratedRoles() {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 		;
-		rolesManager.updateRole(new Role(collection, "ADM", "Administrateur",
-				asList("core.deleteContentVersion", "rm.modifySemiActiveBorrowedFolder", "rm.shareFolders", "core.manageSecurity",
-						"rm.createSubFolders", "core.manageMetadataExtractor", "rm.manageReports", "rm.createDocuments",
-						"robots.manageRobots", "rm.shareInactiveDocuments", "rm.deleteInactiveFolders", "core.viewEvents",
-						"core.manageEmailServer", "core.manageSearchReports", "rm.modifyInactiveBorrowedFolder",
-						"rm.deleteInactiveDocuments", "rm.duplicateSemiActiveFolders", "rm.modifyInactiveFolders",
-						"rm.borrowFolder", "rm.modifyInactiveDocuments", "rm.shareSemiActiveDocuments",
-						"rm.createSubFoldersInSemiActiveFolders", "rm.editDecommissioningList", "core.manageSystemGroups",
-						"rm.duplicateInactiveFolders", "rm.manageRetentionRule", "core.ldapConfigurationManagement",
-						"core.manageTaxonomies", "core.manageSystemServers", "rm.createInactiveDocuments",
-						"core.manageSystemModules", "core.manageTrash", "rm.createSubFoldersInInactiveFolders",
-						"rm.deleteSemiActiveFolders", "rm.decommissioning", "rm.manageClassificationPlan",
-						"rm.processDecommissioningList", "rm.manageFolderAuthorizations", "core.manageSearchEngine",
-						"rm.shareDocuments", "rm.returnOtherUsersDocuments", "rm.manageUniformSubdivisions",
-						"rm.modifySemiActiveFolders", "core.manageSystemConfiguration", "rm.manageStorageSpaces",
-						"rm.createSemiActiveDocuments", "rm.modifyFolderDecomDate", "core.manageSystemCollections",
-						"rm.uploadInactiveDocuments", "rm.modifyOpeningDateFolder", "core.manageSystemDataImports",
-						"core.manageConnectors", "core.manageFacets", "rm.deleteSemiActiveDocuments",
-						"rm.uploadSemiActiveDocuments", "rm.shareInactiveFolders", "core.manageValueList",
-						"core.manageSystemUsers", "tasks.manageWorkflows", "rm.manageContainers", "core.manageMetadataSchemas",
-						"rm.manageDocumentAuthorizations", "rm.modifySemiActiveDocuments", "core.manageSystemUpdates",
-						"rm.createFolders", "rm.shareSemiActiveFolders")));
-		rolesManager.updateRole(new Role(collection, "U", "Utilisateur",
-				asList("rm.modifySemiActiveBorrowedFolder", "rm.shareFolders", "rm.createSubFolders", "rm.borrowFolder",
-						"rm.deleteSemiActiveDocuments", "rm.createDocuments", "rm.uploadSemiActiveDocuments",
-						"rm.shareSemiActiveDocuments", "rm.shareDocuments", "rm.createFolders", "rm.shareSemiActiveFolders",
-						"rm.deleteSemiActiveFolders")));
-		rolesManager.updateRole(new Role(collection, "M", "Gestionnaire",
-				asList("rm.modifySemiActiveBorrowedFolder", "rm.shareFolders", "rm.manageFolderAuthorizations",
-						"rm.createSubFolders", "rm.deleteSemiActiveDocuments", "rm.borrowFolder", "rm.uploadSemiActiveDocuments",
-						"rm.createDocuments", "rm.shareDocuments", "rm.shareSemiActiveDocuments", "rm.manageContainers",
-						"rm.manageDocumentAuthorizations", "rm.createFolders", "rm.modifyOpeningDateFolder",
-						"rm.shareSemiActiveFolders", "rm.deleteSemiActiveFolders", "rm.decommissioning")));
-		rolesManager.updateRole(new Role(collection, "RGD", "Responsable de la gestion documentaire",
-				asList("core.deleteContentVersion", "rm.modifySemiActiveBorrowedFolder", "rm.shareFolders", "core.manageSecurity",
-						"rm.createSubFolders", "core.manageMetadataExtractor", "rm.manageReports", "rm.createDocuments",
-						"rm.shareInactiveDocuments", "rm.deleteInactiveFolders", "core.manageEmailServer", "core.viewEvents",
-						"core.manageSearchReports", "rm.modifyInactiveBorrowedFolder", "rm.deleteInactiveDocuments",
-						"rm.duplicateSemiActiveFolders", "rm.modifyInactiveFolders", "rm.borrowFolder",
-						"rm.modifyInactiveDocuments", "rm.shareSemiActiveDocuments", "rm.createSubFoldersInSemiActiveFolders",
-						"rm.editDecommissioningList", "core.manageSystemGroups", "rm.manageRetentionRule",
-						"rm.duplicateInactiveFolders", "core.ldapConfigurationManagement", "core.manageSystemServers",
-						"core.manageTaxonomies", "rm.createInactiveDocuments", "core.manageSystemModules", "core.manageTrash",
-						"rm.decommissioning", "rm.deleteSemiActiveFolders", "rm.createSubFoldersInInactiveFolders",
-						"rm.manageClassificationPlan", "rm.processDecommissioningList", "rm.manageFolderAuthorizations",
-						"core.manageSearchEngine", "rm.shareDocuments", "rm.manageUniformSubdivisions",
-						"rm.returnOtherUsersDocuments", "rm.modifySemiActiveFolders", "core.manageSystemConfiguration",
-						"rm.manageStorageSpaces", "rm.createSemiActiveDocuments", "rm.modifyFolderDecomDate",
-						"core.manageSystemCollections", "rm.uploadInactiveDocuments", "rm.modifyOpeningDateFolder",
-						"core.manageSystemDataImports", "core.manageConnectors", "core.manageFacets",
-						"rm.deleteSemiActiveDocuments", "rm.uploadSemiActiveDocuments", "rm.shareInactiveFolders",
-						"core.manageSystemUsers", "core.manageValueList", "rm.manageContainers", "core.manageMetadataSchemas",
-						"rm.manageDocumentAuthorizations", "rm.modifySemiActiveDocuments", "core.manageSystemUpdates",
-						"rm.createFolders", "rm.shareSemiActiveFolders")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(
+				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
+						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
+						"core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports",
+						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
+						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
+						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
+						"core.manageTrash", "core.manageValueList", "core.viewEvents", "rm.borrowFolder", "rm.createDocuments",
+						"rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders",
+						"rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning",
+						"rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deleteSemiActiveDocuments",
+						"rm.deleteSemiActiveFolders", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders",
+						"rm.editDecommissioningList", "rm.manageClassificationPlan", "rm.manageContainers",
+						"rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports",
+						"rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions",
+						"rm.modifyFolderDecomDate", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments",
+						"rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder",
+						"rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList",
+						"rm.returnOtherUsersDocuments", "rm.shareDocuments", "rm.shareFolders", "rm.shareInactiveDocuments",
+						"rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
+						"rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "robots.manageRobots",
+						"tasks.manageWorkflows")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "U").withNewPermissions(
+				asList("rm.borrowFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders",
+						"rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.modifySemiActiveBorrowedFolder",
+						"rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
+						"rm.uploadSemiActiveDocuments")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "M").withNewPermissions(
+				asList("rm.borrowFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.decommissioning",
+						"rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.manageContainers",
+						"rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.modifyOpeningDateFolder",
+						"rm.modifySemiActiveBorrowedFolder", "rm.shareDocuments", "rm.shareFolders",
+						"rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "RGD").withNewPermissions(
+				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
+						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
+						"core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports",
+						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
+						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
+						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
+						"core.manageTrash", "core.manageValueList", "core.viewEvents", "rm.borrowFolder", "rm.createDocuments",
+						"rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders",
+						"rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning",
+						"rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deleteSemiActiveDocuments",
+						"rm.deleteSemiActiveFolders", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders",
+						"rm.editDecommissioningList", "rm.manageClassificationPlan", "rm.manageContainers",
+						"rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports",
+						"rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions",
+						"rm.modifyFolderDecomDate", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments",
+						"rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder",
+						"rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList",
+						"rm.returnOtherUsersDocuments", "rm.shareDocuments", "rm.shareFolders", "rm.shareInactiveDocuments",
+						"rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
+						"rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments")));
 	}
 }

@@ -41,11 +41,9 @@ public class ESMigrationTo6_1 extends MigrationHelper implements MigrationScript
 	private void updateFormAndDisplay(String collection, AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 
-		Language language = migrationResourcesProvider.getLanguage();
-
 		String advancedTab = "connectors.advanced";
 
-		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMapWithKeys(asList(advancedTab));
+		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMap(asList(advancedTab));
 
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 		transaction.add(manager.getType(collection, ConnectorInstance.SCHEMA_TYPE).withNewMetadataGroup(groups));

@@ -123,6 +123,14 @@ public class SchemaDisplayConfig {
 		return withDisplayMetadataCodes(displayMetadatas);
 	}
 
+	public SchemaDisplayConfig withRemovedTableMetadatas(String... metadataCodes) {
+
+		List<String> tableMetadatas = new ArrayList<>();
+		tableMetadatas.addAll(this.tableMetadataCodes);
+		tableMetadatas.removeAll(asList(metadataCodes));
+		return withTableMetadataCodes(tableMetadatas);
+	}
+
 	public SchemaDisplayConfig withRemovedFormMetadatas(String... metadataCodes) {
 
 		List<String> formMetadatas = new ArrayList<>();
@@ -139,5 +147,11 @@ public class SchemaDisplayConfig {
 		return withFormMetadataCodes(formMetadatas);
 	}
 
+	public SchemaDisplayConfig withNewTableMetadatas(String... metadataCodes) {
+		List<String> tableMetadatas = new ArrayList<>();
+		tableMetadatas.addAll(this.tableMetadataCodes);
+		tableMetadatas.addAll(asList(metadataCodes));
+		return withTableMetadataCodes(tableMetadatas);
+	}
 }
 

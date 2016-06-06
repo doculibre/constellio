@@ -12,7 +12,6 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -484,8 +483,8 @@ public final class GeneratedRobotsMigrationCombo {
 				.withSearchResultsMetadataCodes(asList("actionParameters_default_title", "actionParameters_default_modifiedOn"))
 				.withTableMetadataCodes(asList("actionParameters_default_title", "actionParameters_default_modifiedOn")));
 		transaction.add(manager.getType(collection, "robot").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
-				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
-						asList("init.robot.tabs.action", "init.robot.tabs.criteria", "init.robot.tabs.definition"))));
+				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
+						asList("init.robot.tabs.action", "init.robot.tabs.criteria", "default:init.robot.tabs.definition"))));
 		transaction.add(manager.getSchema(collection, "robot_default").withFormMetadataCodes(
 				asList("robot_default_code", "robot_default_title", "robot_default_parent", "robot_default_schemaFilter",
 						"robot_default_description", "robot_default_searchCriteria", "robot_default_action",
@@ -531,13 +530,13 @@ public final class GeneratedRobotsMigrationCombo {
 	public void applyGeneratedRoles() {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 		;
-		rolesManager.updateRole(new Role(collection, "ADM", "Administrateur",
-				asList("core.manageConnectors", "core.deleteContentVersion", "core.manageFacets", "core.manageSecurity",
-						"core.manageSearchEngine", "core.manageMetadataExtractor", "robots.manageRobots",
-						"core.manageSystemUsers", "core.manageValueList", "core.manageSystemGroups",
-						"core.manageSystemConfiguration", "core.ldapConfigurationManagement", "core.manageSystemServers",
-						"core.manageEmailServer", "core.manageMetadataSchemas", "core.manageTaxonomies", "core.viewEvents",
-						"core.manageSearchReports", "core.manageSystemModules", "core.manageSystemUpdates",
-						"core.manageSystemCollections", "core.manageSystemDataImports", "core.manageTrash")));
+		rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(
+				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
+						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
+						"core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports",
+						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
+						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
+						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
+						"core.manageTrash", "core.manageValueList", "core.viewEvents", "robots.manageRobots")));
 	}
 }

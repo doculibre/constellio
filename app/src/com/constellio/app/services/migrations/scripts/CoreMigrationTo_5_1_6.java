@@ -54,11 +54,11 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 
 		Language language = migrationResourcesProvider.getLanguage();
 
-		String configurationTab = "init.facetConfiguration.configuration";
+		String configurationTab = "default:init.facetConfiguration.configuration";
 		String valeursTab = "init.facetConfiguration.values";
 		String queryTab = "init.facetConfiguration.query";
 
-		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMapWithKeys(
+		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMap(
 				asList(configurationTab, valeursTab, queryTab));
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();

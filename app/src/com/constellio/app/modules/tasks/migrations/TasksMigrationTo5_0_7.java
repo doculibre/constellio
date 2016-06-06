@@ -93,7 +93,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 
 		Language language = migrationResourcesProvider.getLanguage();
 
-		String definitionTab = "init.userTask.definition";
+		String definitionTab = "default:init.userTask.definition";
 		String filesTab = "init.userTask.details";
 		String assignmentTab = "init.userTask.assignment";
 		String remindersTab = "init.userTask.remindersTab";
@@ -105,7 +105,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		SchemaDisplayConfig taskSchema = manager.getSchema(collection, Task.DEFAULT_SCHEMA);
 
 		transaction.add(taskSchemaType
-				.withMetadataGroup(migrationResourcesProvider.getLanguageMapWithKeys(asList(
+				.withMetadataGroup(migrationResourcesProvider.getLanguageMap(asList(
 						definitionTab, filesTab, assignmentTab, remindersTab, followersTab)))
 				.withAdvancedSearchStatus(true).withSimpleSearchStatus(true));
 

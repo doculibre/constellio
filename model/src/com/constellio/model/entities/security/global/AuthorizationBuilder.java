@@ -104,8 +104,4 @@ public class AuthorizationBuilder {
 		return new AuthorizationBuilder(users[0].getCollection()).forUsers(users);
 	}
 
-	public Authorization giving(List<String> roles) {
-		return withRoles(roles);
-	}
-
 }

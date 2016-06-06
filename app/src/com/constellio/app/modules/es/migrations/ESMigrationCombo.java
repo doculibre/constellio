@@ -16,10 +16,8 @@ import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttp;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
-import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
@@ -43,7 +41,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		scripts.add(new ESMigrationTo5_1_6());
 		scripts.add(new ESMigrationTo6_1());
 		scripts.add(new ESMigrationTo6_2());
-		scripts.add(new ESMigrationTo6_3());
+		scripts.add(new ESMigrationTo6_4());
 
 		return scripts;
 	}
@@ -80,16 +78,16 @@ public class ESMigrationCombo implements ComboMigrationScript {
 
 	private void applySchemasDisplay2(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			SchemasDisplayManager manager) {
-		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMapWithKeys(asList("default"));
+		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMap(asList("default"));
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 
 		//transaction.add(manager.getType(collection, ConnectorHttpDocument.SCHEMA_TYPE).withMetadataGroup(groups));
 
-		transaction.add(manager.getSchema(collection, ConnectorInstance.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(
-				"connectorInstance_default_includePatterns", "connectorInstance_default_excludePatterns"));
+		//		transaction.add(manager.getSchema(collection, ConnectorInstance.DEFAULT_SCHEMA).withNewFormAndDisplayMetadatas(
+		//				"connectorInstance_default_includePatterns", "connectorInstance_default_excludePatterns"));
 
-		transaction.add(manager.getSchema(collection, ConnectorLDAPInstance.SCHEMA_CODE).withNewFormAndDisplayMetadatas(
-				"connectorInstance_ldap_includePatterns", "connectorInstance_ldap_excludePatterns"));
+		//		transaction.add(manager.getSchema(collection, ConnectorLDAPInstance.SCHEMA_CODE).withNewFormAndDisplayMetadatas(
+		//				"connectorInstance_ldap_includePatterns", "connectorInstance_ldap_excludePatterns"));
 
 		manager.execute(transaction.build());
 	}

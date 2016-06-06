@@ -31,7 +31,7 @@ import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 
-public class FastMigrationsAcceptanceTest extends ConstellioTest {
+public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 	@Rule
 	public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -121,13 +121,48 @@ public class FastMigrationsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void validateCoreRMESMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
+				getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						types.getMetadata("userTask_default_status").setDefaultValue(null);
+					}
+				});
+			}
+		});
+
+	}
+
+	@Test
 	public void validateCoreESRMRobotsMigrationHighway()
 			throws Exception {
 
 		validate(new SetupScript() {
 			@Override
 			public void setupCollection() {
-				givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule().withRobotsModule();
+				givenCollection(zeCollection).withMockedAvailableModules(false).withConstellioRMModule().withConstellioESModule()
+						.withRobotsModule();
+			}
+		});
+
+	}
+
+	@Test
+	public void validateCoreTasksRobotsRMESMigrationHighway()
+			throws Exception {
+
+		validate(new SetupScript() {
+			@Override
+			public void setupCollection() {
+				givenCollection(zeCollection).withMockedAvailableModules(false).withTaskModule().withRobotsModule()
+						.withConstellioRMModule()
+						.withConstellioESModule();
 			}
 		});
 

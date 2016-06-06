@@ -150,9 +150,9 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 
 			Map<String, Map<Language, String>> groups;
 			if (schemaType.getCode().equals(Folder.SCHEMA_TYPE) || schemaType.getCode().equals(Document.SCHEMA_TYPE)) {
-				groups = migrationResourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel", "classifiedInGroupLabel"));
+				groups = migrationResourcesProvider.getLanguageMap(asList("default:defaultGroupLabel", "classifiedInGroupLabel"));
 			} else {
-				groups = migrationResourcesProvider.getLanguageMapWithKeys(asList("defaultGroupLabel"));
+				groups = migrationResourcesProvider.getLanguageMap(asList("default:defaultGroupLabel"));
 			}
 
 			transaction.getModifiedTypes().add(typeConfig.withMetadataGroup(groups));

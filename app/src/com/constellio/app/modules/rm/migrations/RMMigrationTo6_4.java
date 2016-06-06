@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -30,7 +31,14 @@ public class RMMigrationTo6_4 implements MigrationScript {
 		new SchemaAlterationsFor6_4(collection, provider, factory).migrate();
 
 		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
-		displayManager.saveSchema(displayManager.getSchema(collection, "cart_default"));
+		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
+		transaction.add(displayManager.getSchema(collection, "cart_default"));
+
+		transaction.add(displayManager.getSchema(collection, "userDocument_default")
+				.withRemovedDisplayMetadatas("userDocument_default_folder")
+				.withRemovedFormMetadatas("userDocument_default_folder"));
+
+		displayManager.execute(transaction.build());
 
 	}
 

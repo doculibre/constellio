@@ -1515,9 +1515,9 @@ public final class GeneratedCoreMigrationCombo {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 		SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection);
 		transaction.add(manager.getType(collection, "facet").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
-				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMapWithKeys(
-						asList("init.facetConfiguration.values", "init.facetConfiguration.query",
-								"init.facetConfiguration.configuration"))));
+				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
+						asList("init.facetConfiguration.values", "default:init.facetConfiguration.configuration",
+								"init.facetConfiguration.query"))));
 		transaction.add(manager.getMetadata(collection, "facet_field_fieldValuesLabel")
 				.withMetadataGroup("init.facetConfiguration.values").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
@@ -1526,26 +1526,39 @@ public final class GeneratedCoreMigrationCombo {
 						.withInputType(MetadataInputType.FIELD).withHighlightStatus(false)
 						.withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_active")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_elementPerPage")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_facetType")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_fieldDatastoreCode")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_openByDefault")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_orderResult")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.RADIO_BUTTONS)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getMetadata(collection, "facet_default_title")
-				.withMetadataGroup("init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
+				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
+		transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(
+				asList("user_default_defaultTabInFolderDisplay", "user_default_defaultTaxonomy", "user_default_email",
+						"user_default_firstname", "user_default_groups", "user_default_jobTitle", "user_default_lastname",
+						"user_default_loginLanguageCode", "user_default_phone", "user_default_startTab", "user_default_status",
+						"user_default_username", "user_default_userroles", "user_default_collectionDeleteAccess",
+						"user_default_collectionReadAccess", "user_default_collectionWriteAccess", "user_default_systemAdmin",
+						"user_default_signature")).withDisplayMetadataCodes(
+				asList("user_default_username", "user_default_firstname", "user_default_lastname", "user_default_title",
+						"user_default_email", "user_default_userroles", "user_default_groups", "user_default_jobTitle",
+						"user_default_phone", "user_default_status", "user_default_createdOn", "user_default_modifiedOn",
+						"user_default_allroles"))
+				.withSearchResultsMetadataCodes(asList("user_default_title", "user_default_modifiedOn"))
+				.withTableMetadataCodes(asList("user_default_title", "user_default_modifiedOn")));
 		manager.execute(transaction.build());
 	}
 
@@ -1553,12 +1566,12 @@ public final class GeneratedCoreMigrationCombo {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 		;
 		rolesManager.addRole(new Role(collection, "ADM", "Administrateur",
-				asList("core.deleteContentVersion", "core.viewEvents", "core.manageFacets", "core.manageTaxonomies",
-						"core.manageValueList", "core.manageMetadataSchemas", "core.manageSecurity",
-						"core.manageMetadataExtractor", "core.manageConnectors", "core.manageSearchEngine", "core.manageTrash",
-						"core.manageSearchReports", "core.manageEmailServer", "core.manageSystemConfiguration",
-						"core.manageSystemGroups", "core.manageSystemUsers", "core.manageSystemCollections",
-						"core.manageSystemModules", "core.manageSystemDataImports", "core.manageSystemServers",
-						"core.manageSystemUpdates", "core.ldapConfigurationManagement")));
+				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
+						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
+						"core.manageMetadataSchemas", "core.manageSearchEngine", "core.manageSearchReports",
+						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
+						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
+						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
+						"core.manageTrash", "core.manageValueList", "core.viewEvents")));
 	}
 }

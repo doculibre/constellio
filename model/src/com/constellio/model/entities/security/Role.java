@@ -2,7 +2,9 @@ package com.constellio.model.entities.security;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Role {
 
@@ -30,7 +32,9 @@ public class Role {
 		this.collection = collection;
 		this.code = code;
 		this.title = title;
-		this.operationPermissions = Collections.unmodifiableList(operationPermissions);
+		List<String> allPermissionsList = new ArrayList<>(operationPermissions);
+		Collections.sort(allPermissionsList);
+		this.operationPermissions = Collections.unmodifiableList(allPermissionsList);
 	}
 
 	private Role(String code) {
@@ -70,12 +74,16 @@ public class Role {
 	}
 
 	public Role withPermissions(List<String> operationPermissions) {
-		return new Role(collection, code, title, operationPermissions);
+		List<String> allPermissionsList = new ArrayList<>(operationPermissions);
+		Collections.sort(allPermissionsList);
+		return new Role(collection, code, title, allPermissionsList);
 	}
 
 	public Role withNewPermissions(List<String> operationPermissions) {
-		List<String> allPermissions = new ArrayList<>(this.operationPermissions);
+		Set<String> allPermissions = new HashSet<>(this.operationPermissions);
 		allPermissions.addAll(operationPermissions);
-		return new Role(collection, code, title, allPermissions);
+		List<String> allPermissionsList = new ArrayList<>(allPermissions);
+		Collections.sort(allPermissionsList);
+		return new Role(collection, code, title, allPermissionsList);
 	}
 }

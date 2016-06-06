@@ -73,16 +73,14 @@ import com.constellio.sdk.dev.tools.i18n.CombinePropertyFilesServices;
 import com.constellio.sdk.tests.AppLayerConfigurationAlteration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
 import com.steadystate.css.util.LangUtils;
 
-public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
+public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
-	@InDevelopmentTest
 	@Test
 	public void generateCoreMigrations()
 			throws Exception {
@@ -91,7 +89,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
 				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
@@ -133,7 +131,6 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
-	@InDevelopmentTest
 	@Test
 	public void generateRMMigrations()
 			throws Exception {
@@ -142,7 +139,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
 				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
@@ -196,7 +193,6 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
-	@InDevelopmentTest
 	@Test
 	public void generateTasksMigrations()
 			throws Exception {
@@ -205,7 +201,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
 				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
@@ -257,7 +253,6 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
-	@InDevelopmentTest
 	@Test
 	public void generateRobotsMigrations()
 			throws Exception {
@@ -266,7 +261,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
 				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
@@ -318,7 +313,6 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
-	@InDevelopmentTest
 	@Test
 	public void generateESMigrations()
 			throws Exception {
@@ -327,7 +321,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
 				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
@@ -379,7 +373,6 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
-	@InDevelopmentTest
 	@Test
 	public void generateESRMRobotsMigrations()
 			throws Exception {
@@ -388,7 +381,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
 				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
@@ -531,7 +524,7 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			if (codes.contains(typeDisplay.getSchemaType()) && !codesBefore.contains(typeDisplay.getSchemaType())) {
 				main.addStatement("transaction.add(manager.getType(collection, $S).withSimpleSearchStatus($L)"
 								+ ".withAdvancedSearchStatus($L).withManageableStatus($L)"
-								+ ".withMetadataGroup(resourcesProvider.getLanguageMapWithKeys($L)))", type.getCode(),
+								+ ".withMetadataGroup(resourcesProvider.getLanguageMap($L)))", type.getCode(),
 						typeDisplay.isSimpleSearch(), typeDisplay.isAdvancedSearch(), typeDisplay.isManageable(),
 						asListLitteral(new ArrayList<String>(typeDisplay.getMetadataGroup().keySet())));
 			}
@@ -590,9 +583,8 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						role.getTitle(),
 						asListLitteral(role.getOperationPermissions()));
 			} else {
-				main.addStatement("rolesManager.updateRole(new $T(collection, $S, $S, $L))", Role.class, role.getCode(),
-						role.getTitle(),
-						asListLitteral(role.getOperationPermissions()));
+				main.addStatement("rolesManager.updateRole(rolesManager.getRole(collection, $S).withNewPermissions($L))",
+						role.getCode(), asListLitteral(role.getOperationPermissions()));
 			}
 
 		}
@@ -743,8 +735,17 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						main.addStatement("$T $L = $LSchemaType.getDefaultSchema()",
 								MetadataSchemaBuilder.class, variableOf(schema), type.getCode());
 					} else {
-						main.addStatement("$T $L = $LSchemaType.getCustomSchema($S)",
-								MetadataSchemaBuilder.class, variableOf(schema), type.getCode(), schema.getLocalCode());
+						if (typesBeforeMigration.hasSchema(schema.getCode())) {
+							main.addStatement("$T $L = $LSchemaType.getCustomSchema($S)",
+									MetadataSchemaBuilder.class, variableOf(schema), type.getCode(), schema.getLocalCode());
+						} else {
+							main.addStatement("$T $L = $LSchemaType.createCustomSchema($S)",
+									MetadataSchemaBuilder.class, variableOf(schema), type.getCode(), schema.getLocalCode());
+							for (RecordValidator validator : schema.getValidators()) {
+								main.addStatement("$L.defineValidators().add($T.class)", variableOf(schema),
+										validator.getClass());
+							}
+						}
 					}
 				}
 			}
@@ -973,6 +974,10 @@ public class FastMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isSortable()) {
 			method.addStatement("$L.setSortable(true)", variable);
+		}
+
+		if (metadata.isDuplicable()) {
+			method.addStatement("$L.setDuplicable(true)", variable);
 		}
 
 		if (metadata.isUniqueValue()) {

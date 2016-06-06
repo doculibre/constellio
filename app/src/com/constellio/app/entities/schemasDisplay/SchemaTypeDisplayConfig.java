@@ -80,6 +80,17 @@ public class SchemaTypeDisplayConfig {
 	}
 
 	public SchemaTypeDisplayConfig withMetadataGroup(Map<String, Map<Language, String>> metadataGroup) {
+
+		boolean defaultTab = false;
+		for (String key : metadataGroup.keySet()) {
+			if (key.startsWith("default")) {
+				defaultTab = true;
+			}
+		}
+		if (!defaultTab) {
+			throw new RuntimeException("A default tab containing text 'defaultTab' is required!");
+		}
+
 		return new SchemaTypeDisplayConfig(collection, schemaType, manageable, advancedSearch, simpleSearch, metadataGroup);
 	}
 

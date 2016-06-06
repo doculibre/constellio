@@ -10,6 +10,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.modules.MigrationResourcesProviderRuntimeException.MigrationResourcesProviderRuntimeException_NoBundle;
 import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
 import com.constellio.data.io.services.facades.IOServices;
@@ -91,16 +93,21 @@ public class MigrationResourcesProvider {
 		return language;
 	}
 
-	public Map<String, Map<Language, String>> getLanguageMapWithKeys(List<String> keys) {
+	public Map<String, Map<Language, String>> getLanguageMap(List<String> keys) {
 		Map<String, Map<Language, String>> languageMap = new HashMap<>();
 
 		for (String key : keys) {
 			Map<Language, String> values = new HashMap<>();
+			String i18nKey = key;
+			if (i18nKey.startsWith("default:")) {
+				i18nKey = StringUtils.substringAfter(i18nKey, ":");
+			}
 			languageMap.put(key, values);
 			for (Language collectionLanguage : collectionLanguages) {
-				String value = getString(key, collectionLanguage.getLocale());
-				if (key.equals(value)) {
-					value = $(key, collectionLanguage.getLocale());
+
+				String value = getString(i18nKey, collectionLanguage.getLocale());
+				if (i18nKey.equals(value)) {
+					value = $(i18nKey, collectionLanguage.getLocale());
 				}
 				values.put(collectionLanguage, value);
 

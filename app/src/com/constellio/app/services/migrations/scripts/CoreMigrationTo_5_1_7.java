@@ -34,12 +34,12 @@ public class CoreMigrationTo_5_1_7 implements MigrationScript {
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
-		String configurationTab = "init.facetConfiguration.configuration";
+		String configurationTab = "default:init.facetConfiguration.configuration";
 		String valeursTab = "init.facetConfiguration.values";
 		String queryTab = "init.facetConfiguration.query";
 
 		Language language = migrationResourcesProvider.getLanguage();
-		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMapWithKeys(
+		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMap(
 				asList(configurationTab, valeursTab, queryTab));
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();

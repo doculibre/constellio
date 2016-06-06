@@ -112,6 +112,12 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				asList("userTask_default_title", "userTask_default_status", "userTask_default_dueDate",
 						"userTask_default_assignee"));
 		transaction.add(userTask);
+
+		SchemaDisplayConfig userDocument = manager.getSchema(collection, "userDocument_default");
+		transaction.add(userDocument.withRemovedDisplayMetadatas("userDocument_default_folder")
+				.withRemovedFormMetadatas("userDocument_default_folder"));
+		//userDocument.withNew
+
 		manager.execute(transaction.build());
 	}
 
@@ -152,7 +158,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				.setTitle(migrationResourcesProvider.get("init.facet.copyStatus")));
 
 		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.folderType"))
-				.setFieldDataStoreCode(rm.folderFolderType().getDataStoreCode()).setActive(false));
+				.setFieldDataStoreCode(rm.folder.folderType().getDataStoreCode()).setActive(false));
 		transaction.add(rm.newFacetField().setTitle(migrationResourcesProvider.getDefaultLanguageString("facets.documentType"))
 				.setFieldDataStoreCode(rm.documentDocumentType().getDataStoreCode()).setActive(false));
 

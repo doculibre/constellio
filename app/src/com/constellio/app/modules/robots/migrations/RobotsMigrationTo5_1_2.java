@@ -52,12 +52,12 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 
 		Language language = provider.getLanguage();
 
-		String definition = "init.robot.tabs.definition";
+		String definition = "default:init.robot.tabs.definition";
 		String criteria = "init.robot.tabs.criteria";
 		String action = "init.robot.tabs.action";
 
 		SchemaTypeDisplayConfig type = manager.getType(collection, Robot.SCHEMA_TYPE);
-		transaction.add(type.withMetadataGroup(provider.getLanguageMapWithKeys(asList(definition, criteria, action))));
+		transaction.add(type.withMetadataGroup(provider.getLanguageMap(asList(definition, criteria, action))));
 
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.PARENT)
 				.withInputType(MetadataInputType.HIDDEN));

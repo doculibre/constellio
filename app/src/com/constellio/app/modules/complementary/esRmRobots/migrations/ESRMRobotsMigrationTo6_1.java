@@ -148,34 +148,11 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 
 		Map<Language, String> labels = new HashMap<>();
 
-		String taxonomyTab = migrationResourcesProvider.get("tab.taxonomy");
-		labels.put(language, taxonomyTab);
-		Map<String, Map<Language, String>> groupsTaxonomy = new HashMap<>();
-		groupsTaxonomy.put("tab.taxonomy", labels);
-
-		String optionsTab = migrationResourcesProvider.get("tab.options");
-		labels = new HashMap<>();
-		labels.put(language, optionsTab);
-		Map<String, Map<Language, String>> groupsOptions = new HashMap<>();
-		groupsOptions.put("tab.options", labels);
-
-		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
-		labels = new HashMap<>();
-		labels.put(language, defaultValuesTab);
-		Map<String, Map<Language, String>> groupsDefaultValues = new HashMap<>();
-		groupsDefaultValues.put("tab.defaultValues", labels);
-
-		String mappingsTab = migrationResourcesProvider.get("tab.mappings");
-		labels = new HashMap<>();
-		labels.put(language, mappingsTab);
-		Map<String, Map<Language, String>> groupsMappings = new HashMap<>();
-		groupsMappings.put("tab.mappings", labels);
-
-		String advancedTab = migrationResourcesProvider.get("tab.advanced");
-		labels = new HashMap<>();
-		labels.put(language, advancedTab);
-		Map<String, Map<Language, String>> groupsAdvanced = new HashMap<>();
-		groupsAdvanced.put("tab.advanced", labels);
+		String taxonomyTab = "default:tab.taxonomy";
+		String optionsTab = "tab.options";
+		String defaultValuesTab = "tab.defaultValues";
+		String mappingsTab = "tab.mappings";
+		String advancedTab = "tab.advanced";
 
 		String inFolderSchema = ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA;
 		String inPlanSchema = ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA;
@@ -183,8 +160,9 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
-		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE)
-				.withNewMetadataGroup(groupsAdvanced));
+		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE).withNewMetadataGroup(
+				migrationResourcesProvider.getLanguageMap(
+						asList(taxonomyTab, optionsTab, defaultValuesTab, mappingsTab, advancedTab))));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, inPlanSchema).withFormMetadataCodes(asList(
 				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_ADMIN_UNIT,
@@ -238,6 +216,9 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 				.withMetadataGroup(advancedTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, ACTION_AFTER_CLASSIFICATION)
 				.withMetadataGroup(optionsTab));
+
+		transaction.add(schemasDisplayManager.getSchema(collection, "robotLog_default")
+				.withNewTableMetadatas("robotLog_default_count"));
 
 		schemasDisplayManager.execute(transaction.build());
 	}
