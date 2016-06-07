@@ -43,9 +43,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			} else {
 				searchID = null;
 				searchExpression = parts[1];
+				resultsViewMode = SearchResultsViewMode.DETAILED;
 			}
 		} else {
 			searchExpression = "";
+			resultsViewMode = SearchResultsViewMode.DETAILED;
 		}
 		return this;
 	}
@@ -56,6 +58,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		sortCriterion = search.getSortField();
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		pageNumber = search.getPageNumber();
+		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
 	}
 
 	@Override
