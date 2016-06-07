@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.Arrays;
 
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import org.junit.Before;
 import org.junit.Test;
 

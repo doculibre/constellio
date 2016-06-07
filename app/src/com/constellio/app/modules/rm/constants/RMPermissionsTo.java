@@ -22,6 +22,7 @@ public class RMPermissionsTo {
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
 	public static final String SHARE_A_INACTIVE_FOLDER = permission(FOLDER_GROUP, "shareInactiveFolders");
+	public static final String SHARE_A_IMPORTED_FOLDER = permission(FOLDER_GROUP, "shareImportedFolders");
 
 	public static final String CREATE_SUB_FOLDERS = permission(FOLDER_GROUP, "createSubFolders");
 	public static final String CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP,
@@ -55,6 +56,7 @@ public class RMPermissionsTo {
 	public static final String SHARE_DOCUMENT = permission(DOCUMENT_GROUP, "shareDocuments");
 	public static final String SHARE_A_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareSemiActiveDocuments");
 	public static final String SHARE_A_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareInactiveDocuments");
+	public static final String SHARE_A_IMPORTED_DOCUMENT = permission(DOCUMENT_GROUP, "shareImportedDocuments");
 
 	public static final String CREATE_DOCUMENTS = permission(DOCUMENT_GROUP, "createDocuments");
 	public static final String CREATE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "createSemiActiveDocuments");
