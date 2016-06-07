@@ -106,11 +106,15 @@ public class SchemaTypeVODataProvider implements Serializable {
 
 			visible = extensions.isSchemaTypeConfigurable(visible, type);
 
-			if (visible) {
+			if (visible && isAccepted(type)) {
 				result.add(voBuilder.build(type));
 			}
 		}
 
 		return result;
+	}
+
+	protected boolean isAccepted(MetadataSchemaType type) {
+		return true;
 	}
 }

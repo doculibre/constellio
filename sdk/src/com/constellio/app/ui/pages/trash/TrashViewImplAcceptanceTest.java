@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.trash;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 
+import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -84,10 +86,13 @@ public class TrashViewImplAcceptanceTest extends ConstellioTest {
 
 	private void deleteLogicallySomeRecords()
 			throws RecordServicesException {
+		LocalDateTime now;
+		givenTimeIs(now = TimeProvider.getLocalDateTime());
 		User adminUser = users.adminIn(zeCollection);
 		Folder folderA1 = records.getFolder_A01();
 		recordServices.logicallyDelete(folderA1.getWrappedRecord(), adminUser);
 		recordServices.logicallyDelete(records.getCategory_X13().getWrappedRecord(), adminUser);
+		givenTimeIs(now.plusDays(1));
 		recordServices.logicallyDelete(records.getDocumentWithContent_A49().getWrappedRecord(), adminUser);
 		recordServices.add(folderA1.set(Schemas.ERROR_ON_PHYSICAL_DELETION.getLocalCode(), true));
 	}

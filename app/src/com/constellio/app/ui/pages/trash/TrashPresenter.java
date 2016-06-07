@@ -1,13 +1,21 @@
 package com.constellio.app.ui.pages.trash;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.records.RecordNavigationExtension;
+import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.services.trash.TrashServices;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -16,13 +24,18 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
+import com.vaadin.server.Page;
+import com.vaadin.ui.Table;
 
 public class TrashPresenter extends BasePresenter<TrashView> {
 	Set<String> selectedRecords = new HashSet<>();
@@ -57,9 +70,11 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public RecordVODataProvider getTrashRecords() {
-		MetadataSchema currentDefaultSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getDefaultSchema(view.getSelectedType());
+		MetadataSchema currentDefaultSchema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getDefaultSchema(view.getSelectedType());
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder()
-				.build(currentDefaultSchema, VIEW_MODE.TABLE, asList(Schemas.LOGICALLY_DELETED_ON.getLocalCode()), view.getSessionContext());
+				.build(currentDefaultSchema, VIEW_MODE.TABLE, asList(Schemas.LOGICALLY_DELETED_ON.getLocalCode()),
+						view.getSessionContext(), true);
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
@@ -69,7 +84,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	private TrashServices trashServices() {
-		if(trashServices == null){
+		if (trashServices == null) {
 			trashServices = new TrashServices(appLayerFactory, collection);
 		}
 		return trashServices;
@@ -80,7 +95,14 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public SchemaTypeVODataProvider getSchemaTypes() {
-		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
+		final List<String> codes = new ArrayList<>(
+				trashServices().getTypesWithLogicallyDeletedRecords(collection, getCurrentUser()));
+		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection) {
+			@Override
+			protected boolean isAccepted(MetadataSchemaType type) {
+				return codes.contains(type.getCode());
+			}
+		};
 	}
 
 	public void deleteAll() {
@@ -88,14 +110,14 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public void restoreSelection() {
-		if(StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()){
+		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
 			return;
 		}
 		trashServices().restoreSelection(this.selectedRecords, getCurrentUser());
 	}
 
 	public void deleteSelection() {
-		if(StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()){
+		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
 			return;
 		}
 		trashServices().deleteSelection(this.selectedRecords, getCurrentUser());
@@ -112,11 +134,28 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public void displayButtonClicked(RecordVO entity) {
-		//TODO
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(entity.getSchema().getCode());
+		for (RecordNavigationExtension extension : recordNavigationExtensions) {
+			if (extension.isViewForSchemaTypeCode(schemaTypeCode)) {
+				NavigationParams navigationParams = new NavigationParams(ConstellioUI.getCurrent().navigate(), entity,
+						schemaTypeCode, Page.getCurrent(),
+						//FIXME
+						new Table());
+				extension.navigateToView(navigationParams);
+			}
+		}
+		//FIXME
+		view.navigate().to().displaySchemaRecord(entity.getId());
 	}
 
 	public String getRelatedRecordsMessage(RecordVO recordVO) {
-		//TODO
-		return new String("lol");
+		List<String> relatedRecordsIds = trashServices().getRelatedRecords(recordVO.getId());
+		if (relatedRecordsIds.isEmpty()) {
+			return $("TrashView.noRelatedRecord");
+		} else {
+			return $("TrashView.relatedRecordIds") + "\n" + StringUtils.join(relatedRecordsIds, ",");
+		}
 	}
 }

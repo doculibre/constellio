@@ -1,5 +1,7 @@
 package com.constellio.app.ui.pages.trash;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +15,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.i18n.i18n;
 import com.vaadin.data.Property;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -51,7 +54,7 @@ public class TrashRecordsTable extends RecordVOTable {
 			@Override
 			protected Button newButtonInstance(Object itemId) {
 				final Integer index = (Integer) itemId;
-				return new WindowButton(RELATED_RESOURCE, "related records", true,
+				WindowButton relatedRecordsWindow = new WindowButton(RELATED_RESOURCE, $("TrashRecordsTable.relatedRecords"), true,
 						WindowConfiguration.modalDialog("50%", "50%")) {
 					@Override
 					protected Component buildWindowContent() {
@@ -62,6 +65,9 @@ public class TrashRecordsTable extends RecordVOTable {
 						return verticalLayout;
 					}
 				};
+				relatedRecordsWindow.setEnabled(TrashRecordsTable.this.presenter
+						.physicalDeleteFailed(TrashRecordsTable.this.dataProvider.getRecordVO(index)));
+				return relatedRecordsWindow;
 			}
 		});
 
@@ -99,7 +105,7 @@ public class TrashRecordsTable extends RecordVOTable {
 	}
 
 	public class TrashStyleGenerator implements CellStyleGenerator {
-		private static final String ERROR_STYLE = "redText";
+		private static final String ERROR_STYLE = "textRed";
 
 		@Override
 		public String getStyle(Table source, Object itemId, Object propertyId) {
