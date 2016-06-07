@@ -100,8 +100,26 @@ public class MigrationServices {
 
 		for (InstallableModule module : modules) {
 			if (newCollection && module instanceof ModuleWithComboMigration) {
-				migrations.add(new Migration(collection, module.getId(),
-						((ModuleWithComboMigration) module).getComboMigrationScript()));
+
+				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
+				migrations.add(new Migration(collection, module.getId(), comboMigrationScript));
+
+				for (MigrationScript migrationScript : getMigrationScripts(module)) {
+
+					boolean found = false;
+					for (MigrationScript migrationScriptInCombo : comboMigrationScript.getVersions()) {
+						if (migrationScriptInCombo.getClass().equals(migrationScript.getClass())) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						migrations.add(new Migration(collection, module.getId(), migrationScript));
+					}
+
+				}
+
 			} else {
 				for (MigrationScript script : getMigrationScripts(module)) {
 					migrations.add(new Migration(collection, module.getId(), script));
@@ -109,7 +127,11 @@ public class MigrationServices {
 			}
 		}
 
-		for (MigrationScript script : constellioEIM.getMigrationScripts()) {
+		for (
+				MigrationScript script
+				: constellioEIM.getMigrationScripts())
+
+		{
 			migrations.add(new Migration(collection, null, script));
 		}
 
