@@ -158,7 +158,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (isDeleteDocumentPossible()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
-			presenterUtils.delete(document.getWrappedRecord(), null);
+			presenterUtils.delete(document.getWrappedRecord(), null, false);
 			if (parentId != null) {
 				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
 			} else {

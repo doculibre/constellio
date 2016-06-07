@@ -15,6 +15,7 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
+import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -77,6 +78,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
+	public static final String TRASH = "trash";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureSystemAdmin(config);
@@ -405,5 +407,23 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(canManageCollection || canManageSystem);
 			}
 		});
+
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(TRASH, TrashViewImpl.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to().trash();
+					}
+
+					@Override
+					public int getOrderValue() {
+						return 100;
+					}
+
+					@Override
+					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+						return ComponentState.ENABLED;
+					}
+				});
 	}
 }

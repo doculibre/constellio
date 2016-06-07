@@ -106,6 +106,7 @@ import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
+import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
@@ -146,6 +147,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_OBJECT_ROLE_AUTHORIZATIONS = "objectRoleAuthorizations";
 	public static final String SHARE_CONTENT = "shareContent";
 	public static final String ADMIN_MODULE = "adminModule";
+	public static final String TRASH = "trash";
 	public static final String COLLECTION_USER_LIST = "collectionSecurity";
 	public static final String COLLECTION_USER = "collectionUser";
 	public static final String COLLECTION_USER_ROLES = "collectionUserRoles";
@@ -250,6 +252,7 @@ public class NavigatorConfigurationService implements Serializable {
 
 		// TODO Use generic system to configure
 		viewProviders.add(new ClassBasedViewProvider(ADMIN_MODULE, AdminViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(TRASH, TrashViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EVENTS_LIST, EventCategoriesViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EVENT_CATEGORY, BaseEventCategoryViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(EVENT_DISPLAY, EventViewImpl.class));

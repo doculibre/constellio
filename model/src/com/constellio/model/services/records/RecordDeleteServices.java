@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
@@ -117,10 +119,12 @@ public class RecordDeleteServices {
 
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
+			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
 			transaction.add(hierarchyRecord);
 		}
 		if (!transaction.getRecords().contains(record)) {
 			record.set(Schemas.LOGICALLY_DELETED_STATUS, false);
+			record.set(Schemas.LOGICALLY_DELETED_ON, null);
 			transaction.add(record);
 		}
 		try {
@@ -402,8 +406,10 @@ public class RecordDeleteServices {
 			hierarchyRecords.add(record);
 		}
 		removedDefaultValues(record.getCollection(), hierarchyRecords);
+		LocalDateTime now = TimeProvider.getLocalDateTime();
 		for (Record hierarchyRecord : hierarchyRecords) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
 			transaction.add(hierarchyRecord);
 		}
 		//		if (!transaction.getRecords().contains(record)) {
@@ -431,10 +437,13 @@ public class RecordDeleteServices {
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 		principalConcept.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		LocalDateTime now = TimeProvider.getLocalDateTime();
+		principalConcept.set(Schemas.LOGICALLY_DELETED_ON, now);
 		transaction.add(principalConcept);
 
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(principalConcept)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
 			transaction.add(hierarchyRecord);
 		}
 		try {
@@ -462,12 +471,15 @@ public class RecordDeleteServices {
 			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(principalConcept.getId());
 		}
 
+		LocalDateTime now = TimeProvider.getLocalDateTime();
 		Transaction transaction = new Transaction();
 		principalConcept.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		principalConcept.set(Schemas.LOGICALLY_DELETED_ON, now);
 		transaction.add(principalConcept);
 
 		for (Record hierarchyRecord : getAllPrincipalConceptsRecordsInHierarchy(principalConcept, principalTaxonomy)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
+			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
 			transaction.add(hierarchyRecord);
 		}
 		try {

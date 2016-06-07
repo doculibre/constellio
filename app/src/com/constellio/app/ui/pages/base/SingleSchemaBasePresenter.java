@@ -66,11 +66,11 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	protected final void delete(Record record) {
-		delete(record, null, true);
+		delete(record, null, false);
 	}
 
 	protected final void delete(Record record, String reason) {
-		delete(record, reason, true);
+		delete(record, reason, false);
 	}
 
 	protected final void delete(Record record, boolean physically) {

@@ -223,7 +223,9 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.ADMIN_MODULE);
 	}
 
-
+	public void trash() {
+		navigator.navigateTo(NavigatorConfigurationService.TRASH);
+	}
 
 	public void listPrincipalAccessAuthorizations(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);

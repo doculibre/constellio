@@ -110,7 +110,7 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 			}
 
 			if (noExceptionDisplayed) {
-				delete(userDocument.getWrappedRecord(), true);
+				delete(userDocument.getWrappedRecord());
 				view.navigate().to(RMViews.class).displayFolder(folderId);
 			}
 		}
