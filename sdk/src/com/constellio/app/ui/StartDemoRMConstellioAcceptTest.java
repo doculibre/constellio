@@ -92,9 +92,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 			}
 		});
 
-		// TEMPORARY adding legacyIds to some records to test new share permission
-		recordServices.update(record(records.folder_A16).set(Schemas.LEGACY_ID,"chatLegacy"));
-
 	}
 
 	@Test
