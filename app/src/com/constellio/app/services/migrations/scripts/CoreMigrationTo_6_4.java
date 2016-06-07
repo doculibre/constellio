@@ -8,6 +8,9 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.pages.search.SearchResultsViewMode;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class CoreMigrationTo_6_4 implements MigrationScript {
@@ -33,7 +36,8 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-
+			typesBuilder.getDefaultSchema(SavedSearch.SCHEMA_TYPE).createUndeletable(SavedSearch.RESULTS_VIEW_MODE)
+					.setType(MetadataValueType.STRING).setDefaultValue(SearchResultsViewMode.DETAILED);
 		}
 	}
 
@@ -56,6 +60,11 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 				"user_default_allroles"
 		)));
 
+		transaction.in("savedSearch").addToDisplay("resultsViewMode").beforeMetadata("schemaFilter");
+
+		transaction.in("savedSearch").addToForm("resultsViewMode").beforeMetadata("schemaFilter");
+
 		manager.execute(transaction.build());
 	}
+
 }

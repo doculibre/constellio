@@ -3,6 +3,7 @@ package com.constellio.model.entities.schemas;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -92,7 +93,7 @@ public class MetadataSchemaType {
 
 	public MetadataSchema getCustomSchema(String code) {
 		for (MetadataSchema metadataSchema : customSchemas) {
-			if (metadataSchema.getLocalCode().equals(code) || metadataSchema.getCode().contains(code)) {
+			if (metadataSchema.getLocalCode().equals(code) || metadataSchema.getCode().equals(code)) {
 				return metadataSchema;
 			}
 		}
@@ -339,5 +340,16 @@ public class MetadataSchemaType {
 		}
 
 		return metadatas;
+	}
+
+	public List<MetadataSchema> getAllSchemasSortedByCode() {
+		List<MetadataSchema> schemas = new ArrayList<>(getAllSchemas());
+		Collections.sort(schemas, new Comparator<MetadataSchema>() {
+			@Override
+			public int compare(MetadataSchema o1, MetadataSchema o2) {
+				return o1.getCode().compareTo(o2.getCode());
+			}
+		});
+		return schemas;
 	}
 }

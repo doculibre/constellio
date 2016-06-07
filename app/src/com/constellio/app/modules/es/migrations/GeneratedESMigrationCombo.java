@@ -1902,19 +1902,6 @@ public final class GeneratedESMigrationCombo {
 						"report_default_username"))
 				.withSearchResultsMetadataCodes(asList("report_default_title", "report_default_modifiedOn"))
 				.withTableMetadataCodes(asList("report_default_title", "report_default_modifiedOn")));
-		transaction.add(manager.getSchema(collection, "savedSearch_default").withFormMetadataCodes(
-				asList("savedSearch_default_title", "savedSearch_default_freeTextSearch", "savedSearch_default_pageNumber",
-						"savedSearch_default_schemaFilter", "savedSearch_default_searchType", "savedSearch_default_sortField",
-						"savedSearch_default_sortOrder", "savedSearch_default_user", "savedSearch_default_public",
-						"savedSearch_default_temporary", "savedSearch_default_advancedSearch",
-						"savedSearch_default_facetSelections")).withDisplayMetadataCodes(
-				asList("savedSearch_default_title", "savedSearch_default_createdBy", "savedSearch_default_createdOn",
-						"savedSearch_default_modifiedBy", "savedSearch_default_modifiedOn", "savedSearch_default_freeTextSearch",
-						"savedSearch_default_pageNumber", "savedSearch_default_public", "savedSearch_default_schemaFilter",
-						"savedSearch_default_searchType", "savedSearch_default_sortField", "savedSearch_default_sortOrder",
-						"savedSearch_default_temporary", "savedSearch_default_user"))
-				.withSearchResultsMetadataCodes(asList("savedSearch_default_title", "savedSearch_default_modifiedOn"))
-				.withTableMetadataCodes(asList("savedSearch_default_title", "savedSearch_default_modifiedOn")));
 		transaction.add(manager.getSchema(collection, "task_approval").withFormMetadataCodes(
 				asList("task_approval_title", "task_approval_assignCandidates", "task_approval_assignedTo",
 						"task_approval_finishedBy", "task_approval_workflowIdentifier", "task_approval_workflowRecordIdentifiers",

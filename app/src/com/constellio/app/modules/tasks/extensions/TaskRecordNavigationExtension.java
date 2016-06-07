@@ -5,6 +5,8 @@ import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 
@@ -41,15 +43,21 @@ public class TaskRecordNavigationExtension implements RecordNavigationExtension 
 	@Override
 	public void prepareLinkToView(final NavigationParams navigationParams) {
 		if (isViewForSchemaTypeCode(navigationParams.getSchemaTypeCode())) {
-			ReferenceDisplay component = (ReferenceDisplay) navigationParams.getComponent();
-			ClickListener clickListener = new ClickListener() {
-				@Override
-				public void buttonClick(ClickEvent event) {
-					navigateToView(navigationParams);
-				}
-			};
-			component.setEnabled(true);
-			component.addClickListener(clickListener);
+			Component component = navigationParams.getComponent();
+			if (component instanceof ReferenceDisplay) {
+				ReferenceDisplay referenceDisplay = (ReferenceDisplay) component;
+				ClickListener clickListener = new ClickListener() {
+					@Override
+					public void buttonClick(ClickEvent event) {
+						navigateToView(navigationParams);
+					}
+				};
+				referenceDisplay.setEnabled(true);
+				referenceDisplay.addClickListener(clickListener);
+			} else if (component instanceof Table) {
+				// FIXME Assumes that it is called by an item click listener
+				navigateToView(navigationParams);
+			}
 		}
 	}
 }

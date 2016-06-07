@@ -107,6 +107,10 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				"user_default_allroles"
 		)));
 
+		transaction.in("savedSearch").addToDisplay("resultsViewMode").beforeMetadata("schemaFilter");
+
+		transaction.in("savedSearch").addToForm("resultsViewMode").beforeMetadata("schemaFilter");
+
 		manager.execute(transaction.build());
 	}
 

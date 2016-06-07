@@ -611,7 +611,8 @@ public class RMTestRecords {
 		});
 
 		transaction.add(rm.newFolderType().setCode("employe").setTitle("Dossier employé").setLinkedSchema("folder_employe"));
-		transaction.add(rm.newFolderType().setCode("meetingFolder").setTitle("Réunion employé").setLinkedSchema("folder_meeting"));
+		transaction.add(rm.newFolderType().setCode("meetingFolder").setTitle("Réunion employé")
+				.setLinkedSchema("folder_meetingFolder"));
 		transaction.add(rm.newFolderType().setCode("other").setTitle("Autre"));
 
 		transaction.add(rm.newDocumentType().setCode("form").setTitle("Formulaire").setLinkedSchema("document_form"));

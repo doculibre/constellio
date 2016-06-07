@@ -117,7 +117,7 @@ public class MetadataSchemaBuilder {
 		return builder;
 	}
 
-	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode) {
+	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode, boolean commonMetadatas) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = defaultSchema.classProvider;
 		builder.setDefaultSchema(defaultSchema);
@@ -512,5 +512,11 @@ public class MetadataSchemaBuilder {
 
 	public ClassProvider getClassProvider() {
 		return classProvider;
+	}
+
+	public MetadataBuilder createMetadataCopying(MetadataBuilder metadataBuilder) {
+		MetadataBuilder metadata = MetadataBuilder.createCustomMetadataFromOriginalCustomMetadata(metadataBuilder, this.code);
+		metadatas.add(metadata);
+		return metadata;
 	}
 }

@@ -477,7 +477,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata1To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA1);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA1_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -488,7 +488,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata2To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA2);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA2_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -499,7 +499,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata3To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA3);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA3_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -510,7 +510,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata4To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA4);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA4_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -521,7 +521,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata5To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA5);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA5_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -532,7 +532,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata6To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA6);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA6_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);

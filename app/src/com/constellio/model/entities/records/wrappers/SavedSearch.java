@@ -27,6 +27,7 @@ public class SavedSearch extends RecordWrapper {
 	public static final String SORT_ORDER = "sortOrder";
 	public static final String TEMPORARY = "temporary";
 	public static final String PAGE_NUMBER = "pageNumber";
+	public static final String RESULTS_VIEW_MODE = "resultsViewMode";
 
 	//testing only
 	public static final String CRITERION = "criterions";
@@ -47,6 +48,15 @@ public class SavedSearch extends RecordWrapper {
 
 	public SavedSearch setUser(String user) {
 		set(USER, user);
+		return this;
+	}
+
+	public String getResultsViewMode() {
+		return get(RESULTS_VIEW_MODE);
+	}
+
+	public SavedSearch setResultsViewMode(String resultsViewMode) {
+		set(RESULTS_VIEW_MODE, resultsViewMode);
 		return this;
 	}
 

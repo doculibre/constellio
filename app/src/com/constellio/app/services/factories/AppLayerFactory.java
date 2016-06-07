@@ -29,6 +29,7 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
+import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
@@ -338,5 +339,9 @@ public class AppLayerFactory extends LayerFactory {
 
 	public AppLayerConfiguration getAppLayerConfiguration() {
 		return appLayerConfiguration;
+	}
+
+	public AppSchemasServices newSchemasServices() {
+		return new AppSchemasServices(this);
 	}
 }

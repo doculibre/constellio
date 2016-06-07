@@ -80,6 +80,21 @@ public class MetadataBuilder {
 	MetadataBuilder() {
 	}
 
+	static MetadataBuilder createCustomMetadataFromOriginalCustomMetadata(MetadataBuilder customMetadata, String codeSchema) {
+		MetadataBuilder copy;
+
+		if (customMetadata.getInheritance() == null) {
+			copy = modifyMetadataWithoutInheritance(customMetadata.getOriginalMetadata(), customMetadata.getClassProvider());
+		} else {
+			MetadataBuilder inheritanceCopy = MetadataBuilder.modifyMetadataWithoutInheritance(
+					customMetadata.getInheritance().getOriginalMetadata(), customMetadata.getClassProvider());
+			copy = modifyMetadataWithInheritance(customMetadata.getOriginalMetadata(), inheritanceCopy);
+		}
+		copy.setCode(codeSchema + "_" + copy.getLocalCode());
+
+		return copy;
+	}
+
 	static MetadataBuilder createCustomMetadataFromDefault(MetadataBuilder defaultMetadata, String codeSchema) {
 		MetadataBuilder builder = new MetadataBuilder();
 		builder.classProvider = defaultMetadata.classProvider;
@@ -121,7 +136,7 @@ public class MetadataBuilder {
 		builder.recordMetadataValidators = new ClassListBuilder<>(builder.classProvider, RecordMetadataValidator.class);
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.create();
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
-        builder.setDuplicable(false);
+		builder.setDuplicable(false);
 		return builder;
 	}
 
@@ -236,10 +251,10 @@ public class MetadataBuilder {
 			builder.setDefaultRequirement(null);
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
-        if (inheritanceMetadata.isDuplicable() != null && !inheritanceMetadata.isDuplicable().equals(metadata.isDuplicable())) {
-            builder.duplicable = metadata.isDuplicable();
-        }
-    }
+		if (inheritanceMetadata.isDuplicable() != null && !inheritanceMetadata.isDuplicable().equals(metadata.isDuplicable())) {
+			builder.duplicable = metadata.isDuplicable();
+		}
+	}
 
 	public MetadataBuilder getInheritance() {
 		return inheritance;
@@ -622,9 +637,9 @@ public class MetadataBuilder {
 			}
 		}
 
-        if (duplicable == null) {
-            duplicable = inheritance.isDuplicable();
-        }
+		if (duplicable == null) {
+			duplicable = inheritance.isDuplicable();
+		}
 
 		return new Metadata(inheritance, this.getLabels(), this.getEnabled(), this.getDefaultRequirement(), this.code,
 				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs, duplicable);
@@ -672,7 +687,7 @@ public class MetadataBuilder {
 		};
 
 		if (duplicable == null) {
-            duplicable = false;
+			duplicable = false;
 		}
 
 		return new Metadata(localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
@@ -739,7 +754,7 @@ public class MetadataBuilder {
 		return "MetadataBuilder [inheritance=" + inheritance + ", localCode=" + localCode + ", code=" + code + ", enabled="
 				+ enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
 				+ ", undeletable=" + undeletable + ", defaultRequirement=" + defaultRequirement + ", dataEntry=" + dataEntry
-                + ", duplicable=" + duplicable + "]";
+				+ ", duplicable=" + duplicable + "]";
 	}
 
 	public MetadataBuilder addValidator(Class<? extends RecordMetadataValidator> clazz) {

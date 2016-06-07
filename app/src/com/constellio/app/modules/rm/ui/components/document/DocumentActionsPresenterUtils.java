@@ -34,11 +34,13 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -211,6 +213,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (parentFolder.getArchivisticStatus().isSemiActive()) {
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+			}
+			if(StringUtils.isNotBlank((String)currentDocument().get(Schemas.LEGACY_ID))) {
+				return ComponentState.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(currentDocument()));
 			}
 			return ComponentState.ENABLED;
 		}
