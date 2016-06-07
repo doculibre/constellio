@@ -5,7 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.modules.robots.ui.pages.AddEditRobotPresenter;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
-import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
@@ -60,7 +60,7 @@ public class SearchResultTableComponent extends CustomComponent {
 
 	private void buildResultTable() {
 		verticalLayoutTable.removeAllComponents();
-		SearchResultTable newTable = new SearchResultTable(buildResultContainer(), false);
+		SearchResultDetailedTable newTable = new SearchResultDetailedTable(buildResultContainer(), false);
 		newTable.setWidth("100%");
 		verticalLayoutTable.addComponents(newTable, newTable.createControls());
 	}
