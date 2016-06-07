@@ -364,12 +364,12 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		autocomplete.addStyleName("autocomplete");
 		autocomplete.setEnabled(!inherited);
 
-        duplicableField = new CheckBox();
-        duplicableField.setCaption($("AddEditMetadataView.duplicable"));
-        duplicableField.setRequired(false);
-        duplicableField.setId("duplicable");
-        duplicableField.addStyleName("duplicable");
-        duplicableField.setEnabled(true);
+		duplicableField = new CheckBox();
+		duplicableField.setCaption($("AddEditMetadataView.duplicable"));
+		duplicableField.setRequired(false);
+		duplicableField.setId("duplicable");
+		duplicableField.addStyleName("duplicable");
+		duplicableField.setEnabled(true);
 
 		MetadataFieldFactory factory = new MetadataFieldFactory();
 
