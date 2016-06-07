@@ -153,5 +153,24 @@ public class SchemaDisplayConfig {
 		tableMetadatas.addAll(asList(metadataCodes));
 		return withTableMetadataCodes(tableMetadatas);
 	}
-}
 
+	public SchemaDisplayConfig withCode(String toCode) {
+
+		List<String> displayMetadataCodes = listForCode(this.displayMetadataCodes, toCode);
+		List<String> formMetadataCodes = listForCode(this.formMetadataCodes, toCode);
+		List<String> searchResultsMetadataCodes = listForCode(this.searchResultsMetadataCodes, toCode);
+		List<String> tableMetadataCodes = listForCode(this.tableMetadataCodes, toCode);
+
+		return new SchemaDisplayConfig(collection, toCode, displayMetadataCodes, formMetadataCodes, searchResultsMetadataCodes,
+				tableMetadataCodes);
+	}
+
+	private List<String> listForCode(List<String> codes, String toCode) {
+		List<String> returnedCodes = new ArrayList<>();
+		for (String code : codes) {
+			returnedCodes.add(code.replace(this.schemaCode, toCode));
+		}
+		return returnedCodes;
+	}
+
+}

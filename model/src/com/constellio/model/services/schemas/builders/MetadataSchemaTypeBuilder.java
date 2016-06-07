@@ -22,7 +22,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Can
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.CannotDeleteSchema;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaTypeSinceItHasRecords;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotDeleteSchemaSinceItHasRecords;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
 
@@ -149,8 +149,6 @@ public class MetadataSchemaTypeBuilder {
 		throw new MetadataSchemaTypeBuilderRuntimeException.NoSuchSchema(localCode);
 	}
 
-
-
 	public static Map<Language, String> configureLabels(Map<String, String> labels) {
 		Map<Language, String> newLabels = new HashMap<>();
 		for (Entry<String, String> entry : labels.entrySet()) {
@@ -167,7 +165,7 @@ public class MetadataSchemaTypeBuilder {
 			}
 		}
 
-		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode);
+		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode, true);
 		customSchema.setLocalCode(localCode);
 		customSchema.setCollection(collection);
 		customSchema.setCode(code + UNDERSCORE + localCode);
@@ -182,7 +180,7 @@ public class MetadataSchemaTypeBuilder {
 			}
 		}
 
-		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode);
+		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode, true);
 		customSchema.setLocalCode(localCode);
 		customSchema.setCollection(collection);
 		customSchema.setCode(code + UNDERSCORE + localCode);
@@ -309,7 +307,7 @@ public class MetadataSchemaTypeBuilder {
 
 	public void deleteSchema(MetadataSchema schema, SearchServices searchServices) {
 		if (searchServices.hasResults(from(schema).returnAll())) {
-			throw new CannotDeleteSchemaTypeSinceItHasRecords(schema.getCode());
+			throw new CannotDeleteSchemaSinceItHasRecords(schema.getCode());
 		} else if (DEFAULT.equals(schema.getLocalCode())) {
 			throw new CannotDeleteSchema(schema.getCode());
 		} else {
@@ -319,5 +317,27 @@ public class MetadataSchemaTypeBuilder {
 
 	public ClassProvider getClassProvider() {
 		return classProvider;
+	}
+
+	public MetadataSchemaBuilder createCustomSchemaCopying(String localCode, String copyingSchemaWithLocalCode) {
+		MetadataSchemaBuilder copiedSchemaBuilder = getCustomSchema(copyingSchemaWithLocalCode);
+
+		for (MetadataSchemaBuilder customSchema : customSchemas) {
+			if (localCode.equals(customSchema.getLocalCode())) {
+				throw new MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined(localCode);
+			}
+		}
+
+		MetadataSchemaBuilder customSchema = MetadataSchemaBuilder.createSchema(defaultSchema, localCode, false);
+		customSchema.setLocalCode(localCode);
+		customSchema.setCollection(collection);
+		customSchema.setCode(code + UNDERSCORE + localCode);
+		customSchemas.add(customSchema);
+
+		for (MetadataBuilder metadataBuilder : copiedSchemaBuilder.getMetadatas()) {
+			customSchema.createMetadataCopying(metadataBuilder);
+		}
+
+		return customSchema;
 	}
 }

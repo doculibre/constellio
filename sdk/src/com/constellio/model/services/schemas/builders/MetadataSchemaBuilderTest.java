@@ -497,7 +497,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 				.setType(MetadataValueType.BOOLEAN)
 				.setUnmodifiable(true);
 
-		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2");
+		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2", true);
 		MetadataBuilder metadataBuilder = builder.getMetadata("zeMetadata");
 		assertThat(metadataBuilder.isMultivalue()).isTrue();
 		assertThat(metadataBuilder.isUndeletable()).isTrue();
@@ -512,7 +512,7 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		buildAndModify();
 		defaultSchemaBuilder.create("zeMetadata").setUniqueValue(true);
 
-		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2");
+		MetadataSchemaBuilder builder = MetadataSchemaBuilder.createSchema(defaultSchemaBuilder, "zeCustom2", true);
 		MetadataBuilder metadataBuilder = builder.getMetadata("zeMetadata");
 		assertThat(metadataBuilder.isUniqueValue()).isTrue();
 

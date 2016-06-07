@@ -50,6 +50,13 @@ public class MetadataSchemaTypesBuilderRuntimeException extends RuntimeException
 		}
 	}
 
+	public static class CannotDeleteSchemaSinceItHasRecords extends MetadataSchemaTypesBuilderRuntimeException {
+
+		public CannotDeleteSchemaSinceItHasRecords(String schema) {
+			super("Cannot delete schema since it has records : " + schema);
+		}
+	}
+
 	public static class CannotCopyMultiValueInSingleValueMetadata extends MetadataSchemaTypesBuilderRuntimeException {
 		public CannotCopyMultiValueInSingleValueMetadata(String metadata, String referenceMetadata, String copiedMetadata) {
 			super("Cannot copy a multi value metadata '" + copiedMetadata + "' or a multi value reference '" + referenceMetadata

@@ -884,6 +884,7 @@ public class RecordImpl implements Record {
 				}
 			}
 		}
+		markAsModified(Schemas.SCHEMA);
 	}
 
 	private static boolean isDefaultValue(Object value, Metadata metadata) {

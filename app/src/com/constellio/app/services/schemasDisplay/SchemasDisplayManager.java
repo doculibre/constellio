@@ -345,6 +345,21 @@ public class SchemasDisplayManager
 		return result;
 	}
 
+	public List<String> getDefinedMetadatasIn(String collection) {
+		List<String> definedMetadatas = new ArrayList<>();
+		XMLConfiguration initialConfig = configManager.getXML(oneXMLConfigPerCollectionManager.getConfigPath(collection));
+		Document document = initialConfig.getDocument();
+		Element element = document.getRootElement();
+		Element metadataDisplayConfigs = element.getChild("MetadataDisplayConfigs");
+		if (metadataDisplayConfigs != null) {
+			for (Element metadataElement : metadataDisplayConfigs.getChildren()) {
+				definedMetadatas.add(metadataElement.getName());
+			}
+		}
+
+		return definedMetadatas;
+	}
+
 	public List<String> rewriteInOrderAndGetCodes(final String collection) {
 
 		XMLConfiguration initialConfig = configManager.getXML(oneXMLConfigPerCollectionManager.getConfigPath(collection));
@@ -364,7 +379,7 @@ public class SchemasDisplayManager
 
 	}
 
-	private List<String> getCodesOfElements(Document newDocument) {
+	public List<String> getCodesOfElements(Document newDocument) {
 		List<String> codes = new ArrayList<>();
 		getCodesOfElements(newDocument.getRootElement(), codes);
 		return codes;

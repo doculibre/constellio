@@ -92,7 +92,7 @@ public class MetadataSchemaType {
 
 	public MetadataSchema getCustomSchema(String code) {
 		for (MetadataSchema metadataSchema : customSchemas) {
-			if (metadataSchema.getLocalCode().equals(code) || metadataSchema.getCode().contains(code)) {
+			if (metadataSchema.getLocalCode().equals(code) || metadataSchema.getCode().equals(code)) {
 				return metadataSchema;
 			}
 		}
