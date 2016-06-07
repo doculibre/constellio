@@ -51,10 +51,6 @@ public class TrashRecordsTable extends RecordVOTable {
 			@Override
 			protected Button newButtonInstance(Object itemId) {
 				final Integer index = (Integer) itemId;
-				RecordVO entity = TrashRecordsTable.this.dataProvider.getRecordVO(index);
-				if (!TrashRecordsTable.this.presenter.physicalDeleteFailed(entity)) {
-					return null;
-				}
 				return new WindowButton(RELATED_RESOURCE, "related records", true,
 						WindowConfiguration.modalDialog("50%", "50%")) {
 					@Override
@@ -68,8 +64,6 @@ public class TrashRecordsTable extends RecordVOTable {
 				};
 			}
 		});
-
-		Table recentFolders = new RecordVOTable("", withButtons);
 
 		addGeneratedColumn("checkbox", new Table.ColumnGenerator() {
 			public Object generateCell(Table source, final Object itemId, Object columnId) {
@@ -105,7 +99,7 @@ public class TrashRecordsTable extends RecordVOTable {
 	}
 
 	public class TrashStyleGenerator implements CellStyleGenerator {
-		private static final String ERROR_STYLE = "error";
+		private static final String ERROR_STYLE = "redText";
 
 		@Override
 		public String getStyle(Table source, Object itemId, Object propertyId) {

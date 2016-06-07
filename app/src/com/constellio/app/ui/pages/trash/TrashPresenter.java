@@ -105,10 +105,10 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		return searchServices().getResultsCount(trashServices().getTrashRecordsQueryForCollection(collection, getCurrentUser()));
 	}
 
-	public boolean physicalDeleteFailed(RecordVO recordVO) {
+	public Boolean physicalDeleteFailed(RecordVO recordVO) {
 		Record record = recordServices().getDocumentById(recordVO.getId());
 		Boolean errorOnPhysicalDelete = record.get(Schemas.ERROR_ON_PHYSICAL_DELETION);
-		return errorOnPhysicalDelete;
+		return errorOnPhysicalDelete != null && errorOnPhysicalDelete;
 	}
 
 	public void displayButtonClicked(RecordVO entity) {
