@@ -237,6 +237,27 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSearchingRecordsReturningWithFullValueContainingSpecialCharactersThenFindResult()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withAStringMetadata().withABooleanMetadata());
+		Record special;
+
+		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris + - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
+		transaction.addUpdate(special = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
+
+		recordServices.execute(transaction);
+
+		OngoingLogicalSearchConditionWithDataStoreFields whereMetadata = from(zeSchema.instance())
+				.where(zeSchema.stringMetadata());
+
+		assertThat(findRecords(whereMetadata.isEqualTo("+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"))).containsOnly(special);
+
+		assertThat(findRecords(whereMetadata.isIn(asList("+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\")))).containsOnly(special);
+
+	}
+
+	@Test
 	public void whenSearchingByEnumValueThenFindRecords()
 			throws Exception {
 
