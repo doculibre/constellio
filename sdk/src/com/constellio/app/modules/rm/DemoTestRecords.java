@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.constellio.app.services.factories.AppLayerFactory;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -30,6 +29,7 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -311,7 +311,7 @@ public class DemoTestRecords {
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
 
 		this.modelLayerFactory = modelLayerFactory;
-		schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
 
 		recordServices = modelLayerFactory.newRecordServices();
 

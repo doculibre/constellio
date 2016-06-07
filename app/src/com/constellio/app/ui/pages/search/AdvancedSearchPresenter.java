@@ -13,6 +13,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +106,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			resetFacetSelection();
 			schemaTypeCode = view.getSchemaType();
 			pageNumber = 1;
+			resultsViewMode = SearchResultsViewMode.DETAILED;
 			saveTemporarySearch(true);
 		}
 		return this;
@@ -111,6 +119,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		schemaTypeCode = search.getSchemaFilter();
 		pageNumber = search.getPageNumber();
+		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
 
 		view.setSchemaType(schemaTypeCode);
 		view.setSearchExpression(searchExpression);
@@ -206,6 +215,26 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			batchProcessingPresenterService = new BatchProcessingPresenterService(collection, appLayerFactory, locale);
 		}
 		return batchProcessingPresenterService;
+	}
+
+	public RecordVODataProvider getSearchResultsAsRecordVOs() {
+		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(
+				schemaType(schemaTypeCode).getDefaultSchema(), RecordVO.VIEW_MODE.SEARCH,view.getSessionContext());
+		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
+				if (sortCriterion == null) {
+					if (StringUtils.isNotBlank(getUserSearchExpression())) {
+						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
+						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
+					}
+					return query;
+				}
+				Metadata metadata = getMetadata(sortCriterion);
+				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+			}
+		};
 	}
 
 	void buildSearchCondition()
@@ -376,7 +405,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setSchemaFilter(schemaTypeCode)
 				.setFreeTextSearch(searchExpression)
 				.setAdvancedSearch(view.getSearchCriteria())
-				.setPageNumber(pageNumber);
+				.setPageNumber(pageNumber)
+				.setResultsViewMode(resultsViewMode);
 		try {
 			recordServices().update(search);
 			if(refreshPage) {
@@ -437,5 +467,15 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	@Override
 	public boolean hasWriteAccessOnAllRecords(List<String> selectedRecordIds) {
 		return batchProcessingPresenterService().hasWriteAccessOnAllRecords(getCurrentUser(), selectedRecordIds);
+	}
+
+	public void switchToTableView() {
+		resultsViewMode = SearchResultsViewMode.TABLE;
+		saveTemporarySearch(true);
+	}
+
+	public void switchToDetailedView() {
+		resultsViewMode = SearchResultsViewMode.DETAILED;
+		saveTemporarySearch(true);
 	}
 }

@@ -17,6 +17,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -120,8 +122,17 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
 
-		resultsArea.removeAllComponents();
-		resultsArea.addComponents(results, results.createControls());
+		if(isDetailedView()) {
+			resultsArea.removeAllComponents();
+			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
+		} else {
+			resultsArea.removeAllComponents();
+			resultsArea.addComponent(results);
+		}
+	}
+
+	private boolean isDetailedView() {
+		return presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED);
 	}
 
 	@Override
@@ -174,21 +185,24 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return main;
 	}
 
-	private SearchResultTable buildResultTable() {
-		SearchResultTable table = new SearchResultTable(buildResultContainer());
-		table.setWidth("100%");
-		table.setCurrentPage(presenter.getPageNumber());
-		table.addListener(new SearchResultTable.PageChangeListener() {
+	SearchResultTable buildResultTable() {
+		return buildDetailedResultsTable();
+	}
+
+	protected SearchResultTable buildDetailedResultsTable() {
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(buildResultContainer());
+		srTable.setCurrentPage(presenter.getPageNumber());
+		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(true);
 			}
 		});
-
-		return table;
+		srTable.setWidth("100%");
+		return srTable;
 	}
 
-	private SearchResultContainer buildResultContainer() {
+	protected SearchResultContainer buildResultContainer() {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(presenter.getSearchResults());
 		return new SearchResultContainer(results, displayFactory);
@@ -264,6 +278,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(sortBy, inner);
 		layout.setWidth("95%");
 		layout.addStyleName(SORT_BOX_STYLE);
+		layout.setVisible(isDetailedView());
 
 		return layout;
 	}
@@ -359,7 +374,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		});
 
 		layout.addComponent(table);
-		layout.setVisible(!facet.getValues().isEmpty());
+		layout.setVisible(!facet.getValues().isEmpty() && isDetailedView());
 		layout.addStyleName(FACET_BOX_STYLE);
 		return layout;
 	}
@@ -368,12 +383,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton() {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
-				results.selectCurrentPage();
+				if (isDetailedView()) {
+					((SearchResultDetailedTable)results).selectCurrentPage();
+				} else {
+					((SearchResultSimpleTable)results).selectAll();
+				}
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
-				results.deselectCurrentPage();
+				if (isDetailedView()) {
+					((SearchResultDetailedTable)results).deselectCurrentPage();
+				} else {
+					((SearchResultSimpleTable)results).deselectAll();
+				}
 			}
 		};
 		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);

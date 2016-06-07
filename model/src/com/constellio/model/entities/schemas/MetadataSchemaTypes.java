@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,6 +220,17 @@ public class MetadataSchemaTypes {
 		return returnedMetadataSchemaTypes;
 	}
 
+	public List<MetadataSchemaType> getSchemaTypesSortedByLabelsOfLanguage(final Language language) {
+		List<MetadataSchemaType> types = new ArrayList<>(schemaTypes);
+		Collections.sort(types, new Comparator<MetadataSchemaType>() {
+			@Override
+			public int compare(MetadataSchemaType o1, MetadataSchemaType o2) {
+				return o1.getLabel(language).compareTo(o2.getLabel(language));
+			}
+		});
+		return Collections.unmodifiableList(types);
+	}
+
 	public boolean hasType(String schemaType) {
 		try {
 			getSchemaType(schemaType);
@@ -256,4 +268,5 @@ public class MetadataSchemaTypes {
 		}
 		return false;
 	}
+
 }

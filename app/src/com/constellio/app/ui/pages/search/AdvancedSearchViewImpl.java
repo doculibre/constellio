@@ -1,5 +1,14 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -7,10 +16,10 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton;
-import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -23,25 +32,17 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.vaadin.event.ItemClickEvent;
-import com.vaadin.ui.*;
-import com.github.rjeschke.txtmark.Run;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
-import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 
 public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresenter> implements AdvancedSearchView, BatchProcessingView {
 	public static final String BATCH_PROCESS_BUTTONSTYLE = "searchBatchProcessButton";
@@ -141,10 +142,59 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 			selectionActions.add(addToCart);
 		}
 
+		Button switchViewMode = buildSwitchViewMode();
+
+		// TODO Build SelectAllButton properly for table mode
+//		List<Component> actions = Arrays.asList(
+//				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
 		List<Component> actions = Arrays.asList(
-				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter));
+				buildSelectAllButton(), buildSavedSearchButton(), (Component) new ReportSelector(presenter),switchViewMode);
 
 		return results.createSummary(actions, selectionActions);
+	}
+	
+	private String getSwitchViewModeCaption() {
+		String caption;
+		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+			caption = $("AdvancedSearchView.switchToTable");
+		} else {
+			caption = $("AdvancedSearchView.switchToList");
+		}
+		return caption;
+	}
+
+	private Button buildSwitchViewMode() {
+		final Button switchViewModeButton = new Button(getSwitchViewModeCaption());
+		switchViewModeButton.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				if (presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED)) {
+					presenter.switchToTableView();
+				} else if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+					presenter.switchToDetailedView();
+				}
+				switchViewModeButton.setCaption(getSwitchViewModeCaption());
+			}
+		});
+		switchViewModeButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return switchViewModeButton;
+	}
+
+	@Override
+	SearchResultTable buildResultTable() {
+		// TODO Table should take all space, since facets and sort are hidden.
+		if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+			return buildSimpleResultsTable();
+		} else {
+			return buildDetailedResultsTable();
+		}
+	}
+
+	private SearchResultTable buildSimpleResultsTable() {
+		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container);
+		table.setWidth("100%");
+		return table;
 	}
 
 	private WindowButton buildAddToCartButton() {

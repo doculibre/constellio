@@ -8,8 +8,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -29,6 +31,8 @@ import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -60,6 +64,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	SearchServices searchServices;
 	DisplayFolderPresenter presenter;
 	SessionContext sessionContext;
+	@Mock UIContext uiContext;
 	LocalDate nowDate = new LocalDate();
 	RMEventsSearchServices rmEventsSearchServices;
 	RolesManager rolesManager;
@@ -93,12 +98,15 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		when(displayFolderView.getCollection()).thenReturn(zeCollection);
 		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(displayFolderView.getUIContext()).thenReturn(uiContext);
 
 		chuckCredentialVO = new UserCredentialVO();
 		chuckCredentialVO.setUsername("chuck");
 
 		presenter = new DisplayFolderPresenter(displayFolderView);//spy(
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 
 		rolesManager = getModelLayerFactory().getRolesManager();
 
@@ -207,7 +215,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		nowDate = nowDate.plusDays(5);
 		givenTimeIs(nowDate);
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.returnFolder(nowDate.minusDays(1), borrowingLocalDate);
 		recordServices.flush();
 		//		Thread.sleep(1000);
@@ -246,7 +256,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		presenter.borrowFolder(nowDate, nowDate, chuck.getId(), BorrowingType.BORROW, null);
 
 		givenTimeIs(nowDate.plusDays(1));
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.returnFolder(nowDate.minusDays(2), borrowingDate);
 
 		Folder folderC30 = rmRecords.getFolder_C30();
@@ -297,7 +309,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void givenInactiveBorrowedFolderAndRemovedPermissionToModifyInactiveBorrwedFolderAndGivenBackThenOk()
 			throws Exception {
 
-		presenter.forParams("C50");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C50");
+		presenter.forParams(ParamUtils.addParams("", params));
 		givenRemovedPermissionToModifyBorrowedFolder(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
 		displayFolderView.navigate().to(RMViews.class).displayFolder("C50");
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
@@ -356,11 +370,13 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenTimeIs(shishOClock);
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 		Folder folderC30 = rmRecords.getFolder_C30();
 
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.reminderReturnFolder();
 
 		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)
@@ -400,7 +416,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		User currentUser = rmRecords.getChuckNorris();
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		assertThat(presenter.getReminderReturnFolderButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
 	}
 
@@ -410,7 +428,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		User currentUser = rmRecords.getChuckNorris();
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 		assertThat(presenter.getReminderReturnFolderButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
 	}
@@ -420,7 +440,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		User currentUser = rmRecords.getChuckNorris();
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, currentUser.getId(), BorrowingType.BORROW, null);
 
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
@@ -428,7 +450,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		currentUser = rmRecords.getBob_userInAC();
 		presenter = new DisplayFolderPresenter(displayFolderView);
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
 	}
@@ -440,7 +462,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		User currentUser = rmRecords.getChuckNorris();
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
 	}
 
@@ -450,7 +474,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		User currentUser = rmRecords.getChuckNorris();
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getChuckNorris().getId(), BorrowingType.BORROW, null);
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isFalse();
 	}
@@ -460,7 +486,9 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		User currentUser = rmRecords.getChuckNorris();
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, currentUser.getId(), BorrowingType.BORROW, null);
 
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
@@ -468,7 +496,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		currentUser = rmRecords.getBob_userInAC();
 		presenter = new DisplayFolderPresenter(displayFolderView);
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
 	}
@@ -477,16 +505,18 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void whenAlertWhenAvailableThenOk()
 			throws Exception {
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
 		presenter.alertWhenAvailable();
 
 		connectWithBob();
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 
 		connectWithAlice();
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 
 		Folder folderC30 = rmRecords.getFolder_C30();
@@ -503,16 +533,18 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		recordServices.update(folderC30.setAlertUsersWhenAvailable(asList(users.aliceIn(zeCollection).getId())));
 		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getAlice().getId());
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
 
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 		presenter.alertWhenAvailable();
 		assertThat(folderC30.getAlertUsersWhenAvailable()).containsOnly(rmRecords.getAlice().getId());
 		connectWithBob();
 
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 		presenter.alertWhenAvailable();
 
@@ -524,20 +556,22 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void givenTwoUsersToAlertWhenReturnFolderThenOneEmailToSend()
 			throws Exception {
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
 
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 
 		connectWithBob();
 
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 
 		connectWithChuck();
 
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.returnFolder(nowDate);
 		recordServices.flush();
 
@@ -559,16 +593,18 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	public void givenUserToAlertWhenReturnFolderThenEmailToSendIsCreated()
 			throws Exception {
 
-		presenter.forParams("C30");
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.borrowFolder(nowDate, nowDate, rmRecords.getCharles_userInA().getId(), BorrowingType.BORROW, null);
 
 		connectWithBob();
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.alertWhenAvailable();
 
 		connectWithChuck();
 		givenTimeIs(shishOClock);
-		presenter.forParams("C30");
+		presenter.forParams(ParamUtils.addParams("", params));
 		presenter.returnFolder(shishOClock.toLocalDate());
 
 		Metadata subjectMetadata = metadataSchemasManager.getSchemaTypes(zeCollection)

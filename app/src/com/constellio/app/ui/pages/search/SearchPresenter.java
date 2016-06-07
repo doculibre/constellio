@@ -7,13 +7,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,12 +73,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SearchPresenter.class);
 
-	private Map<String, String[]> extraSolrParams = new HashMap<>();
+	protected Map<String, String[]> extraSolrParams = new HashMap<>();
 	KeySetMap<String, String> facetSelections = new KeySetMap<>();
 	Map<String, Boolean> facetStatus = new HashMap<>();
 	List<String> suggestions;
 	String sortCriterion;
 	SortOrder sortOrder;
+	String resultsViewMode;
 	String collection;
 	transient SchemasDisplayManager schemasDisplayManager;
 	transient SearchPresenterService service;
@@ -112,6 +115,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public void resetFacetAndOrder() {
 		resetFacetSelection();
 		sortOrder = SortOrder.ASCENDING;
+	}
+
+	public String getResultsViewMode() {
+		return resultsViewMode;
 	}
 
 	public abstract Record getTemporarySearchRecord();
@@ -175,6 +182,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			}
 		};
 	}
+
+	private List<MetadataSchemaVO> getSchemas() {
+		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
+		return Arrays.asList(
+				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
+				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
+				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()));
+	}
+
+	// TODO RecordVODataProvider for search results
 
 	public void facetValueSelected(String facetId, String facetValue) {
 		facetSelections.get(facetId).add(facetValue);
@@ -382,7 +399,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return search;
 	}
 
-	private SearchBoostManager searchBoostManager() {
+	protected SearchBoostManager searchBoostManager() {
 		return modelLayerFactory.getSearchBoostManager();
 	}
 
