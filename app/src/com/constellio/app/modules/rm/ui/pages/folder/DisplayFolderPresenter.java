@@ -374,6 +374,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			if (folder.getPermissionStatus().isSemiActive()) {
 				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder));
 			}
+			if(StringUtils.isNotBlank(folder.getLegacyId())) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder));
+			}
 			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
