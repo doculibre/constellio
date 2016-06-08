@@ -59,7 +59,6 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
-		setSelectedPageLength(25);
 		setSelectedPageLength(search.getPageLength());
 	}
 

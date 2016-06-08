@@ -113,7 +113,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		schemaTypeCode = search.getSchemaFilter();
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
-		setSelectedPageLength(25);
 		setSelectedPageLength(search.getPageLength());
 
 		view.setSchemaType(schemaTypeCode);
