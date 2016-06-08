@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
@@ -39,6 +40,11 @@ public class AuthorizationBuilder {
 
 	public AuthorizationBuilder forUsers(String... users) {
 		this.principals = asList(users);
+		return this;
+	}
+
+	public AuthorizationBuilder forGroups(Group... groups) {
+		this.principals = new RecordUtils().toWrappedRecordIdsList(asList(groups));
 		return this;
 	}
 

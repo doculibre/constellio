@@ -1,16 +1,22 @@
 package com.constellio.model.services.security;
 
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
+import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
@@ -18,6 +24,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -28,6 +35,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -69,8 +77,19 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
 	RolesManager roleManager;
 
+	String ROLE1 = "role1";
+	String ROLE2 = "role2";
+	String ROLE3 = "role3";
+
+	String PERMISSION_OF_NO_ROLE = "permissionOfNoRole";
+	String PERMISSION_OF_ROLE1 = "permissionOfRole1";
+	String PERMISSION_OF_ROLE2 = "permissionOfRole2";
+	String PERMISSION_OF_ROLE1_AND_ROLE2 = "permissionOfRole1AndRole2";
+
 	final String VERSION_HISTORY_READ = "VERSION_HISTORY_READ";
 	final String VERSION_HISTORY = "VERSION_HISTORY";
+
+	List<String> initialFinishedBatchProcesses;
 
 	@Before
 	public void setUp()
@@ -92,6 +111,13 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				defineSchemasManager().using(anothercollectionSetup);
 				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy1(), schemasManager);
 				taxonomiesManager.addTaxonomy(anothercollectionSetup.getTaxonomy2(), schemasManager);
+
+				RolesManager rolesManager = getModelLayerFactory().getRolesManager();
+				rolesManager.addRole(
+						new Role(zeCollection, ROLE1, "Ze role 1", asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE1_AND_ROLE2)));
+				rolesManager.addRole(
+						new Role(zeCollection, ROLE2, "Ze role 2", asList(PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE1_AND_ROLE2)));
+				rolesManager.addRole(new Role(zeCollection, ROLE3, "Ze role 3", new ArrayList<String>()));
 
 				try {
 					givenChuckNorrisSeesEverything();
@@ -120,6 +146,30 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				anothercollectionSetup.refresh(schemasManager);
 			}
 		});
+
+		waitForBatchProcess();
+		initialFinishedBatchProcesses = new ArrayList<>();
+		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
+			initialFinishedBatchProcesses.add(batchProcess.getId());
+		}
+
+	}
+
+	private ListAssert<String> assertThatBatchProcessDuringTest() {
+
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		List<String> batchProcessesUsingTests = new ArrayList<>();
+		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
+			if (!initialFinishedBatchProcesses.contains(batchProcess.getId())) {
+				batchProcessesUsingTests.add(batchProcess.getQuery());
+			}
+		}
+
+		return assertThat(batchProcessesUsingTests);
 
 	}
 
@@ -194,7 +244,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenBobHasReadAccessToCategory1ThenBobSeesFolder1AndFolder2()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		long eventsCount = fetchEventCount();
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -207,38 +257,215 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				records.folder2_2_doc2().getId());
 	}
 
+	private RecordVerifier forRecord(String id) {
+		return new RecordVerifier(id);
+	}
+
+	private class RecordVerifier {
+		String recordId;
+
+		public RecordVerifier(String recordId) {
+			this.recordId = recordId;
+		}
+
+		public ListAssert<Object> assertThatUsersWithRole(String role) {
+			return assertThat(authorizationsServices.getUsersWithRoleForRecord(role, get(recordId)))
+					.extracting("username");
+		}
+
+		public ListAssert<Object> assertThatUsersWithPermission(String permission) {
+			return assertThat(authorizationsServices.getUsersWithPermissionOnRecord(permission, get(recordId)))
+					.extracting("username");
+		}
+
+		public ListAssert<String> assertThatUsersWithReadAccess() {
+
+			Record record = get(recordId);
+			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+
+			List<String> usersWithReadAccess = new ArrayList<>();
+			for (User user : allUsers) {
+				if (hasReadAccess(user, record)) {
+					usersWithReadAccess.add(user.getUsername());
+				}
+			}
+
+			return assertThat(usersWithReadAccess);
+		}
+
+		public ListAssert<String> assertThatUsersWithWriteAccess() {
+
+			Record record = get(recordId);
+			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+
+			List<String> usersWithWriteAccess = new ArrayList<>();
+			for (User user : allUsers) {
+				if (hasWriteAccess(user, record)) {
+					usersWithWriteAccess.add(user.getUsername());
+				}
+			}
+
+			return assertThat(usersWithWriteAccess);
+		}
+
+		public ListAssert<String> assertThatUsersWithDeleteAccess() {
+
+			Record record = get(recordId);
+			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+
+			List<String> usersWithDeleteAccess = new ArrayList<>();
+			for (User user : allUsers) {
+				if (hasDeleteAccess(user, record)) {
+					usersWithDeleteAccess.add(user.getUsername());
+				}
+			}
+
+			return assertThat(usersWithDeleteAccess);
+		}
+	}
+
+	private boolean hasReadAccess(User user, Record record) {
+		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
+
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+
+		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
+			fail("User has read access using wrapper method, but not using search");
+		}
+
+		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
+			fail("User has read access using search, but not using wrapper method");
+		}
+		return hasAccessUsingWrapperMethod;
+	}
+
+	private boolean hasWriteAccess(User user, Record record) {
+		boolean hasAccessUsingWrapperMethod = user.hasWriteAccess().on(record);
+
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserWrite(user)
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+
+		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
+			fail("User has read access using wrapper method, but not using search");
+		}
+
+		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
+			fail("User has read access using search, but not using wrapper method");
+		}
+		return hasAccessUsingWrapperMethod;
+	}
+
+	private boolean hasDeleteAccess(User user, Record record) {
+		boolean hasAccessUsingWrapperMethod = user.hasDeleteAccess().on(record);
+
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserDelete(user)
+				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
+
+		if (hasAccessUsingWrapperMethod && !hasAccessUsingSearchTokens) {
+			fail("User has read access using wrapper method, but not using search");
+		}
+
+		if (!hasAccessUsingWrapperMethod && hasAccessUsingSearchTokens) {
+			fail("User has read access using search, but not using wrapper method");
+		}
+		return hasAccessUsingWrapperMethod;
+	}
+
+	private AuthorizationBuilder authorization() {
+		return new AuthorizationBuilder(zeCollection);
+	}
+
+	private AuthorizationBuilder authorizationForUsers(String... usernames) {
+
+		User[] usersArray = new User[usernames.length];
+
+		for (int i = 0; i < usernames.length; i++) {
+			usersArray[i] = userServices.getUserInCollection(usernames[i], zeCollection);
+		}
+
+		return new AuthorizationBuilder(zeCollection).forUsers(usersArray);
+	}
+
+	private AuthorizationBuilder authorizationForGroups(String... groups) {
+
+		Group[] groupsArray = new Group[groups.length];
+
+		for (int i = 0; i < groups.length; i++) {
+			groupsArray[i] = userServices.getGroupInCollection(groups[i], zeCollection);
+		}
+
+		return new AuthorizationBuilder(zeCollection).forGroups(groupsArray);
+	}
+
+	private AuthorizationBuilder authorizationForUser(String username) {
+
+		User[] usersArray = new User[] { userServices.getUserInCollection(username, zeCollection) };
+		return new AuthorizationBuilder(zeCollection).forUsers(usersArray);
+	}
+
+	private AuthorizationBuilder authorizationForGroup(String group) {
+
+		Group[] groupsArray = new Group[] { userServices.getGroupInCollection(group, zeCollection) };
+		return new AuthorizationBuilder(zeCollection).forGroups(groupsArray);
+	}
+
 	private long fetchEventCount() {
 		LogicalSearchCondition condition = from(schemasManager.getSchemaTypes(zeCollection).getSchemaType(Event.SCHEMA_TYPE))
 				.returnAll();
 		return searchServices.getResultsCount(condition);
 	}
 
+	//Notes :
+	//TODO TestgetUsersWithPermission
+
 	@Test
-	public void givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned()
+	public void givenRoleAuthorizationsOnPrincipalConceptsThenInherited()
 			throws Exception {
+
+		//Replacing
+		//- //givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		List<String> roles = asList(Role.READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.taxo1_category1());
+		addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
+		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+		addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
 
-		List<User> returnedUsers = authorizationsServices.getUsersWithRoleForRecord(roles.get(0), records.taxo1_category1());
-		assertThat(returnedUsers).contains(users.bobIn(zeCollection));
+		//TODO Bug! Robin should have ROLE1
+		forRecord(TAXO1_CATEGORY2).assertThatUsersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
+		forRecord(TAXO1_CATEGORY2_1).assertThatUsersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
+		forRecord(TAXO1_CATEGORY2).assertThatUsersWithWriteAccess().containsOnly(chuckNorris);
+		assertThatBatchProcessDuringTest().hasSize(7);
+	}
+
+	@Test
+	public void givenAccessAuthorizationsOnPrincipalConceptsThenInherited()
+			throws Exception {
+
+		//Replacing
+		//- //givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+
+		addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
+
+		forRecord(TAXO1_CATEGORY2).assertThatUsersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+		forRecord(TAXO1_CATEGORY2_1).assertThatUsersWithWriteAccess()
+				.containsOnly(bob, alice, charles, dakota, gandalf, chuck, robin);
+		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
 	@Test
 	public void givenLegendsHaveReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenAliceAndEdouardReturned()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
+		addAuthorizationWithoutDetaching(asList(READ), asList(users.legendsIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.taxo1_category1());
 
-		List<User> returnedUsers = authorizationsServices.getUsersWithRoleForRecord(roles.get(0), records.taxo1_category1());
+		List<User> returnedUsers = authorizationsServices.getUsersWithRoleForRecord(READ, records.taxo1_category1());
 		assertThat(returnedUsers).contains(users.aliceIn(zeCollection));
 		assertThat(returnedUsers).contains(users.edouardLechatIn(zeCollection));
 
@@ -259,7 +486,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAndRemovingGroupToAUserThenHeReceivesAndLoseGroupAuthorizations()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
@@ -281,7 +508,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAndRemovingUserToAGroupThenHeReceivesAndLoseGroupAuthorizations()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
@@ -312,7 +539,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(users.bobIn(zeCollection))
 				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
 
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorization = addAuthorizationWithoutDetaching(roles,
 				asList(userServices.getGroupInCollection("vilains", zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -380,7 +607,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveReadAccessToStation2_1ThenTheySeeFolder2()
 			throws Exception {
 		givenTaxonomy2IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
 				asList(records.taxo2_station2_1().getId()));
 		waitForBatchProcess();
@@ -397,7 +624,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesHaveReadAccessToCategory2ThenTheySeeFolder3AndFolder4()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
@@ -418,7 +645,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesHaveReadAccessToCategory1WhenModifyingAuthorizationsReplacincingHeroesByBobThenOnlyBobSeesFoldersFromCategory1()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
@@ -440,7 +667,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAuthorizationWithoutPrincipalsAndTargetRecordsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, new ArrayList<String>(), new ArrayList<String>());
 	}
@@ -449,7 +676,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAuthorizationWithoutPrincipalsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, new ArrayList<String>(), asList(records.taxo1_category1().getId()));
 	}
@@ -458,7 +685,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAuthorizationWithoutTargetRecordsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), new ArrayList<String>());
 	}
@@ -467,7 +694,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAuthorizationWithInvalidPrincipalsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, asList("inexistentId"), asList(records.taxo1_category1().getId()));
 	}
@@ -476,7 +703,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAuthorizationWithInvalidTargetRecordsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList("inexistentId"));
 	}
@@ -485,7 +712,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAuthorizationWhenModifyingAuthorizationWithoutPrincipalsAndTargetRecordsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -499,7 +726,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAuthorizationWhenModifyingAuthorizationWithoutTargetRecordsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -512,7 +739,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAuthorizationWhenModifyingAuthorizationWithoutPrincipalsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -525,7 +752,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAuthorizationWhenModifyingAuthorizationWithInvalidPrincipalsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -538,7 +765,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAuthorizationWhenModifyingAuthorizationWithInvalidTargetRecordsThenValidationException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
@@ -551,7 +778,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenHeroesHaveAccessToCategory1And2ThenDakotaAndXavierSeeAllFolders()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId(), records.taxo1_category2().getId()));
 		waitForBatchProcess();
@@ -573,7 +800,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
 				asList(records.taxo1_category2_1().getId(), records.folder4_2().getId()));
 		waitForBatchProcess();
@@ -590,7 +817,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesHaveAccessToCategory1WhenModifyingAuhtorizationReplacingCategory1ByFolder4_2ThenXavierAndDakotaOnlySeeFolder4_2()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
@@ -608,7 +835,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesAndLegendHaveAccessToCategory2WhenAddBobAndRemoveHeroesFromFolder4AndResetItThenOnlyHeroesAndLegendHaveAccessToFolder4()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorizationHeroes = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
@@ -635,7 +862,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesAndLegendHaveAccessToCategory2WhenAddBobAndRemoveHeroesFromFolder4DetachingAndResetItThenOnlyHeroesAndLegendHaveAccessToFolder4()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorizationHeroes = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
 		waitForBatchProcess();
@@ -665,7 +892,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenMultipleAuthorizationAddedAtSameMomentThenAllOk()
 			throws RolesManagerRuntimeException, InterruptedException {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorizationHeroes = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		List<Record> folders = asList(records.folder1(), records.folder2(), records.folder3(), records.folder4(),
@@ -690,7 +917,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesAndLegendHaveAccessToFolder4AndBobToFolder4_1WhenRemoveHeroesFromFolder4_1AndResetFolder4AndAddHeroesToFolder4ThenHeroesSeeFolder4_1()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorizationHeroes = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
@@ -710,7 +937,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesAndLegendHaveAccessToFolder4AndBobToFolder4_1WhenRemoveHeroesDetachingFromFolder4_1AndResetFolder4AndAddHeroesToFolder4ThenHeroesDontSeeFolder4_1()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorizationHeroes = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
@@ -731,7 +958,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenTryToDetachConceptThenException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.taxo1_category2().getId()));
 	}
@@ -741,7 +968,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		List<String> writePermissionRoles = Arrays.asList(Role.WRITE);
-		List<String> readPermissionRoles = Arrays.asList(Role.READ);
+		List<String> readPermissionRoles = Arrays.asList(READ);
 		addAuthorizationWithoutDetaching(readPermissionRoles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		Authorization writeAuthorizationHeroesAndLegends = addAuthorizationWithoutDetaching(writePermissionRoles,
@@ -780,7 +1007,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAliceAndBobHaveAccessToFolder4AndBobHasNoLongerAccessToFolder4_2AndCharlesHasAccessToFolder4_2WithoutDetachingWhenAddingDakotaAndDetachingThenOnlyAliceBobAndDakotaHaveAccessToFolder4_2()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList(records.folder4().getId()));
 		Authorization authorizationBob = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
@@ -810,7 +1037,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		// This test used to rely on invalid behaviour of the AuthorizationServices when detaching
 		// Also, I do not believe the case here represents anything we do (or want to do) in the application
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		Authorization authorizationAlice = addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()),
 				asList(records.folder4().getId()));
 		Authorization authorizationBob = addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
@@ -842,7 +1069,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void whenAddingAuthorizationOnAconceptOfASecondaryTaxonomyThenException()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		addAuthorizationDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo2_station2_1().getId()));
@@ -852,7 +1079,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveAuthWhenAddingAuthToAliceThenAliceInheritsLegendsAuthsAlongsideHerOwn()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
 				asList(records.taxo1_category2_1().getId()));
 		waitForBatchProcess();
@@ -881,7 +1108,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		String gandalf = users.gandalfIn(zeCollection).getId();
 		String edouard = users.edouardLechatIn(zeCollection).getId();
 
-		List<String> readRoles = asList(Role.READ);
+		List<String> readRoles = asList(READ);
 		List<String> writeRoles = asList(Role.WRITE);
 		addAuthorizationWithoutDetaching(readRoles, asList(legends), asList(folder4));
 		addAuthorizationWithoutDetaching(writeRoles, asList(heroes, dakota), asList(folder2, folder4));
@@ -951,7 +1178,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsAndHeroesHaveAuthsWhenAddingAuthToGandalfThenGandalfInheritsBothGroupsAuthsAlongsideHisOwn()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.folder2().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.gandalfIn(zeCollection).getId()),
@@ -971,7 +1198,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenBobHasReadAccessToFolder2_2_doc2ThenBobSeesOnlyFolder2_2_doc2()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.folder2_2_doc2().getId()));
 		waitForBatchProcess();
@@ -985,7 +1212,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		String aliceId = users.aliceIn(zeCollection).getId();
 		String legendsId = users.legendsIn(zeCollection).getId();
@@ -1021,7 +1248,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveAuthWhenAddingAuthToAliceAndMovingAliceToHeroesThenAliceLosesLegendsAuthsButKeepsHerOwn()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.folder2().getId()));
@@ -1040,7 +1267,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenBobHasReadAccessToStation2WhenRemovingBobsAuthOnFolder2ThenBobSeesOnlyFolder1()
 			throws Exception {
 		givenTaxonomy2IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
@@ -1061,7 +1288,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenBobHasReadAccessToStation2WhenRemovingAndReaddingBobsAuthOnFolder2ThenBobSeesFolder1AndFolder2()
 			throws Exception {
 		givenTaxonomy2IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
@@ -1085,7 +1312,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveAuthsInTheFutureThenAuthsNotActiveNow()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationForDates(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.taxo1_category1().getId()),
 				new LocalDate(2032, 10, 22), new LocalDate(2033, 10, 22));
 		waitForBatchProcess();
@@ -1102,7 +1329,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveAuthsInTheFutureWhenTimePassesToItsActivePeriodThenAuthsActive()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationForDates(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.taxo1_category1().getId()),
 				new LocalDate(2032, 10, 22), new LocalDate(2033, 10, 22));
 		waitForBatchProcess();
@@ -1127,7 +1354,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveExpiredAuthsThenAuthsNotActiveNow()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		givenTimeIs(new LocalDate(2013, 10, 21));
 		addAuthorizationForDates(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.taxo1_category1().getId()),
 				new LocalDate(2013, 10, 22), new LocalDate(2017, 10, 22));
@@ -1156,7 +1383,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenBobHasReadAccessToStation2ThenBobSeesFolder1AndFolder2()
 			throws Exception {
 		givenTaxonomy2IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
@@ -1171,7 +1398,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsHaveReadAuthToFolder2WhenGivingWriteAuthToAliceThenEdouardReadsFolder2AndAliceWritesFolder2()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = Arrays.asList(Role.READ);
+		List<String> roles = Arrays.asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder2().getId()));
 		roles = Arrays.asList(Role.WRITE);
 		addAuthorizationDetaching(roles, asList(users.aliceIn(zeCollection).getId()), asList(records.folder2().getId()));
@@ -1189,7 +1416,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesAndAliceHaveAuthToCategory2AndEdouardHasAuthToCategory2_1ThenAllButBobSeeFolder3()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.edouardLechatIn(zeCollection).getId()),
@@ -1214,7 +1441,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenHeroesAndAliceHaveAuthToCategory2AndEdouardHasAuthToFolder4ThenAllButBobSeeFolder4()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId(), users.aliceIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.edouardLechatIn(zeCollection).getId()),
@@ -1248,7 +1475,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenLegendsAndHeroesHaveAuthToCategory2WhenRemovingHeroesAuthAndAddingDakotaAuthOnCategory2ThenHeroesSeeFolder3ButNot4()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles,
 				asList(users.legendsIn(zeCollection).getId(), users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
@@ -1386,7 +1613,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		User bob = users.bobIn(zeCollection);
 
-		addAuthorizationWithoutDetaching(asList("zeRole", Role.READ), asList(bob.getId()),
+		addAuthorizationWithoutDetaching(asList("zeRole", READ), asList(bob.getId()),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
@@ -1475,7 +1702,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenNoDeletePermissionToUserWhenHasDeletePermissionOnHierarchyThenReturnFalse()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
 		waitForBatchProcess();
@@ -1678,7 +1905,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenAddAuthorizationWhenGetAuthorizationThenReturnIt()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ);
+		List<String> roles = asList(READ);
 
 		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category2().getId()));
@@ -1698,7 +1925,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenGroupHasAuthsThenAuthsInheritedToSubGroupAndItsUsers()
 			throws InterruptedException {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(Role.READ, Role.WRITE);
+		List<String> roles = asList(READ, Role.WRITE);
 
 		assertThat(users.robinIn(zeCollection)).is(notAllowedToWrite(records.taxo1_category2()));
 
@@ -2019,7 +2246,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newRecordServices().update(
 				users.sasquatchIn(zeCollection).setUserRoles(asList("role1")));
 
-		addAuthorizationWithoutDetaching(asList("role2", Role.READ), asList(sasquatchId),
+		addAuthorizationWithoutDetaching(asList("role2", READ), asList(sasquatchId),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
@@ -2200,6 +2427,11 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return recordIds;
 	}
 
+	private Authorization addAuthorizationWithoutDetaching(String role, List<String> grantedToPrincipals,
+			List<String> grantedOnRecords) {
+		return addAuthorizationWithoutDetaching(aString(), asList(role), grantedToPrincipals, grantedOnRecords);
+	}
+
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
 		return addAuthorizationWithoutDetaching(aString(), roles, grantedToPrincipals, grantedOnRecords);
@@ -2213,6 +2445,24 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 		return authorization;
+	}
+
+	private void addKeepingAttached(Authorization authorization) {
+		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void addDetaching(Authorization authorization) {
+		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private Authorization addAuthorizationDetaching(List<String> roles, List<String> grantedToPrincipals,

@@ -121,8 +121,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";
 	protected String aliceWonderland = "alice";
+	protected String alice = "alice";
+	protected String bob = "bob";
 	protected String bobGratton = "bob";
 	protected String chuckNorris = "chuck";
+	protected String chuck = "chuck";
 	protected String charlesFrancoisXavier = "charles";
 	protected String charles = "charles";
 	protected String dakota = "dakota";
@@ -130,6 +133,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String gandalf = "gandalf";
 	protected String robin = "robin";
 	protected String sasquatch = "sasquatch";
+	protected String heroes = "heroes";
+	protected String legends = "legends";
 
 	private int printIndex = 0;
 	private long time;
