@@ -208,6 +208,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 				presenter.saveTemporarySearch(true);
 			}
 		});
+		srTable.getItemsPerPage().addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+			}
+		});
 
 		srTable.setWidth("100%");
 		return srTable;

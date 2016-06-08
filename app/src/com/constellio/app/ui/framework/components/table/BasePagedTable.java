@@ -143,6 +143,10 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		return controlBar;
 	}
 
+	public ComboBox getItemsPerPage() {
+		return itemsPerPage;
+	}
+
 	public void setItemsPerPageValue(int value) {
 		itemsPerPage.setValue(value);
 	}
