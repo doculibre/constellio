@@ -13,13 +13,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,6 +113,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		schemaTypeCode = search.getSchemaFilter();
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
+		setSelectedPageLength(25);
+		setSelectedPageLength(search.getPageLength());
 
 		view.setSchemaType(schemaTypeCode);
 		view.setSearchExpression(searchExpression);
@@ -406,7 +401,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setFreeTextSearch(searchExpression)
 				.setAdvancedSearch(view.getSearchCriteria())
 				.setPageNumber(pageNumber)
-				.setResultsViewMode(resultsViewMode);
+				.setResultsViewMode(resultsViewMode)
+				.setPageLength(selectedPageLength);
 		try {
 			recordServices().update(search);
 			if(refreshPage) {
