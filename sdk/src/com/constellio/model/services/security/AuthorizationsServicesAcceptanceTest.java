@@ -5,6 +5,13 @@ import static com.constellio.model.entities.security.CustomizedAuthorizationsBeh
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3_DOC1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_1_DOC1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
 import static java.util.Arrays.asList;
@@ -268,7 +275,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			this.recordId = recordId;
 		}
 
-		public ListAssert<Object> assertThatUsersWithRole(String role) {
+		public ListAssert<Object> usersWithRole(String role) {
 			return assertThat(authorizationsServices.getUsersWithRoleForRecord(role, get(recordId)))
 					.extracting("username");
 		}
@@ -293,7 +300,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return assertThat(usersWithReadAccess);
 		}
 
-		public ListAssert<String> assertThatUsersWithWriteAccess() {
+		public ListAssert<String> usersWithWriteAccess() {
 
 			Record record = get(recordId);
 			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
@@ -416,6 +423,16 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return searchServices.getResultsCount(condition);
 	}
 
+	private List<RecordVerifier> $(String... ids) {
+		List<RecordVerifier> verifiers = new ArrayList<>();
+
+		for (String id : ids) {
+			verifiers.add(new RecordVerifier(id));
+		}
+
+		return verifiers;
+	}
+
 	//Notes :
 	//TODO TestgetUsersWithPermission
 
@@ -432,9 +449,14 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
 
 		//TODO Bug! Robin should have ROLE1
-		forRecord(TAXO1_CATEGORY2).assertThatUsersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
-		forRecord(TAXO1_CATEGORY2_1).assertThatUsersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
-		forRecord(TAXO1_CATEGORY2).assertThatUsersWithWriteAccess().containsOnly(chuckNorris);
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
+			verifyRecord.usersWithWriteAccess().containsOnly(chuckNorris);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
+		}
 		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
@@ -450,9 +472,14 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
 
-		forRecord(TAXO1_CATEGORY2).assertThatUsersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
-		forRecord(TAXO1_CATEGORY2_1).assertThatUsersWithWriteAccess()
-				.containsOnly(bob, alice, charles, dakota, gandalf, chuck, robin);
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
+		}
+
 		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
