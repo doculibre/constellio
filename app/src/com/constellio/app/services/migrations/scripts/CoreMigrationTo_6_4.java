@@ -66,7 +66,6 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 		)));
 
 		transaction.in("savedSearch").addToDisplay("resultsViewMode").beforeMetadata("schemaFilter");
-
 		transaction.in("savedSearch").addToForm("resultsViewMode").beforeMetadata("schemaFilter");
 
 		manager.execute(transaction.build());
