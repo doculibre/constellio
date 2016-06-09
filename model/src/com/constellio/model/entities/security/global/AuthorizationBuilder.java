@@ -22,6 +22,7 @@ public class AuthorizationBuilder {
 	private String collection;
 	private List<String> principals;
 	private List<String> targets;
+	private Authorization existingAuthorization;
 
 	public AuthorizationBuilder(String collection) {
 		this(collection, UUID.randomUUID().toString());

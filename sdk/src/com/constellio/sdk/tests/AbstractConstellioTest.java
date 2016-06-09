@@ -135,6 +135,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected String sasquatch = "sasquatch";
 	protected String heroes = "heroes";
 	protected String legends = "legends";
+	protected String sidekicks = "sidekicks";
+	protected String rumors = "rumors";
 
 	private int printIndex = 0;
 	private long time;

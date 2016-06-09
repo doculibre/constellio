@@ -38,6 +38,8 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -547,12 +549,29 @@ public class AuthorizationsServices {
 		}
 	}
 
+	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
+		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
+		if (request.getRecordId().equals(authorization.getGrantedOnRecord())) {
+			if (request.getNewAccessAndRoles() != null) {
+				throw new UnsupportedOperationException("TODO");
+			}
+
+		} else {
+			if (request.getNewAccessAndRoles() != null) {
+				throw new UnsupportedOperationException("TODO");
+			}
+		}
+
+		return null;
+	}
+
 	public void modify(Authorization authorization, User user) {
 		modify(authorization, CustomizedAuthorizationsBehavior.LEAVE_AS_IS, user);
 	}
 
 	public void modify(Authorization authorization, CustomizedAuthorizationsBehavior behavior, User user) {
 		Authorization authBefore = authorization;
+
 		List<String> recordIds = withoutDuplicates(authorization.getGrantedOnRecords());
 		List<String> principalIds = withoutDuplicates(authorization.getGrantedToPrincipals());
 		if ((principalIds.isEmpty() || recordIds.isEmpty()) && !authorization.getDetail().isSynced()) {
@@ -569,6 +588,7 @@ public class AuthorizationsServices {
 		if (principalIds.size() != principals.size()) {
 			throw new InvalidPrincipalsIds(principals, principalIds);
 		}
+
 		// We pass null instead of user to avoid logging add and delete events on modification
 		delete(authorization.getDetail(), null, false);
 		add(authorization, behavior, null);

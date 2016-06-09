@@ -39,6 +39,10 @@ public class Authorization {
 		this.grantedToPrincipals = grantedToPrincipals;
 	}
 
+	public String getGrantedOnRecord() {
+		return grantedOnRecords.get(0);
+	}
+
 	public List<String> getGrantedOnRecords() {
 		return grantedOnRecords;
 	}

@@ -5,6 +5,9 @@ import static com.constellio.model.entities.security.CustomizedAuthorizationsBeh
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2_2_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4;
@@ -12,12 +15,14 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_1_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER4_2_DOC1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +37,7 @@ import org.junit.Test;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -43,10 +49,11 @@ import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
@@ -97,6 +104,8 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	final String VERSION_HISTORY = "VERSION_HISTORY";
 
 	List<String> initialFinishedBatchProcesses;
+
+	String auth1, auth2, auth3, auth4, auth5;
 
 	@Before
 	public void setUp()
@@ -169,12 +178,17 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+		List<String> allBatchProcesses = new ArrayList<>();
 		List<String> batchProcessesUsingTests = new ArrayList<>();
-		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
+		List<BatchProcess> finishedBatchProcesses = getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses();
+		for (BatchProcess batchProcess : finishedBatchProcesses) {
+			allBatchProcesses.add(batchProcess.getId());
 			if (!initialFinishedBatchProcesses.contains(batchProcess.getId())) {
 				batchProcessesUsingTests.add(batchProcess.getQuery());
 			}
 		}
+
+		initialFinishedBatchProcesses = allBatchProcesses;
 
 		return assertThat(batchProcessesUsingTests);
 
@@ -197,6 +211,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	@After
 	public void checkIfChuckNorrisHasAccessToEverythingInZeCollection()
 			throws Exception {
+
 		List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.chuckNorrisIn(zeCollection));
 		List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(
 				users.chuckNorrisIn(zeCollection));
@@ -315,7 +330,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return assertThat(usersWithWriteAccess);
 		}
 
-		public ListAssert<String> assertThatUsersWithDeleteAccess() {
+		public ListAssert<String> usersWithDeleteAccess() {
 
 			Record record = get(recordId);
 			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
@@ -383,6 +398,11 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return new AuthorizationBuilder(zeCollection);
 	}
 
+	private AuthorizationBuilder authorization(String existingAuthorizationId) {
+
+		return new AuthorizationBuilder(zeCollection);
+	}
+
 	private AuthorizationBuilder authorizationForUsers(String... usernames) {
 
 		User[] usersArray = new User[usernames.length];
@@ -433,123 +453,179 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return verifiers;
 	}
 
+	private UserAction givenUser(String username) {
+		return new UserAction(username);
+	}
+
+	private class UserAction {
+
+		String username;
+
+		public UserAction(String username) {
+			this.username = username;
+		}
+
+		public UserAction isRemovedFromGroup(String group) {
+			userServices.addUpdateUserCredential(userServices.getUser(username).withRemovedGlobalGroup(group));
+			try {
+				waitForBatchProcess();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			return this;
+		}
+
+		public UserAction isAddedInGroup(String group) {
+			userServices.addUpdateUserCredential(userServices.getUser(username).withNewGlobalGroup(group));
+			try {
+				waitForBatchProcess();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+			return this;
+		}
+	}
+
+	private AuthorizationModificationRequest authorizationOnRecord(String authorizationId, String recordId) {
+		return new AuthorizationModificationRequest(authorizationId, zeCollection, recordId);
+	}
+
+	private void modify(AuthorizationModificationRequest request) {
+		authorizationsServices.execute(request);
+	}
+
 	//Notes :
 	//TODO TestgetUsersWithPermission
 
 	@Test
-	public void givenRoleAuthorizationsOnPrincipalConceptsThenInherited()
+	public void givenRoleAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
 		//Replacing
-		//- //givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
+		// givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
+		// givenLegendsHaveReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenAliceAndEdouardReturned
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
-		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
-		addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth3 = addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
 
 		//TODO Bug! Robin should have ROLE1
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
-			verifyRecord.usersWithWriteAccess().containsOnly(chuckNorris);
+			verifyRecord.usersWithRole(ROLE2).isEmpty();
+			verifyRecord.usersWithRole(ROLE3).isEmpty();
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE2).isEmpty();
+			verifyRecord.usersWithRole(ROLE3).isEmpty();
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 		}
 		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
 	@Test
-	public void givenAccessAuthorizationsOnPrincipalConceptsThenInherited()
+	public void givenAccessAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
 		//Replacing
-		//- //givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
+		//- givenBobHasReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenBobReturned
+		//- whenAddingAndRemovingAuthorizationToAGroupThenAppliedToAllUsers
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
-		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
-		addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth3 = addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, alice, charles, dakota, gandalf);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, alice, charles, dakota, gandalf);
 		}
 
 		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
 	@Test
-	public void givenLegendsHaveReadRoleOnCategory1WhenGettingUsersWithReadRoleOnRecordThenAliceAndEdouardReturned()
+	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		addAuthorizationWithoutDetaching(asList(READ), asList(users.legendsIn(zeCollection).getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
-		recordServices.refresh(records.taxo1_category1());
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth3 = addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
 
-		List<User> returnedUsers = authorizationsServices.getUsersWithRoleForRecord(READ, records.taxo1_category1());
-		assertThat(returnedUsers).contains(users.aliceIn(zeCollection));
-		assertThat(returnedUsers).contains(users.edouardLechatIn(zeCollection));
+		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE2));
+		modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE3));
 
-		assertThat(users.aliceIn(zeCollection))
-				.has(authorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
-		assertThat(users.edouardIn(zeCollection))
-				.has(authorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
-		assertThat(users.gandalfIn(zeCollection))
-				.has(authorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
-		assertThat(users.dakotaIn(zeCollection))
-				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
-		assertThat(users.bobIn(zeCollection))
-				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		//TODO Bug! Robin should have ROLE3
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).isEmpty();
+			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
+			verifyRecord.usersWithRole(ROLE3).containsOnly(charles, dakota, gandalf);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithRole(ROLE1).containsOnly(alice);
+			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
+			verifyRecord.usersWithRole(ROLE3).containsOnly(charles, dakota, gandalf);
+		}
 
 	}
 
 	@Test
-	public void whenAddingAndRemovingGroupToAUserThenHeReceivesAndLoseGroupAuthorizations()
+	public void givenGroupAuthorizationsWhenAddOrRemoveUsersInGroupThenInstantaneousEffectOnSecurity()
 			throws Exception {
+
+		//Replacing
+		//- whenAddingAndRemovingGroupToAUserThenHeReceivesAndLoseGroupAuthorizations
+		//- whenAddingAndRemovingUserToAGroupThenHeReceivesAndLoseGroupAuthorizations
+
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
 
-		assertThat(users.bobIn(zeCollection))
-				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY1).givingReadWriteAccess());
+		addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY1).giving(ROLE1));
+		addKeepingAttached(authorizationForGroup(heroes).on(FOLDER4).givingReadWriteDeleteAccess());
+		addKeepingAttached(authorizationForGroup(heroes).on(FOLDER4).giving(ROLE2));
 
-		userServices.addUpdateUserCredential(users.bob().withNewGlobalGroup(users.legends().getCode()));
-		assertThat(users.bobIn(zeCollection))
-				.has(authorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, gandalf, chuck, robin);
+			//TODO Bug : Robin expected
+			verifyRecord.usersWithRole(ROLE1).containsOnly(charles, dakota, gandalf);
+		}
 
-		userServices.addUpdateUserCredential(users.bob().withRemovedGlobalGroup(users.legends().getCode()));
-		assertThat(users.bobIn(zeCollection))
-				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(charles, dakota, gandalf, chuck, robin);
 
-	}
+			//TODO Bug : Robin expected
+			verifyRecord.usersWithRole(ROLE2).containsOnly(charles, dakota, gandalf);
+		}
 
-	@Test
-	public void whenAddingAndRemovingUserToAGroupThenHeReceivesAndLoseGroupAuthorizations()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		List<String> roles = asList(READ);
-		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()),
-				asList(records.taxo1_category1().getId()));
-		waitForBatchProcess();
+		assertThatBatchProcessDuringTest().hasSize(12);
 
-		assertThat(users.bobIn(zeCollection))
-				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		givenUser(charles).isRemovedFromGroup(heroes);
+		givenUser(robin).isRemovedFromGroup(sidekicks);
+		givenUser(sasquatch).isAddedInGroup(heroes);
+		givenUser(edouard).isAddedInGroup(sidekicks);
 
-		userServices.setGlobalGroupUsers(users.legends().getCode(), asList(users.bob()));
-		assertThat(users.bobIn(zeCollection))
-				.has(authorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER1, FOLDER2, FOLDER2_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
+			//TODO Bug : Edouard expected
+			verifyRecord.usersWithRole(ROLE1).containsOnly(sasquatch, dakota, gandalf);
+		}
 
-		userServices.setGlobalGroupUsers(users.legends().getCode(), new ArrayList<UserCredential>());
-		assertThat(users.bobIn(zeCollection))
-				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithDeleteAccess().containsOnly(sasquatch, dakota, gandalf, chuck, edouard);
+
+			//TODO Bug : Edouard expected
+			verifyRecord.usersWithRole(ROLE2).containsOnly(sasquatch, dakota, gandalf);
+		}
+
+		assertThatBatchProcessDuringTest().hasSize(0);
 
 	}
 
@@ -2474,13 +2550,15 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return authorization;
 	}
 
-	private void addKeepingAttached(Authorization authorization) {
+	private String addKeepingAttached(Authorization authorization) {
 		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
+
+		return authorization.getDetail().getId();
 	}
 
 	private void addDetaching(Authorization authorization) {
