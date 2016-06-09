@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
+import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorHelper.ClassifiedRecordPathInfo;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyServicesRuntimeException.ClassifyServicesRuntimeException_CannotClassifyAsDocument;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
 import com.constellio.app.modules.es.connectors.ConnectorServicesRuntimeException.ConnectorServicesRuntimeException_CannotDownloadDocument;
@@ -161,32 +161,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	//TODO Test
-	private List<String> getPathParts(String[] rawPathParts, Metadata codeMetadata) {
-		List<String> pathParts = new ArrayList<>();
-
-		boolean noLongerInTaxonomy = false;
-		for (String rawPathPart : rawPathParts) {
-
-			if (noLongerInTaxonomy || rawPathPart.indexOf(params.getDelimiter()) == -1) {
-				pathParts.add(rawPathPart);
-			} else {
-
-				String firstPart = rawPathPart.split(params.getDelimiter())[0];
-				boolean hasConceptWithCode = recordServices.getRecordByMetadata(codeMetadata, firstPart) != null;
-				pathParts.add(hasConceptWithCode ? firstPart : rawPathPart);
-				noLongerInTaxonomy = !hasConceptWithCode;
-			}
-		}
-
-		return pathParts;
-	}
 
 	private void classifyConnectorFolderInTaxonomy() {
 
 		String fullConnectorDocPath = connectorFolder.getURL();
 		if (params.getInTaxonomy() != null) {
-			String pathPrefix = params.getPathPrefix() == null ? null : params.getPathPrefix();
-			String[] rawPathParts = fullConnectorDocPath.replace(pathPrefix, "").split("/");
 
 			Taxonomy targetTaxonomy = modelLayerFactory.getTaxonomiesManager()
 					.getEnabledTaxonomyWithCode(connectorFolder.getCollection(), params.getInTaxonomy());
@@ -196,42 +175,34 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			String metadataCode = conceptType.getDefaultSchema().getCode() + "_" + Schemas.CODE.getLocalCode();
 			Metadata codeMetadata = conceptType.getMetadata(metadataCode);
 
-			List<String> pathParts = getPathParts(rawPathParts, codeMetadata);
-			classifyForPath(fullConnectorDocPath, pathParts, targetTaxonomy, codeMetadata);
+			classifyForPath(fullConnectorDocPath, targetTaxonomy, codeMetadata);
 		} else {
 			processFolderWithoutTaxonomy(connectorFolder.getTitle(), fullConnectorDocPath);
 		}
 	}
 
-	private void classifyForPath(String fullConnectorDocPath, List<String> pathParts, Taxonomy targetTaxonomy,
+	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy,
 			Metadata codeMetadata) {
-		String parent = null;
-		Iterator<String> iterator = pathParts.iterator();
-		while (iterator.hasNext()) {
-			String pathPart = iterator.next();
-			Record concept = recordServices.getRecordByMetadata(codeMetadata, pathPart);
-			if (concept != null && params.getInTaxonomy() != null) {
-				parent = verifyConceptInPath(codeMetadata, parent, concept);
-			} else {
-				if (!iterator.hasNext()) {
-					processFolder(fullConnectorDocPath, targetTaxonomy, codeMetadata, parent, pathPart);
-				} else {
-					parent = null;
-				}
-			}
+
+		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices).extractInfoFromPath(
+				fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
+
+		if (recordPathInfo != null) {
+			processFolder(fullConnectorDocPath, targetTaxonomy, codeMetadata, recordPathInfo);
 		}
 	}
 
 	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy,
-			Metadata codeMetadata, String parent, String folderName) {
+			Metadata codeMetadata, ClassifiedRecordPathInfo recordUrlInfo) {
 		LOGGER.info("processFolder(" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode() + ", "
-				+ parent + ", " + folderName + ")");
+				+ recordUrlInfo + ")");
+		String folderName = recordUrlInfo.getLastPathSegment();
 		MetadataSchema folderSchema = rm.defaultFolderSchema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, fullConnectorDocPath);
 		Folder rmFolder;
 		if (rmRecord == null) {
-			Record parentConcept = recordServices.getRecordByMetadata(codeMetadata, parent);
+			Record parentConcept = recordUrlInfo.getConceptWhereRecordIsCreated();
 			if (parentConcept != null) {
 				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema,
 						parentConcept);
