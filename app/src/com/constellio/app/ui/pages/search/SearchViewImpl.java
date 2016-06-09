@@ -122,7 +122,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
 
-		if(isDetailedView()) {
+		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
 			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
 			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
@@ -133,7 +133,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	}
 
 	private boolean isDetailedView() {
-		return presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED);
+		return !SearchResultsViewMode.TABLE.equals(presenter.getResultsViewMode());
 	}
 
 	@Override
@@ -400,18 +400,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable)results).selectCurrentPage();
+					((SearchResultDetailedTable) results).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable)results).selectAll();
+					((SearchResultSimpleTable) results).selectAll();
 				}
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable)results).deselectCurrentPage();
+					((SearchResultDetailedTable) results).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable)results).deselectAll();
+					((SearchResultSimpleTable) results).deselectAll();
 				}
 			}
 		};
