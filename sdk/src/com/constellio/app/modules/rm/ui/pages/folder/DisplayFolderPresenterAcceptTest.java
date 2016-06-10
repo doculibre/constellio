@@ -8,9 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
