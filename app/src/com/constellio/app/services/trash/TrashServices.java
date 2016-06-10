@@ -43,10 +43,6 @@ public class TrashServices {
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortAsc(Schemas.TITLE);
 	}
 
-	public void deleteAll(String selectedType, User currentUser) {
-		//TODO
-	}
-
 	public void restoreSelection(Set<String> selectedRecords, User currentUser) {
 		//TODO
 	}

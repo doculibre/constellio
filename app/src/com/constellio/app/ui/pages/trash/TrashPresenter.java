@@ -105,10 +105,6 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		};
 	}
 
-	public void deleteAll() {
-		trashServices().deleteAll(view.getSelectedType(), getCurrentUser());
-	}
-
 	public void restoreSelection() {
 		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
 			return;
