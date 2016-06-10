@@ -1,19 +1,23 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 
 import com.constellio.app.ui.application.CoreViews;
@@ -83,6 +87,36 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
 		verify(view.navigate().to()).listSchema(params);
+	}
+
+	@Test(expected=MetadataSchemasRuntimeException.NoSuchSchema.class)
+	public void givenCodeWithSpaceWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
+			throws Exception {
+
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
+		formMetadataSchemaVO.setLocalCode("new Schema");
+		formMetadataSchemaVO.addLabel(language, "new schema Label");
+
+		presenter.saveButtonClicked(formMetadataSchemaVO, false);
+
+		verify(view).showErrorMessage($("AddEditSchemaView.schemaCodeContainsSpace"));
+
+		metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema");
+	}
+
+	@Test(expected=MetadataSchemasRuntimeException.NoSuchSchema.class)
+	public void givenCodeStartingWithNumberWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
+			throws Exception {
+
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
+		formMetadataSchemaVO.setLocalCode("3newSchema");
+		formMetadataSchemaVO.addLabel(language, "new schema Label");
+
+		presenter.saveButtonClicked(formMetadataSchemaVO, false);
+
+		verify(view).showErrorMessage($("AddEditSchemaView.schemaCodeStartsWithNumber"));
+
+		metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema");
 	}
 
 	@Test

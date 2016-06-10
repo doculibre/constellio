@@ -34,7 +34,7 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 	public void validateLinkedSchemaUtilsMethods()
 			throws Exception {
 
-		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeWithCode("meetingFolder"))).isEqualTo("folder_meeting");
+		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeWithCode("meetingFolder"))).isEqualTo("folder_meetingFolder");
 		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeWithCode("employe"))).isEqualTo("folder_employe");
 		assertThat(rm.getLinkedSchemaOf(rm.getFolderTypeWithCode("other"))).isEqualTo("folder_default");
 
@@ -42,7 +42,7 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_default");
 
 		folder.setType(rm.getFolderTypeWithCode("meetingFolder"));
-		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_meeting");
+		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_meetingFolder");
 
 		folder.setType(rm.getFolderTypeWithCode("employe"));
 		assertThat(rm.getLinkedSchemaOf(folder)).isEqualTo("folder_employe");

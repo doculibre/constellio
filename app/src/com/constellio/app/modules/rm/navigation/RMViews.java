@@ -18,16 +18,7 @@ public class RMViews extends CoreViews {
 	// FOLDER MANAGEMENT
 
 	public void displayFolder(String id) {
-		displayFolder(id, null);
-	}
-	
-	public void displayFolder(String id, String taxonomyCode) {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", id);
-		if (taxonomyCode != null) {
-			params.put(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-		}
-		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params));
+		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	public void addFolder() {
@@ -58,16 +49,7 @@ public class RMViews extends CoreViews {
 	// DOCUMENT MANAGEMENT
 
 	public void displayDocument(String id) {
-		displayDocument(id, null);
-	}
-	
-	public void displayDocument(String id, String taxonomyCode) {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", id);
-		if (taxonomyCode != null) {
-			params.put(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-		}
-		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params));
+		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
 	public void addDocument() {
