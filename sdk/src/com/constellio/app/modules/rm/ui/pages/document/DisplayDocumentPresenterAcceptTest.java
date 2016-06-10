@@ -4,10 +4,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -21,7 +19,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
-import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
@@ -44,7 +41,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	RMSchemasRecordsServices schemasRecordsServices;
 	DisplayDocumentPresenter presenter;
 	SessionContext sessionContext;
-	@Mock UIContext uiContext;
+	@Mock UIContext uiContext;	
 	RecordServices recordServices;
 	LocalDateTime now = new LocalDateTime();
 	LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
@@ -61,7 +58,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		);
 		inCollection(zeCollection).giveWriteAccessTo(aliceWonderland);
 
-		schemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		schemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		searchServices = getModelLayerFactory().newSearchServices();
@@ -89,9 +86,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		String initialOlderVersionHash = initialContent.getHistoryVersions().get(0).getHash();
 		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isTrue();
 
 		presenter.createPDFAButtonClicked();
@@ -132,9 +127,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		document.setTitle(docTitle);
 		recordServices.add(document);
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", docId);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(docId);
 		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isFalse();
 	}
 
@@ -144,9 +137,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(rmRecords.getDocumentWithContent_A19().getContent().getHistoryVersions()).hasSize(1);
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 		assertThat(presenter.presenterUtils.getCreatePDFAState().isVisible()).isFalse();
 	}
@@ -155,9 +146,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void givenNoCheckoutDocumentThenAlertButtonIsNotVisible()
 			throws Exception {
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isFalse();
 	}
 
@@ -165,9 +154,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void givenCheckoutDocumentAndCurrentBorrowerThenAlertButtonIsNotVisible()
 			throws Exception {
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isFalse();
 	}
@@ -176,13 +163,11 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void givenCheckoutDocumentAndAnotherUserThenAlertButtonIsVisible()
 			throws Exception {
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 
 		connectAsBob();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 
 		assertThat(presenter.presenterUtils.getAlertWhenAvailableButtonState().isVisible()).isTrue();
 	}
@@ -191,18 +176,16 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void whenAlertWhenAvailableThenOk()
 			throws Exception {
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 		presenter.alertWhenAvailableClicked();
 
 		connectAsBob();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
 		connectAsAlice();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
 		Document document = rmRecords.getDocumentWithContent_A19();
@@ -215,21 +198,19 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void givenSomeUsersToAlertWhenAlertWhenAvailableClickedManyTimeThenAlertOnceToEachUser()
 			throws Exception {
 
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
 		connectAsBob();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 
 		presenter.alertWhenAvailableClicked();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
 		Document document = rmRecords.getDocumentWithContent_A19();
@@ -255,18 +236,15 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenTimeIs(now);
-		
-		Map<String, String> params = new HashMap<>();
-		params.put("id", rmRecords.document_A19);
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.checkOutButtonClicked();
 
 		givenTimeIs(shishOClock);
 		connectAsBob();
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		presenter.alertWhenAvailableClicked();
 
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams(rmRecords.document_A19);
 		Content content = rmRecords.getDocumentWithContent_A19().getContent().checkIn();
 		Document document = rmRecords.getDocumentWithContent_A19().setContent(content);
 		recordServices.update(document.getWrappedRecord());

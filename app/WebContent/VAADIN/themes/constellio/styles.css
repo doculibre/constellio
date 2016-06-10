@@ -12830,6 +12830,10 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #414B56;
 }
 
+.constellio .v-table-row-textRed {
+	color: red;
+}
+
 .constellio .constellio-layout .sidebar {
 	overflow-y: hidden;
 }

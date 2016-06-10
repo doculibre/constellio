@@ -13,6 +13,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -54,6 +55,8 @@ public class RMMigrationTo6_4 implements MigrationScript {
 			updateCartSchema(typesBuilder);
 			updateFolderSchema(typesBuilder);
 			setEnabledNonSystemReservedManuallyValuedMetadataAsDuplicable(typesBuilder);
+			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).getMetadata(UserDocument.FOLDER).defineReferences().clearSchemas();
+			typesBuilder.getDefaultSchema(UserDocument.SCHEMA_TYPE).getMetadata(UserDocument.FOLDER).defineReferencesTo(schemaType(Folder.SCHEMA_TYPE));
 		}
 
 		private void updateCartSchema(MetadataSchemaTypesBuilder typesBuilder) {

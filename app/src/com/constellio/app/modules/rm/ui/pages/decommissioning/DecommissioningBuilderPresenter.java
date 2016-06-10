@@ -114,6 +114,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		this.pageNumber = search.getPageNumber();
 		this.setFacetSelections(search.getSelectedFacets());
 		this.adminUnitId = search.getFreeTextSearch();
+		setSelectedPageLength(search.getPageLength());
 		view.setAdministrativeUnit(this.adminUnitId);
 	}
 
@@ -280,7 +281,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setFreeTextSearch(adminUnitId)
 				.setAdvancedSearch(view.getSearchCriteria())
 				.setPageNumber(pageNumber)
-				.setSelectedFacets(this.getFacetSelections().getNestedMap());
+				.setSelectedFacets(this.getFacetSelections().getNestedMap())
+				.setPageLength(getSelectedPageLength());
 		try {
 			recordServices().update(search);
 			if (refreshPage) {

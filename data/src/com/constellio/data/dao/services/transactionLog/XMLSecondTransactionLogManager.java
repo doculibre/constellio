@@ -129,6 +129,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
 		if (bigVaultServer.countDocuments() == 0) {
+			regroupAndMoveInVault();
 			destroyAndRebuildSolrCollection();
 		}
 	}

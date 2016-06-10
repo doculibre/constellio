@@ -120,7 +120,7 @@ public class MetadataToVOBuilder implements Serializable {
 						}
 					}
 				}
-			} else if (groups.get(metadataGroup) != null && groups.get(metadataGroup).get(language) != metadataGroup) {
+			} else if (groups.get(metadataGroup) != null && !metadataGroup.equals(groups.get(metadataGroup).get(language))) {
 				metadataGroup = groups.get(metadataGroup).get(language);
 			}
 		} else {
