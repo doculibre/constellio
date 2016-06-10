@@ -8,9 +8,13 @@ import java.util.Set;
 import javax.naming.NamingException;
 import javax.naming.ldap.LdapContext;
 
+import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.users.UserUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
@@ -34,7 +38,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
 public class LDAPUserSyncManager implements StatefulService {
-
+	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
 	private final LDAPConfigurationManager ldapConfigurationManager;
 	UserServices userServices;
 	GlobalGroupsManager globalGroupsManager;
@@ -187,7 +191,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		String username = ldapUser.getName();
 		String firstName = notNull(ldapUser.getGivenName());
 		String lastName = notNull(ldapUser.getFamilyName());
-		String email = notNull(ldapUser.getEmail());
+		String email = notNull(validateEmail(ldapUser.getEmail()));
 		List<String> globalGroups = new ArrayList<>();
 		for (LDAPGroup ldapGroup : ldapUser.getUserGroups()) {
 			String groupSimpleName = ldapGroup.getSimpleName();
@@ -229,6 +233,17 @@ public class LDAPUserSyncManager implements StatefulService {
 		}
 
 		return returnUserCredentials;
+	}
+
+	private String validateEmail(String email) {
+		if(StringUtils.isBlank(email)){
+			return email;
+		}else if(!EmailValidator.isValid(email)){
+			LOGGER.warn("Invalid email set to null : " + email);
+			return null;
+		}else{
+			return email;
+		}
 	}
 
 	private String notNull(String value) {
