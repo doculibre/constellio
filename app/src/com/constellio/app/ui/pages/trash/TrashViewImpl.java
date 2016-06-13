@@ -123,9 +123,12 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		restoreSelectionButton = new BaseButton($("TrashView.restoreSelection")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.restoreSelection();
+				List<String> notRestored = presenter.restoreSelection();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
+				if(!notRestored.isEmpty()){
+					showMessage($("TrashView.restoreNotPossibleForRecords" + StringUtils.join(notRestored, ",")));
+				}
 			}
 		};
 		restoreSelectionButton.setEnabled(presenter.atLeastOneRecordSelected());

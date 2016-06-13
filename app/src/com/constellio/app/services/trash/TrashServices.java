@@ -14,9 +14,12 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordDeleteOptions;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -25,6 +28,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 public class TrashServices {
 	private final AppLayerFactory appLayerFactory;
 	private final String collection;
+	private RecordServices recordServices;
 
 	public TrashServices(AppLayerFactory appLayerFactory, String collection) {
 		this.appLayerFactory = appLayerFactory;
@@ -43,16 +47,34 @@ public class TrashServices {
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortAsc(Schemas.TITLE);
 	}
 
-	public void restoreSelection(Set<String> selectedRecords, User currentUser) {
-		//TODO
+	public List<String> restoreSelection(Set<String> selectedRecords, User currentUser) {
+		List<String> returnList = new ArrayList<>();
+		for (String recordId : selectedRecords) {
+			Record record = recordServices().getDocumentById(recordId);
+			if(recordServices().isRestorable(record, currentUser)){
+				recordServices().restore(record, currentUser);
+			}else{
+				returnList.add(recordId);
+			}
+		}
+		return returnList;
+	}
+
+	private RecordServices recordServices() {
+		if (recordServices == null) {
+			recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		}
+		return recordServices;
 	}
 
 	public void deleteSelection(Set<String> selectedRecords, User currentUser) {
-		//TODO
+		for (String recordId : selectedRecords) {
+			Record record = recordServices().getDocumentById(recordId);
+			recordServices().physicallyDelete(record, currentUser);//, RecordDeleteOptions.
+		}
 	}
 
 	public Set<String> getTypesWithLogicallyDeletedRecords(String collection, User currentUser) {
-		//TODO
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory()
 				.newSearchServices();
 		LogicalSearchQuery query = getTrashRecordsQueryForCollection(collection, currentUser);
@@ -61,7 +83,7 @@ public class TrashServices {
 		SPEQueryResponse response = searchServices.query(query);
 		List<String> schemasCodes = response.getFieldFacetValuesWithResults("schema_s");
 		Set<String> returnSet = new HashSet<>();
-		for(String schemaCode : schemasCodes){
+		for (String schemaCode : schemasCodes) {
 			String schemaType = StringUtils.substringBefore(schemaCode, "_");
 			returnSet.add(schemaType);
 		}

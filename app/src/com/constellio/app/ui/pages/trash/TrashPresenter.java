@@ -105,11 +105,11 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		};
 	}
 
-	public void restoreSelection() {
+	public List<String> restoreSelection() {
 		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
-			return;
+			return asList();
 		}
-		trashServices().restoreSelection(this.selectedRecords, getCurrentUser());
+		return trashServices().restoreSelection(this.selectedRecords, getCurrentUser());
 	}
 
 	public void deleteSelection() {
