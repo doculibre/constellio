@@ -180,10 +180,10 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		return switchViewModeButton;
 	}
 
-	//@Override
-	SearchResultTable buildResultTable() {
+	@Override
+	protected SearchResultTable buildResultTable() {
 		// TODO Table should take all space, since facets and sort are hidden.
-		if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 			return buildSimpleResultsTable();
 		} else {
 			return buildDetailedResultsTable();

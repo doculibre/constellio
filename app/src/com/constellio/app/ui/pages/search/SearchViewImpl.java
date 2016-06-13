@@ -186,7 +186,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return main;
 	}
 
-	private SearchResultTable buildResultTable() {
+	protected SearchResultTable buildResultTable() {
 		return buildDetailedResultsTable();
 	}
 
