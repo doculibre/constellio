@@ -10,4 +10,12 @@ public class AuthorizationModificationResponse {
 		this.authorizationDeleted = authorizationDeleted;
 		this.idOfAuthorizationCopy = idOfAuthorizationCopy;
 	}
+
+	public boolean isAuthorizationDeleted() {
+		return authorizationDeleted;
+	}
+
+	public String getIdOfAuthorizationCopy() {
+		return idOfAuthorizationCopy;
+	}
 }

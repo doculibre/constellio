@@ -934,4 +934,18 @@ public class RecordImpl implements Record {
 	private boolean isBlankString(Object value) {
 		return (value instanceof String) && StringUtils.isBlank((String) value);
 	}
+
+	@Override
+	public <T> void addValueToList(Metadata metadata, T value) {
+		List<T> values = new ArrayList<>(this.<T>getList(metadata));
+		values.add(value);
+		set(metadata, values);
+	}
+
+	@Override
+	public <T> void removeValueFromList(Metadata metadata, T value) {
+		List<T> values = new ArrayList<>(this.<T>getList(metadata));
+		values.remove(value);
+		set(metadata, values);
+	}
 }

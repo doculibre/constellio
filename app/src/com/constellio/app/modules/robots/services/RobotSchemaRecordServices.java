@@ -18,7 +18,7 @@ public class RobotSchemaRecordServices extends GeneratedRobotSchemaRecordService
 	}
 
 	public RobotsManager getRobotsManager() {
-		return appLayerFactory.getRegisteredManager(collection, ConstellioRobotsModule.ID, RobotsManager.ID);
+		return appLayerFactory.getRegisteredManager(getCollection(), ConstellioRobotsModule.ID, RobotsManager.ID);
 	}
 
 	public AppLayerFactory getAppLayerFactory() {

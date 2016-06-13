@@ -1,8 +1,11 @@
 package com.constellio.model.services.security;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.KEEP_ATTACHED;
+import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
@@ -22,11 +25,13 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.assertj.core.api.BooleanAssert;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
@@ -37,26 +42,27 @@ import org.junit.Test;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -85,6 +91,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	CollectionsListManager collectionsListManager;
 	AuthorizationsServices authorizationsServices;
 	UserServices userServices;
+	SchemasRecordsServices schemas;
 
 	Records records;
 	Records otherCollectionRecords;
@@ -102,6 +109,8 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	final String VERSION_HISTORY_READ = "VERSION_HISTORY_READ";
 	final String VERSION_HISTORY = "VERSION_HISTORY";
+
+	AuthorizationModificationResponse request1, request2, request3;
 
 	List<String> initialFinishedBatchProcesses;
 
@@ -152,6 +161,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				roleManager = getModelLayerFactory().getRolesManager();
 				collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 				userServices = getModelLayerFactory().newUserServices();
+				schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 				users.setUp(getModelLayerFactory().newUserServices());
 			}
 
@@ -292,15 +302,16 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		public ListAssert<Object> usersWithRole(String role) {
 			return assertThat(authorizationsServices.getUsersWithRoleForRecord(role, get(recordId)))
-					.extracting("username");
+					.describedAs("users with role '" + role + "' on record '" + recordId + "'").extracting("username");
 		}
 
 		public ListAssert<Object> assertThatUsersWithPermission(String permission) {
 			return assertThat(authorizationsServices.getUsersWithPermissionOnRecord(permission, get(recordId)))
+					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")
 					.extracting("username");
 		}
 
-		public ListAssert<String> assertThatUsersWithReadAccess() {
+		public ListAssert<String> usersWithReadAccess() {
 
 			Record record = get(recordId);
 			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
@@ -312,7 +323,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				}
 			}
 
-			return assertThat(usersWithReadAccess);
+			return assertThat(usersWithReadAccess).describedAs("read access on record '" + recordId + "'");
 		}
 
 		public ListAssert<String> usersWithWriteAccess() {
@@ -327,7 +338,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				}
 			}
 
-			return assertThat(usersWithWriteAccess);
+			return assertThat(usersWithWriteAccess).describedAs("write access on record '" + recordId + "'");
 		}
 
 		public ListAssert<String> usersWithDeleteAccess() {
@@ -342,7 +353,13 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				}
 			}
 
-			return assertThat(usersWithDeleteAccess);
+			return assertThat(usersWithDeleteAccess).describedAs("delete access on record '" + recordId + "'");
+		}
+
+		public BooleanAssert detachedAuthorizationFlag() {
+			Record record = get(recordId);
+			return assertThat(Boolean.TRUE == record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))
+					.describedAs("detach authorization flag on record '" + recordId + "'");
 		}
 	}
 
@@ -443,6 +460,10 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return searchServices.getResultsCount(condition);
 	}
 
+	private RecordVerifier verifyRecord(String id) {
+		return new RecordVerifier(id);
+	}
+
 	private List<RecordVerifier> $(String... ids) {
 		List<RecordVerifier> verifiers = new ArrayList<>();
 
@@ -451,6 +472,192 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		return verifiers;
+	}
+
+	private VerifiedAuthorization authOnRecord(String recordId) {
+		return new VerifiedAuthorization(recordId);
+	}
+
+	private class VerifiedAuthorization {
+
+		String recordId;
+
+		Set<String> principals;
+
+		Set<String> removedOnRecords = new HashSet<>();
+
+		List<String> roles;
+
+		LocalDate start;
+
+		LocalDate end;
+
+		private VerifiedAuthorization(String recordId) {
+			this.recordId = recordId;
+		}
+
+		private VerifiedAuthorization forPrincipals(String... principals) {
+			this.principals = new HashSet<>(asList(principals));
+			return this;
+		}
+
+		private VerifiedAuthorization forPrincipalIds(List<String> principals) {
+			this.principals = new HashSet<>(toPrincipalCodes(principals.toArray(new String[] {})));
+			return this;
+		}
+
+		private VerifiedAuthorization removedOnRecords(String... removedOnRecords) {
+			this.removedOnRecords = new HashSet<>(asList(removedOnRecords));
+			return this;
+		}
+
+		private VerifiedAuthorization givingRoles(String... roles) {
+			this.roles = asList(roles);
+			return this;
+		}
+
+		private VerifiedAuthorization givingRead() {
+			this.roles = asList(READ);
+			return this;
+		}
+
+		private VerifiedAuthorization givingReadWrite() {
+			this.roles = asList(READ, WRITE);
+			return this;
+		}
+
+		private VerifiedAuthorization givingReadWriteDelete() {
+			this.roles = asList(READ, WRITE, DELETE);
+			return this;
+		}
+
+		private VerifiedAuthorization startingOn(LocalDate start) {
+			this.start = start;
+			return this;
+		}
+
+		private VerifiedAuthorization endingOn(LocalDate end) {
+			this.end = end;
+			return this;
+		}
+
+		public String getRecordId() {
+			return recordId;
+		}
+
+		public Set<String> getPrincipals() {
+			return principals;
+		}
+
+		public Set<String> getRemovedOnRecords() {
+			return removedOnRecords;
+		}
+
+		public List<String> getRoles() {
+			return roles;
+		}
+
+		public LocalDate getStart() {
+			return start;
+		}
+
+		public LocalDate getEnd() {
+			return end;
+		}
+
+		@Override
+		public String toString() {
+			return "VerifiedAuthorization{" +
+					"recordId='" + recordId + '\'' +
+					", principals=" + principals +
+					", removedOnRecords=" + removedOnRecords +
+					", roles=" + roles +
+					", start=" + start +
+					", end=" + end +
+					'}';
+		}
+	}
+
+	private ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {
+
+		List<VerifiedAuthorization> authorizations = new ArrayList<>();
+		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
+				.getAuthorizationsDetails(zeCollection).values()) {
+			Authorization authorization = authorizationsServices.getAuthorization(zeCollection, details.getId());
+
+			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
+					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getDetail().getId()));
+
+			authorizations.add(authOnRecord(authorization.getGrantedOnRecord())
+					.forPrincipalIds(authorization.getGrantedToPrincipals())
+					.givingRoles(details.getRoles().toArray(new String[0]))
+					.removedOnRecords(removedOnRecords.toArray(new String[0])));
+		}
+		return assertThat(authorizations).usingFieldByFieldElementComparator();
+
+	}
+
+	private class AuthorizationVerifier {
+
+		String authId;
+
+		public AuthorizationVerifier(String authId) {
+			this.authId = authId;
+		}
+
+		public AuthorizationVerifier isDeleted() {
+			assertThat(getModelLayerFactory().getAuthorizationDetailsManager().get(zeCollection, authId))
+					.describedAs("Authorization supposed to be deleted").isNull();
+			return this;
+		}
+
+		public AuthorizationVerifier isTargetting(String recordId) {
+			return this;
+		}
+
+		public AuthorizationVerifier isOnlyRemovedOn(String... recordIds) {
+			return this;
+		}
+
+		public AuthorizationVerifier hasPrincipals(String... principals) {
+			List<String> expectedPrincipals = toPrincipalIds(principals);
+			com.constellio.model.entities.security.Authorization authorization = authorizationsServices
+					.getAuthorization(zeCollection, authId);
+			assertThat(authorization.getGrantedToPrincipals()).describedAs("principals")
+					.containsOnly(expectedPrincipals.toArray(new String[0]));
+			return this;
+		}
+
+	}
+
+	private List<String> toPrincipalCodes(String... principalIds) {
+		List<String> codes = new ArrayList<>();
+		for (String principalId : principalIds) {
+			Record record = recordServices.getDocumentById(principalId);
+			if (record.getSchemaCode().startsWith("user")) {
+				codes.add(schemas.wrapUser(record).getUsername());
+			} else {
+				codes.add(schemas.wrapGroup(record).getCode());
+			}
+		}
+
+		return codes;
+	}
+
+	private List<String> toPrincipalIds(String... principals) {
+		List<String> ids = new ArrayList<>();
+		for (String principal : principals) {
+			try {
+				ids.add(userServices.getUserInCollection(zeCollection, principal).getId());
+			} catch (Exception e) {
+				ids.add(userServices.getGroupInCollection(zeCollection, principal).getId());
+			}
+		}
+		return ids;
+	}
+
+	private AuthorizationVerifier assertThatAuth(String id) {
+		return new AuthorizationVerifier(id);
 	}
 
 	private UserAction givenUser(String username) {
@@ -487,17 +694,36 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private AuthorizationModificationRequest authorizationOnRecord(String authorizationId, String recordId) {
-		return new AuthorizationModificationRequest(authorizationId, zeCollection, recordId);
+		return new AuthorizationModificationRequest(authorizationId, recordId, zeCollection);
 	}
 
-	private void modify(AuthorizationModificationRequest request) {
-		authorizationsServices.execute(request);
+	private AuthorizationModificationResponse modify(AuthorizationModificationRequest request) {
+		return authorizationsServices.execute(request);
+	}
+
+	private Condition<? super AuthorizationModificationResponse> deleted() {
+		return new Condition<AuthorizationModificationResponse>() {
+			@Override
+			public boolean matches(AuthorizationModificationResponse value) {
+				return value.isAuthorizationDeleted();
+			}
+		};
+	}
+
+	private Condition<? super AuthorizationModificationResponse> creatingACopy() {
+		return new Condition<AuthorizationModificationResponse>() {
+			@Override
+			public boolean matches(AuthorizationModificationResponse value) {
+				return value.getIdOfAuthorizationCopy() != null;
+			}
+		};
 	}
 
 	//Notes :
 	//TODO TestgetUsersWithPermission
 
 	@Test
+	//Case 1
 	public void givenRoleAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
@@ -510,12 +736,19 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth3 = addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
 
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE1).forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE1).forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRoles(ROLE1).forPrincipals(alice)
+		);
+
 		//TODO Bug! Robin should have ROLE1
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
 			verifyRecord.usersWithRole(ROLE2).isEmpty();
 			verifyRecord.usersWithRole(ROLE3).isEmpty();
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
@@ -523,11 +756,42 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			verifyRecord.usersWithRole(ROLE2).isEmpty();
 			verifyRecord.usersWithRole(ROLE3).isEmpty();
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
+	//TODO Support this usecase @Test
+	//Case 2
+	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
+
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE2)))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE1, ROLE3)))
+				.isNot(creatingACopy()).isNot(deleted());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE2).forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingRoles(ROLE1, ROLE3).forPrincipals(heroes)
+		);
+
+		//TODO Bug! Robin should have ROLE1 and ROLE3
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3_DOC1, FOLDER4_1_DOC1, FOLDER4_2)) {
+			verifyRecord.usersWithRole(ROLE1).containsOnly(bob, charles, dakota, gandalf);
+			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
+			verifyRecord.usersWithRole(ROLE3).containsOnly(bob, charles, dakota, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		assertThatBatchProcessDuringTest().hasSize(7);
+	}
+
 	@Test
+	//Case 4
 	public void givenAccessAuthorizationsOnPrincipalConceptsThenInheritedInHierarchy()
 			throws Exception {
 
@@ -540,39 +804,228 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth3 = addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).givingReadWriteAccess());
 
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingReadWrite().forPrincipals(alice)
+		);
+
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, dakota, gandalf, chuck, robin);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithWriteAccess().containsOnly(bob, alice, charles, dakota, gandalf);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		assertThatBatchProcessDuringTest().hasSize(7);
+	}
+
+	//TODO Support this usecase @Test
+	//Case 5
+	public void givenAccessTypesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2)) {
+			verifyRecord.usersWithDeleteAccess().isEmpty();
+			verifyRecord.usersWithWriteAccess().isEmpty();
+		}
+
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(WRITE, DELETE)))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).withNewAccessAndRoles(WRITE)))
+				.isNot(creatingACopy()).isNot(deleted());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWriteDelete().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(heroes)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER4, FOLDER4_1_DOC1, FOLDER3_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(charles, dakota, gandalf, bob, robin);
+			verifyRecord.usersWithDeleteAccess().containsOnly(bob);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
 		assertThatBatchProcessDuringTest().hasSize(7);
 	}
 
 	@Test
-	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
+	//Case 7
+	public void givenPrincipalsAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
-		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
-		auth3 = addKeepingAttached(authorizationForUser(alice).on(TAXO1_CATEGORY2_1).giving(ROLE1));
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
 
-		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE2));
-		modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).withNewAccessAndRoles(ROLE3));
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).withNewPrincipalIds(robin)))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).withNewPrincipalIds(legends, bob)))
+				.isNot(creatingACopy()).isNot(deleted());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(robin),
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(legends, bob)
+		);
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_2_DOC1, TAXO1_CATEGORY2_1, FOLDER3,
+				FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, robin, chuck);
+			verifyRecord.usersWithWriteAccess().containsOnly(robin, chuck);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+	}
+
+	@Test
+	public void givenPrincipalsAreModifiedOnRecordOfAuthorizationKeepingAttachedThenDuplicatedAndInstantaneousEffectOnSecurity()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin)))
+				.is(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).withNewPrincipalIds(legends, bob)))
+				.is(creatingACopy()).isNot(deleted());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob).removedOnRecords(TAXO1_CATEGORY2_1),
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(heroes).removedOnRecords(TAXO1_CATEGORY2_1),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(robin),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(legends, bob)
+		);
 
 		//TODO Bug! Robin should have ROLE3
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1, FOLDER4_1_DOC1, FOLDER4_2, FOLDER4_2_DOC1)) {
-			verifyRecord.usersWithRole(ROLE1).isEmpty();
-			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
-			verifyRecord.usersWithRole(ROLE3).containsOnly(charles, dakota, gandalf);
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithRole(ROLE1).containsOnly(alice);
-			verifyRecord.usersWithRole(ROLE2).containsOnly(bob);
-			verifyRecord.usersWithRole(ROLE3).containsOnly(charles, dakota, gandalf);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, robin);
+			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+	}
+
+	@Test
+	public void givenPrincipalsAreModifiedOnRecordOfAuthorizationDetachingThenDuplicatedAndInstantaneousEffectOnSecurity()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		request1 = modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
+		assertThat(request1).is(creatingACopy()).isNot(deleted());
+
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(robin),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(legends, bob)
+		);
+
+		assertThatAuth(auth1).hasPrincipals(bob);
+		assertThatAuth(auth2).hasPrincipals(heroes);
+		assertThatAuth(request1.getIdOfAuthorizationCopy()).hasPrincipals(robin);
+		assertThatAuth(request2.getIdOfAuthorizationCopy()).hasPrincipals(legends, bob);
+
+		//TODO Bug! Robin should have ROLE3
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
+			verifyRecord.detachedAuthorizationFlag().isFalse();
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, robin);
+			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob);
+			if (verifyRecord.recordId.equals(TAXO1_CATEGORY2_1)) {
+				verifyRecord.detachedAuthorizationFlag().isTrue();
+			} else {
+				verifyRecord.detachedAuthorizationFlag().isFalse();
+			}
+		}
+
+	}
+
+	@Test
+	public void givenAuthRemovedOnRecordOfAuthorizationThenDeletedAndRemovedOnAllRecordHierarchy()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2).removingItOnRecord()))
+				.isNot(creatingACopy()).is(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2).removingItOnRecord()))
+				.isNot(creatingACopy()).is(deleted());
+
+		assertThatAuth(auth1).isDeleted();
+		assertThatAuth(auth2).isDeleted();
+
+		//TODO Bug! Robin should have ROLE3
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER4, FOLDER4_1_DOC1, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(alice);
+		}
+
+	}
+
+	@Test
+	public void givenAuthDisabledOnRecordInheritingItThenNotDeletedAndDisabledOnAllRecordHierarchy()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).removingItOnRecord()))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).removingItOnRecord()))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth1, FOLDER4_1).removingItOnRecord()))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, FOLDER4_1).removingItOnRecord()))
+				.isNot(creatingACopy()).isNot(deleted());
+
+		assertThatAuth(auth1).isTargetting(TAXO1_CATEGORY2).isOnlyRemovedOn(TAXO1_CATEGORY2_1, FOLDER4_1);
+		assertThatAuth(auth2).isTargetting(TAXO1_CATEGORY2).isOnlyRemovedOn(TAXO1_CATEGORY2_1, FOLDER4_1);
+
+		//TODO Bug! Robin should have ROLE3
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1, FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(alice);
+		}
+
+	}
+
+	@Test
+	public void givenAuthDisabledByOnRecordInheritingItThenNotDeletedAndDisabledOnAllRecordHierarchy()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).removingItOnRecord().detaching()))
+				.isNot(creatingACopy()).isNot(deleted());
+		assertThat(modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).removingItOnRecord().detaching()))
+				.isNot(creatingACopy()).isNot(deleted());
+
+		//TODO Bug! Robin should have ROLE3
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
+		}
+
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(alice);
 		}
 
 	}

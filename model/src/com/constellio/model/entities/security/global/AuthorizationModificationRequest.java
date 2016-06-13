@@ -156,4 +156,8 @@ public class AuthorizationModificationRequest {
 	public boolean isReenabledOnRecord() {
 		return reenabledOnRecord;
 	}
+
+	public AuthorizationModificationRequest detaching() {
+		return withPreferedBehavior(CustomizedAuthorizationsBehavior.DETACH);
+	}
 }

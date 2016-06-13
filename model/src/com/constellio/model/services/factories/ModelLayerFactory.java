@@ -262,9 +262,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public AuthorizationsServices newAuthorizationsServices() {
-		return new AuthorizationsServices(getAuthorizationDetailsManager(), getRolesManager(), getTaxonomiesManager(),
-				newRecordServices(), newSearchServices(), newUserServices(), schemasManager, newLoggingServices(),
-				dataLayerFactory.getUniqueIdGenerator());
+		return new AuthorizationsServices(this);
 	}
 
 	//After rename get...

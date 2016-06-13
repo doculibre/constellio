@@ -35,11 +35,20 @@ import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
@@ -61,6 +70,30 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		System.out.println(header());
 
 		printGeneratedSchemas(wrappers, true);
+
+		System.out.println(footer());
+	}
+
+	@Test
+	public void generateCoreSchemas()
+			throws Exception {
+		givenCollection(zeCollection);
+
+		Map<String, Class<? extends RecordWrapper>> wrappers = new HashMap<>();
+
+		wrappers.put(User.DEFAULT_SCHEMA, User.class);
+		wrappers.put(Group.DEFAULT_SCHEMA, Group.class);
+		wrappers.put(SolrUserCredential.DEFAULT_SCHEMA, SolrUserCredential.class);
+		wrappers.put(SolrGlobalGroup.DEFAULT_SCHEMA, SolrGlobalGroup.class);
+		wrappers.put(Event.DEFAULT_SCHEMA, Event.class);
+		wrappers.put(Collection.DEFAULT_SCHEMA, Collection.class);
+		wrappers.put(EmailToSend.DEFAULT_SCHEMA, EmailToSend.class);
+		wrappers.put(Facet.DEFAULT_SCHEMA, Facet.class);
+		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
+
+		System.out.println(header());
+
+		printGeneratedSchemas(wrappers, false);
 
 		System.out.println(footer());
 	}

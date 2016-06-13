@@ -2,6 +2,7 @@ package com.constellio.model.services.security;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
@@ -14,6 +15,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -40,10 +44,14 @@ import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
@@ -63,6 +71,7 @@ public class AuthorizationsServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationsServices.class);
 
+	ModelLayerFactory modelLayerFactory;
 	MetadataSchemasManager schemasManager;
 	private LoggingServices loggingServices;
 	UserServices userServices;
@@ -73,19 +82,17 @@ public class AuthorizationsServices {
 	SearchServices searchServices;
 	UniqueIdGenerator uniqueIdGenerator;
 
-	public AuthorizationsServices(AuthorizationDetailsManager manager, RolesManager rolesManager,
-			TaxonomiesManager taxonomiesManager, RecordServices recordServices, SearchServices searchServices,
-			UserServices userServices, MetadataSchemasManager schemasManager, LoggingServices loggingServices,
-			UniqueIdGenerator uniqueIdGenerator) {
-		this.manager = manager;
-		this.rolesManager = rolesManager;
-		this.taxonomiesManager = taxonomiesManager;
-		this.recordServices = recordServices;
-		this.searchServices = searchServices;
-		this.userServices = userServices;
-		this.schemasManager = schemasManager;
-		this.loggingServices = loggingServices;
-		this.uniqueIdGenerator = uniqueIdGenerator;
+	public AuthorizationsServices(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		this.manager = modelLayerFactory.getAuthorizationDetailsManager();
+		this.rolesManager = modelLayerFactory.getRolesManager();
+		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		this.recordServices = modelLayerFactory.newRecordServices();
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.userServices = modelLayerFactory.newUserServices();
+		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.loggingServices = modelLayerFactory.newLoggingServices();
+		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 	}
 
 	public Authorization getAuthorization(String collection, String id) {
@@ -407,15 +414,18 @@ public class AuthorizationsServices {
 		return searchServices.search(query);
 	}
 
-	void setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior behavior, Record record) {
+	Map<String, String> setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior behavior, Record record) {
 		if (behavior == DETACH) {
-			setupAuthorizationsForDetachedRecord(record);
+			return setupAuthorizationsForDetachedRecord(record);
 		} else if (behavior == CustomizedAuthorizationsBehavior.KEEP_ATTACHED) {
-			record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, false);
+			record.set(IS_DETACHED_AUTHORIZATIONS, false);
 		}
+		return null;
+
 	}
 
-	void setupAuthorizationsForDetachedRecord(Record record) {
+	Map<String, String> setupAuthorizationsForDetachedRecord(Record record) {
+		Map<String, String> originalToCopyMap = new HashMap<>();
 		List<String> inheritedAuthorizations = new ArrayList<>(record.<String>getList(Schemas.INHERITED_AUTHORIZATIONS));
 		List<String> removedAuthorizations = record.getList(Schemas.REMOVED_AUTHORIZATIONS);
 		inheritedAuthorizations.removeAll(removedAuthorizations);
@@ -425,12 +435,14 @@ public class AuthorizationsServices {
 			String copyId = inheritedToSpecific(record.getCollection(), id);
 			if (copyId != null) {
 				auths.add(copyId);
+				originalToCopyMap.put(id, copyId);
 			}
 		}
 		auths.removeAll(removedAuthorizations);
 
 		record.set(Schemas.AUTHORIZATIONS, auths);
-		record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, true);
+		record.set(IS_DETACHED_AUTHORIZATIONS, true);
+		return originalToCopyMap;
 	}
 
 	String inheritedToSpecific(String collection, String id) {
@@ -461,8 +473,8 @@ public class AuthorizationsServices {
 		recordAuths.addAll(record.getList(Schemas.AUTHORIZATIONS));
 		recordAuths.remove(authorizationId);
 		record.set(Schemas.AUTHORIZATIONS, recordAuths);
-		if (reattachIfNeeded && recordAuths.isEmpty() && Boolean.TRUE.equals(record.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
-			record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, false);
+		if (reattachIfNeeded && recordAuths.isEmpty() && Boolean.TRUE.equals(record.get(IS_DETACHED_AUTHORIZATIONS))) {
+			record.set(IS_DETACHED_AUTHORIZATIONS, false);
 		}
 	}
 
@@ -551,18 +563,100 @@ public class AuthorizationsServices {
 
 	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
 		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
+		Record record = recordServices.getDocumentById(request.getRecordId());
+		boolean recordDetached = Boolean.TRUE == record.get(IS_DETACHED_AUTHORIZATIONS);
 		if (request.getRecordId().equals(authorization.getGrantedOnRecord())) {
-			if (request.getNewAccessAndRoles() != null) {
-				throw new UnsupportedOperationException("TODO");
-			}
+			executeOnAuthorization(request, authorization, record);
+			return new AuthorizationModificationResponse(false, null);
 
 		} else {
-			if (request.getNewAccessAndRoles() != null) {
-				throw new UnsupportedOperationException("TODO");
+			if (request.getBehavior() == CustomizedAuthorizationsBehavior.DETACH && !recordDetached) {
+				Map<String, String> originalToCopyMap = detach(record);
+				String authCopy = originalToCopyMap.get(request.getAuthorizationId());
+				Authorization authorizationCopy = getAuthorization(request.getCollection(), authCopy);
+				executeOnAuthorization(request, authorizationCopy, record);
+				return new AuthorizationModificationResponse(false, authCopy);
+
+			} else {
+				String copyId = inheritedToSpecific(record.getCollection(), authorization.getDetail().getId());
+				record.addValueToList(Schemas.REMOVED_AUTHORIZATIONS, authorization.getDetail().getId());
+				record.addValueToList(Schemas.AUTHORIZATIONS, copyId);
+
+				Transaction transaction = new Transaction();
+				transaction.getRecordUpdateOptions().setValidationsEnabled(false);
+				transaction.add(record);
+				try {
+					recordServices.execute(transaction);
+				} catch (RecordServicesException e) {
+					throw new RuntimeException(e);
+				}
+
+				Authorization authorizationCopy = getAuthorization(record.getCollection(), copyId);
+				executeOnAuthorization(request, authorizationCopy, record);
+				return new AuthorizationModificationResponse(false, copyId);
+			}
+
+		}
+
+	}
+
+	private void executeOnAuthorization(AuthorizationModificationRequest request,
+			Authorization authorization, Record record) {
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
+
+		if (request.getNewPrincipalIds() != null) {
+			Transaction transaction = new Transaction();
+
+			List<Record> newPrincipalsRecords = principalToRecords(schemas, request.getNewPrincipalIds());
+
+			List<String> actualPrincipals = authorization.getGrantedToPrincipals();
+			List<String> newPrincipals = new RecordUtils().toIdList(newPrincipalsRecords);
+
+			RecordProvider recordProvider = new RecordProvider(recordServices, null, newPrincipalsRecords, null);
+
+			ListComparisonResults<String> results = LangUtils.compare(actualPrincipals, newPrincipals);
+			for (String newPrincipal : results.getNewItems()) {
+				Record principalRecord = recordProvider.getRecord(newPrincipal);
+				principalRecord.addValueToList(Schemas.AUTHORIZATIONS, authorization.getDetail().getId());
+				transaction.add(principalRecord);
+			}
+
+			for (String removedPrincipal : results.getRemovedItems()) {
+				Record principalRecord = recordProvider.getRecord(removedPrincipal);
+				principalRecord.removeValueFromList(Schemas.AUTHORIZATIONS, authorization.getDetail().getId());
+				transaction.add(principalRecord);
+			}
+
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+
+		}
+	}
+
+	private List<Record> principalToRecords(SchemasRecordsServices schemas, List<String> principals) {
+		List<Record> records = new ArrayList<>();
+
+		for (String principal : principals) {
+			try {
+				records.add(recordServices.getDocumentById(principal));
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+
+				List<MetadataSchemaType> types = asList(schemas.user.schemaType(), schemas.group.schemaType());
+				Record record = searchServices.searchSingleResult(from(types).where(schemas.user.username()).isEqualTo(principal)
+						.orWhere(schemas.group.code()).isEqualTo(principal));
+				if (record == null) {
+					throw new RuntimeException("No such principal : " + principal);
+				}
+				records.add(record);
+
 			}
 		}
 
-		return null;
+		return records;
 	}
 
 	public void modify(Authorization authorization, User user) {
@@ -600,9 +694,10 @@ public class AuthorizationsServices {
 		}
 	}
 
-	public void detach(Record record) {
-		setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.DETACH, record);
+	public Map<String, String> detach(Record record) {
+		Map<String, String> originalToCopyMap = setAuthorizationBehaviorToRecord(CustomizedAuthorizationsBehavior.DETACH, record);
 		saveRecordsTargettedByAuthorization(Arrays.asList(record), new ArrayList<Record>());
+		return originalToCopyMap;
 	}
 
 	public List<Authorization> getRecordAuthorizations(RecordWrapper recordWrapper) {
@@ -705,7 +800,7 @@ public class AuthorizationsServices {
 	public void reset(Record record) {
 		record.set(Schemas.AUTHORIZATIONS, null);
 		record.set(Schemas.REMOVED_AUTHORIZATIONS, null);
-		record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, false);
+		record.set(IS_DETACHED_AUTHORIZATIONS, false);
 		try {
 			recordServices.execute(new Transaction(record));
 		} catch (RecordServicesException e) {

@@ -7,7 +7,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +32,7 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -84,12 +84,22 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	String rightGroupCode = "rightGroupCode";
 	String rightSubGroupCode = "rightSubGroupCode";
 
+	@Mock LoggingServices loggingServices;
+	@Mock UniqueIdGenerator uniqueIdGenerator;
+	@Mock ModelLayerFactory modelLayerFactory;
+
 	@Before
 	public void setUp()
 			throws Exception {
 
-		authorizationsServices = spy(new AuthorizationsServices(manager, rolesManager, taxonomiesManager, recordServices,
-				searchServices, userServices, schemasManager, mock(LoggingServices.class), mock(UniqueIdGenerator.class)));
+		when(modelLayerFactory.getAuthorizationDetailsManager()).thenReturn(manager);
+		when(modelLayerFactory.getRolesManager()).thenReturn(rolesManager);
+		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
+		when(modelLayerFactory.newRecordServices()).thenReturn(recordServices);
+		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
+		when(modelLayerFactory.newUserServices()).thenReturn(userServices);
+		when(modelLayerFactory.newLoggingServices()).thenReturn(loggingServices);
+		when(modelLayerFactory.getDataLayerFactory().getSecondaryUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
 
 		recordIds = new ArrayList<>();
 		recordIds.add(record1id);
