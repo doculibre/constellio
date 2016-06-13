@@ -4,13 +4,13 @@ import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParam
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 
-public class RecordFieldFactoryExtension<T extends RecordFieldFactoryExtensionParams> {
+public class RecordFieldFactoryExtension {
 
-	public RecordFieldFactory newRecordFieldFactory(T params) {
+	public RecordFieldFactory newRecordFieldFactory(RecordFieldFactoryExtensionParams params) {
 		MetadataFieldFactory metadataFieldFactory = params.getMetadataFieldFactory();
 		if (metadataFieldFactory == null) {
 			metadataFieldFactory = new MetadataFieldFactory();
-		} 
+		}
 		return new RecordFieldFactory(metadataFieldFactory);
 	}
 
