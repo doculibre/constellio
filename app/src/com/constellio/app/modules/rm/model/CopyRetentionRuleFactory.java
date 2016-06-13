@@ -113,6 +113,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		copyRetentionRule.setDescription(readString(stringTokenizer));
 		copyRetentionRule.setCopyType((CopyType) EnumWithSmallCodeUtils.toEnum(CopyType.class, readString(stringTokenizer)));
 		copyRetentionRule.setEssential(readBoolean(stringTokenizer));
+		copyRetentionRule.setIgnoreActivePeriod(readBoolean(stringTokenizer));
 		copyRetentionRule.setContentTypesComment(readString(stringTokenizer));
 		copyRetentionRule.setOpenActiveRetentionPeriod(readInteger(stringTokenizer));
 		copyRetentionRule.setActiveRetentionPeriod(readRetentionPeriod(stringTokenizer));
@@ -199,6 +200,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		writeString(stringBuilder, rule.getDescription());
 		writeString(stringBuilder, rule.getCopyType() == null ? "" : rule.getCopyType().getCode());
 		writeBoolean(stringBuilder, rule.isEssential());
+		writeBoolean(stringBuilder, rule.isIgnoreActivePeriod());
 		writeString(stringBuilder, rule.getContentTypesComment());
 		writeString(stringBuilder, write(rule.getOpenActiveRetentionPeriod()));
 		writeString(stringBuilder, write(rule.getActiveRetentionPeriod()));

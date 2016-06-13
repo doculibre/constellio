@@ -32,6 +32,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String activeDateMetadata;
 	Integer openActiveRetentionPeriod;
 	boolean essential;
+	boolean ignoreActivePeriod;
 	boolean dirty;
 	private String id;
 
@@ -214,6 +215,16 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setEssential(boolean essential) {
 		markAsDirty();
 		this.essential = essential;
+		return this;
+	}
+
+	public boolean isIgnoreActivePeriod() {
+		return ignoreActivePeriod;
+	}
+
+	public CopyRetentionRule setIgnoreActivePeriod(boolean ignoreActivePeriod) {
+		markAsDirty();
+		this.ignoreActivePeriod = ignoreActivePeriod;
 		return this;
 	}
 
