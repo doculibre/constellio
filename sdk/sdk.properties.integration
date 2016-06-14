@@ -22,5 +22,5 @@ skip.internettests=false
 skip.indevelopment=true
 
 
-tests.whitelist=
+tests.whitelist=com.constellio.app.modules.rm.ui.accept.decommissioning.DecommissioningBuilderViewAcceptTest
 tests.blacklist=
