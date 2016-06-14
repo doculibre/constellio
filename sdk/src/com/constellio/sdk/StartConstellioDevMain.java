@@ -36,7 +36,7 @@ public class StartConstellioDevMain {
 		RecordPopulateServices.LOG_CONTENT_MISSING = false;
 		Toggle.TESTING_ACTION_PAT.enable();
 
-		AppLayerFactory factory = SDKScriptUtils.startApplicationWithoutBackgroundProcessesAndAuthentication();
+		AppLayerFactory factory = SDKScriptUtils.startApplicationWithBatchProcesses();
 
 		ApplicationStarter.startApplication(false, getWebContentDir(), 7070);
 
