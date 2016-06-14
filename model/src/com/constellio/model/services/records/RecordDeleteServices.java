@@ -8,7 +8,9 @@ import static java.lang.Boolean.TRUE;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -224,7 +226,8 @@ public class RecordDeleteServices {
 		physicallyDelete(record, user, new RecordDeleteOptions());
 	}
 
-	public void physicallyDelete(final Record record, User user, RecordDeleteOptions options) {
+	public Set<String> physicallyDelete(final Record record, User user, RecordDeleteOptions options) {
+		Set<String> returnSet = new HashSet<>();
 		if (!isPhysicallyDeletable(record, user, options)) {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
 		}
@@ -298,6 +301,7 @@ public class RecordDeleteServices {
 			RecordPhysicalDeletionEvent event = new RecordPhysicalDeletionEvent(hierarchyRecord);
 			extensions.forCollectionOf(record).callRecordPhysicallyDeleted(event);
 		}
+		return returnSet;
 	}
 	//
 	//	private Comparator<? super Record> sortByLevelFromLeafToRoot() {
@@ -608,5 +612,9 @@ public class RecordDeleteServices {
 			throw new RuntimeException(optimisticLocking);
 		}
 
+	}
+
+	public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record record, User user) {
+		return physicallyDelete(record, user, new RecordDeleteOptions().setReferencesToNull(true).setReferenecesToNullWhenPossible(true));
 	}
 }

@@ -99,6 +99,6 @@ public class TrashServices {
 
 	public void handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
 		//TODO
-		recordServices().physicallyDelete(recordToDelete, currentUser);
+		recordServices().physicallyDeleteFromTrash(recordToDelete, currentUser);
 	}
 }

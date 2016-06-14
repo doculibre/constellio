@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache;
 
 import java.util.List;
+import java.util.Set;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -281,4 +282,10 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public void recalculate(Record record) {
 		recordServices.recalculate(record);
 	}
+
+	@Override
+	public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record recordToDelete, User user) {
+		return recordServices.physicallyDeleteFromTrashAndGetNonBreakableLinks(recordToDelete, user);
+	}
+
 }
