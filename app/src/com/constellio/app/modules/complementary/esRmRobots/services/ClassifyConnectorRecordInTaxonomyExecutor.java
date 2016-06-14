@@ -22,7 +22,6 @@ import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAft
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorHelper.ClassifiedRecordPathInfo;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyServicesRuntimeException.ClassifyServicesRuntimeException_CannotClassifyAsDocument;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
-import com.constellio.app.modules.es.connectors.ConnectorServicesRuntimeException.ConnectorServicesRuntimeException_CannotDownloadDocument;
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
@@ -595,11 +594,11 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
-		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument e) {
+		} catch (Throwable t) {
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
 			}
-			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, e);
+			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, t);
 		}
 
 	}
