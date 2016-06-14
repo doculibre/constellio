@@ -144,7 +144,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public String getRelatedRecordsMessage(RecordVO recordVO) {
-		List<String> relatedRecordsIds = trashServices().getRelatedRecords(recordVO.getId());
+		List<String> relatedRecordsIds = trashServices().getRelatedRecords(recordVO.getId(), getCurrentUser());
 		if (relatedRecordsIds.isEmpty()) {
 			return $("TrashView.noRelatedRecord");
 		} else {

@@ -17,6 +17,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -86,9 +87,9 @@ public class TrashServices {
 		return returnSet;
 	}
 
-	public List<String> getRelatedRecords(String recordId) {
-		//TODO
-		return new ArrayList<>();
+	public List<String> getRelatedRecords(String recordId, User user) {
+		Record record = recordServices().getDocumentById(recordId, user);
+		return new ArrayList<>(recordServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(record, user));
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection, LocalDateTime deleteDate) {
@@ -97,8 +98,15 @@ public class TrashServices {
 		return new LogicalSearchQuery(condition).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
+	//TODO add test
 	public void handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
-		//TODO
-		recordServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(recordToDelete, currentUser);
+		Set<String> links = recordServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(recordToDelete, currentUser);
+		if (!links.isEmpty()) {
+			try {
+				recordServices().add(recordToDelete.set(Schemas.ERROR_ON_PHYSICAL_DELETION, true));
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 }
