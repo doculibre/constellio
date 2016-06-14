@@ -37,7 +37,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -81,85 +80,89 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             responseWriter.append("Unauthorized access : Invalid collection/servicesKey/token");
         } else {
-            createRecords(user, request, response, responseWriter);
+            responseWriter.append("<html>");
+
+            String collection = user.getCollection();
+            MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+            String schemaCode = request.getParameter(SCHEMA_QUERY_PARAM_NAME);
+            MetadataSchema metadataSchema = getMetadataSchema(schemaCode, metadataSchemaTypes, collection, responseWriter);
+
+            if (metadataSchema != null) {
+                if (HttpMethod.GET.equalsIgnoreCase(request.getMethod())) {
+                    createRecordFromGetRequest(metadataSchema, metadataSchemaTypes, request, responseWriter);
+                } else if (HttpMethod.POST.equalsIgnoreCase(request.getMethod())) {
+                    createRecordsFromPostRequest(metadataSchema, metadataSchemaTypes, request, response, responseWriter);
+                } else {
+                    response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+                }
+            }
+
+            responseWriter.append("</html>");
         }
     }
 
-    private void createRecords(User user, HttpServletRequest request, HttpServletResponse response, PrintWriter responseWriter)
-            throws IOException, ServletException {
-        responseWriter.append("<html>");
+    private void createRecordFromGetRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes, HttpServletRequest request, PrintWriter responseWriter) {
+        RecordServices recordServices = modelLayerFactory().newRecordServices();
 
-        String collection = user.getCollection();
-        MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-        String schemaCode = request.getParameter(SCHEMA_QUERY_PARAM_NAME);
-        MetadataSchema metadataSchema = getMetadataSchema(schemaCode, metadataSchemaTypes, collection, responseWriter);
+        Record record = recordServices.newRecordWithSchema(metadataSchema);
 
-        if (metadataSchema != null) {
-            RecordServices recordServices = modelLayerFactory().newRecordServices();
-            SearchServices searchServices = modelLayerFactory().newSearchServices();
-
-            Record record;
-            if (HttpMethod.GET.equalsIgnoreCase(request.getMethod())) {
-                record = recordServices.newRecordWithSchema(metadataSchema);
-
-                for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
-                    String metadataValue = request.getParameter(metadata.getLocalCode());
-                    setRecordMetadata(record, metadata, metadataValue, metadataSchemaTypes, searchServices);
-                }
-
-                try {
-                    recordServices.add(record);
-                } catch (RecordServicesException.ValidationException e) {
-                    responseWriter.append($(e.getErrors()));
-                } catch (RecordServicesException e) {
-                    responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
-                }
-
-                responseWriter.append(record.getId());
-            } else if (HttpMethod.POST.equalsIgnoreCase(request.getMethod())) {
-                if (MediaType.APPLICATION_XML.equalsIgnoreCase(request.getContentType())) {
-                    Transaction transaction = new Transaction();
-
-                    Document domDocument;
-                    try {
-                        domDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(request.getInputStream());
-                    } catch (ParserConfigurationException | SAXException e) {
-                        responseWriter.append(e.getMessage());
-                        return;
-                    }
-
-                    NodeList foldersNodeList = domDocument.getDocumentElement().getChildNodes();
-                    for (int i = 0, foldersCount = foldersNodeList.getLength(); i < foldersCount; i++) {
-                        record = recordServices.newRecordWithSchema(metadataSchema);
-                        transaction.add(record);
-
-                        NamedNodeMap folderMetadataValues = foldersNodeList.item(i).getAttributes();
-                        for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
-                            Node folderMetadataValue = folderMetadataValues.getNamedItem(metadata.getLocalCode());
-                            if (folderMetadataValue != null) {
-                                setRecordMetadata(record, metadata, folderMetadataValue.getNodeValue(), metadataSchemaTypes, searchServices);
-                            }
-                        }
-                    }
-
-                    try {
-                        recordServices.execute(transaction);
-                    } catch (RecordServicesException.ValidationException e) {
-                        responseWriter.append($(e.getErrors()));
-                    } catch (RecordServicesException e) {
-                        responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
-                    }
-
-                    responseWriter.append(Joiner.on(" ").join(transaction.getRecordIds()));
-                } else {
-                    response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-                }
-            } else {
-                response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            }
+        for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
+            String metadataValue = request.getParameter(metadata.getLocalCode());
+            setRecordMetadata(record, metadata, metadataValue, metadataSchemaTypes);
         }
 
-        responseWriter.append("</html>");
+        try {
+            recordServices.add(record);
+        } catch (RecordServicesException.ValidationException e) {
+            responseWriter.append($(e.getErrors()));
+        } catch (RecordServicesException e) {
+            responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
+        }
+
+        responseWriter.append(record.getId());
+    }
+
+    private void createRecordsFromPostRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes, HttpServletRequest request, HttpServletResponse response, PrintWriter responseWriter)
+            throws IOException {
+        if (MediaType.APPLICATION_XML.equalsIgnoreCase(request.getContentType())) {
+            Transaction transaction = new Transaction();
+            RecordServices recordServices = modelLayerFactory().newRecordServices();
+
+            Document domDocument;
+            try {
+                domDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(request.getInputStream());
+            } catch (ParserConfigurationException | SAXException e) {
+                responseWriter.append(e.getMessage());
+                return;
+            }
+
+            NodeList recordsNodeList = domDocument.getDocumentElement().getChildNodes();
+            for (int i = 0, recordsCount = recordsNodeList.getLength(); i < recordsCount; i++) {
+                Record record = recordServices.newRecordWithSchema(metadataSchema);
+
+                NamedNodeMap recordNamedNodeMap = recordsNodeList.item(i).getAttributes();
+                for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
+                    Node recordMetadataValue = recordNamedNodeMap.getNamedItem(metadata.getLocalCode());
+                    if (recordMetadataValue != null) {
+                        setRecordMetadata(record, metadata, recordMetadataValue.getNodeValue(), metadataSchemaTypes);
+                    }
+                }
+
+                transaction.add(record);
+            }
+
+            try {
+                recordServices.execute(transaction);
+            } catch (RecordServicesException.ValidationException e) {
+                responseWriter.append($(e.getErrors()));
+            } catch (RecordServicesException e) {
+                responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
+            }
+
+            responseWriter.append(Joiner.on(StringUtils.SPACE).join(transaction.getRecordIds()));
+        } else {
+            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+        }
     }
 
     private MetadataSchema getMetadataSchema(String schemaCode, MetadataSchemaTypes types,
@@ -178,12 +181,10 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
     }
 
     private ModelLayerFactory modelLayerFactory() {
-        ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-        return constellioFactories.getModelLayerFactory();
+        return ConstellioFactories.getInstance().getModelLayerFactory();
     }
 
-    private void setRecordMetadata(Record record, Metadata metadata, String metadataValue, MetadataSchemaTypes metadataSchemaTypes,
-                                   SearchServices searchServices) {
+    private void setRecordMetadata(Record record, Metadata metadata, String metadataValue, MetadataSchemaTypes metadataSchemaTypes) {
         if (StringUtils.isNotBlank(metadataValue)) {
             if (metadata.isMultivalue()) {
                 List<String> values = new ArrayList<>(Arrays.asList(metadataValue.split(MULTIVALUE_SEPARATOR)));
@@ -217,7 +218,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
                         }
                         LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(metadataSchemaType).where(whereMetadata).isEqualTo(metadataValue);
                         LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER));
-                        List<String> foundRecordIds = searchServices.searchRecordIds(logicalSearchQuery);
+                        List<String> foundRecordIds = modelLayerFactory().newSearchServices().searchRecordIds(logicalSearchQuery);
 
                         if (foundRecordIds.isEmpty()) {
                             record.set(metadata, metadataValue);
