@@ -13,9 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.NavigationParams;
-import com.constellio.app.services.trash.TrashServices;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -24,7 +22,6 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -33,7 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.vaadin.data.Property;
+import com.constellio.model.services.trash.TrashServices;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Table;
 
@@ -85,7 +82,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 
 	private TrashServices trashServices() {
 		if (trashServices == null) {
-			trashServices = new TrashServices(appLayerFactory, collection);
+			trashServices = new TrashServices(appLayerFactory.getModelLayerFactory(), collection);
 		}
 		return trashServices;
 	}

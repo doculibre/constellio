@@ -1,4 +1,4 @@
-package com.constellio.app.services.trash;
+package com.constellio.model.services.trash;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -6,19 +6,16 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
 
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordDeleteOptions;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -26,17 +23,17 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TrashServices {
-	private final AppLayerFactory appLayerFactory;
+	private final ModelLayerFactory modelLayerFactory;
 	private final String collection;
 	private RecordServices recordServices;
 
-	public TrashServices(AppLayerFactory appLayerFactory, String collection) {
-		this.appLayerFactory = appLayerFactory;
+	public TrashServices(ModelLayerFactory modelLayerFactory, String collection) {
+		this.modelLayerFactory = modelLayerFactory;
 		this.collection = collection;
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForType(String selectedType, User currentUser) {
-		MetadataSchemaType schema = appLayerFactory.getModelLayerFactory()
+		MetadataSchemaType schema = modelLayerFactory
 				.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(selectedType);
 		LogicalSearchCondition condition = from(schema).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortAsc(Schemas.TITLE);
@@ -44,16 +41,16 @@ public class TrashServices {
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollection(String collection, User currentUser) {
 		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
-		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortAsc(Schemas.TITLE);
+		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
 	public List<String> restoreSelection(Set<String> selectedRecords, User currentUser) {
 		List<String> returnList = new ArrayList<>();
 		for (String recordId : selectedRecords) {
 			Record record = recordServices().getDocumentById(recordId);
-			if(recordServices().isRestorable(record, currentUser)){
+			if (recordServices().isRestorable(record, currentUser)) {
 				recordServices().restore(record, currentUser);
-			}else{
+			} else {
 				returnList.add(recordId);
 			}
 		}
@@ -62,7 +59,7 @@ public class TrashServices {
 
 	private RecordServices recordServices() {
 		if (recordServices == null) {
-			recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+			recordServices = modelLayerFactory.newRecordServices();
 		}
 		return recordServices;
 	}
@@ -70,13 +67,12 @@ public class TrashServices {
 	public void deleteSelection(Set<String> selectedRecords, User currentUser) {
 		for (String recordId : selectedRecords) {
 			Record record = recordServices().getDocumentById(recordId);
-			recordServices().physicallyDelete(record, currentUser);//, RecordDeleteOptions.
+			handleRecordPhysicalDelete(record, currentUser);
 		}
 	}
 
 	public Set<String> getTypesWithLogicallyDeletedRecords(String collection, User currentUser) {
-		SearchServices searchServices = appLayerFactory.getModelLayerFactory()
-				.newSearchServices();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LogicalSearchQuery query = getTrashRecordsQueryForCollection(collection, currentUser);
 		query = query.addFieldFacet("schema_s").setNumberOfRows(0);
 
@@ -91,6 +87,18 @@ public class TrashServices {
 	}
 
 	public List<String> getRelatedRecords(String recordId) {
+		//TODO
 		return new ArrayList<>();
+	}
+
+	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection, LocalDateTime deleteDate) {
+		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+				.andWhere(Schemas.LOGICALLY_DELETED_ON).isLessOrEqualThan(deleteDate);
+		return new LogicalSearchQuery(condition).sortDesc(Schemas.LOGICALLY_DELETED_ON);
+	}
+
+	public void handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
+		//TODO
+		recordServices().physicallyDelete(recordToDelete, currentUser);
 	}
 }

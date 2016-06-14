@@ -127,7 +127,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
 				if(!notRestored.isEmpty()){
-					showMessage($("TrashView.restoreNotPossibleForRecords" + StringUtils.join(notRestored, ",")));
+					showMessage($("TrashView.restoreNotPossibleForRecords") + " " + StringUtils.join(notRestored, ","));
 				}
 			}
 		};

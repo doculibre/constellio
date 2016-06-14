@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,8 +33,8 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.trash.TrashServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
 
 public class TrashServicesAcceptanceTest extends ConstellioTest {
@@ -62,7 +61,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		users.setUp(getModelLayerFactory().newUserServices());
-		trashServices = new TrashServices(getAppLayerFactory(), zeCollection);
+		trashServices = new TrashServices(getAppLayerFactory().getModelLayerFactory(), zeCollection);
 		admin = users.adminIn(zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());

@@ -35,6 +35,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration DATE_FORMAT;
 	public static final SystemConfiguration DATE_TIME_FORMAT;
+	public static final SystemConfiguration TRASH_PURGE_DELAI;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -68,6 +69,7 @@ public class ConstellioEIMConfigs {
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
 				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
+		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -116,6 +118,10 @@ public class ConstellioEIMConfigs {
 
 	public String getDateTimeFormat() {
 		return manager.getValue(DATE_TIME_FORMAT);
+	}
+
+	public Integer getTrashPurgeDelai(){
+		return manager.getValue(TRASH_PURGE_DELAI);
 	}
 
 	public BatchProcessingMode getBatchProcessingMode() {

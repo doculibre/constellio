@@ -27,7 +27,7 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
 public class TrashRecordsTable extends RecordVOTable {
-	private static final Resource RELATED_RESOURCE = new ThemeResource("images/commun/relation.gif");
+	private static final Resource RELATED_RESOURCE = new ThemeResource("images/commun/warning.png");
 	private final TrashPresenter presenter;
 	private final RecordVODataProvider dataProvider;
 
