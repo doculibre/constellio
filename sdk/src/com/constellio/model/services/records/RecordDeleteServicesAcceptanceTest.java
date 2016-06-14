@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
@@ -75,23 +76,27 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	private void createCustomTaskSchema() {
 		getModelLayerFactory()
 				.getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-					@Override
-					public void alter(MetadataSchemaTypesBuilder types) {
-						MetadataSchemaTypeBuilder tasksSchemaType = types.getSchemaType(Task.SCHEMA_TYPE);
-						MetadataSchemaBuilder tasksSchema = tasksSchemaType.createCustomSchema(CUSTOM_TASK_LOCAL_CODE);
-						MetadataSchemaBuilder folderSchemaBuilder = types.getDefaultSchema(Folder.SCHEMA_TYPE);
-						tasksSchema.create(CUSTOM_TASK_NEW_METADATA).setType(MetadataValueType.REFERENCE).defineReferencesTo(folderSchemaBuilder);
-					}
-				});
-		customTaskSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Task.SCHEMA_TYPE).getSchema(CUSTOM_TASK_LOCAL_CODE);
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaTypeBuilder tasksSchemaType = types.getSchemaType(Task.SCHEMA_TYPE);
+				MetadataSchemaBuilder tasksSchema = tasksSchemaType.createCustomSchema(CUSTOM_TASK_LOCAL_CODE);
+				MetadataSchemaBuilder folderSchemaBuilder = types.getDefaultSchema(Folder.SCHEMA_TYPE);
+				tasksSchema.create(CUSTOM_TASK_NEW_METADATA).setType(MetadataValueType.REFERENCE)
+						.defineReferencesTo(folderSchemaBuilder);
+			}
+		});
+		customTaskSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(Task.SCHEMA_TYPE).getSchema(CUSTOM_TASK_LOCAL_CODE);
 		zMeta = customTaskSchema.getMetadata(CUSTOM_TASK_NEW_METADATA);
 	}
 
 	private void initTests()
 			throws RecordServicesException {
-		parentFolderInCategory_A = records.getFolder_A01();
-		category = rm.getCategory(parentFolderInCategory_A.getCategory());
-		subFolder_B = rm.newFolder().setParentFolder(parentFolderInCategory_A).setTitle("subFolder_B").setOpenDate(TimeProvider.getLocalDate());
+		category = rm.newCategory().setCode("zCat").setTitle("Ze category").setRetentionRules(asList(records.ruleId_1));
+		recordServices.add(category);
+		parentFolderInCategory_A = records.getFolder_A01().setCategoryEntered(category);
+		subFolder_B = rm.newFolder().setParentFolder(parentFolderInCategory_A).setTitle("subFolder_B")
+				.setOpenDate(TimeProvider.getLocalDate());
 		recordServices.add(subFolder_B);
 		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema));
 		taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B);
@@ -105,6 +110,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 				.physicallyDeleteFromTrashAndGetNonBreakableLinks(parentFolderInCategory_A.getWrappedRecord(), null);
 		assertThat(relatedRecords).contains(taskReferencesFolderB.getId());
 		assertThat(relatedRecords).doesNotContain(subFolder_B.getId(), category.getId());
+		assertThat(parentFolderInCategory_A.getCategory()).isNull();
 	}
 
 	@Test
@@ -117,5 +123,21 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		//pas sure?!
 		assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());
 		assertThat(relatedRecords).doesNotContain(taskReferencesFolderB.getId());
+	}
+
+	@Test
+	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk3()
+			throws Exception {
+
+		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
+		deleteService.logicallyDelete(category.getWrappedRecord(), null);
+		deleteService.logicallyDelete(taskReferencesFolderB.getWrappedRecord(), null);
+		Set<String> relatedRecords = deleteService
+				.physicallyDeleteFromTrashAndGetNonBreakableLinks(category.getWrappedRecord(), null);
+		assertThat(relatedRecords).isEmpty();
+
+		relatedRecords = deleteService
+				.physicallyDeleteFromTrashAndGetNonBreakableLinks(parentFolderInCategory_A.getWrappedRecord(), null);
+		assertThat(relatedRecords).isEmpty();
 	}
 }
