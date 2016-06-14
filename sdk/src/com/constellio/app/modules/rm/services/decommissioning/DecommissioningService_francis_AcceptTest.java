@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,7 +45,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenDuplicateFolderThenAllMetadataDuplicated()
+	public void whenDuplicateFolderThenAllDuplicableMetadataDuplicated()
 			throws Exception {
 
 		Folder a13 = records.getFolder_A13();
@@ -52,10 +54,17 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		a13.setAdministrativeUnitEntered((String) null);
 		recordServices.update(a13);
 
-		Folder a04 = records.getFolder_A04();
-		Folder duplicatedFolder = service.duplicateAndSave(records.getFolder_A04(), users.adminIn(zeCollection));
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.DESCRIPTION).setDuplicable(false);
+            }
+        });
 
-		assertThat(duplicatedFolder.getDescription()).isEqualTo(a04.getDescription());
+        Folder a04 = records.getFolder_A04();
+		Folder duplicatedFolder = service.duplicate(records.getFolder_A04(), users.adminIn(zeCollection), false);
+
+		assertThat(duplicatedFolder.getDescription()).isNull();
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a04.getTitle() + " (Copie)");
 		assertThat(duplicatedFolder.getMediumTypes()).isEqualTo(a04.getMediumTypes());
 		assertThat(duplicatedFolder.getUniformSubdivisionEntered()).isEqualTo(a04.getUniformSubdivisionEntered());
@@ -81,8 +90,55 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		assertThat(children).isEmpty();
 	}
 
+    @Test
+    public void givenTitleNotDuplicableWhenDuplicateFolderThenAllDuplicableMetadataDuplicatedExceptTitle()
+            throws Exception {
+
+        Folder a13 = records.getFolder_A13();
+        a13.setParentFolder(records.folder_A04);
+        a13.setCategoryEntered((String) null);
+        a13.setAdministrativeUnitEntered((String) null);
+        recordServices.update(a13);
+
+        getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                types.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.DESCRIPTION).setDuplicable(true);
+                types.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setDuplicable(false);
+            }
+        });
+
+        Folder a04 = records.getFolder_A04();
+        Folder duplicatedFolder = service.duplicate(records.getFolder_A04(), users.adminIn(zeCollection), false);
+
+        assertThat(duplicatedFolder.getDescription()).isEqualTo(a04.getDescription());
+        assertThat(duplicatedFolder.getTitle()).isNull();
+        assertThat(duplicatedFolder.getMediumTypes()).isEqualTo(a04.getMediumTypes());
+        assertThat(duplicatedFolder.getUniformSubdivisionEntered()).isEqualTo(a04.getUniformSubdivisionEntered());
+        assertThat(duplicatedFolder.getArchivisticStatus()).isEqualTo(a04.getArchivisticStatus());
+        assertThat(duplicatedFolder.getFilingSpaceEntered()).isEqualTo(a04.getFilingSpaceEntered());
+        assertThat(duplicatedFolder.getActualDepositDate()).isEqualTo(a04.getActualDepositDate());
+        assertThat(duplicatedFolder.getActualDestructionDate()).isEqualTo(a04.getActualDestructionDate());
+        assertThat(duplicatedFolder.getActualTransferDate()).isEqualTo(a04.getActualTransferDate());
+        assertThat(duplicatedFolder.getCloseDateEntered()).isEqualTo(a04.getCloseDateEntered());
+        assertThat(duplicatedFolder.getOpenDate()).isEqualTo(a04.getOpenDate());
+        assertThat(duplicatedFolder.getCopyStatusEntered()).isEqualTo(a04.getCopyStatusEntered());
+        assertThat(duplicatedFolder.getKeywords()).isEqualTo(a04.getKeywords());
+        assertThat(duplicatedFolder.getRetentionRule()).isEqualTo(a04.getRetentionRule());
+        assertThat(duplicatedFolder.getType()).isEqualTo(a04.getType());
+
+        assertThat(duplicatedFolder.getCategory()).isEqualTo(a04.getCategory());
+        assertThat(duplicatedFolder.getApplicableAdministrative()).isEqualTo(a04.getApplicableAdministrative());
+        assertThat(duplicatedFolder.getParentFolder()).isNull();
+
+        List<String> children = searchServices.searchRecordIds(new LogicalSearchQuery()
+                .setCondition(from(rm.folderSchemaType()).where(rm.folder.parentFolder()).isEqualTo(duplicatedFolder)));
+
+        assertThat(children).isEmpty();
+    }
+
 	@Test
-	public void whenDuplicateFolderStructureThenAllMetadataDuplicated()
+	public void whenDuplicateFolderStructureThenAllDuplicableMetadataDuplicated()
 			throws Exception {
 
 		Folder a13 = records.getFolder_A13();
@@ -142,7 +198,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenDuplicateSubFolderThenAllMetadataDuplicated()
+	public void whenDuplicateSubFolderThenAllDuplicableMetadataDuplicated()
 			throws Exception {
 
 		Folder a13 = records.getFolder_A13();
@@ -151,7 +207,7 @@ public class DecommissioningService_francis_AcceptTest extends ConstellioTest {
 		a13.setAdministrativeUnitEntered((String) null);
 		recordServices.update(a13);
 
-		Folder duplicatedFolder = service.duplicateAndSave(a13, users.adminIn(zeCollection));
+		Folder duplicatedFolder = service.duplicate(a13, users.adminIn(zeCollection), false);
 
 		assertThat(duplicatedFolder.getDescription()).isEqualTo(a13.getDescription());
 		assertThat(duplicatedFolder.getTitle()).isEqualTo(a13.getTitle() + " (Copie)");
