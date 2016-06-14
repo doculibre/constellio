@@ -79,7 +79,7 @@ public class IsNotContainingElementsCriterionTest extends ConstellioTest {
 				numberValue100, numberValueNegative1));
 
 		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo(
-				"(*:* -(numberMetadata:\"12\" AND numberMetadata:\"100\" AND numberMetadata:\"-1\"))");
+				"(*:* -(numberMetadata:\"12\" AND numberMetadata:\"100\" AND numberMetadata:\"\\-1\"))");
 	}
 
 	@Test
