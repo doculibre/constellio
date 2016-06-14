@@ -579,7 +579,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public UserDocument newUserDocument() {
-		return new UserDocument(create(uniformSubdivision.schema()), getTypes());
+		return new UserDocument(create(userDocumentSchema()), getTypes());
 	}
 
 	public UserDocument newUserDocumentWithId(String id) {

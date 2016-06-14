@@ -2,9 +2,12 @@ package com.constellio.app.ui.pages.home;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
@@ -17,12 +20,12 @@ import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -50,9 +53,12 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
+	
 	private final HomePresenter presenter;
 	private List<PageItem> tabs;
 	private TabSheet tabSheet;
+	
+	private List<ContextMenuDecorator> contextMenuDecorators = new ArrayList<>();
 
 	public HomeViewImpl() {
 		presenter = new HomePresenter(this);
@@ -209,7 +215,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		});
-		BaseContextMenu menu = recordTree.getContextMenu();
+		ContextMenu menu = recordTree.getContextMenu();
+		for (ContextMenuDecorator contextMenuDecorator : contextMenuDecorators) {
+			menu = contextMenuDecorator.decorate(this, menu);
+		}
 		if (menu != null) {
 			menu.setAsTreeContextMenu(tree.getNestedTree());
 		}
@@ -231,6 +240,18 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 		component.setSizeFull();
 		return component;
+	}
+	
+	public void addContextMenuDecorator(ContextMenuDecorator decorator) {
+		this.contextMenuDecorators.add(decorator);
+	}
+	
+	public List<ContextMenuDecorator> getContextMenuDecorators() {
+		return this.contextMenuDecorators;
+	}
+	
+	public void removeContextMenuDecorator(ContextMenuDecorator decorator) {
+		this.contextMenuDecorators.remove(decorator);
 	}
 
 	private static class PlaceHolder extends CustomComponent {
