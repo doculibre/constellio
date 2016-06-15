@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.vaadin.ui.*;
@@ -235,7 +236,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
 			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeField);
-			table.getContainerProperty(copyRetentionRule,DETAILS).setValue(detailsField);
+			table.getContainerProperty(copyRetentionRule, DETAILS).setValue(detailsField);
 			table.getContainerProperty(copyRetentionRule, DOCUMENT_TYPE).setValue(documentTypeField);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesField);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentField);
@@ -493,26 +494,31 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		private CheckBox ignoreActivePeriodField;
 
 		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
-			final WindowButton windowButton = new WindowButton("",$("DETAILS_WINDOW_CAPTION")) {
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),$("DetailsFieldGroup.detailsWindow")) {
 				@Override
 				protected Component buildWindowContent() {
 					VerticalLayout windowLayout = new VerticalLayout();
 
 					windowLayout.setSpacing(true);
 
-					// TODO Property for new field (ignore active)
-
 					Property<String> titleProperty = new MethodProperty<>(copyRetentionRule, "title");
 					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
 					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule,"ignoreActivePeriod");
 
-					titleField = new BaseTextField($("TITLE_FIELD_CAPTION"), titleProperty);
-					descriptionField = new BaseTextArea($("DESCRIPTION_FIELD_CAPTION"), descriptionProperty);
-					ignoreActivePeriodField = new CheckBox($("IGNORE_ACTIVE_PERIOD_FIELD_CAPTION"), ignoreActivePeriodProperty);
+					titleField = new BaseTextField($("DetailsFieldGroup.title"), titleProperty);
+					titleField.setWidth("90%");
+					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
+					descriptionField.setWidth("90%");
+					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
 
-					// TODO OK button to close window.
+					Button closeButton = new BaseButton("OK") {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							getWindow().close();
+						}
+					};
 
-					windowLayout.addComponents(titleField, descriptionField,ignoreActivePeriodField);
+					windowLayout.addComponents(titleField, descriptionField,ignoreActivePeriodField,closeButton);
 					return windowLayout;
 				}
 			};
