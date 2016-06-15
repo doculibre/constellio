@@ -15,6 +15,9 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
 
+import javax.activation.MimetypesFileTypeMap;
+import java.net.URLConnection;
+
 public class SmbDocumentOrFolderUpdater {
 	private final ConnectorSmbInstance connectorInstance;
 	private SmbRecordService smbRecordService;
@@ -55,6 +58,9 @@ public class SmbDocumentOrFolderUpdater {
 				.set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
 				.set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
 
+
+		String mimeType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(smbFileDTO.getUrl());
+
 		// Optional
 		smbDocument.setParsedContent(smbFileDTO.getParsedContent())
 				.setSize(smbFileDTO.getLength())
@@ -63,6 +69,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setPermissionsHash(smbFileDTO.getPermissionsHash())
 				.setLanguage(smbFileDTO.getLanguage())
 				.setExtension(smbFileDTO.getExtension())
+				.setMimetype(mimeType)
 				.setTitle(smbFileDTO.getName());
 
 		// Errors
