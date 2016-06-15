@@ -2,12 +2,11 @@ package com.constellio.app.modules.rm.navigation;
 
 import static com.constellio.app.ui.params.ParamUtils.addParams;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.navigator.Navigator;
 
 public class RMViews extends CoreViews {

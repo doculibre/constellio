@@ -69,7 +69,7 @@ dependencies {
     compile "com.vaadin:vaadin-server:7.6.5"
     compile "com.vaadin:vaadin-themes:7.6.5"
     compile "com.vaadin:vaadin-client-compiled:7.6.5"
-    compile "com.vaadin:vaadin-client-compiler:7.6.5"
+//    compile "com.vaadin:vaadin-client-compiler:7.6.5"
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "com.google.code.gson:gson:1.7.2"
     compile "com.sun.messaging.mq:jaxm-api:4.4.1"
