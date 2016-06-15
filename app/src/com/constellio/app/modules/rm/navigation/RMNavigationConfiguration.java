@@ -115,6 +115,7 @@ public class RMNavigationConfiguration implements Serializable {
     public static final String DOCUMENT_DECOMMISSIONING_LIST_DISPLAY = "documentDecommissioningList";
     public static final String DECOMMISSIONING_LIST_EDIT = "editDecommissioningList";
     public static final String EDIT_DOCUMENT = "editDocument";
+	public static final String DUPLICATE_FOLDER = "duplicateFolder";
     public static final String DISPLAY_DOCUMENT = "displayDocument";
     public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
     public static final String EDIT_FOLDER = "editFolder";
@@ -158,6 +159,7 @@ public class RMNavigationConfiguration implements Serializable {
         service.register(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class);
         service.register(ADD_FOLDER, AddEditFolderViewImpl.class);
         service.register(EDIT_FOLDER, AddEditFolderViewImpl.class);
+		service.register(DUPLICATE_FOLDER, AddEditFolderViewImpl.class);
         service.register(DISPLAY_FOLDER, DisplayFolderViewImpl.class);
         service.register(ARCHIVES_MANAGEMENT, ArchiveManagementViewImpl.class);
         service.register(ADD_RETENTION_RULE, AddEditRetentionRuleViewImpl.class);

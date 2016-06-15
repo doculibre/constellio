@@ -46,6 +46,16 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
 	}
 
+	public void duplicateFolder(String id, boolean structure) {
+		Map<String, String> params = new HashMap<>();
+        params.put("id", id);
+        params.put("duplicate", Boolean.TRUE.toString());
+        if (structure) {
+            params.put("structure", Boolean.TRUE.toString());
+        }
+        navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+	}
+
 	// DOCUMENT MANAGEMENT
 
 	public void displayDocument(String id) {
