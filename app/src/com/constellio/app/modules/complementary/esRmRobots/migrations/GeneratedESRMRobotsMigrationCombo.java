@@ -136,8 +136,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
 		MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.getSchemaType("workflowInstance");
 		MetadataSchemaBuilder workflowInstanceSchema = workflowInstanceSchemaType.getDefaultSchema();
 		MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema
-				.create("actionAfterClassification").setType(
-						MetadataValueType.ENUM);
+				.create("actionAfterClassification").setType(MetadataValueType.ENUM);
 		actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification.setDefaultRequirement(true);
 		actionParameters_classifyConnectorFolderDirectlyInThePlan_actionAfterClassification
 				.setDefaultValue(ActionAfterClassification.DO_NOTHING);

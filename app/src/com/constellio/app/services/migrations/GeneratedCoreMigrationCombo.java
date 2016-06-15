@@ -1113,6 +1113,8 @@ public final class GeneratedCoreMigrationCombo {
 		savedSearch_modifiedOn.setSystemReserved(true);
 		savedSearch_modifiedOn.setUndeletable(true);
 		savedSearch_modifiedOn.setSortable(true);
+		MetadataBuilder savedSearch_pageLength = savedSearchSchema.create("pageLength").setType(MetadataValueType.NUMBER);
+		savedSearch_pageLength.setUndeletable(true);
 		MetadataBuilder savedSearch_pageNumber = savedSearchSchema.create("pageNumber").setType(MetadataValueType.NUMBER);
 		savedSearch_pageNumber.setUndeletable(true);
 		MetadataBuilder savedSearch_parentpath = savedSearchSchema.get("parentpath");
@@ -1551,16 +1553,18 @@ public final class GeneratedCoreMigrationCombo {
 				.withMetadataGroup("default:init.facetConfiguration.configuration").withInputType(MetadataInputType.FIELD)
 				.withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getSchema(collection, "savedSearch_default").withFormMetadataCodes(
-				asList("savedSearch_default_title", "savedSearch_default_freeTextSearch", "savedSearch_default_pageNumber",
-						"savedSearch_default_resultsViewMode", "savedSearch_default_schemaFilter",
-						"savedSearch_default_searchType", "savedSearch_default_sortField", "savedSearch_default_sortOrder",
-						"savedSearch_default_user", "savedSearch_default_public", "savedSearch_default_temporary",
-						"savedSearch_default_advancedSearch", "savedSearch_default_facetSelections")).withDisplayMetadataCodes(
+				asList("savedSearch_default_title", "savedSearch_default_freeTextSearch", "savedSearch_default_pageLength",
+						"savedSearch_default_pageNumber", "savedSearch_default_resultsViewMode",
+						"savedSearch_default_schemaFilter", "savedSearch_default_searchType", "savedSearch_default_sortField",
+						"savedSearch_default_sortOrder", "savedSearch_default_user", "savedSearch_default_public",
+						"savedSearch_default_temporary", "savedSearch_default_advancedSearch",
+						"savedSearch_default_facetSelections")).withDisplayMetadataCodes(
 				asList("savedSearch_default_title", "savedSearch_default_createdBy", "savedSearch_default_createdOn",
 						"savedSearch_default_modifiedBy", "savedSearch_default_modifiedOn", "savedSearch_default_freeTextSearch",
-						"savedSearch_default_pageNumber", "savedSearch_default_public", "savedSearch_default_resultsViewMode",
-						"savedSearch_default_schemaFilter", "savedSearch_default_searchType", "savedSearch_default_sortField",
-						"savedSearch_default_sortOrder", "savedSearch_default_temporary", "savedSearch_default_user"))
+						"savedSearch_default_pageLength", "savedSearch_default_pageNumber", "savedSearch_default_public",
+						"savedSearch_default_resultsViewMode", "savedSearch_default_schemaFilter",
+						"savedSearch_default_searchType", "savedSearch_default_sortField", "savedSearch_default_sortOrder",
+						"savedSearch_default_temporary", "savedSearch_default_user"))
 				.withSearchResultsMetadataCodes(asList("savedSearch_default_title", "savedSearch_default_modifiedOn"))
 				.withTableMetadataCodes(asList("savedSearch_default_title", "savedSearch_default_modifiedOn")));
 		transaction.add(manager.getSchema(collection, "user_default").withFormMetadataCodes(

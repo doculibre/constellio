@@ -59,6 +59,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
+		setSelectedPageLength(search.getPageLength());
 	}
 
 	@Override
@@ -189,7 +190,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setTemporary(true)
 				.setSearchType(SimpleSearchView.SEARCH_TYPE)
 				.setFreeTextSearch(searchExpression)
-				.setPageNumber(pageNumber);
+				.setPageNumber(pageNumber)
+				.setPageLength(selectedPageLength);
 		try {
 			recordServices().update(search);
 			if (refreshPage) {

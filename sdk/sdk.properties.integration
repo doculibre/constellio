@@ -19,8 +19,8 @@ skip.uitests=false
 skip.drivertests=false
 skip.loadtests=true
 skip.internettests=false
-skip.indevelopment=false
+skip.indevelopment=true
 
 
-tests.whitelist=
+tests.whitelist=com.constellio.app.ui.acceptation.collection.ListCollectionUserViewAcceptTest
 tests.blacklist=

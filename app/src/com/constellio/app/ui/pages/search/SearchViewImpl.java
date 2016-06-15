@@ -122,9 +122,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
 
-		if(isDetailedView()) {
+		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
 			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
+			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
 			resultsArea.removeAllComponents();
 			resultsArea.addComponent(results);
@@ -132,7 +133,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	}
 
 	private boolean isDetailedView() {
-		return presenter.getResultsViewMode().equals(SearchResultsViewMode.DETAILED);
+		return !SearchResultsViewMode.TABLE.equals(presenter.getResultsViewMode());
 	}
 
 	@Override
@@ -185,19 +186,35 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return main;
 	}
 
-	SearchResultTable buildResultTable() {
+	private SearchResultTable buildResultTable() {
 		return buildDetailedResultsTable();
 	}
 
 	protected SearchResultTable buildDetailedResultsTable() {
 		SearchResultDetailedTable srTable = new SearchResultDetailedTable(buildResultContainer());
 		srTable.setCurrentPage(presenter.getPageNumber());
+
+		int size = presenter.getSelectedPageLength();
+		if (size == 0) {
+			size = Math.min(srTable.size(), SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+		}
+
+		presenter.setSelectedPageLength(size);
+		srTable.setPageLength(size);
+		srTable.setItemsPerPageValue(size);
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(true);
 			}
 		});
+		srTable.getItemsPerPage().addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+			}
+		});
+
 		srTable.setWidth("100%");
 		return srTable;
 	}
@@ -278,7 +295,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(sortBy, inner);
 		layout.setWidth("95%");
 		layout.addStyleName(SORT_BOX_STYLE);
-		layout.setVisible(isDetailedView());
 
 		return layout;
 	}
@@ -384,18 +400,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable)results).selectCurrentPage();
+					((SearchResultDetailedTable) results).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable)results).selectAll();
+					((SearchResultSimpleTable) results).selectAll();
 				}
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable)results).deselectCurrentPage();
+					((SearchResultDetailedTable) results).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable)results).deselectAll();
+					((SearchResultSimpleTable) results).deselectAll();
 				}
 			}
 		};

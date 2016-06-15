@@ -19,16 +19,17 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class BasePagedTable<T extends Container> extends PagedTable {
 	protected T container;
+	protected ComboBox itemsPerPage;
 
 	public BasePagedTable(T container) {
 		this.container = container;
+		itemsPerPage = new ComboBox();
 	}
 
 	public HorizontalLayout createControls() {
 		HorizontalLayout pageSize;
 
 		Label itemsPerPageLabel = new Label($("SearchResultTable.itemsPerPage"));
-		final ComboBox itemsPerPage = new ComboBox();
 		itemsPerPage.addItem(SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
 		if (container.size() >= 10) {
 			itemsPerPage.addItem(10);
@@ -44,7 +45,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		}
 		itemsPerPage.setNullSelectionAllowed(false);
 		itemsPerPage.setWidth("85px");
-		itemsPerPage.setValue(SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+
 		itemsPerPage.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
@@ -140,5 +141,13 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		});
 
 		return controlBar;
+	}
+
+	public ComboBox getItemsPerPage() {
+		return itemsPerPage;
+	}
+
+	public void setItemsPerPageValue(int value) {
+		itemsPerPage.setValue(value);
 	}
 }

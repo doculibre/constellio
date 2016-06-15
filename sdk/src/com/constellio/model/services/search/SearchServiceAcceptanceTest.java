@@ -30,6 +30,7 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
+
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -243,8 +244,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schema.withAStringMetadata().withABooleanMetadata());
 		Record special;
 
-		transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris + - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
-		transaction.addUpdate(special = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
+		transaction.addUpdate(
+				newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris + - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
+		transaction.addUpdate(
+				special = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
 
 		recordServices.execute(transaction);
 
@@ -929,11 +932,11 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata());
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
-				.set(zeSchema.stringMetadata(), "Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris"));
+				.set(zeSchema.stringMetadata(), "Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris -1.-03"));
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata())
-				.isContainingText(":h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:");
+				.isContainingText("Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris -1.-03");
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);

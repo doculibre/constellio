@@ -29,6 +29,10 @@ public class AllowedReferencesBuilder {
 		return schemas;
 	}
 
+	public void clearSchemas() {
+		schemas.clear();
+	}
+
 	public AllowedReferencesBuilder add(MetadataSchema schema) {
 		addCompleteSchemaCode(schema.getCode());
 		return this;

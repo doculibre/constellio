@@ -78,25 +78,22 @@ public class MetadataToFormVOBuilder implements Serializable {
 		boolean duplicable = metadata.isDuplicable();
 
 		return new FormMetadataVO(code, type, required, schemaVO, reference, newLabels, searchable, multivalue, sortable,
-				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask, duplicable,
+				advancedSearch, facet, entry, highlight, autocomplete, enabled, metadataGroup, defaultValue, inputMask,
+				duplicable,
 				sessionContext);
 	}
 
 	private String getValidMetadataGroup(String metadataGroupCode, SchemaTypeDisplayConfig config) {
-		String validGroup;
-		boolean found = false;
-		for (String group : config.getMetadataGroup().keySet()) {
-			if (group.equals(metadataGroupCode)) {
-				found = true;
-				break;
-			}
-		}
+		String validGroup = metadataGroupCode;
+		boolean found = config.getMetadataGroup().keySet().contains(metadataGroupCode);
 
 		if (!found) {
 			validGroup = config.getMetadataGroup().keySet().iterator().next();
-		} else {
-			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
-			validGroup = config.getMetadataGroup().get(metadataGroupCode).get(language);
+			for (String aGroup : config.getMetadataGroup().keySet()) {
+				if (aGroup.startsWith("default")) {
+					validGroup = aGroup;
+				}
+			}
 		}
 
 		return validGroup;
