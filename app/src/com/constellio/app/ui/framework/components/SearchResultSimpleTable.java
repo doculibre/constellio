@@ -41,9 +41,11 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	private Set<SelectionChangeListener> listeners;
 	private RecordVOLazyContainer container;
 	private boolean selectAll;
+	private int maxSelectableResults;
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container) {
+	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults) {
 		this(container, true);
+		this.maxSelectableResults = maxSelectableResults;
 	}
 
 	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
@@ -123,8 +125,6 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
-		// FIXME Use configuration
-		int maxSelectableResults = 500;
 		if (selectAll) {
 			for (Object itemId : container.getItemIds(0, maxSelectableResults)) {
 				if (!deselected.contains(itemId)) {

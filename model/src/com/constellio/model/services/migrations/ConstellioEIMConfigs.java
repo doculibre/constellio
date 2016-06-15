@@ -36,6 +36,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration DATE_FORMAT;
 	public static final SystemConfiguration DATE_TIME_FORMAT;
 
+	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
@@ -69,6 +71,8 @@ public class ConstellioEIMConfigs {
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
 				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
 
+		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
+		
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 

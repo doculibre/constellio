@@ -191,8 +191,9 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	private SearchResultTable buildSimpleResultsTable() {
+		int maxSelectableResults = presenter.getMaxSelectableResults();
 		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container);
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container, maxSelectableResults);
 		table.setWidth("100%");
 		return table;
 	}
