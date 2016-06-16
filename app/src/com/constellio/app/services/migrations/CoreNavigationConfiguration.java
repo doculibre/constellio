@@ -359,7 +359,17 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(TRASH_BIN, TRASH_BIN_ICON));
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TRASH_BIN, TRASH_BIN_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().trash();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+			}
+		});
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
@@ -422,7 +432,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 					@Override
 					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-						return ComponentState.ENABLED;
+						return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
 					}
 				});
 	}

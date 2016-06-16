@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -45,7 +46,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return true;
+		return user.has(CorePermissions.MANAGE_TRASH).globally();
 	}
 
 	public boolean isRecordSelected(RecordVO recordVO) {
@@ -106,14 +107,18 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
 			return asList();
 		}
-		return trashServices().restoreSelection(this.selectedRecords, getCurrentUser());
+		List<String> returnSet = trashServices().restoreSelection(this.selectedRecords, getCurrentUser());
+		this.selectedRecords.clear();
+		return returnSet;
 	}
 
-	public void deleteSelection() {
+	public Set<String> deleteSelection() {
 		if (StringUtils.isBlank(view.getSelectedType()) || this.selectedRecords.isEmpty()) {
-			return;
+			return new HashSet<>();
 		}
-		trashServices().deleteSelection(this.selectedRecords, getCurrentUser());
+		Set<String> notDeleted = trashServices().deleteSelection(this.selectedRecords, getCurrentUser());
+		this.selectedRecords.clear();
+		return notDeleted;
 	}
 
 	public long getLogicallyDeletedRecordsCount() {

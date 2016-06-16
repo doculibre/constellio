@@ -10,6 +10,8 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -24,6 +26,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TrashServices {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TrashServices.class);
 	private final ModelLayerFactory modelLayerFactory;
 	private final String collection;
 	private RecordServices recordServices;
@@ -65,11 +68,21 @@ public class TrashServices {
 		return recordServices;
 	}
 
-	public void deleteSelection(Set<String> selectedRecords, User currentUser) {
+	public Set<String> deleteSelection(Set<String> selectedRecords, User currentUser) {
+		Set<String> returnSet = new HashSet<>();
 		for (String recordId : selectedRecords) {
 			Record record = recordServices().getDocumentById(recordId);
-			handleRecordPhysicalDelete(record, currentUser);
+			try{
+				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
+				if(!deleted){
+					returnSet.add(recordId);
+				}
+			}catch(Throwable e){
+				LOGGER.warn("record not deleted correctly from trash");
+				returnSet.add(recordId);
+			}
 		}
+		return returnSet;
 	}
 
 	public Set<String> getTypesWithLogicallyDeletedRecords(String collection, User currentUser) {
@@ -99,7 +112,7 @@ public class TrashServices {
 	}
 
 	//TODO add test
-	public void handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
+	public boolean handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
 		Set<String> links = recordServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(recordToDelete, currentUser);
 		if (!links.isEmpty()) {
 			try {
@@ -107,6 +120,9 @@ public class TrashServices {
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
+			return false;
+		}else{
+			return true;
 		}
 	}
 }

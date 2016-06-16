@@ -1,28 +1,23 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.model.validators.FolderValidator;
-import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -38,6 +33,7 @@ public class RMMigrationTo6_5 implements MigrationScript {
 		new SchemaAlterationsFor6_5(collection, provider, factory).migrate();
 
 		givenNewPermissionsToRGDRole(collection,factory.getModelLayerFactory());
+		addManageTrashRoleToRGDAndAdmin(collection, factory.getModelLayerFactory());
 
 	}
 
@@ -59,5 +55,22 @@ public class RMMigrationTo6_5 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
 		}
+	}
+
+	private void addManageTrashRoleToRGDAndAdmin(String collection, ModelLayerFactory modelLayerFactory) {
+		Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+
+		Set<String> newRgdPermissions = new HashSet<>(rgdRole.getOperationPermissions());
+		newRgdPermissions.add(CorePermissions.MANAGE_TRASH);
+
+		modelLayerFactory.getRolesManager().updateRole(
+				rgdRole.withPermissions(withoutDuplicates(new ArrayList<>(newRgdPermissions))));
+
+		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
+		Set<String> newAdmPermissions = new HashSet<>(admRole.getOperationPermissions());
+		newAdmPermissions.add(CorePermissions.MANAGE_TRASH);
+
+		modelLayerFactory.getRolesManager().updateRole(
+				rgdRole.withPermissions(withoutDuplicates(new ArrayList<>(newAdmPermissions))));
 	}
 }

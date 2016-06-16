@@ -2,18 +2,15 @@ package com.constellio.app.ui.pages.trash;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
@@ -22,7 +19,6 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
@@ -31,7 +27,6 @@ import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
 
 public class TrashViewImpl extends BaseViewImpl implements TrashView {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TrashViewImpl.class);
 	private final TrashPresenter presenter;
 	private ComboBox typeSelectionDropDown;
 	private Label recordsToDeleteMessage;
@@ -63,7 +58,8 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 
 	private Label buildRecordsToDeleteMessage() {
 		recordsToDeleteMessage = new Label(
-				"<p style=\"color:red\">" + $("TrashView.recordsToDeleteMessage", presenter.getLogicallyDeletedRecordsCount()) + "</p>",
+				"<p style=\"color:red\">" + $("TrashView.recordsToDeleteMessage", presenter.getLogicallyDeletedRecordsCount())
+						+ "</p>",
 				ContentMode.HTML);
 		return recordsToDeleteMessage;
 	}
@@ -110,9 +106,12 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		deleteSelectionButton = new BaseButton($("TrashView.deleteSelection")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				presenter.deleteSelection();
+				Set<String> notDeleted = presenter.deleteSelection();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
+				if (!notDeleted.isEmpty()) {
+					showMessage($("TrashView.deleteNotPossibleForRecords") + ":\n" + StringUtils.join(notDeleted, "\n"));
+				}
 			}
 		};
 		deleteSelectionButton.setEnabled(presenter.atLeastOneRecordSelected());
@@ -126,13 +125,19 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 				List<String> notRestored = presenter.restoreSelection();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
-				if(!notRestored.isEmpty()){
-					showMessage($("TrashView.restoreNotPossibleForRecords") + " " + StringUtils.join(notRestored, ","));
+				if (!notRestored.isEmpty()) {
+					showMessage($("TrashView.restoreNotPossibleForRecords") + ":\n" + StringUtils.join(notRestored, "\n"));
 				}
 			}
 		};
 		restoreSelectionButton.setEnabled(presenter.atLeastOneRecordSelected());
 		return restoreSelectionButton;
+	}
+
+	private void rebuildRecordsToDeleteMessage() {
+		Label newMessage = buildRecordsToDeleteMessage();
+		vLayout.replaceComponent(this.recordsToDeleteMessage, newMessage);
+		this.recordsToDeleteMessage = newMessage;
 	}
 
 	@Override
@@ -150,6 +155,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		if (StringUtils.isBlank(getSelectedType())) {
 			Table emptyTable = new Table();
 			emptyTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+			emptyTable.setVisible(false);
 			return emptyTable;
 		}
 
