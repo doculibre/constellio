@@ -51,6 +51,8 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
 		super("",container);
 		
+		setColumnCollapsingAllowed(true);
+		setColumnReorderingAllowed(true);
 		addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
