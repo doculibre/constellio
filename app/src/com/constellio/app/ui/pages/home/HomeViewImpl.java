@@ -119,7 +119,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		int position = tabSheet.getTabPosition(tab);
 		PageItem item = tabs.get(position);
-		
+
 		presenter.tabSelected(item.getCode());
 		tabSheet.setSelectedTab(position);
 
@@ -150,7 +150,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecentItemTable(RecentItemTable recentItems) {
 		RecentTable table = new RecentTable(
-				recentItems.getItems(getConstellioFactories().getModelLayerFactory(), getSessionContext()));
+				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
 		table.setSizeFull();
 		table.addStyleName("record-table");
 		return table;
@@ -158,7 +158,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Table buildRecordTable(RecordTable recordTable) {
 		Table table = new RecordVOTable(
-				recordTable.getDataProvider(getConstellioFactories().getModelLayerFactory(), getSessionContext()));
+				recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
@@ -182,7 +182,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
 		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
-				getConstellioFactories().getModelLayerFactory(), getSessionContext());
+				getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return providers.size() > 1 ?
 				buildRecordMultiTree(recordTree, providers) :
 				buildRecordTree(recordTree, providers.get(0));
@@ -213,7 +213,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		if (menu != null) {
 			menu.setAsTreeContextMenu(tree.getNestedTree());
 		}
-		
+
 		tree.getNestedTree().setDragMode(TreeDragMode.NODE);
 		tree.getNestedTree().setDropHandler(new RMTreeDropHandlerImpl() {
 			@Override
@@ -299,5 +299,5 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
 	}
-	
+
 }

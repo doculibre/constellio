@@ -51,7 +51,11 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 	public void viewAssembled() {
 		List<UserDocumentVO> currentUserUploadVOs = getCurrentUserDocumentVOs();
-		view.setUserDocuments(currentUserUploadVOs);
+		try {
+			view.setUserDocuments(currentUserUploadVOs);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	private List<UserDocumentVO> getCurrentUserDocumentVOs() {

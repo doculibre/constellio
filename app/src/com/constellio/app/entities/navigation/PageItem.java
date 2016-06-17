@@ -5,13 +5,13 @@ import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.ui.Component;
 
@@ -40,7 +40,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 			super(code, Type.RECENT_ITEM_TABLE);
 		}
 
-		public abstract List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext);
+		public abstract List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 		public static class RecentItem implements Serializable {
 			public static final String CAPTION = "caption";
@@ -78,7 +78,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 		}
 
 		public abstract RecordVODataProvider getDataProvider(
-				ModelLayerFactory modelLayerFactory, SessionContext sessionContext);
+				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 	}
 
 	public static abstract class RecordTree extends PageItem {
@@ -87,7 +87,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 		}
 
 		public abstract List<RecordLazyTreeDataProvider> getDataProviders(
-				ModelLayerFactory modelLayerFactory, SessionContext sessionContext);
+				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 		public abstract BaseContextMenu getContextMenu();
 	}
