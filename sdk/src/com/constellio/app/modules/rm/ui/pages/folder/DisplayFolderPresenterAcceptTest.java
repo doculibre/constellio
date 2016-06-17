@@ -337,7 +337,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		Map<String, String> params = new HashMap<>();
 		params.put("id", "A16");
-		presenter.forParams(ParamUtils.addParams("", params));
+		presenter.forParams("A16");//ParamUtils.addParams("", params));
 
 		givenRemovedPermissionToShareImportedFolder();
 		displayFolderView.navigate().to(RMViews.class).displayFolder("A16");
