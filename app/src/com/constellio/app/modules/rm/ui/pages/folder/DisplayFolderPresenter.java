@@ -401,8 +401,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
+		if(StringUtils.isBlank(folder.getLegacyId())||
+				(StringUtils.isNotBlank(folder.getLegacyId()) && user.has(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS).on(folder))) {
+			return ComponentState.INVISIBLE;
+		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
 				&& extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
+
 	}
 
 	ComponentState getAddFolderButtonState(User user, Folder folder) {

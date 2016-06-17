@@ -100,13 +100,17 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	ComponentState getEditButtonState() {
 		Record record = currentDocument();
 		User user = getCurrentUser();
+		if(StringUtils.isBlank((String)record.get(Schemas.LEGACY_ID))||
+				(StringUtils.isNotBlank((String)record.get(Schemas.LEGACY_ID)) && user.has(RMPermissionsTo.MODIFY_IMPORTED_DOCUMENTS).on(record))) {
+			return ComponentState.INVISIBLE;
+		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
 				&& extensions.isRecordModifiableBy(record, user));
 	}
 
 	public void editDocumentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId()	);
 		}
 	}
 
@@ -215,7 +219,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 			}
 			if(StringUtils.isNotBlank((String)currentDocument().get(Schemas.LEGACY_ID))) {
-				return ComponentState.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(currentDocument()));
+				return ComponentState.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument()));
 			}
 			return ComponentState.ENABLED;
 		}
