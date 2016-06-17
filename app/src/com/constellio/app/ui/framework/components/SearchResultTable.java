@@ -1,11 +1,8 @@
 package com.constellio.app.ui.framework.components;
 
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
-
 import java.util.List;
+
+import com.vaadin.ui.Component;
 
 public interface SearchResultTable extends Component {
 
