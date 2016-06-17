@@ -5,6 +5,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,8 +18,14 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.ui.entities.SearchResultVO;
+import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -138,6 +149,98 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.isEqualTo(documentsCount);
 	}
 
+
+	@Test
+	public void givenSearchOrderAscByIDThenOK()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.ID_ASC);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.ASCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.IDENTIFIER.getCode());
+		SearchResultVODataProvider searchResults = simpleSearchPresenter.getSearchResults();
+		List<SearchResultVO> result = searchResults.listSearchResultVOs(0, searchResults.size());
+		List<String> resultsIds  = getRecordsIds(result);
+		assertThat(result.size()).isGreaterThan(1);
+		List<String> orderedResults = new ArrayList<>(resultsIds);
+		Collections.sort(orderedResults, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return o1.compareTo(o2);
+			}
+		});
+		assertThat(resultsIds).containsExactlyElementsOf(orderedResults);
+	}
+
+	@Test
+	public void givenSearchOrderDescByIDThenOK()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.ID_DES);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.IDENTIFIER.getCode());
+		SearchResultVODataProvider searchResults = simpleSearchPresenter.getSearchResults();
+		List<SearchResultVO> result = searchResults.listSearchResultVOs(0, searchResults.size());
+		List<String> resultsIds  = getRecordsIds(result);
+		assertThat(result.size()).isGreaterThan(1);
+		List<String> orderedResults = new ArrayList<>(resultsIds);
+		Collections.sort(orderedResults, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return o2.compareTo(o1);
+			}
+		});
+		assertThat(resultsIds).containsExactlyElementsOf(orderedResults);
+	}
+
+	@Test
+	public void givenASearchOrderInConfigThenSearchFollowsTheOrder()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.RELEVENCE);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isNull();
+
+
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.CREATION_DATE_ASC);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.ASCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.CREATED_ON.getCode());
+
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.CREATION_DATE_DES);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.CREATED_ON.getCode());
+
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.MODIFICATION_DATE_ASC);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.ASCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.MODIFIED_ON.getCode());
+
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.MODIFICATION_DATE_DES);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.MODIFIED_ON.getCode());
+
+
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.PATH_ASC);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.ASCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.PATH.getCode());
+
+		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.PATH_DES);
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
+		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.PATH.getCode());
+	}
+
+	private List<String> getRecordsIds(List<SearchResultVO> records) {
+		List<String> returnList = new ArrayList<>();
+		for(SearchResultVO record: records){
+			returnList.add(record.getRecordVO().getId());
+		}
+		return returnList;
+	}
+
 	// ---------------------------------------
 
 	private void clearExistingFacets() {
@@ -146,4 +249,5 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 			recordServices.physicallyDelete(facetRecord, User.GOD);
 		}
 	}
+
 }
