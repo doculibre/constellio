@@ -10,6 +10,7 @@ import static org.mockito.Mockito.spy;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.assertj.core.api.Condition;
 import org.junit.Before;
@@ -39,6 +40,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -86,7 +88,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		withReferencesRemoved = new RecordDeleteOptions().setReferencesToNull(true);
+		withReferencesRemoved = new RecordDeleteOptions().setAllReferencesToNull(true);
 
 		customSystemPreparation(new CustomSystemPreparation() {
 			@Override
@@ -166,6 +168,31 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		} catch (OptimisticLocking optimistickLocking) {
 			throw new RuntimeException(optimistickLocking);
 		}
+	}
+
+	@Test
+	public void givenRecordReferencedByOtherRecordsIn()
+			throws Exception {
+
+		givenBothLinkToOtherFolderMetadatasAreRequired();
+		given(records.folder2()).hasASingleValueReferenceTo(records.folder1());
+		given(records.folder3()).hasAReferenceTo(records.folder1());
+		given(records.folder4()).hasAReferenceTo(records.folder1());
+		given(userWithDeletePermission).logicallyDelete(records.folder1());
+
+		assertThat(when(userWithDeletePermission).physicallyDeleteFromTrashAndGetNonBreakableLinks(records.folder1()))
+				.containsOnly(records.folder2().getId(), records.folder3().getId(), records.folder4().getId());
+
+	}
+
+	private void givenBothLinkToOtherFolderMetadatasAreRequired() {
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(schemas.folderSchema.linkToOtherFolder().getCode()).setDefaultRequirement(true);
+				types.getMetadata(schemas.folderSchema.linkToOtherFolders().getCode()).setDefaultRequirement(true);
+			}
+		});
 	}
 
 	@Test
@@ -1793,6 +1820,12 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
+		}
+
+		public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record record) {
+			recordServices.refresh(record);
+			recordServices.refresh(user);
+			return recordServices.physicallyDeleteFromTrashAndGetNonBreakableLinks(record, user);
 		}
 	}
 

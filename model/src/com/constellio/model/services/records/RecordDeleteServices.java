@@ -185,7 +185,7 @@ public class RecordDeleteServices {
 
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record);
-		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isReferencesToNull();
+		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isSetAllReferencesToNull();
 
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
@@ -235,7 +235,7 @@ public class RecordDeleteServices {
 		List<Record> records = getAllRecordsInHierarchy(record);
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
-		if (options.isReferencesToNull()) {
+		if (options.isSetAllReferencesToNull()) {
 
 			//Collections.sort(records, sortByLevelFromLeafToRoot());
 
@@ -615,6 +615,6 @@ public class RecordDeleteServices {
 	}
 
 	public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record record, User user) {
-		return physicallyDelete(record, user, new RecordDeleteOptions().setReferencesToNull(true).setReferenecesToNullWhenPossible(true));
+		return physicallyDelete(record, user, new RecordDeleteOptions().setMostReferencesToNull(true));
 	}
 }

@@ -2,25 +2,25 @@ package com.constellio.model.services.records;
 
 public class RecordDeleteOptions {
 
-	boolean referencesToNull;
+	boolean setAllReferencesToNull;
 
-	boolean referenecesToNullWhenPossible;
+	boolean setMostReferencesToNull;
 
-	public boolean isReferencesToNull() {
-		return referencesToNull;
+	public boolean isSetAllReferencesToNull() {
+		return setAllReferencesToNull;
 	}
 
-	public RecordDeleteOptions setReferencesToNull(boolean referencesToNull) {
-		this.referencesToNull = referencesToNull;
+	public RecordDeleteOptions setAllReferencesToNull(boolean referencesToNull) {
+		this.setAllReferencesToNull = referencesToNull;
 		return this;
 	}
 
-	public boolean isReferenecesToNullWhenPossible() {
-		return referenecesToNullWhenPossible;
+	public boolean isSetMostReferencesToNull() {
+		return setMostReferencesToNull;
 	}
 
-	public RecordDeleteOptions setReferenecesToNullWhenPossible(boolean referenecesToNullWhenPossible) {
-		this.referenecesToNullWhenPossible = referenecesToNullWhenPossible;
+	public RecordDeleteOptions setMostReferencesToNull(boolean setMostReferencesToNull) {
+		this.setMostReferencesToNull = setMostReferencesToNull;
 		return this;
 	}
 }

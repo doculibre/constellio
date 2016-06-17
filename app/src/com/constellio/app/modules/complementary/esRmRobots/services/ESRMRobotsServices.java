@@ -34,7 +34,7 @@ public class ESRMRobotsServices {
 	public void deleteRobotFoldersAndDocuments(final User currentUser, final String robotId, final ProgressInfo progressInfo)
 			throws Exception {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(currentUser.getCollection(), modelLayerFactory);
-		final RecordDeleteOptions deleteOptions = new RecordDeleteOptions().setReferencesToNull(true);
+		final RecordDeleteOptions deleteOptions = new RecordDeleteOptions().setAllReferencesToNull(true);
 		final LogicalSearchCondition documentsCondition = from(rm.documentSchemaType())
 				.where(rm.document.schema().get(Document.CREATED_BY_ROBOT)).isEqualTo(robotId);
 		final LogicalSearchCondition foldersCondition = from(rm.folder.schemaType())
