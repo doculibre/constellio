@@ -6,7 +6,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -415,7 +414,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void validateRecordInTransaction(Record record, Transaction transaction)
 			throws ValidationException {
-		prepareRecords(transaction, record.getId());
+		if (transaction.getRecords().isEmpty()) {
+			validateRecord(record);
+		} else {
+			prepareRecords(transaction, record.getId());
+		}
 	}
 
 	public void validateRecord(Record record)
@@ -903,17 +906,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void recalculate(Record record) {
 		newAutomaticMetadataServices().updateAutomaticMetadatas(
 				(RecordImpl) record, newRecordProviderWithoutPreloadedRecords(), new TransactionRecordsReindexation());
-	}
-
-	@Override
-	public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		Set<String> notBreakedLinks = newRecordDeleteServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(record, user);
-		if(!notBreakedLinks.isEmpty()){
-			refresh(record);
-		}
-		return notBreakedLinks;
 	}
 
 }

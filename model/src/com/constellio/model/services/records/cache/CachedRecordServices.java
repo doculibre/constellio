@@ -1,7 +1,6 @@
 package com.constellio.model.services.records.cache;
 
 import java.util.List;
-import java.util.Set;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -206,6 +205,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public void physicallyDelete(Record record,
+			User user, RecordDeleteOptions options) {
+		recordServices.physicallyDelete(record, user, options);
+	}
+
+	@Override
 	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
 		recordServices.physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
@@ -281,11 +286,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void recalculate(Record record) {
 		recordServices.recalculate(record);
-	}
-
-	@Override
-	public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record recordToDelete, User user) {
-		return recordServices.physicallyDeleteFromTrashAndGetNonBreakableLinks(recordToDelete, user);
 	}
 
 }

@@ -1,7 +1,6 @@
 package com.constellio.model.services.records;
 
 import java.util.List;
-import java.util.Set;
 
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -117,6 +116,8 @@ public interface RecordServices {
 
 	void physicallyDelete(Record record, User user);
 
+	void physicallyDelete(Record record, User user, RecordDeleteOptions options);
+
 	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options);
 
 	boolean isLogicallyDeletable(Record record, User user);
@@ -144,6 +145,4 @@ public interface RecordServices {
 	void recalculate(RecordWrapper recordWrapper);
 
 	void recalculate(Record record);
-
-	Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record recordToDelete, User user);
 }

@@ -45,6 +45,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordIsNotAPrincipalConcept;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
@@ -185,7 +187,7 @@ public class RecordDeleteServices {
 
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices.hasDeletePermissionOnHierarchyNoMatterTheStatus(user, record);
-		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isSetAllReferencesToNull();
+		boolean referencesUnhandled = isReferencedByOtherRecords(record) && !options.isSetMostReferencesToNull();
 
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
@@ -226,8 +228,8 @@ public class RecordDeleteServices {
 		physicallyDelete(record, user, new RecordDeleteOptions());
 	}
 
-	public Set<String> physicallyDelete(final Record record, User user, RecordDeleteOptions options) {
-		Set<String> returnSet = new HashSet<>();
+	public void physicallyDelete(final Record record, User user, RecordDeleteOptions options) {
+		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		if (!isPhysicallyDeletable(record, user, options)) {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
 		}
@@ -235,7 +237,7 @@ public class RecordDeleteServices {
 		List<Record> records = getAllRecordsInHierarchy(record);
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
-		if (options.isSetAllReferencesToNull()) {
+		if (options.isSetMostReferencesToNull()) {
 
 			//Collections.sort(records, sortByLevelFromLeafToRoot());
 
@@ -274,7 +276,15 @@ public class RecordDeleteServices {
 											}
 										}
 									}
-									transaction.add(recordWithRef);
+
+									try {
+										recordServices.validateRecordInTransaction(recordWithRef, transaction);
+										transaction.add(recordWithRef);
+									} catch (ValidationException e) {
+										e.printStackTrace();
+										recordsWithUnremovableReferences.add(recordWithRef.getId());
+									}
+
 								}
 
 								recordServices.execute(transaction);
@@ -287,21 +297,26 @@ public class RecordDeleteServices {
 			}
 		}
 
-		deleteContents(records);
-		List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
+		if (recordsWithUnremovableReferences.isEmpty()) {
 
-		try {
-			recordDao.execute(
-					new TransactionDTO(RecordsFlushing.NOW).withDeletedRecords(recordsDTO));
-		} catch (OptimisticLocking optimisticLocking) {
-			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId(), optimisticLocking);
-		}
+			deleteContents(records);
+			List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
 
-		for (Record hierarchyRecord : records) {
-			RecordPhysicalDeletionEvent event = new RecordPhysicalDeletionEvent(hierarchyRecord);
-			extensions.forCollectionOf(record).callRecordPhysicallyDeleted(event);
+			try {
+				recordDao.execute(
+						new TransactionDTO(RecordsFlushing.NOW).withDeletedRecords(recordsDTO));
+			} catch (OptimisticLocking optimisticLocking) {
+				throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId(), optimisticLocking);
+			}
+
+			for (Record hierarchyRecord : records) {
+				RecordPhysicalDeletionEvent event = new RecordPhysicalDeletionEvent(hierarchyRecord);
+				extensions.forCollectionOf(record).callRecordPhysicallyDeleted(event);
+			}
+		} else {
+			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(record.getId(),
+					recordsWithUnremovableReferences);
 		}
-		return returnSet;
 	}
 	//
 	//	private Comparator<? super Record> sortByLevelFromLeafToRoot() {
@@ -614,7 +629,4 @@ public class RecordDeleteServices {
 
 	}
 
-	public Set<String> physicallyDeleteFromTrashAndGetNonBreakableLinks(Record record, User user) {
-		return physicallyDelete(record, user, new RecordDeleteOptions().setMostReferencesToNull(true));
-	}
 }

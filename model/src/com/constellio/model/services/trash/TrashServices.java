@@ -18,8 +18,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordDeleteOptions;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -72,12 +75,12 @@ public class TrashServices {
 		Set<String> returnSet = new HashSet<>();
 		for (String recordId : selectedRecords) {
 			Record record = recordServices().getDocumentById(recordId);
-			try{
+			try {
 				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
-				if(!deleted){
+				if (!deleted) {
 					returnSet.add(recordId);
 				}
-			}catch(Throwable e){
+			} catch (Throwable e) {
 				LOGGER.warn("record not deleted correctly from trash");
 				returnSet.add(recordId);
 			}
@@ -102,7 +105,12 @@ public class TrashServices {
 
 	public List<String> getRelatedRecords(String recordId, User user) {
 		Record record = recordServices().getDocumentById(recordId, user);
-		return new ArrayList<>(recordServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(record, user));
+		try {
+			recordServices().physicallyDelete(record, user, new RecordDeleteOptions().setMostReferencesToNull(true));
+			return new ArrayList<>();
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+			return new ArrayList<>(e.getRecordsWithUnremovableReferences());
+		}
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection, LocalDateTime deleteDate) {
@@ -111,18 +119,23 @@ public class TrashServices {
 		return new LogicalSearchQuery(condition).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
 
-	//TODO add test
 	public boolean handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
-		Set<String> links = recordServices().physicallyDeleteFromTrashAndGetNonBreakableLinks(recordToDelete, currentUser);
-		if (!links.isEmpty()) {
+		try {
+			recordServices().physicallyDelete(recordToDelete, currentUser,
+					new RecordDeleteOptions().setMostReferencesToNull(true));
+			return true;
+
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			try {
 				recordServices().add(recordToDelete.set(Schemas.ERROR_ON_PHYSICAL_DELETION, true));
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
+			} catch (RecordServicesException e2) {
+				throw new RuntimeException(e2);
 			}
 			return false;
-		}else{
-			return true;
+
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 }
