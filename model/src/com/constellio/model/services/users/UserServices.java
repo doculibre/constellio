@@ -661,7 +661,9 @@ public class UserServices {
 			LogicalSearchCondition condition = from(types.getSchemaType(Group.SCHEMA_TYPE))
 					.where(groupCodeMetadata(collection)).isEqualTo(group);
 			Record recordGroup = searchServices.searchSingleResult(condition);
-			recordServices.logicallyDelete(recordGroup, User.GOD);
+			if (recordGroup != null) {
+				recordServices.logicallyDelete(recordGroup, User.GOD);
+			}
 		}
 	}
 
