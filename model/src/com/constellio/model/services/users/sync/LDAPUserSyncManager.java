@@ -24,7 +24,7 @@ import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -96,7 +96,7 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		List<String> usersIdsAfterSynchronisation = new ArrayList<>();
 		List<String> groupsIdsAfterSynchronisation = new ArrayList<>();
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
@@ -253,7 +253,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	public List<LDAPUser> getAcceptedUsersFromGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext) {
 		List<LDAPUser> returnUsers = new ArrayList<>();
 		Set<String> groupsMembersIds = new HashSet<>();
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		for (LDAPGroup group : ldapGroups) {
 			List<String> usersToAdd = group.getMembers();
 			groupsMembersIds.addAll(usersToAdd);
@@ -280,7 +280,7 @@ public class LDAPUserSyncManager implements StatefulService {
 			return returnUsers;
 		}
 		Set<String> usersIds = new HashSet<>();
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		for (String baseContextName : userSyncConfiguration.getUsersWithoutGroupsBaseContextList()) {
 			List<String> currentUsersIds;
 			try {

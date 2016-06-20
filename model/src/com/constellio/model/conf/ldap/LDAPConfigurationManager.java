@@ -14,7 +14,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
-import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.sync.LDAPFastBind;
@@ -169,33 +169,48 @@ public class LDAPConfigurationManager implements StatefulService {
 	private void validateLDAPConfiguration(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Boolean authenticationActive = configs.getLdapAuthenticationActive();
 		if (authenticationActive) {
-			boolean activeDirectory = configs.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-			for (String url : configs.getUrls()) {
-				try {
-					LDAPFastBind fastBind = new LDAPFastBind(url, configs.getFollowReferences(), activeDirectory);
-					fastBind.close();
-				} catch (RuntimeNamingException e) {
-					throw new InvalidUrlRuntimeException(url, e.getMessage());
-				}
+			LDAPDirectoryType directoryType = configs.getDirectoryType();
+			if(directoryType == LDAPDirectoryType.AZUR_AD){
+				validateAzurConfig(configs, ldapUserSyncConfiguration);
+			}else{
+				validateADAndEDirectoryConfiguration(configs, ldapUserSyncConfiguration);
 			}
-			if (configs.getDomains() == null || configs.getDomains().isEmpty()) {
-				throw new EmptyDomainsRuntimeException();
-			}
-			if (configs.getUrls() == null || configs.getUrls().isEmpty()) {
-				throw new EmptyUrlsRuntimeException();
-			}
+
 			if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null
 					&& ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0l) {
 				if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() < MIN_DURATION) {
 					throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
 				}
-				LDAPServices ldapServices = new LDAPServices();
-				for (String url : configs.getUrls()) {
-					ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(),
-							ldapUserSyncConfiguration.getPassword(), configs.getFollowReferences(), activeDirectory);
-				}
 			}
 		}
+	}
+
+	private void validateADAndEDirectoryConfiguration(LDAPServerConfiguration configs,
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		boolean activeDirectory = configs.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
+		for (String url : configs.getUrls()) {
+			try {
+				LDAPFastBind fastBind = new LDAPFastBind(url, configs.getFollowReferences(), activeDirectory);
+				fastBind.close();
+			} catch (RuntimeNamingException e) {
+				throw new InvalidUrlRuntimeException(url, e.getMessage());
+			}
+		}
+		if (configs.getDomains() == null || configs.getDomains().isEmpty()) {
+			throw new EmptyDomainsRuntimeException();
+		}
+		if (configs.getUrls() == null || configs.getUrls().isEmpty()) {
+			throw new EmptyUrlsRuntimeException();
+		}
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
+		for (String url : configs.getUrls()) {
+			ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(),
+					ldapUserSyncConfiguration.getPassword(), configs.getFollowReferences(), activeDirectory);
+		}
+	}
+
+	private void validateAzurConfig(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		//TODO
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
@@ -275,6 +290,8 @@ public class LDAPConfigurationManager implements StatefulService {
 			return LDAPDirectoryType.ACTIVE_DIRECTORY;
 		} else if (directoryTypeString.equals(LDAPDirectoryType.E_DIRECTORY.getCode().toLowerCase())) {
 			return LDAPDirectoryType.E_DIRECTORY;
+		} else if (directoryTypeString.equals(LDAPDirectoryType.AZUR_AD.getCode().toLowerCase())) {
+			return LDAPDirectoryType.AZUR_AD;
 		} else {
 			throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidLdapType(
 					directoryTypeString);

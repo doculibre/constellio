@@ -16,6 +16,8 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.RegexFilter;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -40,6 +42,7 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
     private DurationPanel durationField;
 
     private Field directoryTypeField;
+    private String previousDirectoryType;
     private StringListComponent urlsField;
     private StringListComponent domainsField;
     private StringListComponent groupsField;
@@ -132,25 +135,38 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
         layout.addComponent(followReferences);
         LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
         directoryTypeField = createEnumField(directoryType, LDAPDirectoryType.class.getEnumConstants());
+        previousDirectoryType = (String) directoryTypeField.getValue();
         directoryTypeField.setCaption($("ldap.serverConfiguration.directoryType"));
         layout.addComponent(directoryTypeField);
+        directoryTypeField.addValueChangeListener(new ValueChangeListener() {
+            @Override
+            public void valueChange(ValueChangeEvent event) {
+                String newValue = (String) event.getProperty().getValue();
+                presenter.typeChanged(previousDirectoryType, newValue);
+                previousDirectoryType = newValue;
+            }
+        });
         List<String> urls = ldapServerConfiguration.getUrls();
         urlsField = new StringListComponent();
         urlsField.setCaption($("ldap.serverConfiguration.urls"));
         urlsField.setValues(urls);
         urlsField.setRequired(true);
         layout.addComponent(urlsField);
+
         List<String> domains = ldapServerConfiguration.getDomains();
         domainsField = new StringListComponent();
         domainsField.setCaption($("ldap.serverConfiguration.domains"));
         domainsField.setValues(domains);
         domainsField.setRequired(true);
+        followReferences.setVisible(presenter.isFollowReferencesVisible(directoryType));
+        domainsField.setVisible(presenter.isDomainsFieldVisible(directoryType));
+        urlsField.setVisible(presenter.isUrlsFieldVisible(directoryType));
         layout.addComponent(domainsField);
     }
 
     private void buildLdapUserSyncConfigComponent(VerticalLayout layout) {
         String title = $("ImportUsersFileViewImpl.collection");
-        collectionsComponent = new CollectionsSelectionPanel(title, presenter.getAllCollections());
+        collectionsComponent = new CollectionsSelectionPanel(title, presenter.getAllCollections(), presenter.getSelectedCollections());
         layout.addComponent(collectionsComponent);
         LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
         Duration duration = ldapUserSyncConfiguration.getDurationBetweenExecution();
@@ -237,5 +253,11 @@ public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPCo
         };
     }
 
+    @Override
+    public void refreshTypeDependantFields(LDAPDirectoryType directoryType) {
+        followReferences.setVisible(presenter.isFollowReferencesVisible(directoryType));
+        domainsField.setVisible(presenter.isDomainsFieldVisible(directoryType));
+        urlsField.setVisible(presenter.isUrlsFieldVisible(directoryType));
 
+    }
 }

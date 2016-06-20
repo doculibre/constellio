@@ -19,7 +19,7 @@ import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
-import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -68,10 +68,11 @@ public class LDAPConfigManagementPresenter extends
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(), ldapServerConfiguration.getFollowReferences(), activeDirectory);
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+				ldapServerConfiguration.getFollowReferences(), activeDirectory);
 		if (ctx == null) {
 			return $("ldap.authentication.fail");
 		} else {
@@ -81,11 +82,12 @@ public class LDAPConfigManagementPresenter extends
 
 	public String getSynchResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		StringBuilder result = new StringBuilder();
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(), ldapServerConfiguration.getFollowReferences(), activeDirectory);
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+				ldapServerConfiguration.getFollowReferences(), activeDirectory);
 		if (ctx != null) {
 			Set<LDAPGroup> groups = ldapServices.getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
 					ldapUserSyncConfiguration.getGroupFilter());
@@ -113,6 +115,46 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public List<String> getAllCollections() {
-		return appLayerFactory.getCollectionsManager().getCollectionCodes();
+		return appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem();
+	}
+
+	public boolean isFollowReferencesVisible(LDAPDirectoryType directoryType) {
+		return typeNotAzur(directoryType);
+	}
+
+	private boolean typeNotAzur(LDAPDirectoryType directoryType) {
+		return directoryType != LDAPDirectoryType.AZUR_AD;
+	}
+
+	public boolean isUrlsFieldVisible(LDAPDirectoryType directoryType) {
+		return typeNotAzur(directoryType);
+	}
+
+	public boolean isDomainsFieldVisible(LDAPDirectoryType directoryType) {
+		return typeNotAzur(directoryType);
+	}
+
+	public void typeChanged(String previousDirectoryType, String newValue) {
+		typeChanged(LDAPDirectoryType.valueOf(previousDirectoryType), LDAPDirectoryType.valueOf(newValue));
+	}
+
+	public void typeChanged(LDAPDirectoryType previousDirectoryType, LDAPDirectoryType newValue) {
+		switch (previousDirectoryType) {
+		case AZUR_AD:
+			view.refreshTypeDependantFields(newValue);
+			break;
+		case ACTIVE_DIRECTORY:
+		case E_DIRECTORY:
+			if (newValue == LDAPDirectoryType.AZUR_AD) {
+				view.refreshTypeDependantFields(newValue);
+			}
+			break;
+		default:
+			throw new RuntimeException("Unsupported type " + previousDirectoryType);
+		}
+	}
+
+	public List<String> getSelectedCollections() {
+		return modelLayerFactory.getLdapConfigurationManager().getLDAPUserSyncConfiguration().getSelectedCollectionsCodes();
 	}
 }

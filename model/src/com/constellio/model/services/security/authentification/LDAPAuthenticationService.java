@@ -1,16 +1,11 @@
 package com.constellio.model.services.security.authentification;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
@@ -27,7 +22,7 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
@@ -108,7 +103,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	private String getUserDomain(String username, String url) {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration();
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		boolean isAD = (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), url,
 				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
@@ -204,12 +199,12 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 		LdapContext ldapContext = null;
 		try {
-			ldapContext = new LDAPServices()
+			ldapContext = new LDAPServicesImpl()
 					.connectToLDAP(Collections.EMPTY_LIST, url, ldapUser,
 							ldapPassword, ldapServerConfiguration.getFollowReferences(), false);
 
 			String usernameBeforeDomain = StringUtils.substringBefore(username, "@");
-			return new LDAPServices().dnForEdirectoryUser(ldapContext, domain, usernameBeforeDomain);
+			return new LDAPServicesImpl().dnForEdirectoryUser(ldapContext, domain, usernameBeforeDomain);
 		} finally {
 			if (ldapContext != null) {
 				ldapContext.close();

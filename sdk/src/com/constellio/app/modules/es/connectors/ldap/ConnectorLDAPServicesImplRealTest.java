@@ -25,7 +25,7 @@ import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.sdk.tests.annotations.InternetTest;
 
 @InternetTest
-public class ConnectorLDAPServicesRealTest {
+public class ConnectorLDAPServicesImplRealTest {
 	ConnectorLDAPServices connectorLDAPServices = new ConnectorLDAPServicesImpl();
 
 	@Before

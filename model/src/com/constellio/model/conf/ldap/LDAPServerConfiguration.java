@@ -23,6 +23,12 @@ public class LDAPServerConfiguration implements Serializable {
 		this.followReferences = followReferences;
 	}
 
+	public LDAPServerConfiguration(Boolean ldapAuthenticationActive, String azurClientID1, String azur2, String azur3) {
+		this.directoryType = LDAPDirectoryType.AZUR_AD;
+		this.ldapAuthenticationActive = ldapAuthenticationActive;
+		//TODO
+	}
+
 	public List<String> getUrls() {
 		return urls;
 	}
