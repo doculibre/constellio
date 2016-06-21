@@ -631,49 +631,47 @@ public class DecommissioningService {
 	}
 
 	public Folder duplicateStructureAndSave(Folder folder, User currentUser) {
-
-		Transaction transaction = new Transaction();
-		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction);
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
-		return duplicatedFolder;
+        return duplicateStructure(folder, currentUser, true);
 	}
 
-	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction) {
-		Folder duplicatedFolder = duplicate(folder, currentUser);
+    public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
+
+        Transaction transaction = new Transaction();
+        Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+        try {
+            recordServices.execute(transaction);
+        } catch (RecordServicesException e) {
+            throw new RuntimeException(e);
+        }
+        return duplicatedFolder;
+    }
+
+	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction, boolean forceTitleDuplication) {
+		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction);
+			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction, forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
 		}
 		return duplicatedFolder;
 	}
 
-	public Folder duplicateAndSave(Folder folder, User currentUser) {
-		try {
-			Folder duplicatedFolder = duplicate(folder, currentUser);
-			recordServices.add(duplicatedFolder);
-			return duplicatedFolder;
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public Folder duplicate(Folder folder, User currentUser) {
+	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
 		Folder newFolder = rm.newFolderWithType(folder.getType());
 		MetadataSchema schema = newFolder.getSchema();
 
 		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
+            newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
-		newFolder.setTitle(folder.getTitle() + " (Copie)");
+
+        if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
+            newFolder.setTitle(folder.getTitle() + " (Copie)");
+        }
+
 		newFolder.setFormCreatedBy(currentUser);
 		newFolder.setFormCreatedOn(TimeProvider.getLocalDateTime());
 

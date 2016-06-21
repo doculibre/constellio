@@ -35,7 +35,6 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public SimpleSearchPresenter forRequestParameters(String params) {
 		if (StringUtils.isNotBlank(params)) {
 			String[] parts = params.split("/", 3);
-			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
 			if ("s".equals(parts[0])) {
 				searchID = parts[1];
 				SavedSearch search = getSavedSearch(searchID);

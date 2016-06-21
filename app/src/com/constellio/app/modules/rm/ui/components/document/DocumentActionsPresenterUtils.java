@@ -66,13 +66,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		initTransientObjects();
 	}
 
-	protected void readObject(java.io.ObjectInputStream stream)
+	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		initTransientObjects();
 	}
 
-	protected void initTransientObjects() {
+	private void initTransientObjects() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(presenterUtils.getCollection(),
 				presenterUtils.appLayerFactory());
 		voBuilder = new DocumentToVOBuilder(presenterUtils.modelLayerFactory());

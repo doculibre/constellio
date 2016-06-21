@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -35,7 +34,9 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.event.ItemClickEvent;
@@ -88,6 +89,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	private Button linkToDocumentButton, addAuthorizationButton, uploadButton, checkInButton, checkOutButton, finalizeButton,
 			shareDocumentButton, createPDFAButton, alertWhenAvailableButton, addToCartButton, publishButton, unpublishButton,
 			publicLinkButton;
+	
+	private List<TabSheetDecorator> tabSheetDecorators = new ArrayList<>();
 
 	private DisplayDocumentPresenter presenter;
 
@@ -166,6 +169,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet.getTab(disabled).setEnabled(false);
 
 		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
+		
+		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
+			tabSheetDecorator.decorate(this, tabSheet);
+		}
+		
 		return mainLayout;
 	}
 
@@ -652,6 +660,22 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
 		this.taxonomyCode = taxonomyCode;
+	}
+	
+	public void addTabSheetDecorator(TabSheetDecorator decorator) {
+		this.tabSheetDecorators.add(decorator);
+	}
+	
+	public List<TabSheetDecorator> getTabSheetDecorators() {
+		return this.tabSheetDecorators;
+	}
+	
+	public void removeTabSheetDecorator(TabSheetDecorator decorator) {
+		this.tabSheetDecorators.remove(decorator);
+	}
+	
+	public DocumentVO getDocumentVO() {
+		return documentVO;
 	}
 
 	private class StartWorkflowButton extends WindowButton {

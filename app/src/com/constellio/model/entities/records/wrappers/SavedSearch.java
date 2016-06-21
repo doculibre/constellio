@@ -62,7 +62,8 @@ public class SavedSearch extends RecordWrapper {
 	}
 
 	public int getPageLength() {
-		return getInteger(PAGE_LENGTH);
+		Integer pageLengthInteger = getInteger(PAGE_LENGTH);
+		return pageLengthInteger != null ? pageLengthInteger : 0;
 	}
 
 	public SavedSearch setPageLength(int pageLength) {

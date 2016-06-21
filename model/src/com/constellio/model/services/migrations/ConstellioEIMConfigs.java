@@ -37,6 +37,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration DATE_FORMAT;
 	public static final SystemConfiguration DATE_TIME_FORMAT;
 
+	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
 
 	static {
@@ -74,6 +76,8 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
+
+		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
