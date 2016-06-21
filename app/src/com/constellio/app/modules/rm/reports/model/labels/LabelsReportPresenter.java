@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code39.Code39Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
@@ -88,7 +89,7 @@ public class LabelsReportPresenter {
 			tempFile.deleteOnExit();
 
 			//Create the barcode bean
-			Code39Bean bean = new Code39Bean();
+			AbstractBarcodeBean bean = new Code39Bean();
 
 			final int dpi = 300;
 
@@ -97,9 +98,11 @@ public class LabelsReportPresenter {
 			//width exactly one pixel
 
 			double height = fieldInfo.getHeight();
+//			double width = fieldInfo.getWidth();
+			
 			bean.setHeight(height);
 			bean.setFontSize(1.0d);
-			bean.setWideFactor(3);
+//			bean.setWideFactor(3);
 			bean.doQuietZone(false);
 
 			//Open output file
