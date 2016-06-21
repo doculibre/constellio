@@ -9,10 +9,10 @@ public enum LabelsReportLayout {
 	AVERY_5159_V2(2, 7, PageSize.LETTER, 12f, 0f, 17f, 17f),
 	AVERY_5161(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
 
-	//AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
+	AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
 	//AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 60, 60),
 	//AVERY_5162(2, 7, PageSize.LETTER, 12, 12, 60, 60),
-	AVERY_5162(2, 7, PageSize.LETTER, 2, 3, 49, 49),
+	//AVERY_5162(2, 7, PageSize.LETTER, 2, 3, 60, 60),
 
 	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
 	LABEL_1_5_X_5_25(2, 5, PageSize.LETTER.rotate(), 16.0f, 20.f, 36.0f, 37.0f),

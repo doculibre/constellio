@@ -121,47 +121,47 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		LabelsReportLayout labelsReportLayout = LabelsReportLayout.AVERY_5162;
 		model.setLayout(labelsReportLayout);
 		model.setColumnsNumber(30);
-		model.setRowsNumber(5);
+		model.setRowsNumber(10);
 
 		List<LabelsReportField> labelTemplateFields = new ArrayList<>();
 
 		LabelsReportField categoryCodeField = new LabelsReportField();
 		categoryCodeField.positionX = 1;
-		categoryCodeField.positionY = 0;
+		categoryCodeField.positionY = 1;
 		categoryCodeField.width = 14;
-		categoryCodeField.height = 3;
+		categoryCodeField.height = 4;
 		categoryCodeField.setValue("categoryCodeField");
 		categoryCodeField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField folderIdField = new LabelsReportField();
 		folderIdField.positionX = 15;
-		folderIdField.positionY = 0;
+		folderIdField.positionY = 1;
 		folderIdField.width = 5;
-		folderIdField.height = 3;
+		folderIdField.height = 4;
 		folderIdField.setValue("FolderId");
 		folderIdField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField folderTitleField = new LabelsReportField();
 		folderTitleField.positionX = 1;
-		folderTitleField.positionY = 3;
+		folderTitleField.positionY = 5;
 		folderTitleField.width = 28;
-		folderTitleField.height = 1;
+		folderTitleField.height = 2;
 		folderTitleField.setValue("FolderTitle");
 		folderTitleField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField copyStatusCodeField = new LabelsReportField();
 		copyStatusCodeField.positionX = 14;
-		copyStatusCodeField.positionY = 4;
+		copyStatusCodeField.positionY = 7;
 		copyStatusCodeField.width = 1;
-		copyStatusCodeField.height = 1;
+		copyStatusCodeField.height = 2;
 		copyStatusCodeField.setValue("P");
 		copyStatusCodeField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField openDateField = new LabelsReportField();
 		openDateField.positionX = 20;
-		openDateField.positionY = 4;
+		openDateField.positionY = 7;
 		openDateField.width = 9;
-		openDateField.height = 1;
+		openDateField.height = 2;
 		openDateField.setValue("200-10-04");
 		openDateField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
