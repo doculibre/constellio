@@ -217,7 +217,7 @@ public class DefaultLabelsTemplate {
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
-		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
+		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
 				null, 15, 0, 5, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
