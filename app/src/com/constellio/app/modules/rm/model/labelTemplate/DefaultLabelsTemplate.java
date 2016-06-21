@@ -205,6 +205,54 @@ public class DefaultLabelsTemplate {
 				Folder.SCHEMA_TYPE, COLUMNS_NUMBER, LINES_NUMBER, labelTemplateFields);
 	}
 
+	public static LabelTemplate createFolderAvery5162() {
+		final int COLUMNS_NUMBER = 30;
+		final int LINES_NUMBER = 11;
+
+		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
+
+		LabelTemplateField categoryCodeField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.CATEGORY_CODE,
+				null, 1, 0, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
+				null, 15, 0, 5, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				LabelTemplateFieldHorizontalAlignment.RIGHT,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField folderTitleField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
+				null, 1, 3, 28, 1, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField copyStatusCodeField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS,
+				null, 14, 4, 1, 1, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
+				LabelTemplateFieldHorizontalAlignment.LEFT,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		LabelTemplateField openDateField = new LabelTemplateField(
+				Folder.DEFAULT_SCHEMA + "_" + Folder.OPENING_DATE,
+				null, 20, 4, 9, 1, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
+				LabelTemplateFieldHorizontalAlignment.RIGHT,
+				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
+
+		labelTemplateFields.add(categoryCodeField);
+		labelTemplateFields.add(folderIdField);
+		labelTemplateFields.add(folderTitleField);
+		labelTemplateFields.add(copyStatusCodeField);
+		labelTemplateFields.add(openDateField);
+
+		return new
+				LabelTemplate("FOLDER_AVERY_5162", $("LabelsButton.labelFormat.FOLDER_AVERY_5162"),
+				LabelsReportLayout.AVERY_5162,
+				Folder.SCHEMA_TYPE, COLUMNS_NUMBER, LINES_NUMBER, labelTemplateFields);
+	}
+
 	public static LabelTemplate createFolderLeftAvery5163() {
 		final int COLUMNS_NUMBER = 30;
 		final int LINES_NUMBER = 11;
@@ -325,4 +373,5 @@ public class DefaultLabelsTemplate {
 				LabelsReportLayout.AVERY_5159,
 				Folder.SCHEMA_TYPE, COLUMNS_NUMBER, LINES_NUMBER, labelTemplateFields);
 	}
+
 }
