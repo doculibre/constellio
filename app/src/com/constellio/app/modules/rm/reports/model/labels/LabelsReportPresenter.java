@@ -81,7 +81,7 @@ public class LabelsReportPresenter {
 		return labelsReportModel;
 	}
 
-	private File createBarCode(String value) {
+	private File createBarCode(String value, LabelTemplateField fieldInfo) {
 		File tempFile;
 		try {
 			tempFile = File.createTempFile(LabelsReportPresenter.class.getSimpleName(), ".png");
@@ -96,7 +96,8 @@ public class LabelsReportPresenter {
 			bean.setModuleWidth(UnitConv.in2mm(1.0f / dpi)); //makes the narrow bar 
 			//width exactly one pixel
 
-			bean.setHeight(7.0d);
+			double height = fieldInfo.getHeight();
+			bean.setHeight(height);
 			bean.setFontSize(1.0d);
 			bean.setWideFactor(3);
 			bean.doQuietZone(false);
@@ -126,7 +127,7 @@ public class LabelsReportPresenter {
 		LabelsReportField labelsReportField;
 		if (fieldInfo instanceof BarCodeLabelTemplateField) {
 			labelsReportField = new ImageLabelsReportField();
-			File barCode = createBarCode(value);
+			File barCode = createBarCode(value, fieldInfo);
 			if (barCode != null) {
 				labelsReportField.setValue(barCode.getAbsolutePath());
 				int width = fieldInfo.getWidth() != 0 ? fieldInfo.getWidth() : value.length();
