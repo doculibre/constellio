@@ -207,7 +207,7 @@ public class DefaultLabelsTemplate {
 
 	public static LabelTemplate createFolderAvery5162() {
 		final int COLUMNS_NUMBER = 30;
-		final int LINES_NUMBER = 11;
+		final int LINES_NUMBER = 5;
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 

@@ -80,13 +80,13 @@ public class LabelsReportPresenter {
 
 		return labelsReportModel;
 	}
-	
+
 	private File createBarCode(String value) {
 		File tempFile;
 		try {
 			tempFile = File.createTempFile(LabelsReportPresenter.class.getSimpleName(), ".png");
 			tempFile.deleteOnExit();
-			
+
 			//Create the barcode bean
 			Code39Bean bean = new Code39Bean();
 
@@ -94,7 +94,7 @@ public class LabelsReportPresenter {
 
 			//Configure the barcode generator
 			bean.setModuleWidth(UnitConv.in2mm(1.0f / dpi)); //makes the narrow bar 
-			                                                 //width exactly one pixel
+			//width exactly one pixel
 
 			bean.setHeight(7.0d);
 			bean.setFontSize(1.0d);
@@ -104,17 +104,17 @@ public class LabelsReportPresenter {
 			//Open output file
 			OutputStream out = new FileOutputStream(tempFile);
 			try {
-			    //Set up the canvas provider for monochrome PNG output 
-			    BitmapCanvasProvider canvas = new BitmapCanvasProvider(
-			            out, "image/x-png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
+				//Set up the canvas provider for monochrome PNG output
+				BitmapCanvasProvider canvas = new BitmapCanvasProvider(
+						out, "image/x-png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
 
-			    //Generate the barcode
-			    bean.generateBarcode(canvas, value);
+				//Generate the barcode
+				bean.generateBarcode(canvas, value);
 
-			    //Signal end of generation
-			    canvas.finish();
+				//Signal end of generation
+				canvas.finish();
 			} finally {
-			    out.close();
+				out.close();
 			}
 		} catch (Throwable t) {
 			tempFile = null;
@@ -131,6 +131,11 @@ public class LabelsReportPresenter {
 				labelsReportField.setValue(barCode.getAbsolutePath());
 				int width = fieldInfo.getWidth() != 0 ? fieldInfo.getWidth() : value.length();
 				labelsReportField.width = width;
+
+				int height = fieldInfo.getHeight();
+				if(height != 0){
+					labelsReportField.height = height;
+				}
 			} else {
 				labelsReportField = buildLabelField(fieldInfo, value);
 			}
@@ -157,6 +162,9 @@ public class LabelsReportPresenter {
 
 	private int getVerticalAligment(LabelTemplateField fieldInfo) {
 		int verticalAlignment;
+		if (fieldInfo.getVerticalAlignment() == null) {
+			return 0;
+		}
 		switch (fieldInfo.getVerticalAlignment()) {
 		case TOP:
 			verticalAlignment = com.itextpdf.text.Element.ALIGN_TOP;
@@ -176,6 +184,9 @@ public class LabelsReportPresenter {
 
 	private int getHorizontalAligment(LabelTemplateField fieldInfo) {
 		int horizontalAlignment;
+		if (fieldInfo.getHorizontalAlignment() == null) {
+			return 0;
+		}
 		switch (fieldInfo.getHorizontalAlignment()) {
 		case LEFT:
 			horizontalAlignment = com.itextpdf.text.Element.ALIGN_LEFT;
