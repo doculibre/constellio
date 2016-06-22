@@ -93,12 +93,16 @@ public class LabelTemplateManager {
 		LabelTemplate folderAvery5159RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5159();
 		LabelTemplate folderAvery5161LeftTemplate = DefaultLabelsTemplate.createFolderLeftAvery5161();
 		LabelTemplate folderAvery5161RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5161();
+		LabelTemplate folderAvery5162LeftTemplate = DefaultLabelsTemplate.createFolderLeftAvery5162();
+		LabelTemplate folderAvery5162RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5162();
 		LabelTemplate folderAvery5163LeftTemplate = DefaultLabelsTemplate.createFolderLeftAvery5163();
 		LabelTemplate folderAvery5163RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5163();
 		labelTemplates.add(folderAvery5159LeftTemplate);
 		labelTemplates.add(folderAvery5159RightTemplate);
 		labelTemplates.add(folderAvery5161LeftTemplate);
 		labelTemplates.add(folderAvery5161RightTemplate);
+		labelTemplates.add(folderAvery5162LeftTemplate);
+		labelTemplates.add(folderAvery5162RightTemplate);
 		labelTemplates.add(folderAvery5163LeftTemplate);
 		labelTemplates.add(folderAvery5163RightTemplate);
 
