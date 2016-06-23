@@ -125,7 +125,7 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenZeroPaddedSequentialWithCustomBatchSizeThenOK()
+	public void whenCallNextSetAndLastSequenceValueThenCorrectAnswers()
 			throws Exception {
 
 		SequencesManager sequencesManager1 = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
@@ -147,8 +147,9 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 		assertThat(sequencesManager1.next("seq2")).isEqualTo(3L);
 		assertThat(sequencesManager2.next("seq2")).isEqualTo(4L);
 		assertThat(sequencesManager1.getLastSequenceValue("seq2")).isEqualTo(4L);
-		assertThat(sequencesManager1.next("seq2")).isEqualTo(5L);
-		assertThat(sequencesManager2.next("seq2")).isEqualTo(6L);
+		sequencesManager1.set("seq2", 2L);
+		assertThat(sequencesManager1.next("seq2")).isEqualTo(3L);
+		assertThat(sequencesManager2.next("seq2")).isEqualTo(4L);
 
 		assertThat(getSequenceDocument("seq1").getFieldValues("uuids_ss")).hasSize(1);
 		assertThat(getSequenceDocument("seq1").getFieldValues("uuids_to_remove_ss")).hasSize(1);

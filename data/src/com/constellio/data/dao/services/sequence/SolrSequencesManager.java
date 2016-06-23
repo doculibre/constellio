@@ -24,15 +24,29 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 public class SolrSequencesManager implements SequencesManager {
 
 	SolrClient client;
-	RecordDao recordDao;
 
 	public SolrSequencesManager(RecordDao recordDao) {
-		this.recordDao = recordDao;
 		this.client = recordDao.getBigVaultServer().getNestedSolrServer();
 	}
 
 	@Override
 	public void set(String sequenceId, long value) {
+		try {
+			SolrInputDocument document = newSequenceUpdateInputDocument(sequenceId);
+			document.addField("counter_d", new Long(value).doubleValue());
+			client.add(document);
+
+		} catch (Exception e) {
+			//The document does not exist
+
+			try {
+				createSequenceDocument(sequenceId, null);
+
+			} catch (SolrServerException | IOException e1) {
+				throw new RuntimeException(e1);
+			}
+			set(sequenceId, value);
+		}
 
 	}
 
@@ -98,9 +112,7 @@ public class SolrSequencesManager implements SequencesManager {
 		solrInputDocument.addField("uuids_to_remove_ss", singletonMap("add", uuid));
 		try {
 			client.add(solrInputDocument);
-		} catch (SolrServerException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
+		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -152,7 +164,11 @@ public class SolrSequencesManager implements SequencesManager {
 		solrInputDocument.addField("id", "seq_" + sequenceId);
 		solrInputDocument.addField("_version_", "-1");
 		solrInputDocument.addField("type_s", "sequence");
-		solrInputDocument.addField("uuids_ss", asList(uuid));
+		if (uuid == null) {
+			solrInputDocument.addField("uuids_ss", new ArrayList<>());
+		} else {
+			solrInputDocument.addField("uuids_ss", asList(uuid));
+		}
 		solrInputDocument.addField("counter_d", 1.0);
 		UpdateRequest request = new UpdateRequest();
 		request.add(solrInputDocument);
