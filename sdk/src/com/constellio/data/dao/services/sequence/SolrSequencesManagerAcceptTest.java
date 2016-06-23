@@ -9,80 +9,35 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 
-public class SolrSequenceManagerAcceptTest extends ConstellioTest {
+public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 
 	private static final String CONFIG_PATH = "/sequence.properties";
 
-	SequencesManager sequencesManager;
+	SolrSequencesManager sequencesManager;
+	SolrClient client;
 
 	@Before
 	public void setUp()
 			throws Exception {
 		notAUnitItest = true;
-		sequencesManager = getDataLayerFactory().getSequencesManager();
+		sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+		client = getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
 	}
 
 	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds1()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds2()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds3()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds4()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds5()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds6()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds7()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds8()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
-	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds9()
-			throws Exception {
-		givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds();
-	}
-
-	@Test
+	@SlowTest
 	public void givenMultipleThreadsWitDifferentGeneratorThenAlwaysUniqueIds()
 			throws Exception {
 
@@ -98,7 +53,7 @@ public class SolrSequenceManagerAcceptTest extends ConstellioTest {
 				public void run() {
 					SequencesManager sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
 					List<Long> ids = new ArrayList<Long>();
-					for (int j = 0; j < 2000; j++) {
+					for (int j = 0; j < 1000; j++) {
 						try {
 							ids.add(sequencesManager.next("zeSequence"));
 							total.incrementAndGet();
@@ -114,15 +69,15 @@ public class SolrSequenceManagerAcceptTest extends ConstellioTest {
 
 		threads.startAll();
 
-		while (total.get() < 200000) {
+		while (total.get() < 100000) {
 			System.out.println(total.get());
-			Thread.sleep(2000);
+			Thread.sleep(500);
 		}
 
 		threads.joinAll();
 
-		assertThat(concurrentList.size()).isEqualTo(200000);
-		assertThat(concurrentSet.size()).isEqualTo(200000);
+		assertThat(concurrentList.size()).isEqualTo(100000);
+		assertThat(concurrentSet.size()).isEqualTo(100000);
 	}
 
 	@Test
@@ -177,18 +132,66 @@ public class SolrSequenceManagerAcceptTest extends ConstellioTest {
 		SequencesManager sequencesManager2 = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
 
 		assertThat(sequencesManager1.next("seq1")).isEqualTo(1L);
+		assertThat(sequencesManager1.getLastSequenceValue("seq1")).isEqualTo(1L);
 		assertThat(sequencesManager2.next("seq1")).isEqualTo(2L);
 		assertThat(sequencesManager1.next("seq1")).isEqualTo(3L);
 		assertThat(sequencesManager2.next("seq1")).isEqualTo(4L);
 		assertThat(sequencesManager1.next("seq1")).isEqualTo(5L);
+		assertThat(sequencesManager1.getLastSequenceValue("seq1")).isEqualTo(5L);
 		assertThat(sequencesManager2.next("seq1")).isEqualTo(6L);
+		assertThat(sequencesManager1.getLastSequenceValue("seq1")).isEqualTo(6L);
 
 		assertThat(sequencesManager1.next("seq2")).isEqualTo(1L);
 		assertThat(sequencesManager2.next("seq2")).isEqualTo(2L);
+		assertThat(sequencesManager1.getLastSequenceValue("seq2")).isEqualTo(2L);
 		assertThat(sequencesManager1.next("seq2")).isEqualTo(3L);
 		assertThat(sequencesManager2.next("seq2")).isEqualTo(4L);
+		assertThat(sequencesManager1.getLastSequenceValue("seq2")).isEqualTo(4L);
 		assertThat(sequencesManager1.next("seq2")).isEqualTo(5L);
 		assertThat(sequencesManager2.next("seq2")).isEqualTo(6L);
 
+		assertThat(getSequenceDocument("seq1").getFieldValues("uuids_ss")).hasSize(1);
+		assertThat(getSequenceDocument("seq1").getFieldValues("uuids_to_remove_ss")).hasSize(1);
+
+		assertThat(getSequenceDocument("seq2").getFieldValues("uuids_ss")).hasSize(1);
+		assertThat(getSequenceDocument("seq2").getFieldValues("uuids_to_remove_ss")).hasSize(1);
+
+	}
+
+	@Test
+	@SlowTest
+	public void givenASystemHasFallenBetweenTheIncAndTheAddUUIDToRemoveStepThenUUIDRemovedWhenOneThousandAfterHim()
+			throws Exception {
+
+		String previousUUID = UUIDV1Generator.newRandomId();
+		sequencesManager.createSequenceDocument("seq1", previousUUID);
+
+		for (int i = 0; i < 999; i++) {
+			System.out.println(i);
+			assertThat(sequencesManager.next("seq1")).isEqualTo(2 + i);
+			SolrDocument sequenceDocument = getSequenceDocument("seq1");
+			assertThat(sequenceDocument.getFieldValues("uuids_ss")).hasSize(2 + i);
+		}
+
+		sequencesManager.next("seq1");
+		SolrDocument sequenceDocument = getSequenceDocument("seq1");
+		assertThat(sequenceDocument.getFieldValues("uuids_ss")).hasSize(1);
+
+	}
+
+	SolrDocument getSequenceDocument(String sequenceId)
+			throws Exception {
+
+		client.commit(true, true, true);
+
+		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+		solrParams.set("q", "id:seq_" + sequenceId);
+
+		QueryResponse queryResponse = client.query(solrParams);
+		if (queryResponse.getResults().size() == 0) {
+			return null;
+		} else {
+			return queryResponse.getResults().get(0);
+		}
 	}
 }
