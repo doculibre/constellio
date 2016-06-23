@@ -84,7 +84,7 @@ public class SolrSequencesManager implements SequencesManager {
 									client.add(solrInputDocument);
 
 									try {
-										Thread.sleep(500);
+										Thread.sleep(250);
 									} catch (InterruptedException e) {
 										throw new RuntimeException(e);
 
@@ -161,20 +161,10 @@ public class SolrSequencesManager implements SequencesManager {
 			}
 		}
 
-		//		try {
-		//			client.commit(true, true, true);
-		//		} catch (SolrServerException e) {
-		//			throw new RuntimeException(e);
-		//		} catch (IOException e) {
-		//			throw new RuntimeException(e);
-		//		}
 
 		SolrQuery q = new SolrQuery();
 		q.setRequestHandler("/get");
 		q.set("id", "seq_" + sequenceId);
-
-		//		ModifiableSolrParams params = new ModifiableSolrParams();
-		//		params.set("q", "id:seq_" + sequenceId);
 
 		try {
 
@@ -182,7 +172,6 @@ public class SolrSequencesManager implements SequencesManager {
 			List<String> uuids = null;
 			int i = 0;
 			boolean found = false;
-			//while (!found) {
 			QueryResponse response = client.query(q);
 			document = (SolrDocument) response.getResponse().get("doc");
 			uuids = (List) document.getFieldValues("uuids_ss");
@@ -201,7 +190,6 @@ public class SolrSequencesManager implements SequencesManager {
 				throw new RuntimeException("Not found!");
 			}
 
-			//}
 			long counter = ((Double) document.getFieldValue("counter_d")).longValue();
 			long value = counter + i;
 			solrInputDocument = new SolrInputDocument();
