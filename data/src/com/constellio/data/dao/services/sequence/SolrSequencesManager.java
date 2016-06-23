@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -21,84 +20,16 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class SolrSequencesManager implements SequencesManager {
 
-	int simultaneousUsages = 128;
-
 	SolrClient client;
 	RecordDao recordDao;
-	Map<String, List<String>> uuidsToRemoveBySequenceId = new HashMap<>();
 
 	public SolrSequencesManager(RecordDao recordDao) {
 		this.recordDao = recordDao;
 		this.client = recordDao.getBigVaultServer().getNestedSolrServer();
-		new Thread() {
-
-			@Override
-			public void run() {
-				while (true) {
-
-					synchronized (SolrSequencesManager.class) {
-						SolrQuery q = new SolrQuery();
-						q.setRequestHandler("/get");
-						q.set("id", "seq_" + "zeSequence");
-
-						//		ModifiableSolrParams params = new ModifiableSolrParams();
-						//		params.set("q", "id:seq_" + sequenceId);
-
-						try {
-
-							SolrDocument document = null;
-							int i = 0;
-							boolean found = false;
-							//while (!found) {
-							QueryResponse response = client.query(q);
-							document = (SolrDocument) response.getResponse().get("doc");
-
-							if (document != null) {
-								List<String> readyToRemove = (List) document.getFieldValues("uuids_to_remove_ss");
-
-								if (readyToRemove != null) {
-									List<String> uuids = (List) document.getFieldValues("uuids_ss");
-
-									List<String> toRemove = new ArrayList<>();
-									for (String currentUUID : uuids) {
-										if (readyToRemove.contains(currentUUID)) {
-											toRemove.add(currentUUID);
-										} else {
-											break;
-										}
-									}
-
-									//System.out.println("Removing " + sizeToRemove + " items");
-									SolrInputDocument solrInputDocument = new SolrInputDocument();
-									solrInputDocument.addField("id", "seq_" + "zeSequence");
-									solrInputDocument.addField("_version_", "1");
-									solrInputDocument.addField("type_s", "sequence");
-									solrInputDocument.addField("counter_d", singletonMap("inc", toRemove.size()));
-
-									solrInputDocument.addField("uuids_ss", singletonMap("remove", toRemove));
-
-									solrInputDocument.addField("uuids_to_remove_ss", singletonMap("remove", toRemove));
-									client.add(solrInputDocument);
-
-									try {
-										Thread.sleep(250);
-									} catch (InterruptedException e) {
-										throw new RuntimeException(e);
-
-									}
-								}
-							}
-						} catch (Throwable e) {
-							throw new RuntimeException(e);
-						}
-
-					}
-				}
-			}
-		}.start();
 	}
 
 	@Override
@@ -124,6 +55,19 @@ public class SolrSequencesManager implements SequencesManager {
 		}
 	}
 
+	private SolrDocument getSequenceRealtimeDocument(String sequenceId) {
+		SolrQuery q = new SolrQuery();
+		q.setRequestHandler("/get");
+		q.set("id", "seq_" + sequenceId);
+		QueryResponse response = null;
+		try {
+			response = client.query(q);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
+		return (SolrDocument) response.getResponse().get("doc");
+	}
+
 	@Override
 	public long next(String sequenceId) {
 
@@ -136,6 +80,29 @@ public class SolrSequencesManager implements SequencesManager {
 
 		Map<String, Object> uuidsOperations = new HashMap<>();
 		uuidsOperations.put("add", uuid);
+
+		SolrDocument document = getSequenceRealtimeDocument("zeSequence");
+		if (document != null) {
+			List<String> readyToRemove = (List) document.getFieldValues("uuids_to_remove_ss");
+
+			if (readyToRemove != null) {
+				List<String> uuids = (List) document.getFieldValues("uuids_ss");
+
+				List<String> toRemove = new ArrayList<>();
+				for (String currentUUID : uuids) {
+					if (readyToRemove.contains(currentUUID)) {
+						toRemove.add(currentUUID);
+					} else {
+						break;
+					}
+				}
+
+				uuidsOperations.put("remove", toRemove);
+				solrInputDocument.addField("uuids_to_remove_ss", singletonMap("remove", toRemove));
+			}
+		}
+
+		solrInputDocument.addField("counter_d", singletonMap("inc", 1.0));
 		solrInputDocument.addField("uuids_ss", uuidsOperations);
 
 		try {
@@ -150,7 +117,7 @@ public class SolrSequencesManager implements SequencesManager {
 			solrInputDocument.addField("_version_", "-1");
 			solrInputDocument.addField("type_s", "sequence");
 			solrInputDocument.addField("uuids_ss", asList(uuid));
-			solrInputDocument.addField("counter_d", 0.0);
+			solrInputDocument.addField("counter_d", 1.0);
 			try {
 				UpdateRequest request = new UpdateRequest();
 				request.add(solrInputDocument);
@@ -161,37 +128,26 @@ public class SolrSequencesManager implements SequencesManager {
 			}
 		}
 
-
-		SolrQuery q = new SolrQuery();
-		q.setRequestHandler("/get");
-		q.set("id", "seq_" + sequenceId);
-
 		try {
 
-			SolrDocument document = null;
-			List<String> uuids = null;
-			int i = 0;
-			boolean found = false;
-			QueryResponse response = client.query(q);
-			document = (SolrDocument) response.getResponse().get("doc");
-			uuids = (List) document.getFieldValues("uuids_ss");
-			ListIterator<String> uuidsIterator = uuids.listIterator();
-
-			i = 0;
-			while (!found && uuidsIterator.hasNext()) {
-				i++;
-				String aUUID = uuidsIterator.next();
+			document = getSequenceRealtimeDocument(sequenceId);
+			List<String> uuids = (List) document.getFieldValues("uuids_ss");
+			int index = -1;
+			for (int i = uuids.size() - 1; i >= 0; i--) {
+				String aUUID = uuids.get(i);
 				if (uuid.equals(aUUID)) {
-					found = true;
+					index = i;
+					break;
 				}
-			}
 
-			if (!found) {
-				throw new RuntimeException("Not found!");
 			}
+			if (index == -1) {
+				throw new ImpossibleRuntimeException("UUID not found.");
+			}
+			int indexFromEndOfList = uuids.size() - index - 1;
 
 			long counter = ((Double) document.getFieldValue("counter_d")).longValue();
-			long value = counter + i;
+			long value = counter - indexFromEndOfList;
 			solrInputDocument = new SolrInputDocument();
 			solrInputDocument.addField("id", "seq_" + sequenceId);
 			solrInputDocument.addField("_version_", "1");
