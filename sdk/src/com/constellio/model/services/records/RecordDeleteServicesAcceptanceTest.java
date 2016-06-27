@@ -1,8 +1,13 @@
 package com.constellio.model.services.records;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.util.Set;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -16,6 +21,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -98,42 +104,61 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B);
 	}
 
-//	@Test
-	//	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
-	//			throws Exception {
-	//		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-	//		Set<String> relatedRecords = deleteService
-	//				.physicallyDeleteFromTrashAndGetNonBreakableLinks(parentFolderInCategory_A.getWrappedRecord(), null);
-	//		assertThat(relatedRecords).contains(taskReferencesFolderB.getId());
-	//		assertThat(relatedRecords).doesNotContain(subFolder_B.getId(), category.getId());
-	//		assertThat(parentFolderInCategory_A.getCategory()).isNull();
-	//	}
-	//
-	//	@Test
-	//	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk2()
-	//			throws Exception {
-	//
-	//		deleteService.logicallyDelete(category.getWrappedRecord(), null);
-	//		Set<String> relatedRecords = deleteService
-	//				.physicallyDeleteFromTrashAndGetNonBreakableLinks(category.getWrappedRecord(), null);
-	//		//pas sure?!
-	//		assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());
-	//		assertThat(relatedRecords).doesNotContain(taskReferencesFolderB.getId());
-	//	}
-	//
-	//	@Test
-	//	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk3()
-	//			throws Exception {
-	//
-	//		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-	//		deleteService.logicallyDelete(category.getWrappedRecord(), null);
-	//		deleteService.logicallyDelete(taskReferencesFolderB.getWrappedRecord(), null);
-	//		Set<String> relatedRecords = deleteService
-	//				.physicallyDeleteFromTrashAndGetNonBreakableLinks(category.getWrappedRecord(), null);
-	//		assertThat(relatedRecords).isEmpty();
-	//
-	//		relatedRecords = deleteService
-	//				.physicallyDeleteFromTrashAndGetNonBreakableLinks(parentFolderInCategory_A.getWrappedRecord(), null);
-	//		assertThat(relatedRecords).isEmpty();
-	//	}
+	/*@Test
+	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
+			throws Exception {
+		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
+		parentFolderInCategory_A= rm.getFolder(parentFolderInCategory_A.getId());
+		try {
+			deleteService
+					.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
+							new RecordDeleteOptions().setMostReferencesToNull(true));
+
+			taskReferencesFolderB= tasks.getTask(taskReferencesFolderB.getId());
+			assertThat(taskReferencesFolderB.get(zMeta.getCode())).isNull();
+			fail("should find dependent referecenes");
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
+			assertThat(relatedRecords).contains(taskReferencesFolderB.getId());
+			assertThat(relatedRecords).doesNotContain(subFolder_B.getId(), category.getId());
+			parentFolderInCategory_A= rm.getFolder(parentFolderInCategory_A.getId());
+			assertThat(parentFolderInCategory_A.getCategory()).isNull();
+		}
+	}
+
+	@Test
+	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk2()
+			throws Exception {
+
+		deleteService.logicallyDelete(category.getWrappedRecord(), null);
+		category = rm.getCategory(category.getId());
+		try {
+
+			deleteService
+					.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
+			fail("should find dependent referecenes");
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
+			//pas sure?!
+			assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());
+			assertThat(relatedRecords).doesNotContain(taskReferencesFolderB.getId());
+		}
+	}
+
+	@Test
+	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk3()
+			throws Exception {
+
+		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
+		deleteService.logicallyDelete(category.getWrappedRecord(), null);
+		deleteService.logicallyDelete(taskReferencesFolderB.getWrappedRecord(), null);
+		category = rm.getCategory(category.getId());
+		deleteService
+				.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
+
+		parentFolderInCategory_A= rm.getFolder(parentFolderInCategory_A.getId());
+		deleteService
+				.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
+						new RecordDeleteOptions().setMostReferencesToNull(true));
+	}*/
 }
