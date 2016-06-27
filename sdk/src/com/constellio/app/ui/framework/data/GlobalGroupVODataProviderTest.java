@@ -200,6 +200,19 @@ public class GlobalGroupVODataProviderTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenListActiveGlobalGroupVOsWithUsersInCollectionThenOk()
+			throws Exception {
+
+		when(heroesGroupVO.getCollections()).thenReturn(collections);
+		when(heroesGroupVO.getStatus()).thenReturn(GlobalGroupStatus.ACTIVE);
+		when(legendsGroupVO.getCollections()).thenReturn(collections);
+		when(legendsGroupVO.getStatus()).thenReturn(GlobalGroupStatus.INACTIVE);
+		when(dataProvider.getGlobalGroupVOs()).thenReturn(Arrays.asList(heroesGroupVO, legendsGroupVO));
+
+		assertThat(dataProvider.listActiveGlobalGroupVOsWithUsersInCollection(zeCollection)).containsOnly(heroesGroupVO);
+	}
+
+	@Test
 	public void whenListSubGroupVOsThenOk()
 			throws Exception {
 
