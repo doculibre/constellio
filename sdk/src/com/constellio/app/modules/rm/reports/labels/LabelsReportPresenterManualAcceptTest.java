@@ -62,7 +62,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		folderIds.addAll(Arrays.asList("A01"));
 		int startPosition = 1;
 		int copies = 1;
-		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(3);
+		LabelTemplate labelTemplate = labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE).get(4);
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
