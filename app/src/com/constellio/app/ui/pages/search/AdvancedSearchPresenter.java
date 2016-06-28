@@ -61,6 +61,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -472,5 +473,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public void switchToDetailedView() {
 		resultsViewMode = SearchResultsViewMode.DETAILED;
 		saveTemporarySearch(true);
+	}
+
+	public int getMaxSelectableResults() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
 	}
 }

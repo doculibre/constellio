@@ -79,7 +79,7 @@ public class ReindexingServices {
 			recordDao.expungeDeletes();
 		}
 
-		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			reindexCollection(collection, params);
 		}
 		if (logManager != null && params.getReindexationMode().isFullRewrite()) {

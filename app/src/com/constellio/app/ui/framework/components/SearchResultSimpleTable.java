@@ -41,14 +41,18 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	private Set<SelectionChangeListener> listeners;
 	private RecordVOLazyContainer container;
 	private boolean selectAll;
+	private int maxSelectableResults;
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container) {
+	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults) {
 		this(container, true);
+		this.maxSelectableResults = maxSelectableResults;
 	}
 
 	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
 		super("",container);
 		
+		setColumnCollapsingAllowed(true);
+		setColumnReorderingAllowed(true);
 		addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -124,8 +128,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		if (selectAll) {
-			// FIXME Not scalable
-			for (Object itemId : container.getItemIds()) {
+			for (Object itemId : container.getItemIds(0, maxSelectableResults)) {
 				if (!deselected.contains(itemId)) {
 					RecordVO record = container.getRecordVO((int) itemId);
 					result.add(record.getId());

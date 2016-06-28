@@ -401,8 +401,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
+		if(StringUtils.isBlank(folder.getLegacyId())||
+				(StringUtils.isNotBlank(folder.getLegacyId()) && user.has(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS).on(folder))) {
+			return ComponentState.INVISIBLE;
+		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
 				&& extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
+
 	}
 
 	ComponentState getAddFolderButtonState(User user, Folder folder) {
@@ -509,15 +514,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void duplicateFolderButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		Folder duplicatedFolder = decommissioningService().duplicateAndSave(folder, getCurrentUser());
-		view.navigate().to(RMViews.class).editFolder(duplicatedFolder.getId());
+		view.navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
 	}
 
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
-		Folder duplicatedFolder = decommissioningService().duplicateStructureAndSave(folder, getCurrentUser());
-		view.navigate().to(RMViews.class).displayFolder(duplicatedFolder.getId());
-		view.showMessage($("DisplayFolderView.duplicated"));
+		view.navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
 	}
 
 	public void linkToFolderButtonClicked() {

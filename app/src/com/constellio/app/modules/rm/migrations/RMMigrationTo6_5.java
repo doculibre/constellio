@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -19,7 +20,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class RMMigrationTo6_5 implements MigrationScript {
 	@Override
@@ -32,17 +32,27 @@ public class RMMigrationTo6_5 implements MigrationScript {
 			throws Exception {
 		new SchemaAlterationsFor6_5(collection, provider, factory).migrate();
 
-		givenNewPermissionsToRGDRole(collection,factory.getModelLayerFactory());
+		givenNewPermissionsToRGDandADMRoles(collection,factory.getModelLayerFactory());
 		addManageTrashRoleToRGDAndAdmin(collection, factory.getModelLayerFactory());
 
 	}
 
-	private void givenNewPermissionsToRGDRole(String collection, ModelLayerFactory modelLayerFactory) {
+	private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
 		Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
 		List<String> newRgdPermissions = new ArrayList<>();
-		newRgdPermissions.addAll(RMPermissionsTo.PERMISSIONS.getAll());
-		newRgdPermissions.addAll(CorePermissions.PERMISSIONS.getAll());
-		modelLayerFactory.getRolesManager().updateRole(rgdRole.withPermissions(newRgdPermissions));
+		newRgdPermissions.add(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
+		newRgdPermissions.add(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT);
+		newRgdPermissions.add(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS);
+		newRgdPermissions.add(RMPermissionsTo.MODIFY_IMPORTED_DOCUMENTS);
+		modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
+
+		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
+		List<String> newAdmPermissions = new ArrayList<>();
+		newAdmPermissions.add(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
+		newAdmPermissions.add(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT);
+		newAdmPermissions.add(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS);
+		newAdmPermissions.add(RMPermissionsTo.MODIFY_IMPORTED_DOCUMENTS);
+		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(newAdmPermissions));
 	}
 
 	public static class SchemaAlterationsFor6_5 extends MetadataSchemasAlterationHelper {

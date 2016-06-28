@@ -2,10 +2,10 @@ package com.constellio.app.modules.tasks.navigation;
 
 import static com.constellio.app.ui.params.ParamUtils.addParams;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.app.ui.application.CoreViews;
-import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.navigator.Navigator;
 
 public class TaskViews extends CoreViews {

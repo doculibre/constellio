@@ -1,18 +1,18 @@
 package com.constellio.app.ui.application;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPresenter;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresenter;
 import com.constellio.app.ui.params.ParamUtils;
-import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
 

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators;
 
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedInactiveDate;
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
 
 import java.util.Arrays;
@@ -29,14 +30,17 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 	LocalDependency<List<LocalDate>> copyRulesExpectedTransferDateParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).whichIsMultivalue();
 
-	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriodParam =
+	ConfigDependency<Integer> configSemiActiveNumberOfYearWhenVariableDelayPeriodParam =
+			RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
+	ConfigDependency<Integer> configInactiveNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
 	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
 
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
 		return Arrays.asList(decommissioningDateParam, archivisticStatusParam, datesAndDateTimesParam,
-				copyRulesExpectedTransferDateParam, configNumberOfYearWhenVariableDelayPeriodParam);
+				copyRulesExpectedTransferDateParam, configSemiActiveNumberOfYearWhenVariableDelayPeriodParam,
+				configInactiveNumberOfYearWhenVariableDelayPeriodParam);
 	}
 
 	@Override
@@ -75,7 +79,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 		}
 
 		LocalDate calculatedInactiveDate = calculateExpectedInactiveDate(copyRule, baseTransferDate,
-				input.numberOfYearWhenVariableDelayPeriod);
+				input.inactiveNumberOfYearWhenVariableDelayPeriod);
 
 		if (calculatedInactiveDate == null) {
 			return null;
@@ -98,7 +102,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 		List<LocalDate> copyRulesExpectedTransferDate;
 
-		Integer numberOfYearWhenVariableDelayPeriod;
+		Integer semiActiveNumberOfYearWhenVariableDelayPeriod, inactiveNumberOfYearWhenVariableDelayPeriod;
 		DynamicDependencyValues datesAndDateTimes;
 
 		public CalculatorInput(CalculatorParameters parameters) {
@@ -106,7 +110,10 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			this.archivisticStatus = parameters.get(archivisticStatusParam);
 			this.decommissioningDate = parameters.get(decommissioningDateParam);
 			this.copyRulesExpectedTransferDate = parameters.get(copyRulesExpectedTransferDateParam);
-			this.numberOfYearWhenVariableDelayPeriod = parameters.get(configNumberOfYearWhenVariableDelayPeriodParam);
+			this.semiActiveNumberOfYearWhenVariableDelayPeriod = parameters
+					.get(configSemiActiveNumberOfYearWhenVariableDelayPeriodParam);
+			this.inactiveNumberOfYearWhenVariableDelayPeriod = parameters
+					.get(configInactiveNumberOfYearWhenVariableDelayPeriodParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 		}
 
@@ -118,7 +125,16 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 			} else {
 				LocalDate date = datesAndDateTimesParam.getDate(semiActiveMetadata, datesAndDateTimes);
-				return date == null ? null : ajustToFinancialYear(date);
+				if (date == null) {
+					return null;
+				} else {
+
+					if (!copy.isIgnoreActivePeriod()) {
+						date = calculateExpectedTransferDate(copy, date, semiActiveNumberOfYearWhenVariableDelayPeriod);
+					}
+					date = ajustToFinancialYear(date);
+					return date;
+				}
 			}
 		}
 	}

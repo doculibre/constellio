@@ -20,24 +20,22 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class CheckedOutDocumentsTable implements Serializable {
-	private transient ModelLayerFactory modelLayerFactory;
 	private transient AppLayerFactory appLayerFactory;
 	private transient SessionContext sessionContext;
 	private transient RMSchemasRecordsServices rm;
 	private transient User user;
 
-	public CheckedOutDocumentsTable(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-		init(modelLayerFactory, sessionContext);
+	public CheckedOutDocumentsTable(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+		init(appLayerFactory, sessionContext);
 	}
 
 	public RecordVODataProvider getDataProvider() {
 		MetadataSchemaVO schema = new MetadataSchemaToVOBuilder().build(
 				rm.documentSchemaType().getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
-		return new RecordVODataProvider(schema, new RecordToVOBuilder(), modelLayerFactory, sessionContext) {
+		return new RecordVODataProvider(schema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchemaType document = rm.documentSchemaType();
@@ -47,16 +45,16 @@ public class CheckedOutDocumentsTable implements Serializable {
 		};
 	}
 
-	private void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-		this.modelLayerFactory = modelLayerFactory;
+	private void init(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+		this.appLayerFactory = appLayerFactory;
 		this.sessionContext = sessionContext;
 		rm = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), appLayerFactory);
-		user = new PresenterService(modelLayerFactory).getCurrentUser(sessionContext);
+		user = new PresenterService(appLayerFactory.getModelLayerFactory()).getCurrentUser(sessionContext);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		init(ConstellioFactories.getInstance().getModelLayerFactory(), ConstellioUI.getCurrentSessionContext());
+		init(ConstellioFactories.getInstance().getAppLayerFactory(), ConstellioUI.getCurrentSessionContext());
 	}
 }

@@ -28,6 +28,7 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 		new CoreSchemaAlterationFor6_4(collection, provider, appLayerFactory).migrate();
 		//initializeUsersLanguages(collection, appLayerFactory);a
 		applySchemasDisplay(collection, appLayerFactory.getMetadataSchemasDisplayManager());
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	private class CoreSchemaAlterationFor6_4 extends MetadataSchemasAlterationHelper {

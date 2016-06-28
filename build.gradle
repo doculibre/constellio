@@ -30,7 +30,7 @@ allprojects {
 
     repositories {
         flatDir {
-           dirs "${rootDir}/libs", "libs/"
+            dirs "${rootDir}/libs", "libs/"
         }
     }
 
@@ -109,13 +109,13 @@ allprojects {
     }
 
     jar {
-        version = '6.3.43'
+        version = '6.4.2.1'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "6.3.43"
+    version = "6.4.2.1"
 
     webInf {
         from("resources_i18n/") {

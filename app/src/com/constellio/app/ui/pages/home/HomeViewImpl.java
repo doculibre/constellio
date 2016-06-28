@@ -2,9 +2,12 @@ package com.constellio.app.ui.pages.home;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.vaadin.peter.contextmenu.ContextMenu;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.entities.navigation.PageItem;
@@ -17,12 +20,12 @@ import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -50,9 +53,12 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
 
 public class HomeViewImpl extends BaseViewImpl implements HomeView {
+	
 	private final HomePresenter presenter;
 	private List<PageItem> tabs;
 	private TabSheet tabSheet;
+	
+	private List<ContextMenuDecorator> contextMenuDecorators = new ArrayList<>();
 
 	public HomeViewImpl() {
 		presenter = new HomePresenter(this);
@@ -119,7 +125,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 		int position = tabSheet.getTabPosition(tab);
 		PageItem item = tabs.get(position);
-		
+
 		presenter.tabSelected(item.getCode());
 		tabSheet.setSelectedTab(position);
 
@@ -150,7 +156,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecentItemTable(RecentItemTable recentItems) {
 		RecentTable table = new RecentTable(
-				recentItems.getItems(getConstellioFactories().getModelLayerFactory(), getSessionContext()));
+				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
 		table.setSizeFull();
 		table.addStyleName("record-table");
 		return table;
@@ -158,7 +164,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Table buildRecordTable(RecordTable recordTable) {
 		Table table = new RecordVOTable(
-				recordTable.getDataProvider(getConstellioFactories().getModelLayerFactory(), getSessionContext()));
+				recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
@@ -182,7 +188,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
 		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
-				getConstellioFactories().getModelLayerFactory(), getSessionContext());
+				getConstellioFactories().getAppLayerFactory(), getSessionContext());
 		return providers.size() > 1 ?
 				buildRecordMultiTree(recordTree, providers) :
 				buildRecordTree(recordTree, providers.get(0));
@@ -209,11 +215,14 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				}
 			}
 		});
-		BaseContextMenu menu = recordTree.getContextMenu();
+		ContextMenu menu = recordTree.getContextMenu();
+		for (ContextMenuDecorator contextMenuDecorator : contextMenuDecorators) {
+			menu = contextMenuDecorator.decorate(this, menu);
+		}
 		if (menu != null) {
 			menu.setAsTreeContextMenu(tree.getNestedTree());
 		}
-		
+
 		tree.getNestedTree().setDragMode(TreeDragMode.NODE);
 		tree.getNestedTree().setDropHandler(new RMTreeDropHandlerImpl() {
 			@Override
@@ -231,6 +240,18 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 		component.setSizeFull();
 		return component;
+	}
+	
+	public void addContextMenuDecorator(ContextMenuDecorator decorator) {
+		this.contextMenuDecorators.add(decorator);
+	}
+	
+	public List<ContextMenuDecorator> getContextMenuDecorators() {
+		return this.contextMenuDecorators;
+	}
+	
+	public void removeContextMenuDecorator(ContextMenuDecorator decorator) {
+		this.contextMenuDecorators.remove(decorator);
 	}
 
 	private static class PlaceHolder extends CustomComponent {
@@ -299,5 +320,5 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
 	}
-	
+
 }

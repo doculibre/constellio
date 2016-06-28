@@ -186,22 +186,28 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return main;
 	}
 
-	private SearchResultTable buildResultTable() {
+	protected SearchResultTable buildResultTable() {
 		return buildDetailedResultsTable();
 	}
 
 	protected SearchResultTable buildDetailedResultsTable() {
-		SearchResultDetailedTable srTable = new SearchResultDetailedTable(buildResultContainer());
-		srTable.setCurrentPage(presenter.getPageNumber());
+		SearchResultContainer container = buildResultContainer();
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container);
 
-		int size = presenter.getSelectedPageLength();
-		if (size == 0) {
-			size = Math.min(srTable.size(), SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+		int totalResults = container.size();
+		int totalAmountOfPages =  srTable.getTotalAmountOfPages();
+		int currentPage = presenter.getPageNumber();
+		
+		int selectedPageLength = presenter.getSelectedPageLength();
+		if (selectedPageLength == 0) {
+			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
 		}
-
-		presenter.setSelectedPageLength(size);
-		srTable.setPageLength(size);
-		srTable.setItemsPerPageValue(size);
+		presenter.setSelectedPageLength(selectedPageLength);
+		
+		srTable.setPageLength(selectedPageLength);
+		srTable.setItemsPerPageValue(selectedPageLength);
+		srTable.setCurrentPage(currentPage);
+		
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
@@ -267,7 +273,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
 		criterion.setPageLength(criterion.size());
-		criterion.setValue(presenter.getSortCriterion());
+		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
 		order.addItem(SortOrder.ASCENDING);
