@@ -33,8 +33,8 @@ import com.constellio.sdk.tests.setups.Users;
 
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
-	private static final String CUSTOM_TASK_LOCAL_CODE = "zTask";
-	private static final String CUSTOM_TASK_NEW_METADATA = "zMeta";
+	private static final String CUSTOM_TASK_SCHEMA_LOCAL_CODE = "zTaskSchema";
+	private static final String CUSTOM_TASK_NEW_METADATA = "zTaskMeta";
 	TrashServices trashServices;
 	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -81,14 +81,14 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaTypeBuilder tasksSchemaType = types.getSchemaType(Task.SCHEMA_TYPE);
-				MetadataSchemaBuilder tasksSchema = tasksSchemaType.createCustomSchema(CUSTOM_TASK_LOCAL_CODE);
+				MetadataSchemaBuilder tasksSchema = tasksSchemaType.createCustomSchema(CUSTOM_TASK_SCHEMA_LOCAL_CODE);
 				MetadataSchemaBuilder folderSchemaBuilder = types.getDefaultSchema(Folder.SCHEMA_TYPE);
 				tasksSchema.create(CUSTOM_TASK_NEW_METADATA).setType(MetadataValueType.REFERENCE)
-						.defineReferencesTo(folderSchemaBuilder);
+						.defineReferencesTo(folderSchemaBuilder).setDefaultRequirement(true);
 			}
 		});
 		customTaskSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
-				.getSchemaType(Task.SCHEMA_TYPE).getSchema(CUSTOM_TASK_LOCAL_CODE);
+				.getSchemaType(Task.SCHEMA_TYPE).getSchema(CUSTOM_TASK_SCHEMA_LOCAL_CODE);
 		zMeta = customTaskSchema.getMetadata(CUSTOM_TASK_NEW_METADATA);
 	}
 
@@ -101,27 +101,24 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 				.setOpenDate(TimeProvider.getLocalDate());
 		recordServices.add(subFolder_B);
 		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema));
-		taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B);
+		recordServices.add(taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B).setTitle("zTask"));
 	}
 
-	/*@Test
+	@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
 			throws Exception {
 		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-		parentFolderInCategory_A= rm.getFolder(parentFolderInCategory_A.getId());
+		parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
 		try {
 			deleteService
 					.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
 							new RecordDeleteOptions().setMostReferencesToNull(true));
-
-			taskReferencesFolderB= tasks.getTask(taskReferencesFolderB.getId());
-			assertThat(taskReferencesFolderB.get(zMeta.getCode())).isNull();
-			fail("should find dependent referecenes");
+			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
 			assertThat(relatedRecords).contains(taskReferencesFolderB.getId());
 			assertThat(relatedRecords).doesNotContain(subFolder_B.getId(), category.getId());
-			parentFolderInCategory_A= rm.getFolder(parentFolderInCategory_A.getId());
+			parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
 			assertThat(parentFolderInCategory_A.getCategory()).isNull();
 		}
 	}
@@ -129,14 +126,14 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk2()
 			throws Exception {
-
 		deleteService.logicallyDelete(category.getWrappedRecord(), null);
 		category = rm.getCategory(category.getId());
 		try {
-
 			deleteService
 					.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
-			fail("should find dependent referecenes");
+			parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
+			assertThat(parentFolderInCategory_A.getCategoryEntered()).isNull();
+			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
 			//pas sure?!
@@ -156,9 +153,9 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		deleteService
 				.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
 
-		parentFolderInCategory_A= rm.getFolder(parentFolderInCategory_A.getId());
+		parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
 		deleteService
 				.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
 						new RecordDeleteOptions().setMostReferencesToNull(true));
-	}*/
+	}
 }
