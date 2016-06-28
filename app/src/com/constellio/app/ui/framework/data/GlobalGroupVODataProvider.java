@@ -183,6 +183,20 @@ public class GlobalGroupVODataProvider implements DataProvider {
 		return newGlobalGroupVOsInWithUsersInCollection;
 	}
 
+	public List<GlobalGroupVO> listActiveGlobalGroupVOsWithUsersInCollection(String collection) {
+
+		List<GlobalGroupVO> newGlobalGroupVOsInWithUsersInCollection = new ArrayList<>();
+		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
+			GlobalGroupStatus status = globalGroupVO.getStatus();
+			if ((status == null || status == GlobalGroupStatus.ACTIVE) &&
+					(globalGroupVO.getCollections().contains(collection))) {
+				newGlobalGroupVOsInWithUsersInCollection.add(globalGroupVO);
+			}
+		}
+		sort(newGlobalGroupVOsInWithUsersInCollection);
+		return newGlobalGroupVOsInWithUsersInCollection;
+	}
+
 	private void sort(List<GlobalGroupVO> globalGroupVOs) {
 		Collections.sort(globalGroupVOs, new Comparator<GlobalGroupVO>() {
 			@Override

@@ -205,7 +205,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 
 	private Table buildGroupsTable() {
 		GlobalGroupVODataProvider globalGroupVODataProvider = presenter.getGlobalGroupVODataProvider();
-		List<GlobalGroupVO> globalGroupsVO = globalGroupVODataProvider.listGlobalGroupVOsWithUsersInCollection(getCollection());
+		List<GlobalGroupVO> globalGroupsVO = globalGroupVODataProvider.listActiveGlobalGroupVOsWithUsersInCollection(getCollection());
 		globalGroupVODataProvider.setGlobalGroupVOs(globalGroupsVO);
 		Container container = buildGroupContainer(globalGroupVODataProvider);
 		Table table = new Table($("ListCollectionUserView.globalGroupsTableTitle", globalGroupVODataProvider.size()), container);
