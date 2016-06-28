@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
+import com.constellio.model.extensions.behaviors.SchemaExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -18,11 +19,13 @@ import com.constellio.model.extensions.events.records.RecordLogicalDeletionValid
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.extensions.events.schemas.SchemaEvent;
 
 public class ModelLayerCollectionExtensions {
 
@@ -31,6 +34,8 @@ public class ModelLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordImportExtension> recordImportExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
 
 	//----------------- Callers ---------------
 
@@ -136,6 +141,15 @@ public class ModelLayerCollectionExtensions {
 			@Override
 			public ExtensionBooleanResult call(RecordExtension behavior) {
 				return behavior.isPhysicallyDeletable(event);
+			}
+		});
+	}
+
+	public boolean isPutInTrashBeforePhysicalDelete(final SchemaEvent event) {
+		return schemaExtensions.getBooleanValue(true, new BooleanCaller<SchemaExtension>() {
+			@Override
+			public ExtensionBooleanResult call(SchemaExtension behavior) {
+				return behavior.isPutInTrashBeforePhysicalDelete(event);
 			}
 		});
 	}
