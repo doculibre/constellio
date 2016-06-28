@@ -290,6 +290,16 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichIsCalculatedUsingPattern(final String pattern) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asCalculatedStringUsingPattern(pattern);
+			}
+		};
+	}
+
 	public static MetadataBuilderConfigurator whichHasStructureFactory = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -740,6 +750,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public TestsSchemasSetup withAFixedSequence() {
+		zeDefaultSchemaBuilder.create("fixedSequenceMetadata").defineDataEntry().asFixedSequence("zeSequence");
+		return this;
+	}
+
+	public TestsSchemasSetup withADynamicSequence() {
+		zeDefaultSchemaBuilder.create("metadataDefiningSequenceNumber").setType(STRING);
+		zeDefaultSchemaBuilder.create("dynamicSequenceMetadata").defineDataEntry()
+				.asSequenceDefinedByMetadata("metadataDefiningSequenceNumber");
+		return this;
+	}
+
 	public static class ZeSchemaMetadatasAdapter implements SchemaShortcuts {
 
 		ZeSchemaMetadatas zeSchemaMetadatas;
@@ -772,6 +794,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 		public String firstReferenceToAnotherSchemaCompleteCode() {
 			return zeSchemaMetadatas.firstReferenceToAnotherSchemaCompleteCode();
+		}
+
+		public Metadata dynamicSequenceMetadata() {
+			return zeSchemaMetadatas.dynamicSequenceMetadata();
+		}
+
+		public Metadata fixedSequenceMetadata() {
+			return zeSchemaMetadatas.fixedSequenceMetadata();
+		}
+
+		public Metadata metadataDefiningSequenceNumber() {
+			return zeSchemaMetadatas.metadataDefiningSequenceNumber();
 		}
 
 		public Metadata firstReferenceToAnotherSchema() {
@@ -896,6 +930,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 	}
 
 	public class ZeSchemaMetadatas implements SchemaShortcuts {
+
+		public Metadata dynamicSequenceMetadata() {
+			return getMetadata(code() + "_" + "dynamicSequenceMetadata");
+		}
+
+		public Metadata fixedSequenceMetadata() {
+			return getMetadata(code() + "_" + "fixedSequenceMetadata");
+		}
+
+		public Metadata metadataDefiningSequenceNumber() {
+			return getMetadata(code() + "_" + "metadataDefiningSequenceNumber");
+		}
 
 		public Metadata metadataWithCode(String code) {
 			return getMetadata(code);

@@ -17,7 +17,7 @@ public class LocalDependency<T> implements Dependency {
 	final boolean required;
 	final MetadataValueType returnType;
 
-	private LocalDependency(String metadataCode, boolean required, boolean multivalue, MetadataValueType returnType) {
+	public LocalDependency(String metadataCode, boolean required, boolean multivalue, MetadataValueType returnType) {
 		super();
 		this.metadataCode = metadataCode;
 		this.required = required;

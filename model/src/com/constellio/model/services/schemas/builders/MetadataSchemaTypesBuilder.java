@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -331,7 +332,8 @@ public class MetadataSchemaTypesBuilder {
 			validateCalculatedMultivalue(metadataBuilder, calculatedDataEntry);
 			MetadataValueType valueTypeMetadataCalculated = calculatedDataEntry.getCalculator().getReturnType();
 			List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
-			if (dependencies == null || dependencies.size() == 0) {
+			boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
+			if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
 				throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
 						.getCalculator().getClass().getName());
 			}

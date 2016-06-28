@@ -25,16 +25,17 @@ public class ParametrizedInstanceUtils {
 			parentClass = Class.forName(element.getAttribute("name").getValue());
 		} catch (ClassNotFoundException e) {
 			throw new CannotInstanciate(type.getName(), e);
-		} catch (NullPointerException e) {
-			throw new NoSuchConstructor(type, null, e);
 		}
 
 		try {
 			List<Object> parameters = new ArrayList<>();
-			List<Class> parameterClasses = new ArrayList<>();
+			List<Class<?>> parameterClasses = new ArrayList<>();
 			this.getConstructorParameter(element, parameters, parameterClasses);
 
 			Constructor parentConstructor = this.getConstructor(parentClass, parameterClasses);
+			if (parentConstructor == null) {
+				throw new NoSuchConstructor(type, parameterClasses, null);
+			}
 			parent = (T) parentConstructor.newInstance(parameters.toArray());
 		} catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
 			throw new CannotInstanciate(type.getName(), e);
@@ -43,7 +44,7 @@ public class ParametrizedInstanceUtils {
 		return parent;
 	}
 
-	protected void getConstructorParameter(Element root, List<Object> parameters, List<Class> parameterClasses) {
+	protected void getConstructorParameter(Element root, List<Object> parameters, List<Class<?>> parameterClasses) {
 		for (Element child : root.getChildren()) {
 			parameters.add(toObject(child));
 		}
@@ -57,7 +58,7 @@ public class ParametrizedInstanceUtils {
 		}
 	}
 
-	private Constructor getConstructor(Class parentClass, List<Class> parameter) {
+	private Constructor getConstructor(Class parentClass, List<Class<?>> parameter) {
 
 		for (Constructor constructor : parentClass.getConstructors()) {
 			boolean sameParameter = true;

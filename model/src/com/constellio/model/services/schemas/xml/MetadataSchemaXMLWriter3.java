@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
@@ -27,15 +28,17 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
 import com.constellio.model.services.records.extractions.MetadataPopulator;
 import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
 import com.constellio.model.services.schemas.builders.ClassListBuilder;
+import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 
-public class MetadataSchemaXMLWriter2 {
+public class MetadataSchemaXMLWriter3 {
 
 	public static final String FORMAT_ATTRIBUTE = "format";
 	public static final String FORMAT_VERSION = MetadataSchemaXMLReader3.FORMAT_VERSION;
@@ -573,7 +576,23 @@ public class MetadataSchemaXMLWriter2 {
 
 		} else if (dataEntryValue.getType() == DataEntryType.CALCULATED) {
 			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) dataEntryValue;
-			dataEntry.setAttribute("calculator", calculatedDataEntry.getCalculator().getClass().getName());
+			MetadataValueCalculator calculator = calculatedDataEntry.getCalculator();
+			if (calculatedDataEntry.getCalculator() instanceof Parametrized) {
+				dataEntry = new ParametrizedInstanceUtils().toElement((Parametrized) calculator, "dataEntry");
+				dataEntry.setAttribute("calculator", "parametrized");
+
+			} else {
+				dataEntry.setAttribute("calculator", calculatedDataEntry.getCalculator().getClass().getName());
+			}
+
+		} else if (dataEntryValue.getType() == DataEntryType.SEQUENCE) {
+			SequenceDataEntry sequenceDataEntry = (SequenceDataEntry) dataEntryValue;
+			if (sequenceDataEntry.getFixedSequenceCode() != null) {
+				dataEntry.setAttribute("fixedSequenceCode", sequenceDataEntry.getFixedSequenceCode());
+			} else {
+				dataEntry.setAttribute("metadataProvidingSequenceCode", sequenceDataEntry.getMetadataProvidingSequenceCode());
+			}
+
 		}
 
 		return dataEntry;

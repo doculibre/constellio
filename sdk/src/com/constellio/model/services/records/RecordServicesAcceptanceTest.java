@@ -46,6 +46,7 @@ import org.mockito.ArgumentCaptor;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -65,6 +66,7 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -285,6 +287,84 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), valueTooLong);
 
 		recordServices.update(record);
+	}
+
+	@Test()
+	public void givenSchemaWithFixedSequenceMetadataWhenAddingValidRecordThenSetNewSequenceValue()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAFixedSequence());
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").defineDataEntry()
+						.asCalculatedStringUsingPattern("F{fixedSequenceMetadata}.00");
+
+			}
+		});
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isNull();
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isNull();
+
+		record.set(Schemas.TITLE, "Ze title");
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("1");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F1.00");
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		record.set(Schemas.TITLE, "Ze title");
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("2");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F2.00");
+
+	}
+
+	@Test()
+	public void givenSchemaWithDynamicSequenceMetadataWhenChangeSequenceSourceThenGetNewSequenceUsingNewSource()
+			throws Exception {
+
+		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
+		sequencesManager.set("sequence1", 42);
+		sequencesManager.set("sequence2", 666);
+
+		defineSchemasManager().using(schemas.withADynamicSequence());
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		recordServices.add(record);
+
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isNull();
+
+		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence1"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(43L);
+
+		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence2"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(667L);
+
+		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence1"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(44L);
+
+		recordServices.update(record.set(Schemas.TITLE, "zeTitle"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(44L);
+
 	}
 
 	@Test()

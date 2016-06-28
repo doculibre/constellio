@@ -9,6 +9,7 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
@@ -60,9 +61,10 @@ import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBefor
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -76,6 +78,7 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
@@ -99,11 +102,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DefaultClassProvider;
+import com.constellio.model.utils.Parametrized;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
@@ -708,6 +713,69 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(((CopiedDataEntry) dataEntry).getCopiedMetadata()).isEqualTo(anotherSchema.stringMetadata().getCode());
 		assertThat(((CopiedDataEntry) dataEntry).getReferenceMetadata()).isEqualTo(
 				zeSchema.firstReferenceToAnotherSchema().getCode());
+	}
+
+	@Test
+	public void whenSavingParameterizedCalculatedMetadataThenDataTypeAndParametersConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(zeSchema.code()).create("calculatedString").setType(STRING).defineDataEntry()
+						.asCalculated(new TestParametrizedMetadataValueCalculator("value1", 42));
+			}
+		}));
+
+		CalculatedDataEntry dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+
+		TestParametrizedMetadataValueCalculator calculator = (TestParametrizedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(dataEntry.getType()).isEqualTo(CALCULATED);
+		assertThat(calculator.parameter1).isEqualTo("value1");
+		assertThat(calculator.parameter2).isEqualTo(42);
+	}
+
+	@Test
+	public void whenSavingInitializedCalculatedMetadataThenInitializedWhenBuilt()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(zeSchema.code()).create("calculatedString").setType(STRING).defineDataEntry()
+						.asCalculated(TestInitializedMetadataValueCalculator.class);
+			}
+		}));
+
+		CalculatedDataEntry dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+		TestInitializedMetadataValueCalculator calculator = (TestInitializedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(calculator.initializationCounter).isEqualTo(1);
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
+			}
+		});
+
+		dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+		calculator = (TestInitializedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(calculator.initializationCounter).isEqualTo(2);
+	}
+
+	@Test
+	public void whenSavingSequenceMetadataThenDataTypeConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.withAFixedSequence().withADynamicSequence());
+
+		SequenceDataEntry fixedSeqDataEntry = (SequenceDataEntry) zeSchema.fixedSequenceMetadata().getDataEntry();
+		SequenceDataEntry dynamicSeqDataEntry = (SequenceDataEntry) zeSchema.dynamicSequenceMetadata().getDataEntry();
+
+		assertThat(fixedSeqDataEntry.getType()).isEqualTo(SEQUENCE);
+		assertThat(fixedSeqDataEntry.getFixedSequenceCode()).isEqualTo("zeSequence");
+		assertThat(fixedSeqDataEntry.getMetadataProvidingSequenceCode()).isNull();
+
+		assertThat(dynamicSeqDataEntry.getType()).isEqualTo(SEQUENCE);
+		assertThat(dynamicSeqDataEntry.getFixedSequenceCode()).isNull();
+		assertThat(dynamicSeqDataEntry.getMetadataProvidingSequenceCode()).isEqualTo("metadataDefiningSequenceNumber");
 	}
 
 	@Test
@@ -1471,14 +1539,17 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		return newTypes;
 	}
 
-	public static class CalculatorWithOtherSchemaTitleDependency implements MetadataValueCalculator<String> {
+	public static class TestInitializedMetadataValueCalculator implements InitializedMetadataValueCalculator<String> {
 
-		ReferenceDependency<String> title = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_title");
+		static int initializationCounter = 0;
+
+		MetadataSchemaTypes types;
+		MetadataSchema schema;
+		LocalDependency<String> titleParam = LocalDependency.toAString("title");
 
 		@Override
 		public String calculate(CalculatorParameters parameters) {
-			return null;
+			return parameters.get(titleParam);
 		}
 
 		@Override
@@ -1488,12 +1559,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
-		@Override
-		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(title);
+			return MetadataValueType.STRING;
 		}
 
 		@Override
@@ -1501,16 +1567,31 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(titleParam);
+		}
+
+		@Override
+		public void initialize(MetadataSchemaTypes types, MetadataSchema schema) {
+			initializationCounter++;
+		}
 	}
 
-	public static class CalculatorWithOtherSchemaCodeDependency implements MetadataValueCalculator<String> {
+	public static class TestParametrizedMetadataValueCalculator implements Parametrized, MetadataValueCalculator<String> {
 
-		ReferenceDependency<String> refCode = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_code");
+		String parameter1;
+		int parameter2;
+		LocalDependency<String> titleParam = LocalDependency.toAString("title");
+
+		public TestParametrizedMetadataValueCalculator(String parameter1, Integer parameter2) {
+			this.parameter1 = parameter1;
+			this.parameter2 = parameter2;
+		}
 
 		@Override
 		public String calculate(CalculatorParameters parameters) {
-			return null;
+			return parameter1 + ":" + parameter2 + parameters.get(titleParam);
 		}
 
 		@Override
@@ -1520,12 +1601,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
-		@Override
-		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(refCode);
+			return MetadataValueType.STRING;
 		}
 
 		@Override
@@ -1533,40 +1609,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 
-	}
-
-	public static class CalculatorWithOtherSchemaCodeAndTitleDependency implements MetadataValueCalculator<String> {
-
-		ReferenceDependency<String> title = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_title");
-		ReferenceDependency<String> refCode = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_code");
-
-		@Override
-		public String calculate(CalculatorParameters parameters) {
-			return null;
-		}
-
-		@Override
-		public String getDefaultValue() {
-			return null;
-		}
-
-		@Override
-		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
 		@Override
 		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(refCode, title);
+			return Arrays.asList(titleParam);
 		}
 
 		@Override
-		public boolean isMultiValue() {
-			return false;
+		public Object[] getInstanceParameters() {
+			return new Object[] { parameter1, parameter2 };
 		}
-
 	}
-
 }
