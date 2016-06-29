@@ -82,7 +82,8 @@ public class DisplayTaskPresenterAcceptanceTest extends ConstellioTest {
 		presenter.deleteButtonClicked();
 		LogicalSearchCondition allTasksQuery = from(
 				tasksSchemas.userTask.schema()).returnAll();
-		assertThat(searchServices.getResultsCount(allTasksQuery)).isEqualTo(0);
+		Task deletedTask = tasksSchemas.wrapTask(searchServices.searchSingleResult(allTasksQuery));
+		assertThat(deletedTask.getLogicallyDeletedStatus()).isTrue();
 	}
 
 }

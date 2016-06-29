@@ -33,6 +33,7 @@ import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEve
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -128,8 +129,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	private boolean putFirstInTrash(Record record) {
-		ModelLayerCollectionExtensions extensions = modelLayerFactory().getExtensions()
-				.forCollection(record.getCollection());
+		ModelLayerExtensions ext = modelLayerFactory().getExtensions();
+		if(ext == null){
+			return false;
+		}
+		ModelLayerCollectionExtensions extensions =	ext.forCollection(record.getCollection());
 		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
