@@ -40,6 +40,7 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -72,7 +73,7 @@ public class SDKPanel extends HorizontalLayout {
 
 	private Component newUpdateTimeButtom() {
 		DateField date = new DateField();
-		//date.addStyleName(ValoTheme.DATEFIELD_ALIGN_RIGHT);
+		date.setResolution(Resolution.MINUTE);
 		date.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
