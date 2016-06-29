@@ -52,7 +52,7 @@ public class TrashQueueManager implements StatefulService {
 		backgroundThreadsManager.configure(BackgroundThreadConfiguration
 				.repeatingAction("TrashQueueManager", deleteTrashRecordsAction)
 				.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
-				.executedEvery(Duration.standardDays(1))
+				.executedEvery(Duration.standardHours(3))
 				.between(new LocalTime(21, 0, 0), new LocalTime(4, 0, 0)));
 	}
 

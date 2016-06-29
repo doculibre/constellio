@@ -3,6 +3,7 @@ package com.constellio.sdk.tests;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -10,6 +11,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
@@ -21,6 +24,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.SystemLoadSimulator.SystemLoadLevel;
@@ -29,6 +33,8 @@ import com.constellio.sdk.tests.TestPagesComponentsExtensions.LoggedItem;
 import com.constellio.sdk.tests.TestPagesComponentsExtensions.LoggedItemCall;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.event.ItemClickEvent;
@@ -38,12 +44,14 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.DateField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class SDKPanel extends HorizontalLayout {
 
@@ -58,7 +66,33 @@ public class SDKPanel extends HorizontalLayout {
 		addComponent(newResetButton(loadLabel));
 		addComponent(newReindexButton());
 		addComponent(newSaveWindowPositionButtom());
+		addComponent(newUpdateTimeButtom());
 		addComponent(loadLabel);
+	}
+
+	private Component newUpdateTimeButtom() {
+		DateField date = new DateField();
+		//date.addStyleName(ValoTheme.DATEFIELD_ALIGN_RIGHT);
+		date.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				Date value = (Date) event.getProperty().getValue();
+				final LocalDateTime localDateTime = LocalDateTime.fromDateFields(value);
+				final LocalDate localDate = new LocalDate(localDateTime);
+				TimeProvider.setTimeProvider(new TimeProvider() {
+					@Override
+					public LocalDateTime getTimeProviderLocalDateTime() {
+						return localDateTime;
+					}
+
+					@Override
+					public LocalDate getTimeProviderLocalDate() {
+						return localDate;
+					}
+				});
+			}
+		});
+		return date;
 	}
 
 	private Button newReindexButton() {

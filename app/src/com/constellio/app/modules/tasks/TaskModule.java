@@ -16,6 +16,7 @@ import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension
 import com.constellio.app.modules.tasks.extensions.TaskSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
+import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationCombo;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_0_7;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo5_1_2;
@@ -68,6 +69,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.recordExtensions.add(new TaskSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new WorkflowRecordExtension(collection, appLayerFactory));
+		extensions.schemaExtensions.add(new TaskTrashSchemaExtension());
 
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 

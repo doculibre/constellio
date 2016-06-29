@@ -146,12 +146,13 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public boolean isPutInTrashBeforePhysicalDelete(final SchemaEvent event) {
-		return schemaExtensions.getBooleanValue(true, new BooleanCaller<SchemaExtension>() {
+		Boolean inTrashFirst = schemaExtensions.getBooleanValue(null, new BooleanCaller<SchemaExtension>() {
 			@Override
 			public ExtensionBooleanResult call(SchemaExtension behavior) {
 				return behavior.isPutInTrashBeforePhysicalDelete(event);
 			}
 		});
+		return (inTrashFirst == null) ? false : inTrashFirst;
 	}
 
 	@Deprecated
