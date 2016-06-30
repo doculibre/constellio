@@ -13,8 +13,8 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 
 public class RecoveryTransactionWriter extends TransactionWriterV1 {
 
-	public RecoveryTransactionWriter(DataLayerSystemExtensions extensions) {
-		super(extensions);
+	public RecoveryTransactionWriter(boolean writeZZRecords, DataLayerSystemExtensions extensions) {
+		super(writeZZRecords, extensions);
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public class RecoveryTransactionWriter extends TransactionWriterV1 {
 
 	@Override
 	public String toLogEntry(BigVaultServerTransaction transaction) {
-		if (transaction.getDeletedQueries()!= null && !transaction.getDeletedQueries().isEmpty()) {
+		if (transaction.getDeletedQueries() != null && !transaction.getDeletedQueries().isEmpty()) {
 			throw new RuntimeException("Delete by query not supported in recovery mode");
 		}
 
@@ -40,16 +40,15 @@ public class RecoveryTransactionWriter extends TransactionWriterV1 {
 		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
 
 		for (Object document : documents) {
-			if(document instanceof  SolrInputDocument){
+			if (document instanceof SolrInputDocument) {
 				appendAddUpdateSolrDocument(stringBuilder, (SolrInputDocument) document);
-			}else if(document instanceof SolrDocument){
+			} else if (document instanceof SolrDocument) {
 				appendAddUpdateSolrDocument(stringBuilder, toSolrInputDocument((SolrDocument) document));
-			}else{
+			} else {
 				throw new RuntimeException("Expecting solr document or solr input document : " + document.getClass().getName());
 			}
 		}
 		return stringBuilder.toString();
 	}
-
 
 }
