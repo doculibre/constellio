@@ -40,6 +40,8 @@ public interface DataLayerConfiguration {
 
 	boolean isSecondTransactionLogEnabled();
 
+	boolean isWriteZZRecords();
+
 	File getSecondTransactionLogBaseFolder();
 
 	int getBackgroudThreadsPoolSize();
@@ -55,6 +57,8 @@ public interface DataLayerConfiguration {
 	SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter();
 
 	void setSecondTransactionLogFolderEnabled(boolean enable);
+
+	void setWriteZZRecords(boolean enable);
 
 	boolean isLocalHttpSolrServer();
 

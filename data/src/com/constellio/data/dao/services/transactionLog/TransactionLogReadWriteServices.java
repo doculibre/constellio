@@ -37,6 +37,6 @@ public class TransactionLogReadWriteServices {
 	}
 
 	public String toLogEntry(BigVaultServerTransaction transaction) {
-		return new TransactionWriterV1(extensions).toLogEntry(transaction);
+		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toLogEntry(transaction);
 	}
 }

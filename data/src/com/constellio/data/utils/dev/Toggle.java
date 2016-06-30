@@ -15,10 +15,12 @@ public class Toggle {
 	public static AvailableToggle ADD_EXISTING_TASK = newToggle();
 	public static AvailableToggle TESTING_ACTION_PAT = newToggle();
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
+	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
+
 
 	static {
 		for (Field field : Toggle.class.getDeclaredFields()) {
