@@ -29,6 +29,7 @@ import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -237,28 +238,27 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
 		Record rmRecord = recordServices.getRecordByMetadata(legacyIdMetadata, url);
 		Folder rmFolder;
+		String parentPath = getParentPath(url, folderName);
+		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
+
 		if (rmRecord == null) {
-
-			String parentPath = getParentPath(url, folderName);
-			Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
-
 			rmFolder = rm.newFolder().setTitle(folderName);
-			rmFolder.setCreatedByRobot(robotId);
 			rmFolder.setLegacyId(url);
-			rmFolder.setParentFolder(parentFolder);
-			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
-			recordServices.recalculate(rmFolder);
-			classifyDocumentsFromFolder(rmFolder);
+
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);
 			rmFolder.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, false);
-			recordServices.recalculate(rmFolder);
-			mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
-			classifyDocumentsFromFolder(rmFolder);
 		}
-		//		if (params.getActionAfterClassification().isConnectorDocumentExcluded()) {
-		//			markAsUnfetched(connectorFolder);
-		//		}
+
+		rmFolder.setCreatedByRobot(robotId);
+		rmFolder.setParentFolder(parentFolder);
+		mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
+		if (params.getDefaultParentFolder() != null && parentFolder == null) {
+			rmFolder.setParentFolder(params.getDefaultParentFolder());
+		}
+		recordServices.recalculate(rmFolder);
+		classifyDocumentsFromFolder(rmFolder);
+
 	}
 
 	private void markAsUnfetched(ConnectorDocument connectorDocument) {
@@ -463,24 +463,19 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void useAllDefaultValuesFromParams(Folder rmFolder) {
-		if (rmFolder.getParentFolder() == null && params.getDefaultParentFolder() != null) {
-			rmFolder.setParentFolder(params.getDefaultParentFolder());
-		}
-		if (rmFolder.getAdministrativeUnitEntered() == null && params.getDefaultAdminUnit() != null) {
+
+		//rmFolder.setParentFolder(params.getDefaultParentFolder());
+		String taxonomy = params.getInTaxonomy();
+		if (!RMTaxonomies.ADMINISTRATIVE_UNITS.equals(taxonomy)) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
-		if (rmFolder.getCategoryEntered() == null && params.getDefaultCategory() != null) {
+
+		if (!RMTaxonomies.CLASSIFICATION_PLAN.equals(taxonomy)) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
-		if (params.getDefaultRetentionRule() != null) {
-			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
-		}
-		if (params.getDefaultCopyStatus() != null) {
-			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
-		}
-		if (params.getDefaultOpenDate() != null) {
-			rmFolder.setOpenDate(params.getDefaultOpenDate());
-		}
+		rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
+		rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
+		rmFolder.setOpenDate(params.getDefaultOpenDate());
 	}
 
 	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {
