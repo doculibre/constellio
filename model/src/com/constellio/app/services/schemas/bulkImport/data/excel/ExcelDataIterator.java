@@ -50,11 +50,16 @@ public class ExcelDataIterator extends LazyIterator<Map<String, Object>> impleme
 			return null;
 		}
 
-		while (lineIsEmpty()) {
-			lineToParse++;
-		}
+		try {
+			while (lineIsEmpty()) {
+				lineToParse++;
+			}
 
-		return parseLine();
+			return parseLine();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			//OK
+			return null;
+		}
 	}
 
 	private Map<String, Object> parseLine() {
@@ -85,6 +90,7 @@ public class ExcelDataIterator extends LazyIterator<Map<String, Object>> impleme
 				return false;
 			}
 		}
+
 		return true;
 	}
 
