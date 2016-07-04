@@ -37,6 +37,14 @@ public class AppSchemasServices {
 
 	}
 
+	public boolean isSchemaDeletable(String collection, String schemaCode) {
+		return false;
+	}
+
+	public void deleteSchemaCode(String collection, String schemaCode) {
+
+	}
+
 	public void modifySchemaCode(String collection, final String fromCode, final String toCode) {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 		validateModificationAllowed(types, fromCode, toCode);
