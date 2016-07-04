@@ -1,14 +1,14 @@
-package com.constellio.model.conf.ldap;
+package com.constellio.model.conf.ldap.config;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.Duration;
 
+import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 
 public class LDAPUserSyncConfiguration {
-
 	String user;
 
 	String password;
@@ -19,11 +19,10 @@ public class LDAPUserSyncConfiguration {
 
 	Duration durationBetweenExecution;
 
-	private final List<String> groupBaseContextList;
-
-	private List<String> usersWithoutGroupsBaseContextList;
-
 	private List<String> selectedCollectionsCodes;
+
+	ADAzurUserSynchConfig azurUserSynchConfig;
+	NonAzurADUserSynchConfig nonAzurADUserSynchConfig;
 
 	public LDAPUserSyncConfiguration(String user, String password,
 									 RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
@@ -39,8 +38,8 @@ public class LDAPUserSyncConfiguration {
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
-		this.groupBaseContextList = groupBaseContextList;
-		this.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
+		this.nonAzurADUserSynchConfig.groupBaseContextList = groupBaseContextList;
+		this.nonAzurADUserSynchConfig.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
 	}
 
@@ -84,11 +83,11 @@ public class LDAPUserSyncConfiguration {
 	}
 
 	public List<String> getGroupBaseContextList() {
-		return groupBaseContextList;
+		return nonAzurADUserSynchConfig.groupBaseContextList;
 	}
 
 	public List<String> getUsersWithoutGroupsBaseContextList() {
-		return usersWithoutGroupsBaseContextList;
+		return nonAzurADUserSynchConfig.usersWithoutGroupsBaseContextList;
 	}
 
 	public String getUsersFilterAcceptanceRegex() {

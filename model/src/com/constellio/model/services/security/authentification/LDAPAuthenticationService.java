@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;

@@ -10,6 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.conf.LDAPTestConfig;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {

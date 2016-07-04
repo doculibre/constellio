@@ -14,6 +14,8 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;

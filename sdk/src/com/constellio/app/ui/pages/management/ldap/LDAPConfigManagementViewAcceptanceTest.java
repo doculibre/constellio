@@ -6,8 +6,8 @@ import org.junit.Test;
 
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.conf.LDAPTestConfig;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
