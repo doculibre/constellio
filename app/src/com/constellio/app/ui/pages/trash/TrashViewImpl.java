@@ -46,10 +46,10 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		vLayout = new VerticalLayout();
-		typeSelectionDropDown = buildTypeSelectionComponent();
-		vLayout.addComponent(typeSelectionDropDown);
-		recordsToDeleteMessage = buildRecordsToDeleteMessage();
-		vLayout.addComponent(recordsToDeleteMessage);
+		this.typeSelectionDropDown = buildTypeSelectionComponent();
+		vLayout.addComponent(this.typeSelectionDropDown);
+		this.recordsToDeleteMessage = buildRecordsToDeleteMessage();
+		vLayout.addComponent(this.recordsToDeleteMessage);
 
 		logicallyDeletedRecordsTable = buildTrashTable();
 		vLayout.addComponent(logicallyDeletedRecordsTable);
@@ -57,11 +57,11 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	}
 
 	private Label buildRecordsToDeleteMessage() {
-		recordsToDeleteMessage = new Label(
+		Label message = new Label(
 				"<p style=\"color:red\">" + $("TrashView.recordsToDeleteMessage", presenter.getLogicallyDeletedRecordsCount())
 						+ "</p>",
 				ContentMode.HTML);
-		return recordsToDeleteMessage;
+		return message;
 	}
 
 	private ComboBox buildTypeSelectionComponent() {
@@ -107,6 +107,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				Set<String> notDeleted = presenter.deleteSelection();
+				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
 				if (!notDeleted.isEmpty()) {
@@ -118,11 +119,13 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		return deleteSelectionButton;
 	}
 
+
 	private Button buildRestoreSelectionButton() {
 		restoreSelectionButton = new BaseButton($("TrashView.restoreSelection")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				List<String> notRestored = presenter.restoreSelection();
+				replaceDeletedRecordsTypeAndCountComponents();
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
 				if (!notRestored.isEmpty()) {
@@ -170,5 +173,15 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 		boolean atLeastOneRecordSelected = presenter.atLeastOneRecordSelected();
 		this.restoreSelectionButton.setEnabled(atLeastOneRecordSelected);
 		this.deleteSelectionButton.setEnabled(atLeastOneRecordSelected);
+	}
+
+	private void replaceDeletedRecordsTypeAndCountComponents() {
+		ComboBox newType = buildTypeSelectionComponent();
+		vLayout.replaceComponent(this.typeSelectionDropDown, newType);
+		this.typeSelectionDropDown = newType;
+
+		Label newMessage = buildRecordsToDeleteMessage();
+		vLayout.replaceComponent(this.recordsToDeleteMessage, newMessage);
+		this.recordsToDeleteMessage = newMessage;
 	}
 }

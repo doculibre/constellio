@@ -122,7 +122,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	}
 
 	public long getLogicallyDeletedRecordsCount() {
-		return searchServices().getResultsCount(trashServices().getTrashRecordsQueryForCollection(collection, getCurrentUser()));
+		return trashServices().getLogicallyDeletedRecordsCount(collection, getCurrentUser());
 	}
 
 	public Boolean physicalDeleteFailed(RecordVO recordVO) {
