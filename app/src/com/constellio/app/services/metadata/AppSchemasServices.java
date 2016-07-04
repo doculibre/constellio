@@ -3,20 +3,26 @@ package com.constellio.app.services.metadata;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 
@@ -38,11 +44,36 @@ public class AppSchemasServices {
 	}
 
 	public boolean isSchemaDeletable(String collection, String schemaCode) {
-		return false;
+		if (schemaCode.endsWith("default")) {
+			return false;
+		} else {
+			List<String> references = getReferencesWithDirectAllowedReference(collection, schemaCode);
+
+			MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
+			return references.isEmpty() && !searchServices.hasResults(from(schema).returnAll());
+		}
+	}
+
+	private List<String> getReferencesWithDirectAllowedReference(String collection, String schemaCode) {
+		List<String> references = new ArrayList<>();
+
+		String schemaType = new SchemaUtils().getSchemaTypeCode(schemaCode);
+
+		for (Metadata metadata : schemasManager.getSchemaTypes(collection).getAllMetadatas().onlyReferencesToType(schemaType)) {
+			Set<String> allowedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
+			if (allowedSchemas != null && !allowedSchemas.isEmpty()) {
+				references.add(metadata.getCode());
+			}
+		}
+
+		return references;
 	}
 
 	public void deleteSchemaCode(String collection, String schemaCode) {
-
+		if (!isSchemaDeletable(collection, schemaCode)) {
+			throw new AppSchemasServicesRuntimeException_CannotDeleteSchema(schemaCode);
+		}
+		schemasManager.deleteCustomSchemas(asList(schemasManager.getSchemaTypes(collection).getSchema(schemaCode)));
 	}
 
 	public void modifySchemaCode(String collection, final String fromCode, final String toCode) {
@@ -61,9 +92,33 @@ public class AppSchemasServices {
 		types = schemasManager.getSchemaTypes(collection);
 
 		modifyRecords(collection, types.getSchema(fromCode), types.getSchema(toCode));
+		modifyReferencesWithDirectTarget(types, fromCode, toCode);
 		configureNewSchema(collection, fromCode, toCode);
 
 		schemasManager.deleteCustomSchemas(asList(types.getSchema(fromCode)));
+	}
+
+	private void modifyReferencesWithDirectTarget(MetadataSchemaTypes types, final String fromCode, final String toCode) {
+		final List<String> referencesCodeToUpdate = getReferencesWithDirectAllowedReference(types.getCollection(), fromCode);
+		if (!referencesCodeToUpdate.isEmpty()) {
+			schemasManager.modify(types.getCollection(), new MetadataSchemaTypesAlteration() {
+
+				@Override
+				public void alter(MetadataSchemaTypesBuilder types) {
+					for (String referenceCodeToUpdate : referencesCodeToUpdate) {
+						MetadataBuilder metadataBuilder = types.getMetadata(referenceCodeToUpdate);
+						Set<String> allowedSchemas = new HashSet<String>(metadataBuilder.defineReferences().getSchemas());
+						allowedSchemas.remove(fromCode);
+						allowedSchemas.add(toCode);
+
+						metadataBuilder.defineReferences().clearSchemas();
+						for (String allowedSchema : allowedSchemas) {
+							metadataBuilder.defineReferences().add(types.getSchema(allowedSchema));
+						}
+					}
+				}
+			});
+		}
 	}
 
 	private void modifyRecords(String collection, final MetadataSchema originalSchema, final MetadataSchema destinationSchema) {
