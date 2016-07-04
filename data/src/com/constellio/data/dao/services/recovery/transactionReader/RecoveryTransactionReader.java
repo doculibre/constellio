@@ -6,7 +6,7 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 
 public class RecoveryTransactionReader extends TransactionLogReadWriteServices {
-	public RecoveryTransactionReader(IOServices ioServices,
+	public RecoveryTransactionReader(boolean writeZZRecords, IOServices ioServices,
 			DataLayerConfiguration configuration) {
 		super(ioServices, configuration, new AcceptAllExtension());
 	}

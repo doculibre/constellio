@@ -17,10 +17,13 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 
 public class TransactionWriterV1 {
 
+	boolean writeZZRecords;
+
 	DataLayerSystemExtensions extensions;
 
-	public TransactionWriterV1(DataLayerSystemExtensions extensions) {
+	public TransactionWriterV1(boolean writeZZRecords, DataLayerSystemExtensions extensions) {
 		this.extensions = extensions;
+		this.writeZZRecords = writeZZRecords;
 	}
 
 	public String toLogEntry(BigVaultServerTransaction transaction) {
@@ -158,7 +161,7 @@ public class TransactionWriterV1 {
 	}
 
 	private boolean isLogged(String id) {
-		return !id.endsWith("ZZ");
+		return writeZZRecords || !id.endsWith("ZZ");
 	}
 
 	protected void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {

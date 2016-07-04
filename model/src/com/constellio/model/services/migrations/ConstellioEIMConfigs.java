@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
@@ -13,6 +14,7 @@ import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConstellioEIMConfigs {
 
@@ -39,6 +41,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration TRASH_PURGE_DELAI;
 
 	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+	public static final SystemConfiguration WRITE_ZZRECORDS_IN_TLOG;
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
 
@@ -80,6 +83,8 @@ public class ConstellioEIMConfigs {
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
+		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
+				.scriptedBy(WriteZZRecordsScript.class));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -114,6 +119,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(CONSTELLIO_URL);
 	}
 
+	public Boolean isWriteZZRecordsInTlog() {
+		return manager.getValue(WRITE_ZZRECORDS_IN_TLOG);
+	}
+
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
@@ -144,5 +153,14 @@ public class ConstellioEIMConfigs {
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {
 		return configurations;
+	}
+
+	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
+
+		@Override
+		public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
+			modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().setWriteZZRecords(newValue);
+		}
+
 	}
 }
