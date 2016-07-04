@@ -17,6 +17,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteOptions;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
@@ -33,10 +35,12 @@ public class TrashServices {
 	private final ModelLayerFactory modelLayerFactory;
 	private final String collection;
 	private RecordServices recordServices;
+	private final SearchServices searchServices;
 
 	public TrashServices(ModelLayerFactory modelLayerFactory, String collection) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.collection = collection;
+		searchServices = modelLayerFactory.newSearchServices();
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForType(String selectedType, User currentUser) {
@@ -47,8 +51,30 @@ public class TrashServices {
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollection(String collection, User currentUser) {
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
+		List<MetadataSchemaType> trashSchemaList = getTrashSchemaTypes(collection);
+		LogicalSearchCondition condition = from(trashSchemaList).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
 		return new LogicalSearchQuery(condition).filteredWithUserDelete(currentUser).sortDesc(Schemas.LOGICALLY_DELETED_ON);
+	}
+
+	private List<MetadataSchemaType> getTrashSchemaTypes(String collection) {
+		List<MetadataSchemaType> returnList = new ArrayList<>();
+		ModelLayerCollectionExtensions extension = modelLayerFactory.getExtensions()
+				.forCollection(collection);
+		List<MetadataSchemaType> allCollectionSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
+				.getSchemaTypes(collection).getSchemaTypes();
+		for (MetadataSchemaType schemaType : allCollectionSchemaTypes) {
+			final String schemaTypeCode = schemaType.getCode();
+			SchemaEvent schemaEvent = new SchemaEvent() {
+				@Override
+				public String getSchemaCode() {
+					return schemaTypeCode;
+				}
+			};
+			if (extension.isPutInTrashBeforePhysicalDelete(schemaEvent)) {
+				returnList.add(schemaType);
+			}
+		}
+		return returnList;
 	}
 
 	public List<String> restoreSelection(Set<String> selectedRecords, User currentUser) {
@@ -137,5 +163,9 @@ public class TrashServices {
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	public long getLogicallyDeletedRecordsCount(String collection, User currentUser) {
+		return searchServices.getResultsCount(getTrashRecordsQueryForCollection(collection, currentUser));
 	}
 }

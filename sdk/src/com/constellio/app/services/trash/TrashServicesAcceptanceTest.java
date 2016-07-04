@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -27,6 +28,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
@@ -34,6 +36,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.trash.TrashServices;
+import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -73,6 +77,23 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		deleteLogicallyAFolderADocumentAndACategory();
 		deleteTaskFromBusinessCollection();
+		deleteUserChuck();
+		deleteCartLogically();
+	}
+
+	private void deleteCartLogically()
+			throws RecordServicesException {
+		Cart cart = rm.newCart();
+		User adminInZCollection = users.adminIn(zeCollection);
+		recordServices.add(cart.setOwner(adminInZCollection).setTitle("zCart"));
+		recordServices.logicallyDelete(cart.getWrappedRecord(), adminInZCollection);
+	}
+
+	private void deleteUserChuck() {
+		UserServices userServices = getModelLayerFactory()
+				.newUserServices();
+		UserCredential chuck = users.chuckNorris();
+		userServices.removeUserCredentialAndUser(chuck);
 	}
 
 	private void deleteTaskFromBusinessCollection()
@@ -163,12 +184,18 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 		assertThat(recordIds).doesNotContain(task.getId());
 	}
 
-
 	@Test
 	public void whenGetTypesWithLogicallyDeletedRecordsThenOk()
 			throws Exception {
 		Set<String> types = trashServices.getTypesWithLogicallyDeletedRecords(zeCollection, admin);
 		assertThat(types).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Category.SCHEMA_TYPE);
+	}
+
+	@Test
+	public void whenGetLogicallyDeletedRecordsCountThenOk()
+			throws Exception {
+		long count = trashServices.getLogicallyDeletedRecordsCount(zeCollection, admin);
+		assertThat(count).isEqualTo(8);
 	}
 
 	@Test
@@ -190,15 +217,14 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecord(doc).hasMetadataValue(Schemas.LOGICALLY_DELETED_STATUS, true);
 	}
 
-
 	@Test
 	public void givenDeletableRecordWhenDeleteSelectionThenOk()
 			throws Exception {
 		trashServices.deleteSelection(new HashSet<>(asList(documentInADeletedFolder)), admin);
-		try{
+		try {
 			recordServices.getDocumentById(documentInADeletedFolder);
 			fail("was not deleted physically");
-		}catch (NoSuchRecordWithId e){
+		} catch (NoSuchRecordWithId e) {
 			//OK
 		}
 	}
@@ -208,10 +234,10 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		//TODO and add another test with problematic delete
 		trashServices.deleteSelection(new HashSet<>(asList(folderDeletedLogicallyId)), admin);
-		try{
+		try {
 			recordServices.getDocumentById(folderDeletedLogicallyId);
 			fail("was not deleted physically");
-		}catch (NoSuchRecordWithId e){
+		} catch (NoSuchRecordWithId e) {
 			//OK
 		}
 	}
