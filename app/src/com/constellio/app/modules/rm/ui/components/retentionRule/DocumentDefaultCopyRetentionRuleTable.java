@@ -17,10 +17,13 @@ import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.MetadataCodeToStringConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdListToStringConverter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordComboBox;
@@ -32,18 +35,12 @@ import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.VaadinSession;
+import com.vaadin.ui.*;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 
 public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private static final String COPY_TYPE = "copyType";
+	private static final String DETAILS = "details";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
 	private static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
 	private static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";
@@ -90,6 +87,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 		table.setPageLength(0);
 
 		table.setColumnHeader(COPY_TYPE, $("DocumentDefaultCopyRetentionRuleListTable.copyType"));
+		table.setColumnHeader(DETAILS, $("FolderCopyRetentionRuleListTable.details"));
 		table.setColumnHeader(MEDIUM_TYPES, $("DocumentDefaultCopyRetentionRuleListTable.mediumTypes"));
 		table.setColumnHeader(CONTENT_TYPES_COMMENT, "");
 		table.setColumnHeader(ACTIVE_RETENTION_PERIOD, $("DocumentDefaultCopyRetentionRuleListTable.active"));
@@ -101,6 +99,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 		if (formMode) {
 			table.addContainerProperty(COPY_TYPE, Label.class, null);
+			table.addContainerProperty(DETAILS, DetailsFieldGroup.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, MediumTypesField.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, MiniTextField.class, null);
 			table.addContainerProperty(ACTIVE_RETENTION_PERIOD, ActiveRetentionPeriodFieldGroup.class, null);
@@ -181,6 +180,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 		if (formMode) {
 			ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(
 					copyRetentionRule);
+			final DetailsFieldGroup detailsField = new DetailsFieldGroup(copyRetentionRule);
 			MediumTypesField mediumTypesField = new MediumTypesField(copyRetentionRule);
 			MiniTextField contentTypesCommentField = new MiniTextField();
 			MiniTextField activeRetentionCommentField = new MiniTextField();
@@ -198,6 +198,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
 			table.getContainerProperty(copyRetentionRule, COPY_TYPE).setValue(copyTypeLabel);
+			table.getContainerProperty(copyRetentionRule, DETAILS).setValue(detailsField);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesField);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentField);
 			table.getContainerProperty(copyRetentionRule, ACTIVE_RETENTION_PERIOD).setValue(activeRetentionPeriodFieldGroup);
@@ -431,6 +432,53 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 				Label retentionPeriodLabel = new Label("" + retentionPeriod.getValue());
 				addComponents(metadataLabel, retentionPeriodLabel);
 			}
+		}
+
+	}
+
+	private class DetailsFieldGroup extends VerticalLayout {
+
+		private BaseTextField titleField;
+		private BaseTextArea descriptionField;
+		private CheckBox ignoreActivePeriodField;
+
+		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),$("DetailsFieldGroup.detailsWindow")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout windowLayout = new VerticalLayout();
+
+					windowLayout.setSpacing(true);
+					Property<String> titleProperty = new MethodProperty<>(copyRetentionRule, "title");
+					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
+					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule,"ignoreActivePeriod");
+
+					titleField = new BaseTextField($("DetailsFieldGroup.title"), titleProperty);
+					titleField.setWidth("90%");
+					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
+					descriptionField.setWidth("90%");
+					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
+
+					Button closeButton = new BaseButton("OK") {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							getWindow().close();
+						}
+					};
+
+					windowLayout.addComponents(titleField, descriptionField,ignoreActivePeriodField,closeButton);
+					return windowLayout;
+				}
+			};
+			addComponent(windowButton);
+		}
+
+		public BaseTextField getTitleField() {
+			return titleField;
+		}
+
+		public BaseTextArea getDescriptionField() {
+			return descriptionField;
 		}
 
 	}

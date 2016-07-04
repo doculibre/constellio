@@ -164,7 +164,8 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 
 	private ContentManager contentManager;
 
-	LocalDate squatreNovembre = new LocalDate(2010, 11, 4);
+	LocalDate squatreNovembre2010 = new LocalDate(2010, 11, 4), squatreNovembre = new LocalDate(2010, 11, 4);
+	LocalDate squatreNovembre2015 = new LocalDate(2015, 11, 4);
 
 	@Before
 	public void setUp()
@@ -460,6 +461,80 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	}
 
 	@Test
+	public void givenFolderAlreadyClassifiedUsingDirectInThePlanActionWhenRerunRobotWithDifferentParametersThenUpdated()
+			throws Exception {
+		notAUnitItest = true;
+		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
+		ClassifyConnectorFolderDirectlyInThePlanActionParameters parameters = ClassifyConnectorFolderDirectlyInThePlanActionParameters
+				.wrap(robotsSchemas
+						.newActionParameters(ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING)
+				.setDefaultCategory(records.categoryId_X).setDefaultAdminUnit(
+						records.unitId_10).setDefaultCopyStatus(CopyType.PRINCIPAL).setDefaultRetentionRule(
+						records.ruleId_3).setDefaultOpenDate(squatreNovembre2010));
+
+		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+								.where(es.connectorSmbFolder.url()).isContainingText("/"))
+				.setAction(ClassifyConnectorFolderDirectlyInThePlanActionExecutor.ID).setCode("terminator")
+				.setTitle("terminator"));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
+		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderA.getOpenDate()).isEqualTo(squatreNovembre2010);
+		assertThat(folderA.getCategory()).isEqualTo(records.categoryId_X);
+		assertThat(folderA.getAdministrativeUnit()).isEqualTo(records.unitId_10);
+		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
+
+		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
+		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre2010);
+		assertThat(folderAA.getCategory()).isEqualTo(records.categoryId_X);
+		assertThat(folderAA.getAdministrativeUnit()).isEqualTo(records.unitId_10);
+		assertThat(folderAA.getCreatedByRobot()).isEqualTo(robotId);
+
+		recordServices.update(parameters.setActionAfterClassification(DO_NOTHING)
+				.setDefaultCategory(records.categoryId_X13).setDefaultAdminUnit(
+						records.unitId_30).setDefaultCopyStatus(CopyType.SECONDARY).setDefaultRetentionRule(
+						records.ruleId_4).setDefaultOpenDate(squatreNovembre2015));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		folderA = getFolderByLegacyId(folderANoTaxoURL);
+		assertThat(folderA.getParentFolder()).isNull();
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_4);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+		assertThat(folderA.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+		assertThat(folderA.getOpenDate()).isEqualTo(squatreNovembre2015);
+		assertThat(folderA.getCategory()).isEqualTo(records.categoryId_X13);
+		assertThat(folderA.getAdministrativeUnit()).isEqualTo(records.unitId_30);
+		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
+
+		folderAA = getFolderByLegacyId(folderAANoTaxoURL);
+		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_4);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.SECONDARY);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre2015);
+		assertThat(folderAA.getCategory()).isEqualTo(records.categoryId_X13);
+		assertThat(folderAA.getAdministrativeUnit()).isEqualTo(records.unitId_30);
+		assertThat(folderAA.getCreatedByRobot()).isEqualTo(robotId);
+	}
+
+	@Test
 	public void whenClassifyingFoldersDirectlyInThePlanMultipleTimeThenOverwrite()
 			throws Exception {
 		notAUnitItest = true;
@@ -707,6 +782,61 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderB.getRetentionRule()).isEqualTo(records.ruleId_3);
 		assertThat(folderB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderB.getOpenDate()).isEqualTo(squatreNovembre);
+
+		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
+	}
+
+	@Test
+	public void givenFolderAlreadyClassifiedUsingDirectInFolderActionWhenRerunRobotWithDifferentParametersThenUpdated()
+			throws Exception {
+		notAUnitItest = true;
+		givenFetchedFoldersAndDocumentsWithoutValidTaxonomyPath();
+		ClassifyConnectorFolderInParentFolderActionParameters parameters = ClassifyConnectorFolderInParentFolderActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setActionAfterClassification(DO_NOTHING).setDefaultParentFolder(records.folder_A07)
+				.setDefaultOpenDate(squatreNovembre2010));
+
+		recordServices.add(robotsSchemas.newRobotWithId(robotId).setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbFolder.SCHEMA_TYPE).setSearchCriterion(
+						new CriterionBuilder(ConnectorSmbFolder.SCHEMA_TYPE)
+								.where(es.connectorSmbFolder.url()).isContainingText("/"))
+				.setAction(ClassifyConnectorFolderInParentFolderActionExecutor.ID).setCode("terminator").setTitle("terminator"));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		Folder folderA = getFolderByLegacyId(folderANoTaxoURL);
+		assertThat(folderA.getParentFolder()).isEqualTo(records.folder_A07);
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
+
+		Folder folderAA = getFolderByLegacyId(folderAANoTaxoURL);
+		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre);
+		assertThat(folderAA.getCreatedByRobot()).isEqualTo(robotId);
+
+		recordServices.update(parameters.setActionAfterClassification(DO_NOTHING).setDefaultParentFolder(records.folder_A08)
+				.setDefaultOpenDate(squatreNovembre2015));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		folderA = getFolderByLegacyId(folderANoTaxoURL);
+		assertThat(folderA.getParentFolder()).isEqualTo(records.folder_A08);
+		assertThat(folderA.getTitle()).isEqualTo("A");
+		assertThat(folderA.getCreatedByRobot()).isEqualTo(robotId);
+		assertThat(folderA.getOpenDate()).isEqualTo(squatreNovembre2015);
+
+		folderAA = getFolderByLegacyId(folderAANoTaxoURL);
+		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
+		assertThat(folderAA.getTitle()).isEqualTo("AA");
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAA.getOpenDate()).isEqualTo(squatreNovembre2015);
+		assertThat(folderAA.getCreatedByRobot()).isEqualTo(robotId);
 
 		verify(connectorSmb, never()).deleteFile(any(ConnectorDocument.class));
 	}

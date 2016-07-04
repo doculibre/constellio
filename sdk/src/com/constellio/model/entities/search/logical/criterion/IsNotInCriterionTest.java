@@ -77,7 +77,7 @@ public class IsNotInCriterionTest extends ConstellioTest {
 		IsNotInCriterion criterion = new IsNotInCriterion(Arrays.asList(numberValue12, numberValue100, numberValueNegative1));
 
 		assertThat(criterion.getSolrQuery(numberMetadata)).isEqualTo(
-				"(*:* -numberMetadata:\"12\" -numberMetadata:\"100\" -numberMetadata:\"-1\" ) AND (numberMetadata:*)");
+				"(*:* -numberMetadata:\"12\" -numberMetadata:\"100\" -numberMetadata:\"\\-1\" ) AND (numberMetadata:*)");
 	}
 
 	@Test

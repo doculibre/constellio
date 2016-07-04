@@ -44,6 +44,10 @@ public abstract class PropertiesConfiguration {
 		return value == null ? defaultValue : value;
 	}
 
+	protected void setBoolean(String key, boolean value) {
+		setString(key, value ? "true" : "false");
+	}
+
 	protected void setString(String key, String value) {
 		try {
 			List<String> properties = FileUtils.readLines(propertyFile);

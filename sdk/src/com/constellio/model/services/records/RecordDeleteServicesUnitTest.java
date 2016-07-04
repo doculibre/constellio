@@ -15,6 +15,8 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.List;
 
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -23,6 +25,7 @@ import org.mockito.Mock;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -83,6 +86,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock ContentModificationsBuilder contentModificationsBuilder;
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
+	LocalDateTime now = TimeProvider.getLocalDateTime();
 
 	List<String> idsOfRecordsWithReferences = Arrays.asList("1", "2", "3");
 
@@ -151,6 +155,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(thirdRecord.getId()).thenReturn("thirdRecord");
 
 		doReturn(contentModificationsBuilder).when(recordDeleteServices).newContentModificationsBuilder(zeCollection);
+		givenTimeIs(now);
 	}
 
 	@Test
@@ -164,8 +169,11 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		recordDeleteServices.restore(theRecord, user);
 
 		verify(theRecord).set(Schemas.LOGICALLY_DELETED_STATUS, false);
+		verify(theRecord).set(Schemas.LOGICALLY_DELETED_ON, null);
 		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, false);
+		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, null);
 		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, false);
+		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, null);
 		verify(recordServices).execute(transaction.capture());
 
 		assertThat(transaction.getValue().getRecords())
@@ -183,8 +191,11 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		recordDeleteServices.logicallyDelete(theRecord, user);
 
 		verify(theRecord).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(theRecord).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(recordServices).execute(transaction.capture());
 
 		assertThat(transaction.getValue().getRecords())
@@ -202,9 +213,13 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		recordDeleteServices.logicallyDeletePrincipalConceptIncludingRecords(thePrincipalConcept, user);
 
 		verify(thePrincipalConcept).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(thePrincipalConcept).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(aSubPrincipalConcept).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(aSubPrincipalConcept).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(aRecordInThePrincipalConcept).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(aRecordInThePrincipalConcept).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(aRecordInTheSubPrincipalConcept).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(aRecordInTheSubPrincipalConcept).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(recordServices).execute(transaction.capture());
 
 		assertThat(transaction.getValue().getRecords()).containsOnly(thePrincipalConcept, aSubPrincipalConcept,
@@ -222,7 +237,9 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		recordDeleteServices.logicallyDeletePrincipalConceptExcludingRecords(thePrincipalConcept, user);
 
 		verify(thePrincipalConcept).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(thePrincipalConcept).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(aSubPrincipalConcept).set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		verify(aSubPrincipalConcept).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(recordServices).execute(transaction.capture());
 
 		assertThat(transaction.getValue().getRecords()).containsOnly(thePrincipalConcept, aSubPrincipalConcept);

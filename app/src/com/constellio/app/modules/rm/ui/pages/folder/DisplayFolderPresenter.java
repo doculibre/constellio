@@ -359,13 +359,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return ComponentState.visibleIf(user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(folder));
 	}
 
-	private ComponentState getShareButtonState(User user, Folder folder) {
+	ComponentState getShareButtonState(User user, Folder folder) {
 		if (user.has(RMPermissionsTo.SHARE_FOLDER).on(folder)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_INACTIVE_FOLDER).on(folder));
 			}
 			if (folder.getPermissionStatus().isSemiActive()) {
 				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_SEMIACTIVE_FOLDER).on(folder));
+			}
+			if(StringUtils.isNotBlank(folder.getLegacyId())) {
+				return ComponentState.visibleIf(user.has(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER).on(folder));
 			}
 			return ComponentState.ENABLED;
 		}
@@ -398,8 +401,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getEditButtonState(User user, Folder folder) {
+		if(StringUtils.isBlank(folder.getLegacyId())||
+				(StringUtils.isNotBlank(folder.getLegacyId()) && user.has(RMPermissionsTo.MODIFY_IMPORTED_FOLDERS).on(folder))) {
+			return ComponentState.INVISIBLE;
+		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(folder)
 				&& extensions.isRecordModifiableBy(folder.getWrappedRecord(), user));
+
 	}
 
 	ComponentState getAddFolderButtonState(User user, Folder folder) {
@@ -496,7 +504,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-		delete(record, reason);
+		delete(record, reason, false);
 		if (parentId != null) {
 			view.navigate().to(RMViews.class).displayFolder(parentId);
 		} else {

@@ -116,6 +116,8 @@ public interface RecordServices {
 
 	void physicallyDelete(Record record, User user);
 
+	void physicallyDelete(Record record, User user, RecordDeleteOptions options);
+
 	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options);
 
 	boolean isLogicallyDeletable(Record record, User user);
@@ -143,5 +145,4 @@ public interface RecordServices {
 	void recalculate(RecordWrapper recordWrapper);
 
 	void recalculate(Record record);
-
 }

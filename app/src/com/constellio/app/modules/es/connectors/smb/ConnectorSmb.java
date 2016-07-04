@@ -2,9 +2,7 @@ package com.constellio.app.modules.es.connectors.smb;
 
 import static java.util.Arrays.asList;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -232,13 +230,11 @@ public class ConnectorSmb extends Connector {
 	}
 
 	public InputStream getInputStream(ConnectorSmbDocument document, String resourceName) {
-		if (Toggle.TESTING_ACTION_PAT.isEnabled()) {
-			try {
-				return new FileInputStream(new File("/Users/francisbaril/Workspaces/Mécanisme de cache des records V2.docx"));
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException(e);
-			}
+		if (Toggle.SIMULATE_CONNECTOR_DOWNLOAD_CONTENT.isEnabled()) {
+			String dummyContent = "This is not the content you are looking for";
+			return new ByteArrayInputStream(dummyContent.getBytes());
 		}
+
 		SmbFile smbFile = getSmbFile(document);
 		try {
 			InputStream is = smbFile.getInputStream();

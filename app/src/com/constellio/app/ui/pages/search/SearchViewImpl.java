@@ -214,7 +214,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 				presenter.saveTemporarySearch(true);
 			}
 		});
-		srTable.getItemsPerPage().addValueChangeListener(new ValueChangeListener() {
+		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setSelectedPageLength((int) event.getProperty().getValue());
@@ -273,7 +273,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
 		criterion.setPageLength(criterion.size());
-		criterion.setValue(presenter.getSortCriterion());
+		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
 		order.addItem(SortOrder.ASCENDING);

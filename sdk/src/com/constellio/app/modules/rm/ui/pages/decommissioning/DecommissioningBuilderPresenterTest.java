@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +32,8 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	MockedFactories factories = new MockedFactories();
 
 	DecommissioningBuilderPresenter presenter;
+	@Mock
+	private ConstellioEIMConfigs mockedConfigs;
 
 	@Before
 	public void setUp() {
@@ -42,6 +46,8 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		when(factories.getAppLayerFactory().getMetadataSchemasDisplayManager()).thenReturn(schemasDisplayManager);
 		when(schemasDisplayManager.getTypes(zeCollection)).thenReturn(typesDisplayConfig);
 		when(typesDisplayConfig.getFacetMetadataCodes()).thenReturn(Arrays.asList(FACET_CODE));
+		when(factories.getModelLayerFactory().getSystemConfigs()).thenReturn(mockedConfigs);
+		when(mockedConfigs.getSearchSortType()).thenReturn(SearchSortType.RELEVENCE);
 
 		presenter = new DecommissioningBuilderPresenter(view);
 	}

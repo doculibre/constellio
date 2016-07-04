@@ -414,7 +414,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void validateRecordInTransaction(Record record, Transaction transaction)
 			throws ValidationException {
-		prepareRecords(transaction, record.getId());
+		if (transaction.getRecords().isEmpty()) {
+			validateRecord(record);
+		} else {
+			prepareRecords(transaction, record.getId());
+		}
 	}
 
 	public void validateRecord(Record record)

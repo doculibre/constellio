@@ -8,9 +8,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -327,12 +331,30 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenImportedFolderAndRemovedPermissionToShareImportedFolderAndGivenBackThenOk()
+			throws Exception {
+		recordServices.update(record("A16").set(Schemas.LEGACY_ID,"ChatLegacy"));
+
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "A16");
+		presenter.forParams("A16");//ParamUtils.addParams("", params));
+
+		givenRemovedPermissionToShareImportedFolder();
+		displayFolderView.navigate().to(RMViews.class).displayFolder("A16");
+		assertThat(presenter.getShareButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_A16()).isVisible()).isFalse();
+
+		givenNoRemovedPermissionsToShareImportedFolder();
+		displayFolderView.navigate().to(RMViews.class).displayFolder("A16");
+		assertThat(presenter.getShareButtonState(rmRecords.getChuckNorris(), rmRecords.getFolder_A16()).isVisible()).isTrue();
+	}
+
+	@Test
 	public void whenGetTemplatesThenReturnFolderTemplates()
 			throws Exception {
 
 		List<LabelTemplate> labelTemplates = presenter.getTemplates();
 
-		assertThat(labelTemplates).hasSize(6);
+		assertThat(labelTemplates).hasSize(8);
 
 		assertThat(labelTemplates.get(0).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5159");
 		assertThat(labelTemplates.get(0).getName()).isEqualTo("Code de plan justifié à droite (Avery 5159)");
@@ -340,17 +362,23 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(labelTemplates.get(1).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5161");
 		assertThat(labelTemplates.get(1).getName()).isEqualTo("Code de plan justifié à droite (Avery 5161)");
 
-		assertThat(labelTemplates.get(2).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5163");
-		assertThat(labelTemplates.get(2).getName()).isEqualTo("Code de plan justifié à droite (Avery 5163)");
+		assertThat(labelTemplates.get(2).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5162");
+		assertThat(labelTemplates.get(2).getName()).isEqualTo("Code de plan justifié à droite (Avery 5162)");
 
-		assertThat(labelTemplates.get(3).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5159");
-		assertThat(labelTemplates.get(3).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5159)");
+		assertThat(labelTemplates.get(3).getKey()).isEqualTo("FOLDER_RIGHT_AVERY_5163");
+		assertThat(labelTemplates.get(3).getName()).isEqualTo("Code de plan justifié à droite (Avery 5163)");
 
-		assertThat(labelTemplates.get(4).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5161");
-		assertThat(labelTemplates.get(4).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5161)");
+		assertThat(labelTemplates.get(4).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5159");
+		assertThat(labelTemplates.get(4).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5159)");
 
-		assertThat(labelTemplates.get(5).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5163");
-		assertThat(labelTemplates.get(5).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5163)");
+		assertThat(labelTemplates.get(5).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5161");
+		assertThat(labelTemplates.get(5).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5161)");
+
+		assertThat(labelTemplates.get(6).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5162");
+		assertThat(labelTemplates.get(6).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5162)");
+
+		assertThat(labelTemplates.get(7).getKey()).isEqualTo("FOLDER_LEFT_AVERY_5163");
+		assertThat(labelTemplates.get(7).getName()).isEqualTo("Code de plan justifié à gauche (Avery 5163)");
 
 	}
 
@@ -628,6 +656,32 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
 			assertThat(updatedRole.getOperationPermissions()).contains(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER);
 			assertThat(updatedRole.getOperationPermissions()).contains(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER);
+		}
+	}
+
+	private void givenRemovedPermissionToShareImportedFolder() {
+
+		for (Role role : rolesManager.getAllRoles(zeCollection)) {
+			List<String> roles = role.getOperationPermissions();
+			List<String> newRoles = new ArrayList<>(roles);
+			newRoles.remove(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
+			role = role.withPermissions(newRoles);
+			rolesManager.updateRole(role);
+			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
+			assertThat(updatedRole.getOperationPermissions()).doesNotContain(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
+		}
+	}
+
+	private void givenNoRemovedPermissionsToShareImportedFolder() {
+
+		for (Role role : rolesManager.getAllRoles(zeCollection)) {
+			List<String> roles = role.getOperationPermissions();
+			List<String> newRoles = new ArrayList<>(roles);
+			newRoles.add(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
+			role = role.withPermissions(newRoles);
+			rolesManager.updateRole(role);
+			Role updatedRole = rolesManager.getRole(zeCollection, role.getCode());
+			assertThat(updatedRole.getOperationPermissions()).contains(RMPermissionsTo.SHARE_A_IMPORTED_FOLDER);
 		}
 	}
 

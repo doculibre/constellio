@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code39.Code39Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
@@ -80,41 +81,44 @@ public class LabelsReportPresenter {
 
 		return labelsReportModel;
 	}
-	
-	private File createBarCode(String value) {
+
+	private File createBarCode(String value, LabelTemplateField fieldInfo) {
 		File tempFile;
 		try {
 			tempFile = File.createTempFile(LabelsReportPresenter.class.getSimpleName(), ".png");
 			tempFile.deleteOnExit();
-			
+
 			//Create the barcode bean
-			Code39Bean bean = new Code39Bean();
+			AbstractBarcodeBean bean = new Code39Bean();
 
 			final int dpi = 300;
 
 			//Configure the barcode generator
 			bean.setModuleWidth(UnitConv.in2mm(1.0f / dpi)); //makes the narrow bar 
-			                                                 //width exactly one pixel
+			//width exactly one pixel
 
-			bean.setHeight(7.0d);
+			double height = fieldInfo.getHeight();
+//			double width = fieldInfo.getWidth();
+			
+			bean.setHeight(height);
 			bean.setFontSize(1.0d);
-			bean.setWideFactor(3);
+//			bean.setWideFactor(3);
 			bean.doQuietZone(false);
 
 			//Open output file
 			OutputStream out = new FileOutputStream(tempFile);
 			try {
-			    //Set up the canvas provider for monochrome PNG output 
-			    BitmapCanvasProvider canvas = new BitmapCanvasProvider(
-			            out, "image/x-png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
+				//Set up the canvas provider for monochrome PNG output
+				BitmapCanvasProvider canvas = new BitmapCanvasProvider(
+						out, "image/x-png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
 
-			    //Generate the barcode
-			    bean.generateBarcode(canvas, value);
+				//Generate the barcode
+				bean.generateBarcode(canvas, value);
 
-			    //Signal end of generation
-			    canvas.finish();
+				//Signal end of generation
+				canvas.finish();
 			} finally {
-			    out.close();
+				out.close();
 			}
 		} catch (Throwable t) {
 			tempFile = null;
@@ -126,11 +130,16 @@ public class LabelsReportPresenter {
 		LabelsReportField labelsReportField;
 		if (fieldInfo instanceof BarCodeLabelTemplateField) {
 			labelsReportField = new ImageLabelsReportField();
-			File barCode = createBarCode(value);
+			File barCode = createBarCode(value, fieldInfo);
 			if (barCode != null) {
 				labelsReportField.setValue(barCode.getAbsolutePath());
 				int width = fieldInfo.getWidth() != 0 ? fieldInfo.getWidth() : value.length();
 				labelsReportField.width = width;
+
+				int height = fieldInfo.getHeight();
+				if(height != 0){
+					labelsReportField.height = height;
+				}
 			} else {
 				labelsReportField = buildLabelField(fieldInfo, value);
 			}
@@ -157,6 +166,9 @@ public class LabelsReportPresenter {
 
 	private int getVerticalAligment(LabelTemplateField fieldInfo) {
 		int verticalAlignment;
+		if (fieldInfo.getVerticalAlignment() == null) {
+			return 0;
+		}
 		switch (fieldInfo.getVerticalAlignment()) {
 		case TOP:
 			verticalAlignment = com.itextpdf.text.Element.ALIGN_TOP;
@@ -176,6 +188,9 @@ public class LabelsReportPresenter {
 
 	private int getHorizontalAligment(LabelTemplateField fieldInfo) {
 		int horizontalAlignment;
+		if (fieldInfo.getHorizontalAlignment() == null) {
+			return 0;
+		}
 		switch (fieldInfo.getHorizontalAlignment()) {
 		case LEFT:
 			horizontalAlignment = com.itextpdf.text.Element.ALIGN_LEFT;

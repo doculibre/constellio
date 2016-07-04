@@ -205,6 +205,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public void physicallyDelete(Record record,
+			User user, RecordDeleteOptions options) {
+		recordServices.physicallyDelete(record, user, options);
+	}
+
+	@Override
 	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
 		recordServices.physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
@@ -281,4 +287,5 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public void recalculate(Record record) {
 		recordServices.recalculate(record);
 	}
+
 }
