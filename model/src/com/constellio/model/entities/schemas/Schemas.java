@@ -77,6 +77,7 @@ public class Schemas {
 
 	public static final Metadata URL = add(new Metadata("url_s", MetadataValueType.STRING, false));
 	public static final Metadata FETCHED = new Metadata("fetched_s", MetadataValueType.BOOLEAN, false);
+	public static final Metadata LINKED_SCHEMA = new Metadata("linkedSchema_s", MetadataValueType.STRING, false);
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
