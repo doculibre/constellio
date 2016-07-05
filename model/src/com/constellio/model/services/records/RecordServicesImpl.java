@@ -62,6 +62,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions.PrincipalConceptDeleteBehavior;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
@@ -786,7 +787,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
@@ -798,13 +799,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().physicallyDelete(record, user);
 	}
 
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
-	public void physicallyDelete(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDelete(record, user, options);
@@ -822,7 +823,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
@@ -841,23 +842,26 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public void logicallyDelete(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		newRecordDeleteServices().logicallyDelete(record, user);
-		refresh(record);
+		logicallyDelete(record, user, new RecordLogicalDeleteOptions());
 	}
 
-	public void logicallyDeletePrincipalConceptIncludingRecords(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
-		refresh(record);
-	}
+	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
+		Taxonomy taxonomy = modelFactory.getTaxonomiesManager().getPrincipalTaxonomy(record.getCollection());
 
-	public void logicallyDeletePrincipalConceptExcludingRecords(Record record, User user) {
 		refresh(record);
 		refresh(user);
-		newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
+
+		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		if (taxonomy.getSchemaTypes().contains(recordSchemaType)) {
+			if (options.principalConceptDeleteBehavior == PrincipalConceptDeleteBehavior.KEEP_RECORDS_IN_HIERARCHY) {
+				newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
+			} else {
+				newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
+			}
+		} else {
+			newRecordDeleteServices().logicallyDelete(record, user);
+		}
+
 		refresh(record);
 	}
 

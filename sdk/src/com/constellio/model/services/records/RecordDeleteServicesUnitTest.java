@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
-import org.joda.time.LocalTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -249,7 +248,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void whenPhysicallyDeletingThenGetRecordInHierarchyAndDeleteThemInATransaction()
 			throws Exception {
 
-		RecordDeleteOptions options = new RecordDeleteOptions();
+		RecordPhysicalDeleteOptions options = new RecordPhysicalDeleteOptions();
 		doNothing().when(recordDeleteServices).deleteContents(anyList());
 		doReturn(true).when(recordDeleteServices).isPhysicallyDeletable(theRecord, user, options);
 		ArgumentCaptor<TransactionDTO> transactionDTO = ArgumentCaptor.forClass(TransactionDTO.class);

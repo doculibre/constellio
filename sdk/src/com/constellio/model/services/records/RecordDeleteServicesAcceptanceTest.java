@@ -117,7 +117,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.refresh(parentFolderInCategory_A);
 		try {
 			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-					new RecordDeleteOptions().setMostReferencesToNull(true));
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
@@ -126,7 +126,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 			recordServices.refresh(parentFolderInCategory_A);
 
-			//TODO Nouha, pourquoi??
+			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
 			assertThat(parentFolderInCategory_A.getCategory()).isNull();
 		}
 	}
@@ -141,14 +141,15 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		deleteService.logicallyDelete(category.getWrappedRecord(), null);
 		recordServices.refresh(category);
 		try {
-			deleteService
-					.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
+			deleteService.physicallyDelete(category.getWrappedRecord(), null,
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 			recordServices.refresh(parentFolderInCategory_A);
 			assertThat(parentFolderInCategory_A.getCategoryEntered()).isNull();
 			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
-			//pas sure?!
+
+			//TODO Nouha : Pourquoi subFolder_B? Ce dossier n'a pas de référence vers category
 			assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());
 			assertThat(relatedRecords).doesNotContain(taskReferencesFolderB.getId());
 		}
@@ -164,13 +165,14 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.refresh(category);
 
-		//TODO Nouha : On ne peut pas faire ça, car des dossiers se retrouvent sans catégorie
+		//TODO Nouha : On ne peut pas faire ça, car des dossiers se retrouvent sans catégorie, ce qui cause une erreur de validation
 		deleteService
-				.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
+				.physicallyDelete(category.getWrappedRecord(), null,
+						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 
 		parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
 		deleteService
 				.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-						new RecordDeleteOptions().setMostReferencesToNull(true));
+						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 	}
 }

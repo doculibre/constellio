@@ -37,6 +37,7 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionVali
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions.PrincipalConceptDeleteBehavior;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
@@ -74,7 +75,9 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	CollectionsListManager collectionsListManager;
 	AuthorizationsServices authorizationsServices;
 
-	RecordDeleteOptions withMostReferencesRemoved;
+	RecordPhysicalDeleteOptions withMostReferencesRemoved;
+	RecordLogicalDeleteOptions includingRecordsInPrincipalConceptHierarchy;
+	RecordLogicalDeleteOptions keepRecordsInPrincipalConceptHierarchy;
 
 	Records records;
 	Users users = new Users();
@@ -92,7 +95,11 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		withMostReferencesRemoved = new RecordDeleteOptions().setMostReferencesToNull(true);
+		withMostReferencesRemoved = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
+		includingRecordsInPrincipalConceptHierarchy = new RecordLogicalDeleteOptions().setPrincipalConceptDeleteBehavior(
+				PrincipalConceptDeleteBehavior.LOGICALLY_DELETE_ALL_RECORDS_HIERARCHY);
+
+		keepRecordsInPrincipalConceptHierarchy = new RecordLogicalDeleteOptions();
 
 		customSystemPreparation(new CustomSystemPreparation() {
 			@Override
@@ -1070,7 +1077,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		given(records.folder3()).hasAReferenceTo(records.folder4());
 		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 		assertThat(records.taxo1_category2()).is(physicallyDeletableBy(userWithDeletePermission));
 	}
 
@@ -1079,7 +1086,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		when(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		when(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 
 		assertThat(records.taxo1_category2()).is(logicallyDeleted());
 		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
@@ -1091,7 +1098,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsByGodThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
-		when(User.GOD).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		when(User.GOD).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 
 		assertThat(records.taxo1_category2()).is(logicallyDeleted());
 		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
@@ -1131,7 +1138,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptExcludingRecordsThenEvenGodUserCannotPhysicallyDeleteThePrincipalConcept()
 			throws Exception {
-		given(User.GOD).logicallyDeletePrincipalConceptExcludingRecords(records.taxo1_category2());
+		given(User.GOD).logicallyDelete(records.taxo1_category2());
 
 		assertThat(records.taxo1_category2()).is(notPhysicallyDeletableBy(User.GOD));
 		assertThat(records.taxo1_category2_1()).is(notPhysicallyDeletableBy(User.GOD));
@@ -1168,7 +1175,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptAndAllItsHierarchyWhenRestoringThePrincipalConceptThenAllHierarchyRestored()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 
 		when(userWithDeletePermission).restore(records.taxo1_category2());
 
@@ -1181,7 +1188,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void givenLogicallyDeletedPrincipalConceptAndAllItsHierarchyThenAPrincipalSubConceptInALogicallyDeleteConceptIsNotRestorable()
 			throws Exception {
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 
 		assertThat(records.taxo1_category2_1()).is(notRestorableBy(userWithDeletePermission));
 	}
@@ -1196,7 +1203,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		assertThat(records.taxo1_category2()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 
 		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2());
 
@@ -1215,7 +1222,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		Record folder3 = records.folder3();
 		List<Record> recordsInFolder4Hierarchy = records.inFolder4Hierarchy();
 
-		given(userWithDeletePermission).logicallyDeletePrincipalConceptIncludingRecords(records.taxo1_category2());
+		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), includingRecordsInPrincipalConceptHierarchy);
 
 		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2_1());
 
@@ -1228,7 +1235,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	@Test
 	public void whenAPrincipalConceptIsLogicallyDeletedExcludingRecordsThenOnlyConceptsSubConceptsDeleted()
 			throws Exception {
-		when(userWithDeletePermission).logicallyDeletePrincipalConceptExcludingRecords(records.taxo1_category2());
+		when(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), keepRecordsInPrincipalConceptHierarchy);
 
 		assertThat(records.taxo1_category2()).is(logicallyDeleted());
 		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
@@ -1236,10 +1243,59 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(records.inFolder4Hierarchy()).areNot(logicallyDeleted());
 	}
 
-	@Test(expected = RecordServicesRuntimeException.RecordIsNotAPrincipalConcept.class)
-	public void whenLogicallyDeletingASecondaryConceptAsAPrincipalConceptThenException()
+	@Test
+	public void whenLogicallyDeletingANonPrincipalConceptThenOnlyLogicallyDeleteConceptsInHierarchy()
 			throws Exception {
-		when(userWithDeletePermission).logicallyDeletePrincipalConceptExcludingRecords(records.taxo2_unit1());
+
+		when(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+
+		assertThat(records.taxo2_unit1()).is(logicallyDeleted());
+		assertThat(records.taxo2_unit1_1()).is(logicallyDeleted());
+		assertThat(records.folder1()).isNot(logicallyDeleted());
+		assertThat(records.folder2()).isNot(logicallyDeleted());
+
+	}
+
+	@Test
+	public void givenANonPrincipalConceptAndAllHisRecordsAreLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
+			throws Exception {
+
+		Record taxo2_unit1 = records.taxo2_unit1();
+		Record taxo2_unit1_1 = records.taxo2_unit1_1();
+
+		when(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+		when(userWithDeletePermission).logicallyDelete(records.folder1());
+		when(userWithDeletePermission).logicallyDelete(records.folder2());
+		when(userWithDeletePermission).logicallyDelete(records.folder3());
+		when(userWithDeletePermission).logicallyDelete(records.folder4());
+		when(userWithDeletePermission).logicallyDelete(records.folder5());
+
+		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
+
+		assertThat(taxo2_unit1).is(physicallyDeleted());
+		assertThat(taxo2_unit1_1).is(physicallyDeleted());
+		assertThat(records.folder1()).isNot(physicallyDeleted());
+		assertThat(records.folder2()).isNot(physicallyDeleted());
+
+	}
+
+	@Test
+	public void givenANonPrincipalConceptIsLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
+			throws Exception {
+
+		Record taxo2_unit1 = records.taxo2_unit1();
+		Record taxo2_unit1_1 = records.taxo2_unit1_1();
+		given(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+
+		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
+
+		assertThat(taxo2_unit1).is(physicallyDeleted());
+		assertThat(taxo2_unit1_1).is(physicallyDeleted());
+		assertThat(records.folder1()).isNot(logicallyDeleted());
+		assertThat(records.folder1()).isNot(physicallyDeleted());
+		assertThat(records.folder2()).isNot(logicallyDeleted());
+		assertThat(records.folder2()).isNot(physicallyDeleted());
+
 	}
 
 	@Test
@@ -1462,10 +1518,11 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user) {
-		return logicallyThenPhysicallyDeletableBy(user, new RecordDeleteOptions());
+		return logicallyThenPhysicallyDeletableBy(user, new RecordPhysicalDeleteOptions());
 	}
 
-	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user, final RecordDeleteOptions options) {
+	private Condition<? super Record> logicallyThenPhysicallyDeletableBy(final User user,
+			final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1475,11 +1532,12 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user) {
-		return notLogicallyThenPhysicallyDeletableBy(user, new RecordDeleteOptions());
+		return notLogicallyThenPhysicallyDeletableBy(user, new RecordPhysicalDeleteOptions());
 
 	}
 
-	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user, final RecordDeleteOptions options) {
+	private Condition<? super Record> notLogicallyThenPhysicallyDeletableBy(final User user,
+			final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1550,7 +1608,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 					try {
 						// It's not logically deletable... Fine. But let's try to deleteLogically it anyway
-						recordServices.logicallyDeletePrincipalConceptExcludingRecords(record, user);
+						recordServices.logicallyDelete(record, user);
 						// An exception should be thrown, the condition fail
 						return false;
 
@@ -1582,8 +1640,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				} else {
 
 					try {
+						RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions().setPrincipalConceptDeleteBehavior(
+								PrincipalConceptDeleteBehavior.LOGICALLY_DELETE_ALL_RECORDS_HIERARCHY);
 						// It's not logically deletable... Fine. But let's try to deleteLogically it anyway
-						recordServices.logicallyDeletePrincipalConceptIncludingRecords(record, user);
+						recordServices.logicallyDelete(record, user, options);
 						// An exception should be thrown, the condition fail
 						return false;
 
@@ -1613,10 +1673,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> physicallyDeletableBy(final User user) {
-		return physicallyDeletableBy(user, new RecordDeleteOptions());
+		return physicallyDeletableBy(user, new RecordPhysicalDeleteOptions());
 	}
 
-	private Condition<? super Record> physicallyDeletableBy(final User user, final RecordDeleteOptions options) {
+	private Condition<? super Record> physicallyDeletableBy(final User user, final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1626,10 +1686,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private Condition<? super Record> notPhysicallyDeletableBy(final User user) {
-		return notPhysicallyDeletableBy(user, new RecordDeleteOptions());
+		return notPhysicallyDeletableBy(user, new RecordPhysicalDeleteOptions());
 	}
 
-	private Condition<? super Record> notPhysicallyDeletableBy(final User user, final RecordDeleteOptions options) {
+	private Condition<? super Record> notPhysicallyDeletableBy(final User user, final RecordPhysicalDeleteOptions options) {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
@@ -1795,7 +1855,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			recordServices.physicallyDelete(record, user);
 		}
 
-		public void physicallyDelete(Record record, RecordDeleteOptions options) {
+		public void physicallyDelete(Record record, RecordPhysicalDeleteOptions options) {
 			recordServices.physicallyDelete(record, user, options);
 		}
 
@@ -1803,13 +1863,17 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			recordServices.logicallyDelete(record, user);
 		}
 
-		public void logicallyDeletePrincipalConceptIncludingRecords(Record record) {
-			recordServices.logicallyDeletePrincipalConceptIncludingRecords(record, user);
+		public void logicallyDelete(Record record, RecordLogicalDeleteOptions options) {
+			recordServices.logicallyDelete(record, user, options);
 		}
 
-		public void logicallyDeletePrincipalConceptExcludingRecords(Record record) {
-			recordServices.logicallyDeletePrincipalConceptExcludingRecords(record, user);
-		}
+		//		public void logicallyDeletePrincipalConceptIncludingRecords(Record record) {
+		//			recordServices.logicallyDeletePrincipalConceptIncludingRecords(record, user);
+		//		}
+		//
+		//		public void logicallyDeletePrincipalConceptExcludingRecords(Record record) {
+		//			recordServices.logicallyDeletePrincipalConceptExcludingRecords(record, user);
+		//		}
 
 		public void restore(Record record) {
 			recordServices.restore(record, user);

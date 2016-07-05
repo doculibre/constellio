@@ -1,6 +1,6 @@
 package com.constellio.model.services.records;
 
-public class RecordDeleteOptions {
+public class RecordPhysicalDeleteOptions {
 
 	boolean setMostReferencesToNull;
 
@@ -8,7 +8,7 @@ public class RecordDeleteOptions {
 		return setMostReferencesToNull;
 	}
 
-	public RecordDeleteOptions setMostReferencesToNull(boolean setMostReferencesToNull) {
+	public RecordPhysicalDeleteOptions setMostReferencesToNull(boolean setMostReferencesToNull) {
 		this.setMostReferencesToNull = setMostReferencesToNull;
 		return this;
 	}

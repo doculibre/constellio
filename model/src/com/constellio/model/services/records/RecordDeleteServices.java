@@ -140,18 +140,18 @@ public class RecordDeleteServices {
 	}
 
 	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
-		return isLogicallyThenPhysicallyDeletable(record, user, new RecordDeleteOptions());
+		return isLogicallyThenPhysicallyDeletable(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		return isPhysicallyDeletableNoMatterTheStatus(record, user, options);
 	}
 
 	public boolean isPhysicallyDeletable(Record record, User user) {
-		return isPhysicallyDeletable(record, user, new RecordDeleteOptions());
+		return isPhysicallyDeletable(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -179,7 +179,7 @@ public class RecordDeleteServices {
 
 	}
 
-	private boolean isPhysicallyDeletableNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+	private boolean isPhysicallyDeletableNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -207,7 +207,7 @@ public class RecordDeleteServices {
 		return physicallyDeletable;
 	}
 
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
 		if (TRUE.equals(record.get(Schemas.LOGICALLY_DELETED_STATUS))) {
 			physicallyDelete(record, user, options);
 
@@ -225,10 +225,10 @@ public class RecordDeleteServices {
 	}
 
 	public void physicallyDelete(Record record, User user) {
-		physicallyDelete(record, user, new RecordDeleteOptions());
+		physicallyDelete(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public void physicallyDelete(final Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDelete(final Record record, User user, RecordPhysicalDeleteOptions options) {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		if (!isPhysicallyDeletable(record, user, options)) {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
@@ -511,13 +511,34 @@ public class RecordDeleteServices {
 	}
 
 	List<Record> getAllRecordsInHierarchy(Record record) {
+
+		if (record.getList(Schemas.PATH).isEmpty()) {
+			return Arrays.asList(record);
+
+		} else {
+			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+			if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
+				return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
+			} else {
+				LogicalSearchQuery query = new LogicalSearchQuery();
+				List<String> paths = record.getList(Schemas.PATH);
+				query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+				return searchServices.search(query);
+			}
+		}
+	}
+
+	List<Record> getAllTaxonomyRecordsInHierarchy(Record record, Taxonomy taxonomy) {
 		if (record.getList(Schemas.PATH).isEmpty()) {
 			return Arrays.asList(record);
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
-			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
+					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isStartingWithText(paths.get(0)));
 			return searchServices.search(query);
 		}
 	}
@@ -537,10 +558,19 @@ public class RecordDeleteServices {
 	}
 
 	boolean containsNoActiveRecords(Record record) {
+
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+
 		LogicalSearchQuery query = new LogicalSearchQuery().filteredByStatus(StatusFilter.ACTIVES);
-		query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText(record.getId()));
-		boolean result = !searchServices.hasResults(query);
-		return result;
+		if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
+			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
+					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
+		} else {
+			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText(record.getId()));
+		}
+		return !searchServices.hasResults(query);
 	}
 
 	public RecordUtils newRecordUtils() {

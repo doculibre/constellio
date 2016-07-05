@@ -20,7 +20,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordDeleteOptions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -132,7 +132,7 @@ public class TrashServices {
 	public List<String> getRelatedRecords(String recordId, User user) {
 		Record record = recordServices().getDocumentById(recordId, user);
 		try {
-			recordServices().physicallyDelete(record, user, new RecordDeleteOptions().setMostReferencesToNull(true));
+			recordServices().physicallyDelete(record, user, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 			return new ArrayList<>();
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			return new ArrayList<>(e.getRecordsWithUnremovableReferences());
@@ -148,7 +148,7 @@ public class TrashServices {
 	public boolean handleRecordPhysicalDelete(Record recordToDelete, User currentUser) {
 		try {
 			recordServices().physicallyDelete(recordToDelete, currentUser,
-					new RecordDeleteOptions().setMostReferencesToNull(true));
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 			return true;
 
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
