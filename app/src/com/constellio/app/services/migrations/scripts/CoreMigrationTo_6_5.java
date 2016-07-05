@@ -14,7 +14,9 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -61,6 +63,8 @@ public class CoreMigrationTo_6_5 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			//add delete metadata
 
+			typesBuilder.getSchema(User.DEFAULT_SCHEMA).create(User.VISIBLE_TABLE_COLUMNS)
+					.defineStructureFactory(MapStringListStringStructureFactory.class);
 		}
 	}
 
