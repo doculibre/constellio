@@ -6,28 +6,25 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultival
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
@@ -67,18 +64,37 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		presenter = new AddEditSchemaPresenter(view);
 		parameters = new HashMap<>();
 		parameters.put("schemaTypeCode", setup.zeCustomSchemaTypeCode());
+	}
+
+	@Test
+	public void givenSchemaCodeWhenSetParametersThenEditMode()
+			throws Exception {
+
+		parameters.put("schemaCode", zeSchema.code());
 		presenter.setParameters(parameters);
+		assertThat(presenter.isEditMode()).isTrue();
+	}
+
+	@Test
+	public void givenNoSchemaCodeWhenSetParametersThenAddMode()
+			throws Exception {
+
+		presenter.setParameters(parameters);
+		assertThat(presenter.isEditMode()).isFalse();
 	}
 
 	@Test
 	public void givenAddModeWhenSaveButtonClickedThenCustomSchema()
 			throws Exception {
 
+		presenter.setParameters(parameters);
+		
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
 		formMetadataSchemaVO.setLocalCode("newSchema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
+		presenter.setSchemaVO(formMetadataSchemaVO);
 
-		presenter.saveButtonClicked(formMetadataSchemaVO, false);
+		presenter.saveButtonClicked();
 
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema")
 				.getLabel(Language.French))
@@ -93,11 +109,14 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenCodeWithSpaceWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
 			throws Exception {
 
+		presenter.setParameters(parameters);
+
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
 		formMetadataSchemaVO.setLocalCode("new Schema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
+		presenter.setSchemaVO(formMetadataSchemaVO);
 
-		presenter.saveButtonClicked(formMetadataSchemaVO, false);
+		presenter.saveButtonClicked();
 
 		verify(view).showErrorMessage($("AddEditSchemaView.schemaCodeContainsSpace"));
 
@@ -108,11 +127,14 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenCodeStartingWithNumberWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
 			throws Exception {
 
+		presenter.setParameters(parameters);
+
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
 		formMetadataSchemaVO.setLocalCode("3newSchema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
+		presenter.setSchemaVO(formMetadataSchemaVO);
 
-		presenter.saveButtonClicked(formMetadataSchemaVO, false);
+		presenter.saveButtonClicked();
 
 		verify(view).showErrorMessage($("AddEditSchemaView.schemaCodeStartsWithNumber"));
 
@@ -123,11 +145,14 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void givenEditModeWhenSaveButtonClickedThenCustomSchema()
 			throws Exception {
 
-		presenter.setSchemaCode(zeSchema.code());
-		FormMetadataSchemaVO formMetadataSchemaVO = presenter.getSchemaVO();
+		parameters.put("schemaCode", zeSchema.code());
+		presenter.setParameters(parameters);
+		
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), zeCollection, new HashMap<String, String>());
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
+		presenter.setSchemaVO(formMetadataSchemaVO);
 
-		presenter.saveButtonClicked(formMetadataSchemaVO, true);
+		presenter.saveButtonClicked();
 
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel(Language.French))
 				.isEqualTo(
@@ -140,9 +165,38 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	public void whenCancelButtonClickedThenNavigateToListSchemas()
 			throws Exception {
 
+		presenter.setParameters(parameters);
+
 		presenter.cancelButtonClicked();
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
 		verify(view.navigate().to()).listSchema(params);
 	}
+
+	@Test
+	public void whenAddModeThenCodeEditable()
+			throws Exception {
+
+		presenter.setParameters(parameters);
+		assertThat(presenter.isCodeEditable()).isTrue();
+	}
+
+	@Test
+	public void givenCustomSchemaWhenEditModeThenCodeEditable()
+			throws Exception {
+
+		parameters.put("schemaCode", zeCustomSchema.code());
+		presenter.setParameters(parameters);
+		assertThat(presenter.isCodeEditable()).isTrue();
+	}
+
+	@Test
+	public void givenDefaultSchemaWhenEditModeThenCodeNotEditable()
+			throws Exception {
+
+		parameters.put("schemaCode", zeSchema.code());
+		presenter.setParameters(parameters);
+		assertThat(presenter.isCodeEditable()).isFalse();
+	}
+	
 }
