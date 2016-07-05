@@ -2,18 +2,22 @@ package com.constellio.model.services.records;
 
 public class RecordLogicalDeleteOptions {
 
-	PrincipalConceptDeleteBehavior principalConceptDeleteBehavior = PrincipalConceptDeleteBehavior.KEEP_RECORDS_IN_HIERARCHY;
+	LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy = LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS;
 
-	public PrincipalConceptDeleteBehavior getPrincipalConceptDeleteBehavior() {
-		return principalConceptDeleteBehavior;
+	public LogicallyDeleteTaxonomyRecordsBehavior getBehaviorForRecordsAttachedToTaxonomy() {
+		return behaviorForRecordsAttachedToTaxonomy;
 	}
 
-	public RecordLogicalDeleteOptions setPrincipalConceptDeleteBehavior(
-			PrincipalConceptDeleteBehavior principalConceptDeleteBehavior) {
-		this.principalConceptDeleteBehavior = principalConceptDeleteBehavior;
+	public RecordLogicalDeleteOptions setBehaviorForRecordsAttachedToTaxonomy(
+			LogicallyDeleteTaxonomyRecordsBehavior behaviorForRecordsAttachedToTaxonomy) {
+		this.behaviorForRecordsAttachedToTaxonomy = behaviorForRecordsAttachedToTaxonomy;
 		return this;
 	}
 
-	public enum PrincipalConceptDeleteBehavior {KEEP_RECORDS_IN_HIERARCHY, LOGICALLY_DELETE_ALL_RECORDS_HIERARCHY}
+	public enum LogicallyDeleteTaxonomyRecordsBehavior {
+		KEEP_RECORDS,
+		LOGICALLY_DELETE_THEM,
+		LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY
+	}
 
 }

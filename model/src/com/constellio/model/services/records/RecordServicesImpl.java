@@ -62,7 +62,7 @@ import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
-import com.constellio.model.services.records.RecordLogicalDeleteOptions.PrincipalConceptDeleteBehavior;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
@@ -853,7 +853,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		if (taxonomy.getSchemaTypes().contains(recordSchemaType)) {
-			if (options.principalConceptDeleteBehavior == PrincipalConceptDeleteBehavior.KEEP_RECORDS_IN_HIERARCHY) {
+			if (options.behaviorForRecordsAttachedToTaxonomy == LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS) {
 				newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
 			} else {
 				newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
