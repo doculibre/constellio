@@ -25,4 +25,10 @@ public class AzurADServices implements LDAPServices {
 		return null;
 	}
 
+	@Override
+	public LDAPUsersAndGroups importUsersAndGroups(LDAPServerConfiguration serverConfiguration,
+			LDAPUserSyncConfiguration userSyncConfiguration, String url) {
+		return null;
+	}
+
 }

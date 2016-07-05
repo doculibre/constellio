@@ -1,10 +1,12 @@
 package com.constellio.model.conf.ldap.config;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.entities.records.wrappers.Collection;
 
 public class LDAPServerConfiguration implements Serializable {
 	private Boolean ldapAuthenticationActive;
@@ -32,7 +34,11 @@ public class LDAPServerConfiguration implements Serializable {
 	}
 
 	public List<String> getUrls() {
-		return nonAzurAdServerConfig.urls;
+		if(directoryType == LDAPDirectoryType.AZUR_AD){
+			return Arrays.asList(azurServerConfig.authorityUrl);
+		}else{
+			return nonAzurAdServerConfig.urls;
+		}
 	}
 
 	public List<String> getDomains() {
