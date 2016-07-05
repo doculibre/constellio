@@ -14,8 +14,11 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
+import com.constellio.model.conf.ldap.config.ADAzurServerConfig;
+import com.constellio.model.conf.ldap.config.ADAzurUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.NonAzurAdServerConfig;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -66,36 +69,56 @@ public class LDAPConfigurationManager implements StatefulService {
 		configManager.updateProperties(LDAP_CONFIGS, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
-				properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
-				properties.put("ldap.serverConfiguration.domains.sharpSV", joinWithSharp(ldapServerConfiguration.getDomains()));
-				if (ldapServerConfiguration.getDirectoryType() != null) {
-					properties
-							.put("ldap.serverConfiguration.directoryType", ldapServerConfiguration.getDirectoryType().getCode());
-				}
 				if (ldapServerConfiguration.getLdapAuthenticationActive()) {
 					properties.put("ldap.authentication.active", "" + ldapServerConfiguration.getLdapAuthenticationActive());
 				} else {
 					properties.put("ldap.authentication.active", "" + false);
 				}
-
-				if (ldapServerConfiguration.getFollowReferences()) {
-					properties.put("ldap.serverConfiguration.followReferences", "" + true);
+				LDAPDirectoryType directoryType;
+				if (ldapServerConfiguration.getDirectoryType() != null) {
+					properties
+							.put("ldap.serverConfiguration.directoryType", ldapServerConfiguration.getDirectoryType().getCode());
+					directoryType = ldapServerConfiguration.getDirectoryType();
 				} else {
-					properties.put("ldap.serverConfiguration.followReferences", "" + false);
+					directoryType = LDAPDirectoryType.ACTIVE_DIRECTORY;
+				}
+				if (directoryType == LDAPDirectoryType.AZUR_AD) {
+					properties.put("ldap.serverConfiguration.authorityUrl", ldapServerConfiguration.getAuthorityUrl());
+					properties.put("ldap.serverConfiguration.authorityTenantId", ldapServerConfiguration.getAuthorityTenantId());
+					properties.put("ldap.serverConfiguration.clientId", ldapServerConfiguration.getClientId());
+					properties.put("ldap.syncConfiguration.applicationKey", ldapUserSyncConfiguration.getApplicationKey());
+				} else {
+					properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
+					properties
+							.put("ldap.serverConfiguration.domains.sharpSV", joinWithSharp(ldapServerConfiguration.getDomains()));
+					if (ldapServerConfiguration.getFollowReferences() != null && ldapServerConfiguration.getFollowReferences()) {
+						properties.put("ldap.serverConfiguration.followReferences", "" + true);
+					} else {
+						properties.put("ldap.serverConfiguration.followReferences", "" + false);
+					}
+
+					if (ldapUserSyncConfiguration.getUser() != null) {
+						properties.put("ldap.syncConfiguration.user.login", ldapUserSyncConfiguration.getUser());
+					}
+
+					String password = ldapUserSyncConfiguration.getPassword();
+					if (password != null) {
+						String encryptedPassword = password;
+						if (StringUtils.isNotBlank(password)) {
+							encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(password);
+						}
+						properties.put("ldap.syncConfiguration.user.password", encryptedPassword);
+					}
+					if (ldapUserSyncConfiguration.getGroupBaseContextList() != null) {
+						properties.put("ldap.syncConfiguration.groupsBaseContextList.sharpSV",
+								joinWithSharp(ldapUserSyncConfiguration.getGroupBaseContextList()));
+					}
+					if (ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList() != null) {
+						properties.put("ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV",
+								joinWithSharp(ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList()));
+					}
 				}
 
-				properties.put("ldap.syncConfiguration.user.login", ldapUserSyncConfiguration.getUser());
-				String password = ldapUserSyncConfiguration.getPassword();
-				String encryptedPassword = password;
-				if (StringUtils.isNotBlank(password)) {
-					encryptedPassword = modelLayerFactory.newEncryptionServices().encrypt(password);
-
-				}
-				properties.put("ldap.syncConfiguration.user.password", encryptedPassword);
-				properties.put("ldap.syncConfiguration.groupsBaseContextList.sharpSV",
-						joinWithSharp(ldapUserSyncConfiguration.getGroupBaseContextList()));
-				properties.put("ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV",
-						joinWithSharp(ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList()));
 				properties.put("ldap.syncConfiguration.selectedCollectionsCodes.sharpSV",
 						joinWithSharp(ldapUserSyncConfiguration.getSelectedCollectionsCodes()));
 
@@ -165,6 +188,9 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	private String joinWithSharp(List<String> list) {
+		if (list == null) {
+			return "";
+		}
 		return StringUtils.join(list, "#");
 	}
 
@@ -172,9 +198,9 @@ public class LDAPConfigurationManager implements StatefulService {
 		Boolean authenticationActive = configs.getLdapAuthenticationActive();
 		if (authenticationActive) {
 			LDAPDirectoryType directoryType = configs.getDirectoryType();
-			if(directoryType == LDAPDirectoryType.AZUR_AD){
+			if (directoryType == LDAPDirectoryType.AZUR_AD) {
 				validateAzurConfig(configs, ldapUserSyncConfiguration);
-			}else{
+			} else {
 				validateADAndEDirectoryConfiguration(configs, ldapUserSyncConfiguration);
 			}
 
@@ -218,18 +244,25 @@ public class LDAPConfigurationManager implements StatefulService {
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
 		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
 
-		List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV",
-				new ArrayList<String>());
-		List<String> domains = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.domains.sharpSV",
-				new ArrayList<String>());
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
-
 		Boolean active = getBooleanValue(configs, "ldap.authentication.active", false);
 
-		Boolean followReferences = getBooleanValue(configs, "ldap.serverConfiguration.followReferences", false);
+		if (directoryType == LDAPDirectoryType.AZUR_AD) {
+			String authorityUrl = getString(configs, "ldap.serverConfiguration.authorityUrl", null);
+			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
+			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
+			ADAzurServerConfig serverConf = new ADAzurServerConfig().setAuthorityTenantId(authorityTanentId)
+					.setAuthorityUrl(authorityUrl).setClientId(clientId);
+			return new LDAPServerConfiguration(serverConf, active);
+		} else {
+			List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV",
+					new ArrayList<String>());
+			List<String> domains = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.domains.sharpSV",
+					new ArrayList<String>());
 
-		return new LDAPServerConfiguration(urls, domains, directoryType, active, followReferences);
-
+			Boolean followReferences = getBooleanValue(configs, "ldap.serverConfiguration.followReferences", false);
+			return new LDAPServerConfiguration(urls, domains, directoryType, active, followReferences);
+		}
 	}
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
@@ -238,20 +271,6 @@ public class LDAPConfigurationManager implements StatefulService {
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(boolean decryptPassword) {
 		Map<String, String> configs = configManager.getProperties(LDAP_CONFIGS).getProperties();
-		String user = getString(configs, "ldap.syncConfiguration.user.login", null);
-		List<String> groupBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
-				"ldap.syncConfiguration.groupsBaseContextList.sharpSV",
-				new ArrayList<String>());
-		List<String> usersWithoutGroupsBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
-				"ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", new ArrayList<String>());
-		String password = getString(configs, "ldap.syncConfiguration.user.password", "");
-		if (decryptPassword) {
-			if (encryptionServices == null) {
-				encryptionServices = modelLayerFactory.newEncryptionServices();
-
-			}
-			password = encryptionServices.decrypt(password);
-		}
 		RegexFilter userFilter = newRegexFilter(configs, "ldap.syncConfiguration.userFilter.acceptedRegex",
 				"ldap.syncConfiguration.userFilter.rejectedRegex");
 		RegexFilter groupFilter = newRegexFilter(configs, "ldap.syncConfiguration.groupFilter.acceptedRegex",
@@ -260,8 +279,30 @@ public class LDAPConfigurationManager implements StatefulService {
 
 		List<String> selectedCollections = getSharpSeparatedValuesWithoutBlanks(configs,
 				"ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
-		return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution,
-				groupBaseContextList, usersWithoutGroupsBaseContextList, selectedCollections);
+		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
+		if (directoryType == LDAPDirectoryType.AZUR_AD) {
+			String applicationKey = getString(configs, "ldap.syncConfiguration.applicationKey", null);
+			ADAzurUserSynchConfig azurConf = new ADAzurUserSynchConfig().setApplicationKey(applicationKey);
+			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
+					selectedCollections);
+		} else {
+			String user = getString(configs, "ldap.syncConfiguration.user.login", null);
+			List<String> groupBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
+					"ldap.syncConfiguration.groupsBaseContextList.sharpSV",
+					new ArrayList<String>());
+			List<String> usersWithoutGroupsBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
+					"ldap.syncConfiguration.usersWithoutGroupsBaseContextList.sharpSV", new ArrayList<String>());
+			String password = getString(configs, "ldap.syncConfiguration.user.password", "");
+			if (decryptPassword) {
+				if (encryptionServices == null) {
+					encryptionServices = modelLayerFactory.newEncryptionServices();
+
+				}
+				password = encryptionServices.decrypt(password);
+			}
+			return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution,
+					groupBaseContextList, usersWithoutGroupsBaseContextList, selectedCollections);
+		}
 	}
 
 	public boolean isLDAPAuthentication() {

@@ -34,11 +34,7 @@ public class LDAPServerConfiguration implements Serializable {
 	}
 
 	public List<String> getUrls() {
-		if(directoryType == LDAPDirectoryType.AZUR_AD){
-			return Arrays.asList(azurServerConfig.authorityUrl);
-		}else{
-			return nonAzurAdServerConfig.urls;
-		}
+		return nonAzurAdServerConfig.urls;
 	}
 
 	public List<String> getDomains() {
@@ -57,15 +53,15 @@ public class LDAPServerConfiguration implements Serializable {
 		return nonAzurAdServerConfig.followReferences;
 	}
 
-	public String getAuthorityUrl(){
+	public String getAuthorityUrl() {
 		return this.azurServerConfig.authorityUrl;
 	}
 
-	public String getAuthorityTenantId(){
+	public String getAuthorityTenantId() {
 		return this.azurServerConfig.authorityTenantId;
 	}
 
-	public String getclientId(){
+	public String getClientId() {
 		return this.azurServerConfig.clientId;
 	}
 }

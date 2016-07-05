@@ -1,10 +1,12 @@
 package com.constellio.model.services.users.sync;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
@@ -98,7 +100,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
-		for (String url : serverConfiguration.getUrls()) {
+		for (String url : getNonEmptyUrls(serverConfiguration)) {
 			LDAPUsersAndGroups importedUsersAndgroups = ldapServices
 					.importUsersAndGroups(serverConfiguration, userSyncConfiguration, url);
 			Set<LDAPGroup> ldapGroups = importedUsersAndgroups.getGroups();
@@ -120,6 +122,14 @@ public class LDAPUserSyncManager implements StatefulService {
 		List<String> removedGroupsIds = (List<String>) CollectionUtils
 				.subtract(groupsIdsBeforeSynchronisation, groupsIdsAfterSynchronisation);
 		removeGroups(removedGroupsIds);
+	}
+
+	private List<String> getNonEmptyUrls(LDAPServerConfiguration serverConfiguration) {
+		if (serverConfiguration.getDirectoryType() == LDAPDirectoryType.AZUR_AD) {
+			return Arrays.asList(serverConfiguration.getAuthorityUrl());
+		} else {
+			return serverConfiguration.getUrls();
+		}
 	}
 
 	private UpdatedUsersAndGroups updateUsersAndGroups(Set<LDAPUser> ldapUsers, Set<LDAPGroup> ldapGroups,
