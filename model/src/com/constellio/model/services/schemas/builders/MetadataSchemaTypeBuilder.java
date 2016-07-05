@@ -332,6 +332,7 @@ public class MetadataSchemaTypeBuilder {
 		customSchema.setLocalCode(localCode);
 		customSchema.setCollection(collection);
 		customSchema.setCode(code + UNDERSCORE + localCode);
+		customSchema.setLabels(new HashMap<Language, String>(copiedSchemaBuilder.getLabels()));
 		customSchemas.add(customSchema);
 
 		for (MetadataBuilder metadataBuilder : copiedSchemaBuilder.getMetadatas()) {

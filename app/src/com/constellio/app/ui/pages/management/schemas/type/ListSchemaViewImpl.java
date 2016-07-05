@@ -4,8 +4,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Map;
 
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.FormDisplay;
 import com.constellio.app.ui.framework.buttons.FormOrderButton;
@@ -161,6 +164,27 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 						Integer index = (Integer) itemId;
 						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
 						presenter.searchButtonClicked(entity);
+					}
+				};
+			}
+		});
+
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						Integer index = (Integer) itemId;
+						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+						presenter.deleteButtonClicked(entity.getCode());
+					}
+
+					@Override
+					public boolean isVisible() {
+						Integer index = (Integer) itemId;
+						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+						return super.isVisible() && presenter.isDeleteButtonVisible(entity.getCode());
 					}
 				};
 			}

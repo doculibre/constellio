@@ -29,4 +29,12 @@ public class AppSchemasServicesRuntimeException extends RuntimeException {
 			super("Cannot change code to other schema type");
 		}
 	}
+
+	public static class AppSchemasServicesRuntimeException_CannotDeleteSchema
+			extends AppSchemasServicesRuntimeException {
+
+		public AppSchemasServicesRuntimeException_CannotDeleteSchema(String schema) {
+			super("Cannot delete schema '" + schema + "'");
+		}
+	}
 }
