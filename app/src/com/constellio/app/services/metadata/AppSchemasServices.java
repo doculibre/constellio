@@ -1,6 +1,7 @@
 package com.constellio.app.services.metadata;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -18,13 +19,16 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class AppSchemasServices {
 
@@ -73,6 +77,7 @@ public class AppSchemasServices {
 		if (!isSchemaDeletable(collection, schemaCode)) {
 			throw new AppSchemasServicesRuntimeException_CannotDeleteSchema(schemaCode);
 		}
+		updateRecordsWithLinkedSchemas(collection, schemaCode, null);
 		schemasManager.deleteCustomSchemas(asList(schemasManager.getSchemaTypes(collection).getSchema(schemaCode)));
 	}
 
@@ -93,9 +98,27 @@ public class AppSchemasServices {
 
 		modifyRecords(collection, types.getSchema(fromCode), types.getSchema(toCode));
 		modifyReferencesWithDirectTarget(types, fromCode, toCode);
+		updateRecordsWithLinkedSchemas(collection, fromCode, toCode);
 		configureNewSchema(collection, fromCode, toCode);
 
 		schemasManager.deleteCustomSchemas(asList(types.getSchema(fromCode)));
+	}
+
+	private void updateRecordsWithLinkedSchemas(String collection, String fromCode, String toCode) {
+		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
+				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(fromCode)));
+
+		Transaction transaction = new Transaction();
+
+		for (Record record : records) {
+			transaction.add(record.set(Schemas.LINKED_SCHEMA, toCode));
+		}
+
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void modifyReferencesWithDirectTarget(MetadataSchemaTypes types, final String fromCode, final String toCode) {

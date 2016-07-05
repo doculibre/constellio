@@ -1,3 +1,5 @@
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.LINKED_SCHEMA;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,6 +105,26 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		} catch (AppSchemasServicesRuntimeException_CannotChangeCodeToOtherSchemaType e) {
 			//OK
 		}
+	}
+
+	@Test
+	public void givenAnotherSchemaHasTheCustomSchemaAsLinkedSchemaWhenModifyCodeOrDeleteSchemaThenModifyLinkedSchema()
+			throws Exception {
+		setUpWithoutRecords();
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(thirdSchemas.code()).create(LINKED_SCHEMA.getLocalCode()).setType(STRING);
+			}
+		});
+		recordServices.add(new TestRecord(thirdSchemas, "zeRecordWithLinkedSchema").set(LINKED_SCHEMA, "zeSchemaType_custom"));
+
+		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
+		assertThat(recordServices.getDocumentById("zeRecordWithLinkedSchema").get(LINKED_SCHEMA))
+				.isEqualTo("zeSchemaType_custom2");
+
+		appSchemasServices.deleteSchemaCode(zeCollection, "zeSchemaType_custom2");
+		assertThat(recordServices.getDocumentById("zeRecordWithLinkedSchema").get(LINKED_SCHEMA)).isNull();
 	}
 
 	@Test
