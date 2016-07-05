@@ -1,6 +1,9 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +15,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.model.entities.schemas.Schemas;
 
 public class SmbRecordService {
 	private ESSchemasRecordsServices es;
@@ -256,4 +260,13 @@ public class SmbRecordService {
 		// TODO Benoit. Evaluate if it should be synchronized
 		connectorInstance.setResumeUrl(url);
 	}
+
+	public Collection<? extends ConnectorDocument<?>> getAllDocumentsInFolder(ConnectorDocument<?> folderToDelete) {
+		if (folderToDelete.getPaths().isEmpty()) {
+			return new ArrayList<>();
+		}
+		String path = folderToDelete.getPaths().get(0);
+		return es.searchConnectorSmbDocuments(where(Schemas.PATH).isStartingWithText(path));
+	}
+
 }

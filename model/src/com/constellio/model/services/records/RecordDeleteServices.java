@@ -480,13 +480,34 @@ public class RecordDeleteServices {
 	}
 
 	List<Record> getAllRecordsInHierarchy(Record record) {
+
+		if (record.getList(Schemas.PATH).isEmpty()) {
+			return Arrays.asList(record);
+
+		} else {
+			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+			if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
+				return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
+			} else {
+				LogicalSearchQuery query = new LogicalSearchQuery();
+				List<String> paths = record.getList(Schemas.PATH);
+				query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+				return searchServices.search(query);
+			}
+		}
+	}
+
+	List<Record> getAllTaxonomyRecordsInHierarchy(Record record, Taxonomy taxonomy) {
 		if (record.getList(Schemas.PATH).isEmpty()) {
 			return Arrays.asList(record);
 
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
-			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
+					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isStartingWithText(paths.get(0)));
 			return searchServices.search(query);
 		}
 	}
@@ -506,10 +527,19 @@ public class RecordDeleteServices {
 	}
 
 	boolean containsNoActiveRecords(Record record) {
+
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+
 		LogicalSearchQuery query = new LogicalSearchQuery().filteredByStatus(StatusFilter.ACTIVES);
-		query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText(record.getId()));
-		boolean result = !searchServices.hasResults(query);
-		return result;
+		if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
+			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
+					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
+			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isContainingText(record.getId()));
+		} else {
+			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isContainingText(record.getId()));
+		}
+		return !searchServices.hasResults(query);
 	}
 
 	public RecordUtils newRecordUtils() {

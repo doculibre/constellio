@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -78,7 +79,10 @@ public class SmbDeleteJob extends ConnectorJob implements SmbConnectorJob {
 				// Do nothing.
 			} else {
 				ConnectorDocument<?> folderToDelete = foldersToDelete.get(0);
-				eventObserver.deleteEvents(folderToDelete);
+				List<ConnectorDocument<?>> deletedConnectors = new ArrayList<>();
+				deletedConnectors.addAll(smbRecordService.getAllDocumentsInFolder(folderToDelete));
+				deletedConnectors.add(folderToDelete);
+				eventObserver.deleteEvents(deletedConnectors.toArray(new ConnectorDocument[] {}));
 			}
 		} else {
 			List<ConnectorDocument<?>> documentsToDelete = smbRecordService.getExistingDocumentsWithUrl(url);
