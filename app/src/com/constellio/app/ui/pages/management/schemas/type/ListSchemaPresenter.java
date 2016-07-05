@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.type;
 
 import java.util.Map;
 
+import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -83,4 +84,22 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	public void backButtonClicked() {
 		view.navigate().to().listSchemaTypes();
 	}
+	
+	boolean isDeletePossible(String schemaCode) {
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		return appSchemasServices.isSchemaDeletable(collection, schemaCode);
+	}
+
+	public void deleteButtonClicked(String schemaCode) {
+		if (isDeletePossible(schemaCode)) {
+			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+			appSchemasServices.deleteSchemaCode(collection, schemaCode);
+			view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
+		}
+	}
+
+	public boolean isDeleteButtonVisible(String schemaCode) {
+		return isDeletePossible(schemaCode);
+	}
+	
 }
