@@ -852,7 +852,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		refresh(user);
 
 		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
-		if (taxonomy.getSchemaTypes().contains(recordSchemaType)) {
+		if (taxonomy != null && taxonomy.getSchemaTypes().contains(recordSchemaType)) {
 			if (options.behaviorForRecordsAttachedToTaxonomy == LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS) {
 				newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
 			} else {
