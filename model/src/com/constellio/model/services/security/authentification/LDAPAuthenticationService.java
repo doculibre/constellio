@@ -22,6 +22,9 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
+import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
@@ -63,13 +66,32 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		if (username.equals(ADMIN_USERNAME)) {
 			return adminAuthenticationService.authenticate(username, password);
 		}
-		if(StringUtils.isBlank(password)){
-			return false;
-		}
-		boolean authenticated = false;
 		if (StringUtils.isBlank(password)) {
+			LOGGER.info("invalid blank password");
 			return false;
 		}
+		return authenticateLDAPUser(username, password);
+	}
+
+	private boolean authenticateLDAPUser(String username, String password) {
+		LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
+		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.AZUR_AD) {
+			LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(directoryType);
+			try {
+				ldapServices.authenticateUser(ldapServerConfiguration, username, password);
+				return true;
+			} catch (CouldNotConnectUserToLDAP e) {
+				LOGGER.info("Error when trying to authenticate user " + username, e);
+				return false;
+			}
+		} else {
+			return authenticateDefaultLDAPUser(username, password);
+		}
+	}
+
+	//TODO : refactoring move to LDAPServicesImpl
+	private boolean authenticateDefaultLDAPUser(String username, String password) {
+		boolean authenticated = false;
 		for (String url : ldapServerConfiguration.getUrls()) {
 			authenticated = authenticate(username, password, url);
 
@@ -108,7 +130,8 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), url,
 				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
 				ldapServerConfiguration.getFollowReferences(), isAD);
-		String dnForUser = ldapServices.dnForUser(ctx, username, ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList());
+		String dnForUser = ldapServices
+				.dnForUser(ctx, username, ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList());
 		try {
 			ctx.close();
 		} catch (NamingException e) {
@@ -185,13 +208,13 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	private String getUserDn(String username, String domain, String url)
 			throws NamingException {
-		try{
+		try {
 			UserCredential user = userServices.getUser(username);
-			if(StringUtils.isNotBlank(user.getDn())){
+			if (StringUtils.isNotBlank(user.getDn())) {
 				return user.getDn();
 			}
-		} catch(UserServicesRuntimeException_NoSuchUser e){
-			LOGGER.warn("Trying to authenticate non constellio user "+ username, e);
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			LOGGER.warn("Trying to authenticate non constellio user " + username, e);
 		}
 
 		String ldapUser = this.ldapConfigurationManager.getLDAPUserSyncConfiguration().getUser();

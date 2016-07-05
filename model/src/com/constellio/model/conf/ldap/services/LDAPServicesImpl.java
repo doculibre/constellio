@@ -28,7 +28,7 @@ import com.constellio.model.conf.ldap.Filter;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectToLDAP;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
@@ -380,17 +380,17 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
-			throws CouldNotConnectToLDAP {
+			throws CouldNotConnectUserToLDAP {
 		if(StringUtils.isBlank(password)){
 			LOGGER.warn("Invalid blank password");
-			throw new CouldNotConnectToLDAP();
+			throw new CouldNotConnectUserToLDAP();
 		}
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
 				user, password,
 				ldapServerConfiguration.getFollowReferences(), activeDirectory);
 		if (ctx == null) {
-			throw new CouldNotConnectToLDAP();
+			throw new CouldNotConnectUserToLDAP();
 		}
 	}
 

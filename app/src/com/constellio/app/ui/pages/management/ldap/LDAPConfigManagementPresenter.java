@@ -3,9 +3,6 @@ package com.constellio.app.ui.pages.management.ldap;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
-import java.util.Set;
-
-import javax.naming.ldap.LdapContext;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -22,10 +19,8 @@ import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import com.constellio.model.conf.ldap.services.LDAPServices;
-import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectToLDAP;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
-import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
-import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 
@@ -78,7 +73,7 @@ public class LDAPConfigManagementPresenter extends
 		try {
 			ldapServices.authenticateUser(ldapServerConfiguration, user, password);
 			return $("ldap.authentication.success");
-		} catch (CouldNotConnectToLDAP e) {
+		} catch (CouldNotConnectUserToLDAP e) {
 			LOGGER.warn("Error when trying to authenticate user " + user);
 			return $("ldap.authentication.fail");
 		}
