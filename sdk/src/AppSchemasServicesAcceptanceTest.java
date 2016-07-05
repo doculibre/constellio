@@ -11,6 +11,7 @@ import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.A
 import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotChangeCodeToOtherSchemaType;
 import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
@@ -54,6 +55,13 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 		schemasDisplayManager.saveMetadata(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
 				.withVisibleInAdvancedSearchStatus(true));
 
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema("zeSchemaType_custom").getLabels().put(Language.French, "Ze french label");
+				types.getSchema("zeSchemaType_custom").getLabels().put(Language.English, "Ze english label");
+			}
+		});
 	}
 
 	public void setUpWithRecords()
@@ -140,7 +148,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 				.containsOnly("zeSchemaType_custom_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom_customString")
 				.isVisibleInAdvancedSearch()).isTrue();
-
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.French))
+				.isEqualTo("Ze french label");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom").getLabel(Language.English))
+				.isEqualTo("Ze english label");
 		appSchemasServices.modifySchemaCode(zeCollection, "zeSchemaType_custom", "zeSchemaType_custom2");
 
 		//Validate state after code modification
@@ -157,6 +168,10 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 				.containsOnly("zeSchemaType_custom2_title");
 		assertThat(schemasDisplayManager.getMetadata(zeCollection, "zeSchemaType_custom2_customString")
 				.isVisibleInAdvancedSearch()).isTrue();
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.French))
+				.isEqualTo("Ze french label");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_custom2").getLabel(Language.English))
+				.isEqualTo("Ze english label");
 
 	}
 
