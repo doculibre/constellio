@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.model.conf.ldap.Filter;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectToLDAP;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
@@ -373,5 +376,63 @@ public class LDAPServicesImpl implements LDAPServices {
 			namEx.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
+			throws CouldNotConnectToLDAP {
+		if(StringUtils.isBlank(password)){
+			LOGGER.warn("Invalid blank password");
+			throw new CouldNotConnectToLDAP();
+		}
+		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
+		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
+				user, password,
+				ldapServerConfiguration.getFollowReferences(), activeDirectory);
+		if (ctx == null) {
+			throw new CouldNotConnectToLDAP();
+		}
+	}
+
+	@Override
+	public List<String> getTestSynchronisationGroups(LDAPServerConfiguration ldapServerConfiguration,
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		List<String> returnGroups = new ArrayList<>();
+
+		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
+		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+				ldapServerConfiguration.getFollowReferences(), activeDirectory);
+		if (ctx != null) {
+			Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
+					ldapUserSyncConfiguration.getGroupFilter());
+			if (!groups.isEmpty()) {
+				for (LDAPGroup group : groups) {
+					returnGroups.add(group.getSimpleName());
+				}
+			}
+
+		}
+		return returnGroups;
+	}
+
+	@Override
+	public List<String> getTestSynchronisationUsersNames(LDAPServerConfiguration ldapServerConfiguration,
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+		List<String> returnUsers = new ArrayList<>();
+
+		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
+		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+				ldapServerConfiguration.getFollowReferences(), activeDirectory);
+		if (ctx != null) {
+
+			Set<String> users = getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
+					ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter());
+
+			returnUsers.addAll(users);
+		}
+
+		return returnUsers;
 	}
 }

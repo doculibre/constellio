@@ -9,10 +9,6 @@ import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 
 public class LDAPUserSyncConfiguration {
-	String user;
-
-	String password;
-
 	transient RegexFilter userFilter;
 
 	transient RegexFilter groupFilter;
@@ -21,20 +17,22 @@ public class LDAPUserSyncConfiguration {
 
 	private List<String> selectedCollectionsCodes;
 
-	ADAzurUserSynchConfig azurUserSynchConfig;
-	NonAzurADUserSynchConfig nonAzurADUserSynchConfig;
+	ADAzurUserSynchConfig azurUserSynchConfig = new ADAzurUserSynchConfig();
+	NonAzurADUserSynchConfig nonAzurADUserSynchConfig = new NonAzurADUserSynchConfig();
 
 	public LDAPUserSyncConfiguration(String user, String password,
-									 RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
-									 List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList) {
-		this(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList, usersWithoutGroupsBaseContextList, new ArrayList<String>());
+			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
+			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList) {
+		this(user, password, userFilter, groupFilter, durationBetweenExecution, groupBaseContextList,
+				usersWithoutGroupsBaseContextList, new ArrayList<String>());
 	}
 
 	public LDAPUserSyncConfiguration(String user, String password,
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
-			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList, List<String> selectedCollectionsCodes) {
-		this.user = user;
-		this.password = password;
+			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList,
+			List<String> selectedCollectionsCodes) {
+		this.nonAzurADUserSynchConfig.user = user;
+		this.nonAzurADUserSynchConfig.password = password;
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
@@ -43,12 +41,22 @@ public class LDAPUserSyncConfiguration {
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
 	}
 
+	public LDAPUserSyncConfiguration(ADAzurUserSynchConfig azurUserSynchConfig,
+			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
+			List<String> selectedCollectionsCodes) {
+		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
+		this.userFilter = userFilter;
+		this.groupFilter = groupFilter;
+		this.durationBetweenExecution = durationBetweenExecution;
+		this.selectedCollectionsCodes = selectedCollectionsCodes;
+	}
+
 	public String getUser() {
-		return user;
+		return nonAzurADUserSynchConfig.user;
 	}
 
 	public String getPassword() {
-		return password;
+		return nonAzurADUserSynchConfig.password;
 	}
 
 	public boolean isUserAccepted(String userName) {
@@ -128,5 +136,9 @@ public class LDAPUserSyncConfiguration {
 
 	public List<String> getSelectedCollectionsCodes() {
 		return selectedCollectionsCodes;
+	}
+
+	public String getApplicationKey(){
+		return this.azurUserSynchConfig.applicationKey;
 	}
 }

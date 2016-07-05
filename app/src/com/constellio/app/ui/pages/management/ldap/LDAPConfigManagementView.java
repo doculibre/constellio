@@ -5,5 +5,5 @@ import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 
 public interface LDAPConfigManagementView extends BaseView, AdminViewGroup {
-	void refreshTypeDependantFields(LDAPDirectoryType directoryType);
+	void updateComponents();
 }

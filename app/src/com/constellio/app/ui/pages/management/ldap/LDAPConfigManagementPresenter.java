@@ -8,6 +8,8 @@ import java.util.Set;
 import javax.naming.ldap.LdapContext;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.ldap.EmptyDomainsRuntimeException;
@@ -19,6 +21,9 @@ import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.TooShortDurationRuntimeException;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
+import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectToLDAP;
+import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.entities.CorePermissions;
@@ -26,6 +31,7 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class LDAPConfigManagementPresenter extends
 										   BasePresenter<LDAPConfigManagementView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigManagementPresenter.class);
 
 	public LDAPConfigManagementPresenter(LDAPConfigManagementView view) {
 		super(view);
@@ -67,45 +73,33 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
-		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx == null) {
-			return $("ldap.authentication.fail");
-		} else {
+			String user, String password) {
+		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		try {
+			ldapServices.authenticateUser(ldapServerConfiguration, user, password);
 			return $("ldap.authentication.success");
+		} catch (CouldNotConnectToLDAP e) {
+			LOGGER.warn("Error when trying to authenticate user " + user);
+			return $("ldap.authentication.fail");
 		}
 	}
 
 	public String getSynchResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		StringBuilder result = new StringBuilder();
-		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx != null) {
-			Set<LDAPGroup> groups = ldapServices.getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
-					ldapUserSyncConfiguration.getGroupFilter());
-			if (!groups.isEmpty()) {
-				result.append($("ldap.imported.groups") + ":");
-				for (LDAPGroup group : groups) {
-					result.append("\t" + group.getSimpleName());
-				}
-			}
-
-			Set<String> users = ldapServices.getUsersUsingFilter(ldapServerConfiguration.getDirectoryType(), ctx,
-					ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilter());
-			if (!users.isEmpty()) {
-				result.append($("ldap.imported.users") + ":\n\t");
-				result.append(StringUtils.join(users, "\n\t"));
-			}
+		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		List<String> groups = ldapServices.getTestSynchronisationGroups(ldapServerConfiguration, ldapUserSyncConfiguration);
+		if (groups != null && !groups.isEmpty()) {
+			result.append($("ldap.imported.groups") + ":\n\t");
+			result.append(StringUtils.join(groups, "\n\t"));
+			result.append("\n");
 		}
 
+		List<String> users = ldapServices.getTestSynchronisationUsersNames(ldapServerConfiguration, ldapUserSyncConfiguration);
+		if (users != null && !users.isEmpty()) {
+			result.append($("ldap.imported.users") + ":\n\t");
+			result.append(StringUtils.join(users, "\n\t"));
+		}
 		return result.toString();
 	}
 
@@ -118,22 +112,6 @@ public class LDAPConfigManagementPresenter extends
 		return appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem();
 	}
 
-	public boolean isFollowReferencesVisible(LDAPDirectoryType directoryType) {
-		return typeNotAzur(directoryType);
-	}
-
-	private boolean typeNotAzur(LDAPDirectoryType directoryType) {
-		return directoryType != LDAPDirectoryType.AZUR_AD;
-	}
-
-	public boolean isUrlsFieldVisible(LDAPDirectoryType directoryType) {
-		return typeNotAzur(directoryType);
-	}
-
-	public boolean isDomainsFieldVisible(LDAPDirectoryType directoryType) {
-		return typeNotAzur(directoryType);
-	}
-
 	public void typeChanged(String previousDirectoryType, String newValue) {
 		typeChanged(LDAPDirectoryType.valueOf(previousDirectoryType), LDAPDirectoryType.valueOf(newValue));
 	}
@@ -141,12 +119,12 @@ public class LDAPConfigManagementPresenter extends
 	public void typeChanged(LDAPDirectoryType previousDirectoryType, LDAPDirectoryType newValue) {
 		switch (previousDirectoryType) {
 		case AZUR_AD:
-			view.refreshTypeDependantFields(newValue);
+			view.updateComponents();
 			break;
 		case ACTIVE_DIRECTORY:
 		case E_DIRECTORY:
 			if (newValue == LDAPDirectoryType.AZUR_AD) {
-				view.refreshTypeDependantFields(newValue);
+				view.updateComponents();
 			}
 			break;
 		default:

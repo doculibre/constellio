@@ -11,8 +11,8 @@ public class LDAPServerConfiguration implements Serializable {
 
 	private LDAPDirectoryType directoryType;
 
-	NonAzurAdServerConfig nonAzurAdServerConfig;
-	ADAzurServerConfig azurServerConfig;
+	NonAzurAdServerConfig nonAzurAdServerConfig = new NonAzurAdServerConfig();
+	ADAzurServerConfig azurServerConfig = new ADAzurServerConfig();
 
 	public LDAPServerConfiguration(List<String> urls, List<String> domains, LDAPDirectoryType directoryType,
 			Boolean ldapAuthenticationActive, Boolean followReferences) {
@@ -23,13 +23,12 @@ public class LDAPServerConfiguration implements Serializable {
 		this.nonAzurAdServerConfig.followReferences = followReferences;
 	}
 
-	public LDAPServerConfiguration(Boolean ldapAuthenticationActive, String authorityTenantId, String authorityUrl,
-			String clientId) {
+	public LDAPServerConfiguration(ADAzurServerConfig serverConfig, Boolean ldapAuthenticationActive) {
 		this.directoryType = LDAPDirectoryType.AZUR_AD;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
-		this.azurServerConfig.authorityTenantId = authorityTenantId;
-		this.azurServerConfig.authorityUrl = authorityUrl;
-		this.azurServerConfig.clientId = clientId;
+		this.azurServerConfig.authorityTenantId = serverConfig.authorityTenantId;
+		this.azurServerConfig.authorityUrl = serverConfig.authorityUrl;
+		this.azurServerConfig.clientId = serverConfig.clientId;
 	}
 
 	public List<String> getUrls() {
