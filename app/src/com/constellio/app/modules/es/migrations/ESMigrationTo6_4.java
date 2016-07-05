@@ -34,9 +34,11 @@ public class ESMigrationTo6_4 implements MigrationScript {
 		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
 
 			for (MetadataSchema metadataSchema : metadataSchemaType.getCustomSchemas()) {
-				SchemaDisplayConfig customConfig = manager.getSchema(collection, metadataSchema.getCode());
-				SchemaDisplayConfig newCustomConfig = customConfig.withTableMetadataCodes(new ArrayList<String>());
-				transaction.add(newCustomConfig);
+				if (!metadataSchema.getCode().contains(" ")) {
+					SchemaDisplayConfig customConfig = manager.getSchema(collection, metadataSchema.getCode());
+					SchemaDisplayConfig newCustomConfig = customConfig.withTableMetadataCodes(new ArrayList<String>());
+					transaction.add(newCustomConfig);
+				}
 			}
 
 			SchemaDisplayConfig config = manager.getSchema(collection, metadataSchemaType.getDefaultSchema().getCode());

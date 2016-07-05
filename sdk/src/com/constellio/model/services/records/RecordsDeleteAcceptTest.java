@@ -89,6 +89,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	boolean notRequired = false;
 
 	private ModelLayerCollectionExtensions extensions;
+	private RecordDeleteOptions withMostReferencesRemoved = new RecordDeleteOptions().setReferencesToNull(true);
 
 	@Before
 	public void setUp()
@@ -1369,6 +1370,61 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		assertThat(records.folder4()).is(notReferenced());
 		assertThat(records.folder4()).is(seenByUserToBeReferencedByNoRecords(userWithDeletePermission));
+
+	}
+
+	@Test
+	public void whenLogicallyDeletingANonPrincipalConceptThenOnlyLogicallyDeleteConceptsInHierarchy()
+			throws Exception {
+
+		when(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+
+		assertThat(records.taxo2_unit1()).is(logicallyDeleted());
+		assertThat(records.taxo2_unit1_1()).is(logicallyDeleted());
+		assertThat(records.folder1()).isNot(logicallyDeleted());
+		assertThat(records.folder2()).isNot(logicallyDeleted());
+
+	}
+
+	@Test
+	public void givenANonPrincipalConceptAndAllHisRecordsAreLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
+			throws Exception {
+
+		Record taxo2_unit1 = records.taxo2_unit1();
+		Record taxo2_unit1_1 = records.taxo2_unit1_1();
+
+		when(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+		when(userWithDeletePermission).logicallyDelete(records.folder1());
+		when(userWithDeletePermission).logicallyDelete(records.folder2());
+		when(userWithDeletePermission).logicallyDelete(records.folder3());
+		when(userWithDeletePermission).logicallyDelete(records.folder4());
+		when(userWithDeletePermission).logicallyDelete(records.folder5());
+
+		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
+
+		assertThat(taxo2_unit1).is(physicallyDeleted());
+		assertThat(taxo2_unit1_1).is(physicallyDeleted());
+		assertThat(records.folder1()).isNot(physicallyDeleted());
+		assertThat(records.folder2()).isNot(physicallyDeleted());
+
+	}
+
+	@Test
+	public void givenANonPrincipalConceptIsLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
+			throws Exception {
+
+		Record taxo2_unit1 = records.taxo2_unit1();
+		Record taxo2_unit1_1 = records.taxo2_unit1_1();
+		given(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+
+		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
+
+		assertThat(taxo2_unit1).is(physicallyDeleted());
+		assertThat(taxo2_unit1_1).is(physicallyDeleted());
+		assertThat(records.folder1()).isNot(logicallyDeleted());
+		assertThat(records.folder1()).isNot(physicallyDeleted());
+		assertThat(records.folder2()).isNot(logicallyDeleted());
+		assertThat(records.folder2()).isNot(physicallyDeleted());
 
 	}
 
