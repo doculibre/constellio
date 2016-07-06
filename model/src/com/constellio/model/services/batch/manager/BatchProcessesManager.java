@@ -350,7 +350,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	public void waitUntilFinished(BatchProcess batchProcess) {
 		while (get(batchProcess.getId()).getStatus() != BatchProcessStatus.FINISHED) {
 			try {
-				Thread.sleep(50);
+				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}

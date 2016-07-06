@@ -1,5 +1,9 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
@@ -17,7 +21,6 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -47,7 +50,6 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
-import com.constellio.model.services.records.RecordServicesRuntimeException.RecordIsNotAPrincipalConcept;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
@@ -234,7 +236,7 @@ public class RecordDeleteServices {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
 		}
 
-		List<Record> records = getAllRecordsInHierarchy(record);
+		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
 		if (options.isSetMostReferencesToNull()) {
@@ -316,6 +318,49 @@ public class RecordDeleteServices {
 		} else {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(record.getId(),
 					recordsWithUnremovableReferences);
+		}
+	}
+
+	private List<Record> getAllRecordsInHierarchyForLogicalDeletion(Record record, RecordLogicalDeleteOptions options) {
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+
+		boolean includeRecords = false;
+		if (taxonomy != null) {
+			if (options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM) {
+				includeRecords = true;
+			} else if (taxonomy.hasSameCode(principalTaxonomy)
+					&& options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
+				includeRecords = true;
+			}
+		}
+
+		if (taxonomy != null && !includeRecords) {
+			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
+		} else {
+			return getAllRecordsInHierarchy(record);
+		}
+	}
+
+	private List<Record> getAllRecordsInHierarchyForPhysicalDeletion(Record record, RecordPhysicalDeleteOptions options) {
+
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
+
+		boolean includeRecords = false;
+		if (taxonomy != null) {
+			if (options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM) {
+				includeRecords = true;
+			} else if (taxonomy.hasSameCode(principalTaxonomy)
+					&& options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
+				includeRecords = true;
+			}
+		}
+
+		if (taxonomy != null && !includeRecords) {
+			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
+		} else {
+			return getAllRecordsInHierarchy(record);
 		}
 	}
 	//
@@ -414,13 +459,17 @@ public class RecordDeleteServices {
 	}
 
 	public void logicallyDelete(Record record, User user) {
+		logicallyDelete(record, user, new RecordLogicalDeleteOptions());
+	}
+
+	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
 		if (!isLogicallyDeletable(record, user)) {
 			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
 		}
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 
-		List<Record> hierarchyRecords = new ArrayList<>(getAllRecordsInHierarchy(record));
+		List<Record> hierarchyRecords = new ArrayList<>(getAllRecordsInHierarchyForLogicalDeletion(record, options));
 		if (!new RecordUtils().toIdList(hierarchyRecords).contains(record.getId())) {
 			hierarchyRecords.add(record);
 		}
@@ -448,66 +497,9 @@ public class RecordDeleteServices {
 				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, true, metadataSchemasManager);
 	}
 
-	public void logicallyDeletePrincipalConceptIncludingRecords(Record principalConcept, User user) {
-		if (!isPrincipalConceptLogicallyDeletableIncludingContent(principalConcept, user)) {
-			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(principalConcept.getId());
-		}
-
-		Transaction transaction = new Transaction();
-		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-		principalConcept.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-		LocalDateTime now = TimeProvider.getLocalDateTime();
-		principalConcept.set(Schemas.LOGICALLY_DELETED_ON, now);
-		transaction.add(principalConcept);
-
-		for (Record hierarchyRecord : getAllRecordsInHierarchy(principalConcept)) {
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
-			transaction.add(hierarchyRecord);
-		}
-		try {
-			recordServices.execute(transaction);
-			recordServices.refresh(principalConcept);
-		} catch (RecordServicesException e) {
-			throw new RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation(
-					"logicallyDeletePrincipalConceptIncludingRecords", e);
-		}
-	}
-
 	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record principalConcept, User user) {
 		return authorizationsServices
 				.hasDeletePermissionOnPrincipalConceptHierarchy(user, principalConcept, false, metadataSchemasManager);
-	}
-
-	public void logicallyDeletePrincipalConceptExcludingRecords(Record principalConcept, User user) {
-		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(principalConcept.getCollection());
-		String schemaType = new SchemaUtils().getSchemaTypeCode(principalConcept.getSchemaCode());
-		if (!principalTaxonomy.getSchemaTypes().contains(schemaType)) {
-			throw new RecordIsNotAPrincipalConcept(principalConcept.getId());
-		}
-
-		if (!isPrincipalConceptLogicallyDeletableExcludingContent(principalConcept, user)) {
-			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(principalConcept.getId());
-		}
-
-		LocalDateTime now = TimeProvider.getLocalDateTime();
-		Transaction transaction = new Transaction();
-		principalConcept.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-		principalConcept.set(Schemas.LOGICALLY_DELETED_ON, now);
-		transaction.add(principalConcept);
-
-		for (Record hierarchyRecord : getAllPrincipalConceptsRecordsInHierarchy(principalConcept, principalTaxonomy)) {
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, true);
-			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, now);
-			transaction.add(hierarchyRecord);
-		}
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation(
-					"logicallyDeletePrincipalConceptExcludingRecords", e);
-		}
-
 	}
 
 	List<Record> getAllRecordsInHierarchy(Record record) {
@@ -516,16 +508,10 @@ public class RecordDeleteServices {
 			return Arrays.asList(record);
 
 		} else {
-			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
-			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
-			if (taxonomy != null && !taxonomy.hasSameCode(principalTaxonomy)) {
-				return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
-			} else {
-				LogicalSearchQuery query = new LogicalSearchQuery();
-				List<String> paths = record.getList(Schemas.PATH);
-				query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
-				return searchServices.search(query);
-			}
+			LogicalSearchQuery query = new LogicalSearchQuery();
+			List<String> paths = record.getList(Schemas.PATH);
+			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			return searchServices.search(query);
 		}
 	}
 

@@ -1,6 +1,8 @@
 package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.idsArray;
 import static com.constellio.sdk.tests.TestUtils.recordsIds;
@@ -76,6 +78,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	AuthorizationsServices authorizationsServices;
 
 	RecordPhysicalDeleteOptions withMostReferencesRemoved;
+	RecordPhysicalDeleteOptions withMostReferencesRemovedPhysicallyDeletingRecords;
+	RecordPhysicalDeleteOptions withMostReferencesRemovedPhysicallyDeletingRecordsIfPrincipalTaxonomy;
 	RecordLogicalDeleteOptions logicallyDeletingRecordsIfPrincipalTaxonomy, logicallyDeletingRecords, keepingRecords;
 
 	Records records;
@@ -89,13 +93,17 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	boolean notRequired = false;
 
 	private ModelLayerCollectionExtensions extensions;
-	private RecordDeleteOptions withMostReferencesRemoved = new RecordDeleteOptions().setReferencesToNull(true);
 
 	@Before
 	public void setUp()
 			throws Exception {
 
 		withMostReferencesRemoved = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
+		withMostReferencesRemovedPhysicallyDeletingRecords = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true)
+				.setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
+		withMostReferencesRemovedPhysicallyDeletingRecordsIfPrincipalTaxonomy = new RecordPhysicalDeleteOptions()
+				.setMostReferencesToNull(true)
+				.setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY);
 		logicallyDeletingRecordsIfPrincipalTaxonomy = new RecordLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(
 				LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY);
 
@@ -1099,9 +1107,21 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsByGodThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
+	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsIfPrincipalTaxonomyByGodThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
 			throws Exception {
 		when(User.GOD).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
+
+		assertThat(records.taxo1_category2()).is(logicallyDeleted());
+		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
+		assertThat(records.folder3()).is(logicallyDeleted());
+		assertThat(records.inFolder4Hierarchy()).are(logicallyDeleted());
+
+	}
+
+	@Test
+	public void whenAPrincipalConceptIsLogicallyDeletedIncludingRecordsByGodThenAllConceptsSubConceptsAndRecordsLogicallyDeleted()
+			throws Exception {
+		when(User.GOD).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecords);
 
 		assertThat(records.taxo1_category2()).is(logicallyDeleted());
 		assertThat(records.taxo1_category2_1()).is(logicallyDeleted());
@@ -1208,7 +1228,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(records.taxo1_category2_1()).is(logicallyThenPhysicallyDeletableBy(userWithDeletePermission));
 		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
 
-		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2());
+		when(userWithDeletePermission)
+				.physicallyDelete(records.taxo1_category2(), withMostReferencesRemovedPhysicallyDeletingRecords);
 
 		assertThat(taxo1_category2).is(physicallyDeleted());
 		assertThat(taxo1_category2_1).is(physicallyDeleted());
@@ -1227,7 +1248,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 		given(userWithDeletePermission).logicallyDelete(records.taxo1_category2(), logicallyDeletingRecordsIfPrincipalTaxonomy);
 
-		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2_1());
+		when(userWithDeletePermission).physicallyDelete(records.taxo1_category2_1(),
+				withMostReferencesRemovedPhysicallyDeletingRecords);
 
 		assertThat(taxo1_category2).isNot(physicallyDeleted());
 		assertThat(taxo1_category2_1).is(physicallyDeleted());
@@ -1255,6 +1277,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(records.taxo2_unit1()).is(logicallyDeleted());
 		assertThat(records.taxo2_unit1_1()).is(logicallyDeleted());
 		assertThat(records.folder1()).isNot(logicallyDeleted());
+		assertThat(records.folder1_doc1()).isNot(logicallyDeleted());
 		assertThat(records.folder2()).isNot(logicallyDeleted());
 
 	}
@@ -1268,12 +1291,41 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(records.taxo2_unit1()).is(logicallyDeleted());
 		assertThat(records.taxo2_unit1_1()).is(logicallyDeleted());
 		assertThat(records.folder1()).is(logicallyDeleted());
+		assertThat(records.folder1_doc1()).is(logicallyDeleted());
 		assertThat(records.folder2()).is(logicallyDeleted());
 
 	}
 
 	@Test
-	public void givenANonPrincipalConceptAndAllHisRecordsAreLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
+	public void givenANonPrincipalConceptAndAllHisRecordsAreLogicallyDeletingWhenPhysicallyDeleteRecordsThenOnlyDeleteConceptsInHierarchy()
+			throws Exception {
+
+		Record taxo2_unit1 = records.taxo2_unit1();
+		Record taxo2_unit1_1 = records.taxo2_unit1_1();
+		Record folder1 = records.folder1();
+		Record folder1_doc1 = records.folder1_doc1();
+		Record folder2 = records.folder2();
+
+		when(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
+		when(userWithDeletePermission).logicallyDelete(records.folder1());
+		when(userWithDeletePermission).logicallyDelete(records.folder2());
+		when(userWithDeletePermission).logicallyDelete(records.folder3());
+		when(userWithDeletePermission).logicallyDelete(records.folder4());
+		when(userWithDeletePermission).logicallyDelete(records.folder5());
+
+		when(userWithDeletePermission)
+				.physicallyDelete(records.taxo2_unit1(), withMostReferencesRemovedPhysicallyDeletingRecords);
+
+		assertThat(taxo2_unit1).is(physicallyDeleted());
+		assertThat(taxo2_unit1_1).is(physicallyDeleted());
+		assertThat(folder1).is(physicallyDeleted());
+		assertThat(folder1_doc1).is(physicallyDeleted());
+		assertThat(folder2).is(physicallyDeleted());
+
+	}
+
+	@Test
+	public void givenANonPrincipalConceptAndAllHisRecordsAreLogicallyDeletingWhenPhysicallyDeleteRecordsIfPrincipalTaxonomyThenOnlyDeleteConceptsInHierarchy()
 			throws Exception {
 
 		Record taxo2_unit1 = records.taxo2_unit1();
@@ -1286,11 +1338,13 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		when(userWithDeletePermission).logicallyDelete(records.folder4());
 		when(userWithDeletePermission).logicallyDelete(records.folder5());
 
-		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
+		when(userWithDeletePermission)
+				.physicallyDelete(records.taxo2_unit1(), withMostReferencesRemovedPhysicallyDeletingRecordsIfPrincipalTaxonomy);
 
 		assertThat(taxo2_unit1).is(physicallyDeleted());
 		assertThat(taxo2_unit1_1).is(physicallyDeleted());
 		assertThat(records.folder1()).isNot(physicallyDeleted());
+		assertThat(records.folder1_doc1()).isNot(physicallyDeleted());
 		assertThat(records.folder2()).isNot(physicallyDeleted());
 
 	}
@@ -1309,6 +1363,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(taxo2_unit1_1).is(physicallyDeleted());
 		assertThat(records.folder1()).isNot(logicallyDeleted());
 		assertThat(records.folder1()).isNot(physicallyDeleted());
+		assertThat(records.folder1_doc1()).isNot(logicallyDeleted());
+		assertThat(records.folder1_doc1()).isNot(physicallyDeleted());
 		assertThat(records.folder2()).isNot(logicallyDeleted());
 		assertThat(records.folder2()).isNot(physicallyDeleted());
 
@@ -1383,48 +1439,6 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		assertThat(records.taxo2_unit1_1()).is(logicallyDeleted());
 		assertThat(records.folder1()).isNot(logicallyDeleted());
 		assertThat(records.folder2()).isNot(logicallyDeleted());
-
-	}
-
-	@Test
-	public void givenANonPrincipalConceptAndAllHisRecordsAreLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
-			throws Exception {
-
-		Record taxo2_unit1 = records.taxo2_unit1();
-		Record taxo2_unit1_1 = records.taxo2_unit1_1();
-
-		when(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
-		when(userWithDeletePermission).logicallyDelete(records.folder1());
-		when(userWithDeletePermission).logicallyDelete(records.folder2());
-		when(userWithDeletePermission).logicallyDelete(records.folder3());
-		when(userWithDeletePermission).logicallyDelete(records.folder4());
-		when(userWithDeletePermission).logicallyDelete(records.folder5());
-
-		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
-
-		assertThat(taxo2_unit1).is(physicallyDeleted());
-		assertThat(taxo2_unit1_1).is(physicallyDeleted());
-		assertThat(records.folder1()).isNot(physicallyDeleted());
-		assertThat(records.folder2()).isNot(physicallyDeleted());
-
-	}
-
-	@Test
-	public void givenANonPrincipalConceptIsLogicallyDeletingWhenPhysicallyDeleteThenOnlyDeleteConceptsInHierarchy()
-			throws Exception {
-
-		Record taxo2_unit1 = records.taxo2_unit1();
-		Record taxo2_unit1_1 = records.taxo2_unit1_1();
-		given(userWithDeletePermission).logicallyDelete(records.taxo2_unit1());
-
-		when(userWithDeletePermission).physicallyDelete(records.taxo2_unit1(), withMostReferencesRemoved);
-
-		assertThat(taxo2_unit1).is(physicallyDeleted());
-		assertThat(taxo2_unit1_1).is(physicallyDeleted());
-		assertThat(records.folder1()).isNot(logicallyDeleted());
-		assertThat(records.folder1()).isNot(physicallyDeleted());
-		assertThat(records.folder2()).isNot(logicallyDeleted());
-		assertThat(records.folder2()).isNot(physicallyDeleted());
 
 	}
 
