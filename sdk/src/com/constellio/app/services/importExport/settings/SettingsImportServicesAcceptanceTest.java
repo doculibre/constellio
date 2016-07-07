@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
@@ -103,7 +105,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		try {
 			services.importSettings(settings);
 			fail("ValidationException expected");
-			return null;
+			return assertThat(new ArrayList<Tuple>());
 		} catch (ValidationException e) {
 
 			return assertThat(extractingSimpleCodeAndParameters(e, parameters));
