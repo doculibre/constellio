@@ -19,6 +19,8 @@ import org.apache.solr.common.params.CoreAdminParams.CoreAdminAction;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
@@ -26,6 +28,9 @@ import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
 import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
 
 public class HttpSolrServerFactory extends AbstractSolrServerFactory {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(HttpSolrServerFactory.class);
+
 	private List<AtomicFileSystem> atomicFileSystems = new ArrayList<>();
 	private List<SolrClient> solrClients = new ArrayList<>();
 	private final String url;
@@ -50,9 +55,9 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	public synchronized void clear() {
-		for (AtomicFileSystem atomicFileSystem: atomicFileSystems)
+		for (AtomicFileSystem atomicFileSystem : atomicFileSystems)
 			atomicFileSystem.close();
-		for (SolrClient solrClient: solrClients)
+		for (SolrClient solrClient : solrClients)
 			solrClient.shutdown();
 	}
 
@@ -61,20 +66,23 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		try {
 			URL urlToSolrServer = new URL(url);
 			String host = urlToSolrServer.getHost();
-			if (host.equals("localhost") || host.equals("127.0.0.1")){
-				AtomicFileSystem fileSystem = getAtomicFileSystem(core);
-				atomicFileSystems.add(fileSystem);
-				return fileSystem;
+			if (host.equals("localhost") || host.equals("127.0.0.1")) {
+				LOGGER.warn("AtomicFileSystem does not support HTTP solr");
 			}
-			throw new UnsupportedOperationException("Not implemented yet");
+			AtomicFileSystem fileSystem = getAtomicFileSystem(core);
+			atomicFileSystems.add(fileSystem);
+
+			return fileSystem;
+
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private String getRootFolder(String core) throws SolrServerException, IOException {
-		if (core.isEmpty()){
+	private String getRootFolder(String core)
+			throws SolrServerException, IOException {
+		if (core.isEmpty()) {
 			return getSolrServerLocation().getAbsolutePath();
 		} else {
 			ModifiableSolrParams params = new ModifiableSolrParams();
@@ -82,7 +90,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 			QueryResponse response;
 			try {
 				response = getAdminServer().query(params);
-			} catch (RemoteSolrException e) {	
+			} catch (RemoteSolrException e) {
 				//This is a bug in Solr that sometime throw an exception if send a request to the server every time.
 				//https://issues.apache.org/jira/browse/SOLR-7785
 				try {
@@ -92,7 +100,8 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 					throw new RuntimeException(e1);
 				}
 			}
-			SimpleOrderedMap<SimpleOrderedMap<String>> status = (SimpleOrderedMap<SimpleOrderedMap<String>>) response.getResponse().get("status");
+			SimpleOrderedMap<SimpleOrderedMap<String>> status = (SimpleOrderedMap<SimpleOrderedMap<String>>) response
+					.getResponse().get("status");
 			SimpleOrderedMap<String> coreInfo = status.get(core);
 
 			String instanceDir = coreInfo.get("instanceDir");
@@ -117,7 +126,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		NamedList<NamedList<Object>> coreStatus = process.getCoreStatus();
 
 		File parent = null;
-		for (Entry<String, NamedList<Object>> aCoreStatus: coreStatus){
+		for (Entry<String, NamedList<Object>> aCoreStatus : coreStatus) {
 			File coreConfigFld = new File(aCoreStatus.getValue().get("instanceDir").toString());
 			File solrFld = coreConfigFld.getParentFile();
 			if (parent == null)
@@ -131,7 +140,8 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	protected AtomicFileSystem getAtomicFileSystem(String core) {
 		try {
-			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService()), getRootFolder(core));
+			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService()),
+					getRootFolder(core));
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}
