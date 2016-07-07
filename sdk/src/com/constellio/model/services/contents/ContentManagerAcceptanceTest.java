@@ -19,6 +19,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.wrappers.User;
@@ -26,6 +27,7 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 
 public class ContentManagerAcceptanceTest extends ConstellioTest {
 
@@ -193,4 +195,19 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.getParsedContent(hash);
 	}
 
+	@Test
+	public void givenContentImportFolderConfiguredThenImportFileUnmodifiedFor10Seconds()
+			throws Exception {
+		final File contentImportFile = newTempFolder();
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(ModelLayerConfiguration configuration) {
+
+				when(configuration.getContentImportThreadFolder()).thenReturn(contentImportFile);
+			}
+		});
+
+		when(getModelLayerFactory().getMo)
+
+	}
 }
