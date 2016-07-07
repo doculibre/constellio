@@ -54,14 +54,9 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
 		//TODO Tester les configurations des autres types
 
-		try {
-			importSettings();
-		} catch (ValidationException e) {
-
-			assertThatErrorsWhileImportingSettingsExtracting("config", "key").contains(
-					tuple("SettingsImportServices_calculatedCloseDateUnknown", null, null)
-			);
-		}
+		assertThatErrorsWhileImportingSettingsExtracting("config", "key").contains(
+				tuple("SettingsImportServices_calculatedCloseDateUnknown", null, null)
+		);
 
 	}
 
