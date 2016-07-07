@@ -1,6 +1,7 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 
 public class SmbDeleteJob extends ConnectorJob implements SmbConnectorJob {
@@ -80,7 +82,10 @@ public class SmbDeleteJob extends ConnectorJob implements SmbConnectorJob {
 			} else {
 				ConnectorDocument<?> folderToDelete = foldersToDelete.get(0);
 				List<ConnectorDocument<?>> deletedConnectors = new ArrayList<>();
-				deletedConnectors.addAll(smbRecordService.getAllDocumentsInFolder(folderToDelete));
+				for (Iterator<ConnectorSmbDocument> iterator = smbRecordService.getAllDocumentsInFolder(folderToDelete); iterator
+						.hasNext(); ) {
+					deletedConnectors.add(iterator.next());
+				}
 				deletedConnectors.add(folderToDelete);
 				eventObserver.deleteEvents(deletedConnectors.toArray(new ConnectorDocument[] {}));
 			}
