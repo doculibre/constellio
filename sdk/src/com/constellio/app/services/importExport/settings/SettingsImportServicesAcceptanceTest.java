@@ -3,8 +3,10 @@ package com.constellio.app.services.importExport.settings;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
-import com.constellio.model.frameworks.validation.ValidationException;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,6 +14,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -33,17 +36,18 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("enforceCategoryAndRuleRelationshipInFolder").setValue("false"));
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
 
-
 		importSettings();
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
+				.isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 	}
 
 	@Test
-	public void whenImportingUnknownConfigsThenConfigsAreNotSet() throws Exception {
+	public void whenImportingUnknownConfigsThenConfigsAreNotSet()
+			throws Exception {
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
 		//TODO Tester les configurations des autres types
@@ -52,20 +56,22 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 			importSettings();
 		} catch (ValidationException e) {
 
-			assertThat(extractingSimpleCodeAndParameters(e, "config", "key")).contains(
-					tuple( "SettingsImportServices_calculatedCloseDateUnknown", null, null)
+			assertThatErrorsWhileImportingSettingsExtracting("config", "key").contains(
+					tuple("SettingsImportServices_calculatedCloseDateUnknown", null, null)
 			);
 		}
 
 	}
 
-	@Test(expected = ValidationException.class)
+	@Test
 	public void whenImportBadBooleanConfigValueThenValidationExceptionThrown()
 			throws Exception {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
 		//TODO Tester les configurations des autres types
 
-		importSettings();
+		assertThatErrorsWhileImportingSettingsExtracting("config", "key").containsOnly(
+				tuple("invalidConfiguration", "notABoolean")
+		);
 	}
 
 	@Test()
@@ -78,7 +84,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 			importSettings();
 		} catch (ValidationException e) {
 
-			assertThat(extractingSimpleCodeAndParameters(e,"calculatedCloseDate")).containsOnly(
+			assertThat(extractingSimpleCodeAndParameters(e, "calculatedCloseDate")).containsOnly(
 					tuple("invalidConfiguration", "notABoolean"));
 		}
 
@@ -86,8 +92,22 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 	//-------------------------------------------------------------------------------------
 
-	private void importSettings() throws com.constellio.model.frameworks.validation.ValidationException {
+	private void importSettings()
+			throws com.constellio.model.frameworks.validation.ValidationException {
 		services.importSettings(settings);
+	}
+
+	private ListAssert<Tuple> assertThatErrorsWhileImportingSettingsExtracting(String... parameters)
+			throws com.constellio.model.frameworks.validation.ValidationException {
+
+		try {
+			services.importSettings(settings);
+			fail("ValidationException expected");
+			return null;
+		} catch (ValidationException e) {
+
+			return assertThat(extractingSimpleCodeAndParameters(e, parameters));
+		}
 	}
 
 	@Before
