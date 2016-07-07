@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,6 +28,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings();
 	ImportedCollectionSettings anotherCollectionSettings = new ImportedCollectionSettings();
 	SystemConfigurationsManager systemConfigurationsManager;
+	boolean runTwice;
 
 	@Test
 	public void whenImportConfigsThenSetted()
@@ -91,7 +93,16 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private void importSettings()
 			throws com.constellio.model.frameworks.validation.ValidationException {
-		services.importSettings(settings);
+		try {
+			services.importSettings(settings);
+		} catch (ValidationException e) {
+			runTwice = false;
+			throw e;
+
+		} catch (RuntimeException e) {
+			runTwice = false;
+			throw e;
+		}
 	}
 
 	private ListAssert<Tuple> assertThatErrorsWhileImportingSettingsExtracting(String... parameters)
@@ -99,6 +110,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 		try {
 			services.importSettings(settings);
+			runTwice = false;
 			fail("ValidationException expected");
 			return assertThat(new ArrayList<Tuple>());
 		} catch (ValidationException e) {
@@ -115,5 +127,21 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 				withCollection("anotherCollection"));
 		services = new SettingsImportServices(getAppLayerFactory());
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
+		runTwice = true;
+	}
+
+	@After
+	public void tearDown()
+			throws Exception {
+
+		if (runTwice) {
+			runTwice = false;
+			try {
+				SettingsImportServicesAcceptanceTest.class.getMethod(skipTestRule.getCurrentTestName()).invoke(this);
+			} catch (Exception e) {
+				throw new AssertionError("An exception occured when running the test a second time", e);
+			}
+		}
+
 	}
 }
