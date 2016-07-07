@@ -29,7 +29,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
 		//TODO Tester les configurations des autres types
 
-		services.importSettings(settings);
+		importSettings();
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 	}
@@ -41,7 +41,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		//TODO Tester les configurations des autres types
 
 		try {
-			services.importSettings(settings);
+			importSettings();
 		} catch (ValidationException e) {
 
 			assertThat(extractingSimpleCodeAndParameters(e, "config", "value")).containsOnly(
@@ -52,6 +52,11 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	//-------------------------------------------------------------------------------------
+
+	private void importSettings()
+			throws ValidationException {
+		services.importSettings(settings);
+	}
 
 	@Before
 	public void setUp()
