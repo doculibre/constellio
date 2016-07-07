@@ -15,9 +15,11 @@ import java.util.Map;
 
 public class SettingsImportServices {
 
-    public static final String INVALID_CONFIGURATION = "invalidConfiguration";
+    static final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
+    static final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
+
     AppLayerFactory appLayerFactory;
-    SystemConfigurationsManager manager;
+    SystemConfigurationsManager systemConfigurationsManager;
 
     public SettingsImportServices(AppLayerFactory appLayerFactory) {
         this.appLayerFactory = appLayerFactory;
@@ -26,22 +28,25 @@ public class SettingsImportServices {
     public void importSettings(ImportedSettings settings) throws ValidationException {
 
         ValidationErrors validationErrors = new ValidationErrors();
-        manager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+        systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+        // pour les schemata et domaines de valeur
+        // MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 
+        validate(settings, validationErrors);
+
+        run(settings, validationErrors);
+    }
+
+    private void run(ImportedSettings settings, ValidationErrors validationErrors) throws ValidationException {
         for (ImportedConfig importedConfig : settings.getConfigs()) {
-
-            validate(importedConfig, validationErrors);
-
-            SystemConfiguration config = manager.getConfigurationWithCode(importedConfig.getKey());
+            SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
             if (config != null) {
                 if (config.getType() == SystemConfigurationType.BOOLEAN) {
-                    if(Arrays.asList("true", "false").contains(String.valueOf(importedConfig.getValue()))){
-                        Object value = Boolean.valueOf(importedConfig.getValue());
-                        manager.setValue(config, value);
-                    } else {
-                       Map<String, Object> parameters = toParametersMap(importedConfig);
-                       validationErrors.add(INVALID_CONFIGURATION, parameters);
-                    }
+                    Object value = Boolean.valueOf(importedConfig.getValue());
+                    systemConfigurationsManager.setValue(config, value);
+                } else if (config.getType() == SystemConfigurationType.INTEGER) {
+                    int value = Integer.parseInt(importedConfig.getValue());
+                    systemConfigurationsManager.setValue(config, value);
                 }
             }
         }
@@ -51,11 +56,32 @@ public class SettingsImportServices {
         }
     }
 
-    private void validate(ImportedConfig importedConfig, ValidationErrors validationErrors) {
-        SystemConfiguration config = manager.getConfigurationWithCode(importedConfig.getKey());
-        if (config == null) {
-            Map<String, Object> parameters = toParametersMap(importedConfig);
-            validationErrors.add(SettingsImportServices.class.getName() + "_" + importedConfig.getKey(), parameters);
+    private void validate(ImportedSettings settings, ValidationErrors validationErrors) throws ValidationException {
+
+        for (ImportedConfig importedConfig : settings.getConfigs()) {
+            SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
+            if (config == null) {
+                Map<String, Object> parameters = toParametersMap(importedConfig);
+                validationErrors.add(SettingsImportServices.class, CONFIGURATION_NOT_FOUND, parameters);
+            } else {
+                if (config.getType() == SystemConfigurationType.BOOLEAN) {
+                    if(!Arrays.asList("true", "false").contains(String.valueOf(importedConfig.getValue()))){
+                        Map<String, Object> parameters = toParametersMap(importedConfig);
+                        validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+                    }
+                } else if (config.getType() == SystemConfigurationType.INTEGER) {
+                    try {
+                        Integer.parseInt(importedConfig.getValue());
+                    } catch (NumberFormatException e) {
+                        Map<String, Object> parameters = toParametersMap(importedConfig);
+                        validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+                    }
+                }
+            }
+        }
+
+        if (!validationErrors.isEmpty()) {
+            throw new ValidationException(validationErrors);
         }
     }
 
