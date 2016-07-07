@@ -5,6 +5,10 @@ public class ImportedConfig {
 	String key;
 	String value;
 
+	public String getKey(){
+		return key;
+	}
+
 	public ImportedConfig setKey(String key) {
 		this.key = key;
 		return this;
@@ -15,4 +19,7 @@ public class ImportedConfig {
 		return this;
 	}
 
+	public String getValue() {
+		return value;
+	}
 }
