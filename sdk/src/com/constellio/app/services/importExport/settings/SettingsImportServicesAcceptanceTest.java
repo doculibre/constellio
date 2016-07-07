@@ -27,15 +27,19 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportConfigsThenSetted()
 			throws Exception {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
-		//TODO Tester les configurations des autres types
 
-		// Allow to enter retention rules for documents
+		//TODO Tester les configurations des autres types
 		settings.addConfig(new ImportedConfig().setKey("documentRetentionRules").setValue("true"));
+		settings.addConfig(new ImportedConfig().setKey("enforceCategoryAndRuleRelationshipInFolder").setValue("false"));
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
+
 
 		importSettings();
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 	}
 
 	@Test
