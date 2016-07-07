@@ -38,6 +38,8 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("enforceCategoryAndRuleRelationshipInFolder").setValue("false"));
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
 
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule").setValue("2015"));
+
 		importSettings();
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
@@ -45,46 +47,45 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
 				.isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
+
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE)).isEqualTo(2015);
 	}
 
 	@Test
-	public void whenImportingUnknownConfigsThenConfigsAreNotSet()
-			throws Exception {
+	public void whenImportingUnknownConfigsThenConfigsAreNotSet() throws Exception {
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
-		//TODO Tester les configurations des autres types
 
-		assertThatErrorsWhileImportingSettingsExtracting("config", "key").contains(
-				tuple("SettingsImportServices_calculatedCloseDateUnknown", null, null)
-		);
-
+		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
+				tuple("SettingsImportServices_configurationNotFound", "calculatedCloseDateUnknown"));
 	}
 
 	@Test
-	public void whenImportBadBooleanConfigValueThenValidationExceptionThrown()
-			throws Exception {
-		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
-		//TODO Tester les configurations des autres types
+	public void whenImportBadBooleanConfigValueThenValidationExceptionThrown() throws Exception {
 
-		assertThatErrorsWhileImportingSettingsExtracting("config", "key").containsOnly(
-				tuple("invalidConfiguration", "notABoolean")
-		);
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
+
+		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDate").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue", "notABoolean"));
+	}
+
+	@Test
+	public void whenImportingBadIntegerConfigValueThenValidationExceptionThrown() throws Exception {
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
+				.setValue("helloInteger"));
+
+		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDateNumberOfYearWhenFixedRule").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue", "helloInteger"));
 	}
 
 	@Test()
-	public void whenImportBadConfigsThenValidationExceptionWithCorrectMessageIsThrown()
-			throws Exception {
+	public void whenImportBadConfigsThenValidationExceptionWithCorrectMessageIsThrown() throws Exception {
+
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
 		//TODO Tester les configurations des autres types
 
-		try {
-			importSettings();
-		} catch (ValidationException e) {
-
-			assertThat(extractingSimpleCodeAndParameters(e, "calculatedCloseDate")).containsOnly(
-					tuple("invalidConfiguration", "notABoolean"));
-		}
-
+		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDate").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue", "notABoolean"));
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -98,7 +99,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 			throws com.constellio.model.frameworks.validation.ValidationException {
 
 		try {
-			services.importSettings(settings);
+			importSettings();
 			fail("ValidationException expected");
 			return assertThat(new ArrayList<Tuple>());
 		} catch (ValidationException e) {
@@ -108,8 +109,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Before
-	public void setUp()
-			throws Exception {
+	public void setUp() throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule(),
 				withCollection("anotherCollection"));
