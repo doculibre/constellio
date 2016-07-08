@@ -8,6 +8,8 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -29,6 +31,8 @@ public class SettingsImportServices {
     static final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
     public static final String INVALID_COLLECTION_CODE = "InvalidCollectionCode";
     public static final String COLLECTION_CODE = "code";
+    public static final String INVALID_VALUE_LIST_CODE = "InvalidValueListCode";
+    public static final String DDV_PREFIX = "ddv";
 
     AppLayerFactory appLayerFactory;
     SystemConfigurationsManager systemConfigurationsManager;
@@ -71,7 +75,10 @@ public class SettingsImportServices {
         for(ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()){
             String collectionCode = collectionSettings.getCode();
             for(final ImportedValueList importedValueList : collectionSettings.getValueLists()) {
-                //if(!schemasManager.getSchemaTypes(collectionCode).hasSchema(importedValueList.getCode())){
+
+                try {
+                    schemasManager.getSchemaTypes(collectionCode).getSchemaType(importedValueList.getCode());
+                } catch (Exception e) {
                     schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
                         @Override
                         public void alter(MetadataSchemaTypesBuilder schemaTypesBuilder) {
@@ -92,7 +99,7 @@ public class SettingsImportServices {
                             }
                         }
                     });
-                //}
+                }
             }
         }
 
@@ -106,12 +113,26 @@ public class SettingsImportServices {
         validateGlobalConfigs(settings, validationErrors);
 
         for(ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()){
+
+            System.out.println(collectionSettings.getCode());
+
             if(StringUtils.isBlank(collectionSettings.getCode())){
                 Map<String, Object> parameters = new HashMap<>();
                 parameters.put("config", COLLECTION_CODE);
                 parameters.put("value", collectionSettings.getCode());
                 validationErrors.add(SettingsImportServices.class,
                         INVALID_COLLECTION_CODE, parameters);
+            }
+
+            for(ImportedValueList importedValueList : collectionSettings.getValueLists()){
+                if(StringUtils.isBlank(importedValueList.getCode()) ||
+                        !importedValueList.getCode().startsWith(DDV_PREFIX)){
+                    Map<String, Object> parameters = new HashMap<>();
+                    parameters.put("config", importedValueList.getCode());
+                    parameters.put("value", importedValueList.getTitles().get("title_fr"));
+                    validationErrors.add(SettingsImportServices.class,
+                            INVALID_VALUE_LIST_CODE, parameters);
+                }
             }
         }
 

@@ -99,10 +99,39 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenImportingCollectionValueListIfCodeIsInvalidThenExceptionIsRaised() throws Exception {
+
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addValueList(new ImportedValueList().setCode(null)
+						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1","First value list's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+						.setHierarchical(false)
+				));
+
+		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_InvalidValueListCode"));
+
+	}
+
+	@Test
+	public void whenImportingCollectionValueListIfCodeDoesNotStartWithDDVPrefixThenExceptionIsRaised() throws Exception {
+
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addValueList(new ImportedValueList().setCode("USRcodeDuDomaineDeValeur1")
+						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1","First value list's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+						.setHierarchical(false)
+				));
+
+		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_InvalidValueListCode"));
+
+	}
+
+	@Test
 	public void whenImportingCollectionConfigsSettingsThenSetted()
 			throws Exception {
 
-		String schemaCode = "ddvUSRcodeDuDomaineDeValeur1"+runTwice;
+		String schemaCode = runTwice ? "ddvUSRcodeDuDomaineDeValeurX" :  "ddvUSRcodeDuDomaineDeValeurY";
+		System.out.println(schemaCode);
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(schemaCode)
 						.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
@@ -112,8 +141,8 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 		importSettings();
 
-		MetadataSchemaType metadataSchemaType = metadataSchemasManager
-				.getSchemaTypes(zeCollection).getSchemaType(schemaCode);
+		System.out.println(schemaCode);
+		MetadataSchemaType metadataSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType(schemaCode);
 
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR);
