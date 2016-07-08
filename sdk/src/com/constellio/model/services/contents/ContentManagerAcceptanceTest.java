@@ -2,8 +2,6 @@ package com.constellio.model.services.contents;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.spy;
@@ -14,25 +12,20 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.InputStream;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 
 public class ContentManagerAcceptanceTest extends ConstellioTest {
 
@@ -198,90 +191,6 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.upload(contentStream);
 		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt());
 		contentManager.getParsedContent(hash);
-	}
-
-	@Test
-	public void givenContentImportFolderConfiguredThenImportFileUnmodifiedFor10Seconds()
-			throws Exception {
-		final File contentImportFile = newTempFolder();
-		configure(new ModelLayerConfigurationAlteration() {
-			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-
-				when(configuration.getContentImportThreadFolder()).thenReturn(contentImportFile);
-			}
-		});
-
-		File folder1 = new File(contentImportFile, "folder1");
-		folder1.mkdirs();
-		File folder2 = new File(contentImportFile, "folder2");
-		folder2.mkdirs();
-
-		FileUtils.write(new File(contentImportFile, "file.html"), htmlWithBody("Chuck Norris"));
-		FileUtils.write(new File(contentImportFile, "file2.html"), htmlWithBody("Dakota l'Indien"));
-		FileUtils.write(new File(contentImportFile, folder1 + "file.html"), htmlWithBody("Edouard Lechat"));
-		FileUtils.write(new File(contentImportFile, folder2 + "file.html"), htmlWithBody("Darth Vador"));
-		String hash1 = getIOLayerFactory().newHashingService().getHashFromFile(new File(contentImportFile, "file.html"));
-		String hash2 = getIOLayerFactory().newHashingService().getHashFromFile(new File(contentImportFile, "file2.html"));
-		String hash3 = getIOLayerFactory().newHashingService().getHashFromFile(new File(folder1, "file.html"));
-		String hash4 = getIOLayerFactory().newHashingService().getHashFromFile(new File(folder2, "file.html"));
-
-		LocalDateTime momentWhereFilesWereAdded = LocalDateTime.now();
-
-		givenTimeIs(momentWhereFilesWereAdded);
-		contentManager.uploadFilesInImportFolder();
-		assertThat(contentImportFile.listFiles()).hasSize(4);
-		assertNoContentAndParsedContentWithHash(hash1, hash2, hash3, hash4);
-
-		givenTimeIs(momentWhereFilesWereAdded.plusSeconds(7));
-		contentManager.uploadFilesInImportFolder();
-		assertThat(contentImportFile.listFiles()).hasSize(4);
-		assertNoContentAndParsedContentWithHash(hash1, hash2, hash3, hash4);
-		assertThat(contentManager.getImportedFilesMap()).isEmpty();
-
-		givenTimeIs(momentWhereFilesWereAdded.plusSeconds(11));
-		contentManager.uploadFilesInImportFolder();
-		assertThat(contentImportFile.listFiles()).hasSize(1);
-		assertContentAndParsedContentWithHash(hash1, hash2, hash3, hash4);
-		assertThat(contentManager.getParsedContent(hash1).getParsedContent()).isEqualTo("Chuck Norris");
-		assertThat(contentManager.getParsedContent(hash1).getParsedContent()).isEqualTo("Dakota l'Indien");
-		assertThat(contentManager.getParsedContent(hash1).getParsedContent()).isEqualTo("Edouard Lechat");
-		assertThat(contentManager.getParsedContent(hash1).getParsedContent()).isEqualTo("Darth Vador");
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("file.html", hash1),
-				entry("file2.html", hash2),5
-				entry("folder1" + File.separator + "file.html", hash3),
-				entry("folder2" + File.separator + "file.html", hash4)
-		);
-	}
-
-	private String htmlWithBody(String body) {
-		return "<html><body>" + body + "</body></html>";
-	}
-
-	private void assertNoContentAndParsedContentWithHash(String... hashes) {
-		for (String hash : hashes) {
-			try {
-				contentManager.getContentInputStream(hash, SDK_STREAM);
-				fail("Content " + hash + " was found");
-			} catch (ContentManagerRuntimeException_NoSuchContent e) {
-				//OK
-			}
-
-			try {
-				contentManager.getParsedContent(hash);
-				fail("Content " + hash + " was found");
-			} catch (ContentManagerRuntimeException_NoSuchContent e) {
-				//OK
-			}
-		}
-	}
-
-	private void assertContentAndParsedContentWithHash(String... hashes) {
-		for (String hash : hashes) {
-			contentManager.getContentInputStream(hash, SDK_STREAM);
-			contentManager.getParsedContent(hash);
-		}
 	}
 
 }
