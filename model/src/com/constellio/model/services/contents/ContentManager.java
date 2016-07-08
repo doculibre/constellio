@@ -371,6 +371,10 @@ public class ContentManager implements StatefulService {
 		return referenced;
 	}
 
+	public void uploadFilesInImportFolder() {
+
+	}
+
 	public void convertPendingContentForPreview() {
 
 		for (String collection : collectionsListManager.getCollections()) {
@@ -578,4 +582,9 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
+	public Map<String, String> getImportedFilesMap() {
+		Map<String, String> filesMap = new HashMap<>();
+
+		return filesMap;
+	}
 }
