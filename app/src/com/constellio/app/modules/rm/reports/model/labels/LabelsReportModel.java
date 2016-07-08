@@ -5,7 +5,7 @@ import java.util.List;
 
 public class LabelsReportModel {
 
-	private boolean printBorders;
+	private boolean printBorders = true;
 
 	private List<LabelsReportLabel> labelsReportLabels = new ArrayList<>();
 

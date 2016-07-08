@@ -64,7 +64,6 @@ public class LabelsReportBuilder implements ReportBuilder {
 		}
 
 		addExtraEmptyLabelIfOddNumberOfLabels(labels);
-
 		return labels;
 	}
 
@@ -75,8 +74,8 @@ public class LabelsReportBuilder implements ReportBuilder {
 	}
 
 	private float getLabelWidth(LabelsReportLayout layout) {
-		float totalSideMargins = layout.getLeftMargin() + layout.getRightMargin();
-		float labelWidth = (layout.getPageSize().getWidth() - totalSideMargins) / layout.getNumberOfColumns();
+		float totalHorizontalSpaces = layout.getLeftMargin() + layout.getRightMargin() + layout.getMiddleColumn();
+		float labelWidth = (layout.getPageSize().getWidth() - totalHorizontalSpaces) / layout.getNumberOfColumns();
 		return labelWidth;
 	}
 
@@ -139,13 +138,13 @@ public class LabelsReportBuilder implements ReportBuilder {
 		}
 		printableLabel.completeRow();
 	}
-	
+
 	private Image createImage(ImageLabelsReportField field, float rowHeight) {
 		String imagePath = field.getValue();
 		Image image;
 		try {
 			image = Image.getInstance(imagePath);
-//			image.scalePercent(20f);
+			//			image.scalePercent(20f);
 		} catch (BadElementException | IOException e) {
 			throw new RuntimeException(e);
 		}

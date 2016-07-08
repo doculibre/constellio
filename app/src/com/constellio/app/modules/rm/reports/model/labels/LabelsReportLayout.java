@@ -9,9 +9,12 @@ public enum LabelsReportLayout {
 	AVERY_5159_V2(2, 7, PageSize.LETTER, 12f, 0f, 17f, 17f),
 	AVERY_5161(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
 
-	AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
-	//AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 60, 60),
-	//AVERY_5162(2, 7, PageSize.LETTER, 12, 12, 60, 60),
+	//AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
+
+
+	AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 60, 60),
+	//AVERY_5162(2, 7, PageSize.LETTER, 12, 12, 12, 57, 57),
+	AVERY_5162_V1(2, 7, PageSize.LETTER, 12, 12, 57f, 57f),//60, 60),OK
 	//AVERY_5162(2, 7, PageSize.LETTER, 2, 3, 60, 60),
 
 	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
@@ -27,6 +30,7 @@ public enum LabelsReportLayout {
 	private float leftMargin;
 	private float topMargin;
 	private float bottomMargin;
+	private float middleColumn = 0;
 
 	private LabelsReportLayout(int numberOfColumns, int numberOfRows, Rectangle pageSize, float rightMargin, float leftMargin,
 			float topMargin, float bottomMargin) {
@@ -39,6 +43,17 @@ public enum LabelsReportLayout {
 		this.bottomMargin = bottomMargin;
 	}
 
+	private LabelsReportLayout(int numberOfColumns, int numberOfRows, Rectangle pageSize, float rightMargin, float leftMargin,
+			float middleColumn, float topMargin, float bottomMargin) {
+		this.numberOfColumns = numberOfColumns;
+		this.numberOfRows = numberOfRows;
+		this.pageSize = pageSize;
+		this.rightMargin = rightMargin;
+		this.leftMargin = leftMargin;
+		this.topMargin = topMargin;
+		this.bottomMargin = bottomMargin;
+		this.middleColumn = middleColumn;
+	}
 	public int getNumberOfColumns() {
 		return numberOfColumns;
 	}
@@ -65,5 +80,9 @@ public enum LabelsReportLayout {
 
 	public float getBottomMargin() {
 		return bottomMargin;
+	}
+
+	public float getMiddleColumn() {
+		return middleColumn;
 	}
 }
