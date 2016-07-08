@@ -15,6 +15,8 @@ public class ImportedValueList {
 
 	Map<String, String> titles = new HashMap<>();
 
+	boolean hierarchical;
+
 	public String getCode() {
 		return code;
 	}
@@ -54,5 +56,14 @@ public class ImportedValueList {
 	public ImportedValueList setTitles(Map<String, String> titles) {
 		this.titles = titles;
 		return this;
+	}
+
+	public ImportedValueList setHierarchical(boolean hierarchical) {
+		this.hierarchical = hierarchical;
+		return this;
+	}
+
+	public boolean isHierarchical() {
+		return hierarchical;
 	}
 }
