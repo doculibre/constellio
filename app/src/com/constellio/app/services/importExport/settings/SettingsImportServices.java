@@ -8,6 +8,9 @@ import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +23,7 @@ public class SettingsImportServices {
 
     AppLayerFactory appLayerFactory;
     SystemConfigurationsManager systemConfigurationsManager;
+    MetadataSchemasManager schemaManager;
 
     public SettingsImportServices(AppLayerFactory appLayerFactory) {
         this.appLayerFactory = appLayerFactory;
@@ -30,7 +34,7 @@ public class SettingsImportServices {
         ValidationErrors validationErrors = new ValidationErrors();
         systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
         // pour les schemata et domaines de valeur
-        // MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+        schemaManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 
         validate(settings, validationErrors);
 
@@ -47,6 +51,16 @@ public class SettingsImportServices {
                 } else if (config.getType() == SystemConfigurationType.INTEGER) {
                     int value = Integer.parseInt(importedConfig.getValue());
                     systemConfigurationsManager.setValue(config, value);
+                } else if (config.getType() == SystemConfigurationType.STRING) {
+                    systemConfigurationsManager.setValue(config, importedConfig.getValue().trim());
+                } else if (config.getType() == SystemConfigurationType.ENUM) {
+                    schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+                        @Override
+                        public void alter(MetadataSchemaTypesBuilder types) {
+
+                            //Ajouter les domaines de valeurs ici
+                        }
+                    });
                 }
             }
         }
@@ -63,6 +77,9 @@ public class SettingsImportServices {
             if (config == null) {
                 Map<String, Object> parameters = toParametersMap(importedConfig);
                 validationErrors.add(SettingsImportServices.class, CONFIGURATION_NOT_FOUND, parameters);
+            } else if (importedConfig.getValue() == null) {
+                Map<String, Object> parameters = toParametersMap(importedConfig);
+                validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
             } else {
                 if (config.getType() == SystemConfigurationType.BOOLEAN) {
                     if(!Arrays.asList("true", "false").contains(String.valueOf(importedConfig.getValue()))){
@@ -73,6 +90,11 @@ public class SettingsImportServices {
                     try {
                         Integer.parseInt(importedConfig.getValue());
                     } catch (NumberFormatException e) {
+                        Map<String, Object> parameters = toParametersMap(importedConfig);
+                        validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+                    }
+                } else if (config.getType() == SystemConfigurationType.STRING) {
+                    if(importedConfig.getValue() == null){
                         Map<String, Object> parameters = toParametersMap(importedConfig);
                         validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
                     }

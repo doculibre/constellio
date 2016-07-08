@@ -5,8 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.After;
@@ -30,6 +34,16 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	SystemConfigurationsManager systemConfigurationsManager;
 	boolean runTwice;
 
+
+	@Test
+	public void whenImportingNullValueConfigsThenNullValueExceptionIsRaised() throws Exception {
+
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue(null));
+
+		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDate").contains(
+				tuple("SettingsImportServices_invalidConfigurationValue", null));
+	}
+
 	@Test
 	public void whenImportConfigsThenSetted()
 			throws Exception {
@@ -41,16 +55,32 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule").setValue("2015"));
+		settings.addConfig(new ImportedConfig().setKey("closeDateRequiredDaysBeforeYearEnd").setValue("15"));
+
+		settings.addConfig(new ImportedConfig().setKey("yearEndDate").setValue("02/28"));
 
 		importSettings();
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
-				.isEqualTo(false);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE)).isEqualTo(2015);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR)).isEqualTo(15);
+
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
+	}
+
+	@Test
+	public void whenImportingCollectionConfigsSettingsThenSetted()
+			throws Exception {
+
+		settings.addConfig(new ImportedConfig().setKey("decommissioningDateBasedOn").setValue("OPEN_DATE"));
+
+		importSettings();
+
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON)).isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
 	}
 
 	@Test
@@ -58,6 +88,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
 
+		// TODO Valider l'extraction des erreur avec Francis
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
 				tuple("SettingsImportServices_configurationNotFound", "calculatedCloseDateUnknown"));
 	}
