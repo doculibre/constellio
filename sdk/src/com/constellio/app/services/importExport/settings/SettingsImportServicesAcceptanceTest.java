@@ -1,29 +1,25 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.groups.Tuple;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
@@ -59,6 +55,8 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 		settings.addConfig(new ImportedConfig().setKey("yearEndDate").setValue("02/28"));
 
+		settings.addConfig(new ImportedConfig().setKey("decommissioningDateBasedOn").setValue("OPEN_DATE"));
+
 		importSettings();
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
@@ -70,6 +68,9 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR)).isEqualTo(15);
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
+
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
+				.isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
 	}
 
 	@Test
@@ -98,8 +99,8 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
 
-		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDate").containsOnly(
-				tuple("SettingsImportServices_invalidConfigurationValue", "notABoolean"));
+		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate", "notABoolean"));
 	}
 
 	@Test
@@ -107,8 +108,9 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
 				.setValue("helloInteger"));
 
-		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDateNumberOfYearWhenFixedRule").containsOnly(
-				tuple("SettingsImportServices_invalidConfigurationValue", "helloInteger"));
+		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue",
+						"calculatedCloseDateNumberOfYearWhenFixedRule" ,"helloInteger"));
 	}
 
 	@Test()
@@ -117,8 +119,8 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
 		//TODO Tester les configurations des autres types
 
-		assertThatErrorsWhileImportingSettingsExtracting("calculatedCloseDate").containsOnly(
-				tuple("SettingsImportServices_invalidConfigurationValue", "notABoolean"));
+		assertThatErrorsWhileImportingSettingsExtracting( "config", "value").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate", "notABoolean"));
 	}
 
 	//-------------------------------------------------------------------------------------

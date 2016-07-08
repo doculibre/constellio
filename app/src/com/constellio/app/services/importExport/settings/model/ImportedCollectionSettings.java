@@ -4,4 +4,6 @@ public class ImportedCollectionSettings {
 
 	String code;
 
+
+
 }

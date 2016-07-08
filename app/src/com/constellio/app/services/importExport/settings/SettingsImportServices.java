@@ -8,9 +8,8 @@ import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.lang.enums.EnumUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,13 +53,8 @@ public class SettingsImportServices {
                 } else if (config.getType() == SystemConfigurationType.STRING) {
                     systemConfigurationsManager.setValue(config, importedConfig.getValue().trim());
                 } else if (config.getType() == SystemConfigurationType.ENUM) {
-                    schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
-                        @Override
-                        public void alter(MetadataSchemaTypesBuilder types) {
-
-                            //Ajouter les domaines de valeurs ici
-                        }
-                    });
+                    Object result = Enum.valueOf((Class<? extends Enum>)config.getEnumClass(), importedConfig.getValue());
+                    systemConfigurationsManager.setValue(config, result);
                 }
             }
         }
@@ -109,7 +103,8 @@ public class SettingsImportServices {
 
     private Map<String, Object> toParametersMap(ImportedConfig importedConfig) {
         Map<String, Object> parameters = new HashMap();
-        parameters.put(importedConfig.getKey(), importedConfig.getValue());
+        parameters.put("config", importedConfig.getKey());
+        parameters.put("value", importedConfig.getValue());
         return parameters;
     }
 }
