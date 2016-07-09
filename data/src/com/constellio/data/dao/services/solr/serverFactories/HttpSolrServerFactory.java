@@ -66,7 +66,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		try {
 			URL urlToSolrServer = new URL(url);
 			String host = urlToSolrServer.getHost();
-			if (host.equals("localhost") || host.equals("127.0.0.1")) {
+			if (!host.equals("localhost") && !host.equals("127.0.0.1")) {
 				LOGGER.warn("AtomicFileSystem does not support HTTP solr");
 			}
 			AtomicFileSystem fileSystem = getAtomicFileSystem(core);
