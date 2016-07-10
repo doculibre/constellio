@@ -7,8 +7,10 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,19 +18,33 @@ import org.junit.Test;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 
 public class ContentManagerImportThreadServicesAcceptanceTest extends ConstellioTest {
+
+	private String htmlMimetype = "text/html; charset=ISO-8859-1";
+	private String pdfMimetype = "application/pdf";
+	private String pptxMimetype = null;
+	private String docxMimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
 	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
 	private String pdf2Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
 	private String pdf3Hash = "2O9RyZlxNUL3asxk2yGDT6VIlbs=";
 	private String docx1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 	private String docx2Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
-	private String passwordProtectedPDFHash = "passwordProtectedPDFHash";
+	private String passwordProtectedPDFHash = "pcHnZL3eFeuGqdkcdxqQVfeyuXc=";
+	private String fileTooBigHash = "zeHash";
+
+	ContentVersionDataSummary pdf1Data = new ContentVersionDataSummary(pdf1Hash, pdfMimetype, 170039);
+	ContentVersionDataSummary pdf2Data = new ContentVersionDataSummary(pdf2Hash, pdfMimetype, 167347);
+	ContentVersionDataSummary pdf3Data = new ContentVersionDataSummary(pdf3Hash, pdfMimetype, 141667);
+	ContentVersionDataSummary passwordProtectedPdfData = new ContentVersionDataSummary(passwordProtectedPDFHash, pdfMimetype,
+			158836);
+	ContentVersionDataSummary fileTooBigData = new ContentVersionDataSummary(pptxMimetype, pdfMimetype, 1250742);
+	ContentVersionDataSummary docx1Data = new ContentVersionDataSummary(docx1Hash, docxMimetype, 27055);
+	ContentVersionDataSummary docx2Data = new ContentVersionDataSummary(docx2Hash, docxMimetype, 27325);
 
 	File contentImportFile;
 	File toImport;
@@ -43,18 +59,13 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	@Before
 	public void setUp()
 			throws Exception {
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		contentManager = new ContentManager(getModelLayerFactory());
 
 		contentImportFile = newTempFolder();
-		contentImportFile.delete();
+
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
 			public void alter(ModelLayerConfiguration configuration) {
-
 				when(configuration.getContentImportThreadFolder()).thenReturn(contentImportFile);
-
 			}
 		});
 
@@ -62,6 +73,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		errorsEmpty = new File(contentImportFile, "errors-empty");
 		errorsUnparsable = new File(contentImportFile, "errors-unparsable");
 		indexProperties = new File(contentImportFile, "filename-sha1-index.properties");
+		contentImportFile.delete();
 
 		assertThat(contentImportFile).doesNotExist();
 
@@ -69,6 +81,8 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		folder1.mkdirs();
 		folder2 = new File(toImport, "folder2");
 		folder2.mkdirs();
+
+		contentManager = new ContentManager(getModelLayerFactory());
 	}
 
 	@Test
@@ -81,7 +95,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(toImport).exists();
 		assertThat(errorsEmpty).exists();
 		assertThat(errorsUnparsable).exists();
-		assertThat(indexProperties).doesNotExist();
+		assertThat(indexProperties).exists();
 
 	}
 
@@ -89,39 +103,44 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenContentImportFolderConfiguredThenImportFileUnmodifiedFor10Seconds()
 			throws Exception {
 
-		String hash1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"), htmlWithBody("Chuck Norris"));
-		String hash2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"), htmlWithBody("Dakota l'Indien"));
-		String hash3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"), htmlWithBody("Edouard Lechat"));
-		String hash4 = addTextFileToImportAndReturnHash(new File(folder2, "file.html"), htmlWithBody("Darth Vador"));
+		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
+				htmlWithBody("Chuck Norris"));
+		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"),
+				htmlWithBody("Dakota l'Indien"));
+		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
+				htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data4 = addTextFileToImportAndReturnHash(new File(folder2, "file.html"),
+				htmlWithBody("Darth Vador"));
+		assertThat(allFilesRecursivelyIn(contentImportFile)).hasSize(4);
 
 		LocalDateTime momentWhereFilesWereAdded = LocalDateTime.now();
 
 		givenTimeIs(momentWhereFilesWereAdded);
 		contentManager.uploadFilesInImportFolder();
-		assertThat(contentImportFile.listFiles()).hasSize(4);
-		assertNoContentAndParsedContentWithHash(hash1, hash2, hash3, hash4);
+		assertThat(allFilesRecursivelyIn(toImport)).hasSize(4);
+		assertNoContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash(), data4.getHash());
 
 		givenTimeIs(momentWhereFilesWereAdded.plusSeconds(7));
 		contentManager.uploadFilesInImportFolder();
-		assertThat(contentImportFile.listFiles()).hasSize(4);
-		assertNoContentAndParsedContentWithHash(hash1, hash2, hash3, hash4);
+		assertThat(allFilesRecursivelyIn(toImport)).hasSize(4);
+		assertNoContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash(), data4.getHash());
 		assertThat(contentManager.getImportedFilesMap()).isEmpty();
 
 		givenTimeIs(momentWhereFilesWereAdded.plusSeconds(11));
 		contentManager.uploadFilesInImportFolder();
-		assertThat(contentImportFile.listFiles()).isEmpty();
-		assertContentAndParsedContentWithHash(hash1, hash2, hash3, hash4);
-		assertThat(contentManager.getParsedContent(hash1).getParsedContent()).isEqualTo("Chuck Norris");
-		assertThat(contentManager.getParsedContent(hash2).getParsedContent()).isEqualTo("Dakota l'Indien");
-		assertThat(contentManager.getParsedContent(hash3).getParsedContent()).isEqualTo("Edouard Lechat");
-		assertThat(contentManager.getParsedContent(hash4).getParsedContent()).isEqualTo("Darth Vador");
+		assertThat(toImport.list()).isEmpty();
+		assertContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash(), data4.getHash());
+		assertThat(contentManager.getParsedContent(data1.getHash()).getParsedContent()).isEqualTo("Chuck Norris");
+		assertThat(contentManager.getParsedContent(data2.getHash()).getParsedContent()).isEqualTo("Dakota l'Indien");
+		assertThat(contentManager.getParsedContent(data3.getHash()).getParsedContent()).isEqualTo("Edouard Lechat");
+		assertThat(contentManager.getParsedContent(data4.getHash()).getParsedContent()).isEqualTo("Darth Vador");
 
 		assertThat(indexProperties).exists();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("file.html", hash1),
-				entry("file2.html", hash2),
-				entry("folder1" + File.separator + "file.html", hash3),
-				entry("folder2" + File.separator + "file.html", hash4)
+				entry("file.html", data1),
+				entry("file2.html", data2),
+				entry("folder1/file.html", data3),
+				entry("folder2/file.html", data4)
 		);
 		assertThat(errorsEmpty.list()).isEmpty();
 		assertThat(errorsUnparsable.list()).isEmpty();
@@ -131,24 +150,28 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenEmptyFileThenNotImportedAndMovedInErrors()
 			throws Exception {
 
-		String hash1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"), htmlWithBody("Chuck Norris"));
-		String hash2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"), "");
-		String hash3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"), htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
+				htmlWithBody("Chuck Norris"));
+		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"), "");
+		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
+				htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data4 = addTextFileToImportAndReturnHash(new File(folder1, "file3.html"), "");
 		givenTimeIs(LocalDateTime.now().plusSeconds(11));
 
 		contentManager.uploadFilesInImportFolder();
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
-		assertContentAndParsedContentWithHash(hash1, hash3);
-		assertNoContentAndParsedContentWithHash(hash2);
+		assertThat(toImport.list()).isEmpty();
+		assertContentAndParsedContentWithHash(data1.getHash(), data3.getHash());
+		assertNoContentAndParsedContentWithHash(data2.getHash());
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
+		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("file.html", hash1),
-				entry("folder1" + File.separator + "file.html", hash3)
+				entry("file.html", data1),
+				entry("folder1" + File.separator + "file.html", data3)
 		);
 
-		assertThat(errorsEmpty.list()).containsOnly("file2.html");
+		assertThat(errorsEmpty.list()).containsOnly("file2.html", "folder1");
+		assertThat(new File(errorsEmpty, "folder1").list()).containsOnly("file3.html");
 		assertThat(errorsUnparsable.list()).isEmpty();
 	}
 
@@ -156,56 +179,99 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenUnparsableFileThenImportedAndMovedInErrors()
 			throws Exception {
 
-		String hash1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"), htmlWithBody("Chuck Norris"));
-		String hash2 = addFileToImportAndReturnHash(new File(toImport, "file2.pdf"), "passwordProtectedFile.pdf");
-		String hash3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"), htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
+				htmlWithBody("Chuck Norris"));
+		ContentVersionDataSummary data2 = addFileToImportAndReturnHash(new File(toImport, "file2.pdf"),
+				"passwordProtectedFile.pdf", pdfMimetype);
+		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
+				htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data4 = addFileToImportAndReturnHash(new File(folder1, "file3.pdf"),
+				"passwordProtectedFile.pdf", pdfMimetype);
 
 		givenTimeIs(LocalDateTime.now().plusSeconds(11));
 		contentManager.uploadFilesInImportFolder();
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
-		assertContentAndParsedContentWithHash(hash1, hash3);
-		assertNoContentAndParsedContentWithHash(hash2);
+		assertThat(toImport.list()).isEmpty();
+		assertContentAndParsedContentWithHash(data1.getHash(), data3.getHash());
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
+		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("file.html", hash1),
-				entry("file2.pdf", hash2),
-				entry("folder1" + File.separator + "file.html", hash3)
+				entry("file.html", data1),
+				entry("file2.pdf", data2),
+				entry("folder1/file.html", data3),
+				entry("folder1/file3.pdf", data4)
 		);
-		assertThat(contentManager.getContentInputStream(hash2, SDK_STREAM))
-				.hasContentEqualTo(getTestResourceInputStream("passwordProtectedFile"));
+		assertThat(contentManager.getContentInputStream(data2.getHash(), SDK_STREAM))
+				.hasContentEqualTo(getTestResourceInputStream("passwordProtectedFile.pdf"));
 
 		assertThat(errorsEmpty.list()).isEmpty();
-		assertThat(errorsUnparsable.list()).containsOnly("file2.pdf");
+		assertThat(errorsUnparsable.list()).containsOnly("file2.pdf", "folder1");
+		assertThat(new File(errorsUnparsable, "folder1").list()).containsOnly("file3.pdf");
+	}
+
+	@Test
+	public void givenUnparsableFileBecauseTooBigThenImportedAndMovedInErrors()
+			throws Exception {
+
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 1);
+
+		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
+				htmlWithBody("Chuck Norris"));
+		ContentVersionDataSummary data2 = addFileToImportAndReturnHash(new File(toImport, "file2.pptx"),
+				"testFileWithLargePictureOfEdouard.pptx", pptxMimetype);
+		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
+				htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data4 = addFileToImportAndReturnHash(new File(folder1, "file3.pptx"),
+				"testFileWithLargePictureOfEdouard.pptx", pptxMimetype);
+
+		givenTimeIs(LocalDateTime.now().plusSeconds(11));
+		contentManager.uploadFilesInImportFolder();
+
+		assertThat(toImport.list()).isEmpty();
+		assertContentAndParsedContentWithHash(data1.getHash(), data3.getHash());
+
+		assertThat(toImport.list()).isEmpty();
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("file.html", data1),
+				entry("file2.pptx", data2),
+				entry("folder1/file.html", data3),
+				entry("folder1/file3.pptx", data4)
+		);
+		assertThat(contentManager.getContentInputStream(data2.getHash(), SDK_STREAM))
+				.hasContentEqualTo(getTestResourceInputStream("testFileWithLargePictureOfEdouard.pptx"));
+
+		assertThat(errorsEmpty.list()).isEmpty();
+		assertThat(errorsUnparsable.list()).containsOnly("file2.pptx", "folder1");
+		assertThat(new File(errorsUnparsable, "folder1").list()).containsOnly("file3.pptx");
 	}
 
 	@Test
 	public void givenBigFilesAreCopiedInImportFolderThenAllEntriesImported()
 			throws Exception {
 
-		addFileToImportAndReturnHash(new File(toImport, "bigFile.html"), "file1.bigf");
-		addFileToImportAndReturnHash(new File(folder1, "bigFile.html"), "file2.bigf");
+		addFileToImportAndReturnHash(new File(toImport, "bigFile.bigf"), "file1.bigf", null);
+		addFileToImportAndReturnHash(new File(folder1, "bigFile.bigf"), "file1.bigf", null);
+		addFileToImportAndReturnHash(new File(folder1, "bigFile2.bigf"), "file2.bigf", null);
 
 		givenTimeIs(LocalDateTime.now().plusSeconds(11));
 
 		contentManager.uploadFilesInImportFolder();
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
+		assertThat(toImport.list()).isEmpty();
 		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
+		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("ContentManagementAcceptTest-pdf1.pdf", pdf1Hash),
-				entry("ContentManagementAcceptTest-pdf2.pdf", pdf2Hash),
-				entry("ContentManagementAcceptTest-pdf3.pdf", pdf3Hash),
-				entry("ContentManagementAcceptTest-docx1.docx", pdf1Hash),
-				entry("ContentManagementAcceptTest-docx2.docx", pdf2Hash),
-				entry("folder1" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Hash),
-				entry("folder1" + File.separator + "ContentManagementAcceptTest-pdf2.pdf", pdf2Hash),
-				entry("folder1" + File.separator + "ContentManagementAcceptTest-pdf3.pdf", pdf3Hash),
-				entry("folder1" + File.separator + "ContentManagementAcceptTest-docx1.docx", pdf1Hash),
-				entry("folder1" + File.separator + "ContentManagementAcceptTest-docx2.docx", pdf2Hash)
+				entry("bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
+				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
 		);
 
 		assertThat(errorsEmpty.list()).isEmpty();
@@ -216,31 +282,34 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenBigFilesContainingBlankAndUnparsableEntriesThenHandledSameAsNormalFiles()
 			throws Exception {
 
-		addFileToImportAndReturnHash(new File(toImport, "fileWithErrors.bigf"), "file.bigf");
+		addFileToImportAndReturnHash(new File(toImport, "fileWithErrors.bigf"), "fileWithErrors.bigf", null);
 
 		givenTimeIs(LocalDateTime.now().plusSeconds(11));
 
 		contentManager.uploadFilesInImportFolder();
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
+		assertThat(toImport.list()).isEmpty();
 		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
 
-		assertThat(contentImportFile.listFiles()).isEmpty();
+		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("ContentManagementAcceptTest-pdf1.pdf", pdf1Hash),
-				entry("ContentManagementAcceptTest-pdf2.pdf", pdf2Hash),
-				entry("ContentManagementAcceptTest-pdf3.pdf", pdf3Hash),
-				entry("ContentManagementAcceptTest-docx1.docx", pdf1Hash),
-				entry("ContentManagementAcceptTest-docx2.docx", pdf2Hash),
-				entry("ContentManagerAcceptanceTest-passwordProtected.pdf", passwordProtectedPDFHash)
+				entry("fileWithErrors.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("fileWithErrors.bigf/ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
+				entry("fileWithErrors.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data),
+				entry("fileWithErrors.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("fileWithErrors.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("fileWithErrors.bigf/ContentManagerAcceptanceTest-passwordProtected.pdf", passwordProtectedPdfData)
 		);
 
 		assertThat(contentManager.getContentInputStream(passwordProtectedPDFHash, SDK_STREAM))
-				.hasContentEqualTo(getTestResourceInputStream("passwordProtectedFile"));
+				.hasContentEqualTo(getTestResourceInputStream("passwordProtectedFile.pdf"));
 
 		assertThat(toImport.list()).isEmpty();
-		assertThat(errorsEmpty.list()).containsOnly("blankfile.txt");
-		assertThat(errorsUnparsable.list()).containsOnly("ContentManagerAcceptanceTest-passwordProtected.pdf");
+		assertThat(errorsEmpty.list()).containsOnly("fileWithErrors.bigf");
+		assertThat(new File(errorsEmpty, "fileWithErrors.bigf").list()).containsOnly("blankfile.txt");
+		assertThat(errorsUnparsable.list()).containsOnly("fileWithErrors.bigf");
+		assertThat(new File(errorsUnparsable, "fileWithErrors.bigf").list())
+				.containsOnly("ContentManagerAcceptanceTest-passwordProtected.pdf");
 	}
 
 	private String htmlWithBody(String body) {
@@ -265,27 +334,29 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		}
 	}
 
-	private String addTextFileToImportAndReturnHash(File file, String content) {
+	private ContentVersionDataSummary addTextFileToImportAndReturnHash(File file, String content) {
 		try {
 			FileUtils.write(file, content);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		try {
-			return getIOLayerFactory().newHashingService().getHashFromFile(file);
+			String hash = getIOLayerFactory().newHashingService().getHashFromFile(file);
+			return new ContentVersionDataSummary(hash, htmlMimetype, file.length());
 		} catch (HashingServiceException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private String addFileToImportAndReturnHash(File file, String fileName) {
+	private ContentVersionDataSummary addFileToImportAndReturnHash(File file, String fileName, String mimetype) {
 		try {
 			FileUtils.copyFile(getTestResourceFile(fileName), file);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 		try {
-			return getIOLayerFactory().newHashingService().getHashFromFile(file);
+			String hash = getIOLayerFactory().newHashingService().getHashFromFile(file);
+			return new ContentVersionDataSummary(hash, mimetype, file.length());
 		} catch (HashingServiceException e) {
 			throw new RuntimeException(e);
 		}
@@ -298,4 +369,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		}
 	}
 
+	private Collection<File> allFilesRecursivelyIn(File folder) {
+		return FileUtils.listFiles(folder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+	}
 }

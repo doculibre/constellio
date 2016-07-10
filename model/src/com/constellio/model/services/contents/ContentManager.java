@@ -95,9 +95,11 @@ public class ContentManager implements StatefulService {
 	private final RecordServices recordServices;
 	private final CollectionsListManager collectionsListManager;
 	private final AtomicBoolean closing = new AtomicBoolean();
+	private final ModelLayerFactory modelLayerFactory;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		super();
+		this.modelLayerFactory = modelLayerFactory;
 		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
@@ -372,7 +374,11 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void uploadFilesInImportFolder() {
+		new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
+	}
 
+	public Map<String, ContentVersionDataSummary> getImportedFilesMap() {
+		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
 	}
 
 	public void convertPendingContentForPreview() {
@@ -582,9 +588,4 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public Map<String, String> getImportedFilesMap() {
-		Map<String, String> filesMap = new HashMap<>();
-
-		return filesMap;
-	}
 }

@@ -438,4 +438,8 @@ public class FactoriesTestFeatures {
 	public boolean isCheckRollback() {
 		return checkRollback;
 	}
+
+	public void markAsInstanciated() {
+		instanciated = true;
+	}
 }
