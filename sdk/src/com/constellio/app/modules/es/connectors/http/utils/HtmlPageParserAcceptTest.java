@@ -45,7 +45,7 @@ public class HtmlPageParserAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		fileParser = getModelLayerFactory().newFileParser();
-		hashingService = getModelLayerFactory().getIOServicesFactory().newHashingService();
+		hashingService = getModelLayerFactory().getIOServicesFactory().newHashingService(false);
 		parser = new HtmlPageParser(acceptAll, fileParser, hashingService);
 		server = WebsitesUtils.startWebsiteInState1();
 	}

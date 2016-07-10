@@ -159,6 +159,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean isUsingBase64URLWithHashing() {
+		return getBoolean("encoding.base64Url", false);
+	}
+
+	@Override
 	public void setWriteZZRecords(boolean enable) {
 		setBoolean("writeZZRecords", enable);
 	}
@@ -182,6 +187,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public String createRandomUniqueKey() {
 		Random random = new Random();
 		return random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
+	}
+
+	@Override
+	public void setUsingBase64URLWithHashing(boolean enable) {
+		setBoolean("encoding.base64Url", enable);
 	}
 
 }

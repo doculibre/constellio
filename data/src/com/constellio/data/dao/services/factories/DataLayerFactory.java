@@ -94,7 +94,8 @@ public class DataLayerFactory extends LayerFactory {
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
-					ioServicesFactory.newIOServices(), ioServicesFactory.newHashingService()));
+					ioServicesFactory.newIOServices(),
+					ioServicesFactory.newHashingService(dataLayerConfiguration.isUsingBase64URLWithHashing())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");

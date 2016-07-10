@@ -78,7 +78,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws FileNotFoundException {
 
-		hashService = getIOLayerFactory().newHashingService();
+		hashService = getIOLayerFactory().newHashingService(true);
 
 		root = newTempFolder();
 

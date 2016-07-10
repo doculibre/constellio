@@ -53,7 +53,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		authenticationService = getModelLayerFactory().newAuthenticationService();
 		configManager = getDataLayerFactory().getConfigManager();
-		hashingService = getIOLayerFactory().newHashingService();
+		hashingService = getIOLayerFactory().newHashingService(false);
 
 		userServices = getModelLayerFactory().newUserServices();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();

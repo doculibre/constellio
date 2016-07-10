@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -126,6 +127,7 @@ public class ContentManagerTest extends ConstellioTest {
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
 	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock DataLayerConfiguration dataLayerConfiguration;
 
 	@Before
 	public void setUp()
@@ -142,7 +144,7 @@ public class ContentManagerTest extends ConstellioTest {
 		when(dataLayerFactory.getContentsDao()).thenReturn(contentDao);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.getUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
-		when(ioServicesFactory.newHashingService()).thenReturn(hashingService);
+		when(ioServicesFactory.newHashingService(true)).thenReturn(hashingService);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
 		contentManager = spy(new ContentManager(modelLayerFactory));
@@ -154,6 +156,9 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(addWithEmptyContentOperation).when(contentManager).addInContentDaoOperation(newContentId);
 
 		doReturn(contentModificationsBuilder).when(contentManager).newContentsModificationBuilder(metadataSchemaTypes);
+
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+		when(dataLayerConfiguration.isUsingBase64URLWithHashing()).thenReturn(true);
 
 		when(parsingResults.getParsedContent()).thenReturn(theParsedContent);
 		when(parsingResults.getMimeType()).thenReturn(theMimetype);

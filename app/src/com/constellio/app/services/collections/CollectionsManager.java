@@ -121,6 +121,10 @@ public class CollectionsManager implements StatefulService {
 
 		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
+
+		if (modelLayerFactory.getCollectionsListManager().getCollections().size() ==1) {
+			dataLayerFactory.getDataLayerConfiguration().setUsingBase64URLWithHashing(true);
+		}
 	}
 
 	private void createSystemCollection() {

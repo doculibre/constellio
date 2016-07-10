@@ -112,6 +112,22 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenMigratingFromAPreviousSystemThenDoNotUseBase64Url()
+			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
+
+		givenSystemAtVersion5_1_2withTokens();
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing())
+				.isTrue();
+	}
+
+	@Test
+	public void whenStartingANewSystemThenUseBase64Url()
+			throws Exception {
+		prepareSystem(withZeCollection());
+
+	}
+
 	private void givenSystemAtVersion5_1_2withTokens() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new File(new SDKFoldersLocator().getInitialStatesFolder(), "olds");

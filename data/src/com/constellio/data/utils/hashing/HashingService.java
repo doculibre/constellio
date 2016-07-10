@@ -16,20 +16,21 @@ import com.constellio.data.utils.Factory;
 
 public class HashingService {
 
+	private boolean usingBase64Url;
 	private String algorithm;
 	private ThreadLocal<MessageDigest> messageDigests = new ThreadLocal<>();
 
-	public HashingService(String algorithm, EncodingService encodingService) {
-
+	public HashingService(String algorithm, EncodingService encodingService, boolean usingBase64Url) {
+		this.usingBase64Url = usingBase64Url;
 		this.algorithm = algorithm;
 	}
 
-	public static HashingService forMD5(EncodingService encodingService) {
-		return new HashingService("MD5", encodingService);
+	public static HashingService forMD5(EncodingService encodingService, boolean usingBase64Url) {
+		return new HashingService("MD5", encodingService, usingBase64Url);
 	}
 
-	public static HashingService forSHA1(EncodingService encodingService) {
-		return new HashingService("SHA1", encodingService);
+	public static HashingService forSHA1(EncodingService encodingService, boolean usingBase64Url) {
+		return new HashingService("SHA1", encodingService, usingBase64Url);
 	}
 
 	public String getHashFromStream(StreamFactory<InputStream> streamFactory)
@@ -162,7 +163,13 @@ public class HashingService {
 		}
 
 		byte[] digestBytes = messageDigest.digest(bytes);
-		return new EncodingService().encodeToBase64(digestBytes);
+		String base64 = new EncodingService().encodeToBase64(digestBytes);
+
+		if (usingBase64Url) {
+			base64 = base64.replace("/", "_").replace("+", "-");
+		}
+
+		return base64;
 	}
 
 }

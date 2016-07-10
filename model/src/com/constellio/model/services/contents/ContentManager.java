@@ -103,7 +103,8 @@ public class ContentManager implements StatefulService {
 		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
-		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newHashingService();
+		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory()
+				.newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing());
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -377,6 +378,7 @@ public class ContentManager implements StatefulService {
 	public void uploadFilesInImportFolder() {
 		if (modelLayerFactory.getConfiguration().getContentImportThreadFolder() != null) {
 			new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
+
 		}
 	}
 

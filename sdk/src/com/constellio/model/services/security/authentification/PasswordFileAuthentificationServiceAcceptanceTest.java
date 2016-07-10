@@ -28,7 +28,7 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 	public void setup()
 			throws Exception {
 		configManager = getDataLayerFactory().getConfigManager();
-		hashingService = spy(getIOLayerFactory().newHashingService());
+		hashingService = spy(getIOLayerFactory().newHashingService(false));
 		passwordFileAuthenticationService = getModelLayerFactory()
 				.getPasswordFileAuthenticationService();
 	}

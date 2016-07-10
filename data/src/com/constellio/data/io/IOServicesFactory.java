@@ -32,7 +32,7 @@ public class IOServicesFactory {
 		return new EncodingService();
 	}
 
-	public HashingService newHashingService() {
-		return HashingService.forSHA1(newEncodingService());
+	public HashingService newHashingService(boolean useBase64Url) {
+		return HashingService.forSHA1(newEncodingService(), useBase64Url);
 	}
 }

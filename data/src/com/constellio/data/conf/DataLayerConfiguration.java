@@ -42,6 +42,8 @@ public interface DataLayerConfiguration {
 
 	boolean isWriteZZRecords();
 
+	boolean isUsingBase64URLWithHashing();
+
 	File getSecondTransactionLogBaseFolder();
 
 	int getBackgroudThreadsPoolSize();
@@ -66,4 +68,5 @@ public interface DataLayerConfiguration {
 
 	String createRandomUniqueKey();
 
+	void setUsingBase64URLWithHashing(boolean enable);
 }

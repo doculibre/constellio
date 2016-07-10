@@ -52,7 +52,8 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 	}
 
 	@Before
-	public void setUp() throws Exception{
+	public void setUp()
+			throws Exception {
 		syncSolrConfigurationFiles();
 
 		givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
@@ -63,9 +64,9 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 		transaction = new Transaction();
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
 	}
-	
+
 	@After
-	public void cleanup(){
+	public void cleanup() {
 		syncSolrConfigurationFiles();
 	}
 
@@ -74,14 +75,14 @@ public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {
 		for (BigVaultServer server : dataLayerFactory.getSolrServers().getServers()) {
 			AtomicFileSystem serverFileSystem = server.getSolrFileSystem();
 			AtomicFileSystem defaultConfiguration = new ChildAtomicFileSystem(
-					new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService()),
+					new AtomicLocalFileSystem(dataLayerFactory.getIOServicesFactory().newHashingService(false)),
 					getServerConfigurations(server.getName()));
 
 			LOGGER.info("Syncing the <{}> configurations...", server.getName());
 			if (!AtomicFileSystemUtils.sync(defaultConfiguration, serverFileSystem)) {
 				server.reload();
 				LOGGER.info("Reloading the <{}> server", server.getName());
-			} else 
+			} else
 				LOGGER.info("No reloading for the <{}> server", server.getName());
 
 		}

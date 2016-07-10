@@ -29,8 +29,8 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	private String pptxMimetype = null;
 	private String docxMimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
-	private String pdf2Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
+	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
+	private String pdf2Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 	private String pdf3Hash = "2O9RyZlxNUL3asxk2yGDT6VIlbs=";
 	private String docx1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 	private String docx2Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
@@ -452,7 +452,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 			throw new RuntimeException(e);
 		}
 		try {
-			String hash = getIOLayerFactory().newHashingService().getHashFromFile(file);
+			String hash = getIOLayerFactory().newHashingService(true).getHashFromFile(file);
 			return new ContentVersionDataSummary(hash, htmlMimetype, file.length());
 		} catch (HashingServiceException e) {
 			throw new RuntimeException(e);
@@ -466,7 +466,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 			throw new RuntimeException(e);
 		}
 		try {
-			String hash = getIOLayerFactory().newHashingService().getHashFromFile(file);
+			String hash = getIOLayerFactory().newHashingService(true).getHashFromFile(file);
 			return new ContentVersionDataSummary(hash, mimetype, file.length());
 		} catch (HashingServiceException e) {
 			throw new RuntimeException(e);

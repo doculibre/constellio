@@ -32,23 +32,61 @@ public class HashingServiceTest extends ConstellioTest {
 	byte[] bytesContent = stringContent.getBytes();
 	String expectedMD5Hash = "pjOAZQLkFvZxSS1u9mXnDQ==";
 	String expectedSHA1Hash = "NlWk4A0G3n9XSi43FGoWLwHXq50=";
-
+	String stringContentGeneratingSHA1WithSlash = "This a message 40";
+	String stringContentGeneratingSHA1WithPlus = "This a message 41";
 	EncodingService encodingService;
 	HashingService md5HashingService;
 	HashingService sha1HashingService;
 
+	HashingService md5HashingServiceUsingUrlEncodedBase64;
+	HashingService sha1HashingServiceUsingUrlEncodedBase64;
+
 	@Before
 	public void setUp() {
 		encodingService = new EncodingService();
-		md5HashingService = spy(HashingService.forMD5(encodingService));
-		sha1HashingService = spy(HashingService.forSHA1(encodingService));
+		md5HashingService = spy(HashingService.forMD5(encodingService, false));
+		sha1HashingService = spy(HashingService.forSHA1(encodingService, false));
+
+		md5HashingServiceUsingUrlEncodedBase64 = spy(HashingService.forMD5(encodingService, true));
+		sha1HashingServiceUsingUrlEncodedBase64 = spy(HashingService.forSHA1(encodingService, true));
 	}
 
 	@Test
 	public void whenHashingContentThenReceivedCorrectHash()
 			throws Exception {
+
+		for (int i = 0; i < 100000; i++) {
+			String hash = sha1HashingService.getHashFromString(stringContent + " " + i);
+			if (hash.contains("/")) {
+				System.out.println("/ : " + i);
+			}
+
+			if (hash.contains("+")) {
+				System.out.println("+ : " + i);
+			}
+
+		}
+
 		assertThat(md5HashingService.getHashFromString(stringContent)).isEqualTo(expectedMD5Hash);
 		assertThat(sha1HashingService.getHashFromString(stringContent)).isEqualTo(expectedSHA1Hash);
+	}
+
+	@Test
+	public void givenBase64URLEnabledWhenHashingThenReplacePlusAndSlashesWithMinusAndUnderlines()
+			throws Exception {
+
+		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithPlus))
+				.isEqualTo("9Pr0wDV0Dp6K7q+Q9yAPgozZ5Vg=");
+
+		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithSlash))
+				.isEqualTo("t8IPj/NxfvfS59bJO6yjLlU/AbSw=oto");
+
+		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithPlus))
+				.isEqualTo("9Pr0wDV0Dp6K7q-Q9yAPgozZ5Vg=");
+
+		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithSlash))
+				.isEqualTo("t8IPj_NxfvfS59bJO6yjLlU_AbSw=oto");
+
 	}
 
 	@Test

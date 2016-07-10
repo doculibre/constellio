@@ -29,7 +29,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		hashingService = getIOLayerFactory().newHashingService();
+		hashingService = getIOLayerFactory().newHashingService(true);
 		fileParser = getModelLayerFactory().newFileParser();
 
 		File zipFile = getTestResourceFile("10000files.bigf.zip");

@@ -56,7 +56,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 		};
 
 		IOServices ioServices = getIOLayerFactory().newIOServices();
-		HashingService hashingServices = getIOLayerFactory().newHashingService();
+		HashingService hashingServices = getIOLayerFactory().newHashingService(false);
 		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices);
 
 		collectionsListManager = new CollectionsListManager(configManager);

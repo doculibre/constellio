@@ -70,7 +70,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		this.maxLevel = instance.getMaxLevel();
 		UrlAcceptor urlAcceptor = new ConnectorUrlAcceptor(instance);
 		fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
-		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService();
+		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(false);
 		this.pageParser = new HtmlPageParser(urlAcceptor, fileParser, hashingService);
 	}
 
@@ -222,7 +222,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.resetErrorsCount()
 				.setParsedContent(results.getParsedContent())
 				.setDigest(results.getDigest())
-						//.setOutlinks(urls)
+				//.setOutlinks(urls)
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
 				.addStringProperty("charset", page.getWebResponse().getContentCharset())
