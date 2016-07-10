@@ -147,6 +147,71 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	}
 
 	@Test
+	public void whenImportingContentsThenImportedByBatch()
+			throws Exception {
+
+		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
+				htmlWithBody("Chuck Norris"));
+		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"),
+				htmlWithBody("Dakota l'Indien"));
+		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
+				htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data4 = addTextFileToImportAndReturnHash(new File(folder2, "file.html"),
+				htmlWithBody("Darth Vador"));
+		assertThat(allFilesRecursivelyIn(contentImportFile)).hasSize(4);
+
+		givenTimeIs(LocalDateTime.now().plusSeconds(11));
+		ContentManagerImportThreadServices services = new ContentManagerImportThreadServices(getModelLayerFactory(), 1);
+
+		//Call #1
+		services.importFiles();
+		assertContentAndParsedContentWithHash(data1.getHash());
+		assertNoContentAndParsedContentWithHash(data2.getHash(), data3.getHash(), data4.getHash());
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("file.html", data1)
+		);
+
+		//Call #2
+		services.importFiles();
+		assertContentAndParsedContentWithHash(data1.getHash(), data2.getHash());
+		assertNoContentAndParsedContentWithHash(data3.getHash(), data4.getHash());
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("file.html", data1),
+				entry("file2.html", data2)
+		);
+
+		//Call #3
+		services.importFiles();
+		assertContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash());
+		assertNoContentAndParsedContentWithHash(data4.getHash());
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("file.html", data1),
+				entry("file2.html", data2),
+				entry("folder1/file.html", data3)
+		);
+
+		//Call #4
+		services.importFiles();
+		assertContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash(), data4.getHash());
+		assertThat(contentManager.getParsedContent(data1.getHash()).getParsedContent()).isEqualTo("Chuck Norris");
+		assertThat(contentManager.getParsedContent(data2.getHash()).getParsedContent()).isEqualTo("Dakota l'Indien");
+		assertThat(contentManager.getParsedContent(data3.getHash()).getParsedContent()).isEqualTo("Edouard Lechat");
+		assertThat(contentManager.getParsedContent(data4.getHash()).getParsedContent()).isEqualTo("Darth Vador");
+
+		assertThat(indexProperties).exists();
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("file.html", data1),
+				entry("file2.html", data2),
+				entry("folder1/file.html", data3),
+				entry("folder2/file.html", data4)
+		);
+
+		assertThat(toImport.list()).isEmpty();
+		assertThat(errorsEmpty.list()).isEmpty();
+		assertThat(errorsUnparsable.list()).isEmpty();
+	}
+
+	@Test
 	public void givenEmptyFileThenNotImportedAndMovedInErrors()
 			throws Exception {
 
@@ -274,6 +339,52 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
 		);
 
+		assertThat(errorsEmpty.list()).isEmpty();
+		assertThat(errorsUnparsable.list()).isEmpty();
+	}
+
+	@Test
+	public void givenBigFilesAreCopiedInImportFolderThenAreImportedInBatch()
+			throws Exception {
+
+		addFileToImportAndReturnHash(new File(toImport, "bigFile.bigf"), "file1.bigf", null);
+		addFileToImportAndReturnHash(new File(folder1, "bigFile.bigf"), "file1.bigf", null);
+		addFileToImportAndReturnHash(new File(folder1, "bigFile2.bigf"), "file2.bigf", null);
+
+		givenTimeIs(LocalDateTime.now().plusSeconds(11));
+		ContentManagerImportThreadServices services = new ContentManagerImportThreadServices(getModelLayerFactory(), 4);
+
+		//Call #1
+		System.out.println("Step #1");
+		services.importFiles();
+		assertContentAndParsedContentWithHash(pdf1Hash, docx1Hash, docx2Hash);
+		assertNoContentAndParsedContentWithHash(pdf3Hash, pdf2Hash);
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data)
+		);
+
+		//Call #2
+		System.out.println("Step #2");
+		services.importFiles();
+		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
+		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+				entry("bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
+				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
+		);
+
+		assertThat(toImport.list()).isEmpty();
 		assertThat(errorsEmpty.list()).isEmpty();
 		assertThat(errorsUnparsable.list()).isEmpty();
 	}

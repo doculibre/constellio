@@ -33,8 +33,8 @@ public class ConstellioTest extends AbstractConstellioTest {
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
-			testSession.getFactoriesTestFeatures().markAsInstanciated();
-//			try {
+			testSession.getFactoriesTestFeatures().clear();
+			//			try {
 			//				testSession.getFactoriesTestFeatures().getConstellioFactories();
 			//			} catch (Exception e) {
 			//

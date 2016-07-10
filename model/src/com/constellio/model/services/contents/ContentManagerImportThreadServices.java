@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,8 +36,14 @@ public class ContentManagerImportThreadServices {
 	private File indexProperties;
 	private File tempFolder;
 	private IOServices ioServices;
+	private int batchSize;
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory) {
+		this(modelLayerFactory, 10000);
+	}
+
+	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory, int batchSize) {
+		this.batchSize = batchSize;
 		this.modelLayerFactory = modelLayerFactory;
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		this.contentManager = modelLayerFactory.getContentManager();
@@ -60,6 +67,7 @@ public class ContentManagerImportThreadServices {
 	}
 
 	private void importFiles(List<File> files) {
+		System.out.println("importing files " + files + "");
 		BulkUploader uploader = new BulkUploader(modelLayerFactory);
 		uploader.setHandleDeletionOfUnreferencedHashes(false);
 
@@ -69,7 +77,8 @@ public class ContentManagerImportThreadServices {
 
 		for (File file : files) {
 			if (file.getName().endsWith(".bigf")) {
-				extractedBigFileFolders.add(extractBigFile(file));
+				File bigFileTempFolder = new File(tempFolder, toKey(file));
+				extractedBigFileFolders.add(bigFileTempFolder);
 
 			} else {
 				String key = toKey(file);
@@ -165,16 +174,18 @@ public class ContentManagerImportThreadServices {
 				.replace(File.separator, "/");
 	}
 
-	private File extractBigFile(File bigFile) {
+	private int extractBigFile(File bigFile) {
 		File bigFileTempFolder = new File(tempFolder, toKey(bigFile));
 		bigFileTempFolder.mkdirs();
 
+		int entriesCount = 0;
 		InputStream inputStream = ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(
 				bigFile, READ_FILE_INPUTSTREAM);
 		try {
 			BigFileIterator bigFileIterator = new BigFileIterator(inputStream);
 			while (bigFileIterator.hasNext()) {
 				BigFileEntry entry = bigFileIterator.next();
+				entriesCount++;
 				File destFileForCopy = new File(bigFileTempFolder, entry.getFileName().replace("/", File.separator));
 				try {
 					FileUtils.forceMkdir(destFileForCopy.getParentFile());
@@ -188,7 +199,7 @@ public class ContentManagerImportThreadServices {
 			ioServices.closeQuietly(inputStream);
 		}
 
-		return bigFileTempFolder;
+		return entriesCount;
 	}
 
 	private void uploadBigFile(File file, BulkUploader uploader) {
@@ -196,22 +207,42 @@ public class ContentManagerImportThreadServices {
 	}
 
 	private List<File> getFilesReadyToImport() {
+
 		List<File> filesReadyToImport = new ArrayList<>();
+
+		int currentBatchSize = 0;
 		for (File fileToImport : allFilesRecursivelyIn(toImportFolder)) {
-			if (TimeProvider.getLocalDateTime().minusSeconds(10).toDate().getTime() >= fileToImport.lastModified()) {
-				filesReadyToImport.add(fileToImport);
+			if (currentBatchSize < batchSize
+					&& TimeProvider.getLocalDateTime().minusSeconds(10).toDate().getTime() >= fileToImport.lastModified()) {
+				if (fileToImport.getName().endsWith(".bigf")) {
+					Integer size = extractBigFile(fileToImport);
+					filesReadyToImport.add(fileToImport);
+					currentBatchSize += size;
+				} else {
+					filesReadyToImport.add(fileToImport);
+					currentBatchSize++;
+				}
 			}
+		}
+		if (filesReadyToImport.size() > batchSize) {
+			filesReadyToImport = filesReadyToImport.subList(0, batchSize);
 		}
 
 		return filesReadyToImport;
 	}
 
-	private Collection<File> allFilesRecursivelyIn(File folder) {
-		return FileUtils.listFiles(folder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE);
+	private List<File> allFilesRecursivelyIn(File folder) {
+		List<File> files = new ArrayList<>(FileUtils.listFiles(folder, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE));
+		Collections.sort(files, new Comparator<File>() {
+			@Override
+			public int compare(File o1, File o2) {
+				return o1.getAbsolutePath().compareTo(o2.getAbsolutePath());
+			}
+		});
+		return files;
 	}
 
 	private void createFolders() {
-		System.out.println(errorsEmptyFolder.getAbsolutePath());
 		tempFolder.mkdirs();
 		toImportFolder.mkdirs();
 		errorsEmptyFolder.mkdirs();
