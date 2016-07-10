@@ -100,7 +100,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public File getContentImportThreadFolder() {
-		return getFile("contentImportThreadFolder", null);
+		return getFile("content.import.thread.folder", null);
 	}
 
 	@Override
