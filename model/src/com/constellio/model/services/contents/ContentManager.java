@@ -123,6 +123,7 @@ public class ContentManager implements StatefulService {
 			public void run() {
 				deleteUnreferencedContents();
 				convertPendingContentForPreview();
+				uploadFilesInImportFolder();
 			}
 		};
 
@@ -374,7 +375,9 @@ public class ContentManager implements StatefulService {
 	}
 
 	public void uploadFilesInImportFolder() {
-		new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
+		if (modelLayerFactory.getConfiguration().getContentImportThreadFolder() != null) {
+			new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
+		}
 	}
 
 	public Map<String, ContentVersionDataSummary> getImportedFilesMap() {
