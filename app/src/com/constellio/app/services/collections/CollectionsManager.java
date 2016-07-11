@@ -1,6 +1,7 @@
 package com.constellio.app.services.collections;
 
 import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
+import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -123,10 +124,6 @@ public class CollectionsManager implements StatefulService {
 		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 
-		if (modelLayerFactory.getCollectionsListManager().getCollections().size() == 1) {
-			dataLayerFactory.getDataLayerConfiguration().setUsingBase64URLWithHashing(true);
-			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
-		}
 	}
 
 	private void createSystemCollection() {
@@ -162,6 +159,14 @@ public class CollectionsManager implements StatefulService {
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
 		if (authenticationService.supportPasswordChange()) {
 			authenticationService.changePassword("admin", password);
+		}
+
+		if (modelLayerFactory.getCollectionsListManager().getCollections().size() == 1) {
+			dataLayerFactory.getDataLayerConfiguration().setUsingBase64URLWithHashing(true);
+			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
+		} else {
+			dataLayerFactory.getDataLayerConfiguration().setUsingBase64URLWithHashing(false);
+			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(TWO_DIGITS);
 		}
 	}
 
