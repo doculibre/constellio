@@ -240,10 +240,10 @@ public class ESRMRobotsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 
 		User user = users.adminIn(zeCollection);

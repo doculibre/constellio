@@ -147,6 +147,9 @@ public class ContentManagerTest extends ConstellioTest {
 		when(ioServicesFactory.newHashingService(true)).thenReturn(hashingService);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+		when(dataLayerConfiguration.isUsingBase64URLWithHashing()).thenReturn(true);
+
 		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);
 		when(streamFactory.create(anyString())).thenReturn(firstCreatedStream).thenReturn(secondCreatedStream)
@@ -156,9 +159,6 @@ public class ContentManagerTest extends ConstellioTest {
 		doReturn(addWithEmptyContentOperation).when(contentManager).addInContentDaoOperation(newContentId);
 
 		doReturn(contentModificationsBuilder).when(contentManager).newContentsModificationBuilder(metadataSchemaTypes);
-
-		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
-		when(dataLayerConfiguration.isUsingBase64URLWithHashing()).thenReturn(true);
 
 		when(parsingResults.getParsedContent()).thenReturn(theParsedContent);
 		when(parsingResults.getMimeType()).thenReturn(theMimetype);

@@ -354,7 +354,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private void importAndValidateDocumentWithVersions() {
 		String testResourceHash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
-		String testSecondResourceHash = "I/9qXqJxoU3dKHeM8bM/S4j8eIE=";
+		String testSecondResourceHash = "I_9qXqJxoU3dKHeM8bM_S4j8eIE=";
 
 		Document document1 = rm.wrapDocument(expectedRecordWithLegacyId("00000000001"));
 		Content content1 = document1.getContent();

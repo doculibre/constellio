@@ -242,20 +242,21 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 
 				//resource3
 				if (hashes.contains(document2PreviousContent)) {
-					assertThat(folder.list()).contains("T+4zq4cGP");
-					assertThat(new File(folder, "T+4zq4cGP" + File.separator + "tXkdJp").list())
-							.contains("qz1WVWYhoQ=", "qz1WVWYhoQ=__parsed");
+					assertThat(folder.list()).contains("T-");
+					assertThat(new File(folder, "T-").list())
+							.containsOnly("T-4zq4cGP_tXkdJp_qz1WVWYhoQ=", "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=__parsed");
 				} else {
-					assertThat(folder.list()).doesNotContain("T+4zq4cGP");
+					assertThat(folder.list()).doesNotContain("T-");
 				}
 
 				//resource4
 				if (hashes.contains(document2CurrentContent)) {
-					assertThat(folder.list()).contains("KN8RjbrnBgq1EDDV2U71a6");
-					assertThat(new File(folder, "KN8RjbrnBgq1EDDV2U71a6").list())
-							.contains("6gd4=", "6gd4=__parsed");
+					assertThat(folder.list()).contains("KN");
+					assertThat(new File(folder, File.separator + "KN").list())
+							.contains("KN8RjbrnBgq1EDDV2U71a6_6gd4=",
+									"KN8RjbrnBgq1EDDV2U71a6_6gd4=__parsed");
 				} else {
-					assertThat(folder.list()).doesNotContain("KN8RjbrnBgq1EDDV2U71a6");
+					assertThat(folder.list()).doesNotContain("KN");
 				}
 
 				return true;

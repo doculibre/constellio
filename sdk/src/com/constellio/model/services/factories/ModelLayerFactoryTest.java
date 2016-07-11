@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
@@ -42,6 +43,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	int batchProcessPartSize = anInteger();
 	String zeComputer = aString();
 
+	@Mock DataLayerConfiguration dataLayerConfiguration;
 	@Mock ConfigManager configManager;
 	@Mock DataLayerFactory dataLayerFactory;
 	@Mock IOServicesFactory ioServicesFactory;
@@ -64,6 +66,9 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(configManager.getXML("/userCredentialsConfig.xml")).thenReturn(xmlConfiguration);
 		when(xmlConfiguration.getDocument()).thenReturn(document);
 		when(document.getRootElement()).thenReturn(new Element("authorizations"));
+
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+		when(dataLayerConfiguration.isUsingBase64URLWithHashing()).thenReturn(true);
 
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
@@ -186,7 +191,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	public void whenNewAuthorizationsServicesThenNotNull() {
 		assertThat(modelLayerFactory.newAuthorizationsServices()).isNotNull();
 		verify(modelLayerFactory).getAuthorizationDetailsManager();
-		verify(modelLayerFactory,times(2)).getRolesManager();
+		verify(modelLayerFactory, times(2)).getRolesManager();
 		verify(modelLayerFactory).getTaxonomiesManager();
 	}
 

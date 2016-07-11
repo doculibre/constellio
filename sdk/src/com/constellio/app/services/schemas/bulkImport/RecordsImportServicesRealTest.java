@@ -1317,7 +1317,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource1 = getTestResourceFile("resource1.docx").getAbsolutePath().replace(".docx", ".dodocx");
 		String testResource2 = getTestResourceFile("resource2.pdf").getAbsolutePath();
 		String testResource3 = "http://www.perdu.com/edouardLechat.pdf";
-		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
+		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAContentMetadata()
@@ -1375,10 +1375,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource4 = getTestResourceFile("resource4.docx").getAbsolutePath();
 		String testResource5 = getTestResourceFile("resource5.pdf").getAbsolutePath();
 		String testResource1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
-		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
+		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
 		String testResource3Hash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
 		String testResource4Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
-		String testResource5Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
+		String testResource5Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAContentMetadata()
