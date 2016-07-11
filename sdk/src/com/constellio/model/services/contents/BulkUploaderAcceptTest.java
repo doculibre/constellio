@@ -46,8 +46,9 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 	@Test
 	@SlowTest
-	public void whenBulkUploading1000FilesThenAllHaveCorrectSizeHashingLanguageParsedContentAndBinaryContent()
+	public void whenBulkUploading10000FilesThenAllHaveCorrectSizeHashingLanguageParsedContentAndBinaryContent()
 			throws Exception {
+
 		test(10000);
 	}
 
@@ -71,6 +72,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 		iterator = newIterator();
 		for (int i = 0; i < qty; i++) {
+			System.out.println("Validating content #" + i);
 			String key = "upload" + i;
 			final byte[] bytes = iterator.next().getBytes();
 
