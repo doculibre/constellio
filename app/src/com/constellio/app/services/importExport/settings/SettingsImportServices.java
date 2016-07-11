@@ -17,10 +17,11 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.util.hash.Hash;
 import org.apache.log4j.Logger;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsImportServices {
 
@@ -110,31 +111,31 @@ public class SettingsImportServices {
             // Modifier schema
             for (final ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
                 schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
-                @Override
-                public void alter(MetadataSchemaTypesBuilder typesBuilder) {
-                        String typeCode = importedTaxonomy.getCode();
-                        String taxoCode = org.apache.commons.lang.StringUtils.substringBetween(typeCode, "taxo", "Type");
-                        String title = importedTaxonomy.getTitles().get("title_fr");
-                        // Ajouter la taxonomie
+                    @Override
+                    public void alter(MetadataSchemaTypesBuilder typesBuilder) {
+                        try {
 
-                        taxonomies.put(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title), importedTaxonomy);
-
+                            String typeCode = importedTaxonomy.getCode();
+                            String taxoCode = StringUtils.substringBetween(typeCode, "taxo", "Type");
+                            String title = importedTaxonomy.getTitles().get("title_fr");
+                            // Ajouter la taxonomie
+                            taxonomies.put(valueListServices
+                                    .lazyCreateTaxonomy(typesBuilder, taxoCode, title), importedTaxonomy);
+                        } catch (Exception e) {
+                            LOG.error("Modifying taxonomy failed !", e);
+                        }
                     }
                 });
             }
 
-            for(Map.Entry<Taxonomy,ImportedTaxonomy> entry : taxonomies.entrySet()){
-                                       /* taxonomies.add(valueListServices.createTaxonomy(
-                                importedTaxonomy.getTitles().get(TITLE_FR), importedTaxonomy.getUsers(),
-                                importedTaxonomy.getUserGroups(), importedTaxonomy.isVisibleOnHomePage()));
-                       */
+            for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
                 Taxonomy taxonomy = entry.getKey();
                 ImportedTaxonomy importedTaxo = entry.getValue();
                 taxonomy.withUserIds(importedTaxo.getUsers());
                 taxonomy.withGroupIds(importedTaxo.getUserGroups());
                 taxonomy.withVisibleInHomeFlag(importedTaxo.isVisibleOnHomePage());
                 // TODO Valider ajout classifiedTypes !
-                appLayerFactory.getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, schemasManager);
+                appLayerFactory.getModelLayerFactory().getTaxonomiesManager().editTaxonomy(taxonomy);
             }
 
         }
@@ -167,9 +168,23 @@ public class SettingsImportServices {
         for (ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
 
             String collectionCode = collectionSettings.getCode();
-            checkCollectionCode(validationErrors, collectionCode);
-
-            checkCollectionExists(validationErrors, collectionCode);
+            if (StringUtils.isBlank(collectionCode)) {
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put("config", CODE);
+                parameters.put("value", collectionCode);
+                validationErrors.add(SettingsImportServices.class,
+                        INVALID_COLLECTION_CODE, parameters);
+            } else {
+                try {
+                    schemasManager.getSchemaTypes(collectionCode);
+                } catch (Exception e) {
+                    Map<String, Object> parameters = new HashMap<>();
+                    parameters.put("config", CODE);
+                    parameters.put("value", collectionCode);
+                    validationErrors.add(SettingsImportServices.class,
+                            COLLECTION_CODE_NOT_FOUND, parameters);
+                }
+            }
 
             for (ImportedValueList importedValueList : collectionSettings.getValueLists()) {
                 checkValueListCode(validationErrors, importedValueList);
@@ -212,28 +227,6 @@ public class SettingsImportServices {
             parameters.put("value", importedValueList.getTitles().get("title_fr"));
             validationErrors.add(SettingsImportServices.class,
                     INVALID_VALUE_LIST_CODE, parameters);
-        }
-    }
-
-    private void checkCollectionExists(ValidationErrors validationErrors, String collectionCode) {
-        try {
-            schemasManager.getSchemaTypes(collectionCode);
-        } catch (Exception e) {
-            Map<String, Object> parameters = new HashMap<>();
-            parameters.put("config", CODE);
-            parameters.put("value", collectionCode);
-            validationErrors.add(SettingsImportServices.class,
-                    COLLECTION_CODE_NOT_FOUND, parameters);
-        }
-    }
-
-    public void checkCollectionCode(ValidationErrors validationErrors, String collectionCode) {
-        if (StringUtils.isBlank(collectionCode)) {
-            Map<String, Object> parameters = new HashMap<>();
-            parameters.put("config", CODE);
-            parameters.put("value", collectionCode);
-            validationErrors.add(SettingsImportServices.class,
-                    INVALID_COLLECTION_CODE, parameters);
         }
     }
 
