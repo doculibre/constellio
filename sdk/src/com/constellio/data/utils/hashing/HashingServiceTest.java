@@ -74,20 +74,17 @@ public class HashingServiceTest extends ConstellioTest {
 		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithSlash))
 				.isEqualTo("8IPj/NxfvfS59bJO6yjLlU/AbSw=");
 
-
-
 		assertThat(sha1HashingServiceUsingUrlEncodedBase64.getHashFromString(stringContentGeneratingSHA1WithPlus))
 				.isEqualTo("9Pr0wDV0Dp6K7q-Q9yAPgozZ5Vg=");
 
 		assertThat(sha1HashingServiceUsingUrlEncodedBase64.getHashFromString(stringContentGeneratingSHA1WithSlash))
 				.isEqualTo("8IPj_NxfvfS59bJO6yjLlU_AbSw=");
 
-
 		assertThat(sha1HashingServiceUsingBase32.getHashFromString(stringContentGeneratingSHA1WithPlus))
 				.isEqualTo("6T5PJQBVOQHJ5CXOV6IPOIAPQKGNTZKY");
 
 		assertThat(sha1HashingServiceUsingBase32.getHashFromString(stringContentGeneratingSHA1WithSlash))
-				.isEqualTo("6T5PJQBVOQHJ5CXOV6IPOIAPQKGNTZKY");
+				.isEqualTo("6CB6H7G4L667JOPVWJHOWKGLSVH4A3JM");
 
 	}
 

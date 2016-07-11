@@ -57,8 +57,8 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		doReturn(checkRollback).when(spiedDataLayerConfiguration).isInRollbackTestMode();
 		doReturn(transactionLogWorkFolder).when(spiedDataLayerConfiguration).getSecondTransactionLogBaseFolder();
 
-		dataLayerConfiguration.setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
-		dataLayerConfiguration.setHashingEncoding(BASE32);
+		spiedDataLayerConfiguration.setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
+		spiedDataLayerConfiguration.setHashingEncoding(BASE32);
 
 		if (transactionLogWorkFolder != null) {
 			doReturn(true).when(spiedDataLayerConfiguration).isSecondTransactionLogEnabled();
