@@ -1,6 +1,5 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
-import static com.constellio.data.conf.HashingEncoding.BASE32;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_RecordHasNoContent;
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -46,6 +46,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(HashingEncoding.BASE64_URL_ENCODED);
 		givenTransactionLogIsEnabled();
 		givenDisabledAfterTestValidations();
 		prepareSystem(
@@ -53,7 +54,6 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withAllTestUsers().withConstellioRMModule()
 		);
-		getDataLayerFactory().getDataLayerConfiguration().setHashingEncoding(BASE32);
 		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
