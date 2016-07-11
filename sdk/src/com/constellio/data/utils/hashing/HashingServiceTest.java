@@ -79,13 +79,13 @@ public class HashingServiceTest extends ConstellioTest {
 				.isEqualTo("9Pr0wDV0Dp6K7q+Q9yAPgozZ5Vg=");
 
 		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithSlash))
-				.isEqualTo("t8IPj/NxfvfS59bJO6yjLlU/AbSw=oto");
+				.isEqualTo("8IPj/NxfvfS59bJO6yjLlU/AbSw=");
 
-		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithPlus))
+		assertThat(sha1HashingServiceUsingUrlEncodedBase64.getHashFromString(stringContentGeneratingSHA1WithPlus))
 				.isEqualTo("9Pr0wDV0Dp6K7q-Q9yAPgozZ5Vg=");
 
-		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithSlash))
-				.isEqualTo("t8IPj_NxfvfS59bJO6yjLlU_AbSw=oto");
+		assertThat(sha1HashingServiceUsingUrlEncodedBase64.getHashFromString(stringContentGeneratingSHA1WithSlash))
+				.isEqualTo("8IPj_NxfvfS59bJO6yjLlU_AbSw=");
 
 	}
 
