@@ -64,6 +64,16 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredFile("dao.contents.filesystem.folder");
 	}
 
+	@Override
+	public DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode() {
+		return (DigitSeparatorMode) getEnum("dao.contents.filesystem.separatormode", DigitSeparatorMode.TWO_DIGITS);
+	}
+
+	@Override
+	public void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode) {
+		setString("dao.contents.filesystem.separatormode", mode.name());
+	}
+
 	public String getSettingsZookeeperAddress() {
 		return getRequiredString("dao.settings.server.address");
 	}

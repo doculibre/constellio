@@ -26,6 +26,10 @@ public interface DataLayerConfiguration {
 
 	File getContentDaoFileSystemFolder();
 
+	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
+
+	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
+
 	File getTempFolder();
 
 	ConfigManagerType getSettingsConfigType();

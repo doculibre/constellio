@@ -124,7 +124,7 @@ public class DataLayerFactory extends LayerFactory {
 
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices()));
+			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
 
 		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
 			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();

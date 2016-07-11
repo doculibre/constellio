@@ -21,6 +21,7 @@ import org.junit.Test;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -117,14 +118,24 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
 
 		givenSystemAtVersion5_1_2withTokens();
+
 		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing())
-				.isTrue();
+				.isFalse();
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
 	}
 
 	@Test
 	public void whenStartingANewSystemThenUseBase64Url()
 			throws Exception {
 		prepareSystem(withZeCollection());
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing())
+				.isTrue();
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
 
 	}
 

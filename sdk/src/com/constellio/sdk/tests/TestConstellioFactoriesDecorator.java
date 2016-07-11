@@ -1,5 +1,7 @@
 package com.constellio.sdk.tests;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -14,6 +16,7 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactoriesDecorator;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 
@@ -42,7 +45,9 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 	@Override
 	public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
-		DataLayerConfiguration spiedDataLayerConfiguration = spy(dataLayerConfiguration);
+		PropertiesDataLayerConfiguration spiedDataLayerConfiguration = spy(
+				(PropertiesDataLayerConfiguration) dataLayerConfiguration);
+		doNothing().when(spiedDataLayerConfiguration).writeProperty(anyString(), anyString());
 		doReturn(configManagerFolder).when(spiedDataLayerConfiguration).getSettingsFileSystemBaseFolder();
 		doReturn(appTempFolder).when(spiedDataLayerConfiguration).getTempFolder();
 		doReturn(contentFolder).when(spiedDataLayerConfiguration).getContentDaoFileSystemFolder();

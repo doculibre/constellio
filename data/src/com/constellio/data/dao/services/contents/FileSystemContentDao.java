@@ -12,7 +12,10 @@ import java.util.List;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_CannotDeleteFolder;
@@ -31,9 +34,12 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	File rootFolder;
 
-	public FileSystemContentDao(File rootFolder, IOServices ioServices) {
+	DataLayerConfiguration configuration;
+
+	public FileSystemContentDao(File rootFolder, IOServices ioServices, DataLayerConfiguration configuration) {
 		this.rootFolder = rootFolder;
 		this.ioServices = ioServices;
+		this.configuration = configuration;
 	}
 
 	@Override
@@ -196,11 +202,49 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			return new File(rootFolder, contentId.replace("/", File.separator));
 
 		} else {
-			String folderName = contentId.substring(0, 2);
-			File folder = new File(rootFolder, folderName);
-			return new File(folder, contentId);
+			if (configuration.getContentDaoFileSystemDigitsSeparatorMode() == DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS) {
+				StringBuilder name = new StringBuilder();
+
+				String level1 = toCaseInsensitive(contentId.charAt(0));
+				name.append(level1).append(File.separator);
+
+				if (contentId.length() > 1) {
+					String level2 = toCaseInsensitive(contentId.charAt(1));
+					name.append(level1).append(level2).append(File.separator);
+
+					if (contentId.length() > 2) {
+						String level3 = toCaseInsensitive(contentId.charAt(2));
+						name.append(level1).append(level2).append(level3).append(File.separator);
+					}
+				}
+
+				name.append(toCaseInsensitive(contentId));
+				return new File(rootFolder, name.toString());
+
+			} else {
+				String folderName = contentId.substring(0, 2);
+				File folder = new File(rootFolder, folderName);
+				return new File(folder, contentId);
+			}
+
 		}
 
+	}
+
+	private String toCaseInsensitive(char character) {
+		String str = "" + character;
+		if (StringUtils.isAllUpperCase(str)) {
+			str = "+" + str.toLowerCase();
+		}
+		return str;
+	}
+
+	private String toCaseInsensitive(String str) {
+		StringBuilder stringBuilder = new StringBuilder();
+		for (int i = 0; i < str.length(); i++) {
+			stringBuilder.append(toCaseInsensitive(str.charAt(i)));
+		}
+		return stringBuilder.toString();
 	}
 
 	@Override
