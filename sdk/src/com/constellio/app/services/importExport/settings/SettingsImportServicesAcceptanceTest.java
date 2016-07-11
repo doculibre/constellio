@@ -7,8 +7,9 @@ import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -42,6 +43,34 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 
 	@Test
+	public void whenImportingUnknownConfigsThenConfigsAreNotSet() throws Exception {
+
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
+
+		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
+				tuple("SettingsImportServices_configurationNotFound", "calculatedCloseDateUnknown"));
+	}
+
+	@Test
+	public void whenImportBadBooleanConfigValueThenValidationExceptionThrown() throws Exception {
+
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
+
+		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate", "notABoolean"));
+	}
+
+	@Test
+	public void whenImportingBadIntegerConfigValueThenValidationExceptionThrown() throws Exception {
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
+				.setValue("helloInteger"));
+
+		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
+				tuple("SettingsImportServices_invalidConfigurationValue",
+						"calculatedCloseDateNumberOfYearWhenFixedRule" ,"helloInteger"));
+	}
+
+	@Test
 	public void whenImportingNullValueConfigsThenNullValueExceptionIsRaised() throws Exception {
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue(null));
@@ -55,7 +84,6 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
 
-		//TODO Tester les configurations des autres types
 		settings.addConfig(new ImportedConfig().setKey("documentRetentionRules").setValue("true"));
 		settings.addConfig(new ImportedConfig().setKey("enforceCategoryAndRuleRelationshipInFolder").setValue("false"));
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
@@ -84,7 +112,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenImportingCollectionConfigSettingsIfCodeIsInvalidThenExceptionIsRaised() throws Exception {
+	public void whenImportingCollectionConfigSettingsIfCollectionCodeIsEmptyThenExceptionIsRaised() throws Exception {
 
 		// TODO Valider la raison du fail
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(null)
@@ -95,6 +123,21 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 				));
 
 		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_invalidCollectionCode"));
+
+	}
+
+	@Test
+	public void whenImportingCollectionConfigSettingsIfCollectionCodeDoesNotExistThenExceptionIsRaised() throws Exception {
+
+		// TODO Valider la raison du fail
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("unknonCollection")
+				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
+						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1","First value list's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+						.setHierarchical(false)
+				));
+
+		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_collectionCodeNotFound"));
 
 	}
 
@@ -130,60 +173,80 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportingCollectionConfigsSettingsThenSetted()
 			throws Exception {
 
-		String schemaCode = runTwice ? "ddvUSRcodeDuDomaineDeValeurX" :  "ddvUSRcodeDuDomaineDeValeurY";
-		System.out.println(schemaCode);
+		String codeA = runTwice ? "ddvUSRcodeDuDomaineDeValeurA1" :  "ddvUSRcodeDuDomaineDeValeurA2";
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-				.addValueList(new ImportedValueList().setCode(schemaCode)
+				.addValueList(new ImportedValueList().setCode(codeA)
 						.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
 						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
-						.setHierarchical(false)
 		));
+
+		String codeB = runTwice ? "ddvUSRcodeDuDomaineDeValeurB1" :  "ddvUSRcodeDuDomaineDeValeurB2";
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addValueList(new ImportedValueList().setCode(codeB)
+						.setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT))
+						.setCodeMode("REQUIRED_AND_UNIQUE")//.setCodeMode("FACULTATIVE")
+				));
+
+		String codeC = runTwice ? "ddvUSRcodeDuDomaineDeValeurC1" :  "ddvUSRcodeDuDomaineDeValeurC2";
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addValueList(new ImportedValueList().setCode(codeC)
+						.setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
+						.setCodeMode("REQUIRED_AND_UNIQUE")
+						.setHierarchical(true)
+				));
+
+		String codeD = runTwice ? "ddvUSRcodeDuDomaineDeValeurD1" :  "ddvUSRcodeDuDomaineDeValeurD2";
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addValueList(new ImportedValueList().setCode(codeD)
+						.setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
+						.setHierarchical(false)
+				));
 
 		importSettings();
 
-		System.out.println(schemaCode);
-		MetadataSchemaType metadataSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType(schemaCode);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(codeA);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR);
+		Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+		assertThat(codeMetadata).isNotNull();
+		assertThat(codeMetadata.isDefaultRequirement()).isFalse();
+		assertThat(codeMetadata.isUniqueValue()).isFalse();
+		assertThat(codeMetadata.isEnabled()).isFalse();
+		assertThat(codeMetadata.isChildOfRelationship()).isFalse();
 
-	}
+		metadataSchemaType = schemaTypes.getSchemaType(codeB);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 2");
+		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+		assertThat(codeMetadata).isNotNull();
+		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
+		assertThat(codeMetadata.isUniqueValue()).isTrue();
+		assertThat(codeMetadata.isEnabled()).isTrue();
 
-	@Test
-	public void whenImportingUnknownConfigsThenConfigsAreNotSet() throws Exception {
+		metadataSchemaType = schemaTypes.getSchemaType(codeC);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 3");
+		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+		assertThat(codeMetadata).isNotNull();
+		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
+		assertThat(codeMetadata.isUniqueValue()).isTrue();
+		assertThat(codeMetadata.isEnabled()).isTrue();
 
-		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
+		// TODO Valider la propriété hierarchical !!!
 
-		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
-				tuple("SettingsImportServices_configurationNotFound", "calculatedCloseDateUnknown"));
-	}
+		metadataSchemaType = schemaTypes.getSchemaType(codeD);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 4");
+		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+		assertThat(codeMetadata).isNotNull();
+		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
+		assertThat(codeMetadata.isUniqueValue()).isTrue();
+		assertThat(codeMetadata.isEnabled()).isTrue();
 
-	@Test
-	public void whenImportBadBooleanConfigValueThenValidationExceptionThrown() throws Exception {
-
-		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
-
-		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
-				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate", "notABoolean"));
-	}
-
-	@Test
-	public void whenImportingBadIntegerConfigValueThenValidationExceptionThrown() throws Exception {
-		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
-				.setValue("helloInteger"));
-
-		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
-				tuple("SettingsImportServices_invalidConfigurationValue",
-						"calculatedCloseDateNumberOfYearWhenFixedRule" ,"helloInteger"));
-	}
-
-	@Test()
-	public void whenImportBadConfigsThenValidationExceptionWithCorrectMessageIsThrown() throws Exception {
-
-		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
-
-		assertThatErrorsWhileImportingSettingsExtracting( "config", "value").containsOnly(
-				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate", "notABoolean"));
+		// TODO Valid3r classifiedTypes : oObtenir les schemata qu'on a défini, et vérier q'une métadonnée de type reférenc3 pointant sur le domaine de valeur a été créée
 	}
 
 	//-------------------------------------------------------------------------------------
