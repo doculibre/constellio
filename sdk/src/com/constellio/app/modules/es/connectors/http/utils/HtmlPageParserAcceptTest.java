@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.http.utils;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.eclipse.jetty.server.Server;
@@ -45,7 +46,7 @@ public class HtmlPageParserAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		fileParser = getModelLayerFactory().newFileParser();
-		hashingService = getModelLayerFactory().getIOServicesFactory().newHashingService(false);
+		hashingService = getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
 		parser = new HtmlPageParser(acceptAll, fileParser, hashingService);
 		server = WebsitesUtils.startWebsiteInState1();
 	}

@@ -1,5 +1,6 @@
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -53,7 +54,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		authenticationService = getModelLayerFactory().newAuthenticationService();
 		configManager = getDataLayerFactory().getConfigManager();
-		hashingService = getIOLayerFactory().newHashingService(false);
+		hashingService = getIOLayerFactory().newHashingService(BASE64);
 
 		userServices = getModelLayerFactory().newUserServices();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();

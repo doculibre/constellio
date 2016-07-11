@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.frenchPangram;
 import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -132,13 +133,10 @@ public class ContentDaoRealTest extends ConstellioTest {
 			throws Exception {
 
 		getDataLayerFactory().getDataLayerConfiguration()
-				.setPersistedOnCaseSensitiveDrive(false);
+				.setHashingEncoding(BASE64_URL_ENCODED);
 
 		getDataLayerFactory().getDataLayerConfiguration()
 				.setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
-
-		assertThat(getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemDigitsSeparatorMode())
-				.isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
 
 		vaultDao.add("anIdWithoutSlash", newInputStreamOfTextContent("test1"));
 		vaultDao.add("anotherId", newInputStreamOfTextContent("test2"));

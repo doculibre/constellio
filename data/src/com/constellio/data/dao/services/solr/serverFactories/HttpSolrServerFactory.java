@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.solr.serverFactories;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -133,7 +135,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	protected AtomicFileSystem getAtomicFileSystem(String core) {
 		try {
-			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService(false)),
+			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService(BASE64)),
 					getRootFolder(core));
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);

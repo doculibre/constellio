@@ -104,7 +104,7 @@ public class ContentManager implements StatefulService {
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
 		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory()
-				.newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing());
+				.newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 		this.searchServices = modelLayerFactory.newSearchServices();

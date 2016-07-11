@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.fail;
@@ -452,7 +453,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 			throw new RuntimeException(e);
 		}
 		try {
-			String hash = getIOLayerFactory().newHashingService(true).getHashFromFile(file);
+			String hash = getIOLayerFactory().newHashingService(BASE64_URL_ENCODED).getHashFromFile(file);
 			return new ContentVersionDataSummary(hash, htmlMimetype, file.length());
 		} catch (HashingServiceException e) {
 			throw new RuntimeException(e);
@@ -466,7 +467,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 			throw new RuntimeException(e);
 		}
 		try {
-			String hash = getIOLayerFactory().newHashingService(true).getHashFromFile(file);
+			String hash = getIOLayerFactory().newHashingService(BASE64_URL_ENCODED).getHashFromFile(file);
 			return new ContentVersionDataSummary(hash, mimetype, file.length());
 		} catch (HashingServiceException e) {
 			throw new RuntimeException(e);

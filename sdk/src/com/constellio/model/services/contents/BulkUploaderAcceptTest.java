@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE32;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +30,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		hashingService = getIOLayerFactory().newHashingService(true);
+		hashingService = getIOLayerFactory().newHashingService(BASE32);
 		fileParser = getModelLayerFactory().newFileParser();
 
 		File zipFile = getTestResourceFile("10000files.bigf.zip");

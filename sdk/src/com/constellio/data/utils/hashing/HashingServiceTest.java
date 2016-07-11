@@ -1,5 +1,8 @@
 package com.constellio.data.utils.hashing;
 
+import static com.constellio.data.conf.HashingEncoding.BASE32;
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.never;
@@ -35,8 +38,7 @@ public class HashingServiceTest extends ConstellioTest {
 	String stringContentGeneratingSHA1WithSlash = "This a message 40";
 	String stringContentGeneratingSHA1WithPlus = "This a message 41";
 	EncodingService encodingService;
-	HashingService md5HashingService;
-	HashingService sha1HashingService;
+	HashingService md5HashingService, md5HashingServiceUsingBase32, sha1HashingService, sha1HashingServiceUsingBase32;
 
 	HashingService md5HashingServiceUsingUrlEncodedBase64;
 	HashingService sha1HashingServiceUsingUrlEncodedBase64;
@@ -44,28 +46,19 @@ public class HashingServiceTest extends ConstellioTest {
 	@Before
 	public void setUp() {
 		encodingService = new EncodingService();
-		md5HashingService = spy(HashingService.forMD5(encodingService, false));
-		sha1HashingService = spy(HashingService.forSHA1(encodingService, false));
+		md5HashingService = spy(HashingService.forMD5(encodingService, BASE64));
+		sha1HashingService = spy(HashingService.forSHA1(encodingService, BASE64));
 
-		md5HashingServiceUsingUrlEncodedBase64 = spy(HashingService.forMD5(encodingService, true));
-		sha1HashingServiceUsingUrlEncodedBase64 = spy(HashingService.forSHA1(encodingService, true));
+		md5HashingServiceUsingBase32 = spy(HashingService.forMD5(encodingService, BASE32));
+		sha1HashingServiceUsingBase32 = spy(HashingService.forSHA1(encodingService, BASE32));
+
+		md5HashingServiceUsingUrlEncodedBase64 = spy(HashingService.forMD5(encodingService, BASE64_URL_ENCODED));
+		sha1HashingServiceUsingUrlEncodedBase64 = spy(HashingService.forSHA1(encodingService, BASE64_URL_ENCODED));
 	}
 
 	@Test
 	public void whenHashingContentThenReceivedCorrectHash()
 			throws Exception {
-
-		for (int i = 0; i < 100000; i++) {
-			String hash = sha1HashingService.getHashFromString(stringContent + " " + i);
-			if (hash.contains("/")) {
-				System.out.println("/ : " + i);
-			}
-
-			if (hash.contains("+")) {
-				System.out.println("+ : " + i);
-			}
-
-		}
 
 		assertThat(md5HashingService.getHashFromString(stringContent)).isEqualTo(expectedMD5Hash);
 		assertThat(sha1HashingService.getHashFromString(stringContent)).isEqualTo(expectedSHA1Hash);
@@ -81,10 +74,19 @@ public class HashingServiceTest extends ConstellioTest {
 		assertThat(sha1HashingService.getHashFromString(stringContentGeneratingSHA1WithSlash))
 				.isEqualTo("8IPj/NxfvfS59bJO6yjLlU/AbSw=");
 
+
+
 		assertThat(sha1HashingServiceUsingUrlEncodedBase64.getHashFromString(stringContentGeneratingSHA1WithPlus))
 				.isEqualTo("9Pr0wDV0Dp6K7q-Q9yAPgozZ5Vg=");
 
 		assertThat(sha1HashingServiceUsingUrlEncodedBase64.getHashFromString(stringContentGeneratingSHA1WithSlash))
+				.isEqualTo("8IPj_NxfvfS59bJO6yjLlU_AbSw=");
+
+
+		assertThat(sha1HashingServiceUsingBase32.getHashFromString(stringContentGeneratingSHA1WithPlus))
+				.isEqualTo("9Pr0wDV0Dp6K7q-Q9yAPgozZ5Vg=");
+
+		assertThat(sha1HashingServiceUsingBase32.getHashFromString(stringContentGeneratingSHA1WithSlash))
 				.isEqualTo("8IPj_NxfvfS59bJO6yjLlU_AbSw=");
 
 	}

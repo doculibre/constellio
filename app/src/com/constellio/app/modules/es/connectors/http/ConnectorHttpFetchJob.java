@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.http;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static java.util.Arrays.asList;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		this.maxLevel = instance.getMaxLevel();
 		UrlAcceptor urlAcceptor = new ConnectorUrlAcceptor(instance);
 		fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
-		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(false);
+		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
 		this.pageParser = new HtmlPageParser(urlAcceptor, fileParser, hashingService);
 	}
 

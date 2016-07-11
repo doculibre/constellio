@@ -12,7 +12,6 @@ import java.util.List;
 import org.apache.commons.io.FileExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
@@ -233,9 +232,6 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	private String toCaseInsensitive(char character) {
 		String str = "" + character;
-		if (!configuration.isPersistedOnCaseSensitiveDrive() && StringUtils.isAllUpperCase(str)) {
-			str = "+" + str.toLowerCase();
-		}
 		return str;
 	}
 

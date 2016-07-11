@@ -2,6 +2,8 @@ package com.constellio.app.services.collections;
 
 import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
 import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -162,10 +164,10 @@ public class CollectionsManager implements StatefulService {
 		}
 
 		if (modelLayerFactory.getCollectionsListManager().getCollections().size() == 1) {
-			dataLayerFactory.getDataLayerConfiguration().setUsingBase64URLWithHashing(true);
+			dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64_URL_ENCODED);
 			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
 		} else {
-			dataLayerFactory.getDataLayerConfiguration().setUsingBase64URLWithHashing(false);
+			dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64);
 			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(TWO_DIGITS);
 		}
 	}

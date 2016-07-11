@@ -70,16 +70,6 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public boolean isPersistedOnCaseSensitiveDrive() {
-		return getBoolean("dao.contents.filesystem.casesensitive", true);
-	}
-
-	@Override
-	public void setPersistedOnCaseSensitiveDrive(boolean value) {
-		setBoolean("dao.contents.filesystem.casesensitive", value);
-	}
-
-	@Override
 	public void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode) {
 		setString("dao.contents.filesystem.separatormode", mode.name());
 	}
@@ -179,8 +169,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public boolean isUsingBase64URLWithHashing() {
-		return getBoolean("encoding.base64Url", false);
+	public HashingEncoding getHashingEncoding() {
+		return (HashingEncoding) getEnum("hashing.encoding", HashingEncoding.BASE64);
 	}
 
 	@Override
@@ -210,8 +200,8 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
-	public void setUsingBase64URLWithHashing(boolean enable) {
-		setBoolean("encoding.base64Url", enable);
+	public void setHashingEncoding(HashingEncoding encoding) {
+		setString("hashing.encoding", encoding.name());
 	}
 
 }

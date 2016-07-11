@@ -13,6 +13,14 @@ public class EncodingService {
 		return Base64.decodeBase64(contentString.getBytes());
 	}
 
+	public String encodeToBase64UrlEncoded(byte[] bytes) {
+		return new String(Base64.encodeBase64(bytes)).replace("/", "_").replace("+", "-");
+	}
+
+	public byte[] decodeStringToBase64UrlEncodedBytes(String contentString) {
+		return Base64.decodeBase64(contentString.replace("_", "/").replace("-", "+").getBytes());
+	}
+
 	public String encodeToBase32(byte[] bytes) {
 		return new String(new Base32().encode(bytes));
 	}

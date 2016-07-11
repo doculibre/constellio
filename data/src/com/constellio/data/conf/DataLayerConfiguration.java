@@ -46,9 +46,7 @@ public interface DataLayerConfiguration {
 
 	boolean isWriteZZRecords();
 
-	boolean isUsingBase64URLWithHashing();
-
-	boolean isPersistedOnCaseSensitiveDrive();
+	HashingEncoding getHashingEncoding();
 
 	File getSecondTransactionLogBaseFolder();
 
@@ -74,7 +72,5 @@ public interface DataLayerConfiguration {
 
 	String createRandomUniqueKey();
 
-	void setUsingBase64URLWithHashing(boolean enable);
-
-	void setPersistedOnCaseSensitiveDrive(boolean b);
+	void setHashingEncoding(HashingEncoding encoding);
 }

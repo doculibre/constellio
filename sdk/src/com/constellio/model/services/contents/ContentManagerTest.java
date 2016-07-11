@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -144,11 +145,11 @@ public class ContentManagerTest extends ConstellioTest {
 		when(dataLayerFactory.getContentsDao()).thenReturn(contentDao);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.getUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
-		when(ioServicesFactory.newHashingService(true)).thenReturn(hashingService);
+		when(ioServicesFactory.newHashingService(BASE64_URL_ENCODED)).thenReturn(hashingService);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
 
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
-		when(dataLayerConfiguration.isUsingBase64URLWithHashing()).thenReturn(true);
+		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
 		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);

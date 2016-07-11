@@ -10,27 +10,28 @@ import java.security.NoSuchAlgorithmException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.EncodingService;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Factory;
 
 public class HashingService {
 
-	private boolean usingBase64Url;
+	private HashingEncoding hashingEncoding;
 	private String algorithm;
 	private ThreadLocal<MessageDigest> messageDigests = new ThreadLocal<>();
 
-	public HashingService(String algorithm, EncodingService encodingService, boolean usingBase64Url) {
-		this.usingBase64Url = usingBase64Url;
+	public HashingService(String algorithm, EncodingService encodingService, HashingEncoding hashingEncoding) {
+		this.hashingEncoding = hashingEncoding;
 		this.algorithm = algorithm;
 	}
 
-	public static HashingService forMD5(EncodingService encodingService, boolean usingBase64Url) {
-		return new HashingService("MD5", encodingService, usingBase64Url);
+	public static HashingService forMD5(EncodingService encodingService, HashingEncoding hashingEncoding) {
+		return new HashingService("MD5", encodingService, hashingEncoding);
 	}
 
-	public static HashingService forSHA1(EncodingService encodingService, boolean usingBase64Url) {
-		return new HashingService("SHA1", encodingService, usingBase64Url);
+	public static HashingService forSHA1(EncodingService encodingService, HashingEncoding hashingEncoding) {
+		return new HashingService("SHA1", encodingService, hashingEncoding);
 	}
 
 	public String getHashFromStream(StreamFactory<InputStream> streamFactory)
@@ -163,13 +164,19 @@ public class HashingService {
 		}
 
 		byte[] digestBytes = messageDigest.digest(bytes);
-		String base64 = new EncodingService().encodeToBase64(digestBytes);
 
-		if (usingBase64Url) {
-			base64 = base64.replace("/", "_").replace("+", "-");
+		String encoded;
+		if (hashingEncoding == HashingEncoding.BASE64_URL_ENCODED) {
+			encoded = new EncodingService().encodeToBase64UrlEncoded(digestBytes);
+
+		} else if (hashingEncoding == HashingEncoding.BASE32) {
+			encoded = new EncodingService().encodeToBase32(digestBytes);
+
+		} else {
+			encoded = new EncodingService().encodeToBase64(digestBytes);
 		}
 
-		return base64;
+		return encoded;
 	}
 
 }

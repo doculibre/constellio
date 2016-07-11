@@ -1,5 +1,7 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -119,8 +121,8 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 
 		givenSystemAtVersion5_1_2withTokens();
 
-		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing())
-				.isFalse();
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+				.isEqualTo(BASE64);
 
 		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
 				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
@@ -131,8 +133,8 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 			throws Exception {
 		prepareSystem(withZeCollection());
 
-		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isUsingBase64URLWithHashing())
-				.isTrue();
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+				.isEqualTo(BASE64_URL_ENCODED);
 
 		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
 				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
