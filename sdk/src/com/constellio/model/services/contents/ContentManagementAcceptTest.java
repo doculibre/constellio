@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -104,7 +105,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		withSpiedServices(ContentManager.class);
 
 		configure(new ModelLayerConfigurationAlteration() {

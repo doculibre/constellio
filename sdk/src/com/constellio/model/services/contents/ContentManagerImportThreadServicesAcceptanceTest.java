@@ -60,7 +60,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		contentImportFile = newTempFolder();
 
 		configure(new ModelLayerConfigurationAlteration() {

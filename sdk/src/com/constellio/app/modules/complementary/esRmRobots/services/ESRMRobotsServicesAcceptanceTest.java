@@ -1,6 +1,7 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DO_NOTHING;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -128,7 +129,7 @@ public class ESRMRobotsServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		notAUnitItest = true;
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());

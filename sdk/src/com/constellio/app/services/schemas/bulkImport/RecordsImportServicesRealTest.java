@@ -20,6 +20,7 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
@@ -208,7 +209,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
 				withZeCollection().withAllTestUsers()
 		);

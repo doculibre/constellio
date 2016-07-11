@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.transactionLog;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static java.util.Arrays.asList;
@@ -95,6 +96,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(SecondTransactionLogManager.class);
 		logBaseFolder = newTempFolder();
