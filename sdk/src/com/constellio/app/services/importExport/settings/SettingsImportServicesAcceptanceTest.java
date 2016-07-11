@@ -2,10 +2,7 @@ package com.constellio.app.services.importExport.settings;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedConfig;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -173,14 +170,14 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 	public void whenImportingCollectionConfigsSettingsThenSetted()
 			throws Exception {
 
-		String codeA = runTwice ? "ddvUSRcodeDuDomaineDeValeurA1" :  "ddvUSRcodeDuDomaineDeValeurA2";
+		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(codeA)
 						.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
 						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 		));
 
-		String codeB = runTwice ? "ddvUSRcodeDuDomaineDeValeurB1" :  "ddvUSRcodeDuDomaineDeValeurB2";
+		String codeB = "ddvUSRcodeDuDomaineDeValeurB";
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(codeB)
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
@@ -188,7 +185,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 						.setCodeMode("REQUIRED_AND_UNIQUE")//.setCodeMode("FACULTATIVE")
 				));
 
-		String codeC = runTwice ? "ddvUSRcodeDuDomaineDeValeurC1" :  "ddvUSRcodeDuDomaineDeValeurC2";
+		String codeC = "ddvUSRcodeDuDomaineDeValeurC" ;
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(codeC)
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
@@ -196,7 +193,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 						.setHierarchical(true)
 				));
 
-		String codeD = runTwice ? "ddvUSRcodeDuDomaineDeValeurD1" :  "ddvUSRcodeDuDomaineDeValeurD2";
+		String codeD = "ddvUSRcodeDuDomaineDeValeurD";
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(codeD)
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
@@ -246,7 +243,77 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(codeMetadata.isUniqueValue()).isTrue();
 		assertThat(codeMetadata.isEnabled()).isTrue();
 
-		// TODO Valid3r classifiedTypes : oObtenir les schemata qu'on a défini, et vérier q'une métadonnée de type reférenc3 pointant sur le domaine de valeur a été créée
+		// TODO Valid3r classifiedTypes : Obtenir les schemata qu'on a défini, et vérifier q'une métadonnée de type reférenc3 pointant sur le domaine de valeur a été créée
+	}
+
+	@Test
+	public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised() throws Exception {
+
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addTaxonomy(new ImportedTaxonomy().setCode(null)
+						.setTitles(toTitlesMap("Le titre de la taxo 1","First taxonomy's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+						.setVisibleOnHomePage(true)
+						.setUsers(Arrays.asList(gandalf,bobGratton))
+						.setUserGroups(Arrays.asList("groupCode1","groupCode2"))
+				));
+
+		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_EmptyTaxonomyCode"));
+
+	}
+
+	@Test
+	public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised() throws Exception {
+
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addTaxonomy(new ImportedTaxonomy().setCode("anotherPrefixTaxonomy")
+						.setTitles(toTitlesMap("Le titre de la taxo 1","First taxonomy's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+						.setVisibleOnHomePage(true)
+						.setUsers(Arrays.asList(gandalf,bobGratton))
+						.setUserGroups(Arrays.asList("groupCode1","groupCode2"))
+				));
+
+		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_InvalidTaxonomyCodePrefix"));
+
+	}
+
+	@Test
+	public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised() throws Exception {
+
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
+						.setTitles(toTitlesMap("Le titre de la taxo 1","First taxonomy's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+						.setVisibleOnHomePage(true)
+						.setUsers(Arrays.asList(gandalf,bobGratton))
+						.setUserGroups(Arrays.asList("groupCode1","groupCode2"))
+				));
+
+		assertThatErrorsWhileImportingSettingsExtracting().contains(tuple("SettingsImportServices_InvalidTaxonomyCodeSuffix"));
+
+	}
+
+	@Test
+	public void whenImportingCollectionTaxonomyConfigSettingsThenConfigsAreSaved() throws Exception {
+
+		String taxoCode = "taxoMyFirstType";
+		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+				.addTaxonomy(new ImportedTaxonomy().setCode(taxoCode)
+						.setTitles(toTitlesMap("Le titre de la taxo 1", "First taxonomy's title"))
+						.setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+						.setVisibleOnHomePage(true)
+						.setUsers(Arrays.asList(gandalf, bobGratton))
+						.setUserGroups(Arrays.asList("groupCode1", "groupCode2"))
+				));
+
+		importSettings();
+
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(taxoCode);
+		assertThat(metadataSchemaType).isNotNull();
+
 	}
 
 	//-------------------------------------------------------------------------------------

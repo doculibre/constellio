@@ -9,9 +9,15 @@ public class ImportedCollectionSettings {
 
 	List<ImportedValueList> valueLists = new ArrayList<>();
 
+	List<ImportedTaxonomy> taxonomies = new ArrayList<>();
+
 	public ImportedCollectionSettings setCode(String code) {
 		this.code = code;
 		return this;
+	}
+
+	public String getCode() {
+		return code;
 	}
 
 	public ImportedCollectionSettings addValueList(ImportedValueList valueList) {
@@ -21,11 +27,17 @@ public class ImportedCollectionSettings {
 		return this;
 	}
 
-	public String getCode() {
-		return code;
-	}
-
 	public List<ImportedValueList> getValueLists() {
 		return valueLists;
 	}
+
+	public ImportedCollectionSettings addTaxonomy(ImportedTaxonomy taxonomy){
+		this.taxonomies.add(taxonomy);
+		return this;
+	}
+
+	public List<ImportedTaxonomy> getTaxonomies(){
+		return taxonomies;
+	}
+
 }
