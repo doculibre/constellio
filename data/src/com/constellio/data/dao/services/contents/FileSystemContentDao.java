@@ -233,7 +233,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 
 	private String toCaseInsensitive(char character) {
 		String str = "" + character;
-		if (StringUtils.isAllUpperCase(str)) {
+		if (!configuration.isPersistedOnCaseSensitiveDrive() && StringUtils.isAllUpperCase(str)) {
 			str = "+" + str.toLowerCase();
 		}
 		return str;

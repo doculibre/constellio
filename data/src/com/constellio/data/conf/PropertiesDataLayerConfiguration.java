@@ -70,6 +70,16 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean isPersistedOnCaseSensitiveDrive() {
+		return getBoolean("dao.contents.filesystem.casesensitive", true);
+	}
+
+	@Override
+	public void setPersistedOnCaseSensitiveDrive(boolean value) {
+		setBoolean("dao.contents.filesystem.casesensitive", value);
+	}
+
+	@Override
 	public void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode) {
 		setString("dao.contents.filesystem.separatormode", mode.name());
 	}

@@ -48,6 +48,8 @@ public interface DataLayerConfiguration {
 
 	boolean isUsingBase64URLWithHashing();
 
+	boolean isPersistedOnCaseSensitiveDrive();
+
 	File getSecondTransactionLogBaseFolder();
 
 	int getBackgroudThreadsPoolSize();
@@ -73,4 +75,6 @@ public interface DataLayerConfiguration {
 	String createRandomUniqueKey();
 
 	void setUsingBase64URLWithHashing(boolean enable);
+
+	void setPersistedOnCaseSensitiveDrive(boolean b);
 }

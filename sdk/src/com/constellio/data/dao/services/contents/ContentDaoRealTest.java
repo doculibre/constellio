@@ -128,7 +128,81 @@ public class ContentDaoRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenContentDaoConfiguredWithThreeOneDigitSeperatorThenOK()
+	public void givenContentDaoConfiguredWithThreeOneDigitSeperatorOnCaseInsensitiveDriveThenOK()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerConfiguration()
+				.setPersistedOnCaseSensitiveDrive(false);
+
+		getDataLayerFactory().getDataLayerConfiguration()
+				.setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
+
+		assertThat(getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemDigitsSeparatorMode())
+				.isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
+
+		vaultDao.add("anIdWithoutSlash", newInputStreamOfTextContent("test1"));
+		vaultDao.add("anotherId", newInputStreamOfTextContent("test2"));
+		vaultDao.add("z", newInputStreamOfTextContent("test4"));
+		vaultDao.add("zz", newInputStreamOfTextContent("test5"));
+		vaultDao.add("zzz", newInputStreamOfTextContent("test6"));
+		vaultDao.add("zzzz", newInputStreamOfTextContent("test7"));
+
+		assertThat(vaultDao.getContentInputStream("anIdWithoutSlash", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test1"));
+
+		assertThat(vaultDao.getContentInputStream("anotherId", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test2"));
+
+		assertThat(vaultDao.getContentInputStream("z", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test4"));
+
+		assertThat(vaultDao.getContentInputStream("zz", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test5"));
+		assertThat(vaultDao.getContentInputStream("zzz", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test6"));
+		assertThat(vaultDao.getContentInputStream("zzzz", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test7"));
+
+		if (vaultDao instanceof FileSystemContentDao) {
+			File root = ((FileSystemContentDao) vaultDao).rootFolder;
+			assertThat(root.listFiles()).extracting("name", "file").containsOnly(
+					tuple("a", false),
+					tuple("z", false)
+			);
+
+			assertThat(new File(root, "a").listFiles()).extracting("name", "file").containsOnly(
+					tuple("an", false)
+			);
+
+			assertThat(new File(root, "a" + separator + "an").listFiles()).extracting("name", "file").containsOnly(
+					tuple("an+i", false),
+					tuple("ano", false)
+			);
+
+			assertThat(new File(root, "a" + separator + "an" + separator + "an+i").listFiles()).extracting("name", "file")
+					.containsOnly(tuple("an+id+without+slash", true));
+
+			assertThat(new File(root, "a" + separator + "an" + separator + "ano").listFiles()).extracting("name", "file")
+					.containsOnly(tuple("another+id", true));
+
+			assertThat(new File(root, "z").listFiles()).extracting("name", "file").containsOnly(
+					tuple("z", true),
+					tuple("zz", false)
+			);
+
+			assertThat(new File(root, "z" + separator + "zz").listFiles()).extracting("name", "file").containsOnly(
+					tuple("zz", true),
+					tuple("zzz", false)
+			);
+
+			assertThat(new File(root, "z" + separator + "zz" + separator + "zzz").listFiles()).extracting("name", "file")
+					.containsOnly(tuple("zzz", true), tuple("zzzz", true));
+
+		}
+	}
+
+	@Test
+	public void givenContentDaoConfiguredWithThreeOneDigitSeperatorOnCaseSensitiveDriveThenOK()
 			throws Exception {
 
 		getDataLayerFactory().getDataLayerConfiguration()

@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -54,6 +55,10 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		doReturn(backgroundThreadsEnabled).when(spiedDataLayerConfiguration).isBackgroundThreadsEnabled();
 		doReturn(checkRollback).when(spiedDataLayerConfiguration).isInRollbackTestMode();
 		doReturn(transactionLogWorkFolder).when(spiedDataLayerConfiguration).getSecondTransactionLogBaseFolder();
+
+		dataLayerConfiguration.setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
+		dataLayerConfiguration.setUsingBase64URLWithHashing(true);
+		dataLayerConfiguration.setPersistedOnCaseSensitiveDrive(false);
 
 		if (transactionLogWorkFolder != null) {
 			doReturn(true).when(spiedDataLayerConfiguration).isSecondTransactionLogEnabled();
