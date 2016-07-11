@@ -143,6 +143,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 	private void buildSearchTaxonomies() {
 		searchLayout = new HorizontalLayout();
+		searchLayout.setSpacing(true);
 		final TextField searchField = new BaseTextField();
 		Button searchButton = new SearchButton();
 		searchField.focus();
@@ -260,7 +261,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
-			Table table = new Table($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
+			RecordVOTable table = new RecordVOTable($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
 			table.setWidth("100%");
 			table.setId("childrenTable");
 			table.setColumnHeader("buttons", "");
@@ -339,7 +340,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
 			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
 			RecordVODataProvider provider = classifiedType.getDataProvider();
-			Table table = new RecordVOTable(provider);
+			RecordVOTable table = new RecordVOTable(provider);
 			table.setWidth("100%");
 			table.addItemClickListener(new ItemClickListener() {
 				@Override

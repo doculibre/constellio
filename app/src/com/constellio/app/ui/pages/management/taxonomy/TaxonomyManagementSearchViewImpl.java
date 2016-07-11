@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -133,7 +134,7 @@ public class TaxonomyManagementSearchViewImpl extends BaseViewImpl implements Ta
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
-			Table table = new Table($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
+			RecordVOTable table = new RecordVOTable($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
 			table.setWidth("100%");
 			table.setId("childrenTable");
 			table.setColumnHeader("buttons", "");
