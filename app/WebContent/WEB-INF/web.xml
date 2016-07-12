@@ -406,6 +406,21 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>GetInfosSystemManagementWebService</servlet-name>
+        <url-pattern>/systemManagement/getInfos</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>UpdatePluginSystemManagementWebService</servlet-name>
+        <url-pattern>/systemManagement/updatePlugin</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>RebootSystemManagementWebService</servlet-name>
+        <url-pattern>/systemManagement/reboot</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>download</servlet-name>
         <url-pattern>/dl/*</url-pattern>
     </servlet-mapping>
