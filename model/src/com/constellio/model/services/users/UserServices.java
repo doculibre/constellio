@@ -511,10 +511,11 @@ public class UserServices {
 		List<String> groupIds = new ArrayList<>();
 		for (String groupCode : groupCodes) {
 			String groupId = getGroupIdInCollection(groupCode, collection);
-			if (groupId == null) {
-				throw new ImpossibleRuntimeException("No group with code '" + groupCode + "' in collection '" + collection + "'");
+			if (groupId != null) {
+				groupIds.add(groupId);
+				//throw new ImpossibleRuntimeException("No group with code '" + groupCode + "' in collection '" + collection + "'");
 			}
-			groupIds.add(groupId);
+
 		}
 		return groupIds;
 	}
