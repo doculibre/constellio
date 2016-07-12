@@ -200,6 +200,28 @@
     </servlet>
 
     <servlet>
+        <servlet-name>GetInfosSystemManagementWebService</servlet-name>
+        <servlet-class>
+            com.constellio.app.api.systemManagement.services.GetInfosSystemManagementWebService
+        </servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>UpdatePluginSystemManagementWebService</servlet-name>
+        <servlet-class>
+            com.constellio.app.api.systemManagement.services.UpdatePluginSystemManagementWebService
+        </servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>RebootSystemManagementWebService</servlet-name>
+        <servlet-class>
+            com.constellio.app.api.systemManagement.services.RebootSystemManagementWebService
+        </servlet-class>
+    </servlet>
+
+
+    <servlet>
         <servlet-name>Benchmark Service</servlet-name>
         <servlet-class>com.constellio.app.api.benchmarks.BenchmarkWebService</servlet-class>
         <init-param>
