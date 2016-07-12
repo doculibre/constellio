@@ -71,5 +71,10 @@ sdk.properties
 /client/packaging/Constellio Desktop Agent-cache/
 /caches
 /daemon
+app/ivy.xml
+app/ivysettings.xml
+
+A
+A
 
 

@@ -1,17 +1,18 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ImportedTaxonomy {
 
     private String code;
-    private Map<String, String> titles;
+    private Map<String, String> titles = new HashMap<>();
     private List<String> classifiedTypes = new ArrayList<>();
-    private boolean visibleOnHomePage;
-    private List<String> users;
-    private List<String> userGroups;
+    private boolean visibleOnHomePage = true;
+    private List<String> users = new ArrayList<>();
+    private List<String> userGroups = new ArrayList<>();
 
 
     public ImportedTaxonomy setCode(String code){
@@ -62,5 +63,9 @@ public class ImportedTaxonomy {
 
     public List<String> getUserGroups() {
         return userGroups;
+    }
+
+    public List<String> getClassifiedTypes() {
+        return classifiedTypes;
     }
 }

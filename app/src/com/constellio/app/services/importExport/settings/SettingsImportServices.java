@@ -15,6 +15,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -23,22 +24,28 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class SettingsImportServices {
 
-    public static final String TAXO_PREFIX = "taxo";
-    public static final String TAXO_SUFFIX = "Type";
-    public static final String TITLE_FR = "title_fr";
-    static final String INVALID_COLLECTION_CODE = "InvalidCollectionCode";
-    static final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
-    static final String CODE = "code";
-    static final String INVALID_VALUE_LIST_CODE = "InvalidValueListCode";
-    static final String EMPTY_TAXONOMY_CODE = "EmptyTaxonomyCode";
-    static final String INVALID_TAXONOMY_CODE_PREFIX = "InvalidTaxonomyCodePrefix";
-    static final String INVALID_TAXONOMY_CODE_SUFFIX = "InvalidTaxonomyCodeSuffix";
-    static final String DDV_PREFIX = "ddv";
-    static final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
-    static final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
-    static Logger LOG = Logger.getLogger(SettingsImportServices.class);
+    static final String TAXO_PREFIX = "taxo";
+    static final String TYPE = "Type";
+    static final String TAXO_SUFFIX = TYPE;
+    static final String TITLE_FR = "title_fr";
+    static final String TAXO = "taxo";
+    static final String CONFIG = "config";
+    static final String VALUE = "value";
+    final String INVALID_COLLECTION_CODE = "InvalidCollectionCode";
+    final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
+    final String CODE = "code";
+    final String INVALID_VALUE_LIST_CODE = "InvalidValueListCode";
+    final String EMPTY_TAXONOMY_CODE = "EmptyTaxonomyCode";
+    final String INVALID_TAXONOMY_CODE_PREFIX = "InvalidTaxonomyCodePrefix";
+    final String INVALID_TAXONOMY_CODE_SUFFIX = "InvalidTaxonomyCodeSuffix";
+    final String DDV_PREFIX = "ddv";
+    final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
+    final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
+    Logger LOG = Logger.getLogger(SettingsImportServices.class);
 
     AppLayerFactory appLayerFactory;
     SystemConfigurationsManager systemConfigurationsManager;
@@ -65,9 +72,10 @@ public class SettingsImportServices {
         importGlobalConfigurations(settings, validationErrors);
 
         for (final ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
-            final String collectionCode = collectionSettings.getCode();
 
+            final String collectionCode = collectionSettings.getCode();
             final MetadataSchemaTypes collectionSchemaTypes = schemasManager.getSchemaTypes(collectionCode);
+
             for (final ImportedValueList importedValueList : collectionSettings.getValueLists()) {
 
                 MetadataSchemaType schemaType = null;
@@ -96,10 +104,10 @@ public class SettingsImportServices {
 
                             if (importedValueList.isHierarchical()) {
                                 builder.createValueListItemSchema(code,
-                                        importedValueList.getTitles().get("title_fr"), schemaTypeCodeMode);
+                                        importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
                             } else {
                                 builder.createHierarchicalValueListItemSchema(code,
-                                        importedValueList.getTitles().get("title_fr"), schemaTypeCodeMode);
+                                        importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
                             }
                         }
                     });
@@ -113,31 +121,35 @@ public class SettingsImportServices {
                 schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
                     @Override
                     public void alter(MetadataSchemaTypesBuilder typesBuilder) {
+                        String typeCode = importedTaxonomy.getCode();
                         try {
+                            String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
+                            String title = importedTaxonomy.getTitles().get(TITLE_FR);
+                            Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
 
-                            String typeCode = importedTaxonomy.getCode();
-                            String taxoCode = StringUtils.substringBetween(typeCode, "taxo", "Type");
-                            String title = importedTaxonomy.getTitles().get("title_fr");
-                            // Ajouter la taxonomie
-                            taxonomies.put(valueListServices
-                                    .lazyCreateTaxonomy(typesBuilder, taxoCode, title), importedTaxonomy);
-                        } catch (Exception e) {
-                            LOG.error("Modifying taxonomy failed !", e);
+                            taxonomies.put(taxonomy, importedTaxonomy);
+
+                        } catch (MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent e) {
+                            LOG.error("Schema type '" + typeCode + "' already exists !", e);
                         }
                     }
                 });
             }
 
             for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
-                Taxonomy taxonomy = entry.getKey();
-                ImportedTaxonomy importedTaxo = entry.getValue();
-                taxonomy.withUserIds(importedTaxo.getUsers());
-                taxonomy.withGroupIds(importedTaxo.getUserGroups());
-                taxonomy.withVisibleInHomeFlag(importedTaxo.isVisibleOnHomePage());
-                // TODO Valider ajout classifiedTypes !
-                appLayerFactory.getModelLayerFactory().getTaxonomiesManager().editTaxonomy(taxonomy);
-            }
+                ImportedTaxonomy importedTaxonomy = entry.getValue();
+                Taxonomy taxonomy = entry.getKey()
+                        .withUserIds(importedTaxonomy.getUsers())
+                        .withGroupIds(importedTaxonomy.getUserGroups())
+                        .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
+                appLayerFactory.getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, schemasManager);
 
+                String groupLabel = $("classifiedInGroupLabel");
+
+                for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
+                    valueListServices.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
+                }
+            }
         }
     }
 
@@ -170,8 +182,8 @@ public class SettingsImportServices {
             String collectionCode = collectionSettings.getCode();
             if (StringUtils.isBlank(collectionCode)) {
                 Map<String, Object> parameters = new HashMap<>();
-                parameters.put("config", CODE);
-                parameters.put("value", collectionCode);
+                parameters.put(CONFIG, CODE);
+                parameters.put(VALUE, collectionCode);
                 validationErrors.add(SettingsImportServices.class,
                         INVALID_COLLECTION_CODE, parameters);
             } else {
@@ -179,8 +191,8 @@ public class SettingsImportServices {
                     schemasManager.getSchemaTypes(collectionCode);
                 } catch (Exception e) {
                     Map<String, Object> parameters = new HashMap<>();
-                    parameters.put("config", CODE);
-                    parameters.put("value", collectionCode);
+                    parameters.put(CONFIG, CODE);
+                    parameters.put(VALUE, collectionCode);
                     validationErrors.add(SettingsImportServices.class,
                             COLLECTION_CODE_NOT_FOUND, parameters);
                 }
@@ -194,20 +206,20 @@ public class SettingsImportServices {
                 String code = importedTaxonomy.getCode();
                 if (StringUtils.isBlank(code)) {
                     Map<String, Object> parameters = new HashMap<>();
-                    parameters.put("config", CODE);
-                    parameters.put("value", importedTaxonomy.getCode());
+                    parameters.put(CONFIG, CODE);
+                    parameters.put(VALUE, importedTaxonomy.getCode());
                     validationErrors.add(SettingsImportServices.class,
                             EMPTY_TAXONOMY_CODE, parameters);
                 } else if (!code.startsWith(TAXO_PREFIX)) {
                     Map<String, Object> parameters = new HashMap<>();
-                    parameters.put("config", CODE);
-                    parameters.put("value", importedTaxonomy.getCode());
+                    parameters.put(CONFIG, CODE);
+                    parameters.put(VALUE, importedTaxonomy.getCode());
                     validationErrors.add(SettingsImportServices.class,
                             INVALID_TAXONOMY_CODE_PREFIX, parameters);
                 } else if (!code.endsWith(TAXO_SUFFIX)) {
                     Map<String, Object> parameters = new HashMap<>();
-                    parameters.put("config", CODE);
-                    parameters.put("value", importedTaxonomy.getCode());
+                    parameters.put(CONFIG, CODE);
+                    parameters.put(VALUE, importedTaxonomy.getCode());
                     validationErrors.add(SettingsImportServices.class,
                             INVALID_TAXONOMY_CODE_SUFFIX, parameters);
                 }
@@ -223,8 +235,8 @@ public class SettingsImportServices {
         if (StringUtils.isBlank(importedValueList.getCode()) ||
                 !importedValueList.getCode().startsWith(DDV_PREFIX)) {
             Map<String, Object> parameters = new HashMap<>();
-            parameters.put("config", importedValueList.getCode());
-            parameters.put("value", importedValueList.getTitles().get("title_fr"));
+            parameters.put(CONFIG, importedValueList.getCode());
+            parameters.put(VALUE, importedValueList.getTitles().get(TITLE_FR));
             validationErrors.add(SettingsImportServices.class,
                     INVALID_VALUE_LIST_CODE, parameters);
         }
@@ -276,8 +288,8 @@ public class SettingsImportServices {
 
     private Map<String, Object> toParametersMap(ImportedConfig importedConfig) {
         Map<String, Object> parameters = new HashMap();
-        parameters.put("config", importedConfig.getKey());
-        parameters.put("value", importedConfig.getValue());
+        parameters.put(CONFIG, importedConfig.getKey());
+        parameters.put(VALUE, importedConfig.getValue());
         return parameters;
     }
 }
