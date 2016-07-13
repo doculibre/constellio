@@ -64,6 +64,7 @@ import com.constellio.app.ui.tools.vaadin.TestEnterViewListener;
 import com.constellio.app.ui.tools.vaadin.TestInitUIListener;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.io.IOServicesFactory;
@@ -947,7 +948,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected void givenTransactionLogIsEnabled(final SecondTransactionLogReplayFilter filter) {
-		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName( "tLog");
+		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName("tLog");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
 			public void alter(DataLayerConfiguration configuration) {
@@ -1334,5 +1335,14 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ToggleCondition toggleCondition = new ToggleCondition();
 		toggleCondition.toggle = toggle;
 		return toggleCondition;
+	}
+
+	protected void givenHashingEncodingIs(final HashingEncoding encoding) {
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				configuration.setHashingEncoding(encoding);
+			}
+		});
 	}
 }

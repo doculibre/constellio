@@ -377,6 +377,16 @@ public class IOServices {
 		fileServices.moveFile(src, dest);
 	}
 
+	public void replaceFileContent(File file, byte[] bytes)
+			throws IOException {
+		InputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+		try {
+			replaceFileContent(file, byteArrayInputStream);
+		} finally {
+			byteArrayInputStream.close();
+		}
+	}
+
 	public void replaceFileContent(File file, InputStream inputStream)
 			throws IOException {
 		File tempFile = getAtomicWriteTempFileFor(file);
@@ -394,5 +404,35 @@ public class IOServices {
 		}
 
 		moveFile(tempFile, file);
+	}
+
+	public void deleteEmptyDirectoriesExceptThisOneIn(File folder) {
+		deleteEmptyDirectoriesIn(folder, true);
+	}
+
+	public void deleteEmptyDirectoriesIn(File folder, boolean exceptThisDirectory) {
+		boolean hasFile = false;
+		File[] files = folder.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isDirectory()) {
+					deleteEmptyDirectoriesIn(file, false);
+					if (file.exists()) {
+						hasFile = true;
+					}
+
+				} else {
+					hasFile = true;
+				}
+			}
+		}
+
+		if (!hasFile && !exceptThisDirectory) {
+			try {
+				deleteDirectory(folder);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 }

@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -21,6 +22,17 @@ public class PropertyFileUtils {
 		Properties properties = loadPropertyFiles(propertyFiles);
 
 		return loadPropertiesInAMap(properties);
+	}
+
+	public static void writeMap(File indexProperties, Map<String, String> map) {
+		Properties properties = new Properties();
+		properties.putAll(map);
+		try {
+			properties.store(new FileWriter(indexProperties), null);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	private static Map<String, String> loadPropertiesInAMap(Properties properties) {
@@ -164,4 +176,5 @@ public class PropertyFileUtils {
 	private static final char[] hexDigit = {
 			'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 	};
+
 }

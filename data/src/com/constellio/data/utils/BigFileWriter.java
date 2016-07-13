@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -48,5 +49,22 @@ public class BigFileWriter {
 		while (-1 != (n = input.read(buffer))) {
 			outputStream.write(buffer, 0, n);
 		}
+	}
+
+	public static void main(String argv[])
+			throws Exception {
+		FileOutputStream fos = new FileOutputStream(new File("/Users/francisbaril/Downloads/file2.bigf"));
+		BigFileWriter writer = new BigFileWriter(fos);
+
+		writer.write(new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/sdk/sdk-resources/com/constellio/model/services/contents/ContentManagementAcceptTest-pdf1.pdf"));
+
+		writer.write(new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/sdk/sdk-resources/com/constellio/model/services/contents/ContentManagementAcceptTest-pdf2.pdf"));
+
+		writer.write(new File(
+				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/sdk/sdk-resources/com/constellio/model/services/contents/ContentManagementAcceptTest-pdf3.pdf"));
+
+		fos.close();
 	}
 }

@@ -1,0 +1,5 @@
+file1.bigf
+docx1, docx2, pdf1
+
+file2.bigf
+pdf1, pdf2, pdf3

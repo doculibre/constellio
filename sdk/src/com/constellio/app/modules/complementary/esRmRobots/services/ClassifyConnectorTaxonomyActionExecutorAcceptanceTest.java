@@ -4,6 +4,7 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.enums.Ac
 import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DO_NOTHING;
 import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
@@ -64,6 +65,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -172,6 +174,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 	public void setUp()
 			throws Exception {
 
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		notAUnitItest = true;
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
@@ -681,10 +684,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 
 		//2- Start the robot again, nothing happens
@@ -702,10 +705,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 
 		//2- Start the robot again, with a modified connector document
@@ -745,10 +748,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "2.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
-						tuple("3.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "2.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("1.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "2.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("3.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "2.0"),
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 	}
 
@@ -790,10 +793,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 
 		//2- Logically delete two folders and one document
@@ -808,7 +811,7 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0")
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0")
 				);
 
 		//3- Start the robot again, folders and documents are back alive
@@ -827,10 +830,10 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull().andWhere(LOGICALLY_DELETED_STATUS).isFalseOrNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 	}
 
