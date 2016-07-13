@@ -38,7 +38,6 @@ public abstract class AdminSystemManagementWebService extends HttpServlet {
 		try {
 			authenticate(req);
 			doService(req, rootElement);
-			writer.append(xmlDocumentToString(rootElement));
 
 		} catch (AdminHttpServletRuntimeException_Unauthorized e) {
 			rootElement = new Element("response");
@@ -57,7 +56,7 @@ public abstract class AdminSystemManagementWebService extends HttpServlet {
 	}
 
 	private void authenticate(HttpServletRequest req) {
-		String certificatHash = req.getParameter("certificateHash");
+		String certificatHash = req.getParameter("certificate");
 
 		LicenseInfo info = appLayerFactory().newApplicationService().getLicenseInfo();
 
@@ -68,8 +67,10 @@ public abstract class AdminSystemManagementWebService extends HttpServlet {
 		if (certificatHash == null) {
 			throw new AdminHttpServletRuntimeException_Unauthorized("No certificate in parameter");
 		}
-
-		if (!certificatHash.equals(info.getSignature())) {
+		certificatHash = certificatHash.replace("-", "+").replace("_", "/");
+		if (!certificatHash.trim().equals(info.getSignature().trim())) {
+			System.out.println(certificatHash);
+			System.out.println(info.getSignature());
 			throw new AdminHttpServletRuntimeException_Unauthorized(
 					"Certificate in parameter does not match uploaded certificate");
 		}
