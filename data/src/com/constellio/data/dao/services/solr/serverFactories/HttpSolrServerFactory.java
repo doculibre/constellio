@@ -21,6 +21,8 @@ import org.apache.solr.common.params.CoreAdminParams.CoreAdminAction;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
@@ -28,6 +30,9 @@ import com.constellio.data.io.concurrent.filesystem.AtomicLocalFileSystem;
 import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
 
 public class HttpSolrServerFactory extends AbstractSolrServerFactory {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(HttpSolrServerFactory.class);
+
 	private List<AtomicFileSystem> atomicFileSystems = new ArrayList<>();
 	private List<SolrClient> solrClients = new ArrayList<>();
 	private final String url;
@@ -63,12 +68,14 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 		try {
 			URL urlToSolrServer = new URL(url);
 			String host = urlToSolrServer.getHost();
-			if (host.equals("localhost") || host.equals("127.0.0.1")) {
-				AtomicFileSystem fileSystem = getAtomicFileSystem(core);
-				atomicFileSystems.add(fileSystem);
-				return fileSystem;
+			if (!host.equals("localhost") && !host.equals("127.0.0.1")) {
+				LOGGER.warn("AtomicFileSystem does not support HTTP solr");
 			}
-			throw new UnsupportedOperationException("Not implemented yet");
+			AtomicFileSystem fileSystem = getAtomicFileSystem(core);
+			atomicFileSystems.add(fileSystem);
+
+			return fileSystem;
+
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -135,8 +142,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	protected AtomicFileSystem getAtomicFileSystem(String core) {
 		try {
-			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService(BASE64)),
-					getRootFolder(core));
+			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService()), getRootFolder(core));
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}

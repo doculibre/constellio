@@ -109,12 +109,10 @@ public class HashingService {
 	public String getHashFromFile(File file)
 			throws HashingServiceException {
 		try {
-			byte[] bytes = FileUtils.readFileToByteArray(file);
-			return getHashFromBytes(bytes);
+			return getHashFromBytes(FileUtils.readFileToByteArray(file));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
 
 	public String getHashFromBytes(final byte[] bytes)
