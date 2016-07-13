@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jdom2.Element;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.io.EncodingService;
@@ -51,6 +52,12 @@ public class UpdateWarSystemManagementWebService extends AdminSystemManagementWe
 			ioServices.closeQuietly(in);
 			ioServices.closeQuietly(out);
 			ioServices.deleteQuietly(tempFile);
+		}
+
+		try {
+			ConstellioFactories.getInstance().getAppLayerFactory().newApplicationService().update(new ProgressInfo());
+		} catch (AppManagementServiceException e) {
+			throw new RuntimeException(e);
 		}
 
 		responseDocumentRootElement.setText("success");

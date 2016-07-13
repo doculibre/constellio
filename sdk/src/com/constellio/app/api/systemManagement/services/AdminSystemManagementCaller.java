@@ -37,7 +37,7 @@ public class AdminSystemManagementCaller {
 		WebClient webClient = new WebClient();
 		WebRequest webRequest = null;
 		try {
-			System.out.println("**Query : \n" + urlBuilder.toString());
+			//System.out.println("**Query : \n" + urlBuilder.toString());
 			webRequest = new WebRequest(new URL(urlBuilder.toString()), HttpMethod.GET);
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
@@ -46,7 +46,7 @@ public class AdminSystemManagementCaller {
 		try {
 			Page page = webClient.getPage(webRequest);
 			String response = page.getWebResponse().getContentAsString();
-			System.out.println("**Response : \n" + response);
+			//System.out.println("**Response : \n" + response);
 
 			Document document = getDocumentFromString(response);
 
