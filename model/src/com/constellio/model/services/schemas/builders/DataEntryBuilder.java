@@ -1,12 +1,13 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
 import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.StringPatternMetadataValueCalculator;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -64,6 +65,7 @@ public class DataEntryBuilder {
 	@SuppressWarnings("unchecked")
 	public MetadataBuilder asCalculatedStringUsingPattern(String pattern) {
 		metadata.dataEntry = new CalculatedDataEntry(new StringPatternMetadataValueCalculator(pattern));
+		metadata.setType(STRING);
 		return metadata;
 	}
 
@@ -98,13 +100,13 @@ public class DataEntryBuilder {
 
 	public MetadataBuilder asFixedSequence(String fixedSequenceCode) {
 		metadata.dataEntry = new SequenceDataEntry(fixedSequenceCode, null);
-		metadata.setType(MetadataValueType.STRING);
+		metadata.setType(STRING);
 		return metadata;
 	}
 
 	public MetadataBuilder asSequenceDefinedByMetadata(String metadataLocalCode) {
 		metadata.dataEntry = new SequenceDataEntry(null, metadataLocalCode);
-		metadata.setType(MetadataValueType.STRING);
+		metadata.setType(STRING);
 		return metadata;
 	}
 }
