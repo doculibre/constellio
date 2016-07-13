@@ -7,6 +7,7 @@ import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.constellio.data.conf.HashingEncoding;
 import org.jdom2.Element;
 
 import com.constellio.app.entities.modules.ProgressInfo;
@@ -29,7 +30,7 @@ public class UpdateWarSystemManagementWebService extends AdminSystemManagementWe
 		String hash = getRequiredParameter(req, "hash").replace("_", "/").replace("-", "+");
 
 		IOServices ioServices = ioServices();
-		HashingService hashingService = HashingService.forMD5(new EncodingService());
+		HashingService hashingService = HashingService.forMD5(new EncodingService(), HashingEncoding.BASE64);
 		File tempFile = ioServices.newTemporaryFile(TEMP_FILE);
 		InputStream in = null;
 		OutputStream out = null;

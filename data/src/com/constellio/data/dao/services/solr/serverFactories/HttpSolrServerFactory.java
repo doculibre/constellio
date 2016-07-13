@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.constellio.data.conf.HashingEncoding;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
@@ -142,7 +143,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	protected AtomicFileSystem getAtomicFileSystem(String core) {
 		try {
-			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService()), getRootFolder(core));
+			return new ChildAtomicFileSystem(new AtomicLocalFileSystem(ioServicesFactory.newHashingService(HashingEncoding.BASE64)), getRootFolder(core));
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}
