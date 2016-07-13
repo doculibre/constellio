@@ -18,6 +18,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -203,6 +204,11 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		throw new TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound(code, collection);
 	}
 
+	public Taxonomy getTaxonomyOf(Record record) {
+		return getTaxonomyFor(record.getCollection(), new SchemaUtils().getSchemaTypeCode(record.getSchemaCode()));
+
+	}
+
 	public Taxonomy getTaxonomyFor(String collection, String schemaTypeCode) {
 		List<Taxonomy> enableTaxonomies = oneXMLConfigPerCollectionManager.get(collection).enableTaxonomies;
 		if (enableTaxonomies != null) {
@@ -351,11 +357,11 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			MetadataSchemasManager metadataSchemasManager) {
 
 		Set<Taxonomy> taxonomies = new HashSet<>();
-		
+
 		SchemaUtils schemaUtils = new SchemaUtils();
-		
+
 		String schemaType = schemaUtils.getSchemaTypeCode(schemaCode);
-		
+
 		List<Taxonomy> schemaTaxonomies = getAvailableTaxonomiesForSelectionOfType(schemaType, user, metadataSchemasManager);
 		taxonomies.addAll(schemaTaxonomies);
 

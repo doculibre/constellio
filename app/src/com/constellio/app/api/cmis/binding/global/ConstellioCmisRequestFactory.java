@@ -82,30 +82,27 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 		mcc.put(ConstellioCmisContextParameters.USER, currentUser);
 	}
 
-	private void authenticate(CallContext context) {
-		String collection = context.getRepositoryId();
-		String serviceKey = context.getUsername();
-		String token = context.getPassword();
-		//		if (serviceKey.contains("=>")) {
-		//			serviceKey = serviceKey.split("=>")[0];
-		//			User user = getUserServices().getUserInCollection(serviceKey, collection);
-		//			Record collectionRecord = getRecordServices().getDocumentById(collection);
-		//			AuthorizationsServices authorizationsServices = getAuthorizationsServices();
-		//			if (!(authorizationsServices.canDelete(user, collectionRecord) && authorizationsServices.canWrite(user,
-		//					collectionRecord))) {
-		//				throw new CmisExceptions_InvalidLogin();
-		//			}
-		//		}
+	public static UserCredential authenticateUserFromContext(CallContext callContext, UserServices userServices) {
+		String collection = callContext.getRepositoryId();
+		String serviceKey = callContext.getUsername();
+		String token = callContext.getPassword();
+
 		try {
-			UserServices userServices = getUserServices();
+
 			String username = userServices.getTokenUser(serviceKey, token);
 			UserCredential userCredential = userServices.getUserCredential(username);
 			if (!userCredential.isSystemAdmin()) {
 				throw new CmisPermissionDeniedException("User must be a system admin");
 			}
+			return userCredential;
 		} catch (UserServicesRuntimeException e) {
 			throw new CmisExceptions_InvalidLogin();
 		}
+	}
+
+	private void authenticate(CallContext context) {
+		UserServices userServices = getUserServices();
+		authenticateUserFromContext(context, userServices);
 	}
 
 	private User getCurrentUser(CallContext context, String collection) {

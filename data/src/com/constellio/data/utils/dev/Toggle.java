@@ -13,12 +13,14 @@ public class Toggle {
 	public static AvailableToggle NEW_USERCREDENTIAL_SERVICES = newToggle();
 	public static AvailableToggle AGREGATED_METADATAS = newToggle();
 	public static AvailableToggle ADD_EXISTING_TASK = newToggle();
-	public static AvailableToggle TESTING_ACTION_PAT = newToggle();
+	public static AvailableToggle SIMULATE_CONNECTOR_DOWNLOAD_CONTENT = newToggle();
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
+	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
 
 	// ------------------------------------------------
 
 	private static Map<String, AvailableToggle> toggleMap = new HashMap<>();
+
 
 	static {
 		for (Field field : Toggle.class.getDeclaredFields()) {

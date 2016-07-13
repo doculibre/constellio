@@ -35,6 +35,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -163,8 +164,11 @@ public class RMMigrationTo5_0_5 implements MigrationScript {
 			for (Metadata metadata : schema.getMetadatas()) {
 				if (!metadata.getLocalCode().startsWith("USR") && !exceptList.contains(metadata.getLocalCode())
 						&& metadata.getInheritance() == null) {
-					schemaBuilder.getMetadata(metadata.getLocalCode()).setEnabled(true);
-					schemaBuilder.getMetadata(metadata.getLocalCode()).setEssential(true);
+					if (!Schemas.ERROR_ON_PHYSICAL_DELETION.hasSameCode(metadata)
+							&& !Schemas.LOGICALLY_DELETED_ON.hasSameCode(metadata)) {
+						schemaBuilder.getMetadata(metadata.getLocalCode()).setEnabled(true);
+						schemaBuilder.getMetadata(metadata.getLocalCode()).setEssential(true);
+					}
 				}
 			}
 

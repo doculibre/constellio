@@ -18,6 +18,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -244,7 +246,9 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 
 			@Override
 			public void run() {
-				recordServices.logicallyDeletePrincipalConceptIncludingRecords(category, User.GOD);
+				RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(
+						LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY);
+				recordServices.logicallyDelete(category, User.GOD, options);
 			}
 		});
 	}
@@ -253,8 +257,10 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 			throws RecordServicesException, InterruptedException {
 		final Record category = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_secondTypeItem1");
 
+		RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(
+				LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY);
 		recordServices.refresh(category);
-		recordServices.logicallyDeletePrincipalConceptIncludingRecords(category, User.GOD);
+		recordServices.logicallyDelete(category, User.GOD, options);
 		recordServices.refresh(category);
 
 		Record newParent = recordServices.getDocumentById("zeCollection_taxo1_firstTypeItem2_firstTypeItem1");

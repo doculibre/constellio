@@ -2,7 +2,6 @@ package com.constellio.app.ui.framework.components.table;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
@@ -18,45 +17,49 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class BasePagedTable<T extends Container> extends PagedTable {
+
+	public static final int DEFAULT_PAGE_LENGTH = 10;
+	
 	protected T container;
-	protected ComboBox itemsPerPage;
+	protected ComboBox itemsPerPageField;
 
 	public BasePagedTable(T container) {
 		this.container = container;
-		itemsPerPage = new ComboBox();
+		itemsPerPageField = new ComboBox();
 	}
 
+	@Override
 	public HorizontalLayout createControls() {
 		HorizontalLayout pageSize;
 
 		Label itemsPerPageLabel = new Label($("SearchResultTable.itemsPerPage"));
-		itemsPerPage.addItem(SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+		itemsPerPageField.addItem(DEFAULT_PAGE_LENGTH);
 		if (container.size() >= 10) {
-			itemsPerPage.addItem(10);
+			itemsPerPageField.addItem(10);
 		}
 		if (container.size() >= 25) {
-			itemsPerPage.addItem(25);
+			itemsPerPageField.addItem(25);
 		}
 		if (container.size() >= 50) {
-			itemsPerPage.addItem(50);
+			itemsPerPageField.addItem(50);
 		}
 		if (container.size() >= 100) {
-			itemsPerPage.addItem(100);
+			itemsPerPageField.addItem(100);
 		}
-		itemsPerPage.setNullSelectionAllowed(false);
-		itemsPerPage.setWidth("85px");
+		itemsPerPageField.setNullSelectionAllowed(false);
+		itemsPerPageField.setWidth("85px");
 
-		itemsPerPage.addValueChangeListener(new ValueChangeListener() {
+		itemsPerPageField.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				setPageLength((int) itemsPerPage.getValue());
+				setPageLength((int) itemsPerPageField.getValue());
 			}
 		});
-		itemsPerPage.setEnabled(itemsPerPage.size() > 1);
+		itemsPerPageField.setEnabled(itemsPerPageField.size() > 1);
 
-		pageSize = new HorizontalLayout(itemsPerPageLabel, itemsPerPage);
+		pageSize = new HorizontalLayout(itemsPerPageLabel, itemsPerPageField);
 		pageSize.setComponentAlignment(itemsPerPageLabel, Alignment.MIDDLE_LEFT);
-		pageSize.setComponentAlignment(itemsPerPage, Alignment.MIDDLE_LEFT);
+		pageSize.setComponentAlignment(itemsPerPageField, Alignment.MIDDLE_LEFT);
 		pageSize.setSpacing(true);
 
 		Label page = new Label($("SearchResultTable.page"));
@@ -128,7 +131,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		controlBar.setExpandRatio(pageSize, 1);
 		controlBar.setWidth("100%");
 
-		addListener(new SearchResultDetailedTable.PageChangeListener() {
+		addListener(new PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				first.setEnabled(getCurrentPage() > 1);
 				previous.setEnabled(getCurrentPage() > 1);
@@ -143,11 +146,11 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		return controlBar;
 	}
 
-	public ComboBox getItemsPerPage() {
-		return itemsPerPage;
+	public ComboBox getItemsPerPageField() {
+		return itemsPerPageField;
 	}
 
 	public void setItemsPerPageValue(int value) {
-		itemsPerPage.setValue(value);
+		itemsPerPageField.setValue(value);
 	}
 }

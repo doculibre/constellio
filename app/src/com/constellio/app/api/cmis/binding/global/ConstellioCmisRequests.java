@@ -108,6 +108,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	public List<RepositoryInfo> getRepositoryInfos(ExtensionsData extension) {
 		List<RepositoryInfo> result = new ArrayList<RepositoryInfo>();
 
+		ConstellioCmisRequestFactory
+				.authenticateUserFromContext(context, appLayerFactory.getModelLayerFactory().newUserServices());
+
 		for (ConstellioCollectionRepository fsr : repositoryManager.getRepositories()) {
 			result.add(new GetRepositoryInfoRequest(fsr, appLayerFactory, fsr.getCollection(), extension, getCallContext())
 					.processRequest());

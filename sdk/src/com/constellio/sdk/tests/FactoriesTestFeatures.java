@@ -184,6 +184,15 @@ public class FactoriesTestFeatures {
 						dataLayerFactory.getDataLayerLogger().setMonitoredIds(loggingOfRecords);
 					}
 
+					dataLayerFactory.getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
+							.add(new TransactionLogExtension() {
+								@Override
+								public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
+										String collection) {
+									return ExtensionBooleanResult.FORCE_TRUE;
+								}
+							});
+
 					if (spiedClasses.isEmpty()) {
 						return dataLayerFactory;
 					} else {
@@ -335,15 +344,6 @@ public class FactoriesTestFeatures {
 		}
 
 		factoriesInstance = ConstellioFactories.getInstance(propertyFile, decorator);
-
-		factoriesInstance.getDataLayerFactory().getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
-				.add(new TransactionLogExtension() {
-					@Override
-					public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
-							String collection) {
-						return ExtensionBooleanResult.FORCE_TRUE;
-					}
-				});
 
 		return factoriesInstance;
 	}

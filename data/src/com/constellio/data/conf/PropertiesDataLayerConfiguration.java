@@ -154,6 +154,16 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public boolean isWriteZZRecords() {
+		return getBoolean("writeZZRecords", false);
+	}
+
+	@Override
+	public void setWriteZZRecords(boolean enable) {
+		setBoolean("writeZZRecords", enable);
+	}
+
+	@Override
 	public boolean isLocalHttpSolrServer() {
 		return getRecordsDaoSolrServerType().equals(HTTP) &&
 				(getRecordsDaoHttpSolrServerUrl().contains("localhost") || getRecordsDaoHttpSolrServerUrl()

@@ -304,8 +304,10 @@ public class DemoTestRecords {
 		this.collection = collection;
 	}
 
-	public DemoTestRecords setup(ModelLayerFactory modelLayerFactory)
+	public DemoTestRecords setup(AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
+		this.appLayerFactory = appLayerFactory;
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());

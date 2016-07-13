@@ -504,7 +504,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-		delete(record, reason);
+		delete(record, reason, false);
 		if (parentId != null) {
 			view.navigate().to(RMViews.class).displayFolder(parentId);
 		} else {

@@ -78,9 +78,7 @@ public class BigVaultServer implements Cloneable {
 			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
-
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
-
 		this.bigVaultLogger = bigVaultLogger;
 		this.name = name;
 		this.extensions = extensions;

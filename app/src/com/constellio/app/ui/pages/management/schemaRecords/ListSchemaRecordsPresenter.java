@@ -64,7 +64,7 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		if (isDeletable(recordVO)) {
 			Record record = getRecord(recordVO.getId());
 			try {
-				delete(record);
+				delete(record, false);
 			} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord error) {
 			/*
 				This catch happens to avoid presenting a message in the UI

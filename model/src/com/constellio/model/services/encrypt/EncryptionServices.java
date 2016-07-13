@@ -14,6 +14,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.encrypt.EncryptionServicesRuntimeException.EncryptionServicesRuntimeException_InvalidKey;
 
 public class EncryptionServices {
@@ -65,7 +66,7 @@ public class EncryptionServices {
 			byte[] decryptedText = cipher.doFinal(Base64.decodeBase64(encryptedBase64));
 			return new String(decryptedText);
 		} catch (Exception e) {
-			if (lostPreviousKey) {
+			if (lostPreviousKey || Toggle.LOST_PRIVATE_KEY.isEnabled()) {
 				return encryptedBase64;
 			}
 			throw new RuntimeException("Cannot decrypt '" + encryptedBase64 + "'", e);

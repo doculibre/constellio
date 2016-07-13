@@ -115,7 +115,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		List<FormMetadataVO> result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(14);
+		assertThat(result).hasSize(16);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
 		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
 		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
@@ -129,6 +129,10 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.get(9).getCode()).isEqualTo(formMetadataVOs.get(9).getCode());
 		assertThat(result.get(10).getCode()).isEqualTo(formMetadataVOs.get(10).getCode());
 		assertThat(result.get(11).getCode()).isEqualTo(formMetadataVOs.get(11).getCode());
+		assertThat(result.get(12).getCode()).isEqualTo(formMetadataVOs.get(12).getCode());
+		assertThat(result.get(13).getCode()).isEqualTo(formMetadataVOs.get(13).getCode());
+		assertThat(result.get(14).getCode()).isEqualTo(formMetadataVOs.get(14).getCode());
+		assertThat(result.get(15).getCode()).isEqualTo(formMetadataVOs.get(15).getCode());
 
 		formMetadataVOs = presenter.getMetadatas();
 		Collections.shuffle(formMetadataVOs);
@@ -136,7 +140,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(14);
+		assertThat(result).hasSize(16);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
 		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
 		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
@@ -150,6 +154,10 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.get(9).getCode()).isEqualTo(formMetadataVOs.get(9).getCode());
 		assertThat(result.get(10).getCode()).isEqualTo(formMetadataVOs.get(10).getCode());
 		assertThat(result.get(11).getCode()).isEqualTo(formMetadataVOs.get(11).getCode());
+		assertThat(result.get(12).getCode()).isEqualTo(formMetadataVOs.get(12).getCode());
+		assertThat(result.get(13).getCode()).isEqualTo(formMetadataVOs.get(13).getCode());
+		assertThat(result.get(14).getCode()).isEqualTo(formMetadataVOs.get(14).getCode());
+		assertThat(result.get(15).getCode()).isEqualTo(formMetadataVOs.get(15).getCode());
 	}
 
 	private List<String> getCodeFromMetadata(List<Metadata> metadatas) {

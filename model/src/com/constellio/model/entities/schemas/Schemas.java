@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 public class Schemas {
 
@@ -49,6 +50,10 @@ public class Schemas {
 	private static final String CREATED_ON_CODE = "createdOn_dt";
 	public static final Metadata CREATED_ON = add(new Metadata(CREATED_ON_CODE, MetadataValueType.DATE_TIME, false));
 	public static final Metadata MODIFIED_ON = add(new Metadata("modifiedOn_dt", MetadataValueType.DATE_TIME, false));
+	public static final Metadata LOGICALLY_DELETED_ON = add(
+			new Metadata(CommonMetadataBuilder.LOGICALLY_DELETED_ON + "_dt", MetadataValueType.DATE_TIME, false));
+	public static final Metadata ERROR_ON_PHYSICAL_DELETION = add(
+			new Metadata(CommonMetadataBuilder.ERROR_ON_PHYSICAL_DELETION + "_s", MetadataValueType.BOOLEAN, false));
 
 	public static final Metadata SEARCH_FIELD = add(new Metadata("search_txt", MetadataValueType.TEXT, true));
 	public static final Metadata FRENCH_SEARCH_FIELD = add(new Metadata("search_txt_fr", MetadataValueType.TEXT, true));
@@ -72,6 +77,7 @@ public class Schemas {
 
 	public static final Metadata URL = add(new Metadata("url_s", MetadataValueType.STRING, false));
 	public static final Metadata FETCHED = new Metadata("fetched_s", MetadataValueType.BOOLEAN, false);
+	public static final Metadata LINKED_SCHEMA = new Metadata("linkedSchema_s", MetadataValueType.STRING, false);
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

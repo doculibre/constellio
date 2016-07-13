@@ -122,7 +122,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return;
 		}
 		for (Record record : recordServices().getRecordsById(view.getCollection(), cart().getAllItems())) {
-			delete(record, false);
+			delete(record);
 		}
 		cartEmptyingRequested();
 	}

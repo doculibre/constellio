@@ -2,6 +2,7 @@ package com.constellio.app.api.cmis.accept;
 
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,12 +21,15 @@ import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -40,6 +44,9 @@ import com.constellio.sdk.tests.setups.Users;
 
 @DriverTest
 public class CmisACLAcceptanceTest extends ConstellioTest {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CmisACLAcceptanceTest.class);
+
 	UserServices userServices;
 	TaxonomiesManager taxonomiesManager;
 	MetadataSchemasManager metadataSchemasManager;
@@ -147,6 +154,41 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (Exception e) {
 			//OK
+		}
+
+	}
+
+	@Test
+	public void whenAddACLTo100UsersThenOk()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		List<String> users = new ArrayList<>();
+		for (int i = 1; i <= 100; i++) {
+			String username = "grim.patron." + i;
+			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
+			userServices.addUpdateUserCredential(userCredential);
+			users.add(username);
+		}
+		for (String username : users) {
+			User user = userServices.getUserInCollection(username, zeCollection);
+			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isFalse();
+		}
+
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		List<Ace> aces = new ArrayList<>();
+		for (String user : users) {
+			aces.add(ace(user, R));
+		}
+		cmisFolder2.addAcl(aces, REPOSITORYDETERMINED);
+
+		recordServices.refresh(zeCollectionRecords.folder2);
+
+		for (String username : users) {
+			User user = userServices.getUserInCollection(username, zeCollection);
+			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isTrue();
 		}
 
 	}
