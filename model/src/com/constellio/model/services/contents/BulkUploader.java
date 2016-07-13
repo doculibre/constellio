@@ -79,7 +79,7 @@ public class BulkUploader {
 					ioServices.closeQuietly(inputStream);
 				}
 				int currentProgression = progression.incrementAndGet();
-				if (currentProgression % 10 == 0) {
+				if (currentProgression % 100 == 0) {
 					LOGGER.info("Bulk uploading " + currentProgression + "/" + total);
 				}
 			}
