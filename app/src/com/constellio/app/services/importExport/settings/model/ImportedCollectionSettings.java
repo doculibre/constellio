@@ -11,6 +11,8 @@ public class ImportedCollectionSettings {
 
 	List<ImportedTaxonomy> taxonomies = new ArrayList<>();
 
+	List<ImportedType> types = new ArrayList<>();
+
 	public ImportedCollectionSettings setCode(String code) {
 		this.code = code;
 		return this;
@@ -40,4 +42,17 @@ public class ImportedCollectionSettings {
 		return taxonomies;
 	}
 
+	public ImportedCollectionSettings addType(ImportedType importedType) {
+		types.add(importedType);
+		return this;
+	}
+
+	public ImportedCollectionSettings setTypes(List<ImportedType> types){
+		this.types = types;
+		return  this;
+	}
+
+	public List<ImportedType> getTypes(){
+		return types;
+	}
 }

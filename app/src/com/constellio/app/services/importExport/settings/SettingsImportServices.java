@@ -14,13 +14,14 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -46,7 +47,10 @@ public class SettingsImportServices {
     final String DDV_PREFIX = "ddvUSR";
     final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
     final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
-    Logger LOG = Logger.getLogger(SettingsImportServices.class);
+    final String EMPTY_TYPE_CODE = "emptyTypeCode";
+    final String EMPTY_TAB_CODE = "emptyTabCode";
+    final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
+    final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
 
     AppLayerFactory appLayerFactory;
     SystemConfigurationsManager systemConfigurationsManager;
@@ -85,6 +89,25 @@ public class SettingsImportServices {
         importCollectionsValueLists(collectionSettings, collectionCode, collectionSchemaTypes);
 
         importCollectionTaxonomies(collectionSettings, collectionCode, collectionSchemaTypes);
+
+        importCollectionTypes(collectionSettings, collectionCode, collectionSchemaTypes);
+
+    }
+
+    private void importCollectionTypes(final ImportedCollectionSettings settings,
+                                       String collection, final MetadataSchemaTypes schemaTypes) {
+
+        schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder types) {
+                for (ImportedType importedType : settings.getTypes()) {
+                    if (!schemaTypes.hasType(importedType.getCode())) {
+                        MetadataSchemaTypeBuilder typeBuilder = types.createNewSchemaType(importedType.getCode());
+                            typeBuilder.addLabel(importedType.getLabel())
+                    }
+                }
+            }
+        });
     }
 
     private void importCollectionTaxonomies(final ImportedCollectionSettings collectionSettings,
@@ -224,6 +247,63 @@ public class SettingsImportServices {
             validateCollectionValueLists(validationErrors, collectionSettings);
 
             validateCollectionTaxonomies(validationErrors, collectionSettings);
+
+            validateCollectionTypes(validationErrors, collectionSettings);
+
+        }
+    }
+
+    private void validateCollectionTypes(ValidationErrors errors, ImportedCollectionSettings settings) {
+        for (ImportedType importedType : settings.getTypes()) {
+
+            validateTypeCode(errors, importedType.getCode());
+
+            validateHasDefaultSchema(errors, importedType.getDefaultSchema());
+
+            validateTabs(errors, importedType.getTabs());
+
+            validateCustomSchemas(errors, importedType.getCustomSchemas());
+
+        }
+    }
+
+    private void validateCustomSchemas(ValidationErrors errors, List<ImportedMetadataSchema> customSchema) {
+        for (ImportedMetadataSchema schema : customSchema) {
+            if (StringUtils.isBlank(schema.getCode())) {
+                Map<String, Object> parameters = new HashMap();
+                parameters.put(CONFIG, CODE);
+                parameters.put(VALUE, schema.getCode());
+                errors.add(SettingsImportServices.class, INVALID_SCHEMA_CODE, parameters);
+            }
+        }
+    }
+
+    private void validateTabs(ValidationErrors errors, List<ImportedTab> importedTabs) {
+        for (ImportedTab tab : importedTabs) {
+            if (StringUtils.isBlank(tab.getCode())) {
+                Map<String, Object> parameters = new HashMap();
+                parameters.put(CONFIG, CODE);
+                parameters.put(VALUE, tab.getCode());
+                errors.add(SettingsImportServices.class, EMPTY_TAB_CODE, parameters);
+            }
+        }
+    }
+
+    private void validateHasDefaultSchema(ValidationErrors errors, ImportedMetadataSchema defaultSchema) {
+        if (defaultSchema == null) {
+            Map<String, Object> parameters = new HashMap();
+            parameters.put(CONFIG, "default-schema");
+            parameters.put(VALUE, null);
+            errors.add(SettingsImportServices.class, NULL_DEFAULT_SCHEMA, parameters);
+        }
+    }
+
+    private void validateTypeCode(ValidationErrors errors, String typeCode) {
+        if (StringUtils.isBlank(typeCode)) {
+            Map<String, Object> parameters = new HashMap();
+            parameters.put(CONFIG, CODE);
+            parameters.put(VALUE, typeCode);
+            errors.add(SettingsImportServices.class, EMPTY_TYPE_CODE, parameters);
         }
     }
 

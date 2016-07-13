@@ -127,7 +127,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("")
                 .addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
                         .setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
                         .setHierarchical(false)
                 ));
 
@@ -142,7 +142,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("unknonCollection")
                 .addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
                         .setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
                         .setHierarchical(false)
                 ));
 
@@ -157,7 +157,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addValueList(new ImportedValueList().setCode(null)
                         .setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
                         .setHierarchical(false)
                 ));
 
@@ -172,7 +172,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addValueList(new ImportedValueList().setCode("USRcodeDuDomaineDeValeur1")
                         .setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
                         .setHierarchical(false)
                 ));
 
@@ -189,7 +189,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addValueList(new ImportedValueList().setCode(codeA)
                         .setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                         .setCodeMode("DISABLED")
                 ));
 
@@ -197,7 +197,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addValueList(new ImportedValueList().setCode(codeB)
                         .setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT))
+                        .setClassifiedTypes(toListOfString(DOCUMENT))
                         .setCodeMode("REQUIRED_AND_UNIQUE")//.setCodeMode("FACULTATIVE")
                 ));
 
@@ -270,7 +270,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         String codeA = "ddvUSRcodeDuDomaineDeValeurA";
         ImportedValueList valueList = new ImportedValueList().setCode(codeA)
                 .setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
-                .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                 .setCodeMode("DISABLED");
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -294,8 +294,8 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
 
         valueList.setTitles(toTitlesMap(TITLE_FR_UPDATED, TITLE_EN_UPDATED))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
-                        .setCodeMode("DISABLED");
+                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+                .setCodeMode("DISABLED");
 
         importSettings();
 
@@ -311,14 +311,13 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
     }
 
-
     @Test
     public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised() throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addTaxonomy(new ImportedTaxonomy().setCode(null)
                         .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                         .setVisibleOnHomePage(true)
                         .setUserIds(TAXO_USERS)
                         .setGroupIds(TAXO_GROUPS)
@@ -336,7 +335,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addTaxonomy(new ImportedTaxonomy().setCode("anotherPrefixTaxonomy")
                         .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                         .setVisibleOnHomePage(true)
                         .setUserIds(TAXO_USERS)
                         .setGroupIds(TAXO_GROUPS)
@@ -353,7 +352,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
                         .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                         .setVisibleOnHomePage(true)
                         .setUserIds(TAXO_USERS)
                         .setGroupIds(TAXO_GROUPS)
@@ -373,7 +372,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addTaxonomy(new ImportedTaxonomy().setCode(taxo1Code)
                         .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                         .setVisibleOnHomePage(false)
                         .setUserIds(TAXO_USERS)
                         .setGroupIds(TAXO_GROUPS)
@@ -428,7 +427,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(taxo1Code)
                 .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
+                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                 .setVisibleOnHomePage(false)
                 .setUserIds(TAXO_USERS)
                 .setGroupIds(TAXO_GROUPS);
@@ -461,11 +460,11 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
 
         collectionSettings.addTaxonomy(importedTaxonomy
-                        .setTitles(toTitlesMap(TAXO_1_TITLE_FR_UPDATED, TAXO_1_TITLE_EN))
-                        .setClassifiedTypes(toClassifiedTypesList(DOCUMENT, FOLDER))
-                        .setVisibleOnHomePage(false)
-                        .setUserIds(TAXO_USERS_UPDATED)
-                        .setGroupIds(TAXO_GROUPS_UPDATED));
+                .setTitles(toTitlesMap(TAXO_1_TITLE_FR_UPDATED, TAXO_1_TITLE_EN))
+                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+                .setVisibleOnHomePage(false)
+                .setUserIds(TAXO_USERS_UPDATED)
+                .setGroupIds(TAXO_GROUPS_UPDATED));
 
         importSettings();
 
@@ -492,10 +491,118 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         // TODO Valider si on met à jour les classifiedTypes !
     }
 
+    @Test
+    public void whenImportingCollectionTypesIfCodeIsEmptyThenExceptionIsRaised() throws Exception {
+
+        Map<String, String> tabParams = new HashMap<>();
+        tabParams.put("default", "Métadonnées");
+        tabParams.put("zeTab", "Mon onglet");
+
+        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+                .addType(new ImportedType().setCode(null).setLabel("Dossier")
+                        .setTabs(toListOfTabs(tabParams))
+                        .setDefaultSchema(getFolderDefaultSchema())
+                        .addSchema(getFolderSchema()))
+                );
+
+        assertThatErrorsWhileImportingSettingsExtracting()
+                .contains(tuple("SettingsImportServices_emptyTypeCode"));
+
+    }
+
+    @Test
+    public void whenImportingCollectionTypeTabIfCodeIsEmptyThenExceptionIsRaised() throws Exception {
+
+        Map<String, String> tabParams = new HashMap<>();
+        tabParams.put("default", "Métadonnées");
+        tabParams.put("", "Mon onglet");
+
+        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+                .addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                        .setTabs(toListOfTabs(tabParams))
+                        .setDefaultSchema(getFolderDefaultSchema())
+                        .addSchema(getFolderSchema())
+                ));
+
+        assertThatErrorsWhileImportingSettingsExtracting()
+                .contains(tuple("SettingsImportServices_emptyTabCode"));
+
+    }
+
+
+    @Test
+    public void whenImportingCollectionTypeIfCustomSchemasCodeIsEmptyThenExceptionIsRaised() throws Exception {
+
+        Map<String, String> tabParams = new HashMap<>();
+        tabParams.put("default", "Métadonnées");
+        tabParams.put("zeTab", "Mon onglet");
+
+        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+                .addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                        .setTabs(toListOfTabs(tabParams))
+                        .setDefaultSchema(getFolderDefaultSchema())
+                        .addSchema(getFolderSchema().setCode(null))
+                ));
+
+        assertThatErrorsWhileImportingSettingsExtracting()
+                .contains(tuple("SettingsImportServices_invalidSchemaCode"));
+
+    }
+
+    @Test
+    public void whenImportingCollectionTypesValuesAreSet() throws Exception {
+        Map<String, String> tabParams = new HashMap<>();
+        tabParams.put("default", "Métadonnées");
+        tabParams.put("zeTab", "Mon onglet");
+
+        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+                .addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                        .setTabs(toListOfTabs(tabParams))
+                        .setDefaultSchema(getFolderDefaultSchema())
+                        .addSchema(getFolderSchema())
+                ));
+
+        importSettings();
+
+        MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+        assertThat(schemaType).isNotNull();
+    }
+
     //-------------------------------------------------------------------------------------
 
-    private List<String> toClassifiedTypesList(String... classifiedType) {
-        return Arrays.asList(classifiedType);
+    private ImportedMetadataSchema getFolderSchema() {
+        return new ImportedMetadataSchema().setCode("USRschema1")
+                .addMetadata(new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
+                        .setType(MetadataValueType.STRING.name())
+                        .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
+                        .setMultiValue(true)
+                        .setRequiredIn(toListOfString("USRschema1")));
+    }
+
+    private ImportedMetadataSchema getFolderDefaultSchema() {
+        return new ImportedMetadataSchema().setCode("default")
+                .addMetadata(new ImportedMetadata().setCode("metadata1").setLabel("Titre métadonnée no.1")
+                        .setType(MetadataValueType.STRING.name())
+                        .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
+                        .setRequiredIn(toListOfString("USRschema1")))
+                .addMetadata(new ImportedMetadata().setCode("metadata2").setLabel("Titre métadonnée no.2")
+                        .setEnabled(true)
+                        .setType(MetadataValueType.STRING.name())
+                        .setTabCode("zeTab")
+                        .setMultiValue(true)
+                        .setBehaviours(toListOfString("searchable", "advanced-search")));
+    }
+
+    private List<ImportedTab> toListOfTabs(Map<String, String> tabParams) {
+        List<ImportedTab> tabs = new ArrayList<>();
+        for (Map.Entry<String, String> entry : tabParams.entrySet()) {
+            tabs.add(new ImportedTab().setCode(entry.getKey()).setValue(entry.getValue()));
+        }
+        return tabs;
+    }
+
+    private List<String> toListOfString(String... values) {
+        return Arrays.asList(values);
     }
 
     private Map<String, String> toTitlesMap(String title_fr, String title_en) {
