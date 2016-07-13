@@ -4,10 +4,10 @@ import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -15,7 +15,6 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -28,21 +27,23 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SettingsImportServices {
 
+    public static final String CLASSIFIED_IN_GROUP_LABEL = "classifiedInGroupLabel";
     static final String TAXO_PREFIX = "taxo";
     static final String TYPE = "Type";
     static final String TAXO_SUFFIX = TYPE;
     static final String TITLE_FR = "title_fr";
+    static final String TITLE_EN = "title_en";
     static final String TAXO = "taxo";
     static final String CONFIG = "config";
     static final String VALUE = "value";
-    final String INVALID_COLLECTION_CODE = "InvalidCollectionCode";
+    final String INVALID_COLLECTION_CODE = "invalidCollectionCode";
     final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
     final String CODE = "code";
     final String INVALID_VALUE_LIST_CODE = "InvalidValueListCode";
     final String EMPTY_TAXONOMY_CODE = "EmptyTaxonomyCode";
     final String INVALID_TAXONOMY_CODE_PREFIX = "InvalidTaxonomyCodePrefix";
     final String INVALID_TAXONOMY_CODE_SUFFIX = "InvalidTaxonomyCodeSuffix";
-    final String DDV_PREFIX = "ddv";
+    final String DDV_PREFIX = "ddvUSR";
     final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
     final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
     Logger LOG = Logger.getLogger(SettingsImportServices.class);
@@ -64,96 +65,126 @@ public class SettingsImportServices {
 
         validate(settings, validationErrors);
 
-        run(settings, validationErrors);
+        run(settings);
     }
 
-    private void run(ImportedSettings settings, ValidationErrors validationErrors) throws ValidationException {
+    private void run(ImportedSettings settings) throws ValidationException {
 
-        importGlobalConfigurations(settings, validationErrors);
+        importGlobalConfigurations(settings);
 
         for (final ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
 
-            final String collectionCode = collectionSettings.getCode();
-            final MetadataSchemaTypes collectionSchemaTypes = schemasManager.getSchemaTypes(collectionCode);
+            importCollectionConfigurations(collectionSettings);
+        }
+    }
 
-            for (final ImportedValueList importedValueList : collectionSettings.getValueLists()) {
+    private void importCollectionConfigurations(final ImportedCollectionSettings collectionSettings) {
+        final String collectionCode = collectionSettings.getCode();
+        final MetadataSchemaTypes collectionSchemaTypes = schemasManager.getSchemaTypes(collectionCode);
 
-                MetadataSchemaType schemaType = null;
-                final String code = importedValueList.getCode();
+        importCollectionsValueLists(collectionSettings, collectionCode, collectionSchemaTypes);
 
-                try {
-                    schemaType = collectionSchemaTypes.getSchemaType(code);
-                } catch (Exception e) {
-                    LOG.error("schemaType '" + code + "' does not exist !");
-                }
+        importCollectionTaxonomies(collectionSettings, collectionCode, collectionSchemaTypes);
+    }
 
-                if (schemaType == null) {
-                    schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
-                        @Override
-                        public void alter(MetadataSchemaTypesBuilder schemaTypesBuilder) {
+    private void importCollectionTaxonomies(final ImportedCollectionSettings collectionSettings,
+                                            final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes) {
 
-                            String codeModeText = importedValueList.getCodeMode();
-                            ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode schemaTypeCodeMode =
-                                    ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
+        final Map<Taxonomy, ImportedTaxonomy> taxonomies = new HashMap<>();
+        valueListServices = new ValueListServices(appLayerFactory, collectionCode);
 
-                            if (StringUtils.isNotBlank(codeModeText)) {
-                                schemaTypeCodeMode = EnumUtils.getEnum(ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.class, codeModeText);
-                            }
+        schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder typesBuilder) {
 
-                            ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
+                for (final ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
+                    String typeCode = importedTaxonomy.getCode();
+                    String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
+                    String title = importedTaxonomy.getTitles().get(TITLE_FR);
 
-                            if (importedValueList.isHierarchical()) {
-                                builder.createValueListItemSchema(code,
-                                        importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
-                            } else {
-                                builder.createHierarchicalValueListItemSchema(code,
-                                        importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
-                            }
-                        }
-                    });
-                }
-            }
+                    if (!collectionSchemaTypes.hasType(importedTaxonomy.getCode())) {
 
-            final Map<Taxonomy, ImportedTaxonomy> taxonomies = new HashMap<>();
-            valueListServices = new ValueListServices(appLayerFactory, collectionCode);
-            // Modifier schema
-            for (final ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
-                schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
-                    @Override
-                    public void alter(MetadataSchemaTypesBuilder typesBuilder) {
-                        String typeCode = importedTaxonomy.getCode();
-                        try {
-                            String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
-                            String title = importedTaxonomy.getTitles().get(TITLE_FR);
-                            Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
+                        Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
 
-                            taxonomies.put(taxonomy, importedTaxonomy);
+                        taxonomies.put(taxonomy, importedTaxonomy);
+                    } else {
+                        Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy)
+                                .withTitle(importedTaxonomy.getTitles().get(TITLE_FR))
+                                .withUserIds(importedTaxonomy.getUserIds())
+                                .withGroupIds(importedTaxonomy.getGroupIds())
+                                .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
 
-                        } catch (MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent e) {
-                            LOG.error("Schema type '" + typeCode + "' already exists !", e);
-                        }
+                        // TODO Valider si on met à jour les classifiedTypes !
+                        appLayerFactory.getModelLayerFactory().getTaxonomiesManager().editTaxonomy(taxonomy);
                     }
-                });
-            }
-
-            for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
-                ImportedTaxonomy importedTaxonomy = entry.getValue();
-                Taxonomy taxonomy = entry.getKey()
-                        .withUserIds(importedTaxonomy.getUsers())
-                        .withGroupIds(importedTaxonomy.getUserGroups())
-                        .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
-                appLayerFactory.getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, schemasManager);
-
-                String groupLabel = $("classifiedInGroupLabel");
-
-                for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
-                    valueListServices.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
                 }
+            }
+        });
+
+
+        for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
+            Taxonomy taxonomy = entry.getKey();
+            ImportedTaxonomy importedTaxonomy = entry.getValue();
+            Taxonomy currTaxonomy = taxonomy
+                    .withUserIds(importedTaxonomy.getUserIds())
+                    .withGroupIds(importedTaxonomy.getGroupIds())
+                    .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
+            appLayerFactory.getModelLayerFactory().getTaxonomiesManager().addTaxonomy(currTaxonomy, schemasManager);
+
+            String groupLabel = $(CLASSIFIED_IN_GROUP_LABEL);
+            for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
+                valueListServices.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
             }
         }
     }
 
-    private void importGlobalConfigurations(ImportedSettings settings, ValidationErrors validationErrors) {
+    private Taxonomy getTaxonomyFor(String collectionCode, ImportedTaxonomy importedTaxonomy) {
+        return appLayerFactory.getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(collectionCode, importedTaxonomy.getCode());
+    }
+
+    private void importCollectionsValueLists(final ImportedCollectionSettings collectionSettings,
+                                             final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes) {
+        schemasManager.modify(collectionCode, new MetadataSchemaTypesAlteration() {
+            @Override
+            public void alter(MetadataSchemaTypesBuilder schemaTypesBuilder) {
+
+                for (final ImportedValueList importedValueList : collectionSettings.getValueLists()) {
+
+                    final String code = importedValueList.getCode();
+
+                    if (!collectionSchemaTypes.hasType(code)) {
+
+                        String codeModeText = importedValueList.getCodeMode();
+                        ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode schemaTypeCodeMode =
+                                ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
+
+                        if (StringUtils.isNotBlank(codeModeText)) {
+                            schemaTypeCodeMode = EnumUtils.getEnum(ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.class, codeModeText);
+                        }
+
+                        ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
+
+                        if (importedValueList.isHierarchical()) {
+                            builder.createValueListItemSchema(code,
+                                    importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
+                        } else {
+                            builder.createHierarchicalValueListItemSchema(code,
+                                    importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
+                        }
+                    } else {
+                        Map<Language, String> labels = new HashMap<>();
+                        labels.put(Language.French, importedValueList.getTitles().get(TITLE_FR));
+                        labels.put(Language.English, importedValueList.getTitles().get(TITLE_EN));
+                        schemaTypesBuilder.getSchemaType(importedValueList.getCode()).setLabels(labels);
+
+                    }
+                }
+            }
+        });
+    }
+
+    private void importGlobalConfigurations(ImportedSettings settings) {
         for (ImportedConfig importedConfig : settings.getConfigs()) {
             SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
             if (config != null) {
@@ -177,61 +208,82 @@ public class SettingsImportServices {
 
         validateGlobalConfigs(settings, validationErrors);
 
-        for (ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
-
-            String collectionCode = collectionSettings.getCode();
-            if (StringUtils.isBlank(collectionCode)) {
-                Map<String, Object> parameters = new HashMap<>();
-                parameters.put(CONFIG, CODE);
-                parameters.put(VALUE, collectionCode);
-                validationErrors.add(SettingsImportServices.class,
-                        INVALID_COLLECTION_CODE, parameters);
-            } else {
-                try {
-                    schemasManager.getSchemaTypes(collectionCode);
-                } catch (Exception e) {
-                    Map<String, Object> parameters = new HashMap<>();
-                    parameters.put(CONFIG, CODE);
-                    parameters.put(VALUE, collectionCode);
-                    validationErrors.add(SettingsImportServices.class,
-                            COLLECTION_CODE_NOT_FOUND, parameters);
-                }
-            }
-
-            for (ImportedValueList importedValueList : collectionSettings.getValueLists()) {
-                checkValueListCode(validationErrors, importedValueList);
-            }
-
-            for (ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
-                String code = importedTaxonomy.getCode();
-                if (StringUtils.isBlank(code)) {
-                    Map<String, Object> parameters = new HashMap<>();
-                    parameters.put(CONFIG, CODE);
-                    parameters.put(VALUE, importedTaxonomy.getCode());
-                    validationErrors.add(SettingsImportServices.class,
-                            EMPTY_TAXONOMY_CODE, parameters);
-                } else if (!code.startsWith(TAXO_PREFIX)) {
-                    Map<String, Object> parameters = new HashMap<>();
-                    parameters.put(CONFIG, CODE);
-                    parameters.put(VALUE, importedTaxonomy.getCode());
-                    validationErrors.add(SettingsImportServices.class,
-                            INVALID_TAXONOMY_CODE_PREFIX, parameters);
-                } else if (!code.endsWith(TAXO_SUFFIX)) {
-                    Map<String, Object> parameters = new HashMap<>();
-                    parameters.put(CONFIG, CODE);
-                    parameters.put(VALUE, importedTaxonomy.getCode());
-                    validationErrors.add(SettingsImportServices.class,
-                            INVALID_TAXONOMY_CODE_SUFFIX, parameters);
-                }
-            }
-        }
+        validateCollectionConfigs(settings, validationErrors);
 
         if (!validationErrors.isEmpty()) {
             throw new ValidationException(validationErrors);
         }
     }
 
-    private void checkValueListCode(ValidationErrors validationErrors, ImportedValueList importedValueList) {
+    private void validateCollectionConfigs(ImportedSettings settings, ValidationErrors validationErrors) {
+
+        for (ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
+
+            validateCollectionCode(validationErrors, collectionSettings);
+
+            validateCollectionValueLists(validationErrors, collectionSettings);
+
+            validateCollectionTaxonomies(validationErrors, collectionSettings);
+        }
+    }
+
+    private void validateCollectionTaxonomies(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
+        for (ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
+            validateTaxonomyCode(validationErrors, importedTaxonomy);
+        }
+    }
+
+    private void validateTaxonomyCode(ValidationErrors validationErrors, ImportedTaxonomy importedTaxonomy) {
+        String code = importedTaxonomy.getCode();
+        if (StringUtils.isBlank(code)) {
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put(CONFIG, CODE);
+            parameters.put(VALUE, importedTaxonomy.getCode());
+            validationErrors.add(SettingsImportServices.class,
+                    EMPTY_TAXONOMY_CODE, parameters);
+        } else if (!code.startsWith(TAXO_PREFIX)) {
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put(CONFIG, CODE);
+            parameters.put(VALUE, importedTaxonomy.getCode());
+            validationErrors.add(SettingsImportServices.class,
+                    INVALID_TAXONOMY_CODE_PREFIX, parameters);
+        } else if (!code.endsWith(TAXO_SUFFIX)) {
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put(CONFIG, CODE);
+            parameters.put(VALUE, importedTaxonomy.getCode());
+            validationErrors.add(SettingsImportServices.class,
+                    INVALID_TAXONOMY_CODE_SUFFIX, parameters);
+        }
+    }
+
+    private void validateCollectionValueLists(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
+        for (ImportedValueList importedValueList : collectionSettings.getValueLists()) {
+            validateValueListCode(validationErrors, importedValueList);
+        }
+    }
+
+    private void validateCollectionCode(ValidationErrors validationErrors, ImportedCollectionSettings collectionSettings) {
+        String collectionCode = collectionSettings.getCode();
+        if (StringUtils.isBlank(collectionCode)) {
+            Map<String, Object> parameters = new HashMap<>();
+            parameters.put(CONFIG, CODE);
+            parameters.put(VALUE, collectionCode);
+            validationErrors.add(SettingsImportServices.class,
+                    INVALID_COLLECTION_CODE, parameters);
+        } else {
+            try {
+                schemasManager.getSchemaTypes(collectionCode);
+            } catch (Exception e) {
+                Map<String, Object> parameters = new HashMap<>();
+                parameters.put(CONFIG, CODE);
+                parameters.put(VALUE, collectionCode);
+                validationErrors.add(SettingsImportServices.class,
+                        COLLECTION_CODE_NOT_FOUND, parameters);
+            }
+        }
+    }
+
+    private void validateValueListCode(ValidationErrors validationErrors, ImportedValueList importedValueList) {
         if (StringUtils.isBlank(importedValueList.getCode()) ||
                 !importedValueList.getCode().startsWith(DDV_PREFIX)) {
             Map<String, Object> parameters = new HashMap<>();

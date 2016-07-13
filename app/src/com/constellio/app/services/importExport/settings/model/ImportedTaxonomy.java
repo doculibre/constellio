@@ -11,8 +11,8 @@ public class ImportedTaxonomy {
     private Map<String, String> titles = new HashMap<>();
     private List<String> classifiedTypes = new ArrayList<>();
     private boolean visibleOnHomePage = true;
-    private List<String> users = new ArrayList<>();
-    private List<String> userGroups = new ArrayList<>();
+    private List<String> userIds = new ArrayList<>();
+    private List<String> groupIds = new ArrayList<>();
 
 
     public ImportedTaxonomy setCode(String code){
@@ -43,26 +43,26 @@ public class ImportedTaxonomy {
         return visibleOnHomePage;
     }
 
-    public ImportedTaxonomy setUsers(List<String> users) {
-        this.users = users;
+    public ImportedTaxonomy setUserIds(List<String> users) {
+        this.userIds = users;
         return this;
     }
 
-    public List<String> getUsers(){
-        return users;
+    public List<String> getUserIds(){
+        return userIds;
     }
 
     public String getCode() {
         return code;
     }
 
-    public ImportedTaxonomy setUserGroups(List<String> groups) {
-        this.userGroups = groups;
+    public ImportedTaxonomy setGroupIds(List<String> groups) {
+        this.groupIds = groups;
         return this;
     }
 
-    public List<String> getUserGroups() {
-        return userGroups;
+    public List<String> getGroupIds() {
+        return groupIds;
     }
 
     public List<String> getClassifiedTypes() {
