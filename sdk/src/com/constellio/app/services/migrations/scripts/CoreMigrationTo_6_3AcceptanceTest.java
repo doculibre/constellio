@@ -1,5 +1,7 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +23,7 @@ import org.junit.Test;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -109,6 +112,32 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		typeDisplay = manager.getType(zeCollection, "user");
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(4);
 		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("group1", "group2", "group3", "group4");
+
+	}
+
+	@Test
+	public void whenMigratingFromAPreviousSystemThenDoNotUseBase64Url()
+			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
+
+		givenSystemAtVersion5_1_2withTokens();
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+				.isEqualTo(BASE64);
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
+	}
+
+	@Test
+	public void whenStartingANewSystemThenUseBase64Url()
+			throws Exception {
+		prepareSystem(withZeCollection());
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+				.isEqualTo(BASE64_URL_ENCODED);
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
 
 	}
 

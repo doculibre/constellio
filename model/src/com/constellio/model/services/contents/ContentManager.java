@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,8 @@ public class ContentManager implements StatefulService {
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "ContentManager-ReadContentForPreviewConversion";
 
+	static final String CONTENT_IMPORT_THREAD = "ContentImportThread";
+
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
 
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
@@ -95,13 +98,16 @@ public class ContentManager implements StatefulService {
 	private final RecordServices recordServices;
 	private final CollectionsListManager collectionsListManager;
 	private final AtomicBoolean closing = new AtomicBoolean();
+	private final ModelLayerFactory modelLayerFactory;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		super();
+		this.modelLayerFactory = modelLayerFactory;
 		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
-		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newHashingService();
+		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory()
+				.newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -129,6 +135,20 @@ public class ContentManager implements StatefulService {
 						.executedEvery(
 								configuration.getUnreferencedContentsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+		if (configuration.getContentImportThreadFolder() != null) {
+			Runnable contentImportAction = new Runnable() {
+
+				@Override
+				public void run() {
+					uploadFilesInImportFolder();
+				}
+			};
+			backgroundThreadsManager.configure(
+					BackgroundThreadConfiguration.repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
+							.executedEvery(Duration.standardSeconds(1))
+							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+		}
 	}
 
 	@Override
@@ -369,6 +389,17 @@ public class ContentManager implements StatefulService {
 		}
 
 		return referenced;
+	}
+
+	public void uploadFilesInImportFolder() {
+		if (modelLayerFactory.getConfiguration().getContentImportThreadFolder() != null) {
+			new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
+
+		}
+	}
+
+	public Map<String, ContentVersionDataSummary> getImportedFilesMap() {
+		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
 	}
 
 	public void convertPendingContentForPreview() {

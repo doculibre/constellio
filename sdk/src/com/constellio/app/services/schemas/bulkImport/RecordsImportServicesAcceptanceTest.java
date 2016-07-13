@@ -2,6 +2,7 @@ package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -64,7 +65,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
@@ -354,7 +355,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private void importAndValidateDocumentWithVersions() {
 		String testResourceHash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
-		String testSecondResourceHash = "I/9qXqJxoU3dKHeM8bM/S4j8eIE=";
+		String testSecondResourceHash = "I_9qXqJxoU3dKHeM8bM_S4j8eIE=";
 
 		Document document1 = rm.wrapDocument(expectedRecordWithLegacyId("00000000001"));
 		Content content1 = document1.getContent();

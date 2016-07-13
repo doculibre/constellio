@@ -147,4 +147,61 @@ public class SDKScriptUtils {
 		return appLayerFactory;
 	}
 
+
+
+	public static AppLayerFactory startApplicationWithBatchProcessesAndBackgroundThreads() {
+
+		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator() {
+			@Override
+			public AppLayerConfiguration decorateAppLayerConfiguration(AppLayerConfiguration appLayerConfiguration) {
+				return super.decorateAppLayerConfiguration(appLayerConfiguration);
+			}
+
+			@Override
+			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+				modelLayerConfiguration.setBatchProcessesEnabled(true);
+				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
+			}
+
+			@Override
+			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+				dataLayerConfiguration.setBackgroundThreadsEnabled(true);
+				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
+			}
+
+			@Override
+			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
+				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
+					@Override
+					public boolean authenticate(String username, String password) {
+						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
+					}
+
+					@Override
+					public boolean supportPasswordChange() {
+						return false;
+					}
+
+					@Override
+					public void changePassword(String username, String oldPassword, String newPassword) {
+
+					}
+
+					@Override
+					public void changePassword(String username, String newPassword) {
+
+					}
+
+					@Override
+					public void reloadServiceConfiguration() {
+
+					}
+				});
+				return modelLayerFactory;
+			}
+		};
+
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance(constellioFactoriesDecorator).getAppLayerFactory();
+		return appLayerFactory;
+	}
 }

@@ -96,7 +96,8 @@ public class DataLayerFactory extends LayerFactory {
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
-					ioServicesFactory.newIOServices(), ioServicesFactory.newHashingService()));
+					ioServicesFactory.newIOServices(),
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -125,7 +126,7 @@ public class DataLayerFactory extends LayerFactory {
 
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices()));
+			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
 
 		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
 			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
