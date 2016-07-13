@@ -17,12 +17,18 @@ public class UpdatePluginSystemManagementWebService extends AdminSystemManagemen
 		String pluginUrl = getRequiredParameter(req, "pluginUrl");
 
 		File tempFile = ioServices().newTemporaryFile(TEMP_PLUGIN_FILE);
-		downloadTo(pluginUrl, tempFile);
 
-		PluginActivationFailureCause failure = appLayerFactory().getPluginManager().prepareInstallablePlugin(tempFile);
-		if (failure != null) {
-			throw new AdminHttpServletRuntimeException("Plugin activation failure : " + failure.name());
+		try {
+			downloadTo(pluginUrl, tempFile);
+
+			PluginActivationFailureCause failure = appLayerFactory().getPluginManager().prepareInstallablePlugin(tempFile);
+			if (failure != null) {
+				throw new AdminHttpServletRuntimeException("Plugin '" + pluginUrl + "' failure : " + failure.name());
+			}
+		} finally {
+			ioServices().deleteQuietly(tempFile);
 		}
+		responseDocumentRootElement.setText("success");
 	}
 
 }

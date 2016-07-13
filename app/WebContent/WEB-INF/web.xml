@@ -220,6 +220,13 @@
         </servlet-class>
     </servlet>
 
+    <servlet>
+        <servlet-name>PingSystemManagementWebService</servlet-name>
+        <servlet-class>
+            com.constellio.app.api.systemManagement.services.PingSystemManagementWebService
+        </servlet-class>
+    </servlet>
+
 
     <servlet>
         <servlet-name>Benchmark Service</servlet-name>
@@ -418,6 +425,11 @@
     <servlet-mapping>
         <servlet-name>RebootSystemManagementWebService</servlet-name>
         <url-pattern>/systemManagement/reboot</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>PingSystemManagementWebService</servlet-name>
+        <url-pattern>/systemManagement/ping</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

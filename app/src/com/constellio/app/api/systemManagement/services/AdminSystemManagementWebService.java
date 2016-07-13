@@ -69,8 +69,6 @@ public abstract class AdminSystemManagementWebService extends HttpServlet {
 		}
 		certificatHash = certificatHash.replace("-", "+").replace("_", "/");
 		if (!certificatHash.trim().equals(info.getSignature().trim())) {
-			System.out.println(certificatHash);
-			System.out.println(info.getSignature());
 			throw new AdminHttpServletRuntimeException_Unauthorized(
 					"Certificate in parameter does not match uploaded certificate");
 		}

@@ -10,7 +10,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 public class RebootSystemManagementWebService extends AdminSystemManagementWebService {
 	@Override
 	protected void doService(HttpServletRequest req, Element responseDocumentRootElement) {
-		responseDocumentRootElement.setText("OK");
+		responseDocumentRootElement.setText("success");
 		new java.util.Timer().schedule(
 				new java.util.TimerTask() {
 					@Override
@@ -24,5 +24,6 @@ public class RebootSystemManagementWebService extends AdminSystemManagementWebSe
 				},
 				5000
 		);
+
 	}
 }
