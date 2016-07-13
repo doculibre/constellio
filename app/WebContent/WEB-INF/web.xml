@@ -214,6 +214,13 @@
     </servlet>
 
     <servlet>
+        <servlet-name>UpdateWarSystemManagementWebService</servlet-name>
+        <servlet-class>
+            com.constellio.app.api.systemManagement.services.UpdateWarSystemManagementWebService
+        </servlet-class>
+    </servlet>
+
+    <servlet>
         <servlet-name>RebootSystemManagementWebService</servlet-name>
         <servlet-class>
             com.constellio.app.api.systemManagement.services.RebootSystemManagementWebService
@@ -420,6 +427,11 @@
     <servlet-mapping>
         <servlet-name>UpdatePluginSystemManagementWebService</servlet-name>
         <url-pattern>/systemManagement/updatePlugin</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>UpdateWarSystemManagementWebService</servlet-name>
+        <url-pattern>/systemManagement/updateWar</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

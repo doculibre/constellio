@@ -7,6 +7,7 @@ import java.io.Reader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.data.io.EncodingService;
@@ -105,7 +106,11 @@ public class HashingService {
 
 	public String getHashFromFile(File file)
 			throws HashingServiceException {
-		throw new UnsupportedOperationException("TODO");
+		try {
+			return getHashFromBytes(FileUtils.readFileToByteArray(file));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public String getHashFromBytes(final byte[] bytes)
