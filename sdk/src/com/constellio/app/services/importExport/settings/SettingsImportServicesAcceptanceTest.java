@@ -264,9 +264,6 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
     }
 
-    // TODO Tester la modification de domaines de valeurs et taxonomies
-
-
     @Test
     public void whenModifyingValueListTitleThenValueIsUpdated() throws Exception {
 
