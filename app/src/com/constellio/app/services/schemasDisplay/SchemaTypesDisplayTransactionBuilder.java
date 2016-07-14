@@ -6,7 +6,9 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class SchemaTypesDisplayTransactionBuilder {
@@ -39,6 +41,24 @@ public class SchemaTypesDisplayTransactionBuilder {
 				transaction.addReplacing(modifiedConfig);
 			}
 		}
+	}
+
+	public MetadataDisplayConfig updateMetadataDisplayConfig(Metadata metadata) {
+		for (MetadataDisplayConfig config : transaction.modifiedMetadatas) {
+			if (config.getMetadataCode().equals(metadata.getCode())) {
+				return config;
+			}
+		}
+		return schemasDisplayManager.getMetadata(types.getCollection(), metadata.getCode());
+	}
+
+	public SchemaTypeDisplayConfig updateSchemaTypeDisplayConfig(MetadataSchemaType schemaType) {
+		for (SchemaTypeDisplayConfig config : transaction.modifiedTypes) {
+			if (config.getSchemaType().equals(schemaType.getCode())) {
+				return config;
+			}
+		}
+		return schemasDisplayManager.getType(types.getCollection(), schemaType.getCode());
 	}
 
 	public SchemaDisplayConfig updateSchemaDisplayConfig(MetadataSchema schema) {
