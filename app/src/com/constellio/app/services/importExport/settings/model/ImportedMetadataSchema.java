@@ -6,7 +6,8 @@ import java.util.List;
 public class ImportedMetadataSchema {
 
     private String code;
-    private List<ImportedMetadata> metadataList = new ArrayList<>();
+    private List<ImportedMetadata> metadatas = new ArrayList<>();
+    private String label;
 
     public ImportedMetadataSchema setCode(String code) {
         this.code = code;
@@ -18,12 +19,25 @@ public class ImportedMetadataSchema {
     }
 
     public ImportedMetadataSchema addMetadata(ImportedMetadata importedMetadata) {
-        metadataList.add(importedMetadata);
+        metadatas.add(importedMetadata);
         return this;
     }
 
-    public ImportedMetadataSchema setMetadata(List<ImportedMetadata> metadata){
-        this.metadataList = metadata;
+    public ImportedMetadataSchema setAllMetadatas(List<ImportedMetadata> metadata){
+        this.metadatas = metadata;
         return  this;
+    }
+
+    public List<ImportedMetadata> getAllMetadata(){
+        return metadatas;
+    }
+
+    public ImportedMetadataSchema setLabel(String label){
+        this.label = label;
+        return this;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }

@@ -1,5 +1,8 @@
 package com.constellio.app.services.importExport.settings.model;
 
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.itextpdf.text.Meta;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,13 +10,13 @@ public class ImportedMetadata {
 
     private String code;
     private String label;
-    private String type;
+    private MetadataValueType type;
     private boolean enabled = true;
     private boolean required;
     private String tabCode;
     private List<String> enabledIn = new ArrayList<>();
     private boolean multiValue;
-    private List<String> behaviours;
+    private List<String> behaviours = new ArrayList<>();
     private List<String> requiredIn = new ArrayList<>();
 
     public String getCode() {
@@ -34,7 +37,7 @@ public class ImportedMetadata {
         return label;
     }
 
-    public ImportedMetadata setType(String type) {
+    public ImportedMetadata setType(MetadataValueType type) {
         this.type = type;
         return this;
     }
@@ -93,8 +96,24 @@ public class ImportedMetadata {
         return behaviours;
     }
 
+    public boolean isSearchable(){
+        return behaviours.contains("searchable");
+    }
+
+    public boolean isAdvanceSearchable(){
+        return behaviours.contains("advanced-search");
+    }
+
     public ImportedMetadata setRequiredIn(List<String> requiredIn) {
         this.requiredIn = requiredIn;
         return this;
+    }
+
+    public MetadataValueType getType() {
+        return type;
+    }
+
+    public List<String> getRequiredIn() {
+        return requiredIn;
     }
 }

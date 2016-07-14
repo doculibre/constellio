@@ -14,15 +14,11 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.*;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -84,13 +80,13 @@ public class SettingsImportServices {
 
     private void importCollectionConfigurations(final ImportedCollectionSettings collectionSettings) {
         final String collectionCode = collectionSettings.getCode();
-        final MetadataSchemaTypes collectionSchemaTypes = schemasManager.getSchemaTypes(collectionCode);
+        final MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collectionCode);
 
-        importCollectionsValueLists(collectionSettings, collectionCode, collectionSchemaTypes);
+        importCollectionsValueLists(collectionSettings, collectionCode, schemaTypes);
 
-        importCollectionTaxonomies(collectionSettings, collectionCode, collectionSchemaTypes);
+        importCollectionTaxonomies(collectionSettings, collectionCode, schemaTypes);
 
-        importCollectionTypes(collectionSettings, collectionCode, collectionSchemaTypes);
+        importCollectionTypes(collectionSettings, collectionCode, schemaTypes);
 
     }
 
@@ -100,14 +96,79 @@ public class SettingsImportServices {
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
+
                 for (ImportedType importedType : settings.getTypes()) {
+                    MetadataSchemaTypeBuilder typeBuilder;
                     if (!schemaTypes.hasType(importedType.getCode())) {
-                        MetadataSchemaTypeBuilder typeBuilder = types.createNewSchemaType(importedType.getCode());
-                            typeBuilder.addLabel(importedType.getLabel())
+                        typeBuilder = types.createNewSchemaType(importedType.getCode());
+                    } else {
+                        typeBuilder = types.getSchemaType(importedType.getCode());
                     }
+
+                    // Default schema metadata
+                    MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
+
+                    // TODO set tabs
+
+                    for (ImportedMetadataSchema importedMetadataSchema : importedType.getCustomSchemas()) {
+                        Map<String, String> labels = new HashMap<>();
+                        MetadataSchemaBuilder customSchemaBuilder;
+                        try {
+                            customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), labels);
+                        } catch (MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined e) {
+                            customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+                        }
+                        importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types);
+                    }
+
+                    importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types);
+
                 }
             }
         });
+
+
+        // affichage dans la page
+
+    }
+
+    private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
+                                       MetadataSchemaBuilder schemaBuilder, MetadataSchemaTypesBuilder typesBuilder) {
+        for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
+            createAndAddMetadata(typeBuilder, schemaBuilder, importedMetadata, typesBuilder);
+        }
+    }
+
+    private void createAndAddMetadata(MetadataSchemaTypeBuilder typeBuilder, MetadataSchemaBuilder schemaBuilder,
+                                      ImportedMetadata importedMetadata, MetadataSchemaTypesBuilder typesBuilder) {
+        MetadataBuilder metadataBuilder;
+        try {
+            metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
+            metadataBuilder.setType(importedMetadata.getType());
+        } catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
+            metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
+        }
+
+        metadataBuilder.addLabel(Language.French, importedMetadata.getLabel());
+        metadataBuilder.setDefaultRequirement(importedMetadata.isRequired());
+        metadataBuilder.setEnabled(importedMetadata.isEnabled());
+        metadataBuilder.setMultivalue(importedMetadata.isMultiValue());
+        metadataBuilder.setSearchable(importedMetadata.isSearchable());
+
+        // TODO setter enabled et required dans les schema de référence
+        if ("default".equals(schemaBuilder.getCode())) {
+            for (String targetSchema : importedMetadata.getEnabledIn()) {
+                MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchema(typeBuilder.getCode() + "_" + targetSchema);
+                if (metadataSchemaBuilder != null) {
+                    MetadataBuilder targetSchemaMetadataBuilder = metadataSchemaBuilder.get(importedMetadata.getCode());
+                    targetSchemaMetadataBuilder.setEnabled(true);
+
+                    if (importedMetadata.getRequiredIn().contains(targetSchema)) {
+                        targetSchemaMetadataBuilder.setDefaultRequirement(true);
+                    }
+                }
+            }
+        }
     }
 
     private void importCollectionTaxonomies(final ImportedCollectionSettings collectionSettings,
@@ -423,5 +484,33 @@ public class SettingsImportServices {
         parameters.put(CONFIG, importedConfig.getKey());
         parameters.put(VALUE, importedConfig.getValue());
         return parameters;
+    }
+
+    class TypeSchemaMetadataConfiguration {
+        // schema -­> List of metadata to enable
+        private HashMap<String, List<String>> schemaEnabledMetadata = new HashMap<>();
+        private HashMap<String, List<String>> schemaRequiredMetadata = new HashMap<>();
+
+        public void addEnabledInSchema(String metadataCode, List<String> targetSchema) {
+            for (String schema : targetSchema) {
+                if (!schemaEnabledMetadata.containsKey(schema)) {
+                    schemaEnabledMetadata.put(schema, new ArrayList<String>());
+                }
+                schemaEnabledMetadata.get(schema).add(metadataCode);
+            }
+        }
+
+        public void addRequiredInSchema(String metadataCode, List<String> targetSchema) {
+            for (String schema : targetSchema) {
+                if (!schemaRequiredMetadata.containsKey(schema)) {
+                    schemaRequiredMetadata.put(schema, new ArrayList<String>());
+                }
+                schemaRequiredMetadata.get(schema).add(metadataCode);
+            }
+        }
+
+        public List<String> getEnabledInSchema() {
+            return (List<String>) schemaEnabledMetadata.keySet();
+        }
     }
 }

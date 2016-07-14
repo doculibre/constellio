@@ -566,6 +566,30 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
 
         MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
         assertThat(schemaType).isNotNull();
+        List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
+        assertThat(schemaTypeMetadata).isNotNull().hasSize(93);
+
+        // Default schema
+        MetadataSchema defaultSchema = schemaType.getDefaultSchema();
+
+        Metadata metadata1 = defaultSchema.get("metadata1");
+        assertThat(metadata1).isNotNull();
+        assertThat(metadata1.getLabel(Language.French)).isEqualTo("Titre métadonnée no.1");
+        assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+
+        MetadataSchema customSchema1 = schemaType.getSchema("USRschema1");
+        Metadata customSchema1Metadata1 = customSchema1.get("metadata1");
+        assertThat(customSchema1Metadata1).isNotNull();
+        assertThat(customSchema1Metadata1.isEnabled()).isTrue();
+       // assertThat(customSchema1Metadata1.isDefaultRequirement()).isTrue();
+
+        MetadataSchema customSchema2 = schemaType.getSchema("USRschema2");
+        Metadata customSchema2Metadata1 = customSchema2.get("metadata1");
+        assertThat(customSchema2Metadata1).isNotNull();
+        assertThat(customSchema2Metadata1.isEnabled()).isTrue();
+        //assertThat(customSchema2Metadata1.isDefaultRequirement()).isFalse();
+
+
     }
 
     //-------------------------------------------------------------------------------------
@@ -573,7 +597,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
     private ImportedMetadataSchema getFolderSchema() {
         return new ImportedMetadataSchema().setCode("USRschema1")
                 .addMetadata(new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
-                        .setType(MetadataValueType.STRING.name())
+                        .setType(MetadataValueType.STRING)
                         .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
                         .setMultiValue(true)
                         .setRequiredIn(toListOfString("USRschema1")));
@@ -582,12 +606,12 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
     private ImportedMetadataSchema getFolderDefaultSchema() {
         return new ImportedMetadataSchema().setCode("default")
                 .addMetadata(new ImportedMetadata().setCode("metadata1").setLabel("Titre métadonnée no.1")
-                        .setType(MetadataValueType.STRING.name())
+                        .setType(MetadataValueType.STRING)
                         .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
                         .setRequiredIn(toListOfString("USRschema1")))
                 .addMetadata(new ImportedMetadata().setCode("metadata2").setLabel("Titre métadonnée no.2")
                         .setEnabled(true)
-                        .setType(MetadataValueType.STRING.name())
+                        .setType(MetadataValueType.STRING)
                         .setTabCode("zeTab")
                         .setMultiValue(true)
                         .setBehaviours(toListOfString("searchable", "advanced-search")));
