@@ -29,7 +29,7 @@ public class VaultBehaviorsList<T> implements Iterable<T> {
 		return returnedBehaviors;
 	}
 
-	public boolean getBooleanValue(Boolean defaultValue, BooleanCaller<T> caller) {
+	public Boolean getBooleanValue(Boolean defaultValue, BooleanCaller<T> caller) {
 		return ExtensionUtils.getBooleanValue(this, defaultValue, caller);
 	}
 

@@ -1,5 +1,9 @@
 package com.constellio.model.services.records;
 
+import java.util.Set;
+
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
+
 @SuppressWarnings("serial")
 public class RecordDeleteServicesRuntimeException extends RuntimeException {
 
@@ -38,6 +42,23 @@ public class RecordDeleteServicesRuntimeException extends RuntimeException {
 
 		public RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType(String type) {
 			super("Cannot totally delete schema type '" + type + "'");
+		}
+	}
+
+	public static class RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords
+			extends RecordServicesRuntimeException_CannotPhysicallyDeleteRecord {
+
+		Set<String> recordsWithUnremovableReferences;
+
+		public RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(String deletedRecordId,
+				Set<String> recordsWithUnremovableReferences) {
+			super("Cannot physically delete record '" + deletedRecordId + "', cannot remove references to this record on ["
+					+ recordsWithUnremovableReferences + "]");
+			this.recordsWithUnremovableReferences = recordsWithUnremovableReferences;
+		}
+
+		public Set<String> getRecordsWithUnremovableReferences() {
+			return recordsWithUnremovableReferences;
 		}
 	}
 

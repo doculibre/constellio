@@ -48,6 +48,8 @@ public class CommonMetadataBuilder {
 	public static final String SEARCHABLE = "searchable";
 	public static final String VISIBLE_IN_TREES = "visibleInTrees";
 	public static final String MARKED_FOR_PREVIEW_CONVERSION = "markedForPreviewConversion";
+	public static final String LOGICALLY_DELETED_ON = "logicallyDeletedOn";
+	public static final String ERROR_ON_PHYSICAL_DELETION = "errorOnPhysicalDeletion";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -343,6 +345,28 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(MARKED_FOR_PREVIEW_CONVERSION)
+						.setType(MetadataValueType.BOOLEAN);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(LOGICALLY_DELETED_ON, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(LOGICALLY_DELETED_ON)
+						.setType(MetadataValueType.DATE_TIME);
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(ERROR_ON_PHYSICAL_DELETION, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = schema.createSystemReserved(ERROR_ON_PHYSICAL_DELETION)
 						.setType(MetadataValueType.BOOLEAN);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());

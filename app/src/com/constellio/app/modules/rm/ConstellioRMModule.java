@@ -36,6 +36,7 @@ import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
@@ -125,7 +126,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_2(),
 				new RMMigrationTo6_2_0_7(),
 				new RMMigrationTo6_3(),
-				new RMMigrationTo6_4()
+				new RMMigrationTo6_4(),
+				new RMMigrationTo6_5()
 		);
 	}
 
@@ -239,6 +241,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
+		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);

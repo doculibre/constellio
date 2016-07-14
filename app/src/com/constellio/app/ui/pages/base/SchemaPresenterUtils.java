@@ -28,9 +28,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -120,9 +123,19 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	public final void delete(Record record, String reason, boolean physically, User user) {
 		recordServices().logicallyDelete(record, user);
 		modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
-		if (physically) {
+		if (physically && !putFirstInTrash(record)) {
 			recordServices().physicallyDelete(record, user);
 		}
+	}
+
+	private boolean putFirstInTrash(Record record) {
+		ModelLayerExtensions ext = modelLayerFactory().getExtensions();
+		if(ext == null){
+			return false;
+		}
+		ModelLayerCollectionExtensions extensions =	ext.forCollection(record.getCollection());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 
 	@SuppressWarnings("unchecked")

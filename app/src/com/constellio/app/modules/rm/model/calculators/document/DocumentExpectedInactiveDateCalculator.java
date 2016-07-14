@@ -89,6 +89,12 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 			}
 
 			LocalDate baseDateFromSemiActiveDelay = input.getAjustedBaseDateFromSemiActiveDelay();
+
+			if (!input.copy.isIgnoreActivePeriod()) {
+				baseDateFromSemiActiveDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
+						baseDateFromSemiActiveDelay, input.numberOfYearWhenSemiActiveVariableDelay);
+			}
+
 			LocalDate baseDate = max(transferDate, baseDateFromSemiActiveDelay);
 
 			return input.calculateInactiveBasedOn(baseDate);

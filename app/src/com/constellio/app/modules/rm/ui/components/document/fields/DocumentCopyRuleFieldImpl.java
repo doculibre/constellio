@@ -72,6 +72,7 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 
 	private class Generator implements ColumnGenerator {
 		public static final String SELECTOR = "selector";
+		public static final String TITLE = "title";
 		public static final String NUMBER = "number";
 		public static final String TYPE = "type";
 		public static final String RULE = "rule";
@@ -80,6 +81,9 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 			table.addGeneratedColumn(SELECTOR, this);
 			table.setColumnHeader(SELECTOR, "");
 			table.setColumnWidth(SELECTOR, 50);
+
+			table.addGeneratedColumn(TITLE, this);
+			table.setColumnHeader(TITLE, $("FolderCopyRuleField.title"));
 
 			table.addGeneratedColumn(NUMBER, this);
 			table.setColumnHeader(NUMBER, $("FolderCopyRuleField.number"));
@@ -104,6 +108,8 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 				return generateSelectorCell(rule);
 			case NUMBER:
 				return generateNumberCell(rule);
+			case TITLE:
+				return generateTitleCell(rule);
 			case TYPE:
 				return generateTypeCell(rule);
 			case RULE:
@@ -131,6 +137,10 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 
 		private Object generateNumberCell(CopyRetentionRule rule) {
 			return rule.getCode();
+		}
+
+		private Object generateTitleCell(CopyRetentionRule rule) {
+			return rule.getTitle();
 		}
 
 		private Object generateTypeCell(CopyRetentionRule rule) {

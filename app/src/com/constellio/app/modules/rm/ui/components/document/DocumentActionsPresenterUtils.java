@@ -34,11 +34,13 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -98,13 +100,17 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	ComponentState getEditButtonState() {
 		Record record = currentDocument();
 		User user = getCurrentUser();
+		if(StringUtils.isBlank((String)record.get(Schemas.LEGACY_ID))||
+				(StringUtils.isNotBlank((String)record.get(Schemas.LEGACY_ID)) && user.has(RMPermissionsTo.MODIFY_IMPORTED_DOCUMENTS).on(record))) {
+			return ComponentState.INVISIBLE;
+		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
 				&& extensions.isRecordModifiableBy(record, user));
 	}
 
 	public void editDocumentButtonClicked() {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId()	);
 		}
 	}
 
@@ -211,6 +217,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (parentFolder.getArchivisticStatus().isSemiActive()) {
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+			}
+			if(StringUtils.isNotBlank((String)currentDocument().get(Schemas.LEGACY_ID))) {
+				return ComponentState.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument()));
 			}
 			return ComponentState.ENABLED;
 		}

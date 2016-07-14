@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -52,6 +55,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 	private static final String CODE = "code";
+	private static final String DETAILS = "details";
 	private static final String COPY_TYPE = "copyType";
 	private static final String FOLDER_TYPE = "typeId";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
@@ -65,6 +69,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	private static final String INACTIVE_DISPOSAL_COMMENT = "inactiveDisposalComment";
 	private static final String ESSENTIAL = "essential";
 	private static final String DELETE_BUTTON = "deleteButton";
+
+	private static final String TITLE = "title";
+	private static final String DESCRIPTION = "description";
 
 	private final List<VariableRetentionPeriodVO> variableRetentionPeriodVOList;
 
@@ -118,6 +125,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		table.setSelectable(false);
 
 		table.setColumnHeader(CODE, $("FolderCopyRetentionRuleListTable.code"));
+		table.setColumnHeader(DETAILS, $("FolderCopyRetentionRuleListTable.details"));
 		table.setColumnHeader(COPY_TYPE, $("FolderCopyRetentionRuleListTable.copyType"));
 		table.setColumnHeader(MEDIUM_TYPES, $("FolderCopyRetentionRuleListTable.mediumTypes"));
 		table.setColumnHeader(CONTENT_TYPES_COMMENT, "");
@@ -132,6 +140,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		if (formMode) {
 			table.addContainerProperty(CODE, BaseTextField.class, null);
+			table.addContainerProperty(DETAILS, DetailsFieldGroup.class, null);
 			table.addContainerProperty(COPY_TYPE, CopyTypeFolderTypePanel.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, MediumTypesField.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, MiniTextField.class, null);
@@ -234,6 +243,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		if (formMode) {
 			MiniTextField codeField = new MiniTextField();
+			final DetailsFieldGroup detailsField = new DetailsFieldGroup(copyRetentionRule);
 			CopyTypeFolderTypePanel copyTypeLabel = new CopyTypeFolderTypePanel(copyRetentionRule);
 			MediumTypesField mediumTypesField = new MediumTypesField(copyRetentionRule);
 			MiniTextField contentTypesCommentField = new MiniTextField();
@@ -259,6 +269,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			essential.setPropertyDataSource(new NestedMethodProperty(copyRetentionRule, ESSENTIAL));
 
 			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeField);
+			table.getContainerProperty(copyRetentionRule,DETAILS).setValue(detailsField);
 			table.getContainerProperty(copyRetentionRule, COPY_TYPE).setValue(copyTypeLabel);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesField);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentField);
@@ -518,6 +529,54 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		public MetadataField getDateMetadataField() {
 			return dateMetadataField;
+		}
+
+	}
+
+	private class DetailsFieldGroup extends VerticalLayout {
+
+		private BaseTextField titleField;
+		private BaseTextArea descriptionField;
+		private CheckBox ignoreActivePeriodField;
+
+		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),$("DetailsFieldGroup.detailsWindow")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout windowLayout = new VerticalLayout();
+
+					windowLayout.setSpacing(true);
+
+					Property<String> titleProperty = new MethodProperty<>(copyRetentionRule, "title");
+					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
+					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule,"ignoreActivePeriod");
+
+					titleField = new BaseTextField($("DetailsFieldGroup.title"), titleProperty);
+					titleField.setWidth("90%");
+					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
+					descriptionField.setWidth("90%");
+					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
+
+					Button closeButton = new BaseButton("OK") {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							getWindow().close();
+						}
+					};
+
+					windowLayout.addComponents(titleField, descriptionField,ignoreActivePeriodField,closeButton);
+					return windowLayout;
+				}
+			};
+			addComponent(windowButton);
+		}
+
+		public BaseTextField getTitleField() {
+			return titleField;
+		}
+
+		public BaseTextArea getDescriptionField() {
+			return descriptionField;
 		}
 
 	}

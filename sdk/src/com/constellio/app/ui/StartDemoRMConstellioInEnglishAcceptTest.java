@@ -37,7 +37,7 @@ public class StartDemoRMConstellioInEnglishAcceptTest extends ConstellioTest {
 
 		records = new RMTestRecords(zeCollection).setup(getAppLayerFactory())
 				.withFoldersAndContainersOfEveryStatus();//				.withEvents();
-		new DemoTestRecords("LaCollectionDeRida").setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		new DemoTestRecords("LaCollectionDeRida").setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 	}
 
 	@Test

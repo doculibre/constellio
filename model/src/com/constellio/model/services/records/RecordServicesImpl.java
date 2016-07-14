@@ -414,7 +414,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public void validateRecordInTransaction(Record record, Transaction transaction)
 			throws ValidationException {
-		prepareRecords(transaction, record.getId());
+		if (transaction.getRecords().isEmpty()) {
+			validateRecord(record);
+		} else {
+			prepareRecords(transaction, record.getId());
+		}
 	}
 
 	public void validateRecord(Record record)
@@ -782,7 +786,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
@@ -794,13 +798,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().physicallyDelete(record, user);
 	}
 
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
-	public void physicallyDelete(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDelete(record, user, options);
@@ -818,7 +822,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
@@ -837,23 +841,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public void logicallyDelete(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		newRecordDeleteServices().logicallyDelete(record, user);
-		refresh(record);
+		logicallyDelete(record, user, new RecordLogicalDeleteOptions());
 	}
 
-	public void logicallyDeletePrincipalConceptIncludingRecords(Record record, User user) {
+	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
-		newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
-		refresh(record);
-	}
 
-	public void logicallyDeletePrincipalConceptExcludingRecords(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
+		//		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		//		if (taxonomy != null && taxonomy.getSchemaTypes().contains(recordSchemaType)) {
+		//			if (options.behaviorForRecordsAttachedToTaxonomy == LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS) {
+		//				newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
+		//			} else {
+		//				newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
+		//			}
+		//		} else {
+		newRecordDeleteServices().logicallyDelete(record, user, options);
+		//		}
+
 		refresh(record);
 	}
 

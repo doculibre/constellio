@@ -246,9 +246,17 @@ public class FormMetadataVO implements Serializable {
 		return duplicable;
 	}
 
+	public void setDuplicable(boolean duplicable) {
+		this.duplicable = duplicable;
+	}
+
+	/*public boolean isDuplicable() {
+		return duplicable;
+	}
+
     public void setDuplicable(boolean duplicable) {
         this.duplicable = duplicable;
-    }
+    }*/
 
     @Override
 	public int hashCode() {

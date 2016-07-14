@@ -2,6 +2,7 @@ package com.constellio.client.cmis.client;
 
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -9,6 +10,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.chemistry.opencmis.client.api.Repository;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
@@ -66,6 +68,22 @@ public class CmisSessionBuilder {
 	public CmisSessionBuilder withEnabledCache() {
 		this.cacheEnabled = true;
 		return this;
+	}
+
+	public List<Repository> getRepositories() {
+		SessionFactory factory = SessionFactoryImpl.newInstance();
+		Map<String, String> parameter = new HashMap<String, String>();
+
+		// serviceKey credentials
+		parameter.put(SessionParameter.USER, serviceKey);
+		parameter.put(SessionParameter.PASSWORD, token);
+
+		// connection settings
+		parameter.put(SessionParameter.ATOMPUB_URL, appUrl + (appUrl.endsWith("/") ? "" : "/") + "atom");
+		parameter.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
+		parameter.put(SessionParameter.REPOSITORY_ID, collection);
+
+		return factory.getRepositories(parameter);
 	}
 
 	public Session build() {

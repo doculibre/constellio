@@ -1,0 +1,187 @@
+package com.constellio.app.ui.pages.trash;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.vaadin.data.Container;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.VerticalLayout;
+
+public class TrashViewImpl extends BaseViewImpl implements TrashView {
+	private final TrashPresenter presenter;
+	private ComboBox typeSelectionDropDown;
+	private Label recordsToDeleteMessage;
+	private Button restoreSelectionButton, deleteSelectionButton;
+	private Table logicallyDeletedRecordsTable;
+	private VerticalLayout vLayout;
+
+	public TrashViewImpl() {
+		presenter = new TrashPresenter(this);
+	}
+
+	@Override
+	protected String getTitle() {
+		return $("TrashView.viewTitle");
+	}
+
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		vLayout = new VerticalLayout();
+		this.typeSelectionDropDown = buildTypeSelectionComponent();
+		vLayout.addComponent(this.typeSelectionDropDown);
+		this.recordsToDeleteMessage = buildRecordsToDeleteMessage();
+		vLayout.addComponent(this.recordsToDeleteMessage);
+
+		logicallyDeletedRecordsTable = buildTrashTable();
+		vLayout.addComponent(logicallyDeletedRecordsTable);
+		return vLayout;
+	}
+
+	private Label buildRecordsToDeleteMessage() {
+		Label message = new Label(
+				"<p style=\"color:red\">" + $("TrashView.recordsToDeleteMessage", presenter.getLogicallyDeletedRecordsCount())
+						+ "</p>",
+				ContentMode.HTML);
+		return message;
+	}
+
+	private ComboBox buildTypeSelectionComponent() {
+		ComboBox typeSelection = new ComboBox($("TrashView.typeSelection"));
+		Container typeContainer = new SchemaTypeVOLazyContainer(presenter.getSchemaTypes());
+		typeSelection.setContainerDataSource(typeContainer);
+		typeSelection.setItemCaptionPropertyId("label");
+		typeSelection.setNullSelectionAllowed(false);
+		typeSelection.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				presenter.clearSelectedRecords();
+				disableActionButtons();
+				rebuildTrashTable();
+			}
+
+		});
+		return typeSelection;
+	}
+
+	private void rebuildTrashTable() {
+		Table newTable = buildTrashTable();
+		vLayout.replaceComponent(this.logicallyDeletedRecordsTable, newTable);
+		this.logicallyDeletedRecordsTable = newTable;
+
+	}
+
+	private void disableActionButtons() {
+		this.restoreSelectionButton.setEnabled(false);
+		this.deleteSelectionButton.setEnabled(false);
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> buttons = super.buildActionMenuButtons(event);
+		buttons.add(buildRestoreSelectionButton());
+		buttons.add(buildDeleteSelectionButton());
+		return buttons;
+	}
+
+	private Button buildDeleteSelectionButton() {
+		deleteSelectionButton = new BaseButton($("TrashView.deleteSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				Set<String> notDeleted = presenter.deleteSelection();
+				replaceDeletedRecordsTypeAndCountComponents();
+				rebuildTrashTable();
+				enableOrDisableActionButtons();
+				if (!notDeleted.isEmpty()) {
+					showMessage($("TrashView.deleteNotPossibleForRecords") + ":\n" + StringUtils.join(notDeleted, "\n"));
+				}
+			}
+		};
+		deleteSelectionButton.setEnabled(presenter.atLeastOneRecordSelected());
+		return deleteSelectionButton;
+	}
+
+
+	private Button buildRestoreSelectionButton() {
+		restoreSelectionButton = new BaseButton($("TrashView.restoreSelection")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				List<String> notRestored = presenter.restoreSelection();
+				replaceDeletedRecordsTypeAndCountComponents();
+				rebuildTrashTable();
+				enableOrDisableActionButtons();
+				if (!notRestored.isEmpty()) {
+					showMessage($("TrashView.restoreNotPossibleForRecords") + ":\n" + StringUtils.join(notRestored, "\n"));
+				}
+			}
+		};
+		restoreSelectionButton.setEnabled(presenter.atLeastOneRecordSelected());
+		return restoreSelectionButton;
+	}
+
+	private void rebuildRecordsToDeleteMessage() {
+		Label newMessage = buildRecordsToDeleteMessage();
+		vLayout.replaceComponent(this.recordsToDeleteMessage, newMessage);
+		this.recordsToDeleteMessage = newMessage;
+	}
+
+	@Override
+	public String getSelectedType() {
+		Item selection = typeSelectionDropDown.getItem(typeSelectionDropDown.getValue());
+		if (selection != null) {
+			return (String) selection.getItemProperty("code").getValue();
+		} else {
+			return null;
+		}
+
+	}
+
+	private Table buildTrashTable() {
+		if (StringUtils.isBlank(getSelectedType())) {
+			Table emptyTable = new Table();
+			emptyTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+			emptyTable.setVisible(false);
+			return emptyTable;
+		}
+
+		Table trashRecords = new TrashRecordsTable(presenter.getTrashRecords(), presenter);
+
+		//trashRecords.header
+		return trashRecords;
+	}
+
+	@Override
+	public void enableOrDisableActionButtons() {
+		boolean atLeastOneRecordSelected = presenter.atLeastOneRecordSelected();
+		this.restoreSelectionButton.setEnabled(atLeastOneRecordSelected);
+		this.deleteSelectionButton.setEnabled(atLeastOneRecordSelected);
+	}
+
+	private void replaceDeletedRecordsTypeAndCountComponents() {
+		ComboBox newType = buildTypeSelectionComponent();
+		vLayout.replaceComponent(this.typeSelectionDropDown, newType);
+		this.typeSelectionDropDown = newType;
+
+		Label newMessage = buildRecordsToDeleteMessage();
+		vLayout.replaceComponent(this.recordsToDeleteMessage, newMessage);
+		this.recordsToDeleteMessage = newMessage;
+	}
+}

@@ -33,6 +33,8 @@ public class BatchProcessTestFeature {
 
 		List<BatchProcess> batchProcesses = batchProcessesManager.getAllNonFinishedBatchProcesses();
 
+		//		batchProcessesManager.waitUntilAllFinished();
+
 		for (BatchProcess batchProcess : batchProcesses) {
 			if (batchProcess != null) {
 				while (batchProcessesManager.get(batchProcess.getId()).getStatus() != BatchProcessStatus.FINISHED) {
@@ -45,7 +47,7 @@ public class BatchProcessTestFeature {
 					}
 
 					try {
-						Thread.sleep(50);
+						Thread.sleep(10);
 					} catch (InterruptedException e) {
 						throw new RuntimeException(e);
 					}
