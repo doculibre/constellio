@@ -58,34 +58,54 @@ public class TestPagesComponentsExtensions extends PagesComponentsExtension {
 		@Override
 		public void afterUpdate(BigVaultServerTransaction transaction, long qtime) {
 
-			StringWriter sw = new StringWriter();
-			new Throwable("").printStackTrace(new PrintWriter(sw));
-			long id = idUpdate.incrementAndGet();
+			if (updates.size() > 50) {
+				return;
+			}
 
-			updates.add(LoggedItem.create(id, qtime, transaction, cleanStackTrace(sw.toString())));
-			updateTimeCount.addAndGet(qtime);
-			SystemLoadSimulator.simulateUpdate(transaction, qtime, loadLevel);
+			try {
+				StringWriter sw = new StringWriter();
+				new Throwable("").printStackTrace(new PrintWriter(sw));
+				long id = idUpdate.incrementAndGet();
+
+				updates.add(LoggedItem.create(id, qtime, transaction, cleanStackTrace(sw.toString())));
+				updateTimeCount.addAndGet(qtime);
+				SystemLoadSimulator.simulateUpdate(transaction, qtime, loadLevel);
+
+			} catch (Exception e) {
+
+			}
 		}
 
 		@Override
 		public void afterQuery(SolrParams solrParams, long qtime) {
-			StringWriter sw = new StringWriter();
-			new Throwable("").printStackTrace(new PrintWriter(sw));
-			long id = idQuery.incrementAndGet();
 
-			LoggedItem loggedItem = LoggedItem.create(id, qtime, solrParams, cleanStackTrace(sw.toString()));
-			LoggedItem currentLoggedItemWithSameTitle = getLogItemWithTitle(loggedItem.getTitle());
-
-			if (currentLoggedItemWithSameTitle == null) {
-				queries.add(loggedItem);
-
-			} else {
-				LoggedItemCall call = loggedItem.getCalls().get(0);
-				currentLoggedItemWithSameTitle.withNewCall(qtime, call.description, call.stack);
+			if (queries.size() > 500) {
+				return;
 			}
-			queriesCount.incrementAndGet();
-			queryTimeCount.addAndGet(qtime);
-			SystemLoadSimulator.simulateQuery(solrParams, qtime, loadLevel);
+
+			try {
+
+				StringWriter sw = new StringWriter();
+				new Throwable("").printStackTrace(new PrintWriter(sw));
+				long id = idQuery.incrementAndGet();
+
+				LoggedItem loggedItem = LoggedItem.create(id, qtime, solrParams, cleanStackTrace(sw.toString()));
+				LoggedItem currentLoggedItemWithSameTitle = getLogItemWithTitle(loggedItem.getTitle());
+
+				if (currentLoggedItemWithSameTitle == null) {
+					queries.add(loggedItem);
+
+				} else {
+					LoggedItemCall call = loggedItem.getCalls().get(0);
+					currentLoggedItemWithSameTitle.withNewCall(qtime, call.description, call.stack);
+				}
+				queriesCount.incrementAndGet();
+				queryTimeCount.addAndGet(qtime);
+				SystemLoadSimulator.simulateQuery(solrParams, qtime, loadLevel);
+
+			} catch (Exception e) {
+
+			}
 		}
 
 		private LoggedItem getLogItemWithTitle(String title) {
