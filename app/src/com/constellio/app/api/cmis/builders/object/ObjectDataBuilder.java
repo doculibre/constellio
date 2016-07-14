@@ -66,10 +66,10 @@ public class ObjectDataBuilder {
 
 		callExtensions(result, propertiesBuilder, record);
 
-		//if (includeAcl) {
-		result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
-		result.setIsExactAcl(true);
-		//}
+		if (includeAcl) {
+			result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
+			result.setIsExactAcl(true);
+		}
 
 		if (context.isObjectInfoRequired()) {
 			objectInfo.setObject(result);
