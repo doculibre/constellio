@@ -53,7 +53,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		this.connectorLogger = connectorLogger;
 		this.resourceName = resourceName;
 		this.userServices = es.getModelLayerFactory().newUserServices();
-		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions();
+		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions().withRecordsPerBatch(100);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
 		this.mappingService = new ConnectorMappingService(es);
 	}
