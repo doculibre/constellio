@@ -35,6 +35,7 @@ public class AdminSystemManagementCaller {
 		}
 
 		WebClient webClient = new WebClient();
+		webClient.getOptions().setUseInsecureSSL(true);
 		WebRequest webRequest = null;
 		try {
 			//System.out.println("**Query : \n" + urlBuilder.toString());
