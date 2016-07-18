@@ -189,7 +189,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(true);
 
-		buildAndOpen(new LabelsReportBuilder(model));
+		build(new LabelsReportBuilder(model));
 	}
 
 

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.reports.model.labels;
 
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.RectangleReadOnly;
 
 public enum LabelsReportLayout {
 
@@ -11,8 +12,8 @@ public enum LabelsReportLayout {
 
 	//AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
 
-
-	AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 60, 60),
+	//AVERY_5162(2, 7, new RectangleReadOnly(612.0F, 900.0F), 18, 18, 60, 60),//new RectangleReadOnly(612.0F, 792.0F)
+	AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 50,50),
 	//AVERY_5162(2, 7, PageSize.LETTER, 12, 12, 12, 57, 57),
 	AVERY_5162_V1(2, 7, PageSize.LETTER, 12, 12, 57f, 57f),//60, 60),OK
 	//AVERY_5162(2, 7, PageSize.LETTER, 2, 3, 60, 60),
@@ -30,7 +31,6 @@ public enum LabelsReportLayout {
 	private float leftMargin;
 	private float topMargin;
 	private float bottomMargin;
-	private float middleColumn = 0;
 
 	private LabelsReportLayout(int numberOfColumns, int numberOfRows, Rectangle pageSize, float rightMargin, float leftMargin,
 			float topMargin, float bottomMargin) {
@@ -43,17 +43,6 @@ public enum LabelsReportLayout {
 		this.bottomMargin = bottomMargin;
 	}
 
-	private LabelsReportLayout(int numberOfColumns, int numberOfRows, Rectangle pageSize, float rightMargin, float leftMargin,
-			float middleColumn, float topMargin, float bottomMargin) {
-		this.numberOfColumns = numberOfColumns;
-		this.numberOfRows = numberOfRows;
-		this.pageSize = pageSize;
-		this.rightMargin = rightMargin;
-		this.leftMargin = leftMargin;
-		this.topMargin = topMargin;
-		this.bottomMargin = bottomMargin;
-		this.middleColumn = middleColumn;
-	}
 	public int getNumberOfColumns() {
 		return numberOfColumns;
 	}
@@ -82,7 +71,4 @@ public enum LabelsReportLayout {
 		return bottomMargin;
 	}
 
-	public float getMiddleColumn() {
-		return middleColumn;
-	}
 }

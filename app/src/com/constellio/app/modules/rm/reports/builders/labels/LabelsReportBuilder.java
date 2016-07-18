@@ -74,7 +74,7 @@ public class LabelsReportBuilder implements ReportBuilder {
 	}
 
 	private float getLabelWidth(LabelsReportLayout layout) {
-		float totalHorizontalSpaces = layout.getLeftMargin() + layout.getRightMargin() + layout.getMiddleColumn();
+		float totalHorizontalSpaces = layout.getLeftMargin() + layout.getRightMargin();
 		float labelWidth = (layout.getPageSize().getWidth() - totalHorizontalSpaces) / layout.getNumberOfColumns();
 		return labelWidth;
 	}
