@@ -1573,7 +1573,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
-		public void initialize(MetadataSchemaTypes types, MetadataSchema schema) {
+		public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata metadata) {
 			initializationCounter++;
 		}
 	}

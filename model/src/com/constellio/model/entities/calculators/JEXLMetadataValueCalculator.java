@@ -10,8 +10,11 @@ import java.util.Map;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
+import org.apache.commons.jexl3.JexlException;
+import org.apache.commons.jexl3.JexlInfo;
 import org.apache.commons.jexl3.JexlScript;
 import org.apache.commons.jexl3.MapContext;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ import com.constellio.model.utils.Parametrized;
 
 public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalculator<String>, Parametrized {
 
+	String metadataCode;
 	JexlScript jexlScript;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JEXLMetadataValueCalculator.class);
@@ -62,7 +66,25 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		try {
 			Object result = jexlScript.execute(jc);
 			return (String) result;
+
+		} catch (JexlException e) {
+			JexlInfo info = e.getInfo();
+			String cause = StringUtils.substringAfterLast(e.getCause().getClass().getName(), ".");
+
+			StringBuilder message = new StringBuilder().append("Jexl Script of metadata '").append(metadataCode)
+					.append("' failed at column ").append(info.getColumn()).append(" of line ").append(info.getLine())
+					.append(" : ").append(cause);
+
+			if (e.getCause().getMessage() != null) {
+				message.append(" ").append(e.getCause().getMessage());
+			}
+
+			LOGGER.error(message.toString());
+			return null;
 		} catch (Exception e) {
+
+			Throwable t = e.getCause();
+
 			e.printStackTrace();
 			return null;
 		}
@@ -95,9 +117,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	}
 
 	@Override
-	public void initialize(MetadataSchemaTypes types, MetadataSchema schema) {
-
-		System.out.println("initialized!!");
+	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
+		metadataCode = calculatedMetadata.getCode();
 		try {
 
 			JexlEngine jexl = new JexlBuilder().create();

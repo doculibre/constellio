@@ -106,7 +106,7 @@ public class MetadataSchemaTypesBuilder {
 					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
 							.getCalculator();
 					if (calculator instanceof InitializedMetadataValueCalculator) {
-						((InitializedMetadataValueCalculator) calculator).initialize(types, schema);
+						((InitializedMetadataValueCalculator) calculator).initialize(types, schema, metadata);
 					}
 				}
 			}
