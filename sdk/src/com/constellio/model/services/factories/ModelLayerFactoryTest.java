@@ -1,8 +1,12 @@
 package com.constellio.model.services.factories;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -14,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
@@ -42,6 +47,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	int batchProcessPartSize = anInteger();
 	String zeComputer = aString();
 
+	@Mock DataLayerConfiguration dataLayerConfiguration;
 	@Mock ConfigManager configManager;
 	@Mock DataLayerFactory dataLayerFactory;
 	@Mock IOServicesFactory ioServicesFactory;
@@ -64,6 +70,9 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(configManager.getXML("/userCredentialsConfig.xml")).thenReturn(xmlConfiguration);
 		when(xmlConfiguration.getDocument()).thenReturn(document);
 		when(document.getRootElement()).thenReturn(new Element("authorizations"));
+
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
@@ -186,7 +195,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	public void whenNewAuthorizationsServicesThenNotNull() {
 		assertThat(modelLayerFactory.newAuthorizationsServices()).isNotNull();
 		verify(modelLayerFactory).getAuthorizationDetailsManager();
-		verify(modelLayerFactory,times(2)).getRolesManager();
+		verify(modelLayerFactory, times(2)).getRolesManager();
 		verify(modelLayerFactory).getTaxonomiesManager();
 	}
 

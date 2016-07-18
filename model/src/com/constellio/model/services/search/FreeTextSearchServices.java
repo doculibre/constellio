@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.utils.LoggerUtils;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.FilterUtils;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -44,7 +43,7 @@ public class FreeTextSearchServices {
 		} else {
 			modifiableSolrParams.add("fq", "-schema_s:event*");
 		}
-		LOGGER.info(LoggerUtils.toParamsString(modifiableSolrParams));
+		//LOGGER.info(LoggerUtils.toParamsString(modifiableSolrParams));
 		return recordDao.nativeQuery(modifiableSolrParams);
 	}
 

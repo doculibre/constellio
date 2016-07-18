@@ -2,7 +2,6 @@ package com.constellio.data.threads;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.joda.time.LocalTime;
 import org.slf4j.Logger;
@@ -23,7 +22,7 @@ public class BackgroundThreadCommand implements Runnable {
 	Semaphore tasksSemaphore;
 
 	public BackgroundThreadCommand(BackgroundThreadConfiguration configuration, AtomicBoolean systemStarted,
-								   AtomicBoolean stopRequested, Semaphore tasksSemaphore) {
+			AtomicBoolean stopRequested, Semaphore tasksSemaphore) {
 		this.configuration = configuration;
 		this.tasksSemaphore = tasksSemaphore;
 		this.logger = LoggerFactory.getLogger(configuration.getRepeatedAction().getClass());
@@ -70,10 +69,10 @@ public class BackgroundThreadCommand implements Runnable {
 
 	public void runAndHandleException() {
 		setCurrentThreadName();
-		logCommandCall();
+		//logCommandCall();
 		try {
 			configuration.getRepeatedAction().run();
-			logCommandCallEnd();
+			//logCommandCallEnd();
 		} catch (Throwable e) {
 			logCommandCallEndedWithException(e);
 			if (configuration.getExceptionHandling() == BackgroundThreadExceptionHandling.STOP) {
