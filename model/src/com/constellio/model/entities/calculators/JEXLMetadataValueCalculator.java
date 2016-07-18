@@ -44,6 +44,41 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	@Override
 	public String calculate(CalculatorParameters parameters) {
 
+		JexlContext jc = prepareJexlContext(parameters);
+
+		try {
+			Object result = jexlScript.execute(jc);
+			return (String) result;
+
+		} catch (JexlException e) {
+			logJexlException(e);
+			return null;
+		} catch (Exception e) {
+
+			Throwable t = e.getCause();
+
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+	private void logJexlException(JexlException e) {
+		JexlInfo info = e.getInfo();
+		String cause = StringUtils.substringAfterLast(e.getCause().getClass().getName(), ".");
+
+		StringBuilder message = new StringBuilder().append("Jexl Script of metadata '").append(metadataCode)
+				.append("' failed at column ").append(info.getColumn()).append(" of line ").append(info.getLine())
+				.append(" : ").append(cause);
+
+		if (e.getCause().getMessage() != null) {
+			message.append(" ").append(e.getCause().getMessage());
+		}
+
+		LOGGER.error(message.toString());
+	}
+
+	private JexlContext prepareJexlContext(CalculatorParameters parameters) {
 		JexlContext jc = new MapContext();
 
 		for (Dependency dependency : dependencies) {
@@ -62,33 +97,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 				jc.set(key, map);
 			}
 		}
-
-		try {
-			Object result = jexlScript.execute(jc);
-			return (String) result;
-
-		} catch (JexlException e) {
-			JexlInfo info = e.getInfo();
-			String cause = StringUtils.substringAfterLast(e.getCause().getClass().getName(), ".");
-
-			StringBuilder message = new StringBuilder().append("Jexl Script of metadata '").append(metadataCode)
-					.append("' failed at column ").append(info.getColumn()).append(" of line ").append(info.getLine())
-					.append(" : ").append(cause);
-
-			if (e.getCause().getMessage() != null) {
-				message.append(" ").append(e.getCause().getMessage());
-			}
-
-			LOGGER.error(message.toString());
-			return null;
-		} catch (Exception e) {
-
-			Throwable t = e.getCause();
-
-			e.printStackTrace();
-			return null;
-		}
-
+		return jc;
 	}
 
 	@Override
@@ -122,28 +131,14 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		try {
 
 			JexlEngine jexl = new JexlBuilder().create();
-
-			// Create an expression
 			jexlScript = jexl.createScript(expression);
 
 			for (List<String> variable : jexlScript.getVariables()) {
 				if (variable.size() == 2) {
+					dependencies.add(toReferenceDependency(types, schema, variable));
 
-					Metadata referenceMetadata = schema.getMetadata(variable.get(0));
-					String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
-					MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);
-					Metadata copiedMetadata = referencedSchema.getMetadata(variable.get(1));
-
-					boolean isRequired = false;
-					boolean isMultivalue = copiedMetadata.isMultivalue() || referenceMetadata.isMultivalue();
-					boolean isGroupedByReferences = false;
-					dependencies.add(new ReferenceDependency<>(variable.get(0), variable.get(1), isRequired, isMultivalue,
-							copiedMetadata.getType(), isGroupedByReferences));
 				} else {
-					boolean isRequired = false;
-					Metadata metadata = schema.getMetadata(variable.get(0));
-					dependencies.add(new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
-							metadata.getType()));
+					dependencies.add(toLocalDependency(schema, variable));
 
 				}
 			}
@@ -153,6 +148,27 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 			dependencies.clear();
 		}
 
+	}
+
+	private LocalDependency toLocalDependency(MetadataSchema schema, List<String> variable) {
+		boolean isRequired = false;
+		Metadata metadata = schema.getMetadata(variable.get(0));
+		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
+				metadata.getType());
+	}
+
+	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, List<String> variable) {
+		Metadata referenceMetadata = schema.getMetadata(variable.get(0));
+		String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
+		MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);
+		Metadata copiedMetadata = referencedSchema.getMetadata(variable.get(1));
+
+		boolean isRequired = false;
+		boolean isMultivalue = copiedMetadata.isMultivalue() || referenceMetadata.isMultivalue();
+		boolean isGroupedByReferences = false;
+		return new ReferenceDependency<>(variable.get(0), variable.get(1), isRequired,
+				isMultivalue,
+				copiedMetadata.getType(), isGroupedByReferences);
 	}
 
 }
