@@ -17,10 +17,12 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
@@ -95,8 +97,22 @@ public class MetadataSchemaTypesBuilder {
 
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		return new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies, referenceDefaultValues,
-				languages);
+		MetadataSchemaTypes types = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+				referenceDefaultValues, languages);
+
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				for (Metadata metadata : schema.getMetadatas().onlyCalculated().onlyWithoutInheritance()) {
+					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
+							.getCalculator();
+					if (calculator instanceof InitializedMetadataValueCalculator) {
+						((InitializedMetadataValueCalculator) calculator).initialize(types, schema);
+					}
+				}
+			}
+		}
+
+		return types;
 	}
 
 	public MetadataSchemaTypeBuilder createNewSchemaType(String code) {

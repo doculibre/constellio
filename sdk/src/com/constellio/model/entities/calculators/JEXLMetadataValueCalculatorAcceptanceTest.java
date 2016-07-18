@@ -20,7 +20,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
-public class StringPatternMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
+public class JEXLMetadataValueCalculatorAcceptanceTest extends ConstellioTest {
 
 	TestsSchemasSetup setup = new TestsSchemasSetup();
 	ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
@@ -30,7 +30,7 @@ public class StringPatternMetadataValueCalculatorAcceptanceTest extends Constell
 	public void givenStringCalculatedFromPatternThenHasValidCalculatorDependencies()
 			throws Exception {
 
-		String pattern = "Prefixe {referenceMetadata.stringMetadata} - {stringMetadata} Suffixe";
+		String pattern = "'Prefixe' + referenceMetadata.stringMetadata + ' - ' + stringMetadata + ' Suffixe'";
 		defineSchemasManager().using(setup
 				.withAStringMetadata()
 				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema)
@@ -41,8 +41,8 @@ public class StringPatternMetadataValueCalculatorAcceptanceTest extends Constell
 				.getCalculator();
 
 		assertThat((List<Dependency>) calculator.getDependencies()).containsOnly(
-				LocalDependency.toAString("stringMetadata").whichIsRequired(),
-				ReferenceDependency.toAString("referenceMetadata", "stringMetadata").whichIsRequired()
+				LocalDependency.toAString("stringMetadata"),
+				ReferenceDependency.toAString("referenceMetadata", "stringMetadata")
 		);
 
 	}
@@ -51,7 +51,7 @@ public class StringPatternMetadataValueCalculatorAcceptanceTest extends Constell
 	public void givenStringCalculatedFromPatternThenOnlyCalculatedIfEveryDependenciesNotNull()
 			throws Exception {
 
-		String pattern = "Prefixe {referenceMetadata.stringMetadata} - {stringMetadata} Suffixe";
+		String pattern = "'Prefixe ' + referenceMetadata.stringMetadata + ' - ' + stringMetadata + ' Suffixe'";
 		defineSchemasManager().using(setup
 				.withAStringMetadata()
 				.withAReferenceMetadata(whichAllowsAnotherDefaultSchema)
@@ -80,7 +80,7 @@ public class StringPatternMetadataValueCalculatorAcceptanceTest extends Constell
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		assertThat(zeSchemaRecord.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe 42 - 666 Suffixe");
+		assertThat(zeSchemaRecord.get(zeSchema.anotherStringMetadata())).isEqualTo("Prefixe zeValue - 666 Suffixe");
 		assertThat(zeSchemaRecordWithoutReferencedStringMetadata.get(zeSchema.anotherStringMetadata())).isNull();
 		assertThat(zeSchemaRecordWithoutStringMetadata.get(zeSchema.anotherStringMetadata())).isNull();
 		assertThat(zeSchemaRecordWithoutReference.get(zeSchema.anotherStringMetadata())).isNull();

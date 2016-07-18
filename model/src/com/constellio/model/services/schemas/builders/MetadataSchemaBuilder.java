@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaComparators;
@@ -335,8 +336,9 @@ public class MetadataSchemaBuilder {
 		Collections.sort(newMetadatas, SchemaComparators.METADATA_COMPARATOR_BY_ASC_LOCAL_CODE);
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
+		List<Metadata> automaticMetadatas = orderAutomaticMetadatas(newMetadatas);
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
-				inTransactionLog, this.schemaValidators.build(), orderAutomaticMetadatas(newMetadatas));
+				inTransactionLog, this.schemaValidators.build(), automaticMetadatas);
 	}
 
 	List<Metadata> buildMetadatas(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
@@ -357,7 +359,15 @@ public class MetadataSchemaBuilder {
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
 			throw new MetadataSchemaBuilderRuntimeException.CyclicDependenciesInMetadata(e);
 		}
+
 		List<Metadata> sortedMetadatas = new ArrayList<>();
+		for (Metadata metadata : metadatas) {
+			if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED &&
+					!automaticMetadatasDependencies.containsKey(metadata.getLocalCode())) {
+				sortedMetadatas.add(metadata);
+			}
+		}
+
 		for (String sortedMetadataCode : sortedMetadataCodes) {
 			for (Metadata metadata : metadatas) {
 				if (sortedMetadataCode.equals(metadata.getLocalCode())) {

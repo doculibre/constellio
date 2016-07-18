@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.StringPatternMetadataValueCalculator;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -64,8 +64,10 @@ public class DataEntryBuilder {
 
 	@SuppressWarnings("unchecked")
 	public MetadataBuilder asCalculatedStringUsingPattern(String pattern) {
-		metadata.dataEntry = new CalculatedDataEntry(new StringPatternMetadataValueCalculator(pattern));
-		metadata.setType(STRING);
+		metadata.dataEntry = new CalculatedDataEntry(new JEXLMetadataValueCalculator(pattern));
+		if (metadata.getType() == null) {
+			metadata.setType(STRING);
+		}
 		return metadata;
 	}
 

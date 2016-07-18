@@ -22,13 +22,9 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
-import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
@@ -148,17 +144,6 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory, modelLayerFactory);
 
-				for (MetadataSchemaType type : builtTypes.getSchemaTypes()) {
-					for (MetadataSchema schema : type.getAllSchemas()) {
-						for (Metadata metadata : schema.getMetadatas().onlyCalculated().onlyWithoutInheritance()) {
-							MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
-									.getCalculator();
-							if (calculator instanceof InitializedMetadataValueCalculator) {
-								((InitializedMetadataValueCalculator) calculator).initialize(builtTypes, schema);
-							}
-						}
-					}
-				}
 
 				return builtTypes;
 			}
