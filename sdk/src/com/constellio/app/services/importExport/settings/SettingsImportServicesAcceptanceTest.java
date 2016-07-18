@@ -9,7 +9,8 @@ import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.UiTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.After;
@@ -19,34 +20,15 @@ import org.junit.Test;
 import java.util.*;
 
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
-public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
+@UiTest
+public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
-    static final String FOLDER = "folder";
-    static final String DOCUMENT = "document";
-    static final String TITLE_FR = "Le titre du domaine de valeurs 1";
-    static final String TITLE_EN = "First value list's title";
-    static final String TITLE_FR_UPDATED = "Nouveau titre du domaine de valeurs 1";
-    static final String TITLE_EN_UPDATED = "First value list's updated title";
-    static final String TAXO_1_TITLE_FR = "Le titre de la taxo 1";
-    static final String TAXO_1_TITLE_FR_UPDATED = "Nouveau titre de la taxo 1";
-    static final String TAXO_1_TITLE_EN = "First taxonomy's title";
-    static final String TAXO_2_TITLE_FR = "Le titre de la taxo 2";
-    static final String TAXO_2_TITLE_EN = "Second taxonomy's title";
+    Users users = new Users();
 
-    static final List<String> TAXO_USERS = asList("username1", "username2");
-    static final List<String> TAXO_USERS_UPDATED = asList("username1");
-    static final List<String> TAXO_GROUPS = asList("groupCode1", "groupCode2");
-    static final List<String> TAXO_GROUPS_UPDATED = asList("groupCode1", "groupCode2", "groupCode3");
-
-    SettingsImportServices services;
-    ImportedSettings settings = new ImportedSettings();
-    ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings();
-    ImportedCollectionSettings anotherCollectionSettings = new ImportedCollectionSettings();
     SystemConfigurationsManager systemConfigurationsManager;
     MetadataSchemasManager metadataSchemasManager;
     boolean runTwice;
@@ -182,45 +164,23 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
     }
 
     @Test
+    //@InDevelopmentTest
     public void whenImportingCollectionConfigsSettingsThenSetted()
             throws Exception {
 
-        String codeA = "ddvUSRcodeDuDomaineDeValeurA";
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addValueList(new ImportedValueList().setCode(codeA)
-                        .setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
-                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-                        .setCodeMode("DISABLED")
-                ));
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addValueList(getValueListA());
+        collectionSettings.addValueList(getValueListB());
+        collectionSettings.addValueList(getValueListC());
+        collectionSettings.addValueList(getValueListD());
 
-        String codeB = "ddvUSRcodeDuDomaineDeValeurB";
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addValueList(new ImportedValueList().setCode(codeB)
-                        .setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
-                        .setClassifiedTypes(toListOfString(DOCUMENT))
-                        .setCodeMode("REQUIRED_AND_UNIQUE")//.setCodeMode("FACULTATIVE")
-                ));
-
-        String codeC = "ddvUSRcodeDuDomaineDeValeurC";
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addValueList(new ImportedValueList().setCode(codeC)
-                        .setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
-                        .setCodeMode("REQUIRED_AND_UNIQUE")
-                        .setHierarchical(true)
-                ));
-
-        String codeD = "ddvUSRcodeDuDomaineDeValeurD";
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addValueList(new ImportedValueList().setCode(codeD)
-                        .setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
-                        .setHierarchical(false)
-                ));
+        settings.addCollectionsConfigs(collectionSettings);
 
         importSettings();
 
         MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 
-        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(codeA);
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(CODE_1_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR);
         Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
@@ -228,18 +188,19 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(codeMetadata.isDefaultRequirement()).isFalse();
         assertThat(codeMetadata.isUniqueValue()).isFalse();
         assertThat(codeMetadata.isEnabled()).isFalse();
-        assertThat(codeMetadata.isChildOfRelationship()).isFalse();
+        assertThat(metadataSchemaType.getDefaultSchema().hasMetadataWithCode("parent")).isFalse();
 
-        metadataSchemaType = schemaTypes.getSchemaType(codeB);
+        metadataSchemaType = schemaTypes.getSchemaType(CODE_2_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 2");
         codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
         assertThat(codeMetadata).isNotNull();
-        assertThat(codeMetadata.isDefaultRequirement()).isTrue();
-        assertThat(codeMetadata.isUniqueValue()).isTrue();
+        assertThat(codeMetadata.isDefaultRequirement()).isFalse();
+        assertThat(codeMetadata.isUniqueValue()).isFalse();
         assertThat(codeMetadata.isEnabled()).isTrue();
+        assertThat(metadataSchemaType.getDefaultSchema().hasMetadataWithCode("parent")).isFalse();
 
-        metadataSchemaType = schemaTypes.getSchemaType(codeC);
+        metadataSchemaType = schemaTypes.getSchemaType(CODE_3_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 3");
         codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
@@ -247,8 +208,12 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(codeMetadata.isDefaultRequirement()).isTrue();
         assertThat(codeMetadata.isUniqueValue()).isTrue();
         assertThat(codeMetadata.isEnabled()).isTrue();
+        assertThat(metadataSchemaType.getDefaultSchema().hasMetadataWithCode("parent")).isTrue();
+        Metadata parentMetadata = metadataSchemaType.getDefaultSchema().get("parent");
+        assertThat(parentMetadata).isNotNull();
+        assertThat(parentMetadata.getType()).isEqualTo(MetadataValueType.REFERENCE);
 
-        metadataSchemaType = schemaTypes.getSchemaType(codeD);
+        metadataSchemaType = schemaTypes.getSchemaType(CODE_4_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 4");
         codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
@@ -256,12 +221,12 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(codeMetadata.isDefaultRequirement()).isTrue();
         assertThat(codeMetadata.isUniqueValue()).isTrue();
         assertThat(codeMetadata.isEnabled()).isTrue();
-        Metadata parentMetadata = metadataSchemaType.getDefaultSchema().get("parent");
-        assertThat(parentMetadata).isNotNull();
-        assertThat(parentMetadata.getType()).isEqualTo(MetadataValueType.REFERENCE);
+        assertThat(metadataSchemaType.getDefaultSchema().hasMetadataWithCode("parent")).isFalse();
 
         // TODO Valid3r classifiedTypes : Obtenir les schemata qu'on a défini, et vérifier q'une métadonnée de type reférenc3 pointant sur le domaine de valeur a été créée
 
+        //newWebDriver();
+        //waitUntilICloseTheBrowsers();
     }
 
     @Test
@@ -331,7 +296,6 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
     @Test
     public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised() throws Exception {
 
-
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addTaxonomy(new ImportedTaxonomy().setCode("anotherPrefixTaxonomy")
                         .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
@@ -366,98 +330,83 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
     @Test
     public void whenImportingCollectionTaxonomyConfigSettingsThenConfigsAreSaved() throws Exception {
 
-        String taxo1Code = "taxoMyFirstType";
-        String taxo2Code = "taxoMySecondType";
-
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addTaxonomy(new ImportedTaxonomy().setCode(taxo1Code)
-                        .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                        .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-                        .setVisibleOnHomePage(false)
-                        .setUserIds(TAXO_USERS)
-                        .setGroupIds(TAXO_GROUPS)
-                ));
-
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addTaxonomy(new ImportedTaxonomy().setCode(taxo2Code)
-                        .setTitles(toTitlesMap(TAXO_2_TITLE_FR, TAXO_2_TITLE_EN))
-                ));
+        settings.addCollectionsConfigs(getZeCollectionSettings());
 
         importSettings();
 
         MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 
-        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(taxo1Code);
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(TAXO_1_CODE);
         assertThat(metadataSchemaType).isNotNull();
 
         Taxonomy taxonomy = getAppLayerFactory().getModelLayerFactory()
-                .getTaxonomiesManager().getTaxonomyFor(zeCollection, taxo1Code);
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
 
         assertThat(taxonomy).isNotNull();
         assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
         assertThat(taxonomy.isVisibleInHomePage()).isFalse();
-        assertThat(taxonomy.getGroupIds()).hasSize(2).isEqualTo(TAXO_GROUPS);
+        assertThat(taxonomy.getGroupIds()).hasSize(1).isEqualTo(TAXO_GROUPS);
         assertThat(taxonomy.getUserIds()).hasSize(2).isEqualTo(TAXO_USERS);
 
         MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
         List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
         assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
         references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
         assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         taxonomy = getAppLayerFactory().getModelLayerFactory()
-                .getTaxonomiesManager().getTaxonomyFor(zeCollection, taxo2Code);
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
 
         assertThat(taxonomy).isNotNull();
         assertThat(taxonomy.getTitle()).isEqualTo(TAXO_2_TITLE_FR);
         assertThat(taxonomy.isVisibleInHomePage()).isTrue();
         assertThat(taxonomy.getGroupIds()).isEmpty();
         assertThat(taxonomy.getUserIds()).isEmpty();
+
     }
 
     @Test
     public void whenModifyingCollectionTaxonomyConfigSettingsThenConfigsAreUpdated() throws Exception {
 
-        String taxo1Code = "taxoMyFirstType";
-
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
-        ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(taxo1Code)
+        ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
                 .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
                 .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
                 .setVisibleOnHomePage(false)
                 .setUserIds(TAXO_USERS)
                 .setGroupIds(TAXO_GROUPS);
-        settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+
+        settings.addCollectionsConfigs(getZeCollectionSettings());// collectionSettings.addTaxonomy(importedTaxonomy));
 
         importSettings();
 
         MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 
-        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(taxo1Code);
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(TAXO_1_CODE);
         assertThat(metadataSchemaType).isNotNull();
 
         Taxonomy taxonomy = getAppLayerFactory().getModelLayerFactory()
-                .getTaxonomiesManager().getTaxonomyFor(zeCollection, taxo1Code);
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
         assertThat(taxonomy).isNotNull();
         assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
         assertThat(taxonomy.isVisibleInHomePage()).isFalse();
-        assertThat(taxonomy.getGroupIds()).hasSize(2).isEqualTo(TAXO_GROUPS);
+        assertThat(taxonomy.getGroupIds()).hasSize(1).isEqualTo(TAXO_GROUPS);
         assertThat(taxonomy.getUserIds()).hasSize(2).isEqualTo(TAXO_USERS);
 
         MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
         List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
         assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
         references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
         assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         collectionSettings.addTaxonomy(importedTaxonomy
                 .setTitles(toTitlesMap(TAXO_1_TITLE_FR_UPDATED, TAXO_1_TITLE_EN))
@@ -469,26 +418,26 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         importSettings();
 
         taxonomy = getAppLayerFactory().getModelLayerFactory()
-                .getTaxonomiesManager().getTaxonomyFor(zeCollection, taxo1Code);
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
         assertThat(taxonomy).isNotNull();
         assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR_UPDATED);
         assertThat(taxonomy.isVisibleInHomePage()).isFalse();
-        assertThat(taxonomy.getGroupIds()).hasSize(3).isEqualTo(TAXO_GROUPS_UPDATED);
+        assertThat(taxonomy.getGroupIds()).isEmpty();
         assertThat(taxonomy.getUserIds()).hasSize(1).isEqualTo(TAXO_USERS_UPDATED);
 
         folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
         references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
         assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
         references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
         assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(taxo1Code);
-
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         // TODO Valider si on met à jour les classifiedTypes !
+
     }
 
     @Test
@@ -503,7 +452,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
                         .setTabs(toListOfTabs(tabParams))
                         .setDefaultSchema(getFolderDefaultSchema())
                         .addSchema(getFolderSchema()))
-                );
+        );
 
         assertThatErrorsWhileImportingSettingsExtracting()
                 .contains(tuple("SettingsImportServices_emptyTypeCode"));
@@ -518,17 +467,12 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         tabParams.put("", "Mon onglet");
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addType(new ImportedType().setCode("folder").setLabel("Dossier")
-                        .setTabs(toListOfTabs(tabParams))
-                        .setDefaultSchema(getFolderDefaultSchema())
-                        .addSchema(getFolderSchema())
-                ));
+                .addType(getImportedType(tabParams)));
 
         assertThatErrorsWhileImportingSettingsExtracting()
                 .contains(tuple("SettingsImportServices_emptyTabCode"));
 
     }
-
 
     @Test
     public void whenImportingCollectionTypeIfCustomSchemasCodeIsEmptyThenExceptionIsRaised() throws Exception {
@@ -555,19 +499,17 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         tabParams.put("default", "Métadonnées");
         tabParams.put("zeTab", "Mon onglet");
 
-        settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addType(new ImportedType().setCode("folder").setLabel("Dossier")
-                        .setTabs(toListOfTabs(tabParams))
-                        .setDefaultSchema(getFolderDefaultSchema())
-                        .addSchema(getFolderSchema())
-                ));
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addType(getImportedType(tabParams));
+        settings.addCollectionsConfigs(collectionSettings);
 
         importSettings();
 
-        MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+        MetadataSchemaType schemaType = metadataSchemasManager
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
         assertThat(schemaType).isNotNull();
         List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
-        assertThat(schemaTypeMetadata).isNotNull().hasSize(93);
+        assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
 
         // Default schema
         MetadataSchema defaultSchema = schemaType.getDefaultSchema();
@@ -577,65 +519,17 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
         assertThat(metadata1.getLabel(Language.French)).isEqualTo("Titre métadonnée no.1");
         assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
 
-        MetadataSchema customSchema1 = schemaType.getSchema("USRschema1");
-        Metadata customSchema1Metadata1 = customSchema1.get("metadata1");
+        MetadataSchema USRschema1 = schemaType.getSchema("USRschema1");
+        Metadata customSchema1Metadata1 = USRschema1.get("metadata1");
         assertThat(customSchema1Metadata1).isNotNull();
         assertThat(customSchema1Metadata1.isEnabled()).isTrue();
-       // assertThat(customSchema1Metadata1.isDefaultRequirement()).isTrue();
+        assertThat(customSchema1Metadata1.isDefaultRequirement()).isTrue();
 
-        MetadataSchema customSchema2 = schemaType.getSchema("USRschema2");
-        Metadata customSchema2Metadata1 = customSchema2.get("metadata1");
-        assertThat(customSchema2Metadata1).isNotNull();
-        assertThat(customSchema2Metadata1.isEnabled()).isTrue();
-        //assertThat(customSchema2Metadata1.isDefaultRequirement()).isFalse();
-
+        // TODO valider les metadataGroups/tab
 
     }
 
     //-------------------------------------------------------------------------------------
-
-    private ImportedMetadataSchema getFolderSchema() {
-        return new ImportedMetadataSchema().setCode("USRschema1")
-                .addMetadata(new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
-                        .setType(MetadataValueType.STRING)
-                        .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
-                        .setMultiValue(true)
-                        .setRequiredIn(toListOfString("USRschema1")));
-    }
-
-    private ImportedMetadataSchema getFolderDefaultSchema() {
-        return new ImportedMetadataSchema().setCode("default")
-                .addMetadata(new ImportedMetadata().setCode("metadata1").setLabel("Titre métadonnée no.1")
-                        .setType(MetadataValueType.STRING)
-                        .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
-                        .setRequiredIn(toListOfString("USRschema1")))
-                .addMetadata(new ImportedMetadata().setCode("metadata2").setLabel("Titre métadonnée no.2")
-                        .setEnabled(true)
-                        .setType(MetadataValueType.STRING)
-                        .setTabCode("zeTab")
-                        .setMultiValue(true)
-                        .setBehaviours(toListOfString("searchable", "advanced-search")));
-    }
-
-    private List<ImportedTab> toListOfTabs(Map<String, String> tabParams) {
-        List<ImportedTab> tabs = new ArrayList<>();
-        for (Map.Entry<String, String> entry : tabParams.entrySet()) {
-            tabs.add(new ImportedTab().setCode(entry.getKey()).setValue(entry.getValue()));
-        }
-        return tabs;
-    }
-
-    private List<String> toListOfString(String... values) {
-        return Arrays.asList(values);
-    }
-
-    private Map<String, String> toTitlesMap(String title_fr, String title_en) {
-        Map<String, String> titles = new HashMap<>();
-        titles.put("title_fr", title_fr);
-        titles.put("title_en", title_en);
-
-        return titles;
-    }
 
     private void importSettings()
             throws com.constellio.model.frameworks.validation.ValidationException {
@@ -668,7 +562,7 @@ public class SettingsImportServicesAcceptanceTest extends ConstellioTest {
     @Before
     public void setUp() throws Exception {
         prepareSystem(
-                withZeCollection().withConstellioRMModule(),
+                withZeCollection().withConstellioRMModule().withAllTest(users),
                 withCollection("anotherCollection"));
         services = new SettingsImportServices(getAppLayerFactory());
         systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();

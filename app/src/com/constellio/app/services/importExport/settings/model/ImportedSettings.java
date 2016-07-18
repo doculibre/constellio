@@ -26,4 +26,15 @@ public class ImportedSettings {
 		collectionsSettings.add(collectionSettings);
 		return this;
 	}
+
+	public ImportedSettings setConfigs(List<ImportedConfig> configs) {
+		this.configs = configs;
+		return this;
+	}
+
+
+	public ImportedSettings setCollectionsSettings(List<ImportedCollectionSettings> collectionsSettings) {
+		this.collectionsSettings = collectionsSettings;
+		return this;
+	}
 }

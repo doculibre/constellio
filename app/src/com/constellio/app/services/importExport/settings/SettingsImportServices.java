@@ -93,11 +93,16 @@ public class SettingsImportServices {
     private void importCollectionTypes(final ImportedCollectionSettings settings,
                                        String collection, final MetadataSchemaTypes schemaTypes) {
 
+        final List<TypeMetadataDisplaySetting> typeDisplaySettings = new ArrayList<>();
+
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
 
                 for (ImportedType importedType : settings.getTypes()) {
+                    TypeMetadataDisplaySetting displaySetting = new TypeMetadataDisplaySetting();
+                    displaySetting.setSchemaType(importedType.getCode());
+
                     MetadataSchemaTypeBuilder typeBuilder;
                     if (!schemaTypes.hasType(importedType.getCode())) {
                         typeBuilder = types.createNewSchemaType(importedType.getCode());
@@ -111,10 +116,10 @@ public class SettingsImportServices {
                     // TODO set tabs
 
                     for (ImportedMetadataSchema importedMetadataSchema : importedType.getCustomSchemas()) {
-                        Map<String, String> labels = new HashMap<>();
                         MetadataSchemaBuilder customSchemaBuilder;
+                        displaySetting.addSchema(importedMetadataSchema.getCode());
                         try {
-                            customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), labels);
+                            customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
                         } catch (MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined e) {
                             customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
                         }
@@ -130,6 +135,34 @@ public class SettingsImportServices {
 
         // affichage dans la page
 
+        /*
+        com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder#updateSchemaTypeDisplayConfig
+        com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder#updateSchemaDisplayConfig
+        com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder#updateMetadataDisplayConfig
+
+        si tu fais cette ligne, il ne se passera rien :
+        transactionBuilder.updateSchemaDisplayConfig(zeSchema).withNewDisplayMetadataBefore(metadataCode, before) (edited)
+        ​*transactionBuilder.add(*​ transactionBuilder.updateSchemaDisplayConfig(zeSchema).withNewDisplayMetadataBefore(metadataCode, before))
+        */
+
+        /*
+        SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+        SchemaTypesDisplayTransactionBuilder transactionBuilder = new SchemaTypesDisplayTransactionBuilder(schemaTypes, displayManager);
+
+        for (TypeMetadataDisplaySetting displaySetting : displaySettings) {
+
+            transactionBuilder.updateSchemaTypeDisplayConfig(schemaTypes.getSchemaType(displaySetting.getSchemaType()));
+            transactionBuilder.updateSchemaDisplayConfig(schemaTypes.getSchema(displaySetting.getSchema()));
+            Metadata metadata = schemaTypes.getSchema(displaySetting.getSchema()).getMetadata(displaySetting.getMetadata());
+            transactionBuilder.updateMetadataDisplayConfig(metadata);
+
+            transactionBuilder.updateSchemaDisplayConfig(schemaTypes.getSchema(displaySetting.getSchema()))
+                    .withNewDisplayMetadataBefore(displaySetting.getMetadata(), "before");
+            transactionBuilder.add(transactionBuilder.updateSchemaDisplayConfig(schemaTypes.getSchema(displaySetting.getSchema()))
+                    .withNewDisplayMetadataBefore(displaySetting.getMetadata(), "before"));
+
+        }
+        */
     }
 
     private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
@@ -155,7 +188,6 @@ public class SettingsImportServices {
         metadataBuilder.setMultivalue(importedMetadata.isMultiValue());
         metadataBuilder.setSearchable(importedMetadata.isSearchable());
 
-        // TODO setter enabled et required dans les schema de référence
         if ("default".equals(schemaBuilder.getCode())) {
             for (String targetSchema : importedMetadata.getEnabledIn()) {
                 MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchema(typeBuilder.getCode() + "_" + targetSchema);
@@ -171,8 +203,8 @@ public class SettingsImportServices {
         }
     }
 
-    private void importCollectionTaxonomies(final ImportedCollectionSettings collectionSettings,
-                                            final String collectionCode, final MetadataSchemaTypes collectionSchemaTypes) {
+    private void importCollectionTaxonomies(final ImportedCollectionSettings settings,
+                                            final String collectionCode, final MetadataSchemaTypes schemaTypes) {
 
         final Map<Taxonomy, ImportedTaxonomy> taxonomies = new HashMap<>();
         valueListServices = new ValueListServices(appLayerFactory, collectionCode);
@@ -181,12 +213,12 @@ public class SettingsImportServices {
             @Override
             public void alter(MetadataSchemaTypesBuilder typesBuilder) {
 
-                for (final ImportedTaxonomy importedTaxonomy : collectionSettings.getTaxonomies()) {
+                for (final ImportedTaxonomy importedTaxonomy : settings.getTaxonomies()) {
                     String typeCode = importedTaxonomy.getCode();
                     String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
                     String title = importedTaxonomy.getTitles().get(TITLE_FR);
 
-                    if (!collectionSchemaTypes.hasType(importedTaxonomy.getCode())) {
+                    if (!schemaTypes.hasType(importedTaxonomy.getCode())) {
 
                         Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
 
@@ -198,13 +230,11 @@ public class SettingsImportServices {
                                 .withGroupIds(importedTaxonomy.getGroupIds())
                                 .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
 
-                        // TODO Valider si on met à jour les classifiedTypes !
                         appLayerFactory.getModelLayerFactory().getTaxonomiesManager().editTaxonomy(taxonomy);
                     }
                 }
             }
         });
-
 
         for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
             Taxonomy taxonomy = entry.getKey();
@@ -213,12 +243,14 @@ public class SettingsImportServices {
                     .withUserIds(importedTaxonomy.getUserIds())
                     .withGroupIds(importedTaxonomy.getGroupIds())
                     .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
-            appLayerFactory.getModelLayerFactory().getTaxonomiesManager().addTaxonomy(currTaxonomy, schemasManager);
+            appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
+                    .addTaxonomy(currTaxonomy, schemasManager);
 
             String groupLabel = $(CLASSIFIED_IN_GROUP_LABEL);
             for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
                 valueListServices.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
             }
+
         }
     }
 
@@ -249,7 +281,7 @@ public class SettingsImportServices {
 
                         ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-                        if (importedValueList.isHierarchical()) {
+                        if (!importedValueList.isHierarchical()) {
                             builder.createValueListItemSchema(code,
                                     importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
                         } else {

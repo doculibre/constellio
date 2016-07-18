@@ -55,4 +55,14 @@ public class ImportedCollectionSettings {
 	public List<ImportedType> getTypes(){
 		return types;
 	}
+
+	public ImportedCollectionSettings setValueLists(List<ImportedValueList> valueLists) {
+		this.valueLists = valueLists;
+		return this;
+	}
+
+	public ImportedCollectionSettings setTaxonomies(List<ImportedTaxonomy> taxonomies) {
+		this.taxonomies = taxonomies;
+		return this;
+	}
 }
