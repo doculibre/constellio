@@ -69,7 +69,7 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 
 		threads.startAll();
 
-		while (total.get() < 100000) {
+		while (total.get() < 95000) {
 			System.out.println(total.get());
 			Thread.sleep(500);
 		}
