@@ -29,7 +29,6 @@ public class ImportedMetadata {
     private String inputMask;
     private boolean searchable;
     private boolean advanceSearchable;
-
     private boolean unmodifiable;
     private boolean sortable;
     private boolean recordAutocomplete;
@@ -37,6 +36,8 @@ public class ImportedMetadata {
     private boolean essentialInSummary;
     private boolean multiLingual;
     private boolean duplicable;
+    private boolean encrypted;
+    private boolean unique;
 
     public String getCode() {
         return code;
@@ -291,5 +292,23 @@ public class ImportedMetadata {
     public ImportedMetadata setDuplicable(boolean duplicable) {
         this.duplicable = duplicable;
         return this;
+    }
+
+    public ImportedMetadata setEncrypted(boolean encrypted) {
+        this.encrypted = encrypted;
+        return this;
+    }
+
+    public boolean isEncrypted() {
+        return encrypted;
+    }
+
+    public ImportedMetadata setUnique(boolean unique) {
+        this.unique = unique;
+        return this;
+    }
+
+    public boolean isUnique() {
+        return unique;
     }
 }

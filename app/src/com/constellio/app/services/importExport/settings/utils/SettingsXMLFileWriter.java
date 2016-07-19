@@ -9,8 +9,6 @@ import java.util.List;
 
 public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
 
-    public static final String TABS = "tabs";
-    public static final String TAB = "tab";
     public static final String DEFAULT_SCHEMA = "default-schema";
     public static final String METADATA = "metadata";
     public static final String LABEL = "label";
@@ -40,6 +38,7 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
     public static final String REQUIRED = "required";
     public static final String ENABLED_IN = "enabledIn";
     public static final String ENABLED = "enabled";
+
     private Document document;
     private Element settingsElement;
 

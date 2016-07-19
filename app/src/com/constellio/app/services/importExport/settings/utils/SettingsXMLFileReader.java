@@ -11,6 +11,8 @@ import java.util.*;
 
 public class SettingsXMLFileReader extends SettingsXMLFileConstants {
 
+    public static final String ENCRYPTED = "encrypted";
+    public static final String UNIQUE = "unique";
     private Document document;
 
     public SettingsXMLFileReader(Document document) {
@@ -114,6 +116,8 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
             importedMetadata.setRequiredIn(toListOfString(element.getAttributeValue(REQUIRED_IN)));
         }
 
+        importedMetadata.setUnique(properties.contains(UNIQUE));
+
         if (element.getAttribute(VISIBLE_IN_FORM) != null) {
             importedMetadata.setVisibleInForm(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_FORM)));
         }
@@ -150,6 +154,9 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
         importedMetadata.setMultiLingual(properties.contains(MULTI_LINGUAL));
 
         importedMetadata.setDuplicable(properties.contains(DUPLICATE));
+
+        importedMetadata.setEncrypted(properties.contains(ENCRYPTED));
+
 
         return importedMetadata;
     }

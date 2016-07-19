@@ -4,10 +4,14 @@ import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -93,15 +97,16 @@ public class SettingsImportServices {
     private void importCollectionTypes(final ImportedCollectionSettings settings,
                                        String collection, final MetadataSchemaTypes schemaTypes) {
 
-        final List<TypeMetadataDisplaySetting> typeDisplaySettings = new ArrayList<>();
+        final List<TypeMetadataDisplaySetting> displaySettings = new ArrayList<>();
 
         schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
             @Override
             public void alter(MetadataSchemaTypesBuilder types) {
 
                 for (ImportedType importedType : settings.getTypes()) {
-                    TypeMetadataDisplaySetting displaySetting = new TypeMetadataDisplaySetting();
-                    displaySetting.setSchemaType(importedType.getCode());
+                    TypeMetadataDisplaySetting displayConfigs = new TypeMetadataDisplaySetting();
+                    displayConfigs.setSchemaType(importedType.getCode());
+                    displaySettings.add(displayConfigs);
 
                     MetadataSchemaTypeBuilder typeBuilder;
                     if (!schemaTypes.hasType(importedType.getCode())) {
@@ -115,27 +120,27 @@ public class SettingsImportServices {
 
                     // TODO set tabs
 
-                    for (ImportedMetadataSchema importedMetadataSchema : importedType.getCustomSchemas()) {
-                        MetadataSchemaBuilder customSchemaBuilder;
-                        displaySetting.addSchema(importedMetadataSchema.getCode());
-                        try {
-                            customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
-                        } catch (MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined e) {
-                            customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
-                        }
-                        importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types);
-                    }
+                    importCustomSchemata(types, importedType, displayConfigs, typeBuilder);
 
-                    importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types);
+                    importSchemaMetadatas(typeBuilder, displayConfigs, importedType.getDefaultSchema(), defaultSchemaBuilder, types);
 
                 }
             }
         });
 
-
         // affichage dans la page
 
+
         /*
+
+        importedMetadata.getVisibleInDisplayIn();
+        importedMetadata.getVisibleInFormIn();
+        importedMetadata.getVisibleInResultIn();
+        importedMetadata.isVisibleInDisplay();
+        importedMetadata.isVisibleInForm();
+        importedMetadata.isVisibleInSearchResult();
+        importedMetadata.isVisibleInTables();
+
         com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder#updateSchemaTypeDisplayConfig
         com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder#updateSchemaDisplayConfig
         com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder#updateMetadataDisplayConfig
@@ -145,29 +150,67 @@ public class SettingsImportServices {
         ​*transactionBuilder.add(*​ transactionBuilder.updateSchemaDisplayConfig(zeSchema).withNewDisplayMetadataBefore(metadataCode, before))
         */
 
-        /*
+        /**/
         SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
         SchemaTypesDisplayTransactionBuilder transactionBuilder = new SchemaTypesDisplayTransactionBuilder(schemaTypes, displayManager);
 
+        Map<String, MetadataSchema> schemataCache = new HashMap<>();
+
+        /*
         for (TypeMetadataDisplaySetting displaySetting : displaySettings) {
 
-            transactionBuilder.updateSchemaTypeDisplayConfig(schemaTypes.getSchemaType(displaySetting.getSchemaType()));
-            transactionBuilder.updateSchemaDisplayConfig(schemaTypes.getSchema(displaySetting.getSchema()));
-            Metadata metadata = schemaTypes.getSchema(displaySetting.getSchema()).getMetadata(displaySetting.getMetadata());
-            transactionBuilder.updateMetadataDisplayConfig(metadata);
+            // Update schemaType
+            transactionBuilder
+                    .updateSchemaTypeDisplayConfig(schemaTypes.getSchemaType(displaySetting.getSchemaType()));
 
-            transactionBuilder.updateSchemaDisplayConfig(schemaTypes.getSchema(displaySetting.getSchema()))
-                    .withNewDisplayMetadataBefore(displaySetting.getMetadata(), "before");
-            transactionBuilder.add(transactionBuilder.updateSchemaDisplayConfig(schemaTypes.getSchema(displaySetting.getSchema()))
-                    .withNewDisplayMetadataBefore(displaySetting.getMetadata(), "before"));
+            // foreach schema in which display is updated
+            for (String schemaCode : displaySetting.getSchemata()) {
+                String prefixedSchemaCode = displaySetting.getSchemaType() + "_" + schemaCode;
+                if (schemaTypes.hasSchema(prefixedSchemaCode)) {
+                    MetadataSchema metadataSchema = schemataCache.get(schemaCode);
+                    if (metadataSchema == null) {
+                        metadataSchema = schemaTypes.getSchema(prefixedSchemaCode);
+                        schemataCache.put(schemaCode, metadataSchema);
+                    }
 
+                    // update schema display config
+                    transactionBuilder.updateSchemaDisplayConfig(metadataSchema)
+                            .withNewDisplayMetadataBefore(displaySetting.getMetadata(), "before");
+
+                    Metadata metadata = metadataSchema.getMetadata(displaySetting.getMetadata());
+
+                    transactionBuilder.updateMetadataDisplayConfig(metadata);
+                    transactionBuilder.add(transactionBuilder.updateSchemaDisplayConfig(metadataSchema)
+                            .withNewDisplayMetadataBefore(displaySetting.getMetadata(), "before"));
+                }
+            }
         }
         */
     }
 
-    private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
-                                       MetadataSchemaBuilder schemaBuilder, MetadataSchemaTypesBuilder typesBuilder) {
+    private void importCustomSchemata(MetadataSchemaTypesBuilder types, ImportedType importedType,
+                                      TypeMetadataDisplaySetting displaySetting, MetadataSchemaTypeBuilder typeBuilder) {
+        for (ImportedMetadataSchema importedMetadataSchema : importedType.getCustomSchemas()) {
+            importSchema(types, displaySetting, typeBuilder, importedMetadataSchema);
+        }
+    }
+
+    private void importSchema(MetadataSchemaTypesBuilder types, TypeMetadataDisplaySetting displaySetting,
+                              MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema) {
+        MetadataSchemaBuilder customSchemaBuilder;
+        displaySetting.addSchema(importedMetadataSchema.getCode());
+        try {
+            customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
+        } catch (MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined e) {
+            customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+        }
+        importSchemaMetadatas(typeBuilder, displaySetting, importedMetadataSchema, customSchemaBuilder, types);
+    }
+
+    private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder, TypeMetadataDisplaySetting displaySetting,
+                                       ImportedMetadataSchema importedMetadataSchema, MetadataSchemaBuilder schemaBuilder, MetadataSchemaTypesBuilder typesBuilder) {
         for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
+            // ... displaySetting.setMetadata(importedMetadata.getCode());
             createAndAddMetadata(typeBuilder, schemaBuilder, importedMetadata, typesBuilder);
         }
     }
@@ -184,13 +227,38 @@ public class SettingsImportServices {
 
         metadataBuilder.addLabel(Language.French, importedMetadata.getLabel());
         metadataBuilder.setDefaultRequirement(importedMetadata.isRequired());
+
+        metadataBuilder.setDuplicable(importedMetadata.isDuplicable());
         metadataBuilder.setEnabled(importedMetadata.isEnabled());
-        metadataBuilder.setMultivalue(importedMetadata.isMultiValue());
+        metadataBuilder.setEncrypted(importedMetadata.isEncrypted());
+        metadataBuilder.setEssential(importedMetadata.isEssential());
+        metadataBuilder.setEssentialInSummary(importedMetadata.isEssentialInSummary());
+        metadataBuilder.setInputMask(importedMetadata.getInputMask());
+        metadataBuilder.setMultiLingual(importedMetadata.isMultiLingual());
+        metadataBuilder.setUniqueValue(importedMetadata.isUnique());
+        if (!importedMetadata.isUnique()) {
+            metadataBuilder.setMultivalue(importedMetadata.isMultiValue());
+        }
+        // TODO valider si SchemaAutocomplete == isRecordAutocomplete()
+        metadataBuilder.setSchemaAutocomplete(importedMetadata.isRecordAutocomplete());
         metadataBuilder.setSearchable(importedMetadata.isSearchable());
+        // TODO valider si/comnment setter advanceSearchable
+        metadataBuilder.setSortable(importedMetadata.isSortable());
+        // TODO valider si la métadonnée fait partie de l'implort
+        metadataBuilder.setSystemReserved(false);
+        // TODO valider si la métadonnée fait partie de l'import
+        metadataBuilder.setTaxonomyRelationship(false);
+        // TODO valider comment seeter le groupe auquel appartient la métadonnée.
+        // metadataBuilder.setMetadataGroupTab(importedMetadata.getTab());
+        // metadataBuilder.setType(importedMetadata.getType());
+        // TODO valider a quoi correspond la propriété undeletable
+        //metadataBuilder.setUndeletable(importedMetadata.isUnmodifiable());
+        metadataBuilder.setUnmodifiable(importedMetadata.isUnmodifiable());
 
         if ("default".equals(schemaBuilder.getCode())) {
             for (String targetSchema : importedMetadata.getEnabledIn()) {
-                MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchema(typeBuilder.getCode() + "_" + targetSchema);
+                String prefixedSchemaCode = typeBuilder.getCode() + "_" + targetSchema;
+                MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchema(prefixedSchemaCode);
                 if (metadataSchemaBuilder != null) {
                     MetadataBuilder targetSchemaMetadataBuilder = metadataSchemaBuilder.get(importedMetadata.getCode());
                     targetSchemaMetadataBuilder.setEnabled(true);
@@ -516,33 +584,5 @@ public class SettingsImportServices {
         parameters.put(CONFIG, importedConfig.getKey());
         parameters.put(VALUE, importedConfig.getValue());
         return parameters;
-    }
-
-    class TypeSchemaMetadataConfiguration {
-        // schema -­> List of metadata to enable
-        private HashMap<String, List<String>> schemaEnabledMetadata = new HashMap<>();
-        private HashMap<String, List<String>> schemaRequiredMetadata = new HashMap<>();
-
-        public void addEnabledInSchema(String metadataCode, List<String> targetSchema) {
-            for (String schema : targetSchema) {
-                if (!schemaEnabledMetadata.containsKey(schema)) {
-                    schemaEnabledMetadata.put(schema, new ArrayList<String>());
-                }
-                schemaEnabledMetadata.get(schema).add(metadataCode);
-            }
-        }
-
-        public void addRequiredInSchema(String metadataCode, List<String> targetSchema) {
-            for (String schema : targetSchema) {
-                if (!schemaRequiredMetadata.containsKey(schema)) {
-                    schemaRequiredMetadata.put(schema, new ArrayList<String>());
-                }
-                schemaRequiredMetadata.get(schema).add(metadataCode);
-            }
-        }
-
-        public List<String> getEnabledInSchema() {
-            return (List<String>) schemaEnabledMetadata.keySet();
-        }
     }
 }

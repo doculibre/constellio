@@ -339,40 +339,48 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(TAXO_1_CODE);
         assertThat(metadataSchemaType).isNotNull();
 
-        Taxonomy taxonomy = getAppLayerFactory().getModelLayerFactory()
-                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
+        Taxonomy taxonomy1 = getAppLayerFactory().getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
-        assertThat(taxonomy).isNotNull();
-        assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
-        assertThat(taxonomy.isVisibleInHomePage()).isFalse();
-        assertThat(taxonomy.getGroupIds()).hasSize(1).isEqualTo(TAXO_GROUPS);
-        assertThat(taxonomy.getUserIds()).hasSize(2).isEqualTo(TAXO_USERS);
+        assertThat(taxonomy1).isNotNull();
+        assertThat(taxonomy1.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+        assertThat(taxonomy1.isVisibleInHomePage()).isFalse();
+        assertThat(taxonomy1.getGroupIds()).hasSize(1).isEqualTo(TAXO_GROUPS);
+        assertThat(taxonomy1.getUserIds()).hasSize(2).isEqualTo(TAXO_USERS);
 
         MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
-        List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
+        List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy1));
         assertThat(references).hasSize(1);
         assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
-        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
+        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy1));
         assertThat(references).hasSize(1);
         assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
-        taxonomy = getAppLayerFactory().getModelLayerFactory()
+        Taxonomy taxonomy2 = getAppLayerFactory().getModelLayerFactory()
                 .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
 
-        assertThat(taxonomy).isNotNull();
-        assertThat(taxonomy.getTitle()).isEqualTo(TAXO_2_TITLE_FR);
-        assertThat(taxonomy.isVisibleInHomePage()).isTrue();
-        assertThat(taxonomy.getGroupIds()).isEmpty();
-        assertThat(taxonomy.getUserIds()).isEmpty();
+        assertThat(taxonomy2).isNotNull();
+        assertThat(taxonomy2.getTitle()).isEqualTo(TAXO_2_TITLE_FR);
+        assertThat(taxonomy2.isVisibleInHomePage()).isTrue();
+        assertThat(taxonomy2.getGroupIds()).isEmpty();
+        assertThat(taxonomy2.getUserIds()).isEmpty();
+
+        references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy2));
+        assertThat(references).isEmpty();
+
+        documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
+        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy2));
+        assertThat(references).isEmpty();
 
     }
 
     @Test
     public void whenModifyingCollectionTaxonomyConfigSettingsThenConfigsAreUpdated() throws Exception {
 
-        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
         ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
                 .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
                 .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
@@ -380,7 +388,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
                 .setUserIds(TAXO_USERS)
                 .setGroupIds(TAXO_GROUPS);
 
-        settings.addCollectionsConfigs(getZeCollectionSettings());// collectionSettings.addTaxonomy(importedTaxonomy));
+        settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
 
         importSettings();
 
@@ -511,22 +519,132 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
         assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
 
+        validateTypeImport(schemaType);
+
+    }
+
+    @Test
+    public void whenModifyingCollectionTypesValuesAreSet() throws Exception {
+        Map<String, String> tabParams = new HashMap<>();
+        tabParams.put("default", "Métadonnées");
+        tabParams.put("zeTab", "Mon onglet");
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addType(getImportedType(tabParams));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = metadataSchemasManager
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        assertThat(schemaType).isNotNull();
+        List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
+        assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
+        validateTypeImport(schemaType);
+
+        collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addType(getImportedType(tabParams));
+        settings.addCollectionsConfigs(collectionSettings);
+
+
+        /*
+        .addMetadata(new ImportedMetadata().setCode("metadata2").setLabel("Nouveau Titre métadonnée no.2")
+                .setType(MetadataValueType.STRING)
+                .setEnabled(true)
+                .setRequired(false) // X
+                .setTab("default")
+                .setMultiValue(true)
+                .setBehaviours(toListOfString("searchableInSimpleSearch", "searchableInAdvancedSearch",
+                        "unique", "unmodifiable", "sortable")) // X
+                .setSearchable(false) //X
+                .setAdvanceSearchable(true)
+                .setUnique(true)
+                .setUnmodifiable(false) // X
+                .setSortable(true)
+                .setRecordAutocomplete(true)
+                .setEssential(false) // X
+                .setEssentialInSummary(true)
+                .setMultiLingual(true)   // cannot be multivalue and unique at same time !
+                .setDuplicable(true)
+                .setInputMask("9999-0000")
+*/
+    }
+
+    private void validateTypeImport(MetadataSchemaType schemaType) {
         // Default schema
         MetadataSchema defaultSchema = schemaType.getDefaultSchema();
+        assertThat(defaultSchema).isNotNull();
 
         Metadata metadata1 = defaultSchema.get("metadata1");
         assertThat(metadata1).isNotNull();
         assertThat(metadata1.getLabel(Language.French)).isEqualTo("Titre métadonnée no.1");
         assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata1.getInputMask()).isNullOrEmpty();
+        assertThat(metadata1.isDefaultRequirement()).isTrue();
+        assertThat(metadata1.isDuplicable()).isFalse();
+        assertThat(metadata1.isEnabled()).isTrue();
+        assertThat(metadata1.isEncrypted()).isFalse();
+        assertThat(metadata1.isEssential()).isFalse();
+        assertThat(metadata1.isEssentialInSummary()).isFalse();
+        assertThat(metadata1.isMultiLingual()).isFalse();
+        assertThat(metadata1.isMultivalue()).isFalse();
+        assertThat(metadata1.isSearchable()).isFalse();
+        assertThat(metadata1.isSchemaAutocomplete()).isFalse();
+        assertThat(metadata1.isSortable()).isFalse();
+        assertThat(metadata1.isSystemReserved()).isFalse();
+        assertThat(metadata1.isUndeletable()).isFalse();
+        assertThat(metadata1.isUniqueValue()).isFalse();
+        assertThat(metadata1.isUnmodifiable()).isFalse();
+
+        // TODO Valider le tab de la métadonnée
+        Metadata metadata2 = defaultSchema.get("metadata2");
+        assertThat(metadata2).isNotNull();
+        assertThat(metadata2.getLabel(Language.French)).isEqualTo("Titre métadonnée no.2");
+        assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
+        assertThat(metadata2.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata2.isDefaultRequirement()).isTrue();
+        assertThat(metadata2.isDuplicable()).isTrue();
+        assertThat(metadata2.isEnabled()).isTrue();
+        assertThat(metadata2.isEncrypted()).isFalse();
+        assertThat(metadata2.isEssential()).isTrue();
+        assertThat(metadata2.isEssentialInSummary()).isTrue();
+        //  TODO à confirmer Francis: Because of inheritance value is different from expected value
+        // assertThat(metadata2.isMultiLingual()).isTrue();
+        assertThat(metadata2.isMultivalue()).isFalse();
+        assertThat(metadata2.isSearchable()).isTrue();
+        // TODO valider advanceSearchable
+        assertThat(metadata2.isSchemaAutocomplete()).isTrue();
+        assertThat(metadata2.isSortable()).isTrue();
+        // TODO valider à quoi correspond isSystemReserved et isUnideletable
+        assertThat(metadata2.isSystemReserved()).isFalse();
+        // TODO valider si l'attribut est settable
+        //assertThat(metadata2.isUndeletable()).isFalse();
+        assertThat(metadata2.isUniqueValue()).isTrue();
+        assertThat(metadata2.isUnmodifiable()).isTrue();
 
         MetadataSchema USRschema1 = schemaType.getSchema("USRschema1");
-        Metadata customSchema1Metadata1 = USRschema1.get("metadata1");
-        assertThat(customSchema1Metadata1).isNotNull();
-        assertThat(customSchema1Metadata1.isEnabled()).isTrue();
-        assertThat(customSchema1Metadata1.isDefaultRequirement()).isTrue();
+        assertThat(USRschema1).isNotNull();
 
-        // TODO valider les metadataGroups/tab
-
+        Metadata metadata3 = USRschema1.get("metadata3");
+        assertThat(metadata3).isNotNull();
+        assertThat(metadata3.getLabel(Language.French)).isEqualTo("Titre métadonnée no.3");
+        assertThat(metadata3.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata3.getInputMask()).isNullOrEmpty();
+        assertThat(metadata3.isDefaultRequirement()).isTrue();
+        assertThat(metadata3.isDuplicable()).isFalse();
+        assertThat(metadata3.isEnabled()).isTrue();
+        assertThat(metadata3.isEncrypted()).isFalse();
+        assertThat(metadata3.isEssential()).isFalse();
+        assertThat(metadata3.isEssentialInSummary()).isFalse();
+        assertThat(metadata3.isMultiLingual()).isFalse();
+        assertThat(metadata3.isMultivalue()).isTrue();
+        assertThat(metadata3.isSearchable()).isFalse();
+        assertThat(metadata3.isSchemaAutocomplete()).isFalse();
+        assertThat(metadata3.isSortable()).isFalse();
+        assertThat(metadata3.isSystemReserved()).isFalse();
+        assertThat(metadata3.isUndeletable()).isFalse();
+        assertThat(metadata3.isUniqueValue()).isFalse();
+        assertThat(metadata3.isUnmodifiable()).isFalse();
     }
 
     //-------------------------------------------------------------------------------------

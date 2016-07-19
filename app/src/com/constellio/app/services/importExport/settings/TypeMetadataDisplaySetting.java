@@ -5,7 +5,7 @@ import java.util.*;
 public class TypeMetadataDisplaySetting {
 
     private String schemaType;
-    private Map<String, List<MetadataDisplaySetting>> schema = new HashMap<>();
+    private List<String> schemata = new ArrayList<>();
     private String metadata;
 
     public String getSchemaType() {
@@ -17,12 +17,12 @@ public class TypeMetadataDisplaySetting {
         return this;
     }
 
-    public Set<String> getSchema() {
-        return schema.keySet();
+    public List<String> getSchemata() {
+        return schemata;
     }
 
-    public List<MetadataDisplaySetting> getMetadata(String schemaCode) {
-        return schema.get(schemaCode);
+    public String getMetadata() {
+        return metadata;
     }
 
     public TypeMetadataDisplaySetting setMetadata(String metadata) {
@@ -31,8 +31,8 @@ public class TypeMetadataDisplaySetting {
     }
 
     public void addSchema(String code) {
-        if (!schema.containsKey(code)) {
-            schema.put(code, new ArrayList<MetadataDisplaySetting>());
+        if (!schemata.contains(code)) {
+            schemata.add(code);
         }
     }
 }
