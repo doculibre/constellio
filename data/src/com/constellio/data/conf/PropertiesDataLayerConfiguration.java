@@ -71,7 +71,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode) {
-		setString("dao.contents.filesystem.separatormode", mode.name());
+		setString("dao.contents.filesystem.separatormode", mode == null ? null : mode.name());
 	}
 
 	public String getSettingsZookeeperAddress() {
@@ -201,7 +201,7 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public void setHashingEncoding(HashingEncoding encoding) {
-		setString("hashing.encoding", encoding.name());
+		setString("hashing.encoding", encoding == null ? null : encoding.name());
 	}
 
 }

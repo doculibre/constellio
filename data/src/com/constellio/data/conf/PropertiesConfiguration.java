@@ -66,7 +66,9 @@ public abstract class PropertiesConfiguration {
 			if (languageProperty != null) {
 				properties.remove(languageProperty);
 			}
-			properties.add(key + "=" + value);
+			if (value != null) {
+				properties.add(key + "=" + value);
+			}
 			propertyFile.delete();
 			FileUtils.writeLines(propertyFile, properties);
 		} catch (IOException e) {

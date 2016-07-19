@@ -1543,8 +1543,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	public static class TestInitializedMetadataValueCalculator implements InitializedMetadataValueCalculator<String> {
 
-		static int initializationCounter1 = 0;
-		static int initializationCounter2 = 0;
+		int initializationCounter1 = 0;
+		int initializationCounter2 = 0;
 
 		MetadataSchemaTypes types;
 		MetadataSchema schema;
@@ -1577,7 +1577,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
-			initializationCounter2++;
+			initializationCounter1++;
 		}
 
 		@Override
