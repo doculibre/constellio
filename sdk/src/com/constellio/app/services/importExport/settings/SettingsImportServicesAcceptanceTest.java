@@ -183,7 +183,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(CODE_1_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR);
-        Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+        Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
         assertThat(codeMetadata).isNotNull();
         assertThat(codeMetadata.isDefaultRequirement()).isFalse();
         assertThat(codeMetadata.isUniqueValue()).isFalse();
@@ -193,7 +193,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         metadataSchemaType = schemaTypes.getSchemaType(CODE_2_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 2");
-        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
         assertThat(codeMetadata).isNotNull();
         assertThat(codeMetadata.isDefaultRequirement()).isFalse();
         assertThat(codeMetadata.isUniqueValue()).isFalse();
@@ -203,7 +203,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         metadataSchemaType = schemaTypes.getSchemaType(CODE_3_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 3");
-        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
         assertThat(codeMetadata).isNotNull();
         assertThat(codeMetadata.isDefaultRequirement()).isTrue();
         assertThat(codeMetadata.isUniqueValue()).isTrue();
@@ -216,7 +216,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         metadataSchemaType = schemaTypes.getSchemaType(CODE_4_VALUE_LIST);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo("Le titre du domaine de valeurs 4");
-        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
         assertThat(codeMetadata).isNotNull();
         assertThat(codeMetadata.isDefaultRequirement()).isTrue();
         assertThat(codeMetadata.isUniqueValue()).isTrue();
@@ -250,7 +250,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(codeA);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR);
-        Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+        Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
         assertThat(codeMetadata).isNotNull();
         assertThat(codeMetadata.isDefaultRequirement()).isFalse();
         assertThat(codeMetadata.isUniqueValue()).isFalse();
@@ -267,7 +267,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         metadataSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType(codeA);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR_UPDATED);
-        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata("code");
+        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
         assertThat(codeMetadata).isNotNull();
         assertThat(codeMetadata.isDefaultRequirement()).isFalse();
         assertThat(codeMetadata.isUniqueValue()).isFalse();

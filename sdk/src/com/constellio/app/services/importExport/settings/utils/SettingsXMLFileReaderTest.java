@@ -1,7 +1,10 @@
 package com.constellio.app.services.importExport.settings.utils;
 
+import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
@@ -14,8 +17,9 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.extractProperty;
 
-public class SettingsXMLFileReaderTest {
+public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
     private Document document;
     private SettingsXMLFileReader reader;
@@ -46,6 +50,21 @@ public class SettingsXMLFileReaderTest {
         assertThat(configs.get(4).getValue()).isEqualTo("15");
         assertThat(configs.get(5).getKey()).isEqualTo("yearEndDate");
         assertThat(configs.get(5).getValue()).isEqualTo("02/28");
+
+        List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+        assertThat(collectionSettings).hasSize(1);
+
+        ImportedCollectionSettings zeCollectionSettings = collectionSettings.get(0);
+        assertThat(zeCollectionSettings).isNotNull();
+        assertThat(zeCollectionSettings.getCode()).isEqualTo(zeCollection);
+
+        List<ImportedValueList> valueLists = zeCollectionSettings.getValueLists();
+        assertThat(valueLists).isNotEmpty().hasSize(4);
+
+        ImportedValueList refValueList = getValueListA();
+        ImportedValueList valueListItemA = valueLists.get(0);
+        assertThat(valueListItemA).isEqualTo(refValueList);
+
 
     }
 

@@ -56,7 +56,6 @@ benckmarks/
 !/connectors/*/libs/*.jar
 /.idea
 .benchmarks.mv.db
-sdk.properties
 
 /sdk/src/com/intelligid/DeveloperTestSuite.*
 /sdk/intelligid.log*
@@ -74,7 +73,5 @@ sdk.properties
 app/ivy.xml
 app/ivysettings.xml
 
-A
-A
-
-
+Supprimerait app/WebContent/WEB-INF/lib/
+Supprimerait sdk/ConfigurationRoot/

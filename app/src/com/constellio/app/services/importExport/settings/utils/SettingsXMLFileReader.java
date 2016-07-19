@@ -9,7 +9,7 @@ import org.jdom2.Element;
 
 import java.util.*;
 
-public class SettingsXMLFileReader {
+public class SettingsXMLFileReader extends SettingsXMLFileConstants {
 
     private Document document;
 
@@ -22,8 +22,8 @@ public class SettingsXMLFileReader {
         Element rootNode = document.getRootElement();
 
         ImportedSettings importedSettings = new ImportedSettings()
-                .setConfigs(readConfigs(rootNode.getChild("configs")))
-                .setCollectionsSettings(readCollectionSettings(rootNode.getChildren("collection-settings")));
+                .setConfigs(readConfigs(rootNode.getChild(CONFIGS)))
+                .setCollectionsSettings(readCollectionSettings(rootNode.getChildren(COLLECTION_SETTINGS)));
 
         return importedSettings;
     }
@@ -37,10 +37,10 @@ public class SettingsXMLFileReader {
     }
 
     private ImportedCollectionSettings readCollectionSetting(Element collectionElement) {
-        return new ImportedCollectionSettings().setCode(collectionElement.getAttributeValue("code"))
-                .setValueLists(getCollectionValueLists(collectionElement.getChild("valueLists")))
-                .setTaxonomies(getCollectionTaxonomies(collectionElement.getChild("taxonomies")))
-                .setTypes(getCollectionTypes(collectionElement.getChild("types")));
+        return new ImportedCollectionSettings().setCode(collectionElement.getAttributeValue(CODE))
+                .setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS)))
+                .setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES)))
+                .setTypes(getCollectionTypes(collectionElement.getChild(TYPES)));
     }
 
     private List<ImportedType> getCollectionTypes(Element typesElement) {
@@ -52,13 +52,13 @@ public class SettingsXMLFileReader {
     }
 
     private ImportedType readType(Element typeElement) {
-        return new ImportedType().setCode(typeElement.getAttributeValue("code"))
-                .setTabs(getTabs(typeElement.getChild("tabs")))
-                .setDefaultSchema(readDefaultSchema(typeElement.getChild("default-schema")));
+        return new ImportedType().setCode(typeElement.getAttributeValue(CODE))
+                .setTabs(getTabs(typeElement.getChild(TABS)))
+                .setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA)));
     }
 
     private ImportedMetadataSchema readDefaultSchema(Element element) {
-        return new ImportedMetadataSchema().setAllMetadatas(readMetadata(element.getChildren("metadata")));
+        return new ImportedMetadataSchema().setAllMetadatas(readMetadata(element.getChildren(METADATA)));
     }
 
     private List<ImportedMetadata> readMetadata(List<Element> elements) {
@@ -71,39 +71,87 @@ public class SettingsXMLFileReader {
 
     private ImportedMetadata readMetadata(Element element) {
         List<String> properties = new ArrayList<>();
-        if (StringUtils.isNotBlank(element.getAttributeValue("behaviours"))) {
-            properties.addAll(Arrays.asList(StringUtils.split(element.getAttributeValue("behaviours"), ',')));
+        if (element.getAttribute(BEHAVIOURS) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(BEHAVIOURS))) {
+            properties.addAll(Arrays.asList(StringUtils.split(element.getAttributeValue(BEHAVIOURS), ',')));
         }
 
-        return new ImportedMetadata()
-                .setCode(element.getAttributeValue("code"))
-                .setType(EnumUtils.getEnum(MetadataValueType.class, element.getAttributeValue("type")))
-                .setEnabled(Boolean.parseBoolean(element.getAttributeValue("enabled")))
-                .setEnabledIn(toListOfString(element.getAttributeValue("enabledIn")))
-                .setVisibleInDisplay(Boolean.parseBoolean(element.getAttributeValue("enabled")))
-                .setRequired(Boolean.parseBoolean(element.getAttributeValue("required")))
-                .setTab(element.getAttributeValue("tab"))
-                .setMultiValue(Boolean.parseBoolean(element.getAttributeValue("multivalue")))
-                .setBehaviours(properties)
-                .setSearchable(properties.contains("searchable"))
-                .setAdvanceSearchable(properties.contains("searchable"))
-                .setRequiredIn(toListOfString(element.getAttributeValue("requiredIn")))
-                .setVisibleInForm(Boolean.parseBoolean(element.getAttributeValue("visibleInForm")))
-                .setVisibleInDisplay(Boolean.parseBoolean(element.getAttributeValue("visibleInDisplay")))
-                .setVisibleInSearchResult(Boolean.parseBoolean(element.getAttributeValue("visibleInSearchResult")))
-                .setVisibleInTables(Boolean.parseBoolean(element.getAttributeValue("visibleInTables")))
-                .setVisibleInFormIn(toListOfString(element.getAttributeValue("visibleInFormIn")))
-                .setVisibleInDisplayIn(toListOfString(element.getAttributeValue("visibleInDisplayIn")))
-                .setVisibleInResultIn(toListOfString(element.getAttributeValue("visibleInResultIn")))
-                .setVisibleInTablesIn(toListOfString(element.getAttributeValue("visibleInTablesIn")))
-                .setInputMask(element.getAttributeValue("inputMask"))
-                .setUnmodifiable(properties.contains("unmodifiable"))
-                .setSortable(properties.contains("sortable"))
-                .setRecordAutocomplete(properties.contains("recordAutocomplete"))
-                .setEssential(properties.contains("essential"))
-                .setEssentialInSummary(properties.contains("essentialInSummary"))
-                .setMultiLingual(properties.contains("multiLingual"))
-                .setDuplicable(properties.contains("duplicate"));
+        ImportedMetadata importedMetadata = new ImportedMetadata();
+        importedMetadata.setCode(element.getAttributeValue(CODE));
+        importedMetadata.setType(EnumUtils.getEnum(MetadataValueType.class, element.getAttributeValue(TYPE)));
+
+        if (element.getAttribute(ENABLED) != null) {
+            importedMetadata.setEnabled(Boolean.parseBoolean(element.getAttributeValue(ENABLED)));
+        }
+
+        if (element.getAttribute(ENABLED_IN) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(ENABLED_IN))) {
+            importedMetadata.setEnabledIn(toListOfString(element.getAttributeValue(ENABLED_IN)));
+        }
+
+        importedMetadata.setVisibleInDisplay(properties.contains(VISIBLE_IN_DISPLAY));
+
+        if (element.getAttribute(REQUIRED) != null) {
+            importedMetadata.setRequired(Boolean.parseBoolean(element.getAttributeValue(REQUIRED)));
+        }
+
+        if (element.getAttribute(TAB) != null) {
+            importedMetadata.setTab(element.getAttributeValue(TAB));
+        }
+
+        importedMetadata.setMultiValue(properties.contains(MULTIVALUE));
+
+        if (properties.size() > 0) {
+            importedMetadata.setBehaviours(properties);
+        }
+
+        importedMetadata.setSearchable(properties.contains(SEARCHABLE_IN_SIMPLE_SEARCH));
+
+        importedMetadata.setAdvanceSearchable(properties.contains(SEARCHABLE_IN_ADVANCED_SEARCH));
+
+        if (element.getAttribute(REQUIRED_IN) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
+            importedMetadata.setRequiredIn(toListOfString(element.getAttributeValue(REQUIRED_IN)));
+        }
+
+        if (element.getAttribute(VISIBLE_IN_FORM) != null) {
+            importedMetadata.setVisibleInForm(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_FORM)));
+        }
+
+        importedMetadata.setVisibleInDisplay(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_DISPLAY)));
+
+        importedMetadata.setVisibleInSearchResult(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)));
+
+        importedMetadata.setVisibleInTables(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_TABLES)));
+
+        importedMetadata.setVisibleInFormIn(toListOfString(element.getAttributeValue(VISIBLE_IN_FORM_IN)));
+
+        importedMetadata.setVisibleInDisplayIn(toListOfString(element.getAttributeValue(VISIBLE_IN_DISPLAY_IN)));
+
+        importedMetadata.setVisibleInResultIn(toListOfString(element.getAttributeValue(VISIBLE_IN_RESULT_IN)));
+
+        importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
+
+        if (element.getAttribute(INPUT_MASK) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(INPUT_MASK))) {
+            importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
+        }
+
+        importedMetadata.setUnmodifiable(properties.contains(UNMODIFIABLE));
+
+        importedMetadata.setSortable(properties.contains(SORTABLE));
+
+        importedMetadata.setRecordAutocomplete(properties.contains(RECORD_AUTOCOMPLETE));
+
+        importedMetadata.setEssential(properties.contains(ESSENTIAL));
+
+        importedMetadata.setEssentialInSummary(properties.contains(ESSENTIAL_IN_SUMMARY));
+
+        importedMetadata.setMultiLingual(properties.contains(MULTI_LINGUAL));
+
+        importedMetadata.setDuplicable(properties.contains(DUPLICATE));
+
+        return importedMetadata;
     }
 
     private List<ImportedTab> getTabs(Element tabsElement) {
@@ -115,7 +163,7 @@ public class SettingsXMLFileReader {
     }
 
     private ImportedTab readTab(Element element) {
-        return new ImportedTab().setCode(element.getAttributeValue("code"))
+        return new ImportedTab().setCode(element.getAttributeValue(CODE))
                 .setValue(element.getAttributeValue("value"));
     }
 
@@ -129,7 +177,7 @@ public class SettingsXMLFileReader {
 
     private ImportedTaxonomy readTaxonomy(Element child) {
         return new ImportedTaxonomy()
-                .setCode(child.getAttributeValue("code"))
+                .setCode(child.getAttributeValue(CODE))
                 .setTitles(getTitles(child.getAttributeValue("title")))
                 .setClassifiedTypes(getValueListClassifiedTypes(child.getAttributeValue("classifiedTypes")))
                 .setGroupIds(toListOfString(child.getAttributeValue("groups")))
@@ -154,7 +202,7 @@ public class SettingsXMLFileReader {
 
     private ImportedValueList readValueList(Element element) {
         return new ImportedValueList()
-                .setCode(element.getAttributeValue("code"))
+                .setCode(element.getAttributeValue(CODE))
                 .setTitles(getTitles(element.getAttributeValue("title")))
                 .setClassifiedTypes(getValueListClassifiedTypes(element.getAttributeValue("classifiedTypes")))
                 .setCodeMode(element.getAttributeValue("codeMode"))

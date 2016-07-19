@@ -22,31 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
 
-    public static final String ENABLED = "enabled";
-    public static final String ENABLED_IN = "enabledIn";
-    public static final String REQUIRED = "required";
-    public static final String REQUIRED_IN = "requiredIn";
-    public static final String VISIBLE_IN_FORM_IN = "visibleInFormIn";
-    public static final String VISIBLE_IN_DISPLAY = "visibleInDisplay";
-    public static final String VISIBLE_IN_DISPLAY_IN = "visibleInDisplayIn";
-    public static final String VISIBLE_IN_SEARCH_RESULT = "visibleInSearchResult";
-    public static final String VISIBLE_IN_RESULT_IN = "visibleInResultIn";
-    public static final String VISIBLE_IN_TABLES = "visibleInTables";
-    public static final String VISIBLE_IN_TABLES_IN = "visibleInTablesIn";
-    public static final String TAB = "tab";
-    public static final String MULTI_VALUE = "multiValue";
-    public static final String BEHAVIOURS = "behaviours";
-    public static final String INPUT_MASK = "inputMask";
-    public static final String SEARCHABLE = "searchable";
-    public static final String ADVANCE_SEARCHABLE = "advanceSearchable";
-    public static final String UNMODIFIABLE = "unmodifiable";
-    public static final String SORTABLE = "sortable";
-    public static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
-    public static final String ESSENTIAL = "essential";
-    public static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
-    public static final String MULTI_LINGUAL = "multiLingual";
-    public static final String DUPLICABLE = "duplicable";
-    public static final String VISIBLE_IN_FORM = "visibleInForm";
     private SettingsXMLFileWriter writer;
 
     @Before
