@@ -63,11 +63,8 @@ public class DataEntryBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public MetadataBuilder asCalculatedStringUsingPattern(String pattern) {
+	public MetadataBuilder asJexlScript(String pattern) {
 		metadata.dataEntry = new CalculatedDataEntry(new JEXLMetadataValueCalculator(pattern));
-		if (metadata.getType() == null) {
-			metadata.setType(STRING);
-		}
 		return metadata;
 	}
 

@@ -297,8 +297,8 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
-				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").defineDataEntry()
-						.asCalculatedStringUsingPattern("fixedSequenceMetadata + '.00'");
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
+						.defineDataEntry().asJexlScript("fixedSequenceMetadata + '.00'");
 
 			}
 		});

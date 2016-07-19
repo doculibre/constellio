@@ -14,10 +14,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import com.constellio.model.services.records.extractions.DefaultMetadataPopulator;
-import com.constellio.model.services.records.extractions.MetadataPopulator;
-import com.constellio.model.services.records.extractions.MetadataToText;
-import com.constellio.model.services.records.extractions.RegexExtractor;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,6 +39,10 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataToText;
+import com.constellio.model.services.records.extractions.RegexExtractor;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -125,8 +125,10 @@ public class POJOEntitiesTest extends ConstellioTest {
 				new RegexExtractor(regexConfig.getRegex().pattern(),
 						regexConfig.getRegexConfigType() == RegexConfigType.TRANSFORMATION, regexConfig.getValue()),
 				new MetadataToText(regexConfig.getInputMetadata()));
-		MetadataPopulateConfigs o = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig), asList(metadataPopulator));
-		MetadataPopulateConfigs o2 = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig), asList(metadataPopulator));
+		MetadataPopulateConfigs o = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig),
+				asList(metadataPopulator));
+		MetadataPopulateConfigs o2 = new MetadataPopulateConfigs(asList("style"), asList("property"), asList(regexConfig),
+				asList(metadataPopulator));
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 	}
 
@@ -141,11 +143,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchema o = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(),
-				new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 		MetadataSchema o2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(),
-				new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isNotInstanceOf(Serializable.class);
 	}
@@ -153,9 +153,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	@Test
 	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
 		MetadataSchema defaultSchema = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", "a", labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 		MetadataSchemaType o = new MetadataSchemaType("a", "a", labels, new ArrayList<MetadataSchema>(), defaultSchema, true,
 				true,
 				true);

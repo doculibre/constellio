@@ -23,6 +23,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -295,7 +296,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 			@Override
 			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
-				builder.defineDataEntry().asCalculatedStringUsingPattern(pattern);
+				builder.defineDataEntry().asJexlScript(pattern);
 			}
 		};
 	}
@@ -534,6 +535,21 @@ public class TestsSchemasSetup extends SchemasSetup {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("anotherStringMetadata").setType(STRING)
 				.addLabel(Language.French, "An other toAString metadata");
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+
+	public TestsSchemasSetup withAThirdStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("thirdStringMetadata").setType(STRING)
+				.addLabel(Language.French, "A third string metadata");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+	public TestsSchemasSetup withRecordValidator(Class<? extends RecordValidator> validatorClass)
+			throws Exception {
+		zeDefaultSchemaBuilder.defineValidators().add(validatorClass);
 		return this;
 	}
 
