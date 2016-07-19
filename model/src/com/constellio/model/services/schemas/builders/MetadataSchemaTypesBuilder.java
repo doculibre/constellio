@@ -345,21 +345,23 @@ public class MetadataSchemaTypesBuilder {
 	private void validateCalculedMetadatas() {
 		for (MetadataBuilder metadataBuilder : getAllCalculatedMetadatas()) {
 			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadataBuilder.getDataEntry();
-			validateCalculatedMultivalue(metadataBuilder, calculatedDataEntry);
-			MetadataValueType valueTypeMetadataCalculated = calculatedDataEntry.getCalculator().getReturnType();
-			List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
-			boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
-			if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
-				throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
-						.getCalculator().getClass().getName());
+			if (!(calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator)) {
+				validateCalculatedMultivalue(metadataBuilder, calculatedDataEntry);
+				MetadataValueType valueTypeMetadataCalculated = calculatedDataEntry.getCalculator().getReturnType();
+				List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
+				boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
+				if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
+					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
+							.getCalculator().getClass().getName());
+				}
+				if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
+					System.out.println(metadataBuilder.getType());
+					System.out.println(valueTypeMetadataCalculated);
+					throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
+							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
+				}
+				validateDependenciesTypes(metadataBuilder, dependencies);
 			}
-			if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
-				System.out.println(metadataBuilder.getType());
-				System.out.println(valueTypeMetadataCalculated);
-				throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
-						metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
-			}
-			validateDependenciesTypes(metadataBuilder, dependencies);
 		}
 	}
 

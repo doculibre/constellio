@@ -1,7 +1,5 @@
 package com.constellio.model.entities.calculators;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +26,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.utils.Parametrized;
 
-public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalculator<String>, Parametrized {
+public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalculator<Object>, Parametrized {
 
+	MetadataValueType type;
 	String metadataCode;
 	JexlScript jexlScript;
 	Set<List<String>> variables;
@@ -44,13 +43,12 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	}
 
 	@Override
-	public String calculate(CalculatorParameters parameters) {
+	public Object calculate(CalculatorParameters parameters) {
 
 		JexlContext jc = prepareJexlContext(parameters);
 
 		try {
-			Object result = jexlScript.execute(jc);
-			return (String) result;
+			return jexlScript.execute(jc);
 
 		} catch (JexlException e) {
 			logJexlException(e);
@@ -103,13 +101,13 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	}
 
 	@Override
-	public String getDefaultValue() {
+	public Object getDefaultValue() {
 		return null;
 	}
 
 	@Override
 	public MetadataValueType getReturnType() {
-		return STRING;
+		return type;
 	}
 
 	@Override
@@ -152,6 +150,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	@Override
 	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
+		type = calculatedMetadata.getType();
 		dependencies.clear();
 		try {
 
