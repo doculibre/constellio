@@ -259,33 +259,33 @@ public class DefaultLabelsTemplate {
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 
-		LabelTemplateField folderIdField = new BarCodeLabelTemplateField(
+		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 0, 0, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 1, 1, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField categoryCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.CATEGORY_CODE,
-				null, 15, 0, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
+				null, 6, 1, 14, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField folderTitleField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
-				null, 0, 4, 29, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				null, 1, 5, 28, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
 				LabelTemplateFieldHorizontalAlignment.CENTER,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField copyStatusCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS,
-				null, 14, 9, 1, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
+				null, 14, 7, 1, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 1,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField openDateField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.OPENING_DATE,
-				null, 21, 9, 9, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
+				null, 20, 7, 9, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 37,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
