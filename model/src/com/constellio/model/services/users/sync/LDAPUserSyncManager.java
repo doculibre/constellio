@@ -10,6 +10,7 @@ import javax.naming.ldap.LdapContext;
 
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.users.UserUtils;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +101,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
-			for (String url : serverConfiguration.getUrls()) {
+		for (String url : serverConfiguration.getUrls()) {
 			LdapContext ldapContext = ldapServices
 					.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
 							userSyncConfiguration.getPassword(), serverConfiguration.getFollowReferences(), activeDirectory);
@@ -157,15 +158,24 @@ public class LDAPUserSyncManager implements StatefulService {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
 		for (LDAPGroup ldapGroup : ldapGroups) {
 			GlobalGroup group = createGlobalGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
-			userServices.addUpdateGlobalGroup(group);
-			updatedUsersAndGroups.addGroupCode(group.getCode());
+			try {
+				userServices.addUpdateGlobalGroup(group);
+				updatedUsersAndGroups.addGroupCode(group.getCode());
+			} catch (Throwable e) {
+				LOGGER.error("Group ignored due to error when trying to add it " + group.getCode(), e);
+			}
+
 		}
 
 		for (LDAPUser ldapUser : ldapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-				userServices.addUpdateUserCredential(userCredential);
-				updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+				try {
+					userServices.addUpdateUserCredential(userCredential);
+					updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+				} catch (Throwable e) {
+					LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
+				}
 			}
 		}
 
@@ -236,12 +246,12 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private String validateEmail(String email) {
-		if(StringUtils.isBlank(email)){
+		if (StringUtils.isBlank(email)) {
 			return email;
-		}else if(!EmailValidator.isValid(email)){
+		} else if (!EmailValidator.isValid(email)) {
 			LOGGER.warn("Invalid email set to null : " + email);
 			return null;
-		}else{
+		} else {
 			return email;
 		}
 	}
