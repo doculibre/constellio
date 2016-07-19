@@ -298,7 +298,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
 				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
-						.defineDataEntry().asJexlScript("fixedSequenceMetadata + '.00'");
+						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
 
 			}
 		});
@@ -354,16 +354,16 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isNull();
 
 		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence1"));
-		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(43L);
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("43");
 
 		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence2"));
-		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(667L);
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("667");
 
 		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence1"));
-		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(44L);
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("44");
 
 		recordServices.update(record.set(Schemas.TITLE, "zeTitle"));
-		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo(44L);
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("44");
 
 	}
 

@@ -374,15 +374,27 @@ public class MetadataSchemaBuilder {
 		Map<String, Set<String>> allAutoMetadatasDependencies = newSchemaUtils().calculatedMetadataDependencies(newMetadatas);
 
 		List<String> sequenceMetadatas = newMetadatas.onlySequence().toLocalCodesList();
+		Set<String> metadatasDependingOnSequence = new HashSet<>(sequenceMetadatas);
 		Map<String, Set<String>> autoMetadatasDependencies = new HashMap<>();
 		Map<String, Set<String>> autoMetadatasDependenciesBasedOnSequence = new HashMap<>();
 
-		for (Map.Entry<String, Set<String>> entry : allAutoMetadatasDependencies.entrySet()) {
-			boolean basedOnSequence = false;
-			for (String sequenceMetadata : sequenceMetadatas) {
-				basedOnSequence |= (entry.getKey().equals(sequenceMetadata) || entry.getValue().contains(sequenceMetadata));
+		boolean hasNewerMetadatasDependingOnSequence = true;
+		while (hasNewerMetadatasDependingOnSequence) {
+			int sizeBefore = metadatasDependingOnSequence.size();
+
+			for (Map.Entry<String, Set<String>> entry : allAutoMetadatasDependencies.entrySet()) {
+				for (String dependency : entry.getValue()) {
+					if (metadatasDependingOnSequence.contains(dependency)) {
+						metadatasDependingOnSequence.add(entry.getKey());
+					}
+				}
 			}
-			if (basedOnSequence) {
+
+			hasNewerMetadatasDependingOnSequence = metadatasDependingOnSequence.size() != sizeBefore;
+		}
+
+		for (Map.Entry<String, Set<String>> entry : allAutoMetadatasDependencies.entrySet()) {
+			if (metadatasDependingOnSequence.contains(entry.getKey())) {
 				autoMetadatasDependenciesBasedOnSequence.put(entry.getKey(), entry.getValue());
 			} else {
 				autoMetadatasDependencies.put(entry.getKey(), entry.getValue());
@@ -405,8 +417,11 @@ public class MetadataSchemaBuilder {
 		steps.add(new ValidateMetadatasRecordPreparationStep(autoMetas));
 		steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
 
-		if (!autoMetasBasedOnSequence.isEmpty()) {
+		if (!sequenceMetadatas.isEmpty()) {
 			steps.add(new SequenceRecordPreparationStep(newMetadatas.onlySequence()));
+		}
+
+		if (!autoMetasBasedOnSequence.isEmpty()) {
 			steps.add(new CalculateMetadatasRecordPreparationStep(autoMetasBasedOnSequence));
 			steps.add(new ValidateMetadatasRecordPreparationStep(autoMetasBasedOnSequence));
 			if (!recordValidators.isEmpty()) {

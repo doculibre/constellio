@@ -59,6 +59,8 @@ public class SolrSequencesManager implements SequencesManager {
 	@Override
 	public long next(String sequenceId) {
 
+
+
 		String uuid = UUIDV1Generator.newRandomId();
 
 		SolrInputDocument solrInputDocument = prepareSolrInputDocumentForAtomicIncrement(sequenceId, uuid);

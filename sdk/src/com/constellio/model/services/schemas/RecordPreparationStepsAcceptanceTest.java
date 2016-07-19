@@ -97,25 +97,71 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenSequenceMetadataThenMetadataAndThoseDependingOnItAreCalculatedAndValidatedAtTheEnd()
+	public void givenDynamicSequenceMetadataWithoutMetadatasDependingOnItThenSequenceStepAtLast()
 			throws Exception {
+
+		defineSchemasManager().using(setup.withAStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
+				.withRecordValidator(TestRecordValidator1.class).withADynamicSequence());
+
+		List<RecordPreparationStep> steps = zeSchema.instance().getPreparationSteps();
+
+		assertThat(steps).extracting("class.name").containsExactly(
+				UpdateCreationModificationUsersAndDateRecordPreparationStep.class.getName(),
+				ValidateMetadatasRecordPreparationStep.class.getName(),
+				CalculateMetadatasRecordPreparationStep.class.getName(),
+				ValidateCyclicReferencesRecordPreparationStep.class.getName(),
+
+				ValidateMetadatasRecordPreparationStep.class.getName(),
+				ValidateUsingSchemaValidatorsRecordPreparationStep.class.getName(),
+
+				SequenceRecordPreparationStep.class.getName()
+		);
+
+		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(1)).getMetadatasCodes())
+				.contains(zeSchema.stringMetadata().getCode());
+
+		assertThat(((CalculateMetadatasRecordPreparationStep) steps.get(2)).getMetadatasCodes())
+				.contains(zeSchema.anotherStringMetadata().getCode())
+				.doesNotContain("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
+
+		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(4)).getMetadatasCodes())
+				.contains(zeSchema.anotherStringMetadata().getCode())
+				.doesNotContain("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
+
+		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
+				.contains(TestRecordValidator1.class.getName());
+
+		assertThat(((SequenceRecordPreparationStep) steps.get(6)).getMetadatasCodes())
+				.containsExactly("zeSchemaType_default_dynamicSequenceMetadata");
+
+	}
+
+	@Test
+	public void givenDynamicSequenceMetadataThenMetadataAndThoseDependingOnItAreCalculatedAndValidatedAtTheEnd()
+			throws Exception {
+
 		defineSchemasManager().using(setup.withAStringMetadata()
 				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
 				.withRecordValidator(TestRecordValidator1.class)
-				.withAFixedSequence().with(new MetadataSchemaTypesConfigurator() {
+				.withADynamicSequence().with(new MetadataSchemaTypesConfigurator() {
 					@Override
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						MetadataSchemaBuilder zeSchema = schemaTypes.getSchema("zeSchemaType_default");
 						zeSchema.create("metaDependentOfSeq1").setType(STRING).defineDataEntry().asJexlScript(
-								"fixedSequenceMetadata + 'test'");
+								"dynamicSequenceMetadata + 'test'");
 
 						zeSchema.create("metaDependentOfSeq2").setType(STRING).defineDataEntry().asJexlScript(
-								"fixedSequenceMetadata + metaDependentOfSeq1 + metaDependentOfSeq3");
+								"metaDependentOfSeq1 + metaDependentOfSeq3");
 
 						zeSchema.create("metaDependentOfSeq3").setType(STRING).defineDataEntry().asJexlScript(
-								"fixedSequenceMetadata + metaDependentOfSeq4 + metaDependentOfSeq1");
+								"dynamicSequenceMetadata + metaDependentOfSeq4 + metaDependentOfSeq1");
 						zeSchema.create("metaDependentOfSeq4").setType(STRING).defineDataEntry().asJexlScript(
-								"fixedSequenceMetadata + anotherStringMetadata");
+								"dynamicSequenceMetadata + anotherStringMetadata");
+						zeSchema.create("metaDependentOfSeq0").setType(STRING).defineDataEntry().asJexlScript(
+								"'test' + metaDependentOfSeq2");
 					}
 				}));
 
@@ -142,12 +188,94 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 		assertThat(((CalculateMetadatasRecordPreparationStep) steps.get(2)).getMetadatasCodes())
 				.contains(zeSchema.anotherStringMetadata().getCode())
 				.doesNotContain("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
-						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(4)).getMetadatasCodes())
 				.contains(zeSchema.anotherStringMetadata().getCode())
 				.doesNotContain("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
-						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
+
+		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
+				.contains(TestRecordValidator1.class.getName());
+
+		assertThat(((SequenceRecordPreparationStep) steps.get(6)).getMetadatasCodes())
+				.containsExactly("zeSchemaType_default_dynamicSequenceMetadata");
+
+		assertThat(((CalculateMetadatasRecordPreparationStep) steps.get(7)).getMetadatasCodes())
+				.containsExactly("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
+
+		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(8)).getMetadatasCodes())
+				.containsExactly("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
+
+		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(9)).getValidators()).extracting("class.name")
+				.contains(TestRecordValidator1.class.getName());
+
+	}
+
+	@Test
+	public void givenFixedSequenceMetadataThenMetadataAndThoseDependingOnItAreCalculatedAndValidatedAtTheEnd()
+			throws Exception {
+		defineSchemasManager().using(setup.withAStringMetadata()
+				.withAnotherStringMetadata(whichIsCalculatedUsingPattern("'Calculated : ' + stringMetadata"))
+				.withRecordValidator(TestRecordValidator1.class)
+				.withAFixedSequence().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaBuilder zeSchema = schemaTypes.getSchema("zeSchemaType_default");
+						zeSchema.create("metaDependentOfSeq1").setType(STRING).defineDataEntry().asJexlScript(
+								"fixedSequenceMetadata + 'test'");
+
+						zeSchema.create("metaDependentOfSeq2").setType(STRING).defineDataEntry().asJexlScript(
+								"metaDependentOfSeq1 + metaDependentOfSeq3");
+
+						zeSchema.create("metaDependentOfSeq0").setType(STRING).defineDataEntry().asJexlScript(
+								"'test' + metaDependentOfSeq2");
+
+						zeSchema.create("metaDependentOfSeq3").setType(STRING).defineDataEntry().asJexlScript(
+								"fixedSequenceMetadata + metaDependentOfSeq4 + metaDependentOfSeq1");
+						zeSchema.create("metaDependentOfSeq4").setType(STRING).defineDataEntry().asJexlScript(
+								"fixedSequenceMetadata + anotherStringMetadata");
+
+					}
+				}));
+
+		List<RecordPreparationStep> steps = zeSchema.instance().getPreparationSteps();
+
+		assertThat(steps).extracting("class.name").containsExactly(
+				UpdateCreationModificationUsersAndDateRecordPreparationStep.class.getName(),
+				ValidateMetadatasRecordPreparationStep.class.getName(),
+				CalculateMetadatasRecordPreparationStep.class.getName(),
+				ValidateCyclicReferencesRecordPreparationStep.class.getName(),
+
+				ValidateMetadatasRecordPreparationStep.class.getName(),
+				ValidateUsingSchemaValidatorsRecordPreparationStep.class.getName(),
+
+				SequenceRecordPreparationStep.class.getName(),
+				CalculateMetadatasRecordPreparationStep.class.getName(),
+				ValidateMetadatasRecordPreparationStep.class.getName(),
+				ValidateUsingSchemaValidatorsRecordPreparationStep.class.getName()
+		);
+
+		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(1)).getMetadatasCodes())
+				.contains(zeSchema.stringMetadata().getCode());
+
+		assertThat(((CalculateMetadatasRecordPreparationStep) steps.get(2)).getMetadatasCodes())
+				.contains(zeSchema.anotherStringMetadata().getCode())
+				.doesNotContain("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
+
+		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(4)).getMetadatasCodes())
+				.contains(zeSchema.anotherStringMetadata().getCode())
+				.doesNotContain("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(5)).getValidators()).extracting("class.name")
 				.contains(TestRecordValidator1.class.getName());
@@ -157,11 +285,13 @@ public class RecordPreparationStepsAcceptanceTest extends ConstellioTest {
 
 		assertThat(((CalculateMetadatasRecordPreparationStep) steps.get(7)).getMetadatasCodes())
 				.containsExactly("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
-						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateMetadatasRecordPreparationStep) steps.get(8)).getMetadatasCodes())
 				.containsExactly("zeSchemaType_default_metaDependentOfSeq1", "zeSchemaType_default_metaDependentOfSeq4",
-						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2");
+						"zeSchemaType_default_metaDependentOfSeq3", "zeSchemaType_default_metaDependentOfSeq2",
+						"zeSchemaType_default_metaDependentOfSeq0");
 
 		assertThat(((ValidateUsingSchemaValidatorsRecordPreparationStep) steps.get(9)).getValidators()).extracting("class.name")
 				.contains(TestRecordValidator1.class.getName());

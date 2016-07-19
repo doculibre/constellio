@@ -24,6 +24,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.Recor
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.ReferenceToNonExistentIndex;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -46,6 +47,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
@@ -400,18 +402,32 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 
 					} else if (step instanceof SequenceRecordPreparationStep) {
-						//						for(Metadata metadata : step.getMetadatas()) {
-						//							if (metadata.getse)
-						//
-						//							modelFactory.getDataLayerFactory().getSequencesManager().next()
-						//							if (record.get(metadata) == null) {
-						//								record.set(metadata, )
-						//							}
-						//						}
-						//
-						//						if (validations) {
-						//							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas());
-						//						}
+						SequencesManager sequencesManager = modelFactory.getDataLayerFactory().getSequencesManager();
+						for (Metadata metadata : step.getMetadatas()) {
+
+							SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
+							if (dataEntry.getFixedSequenceCode() != null) {
+								if (record.get(metadata) == null) {
+									String sequenceCode = dataEntry.getFixedSequenceCode();
+									record.set(metadata,
+											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+								}
+							} else {
+								Metadata metadataProvidingSequenceCode = schema
+										.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
+
+								if (record.isModified(metadataProvidingSequenceCode)) {
+									String sequenceCode = record.get(metadataProvidingSequenceCode);
+									record.set(metadata,
+											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+								}
+							}
+
+						}
+
+						if (validations) {
+							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas());
+						}
 
 					} else if (step instanceof ValidateCyclicReferencesRecordPreparationStep) {
 						if (validations) {
