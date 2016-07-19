@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaCalculatedInfos;
@@ -24,6 +26,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
@@ -348,7 +351,7 @@ public class MetadataSchemaBuilder {
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
-				inTransactionLog, recordValidators, lazyCalculateSchemaInfos(newMetadatas, recordValidators));
+				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
 	}
 
 	private static class SchemaRecordSteps {
@@ -370,6 +373,14 @@ public class MetadataSchemaBuilder {
 
 	private MetadataSchemaCalculatedInfos calculateSchemaInfos(MetadataList newMetadatas,
 			Set<RecordValidator> recordValidators) {
+
+		for (Metadata metadata : newMetadatas.onlyCalculated().onlyWithoutInheritance()) {
+			MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
+					.getCalculator();
+			if (calculator instanceof InitializedMetadataValueCalculator) {
+				((InitializedMetadataValueCalculator) calculator).initialize(newMetadatas, metadata);
+			}
+		}
 
 		Map<String, Set<String>> allAutoMetadatasDependencies = newSchemaUtils().calculatedMetadataDependencies(newMetadatas);
 
@@ -413,7 +424,7 @@ public class MetadataSchemaBuilder {
 		steps.add(new UpdateCreationModificationUsersAndDateRecordPreparationStep());
 		steps.add(new ValidateMetadatasRecordPreparationStep(newMetadatas.onlyManuals().onlyNonSystemReserved()));
 		steps.add(new CalculateMetadatasRecordPreparationStep(autoMetas));
-		steps.add(new ValidateCyclicReferencesRecordPreparationStep(newMetadatas));
+		steps.add(new ValidateCyclicReferencesRecordPreparationStep());
 		steps.add(new ValidateMetadatasRecordPreparationStep(autoMetas));
 		steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
 
@@ -495,7 +506,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas,
 				this.isUndeletable(),
-				inTransactionLog, recordValidators, lazyCalculateSchemaInfos(newMetadatas, recordValidators));
+				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
 	}
 
 	public boolean isInheriting() {

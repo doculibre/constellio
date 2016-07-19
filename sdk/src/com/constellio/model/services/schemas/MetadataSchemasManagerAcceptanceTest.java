@@ -747,7 +747,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		CalculatedDataEntry dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
 		TestInitializedMetadataValueCalculator calculator = (TestInitializedMetadataValueCalculator) dataEntry.getCalculator();
-		assertThat(calculator.initializationCounter).isEqualTo(1);
+		assertThat(calculator.initializationCounter1).isEqualTo(1);
+		assertThat(calculator.initializationCounter2).isEqualTo(1);
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
@@ -758,7 +759,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
 		calculator = (TestInitializedMetadataValueCalculator) dataEntry.getCalculator();
-		assertThat(calculator.initializationCounter).isEqualTo(2);
+		assertThat(calculator.initializationCounter1).isEqualTo(2);
+		assertThat(calculator.initializationCounter2).isEqualTo(2);
 	}
 
 	@Test
@@ -1541,7 +1543,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	public static class TestInitializedMetadataValueCalculator implements InitializedMetadataValueCalculator<String> {
 
-		static int initializationCounter = 0;
+		static int initializationCounter1 = 0;
+		static int initializationCounter2 = 0;
 
 		MetadataSchemaTypes types;
 		MetadataSchema schema;
@@ -1573,8 +1576,13 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
+			initializationCounter2++;
+		}
+
+		@Override
 		public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata metadata) {
-			initializationCounter++;
+			initializationCounter2++;
 		}
 	}
 

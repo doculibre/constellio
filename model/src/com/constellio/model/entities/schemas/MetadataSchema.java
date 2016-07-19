@@ -16,7 +16,6 @@ import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationS
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.utils.Lazy;
 
 public class MetadataSchema {
 
@@ -40,12 +39,12 @@ public class MetadataSchema {
 
 	private final Map<String, Metadata> indexByAtomicCode;
 
-	private Lazy<MetadataSchemaCalculatedInfos> calculatedInfosLazy;
+	private MetadataSchemaCalculatedInfos calculatedInfos;
 
 	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
 			List<Metadata> metadatas,
 			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			Lazy<MetadataSchemaCalculatedInfos> calculatedInfosLazy) {
+			MetadataSchemaCalculatedInfos calculatedInfos) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
@@ -55,7 +54,7 @@ public class MetadataSchema {
 		this.metadatas = new MetadataList(metadatas).unModifiable();
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
-		this.calculatedInfosLazy = calculatedInfosLazy;
+		this.calculatedInfos = calculatedInfos;
 		this.indexByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 	}
 
@@ -114,7 +113,7 @@ public class MetadataSchema {
 	}
 
 	public List<Metadata> getAutomaticMetadatas() {
-		return calculatedInfosLazy.get().getAutomaticMetadatas();
+		return calculatedInfos.getAutomaticMetadatas();
 	}
 
 	public List<Metadata> getTaxonomyRelationshipReferences(List<Taxonomy> taxonomies) {
@@ -169,6 +168,6 @@ public class MetadataSchema {
 	}
 
 	public List<RecordPreparationStep> getPreparationSteps() {
-		return calculatedInfosLazy.get().getRecordPreparationSteps();
+		return calculatedInfos.getRecordPreparationSteps();
 	}
 }

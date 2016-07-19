@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
@@ -31,6 +32,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	String metadataCode;
 	JexlScript jexlScript;
+	Set<List<String>> variables;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JEXLMetadataValueCalculator.class);
 
@@ -137,9 +139,6 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 				if (variable.size() == 2) {
 					dependencies.add(toReferenceDependency(types, schema, variable));
 
-				} else {
-					dependencies.add(toLocalDependency(schema, variable));
-
 				}
 			}
 
@@ -150,9 +149,49 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	}
 
+	@Override
+	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
+		metadataCode = calculatedMetadata.getCode();
+		dependencies.clear();
+		try {
+
+			JexlEngine jexl = new JexlBuilder().create();
+			jexlScript = jexl.createScript(expression);
+			variables = jexlScript.getVariables();
+		} catch (Exception e) {
+			e.printStackTrace();
+
+		}
+
+		if (variables != null) {
+			for (List<String> variable : jexlScript.getVariables()) {
+				if (variable.size() == 1) {
+					dependencies.add(toLocalDependency(schemaMetadatas, variable));
+
+				}
+			}
+
+		}
+
+	}
+
 	private LocalDependency toLocalDependency(MetadataSchema schema, List<String> variable) {
 		boolean isRequired = false;
 		Metadata metadata = schema.getMetadata(variable.get(0));
+		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
+				metadata.getType());
+	}
+
+	private LocalDependency toLocalDependency(List<Metadata> metadatas, List<String> variable) {
+		boolean isRequired = false;
+		Metadata metadata = null;
+
+		for (Metadata aMetadata : metadatas) {
+			if (aMetadata.getLocalCode().equals(variable.get(0))) {
+				metadata = aMetadata;
+				break;
+			}
+		}
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
 				metadata.getType());
 	}
