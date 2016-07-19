@@ -2,11 +2,11 @@ package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -74,7 +74,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, modelLayerFactory);
+		return securityServices.canCreateContainers(user);
 	}
 
 	protected Record newContainerRecord() {
@@ -102,4 +103,5 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		ContainerRecordType type = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getContainerRecordType(id);
 		return StringUtils.defaultIfBlank(type.getLinkedSchema(), ContainerRecord.DEFAULT_SCHEMA);
 	}
+	
 }
