@@ -230,10 +230,12 @@ public class BigVaultServer implements Cloneable {
 			StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
 
 			for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
-				ClientUtils.toXML(document);
+				stringBuilder.append(ClientUtils.toXML(document));
+				stringBuilder.append("\n");
 			}
 			for (SolrInputDocument document : transaction.getNewDocuments()) {
-				ClientUtils.toXML(document);
+				stringBuilder.append(ClientUtils.toXML(document));
+				stringBuilder.append("\n");
 			}
 			stringBuilder.append("\n");
 			stringBuilder.append("</transaction>");
