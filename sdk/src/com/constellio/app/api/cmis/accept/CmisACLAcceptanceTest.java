@@ -30,6 +30,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -128,6 +129,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		chuckId = users.chuckNorrisIn(zeCollection).getId();
 		heroesId = users.heroesIn(zeCollection).getId();
 		robinId = users.robinIn(zeCollection).getId();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
 	}
 
 	@Test
@@ -256,6 +259,29 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 		assertThat(cmisFolder2.getAcl().getAces()).extracting("direct", "permissions", "principalId")
 				.containsOnly(tuple(false, RW, "edouard"));
+	}
+
+	@Test
+	public void givenAclDisabledThenNotReturned()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+		givenFolderInheritingTaxonomyAuthorizations();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		session.getDefaultContext().setIncludeAcls(false);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		session.getDefaultContext().setIncludeAcls(true);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNotNull();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, true);
+		session.getDefaultContext().setIncludeAcls(false);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, true);
+		session.getDefaultContext().setIncludeAcls(true);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
 	}
 
 	@Test
