@@ -10,17 +10,17 @@ public class ImportedMetadata {
     private String code;
     private String label;
     private MetadataValueType type;
-    private Boolean enabled;// = true;
+    private Boolean enabled = true;
     private List<String> enabledIn = new ArrayList<>();
-    private Boolean required;// = true;
+    private Boolean required = true;
     private List<String> requiredIn = new ArrayList<>();
-    private Boolean visibleInForm;// = true;
+    private Boolean visibleInForm = true;
     private List<String> visibleInFormIn = new ArrayList<>();
-    private Boolean visibleInDisplay;// = true;
+    private Boolean visibleInDisplay = true;
     private List<String> visibleInDisplayIn = new ArrayList<>();
-    private Boolean visibleInSearchResult;// = false;
+    private Boolean visibleInSearchResult = false;
     private List<String> visibleInResultIn = new ArrayList<>();
-    private Boolean visibleInTables;// = false;
+    private Boolean visibleInTables = false;
     private List<String> visibleInTablesIn = new ArrayList<>();
 
     private String tab;

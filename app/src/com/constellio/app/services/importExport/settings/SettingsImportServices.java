@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.settings;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -123,23 +124,31 @@ public class SettingsImportServices {
             }
         });
 
+        updateSettingsMetadata(settings, schemaTypes);
+
+    }
+
+    private void updateSettingsMetadata(ImportedCollectionSettings settings, MetadataSchemaTypes schemaTypes) {
         // TODO set tabs
         // 1- créer tab si elle n'existe pas
         // 2- configurer la propriété tab de la métadonnée
 
         // affichage dans la page
-
         /*
         // TODO valider si/comnment setter advanceSearchable:  voir DisplayConfig/MetadataDisplay
         // TODO valider comment seeter le groupe/tab : voir displayConfig
 
-        importedMetadata.getVisibleInDisplayIn();
-        importedMetadata.getVisibleInFormIn();
-        importedMetadata.getVisibleInResultIn();
         importedMetadata.getVisibleInDisplay();
+        importedMetadata.getVisibleInDisplayIn();
+
         importedMetadata.getVisibleInForm();
+        importedMetadata.getVisibleInFormIn();
+
+        importedMetadata.getVisibleInResultIn();
         importedMetadata.getVisibleInSearchResult();
+
         importedMetadata.getVisibleInTables();
+        importedMetadata.getVisibleInTablesIn();
         */
 
         // TODO create metadata tab if not available
@@ -311,9 +320,11 @@ public class SettingsImportServices {
             metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
         }
 
-        Map<Language, String> labels = new HashMap<>();
-        labels.put(Language.French, importedMetadata.getLabel());
-        metadataBuilder.setLabels(labels);
+        if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
+            Map<Language, String> labels = new HashMap<>();
+            labels.put(Language.French, importedMetadata.getLabel());
+            metadataBuilder.setLabels(labels);
+        }
 
         if (importedMetadata.getRequired() != null) {
             metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
@@ -385,8 +396,6 @@ public class SettingsImportServices {
                 }
             }
         }
-
-        // faire appel pour sauvegarder modifs !
     }
 
     private void importCollectionTaxonomies(final ImportedCollectionSettings settings,
