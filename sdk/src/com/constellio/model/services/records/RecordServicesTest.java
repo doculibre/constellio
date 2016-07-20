@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
@@ -452,30 +451,6 @@ public class RecordServicesTest extends ConstellioTest {
 		verify(recordServices).executeWithImpactHandler(transaction, handler);
 		assertThat(returnedBatchProcesses).isEqualTo(batchProcesses);
 
-	}
-
-	@Test
-	public void whenPreparingRecordThenInOrderValidateManualEntriesUpdateAndValidateAutomaticEntriesAndRunCustomValidators()
-			throws Exception {
-
-		Transaction transaction = new Transaction();
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(reindexedMetadata);
-		transaction.addUpdate(asList((Record) record, otherRecord));
-
-		RecordProvider recordProvider = mock(RecordProvider.class);
-		doReturn(recordProvider).when(recordServices).newRecordProvider(null, transaction);
-
-		recordServices.prepareRecords(transaction);
-
-		InOrder inOrder = Mockito.inOrder(validationServices, automaticMetadataServices, recordServices);
-		inOrder.verify(validationServices).validateManualMetadatas(record, recordProvider, transaction);
-		inOrder.verify(automaticMetadataServices).updateAutomaticMetadatas(record, recordProvider, reindexedMetadata);
-		inOrder.verify(validationServices).validateAutomaticMetadatas(record, recordProvider, transaction);
-		inOrder.verify(validationServices).validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
-		inOrder.verify(validationServices).validateManualMetadatas(otherRecord, recordProvider, transaction);
-		inOrder.verify(automaticMetadataServices).updateAutomaticMetadatas(otherRecord, recordProvider, reindexedMetadata);
-		inOrder.verify(validationServices).validateAutomaticMetadatas(otherRecord, recordProvider, transaction);
-		inOrder.verify(validationServices).validateSchemaUsingCustomSchemaValidator(otherRecord, recordProvider, transaction);
 	}
 
 	@Test

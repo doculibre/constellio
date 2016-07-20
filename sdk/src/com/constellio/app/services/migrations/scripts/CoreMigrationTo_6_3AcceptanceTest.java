@@ -23,6 +23,7 @@ import org.junit.Test;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.Language;
@@ -36,6 +37,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
@@ -119,6 +121,14 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 	public void whenMigratingFromAPreviousSystemThenDoNotUseBase64Url()
 			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
 
+		configure(new DataLayerConfigurationAlteration() {
+
+			@Override
+			public void alter(DataLayerConfiguration configuration) {
+				configuration.setHashingEncoding(null);
+				configuration.setContentDaoFileSystemDigitsSeparatorMode(null);
+			}
+		});
 		givenSystemAtVersion5_1_2withTokens();
 
 		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())

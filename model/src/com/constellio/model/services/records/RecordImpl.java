@@ -1,5 +1,8 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +36,6 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoS
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
@@ -191,7 +193,7 @@ public class RecordImpl implements Record {
 		if (!code.startsWith(schemaCode)) {
 			throw new InvalidMetadata(code);
 		}
-		if (metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
+		if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
 			throw new RecordRuntimeException.CannotSetManualValueInAutomaticField(metadata);
 		}
 		if (metadata.getLocalCode().equals("id")) {
@@ -668,7 +670,7 @@ public class RecordImpl implements Record {
 
 			if (!specialField) {
 				String metadataCode = new SchemaUtils().getLocalCodeFromDataStoreCode(key);
-				if (!specialField && schema.getMetadata(metadataCode).getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (!specialField && schema.getMetadata(metadataCode).getDataEntry().getType() == MANUAL) {
 					Object initialValue = recordDTO.getFields().get(entry.getKey());
 					Object modifiedValue = entry.getValue();
 					Object currentValue = otherVersionRecordDTO.getFields().get(entry.getKey());
@@ -854,7 +856,7 @@ public class RecordImpl implements Record {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);
 		}
 		for (Metadata wasMetadata : wasSchema.getMetadatas()) {
-			if (wasMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+			if (wasMetadata.getDataEntry().getType() == MANUAL) {
 				Metadata newMetadata = newSchemasMetadatas.get(wasMetadata.getLocalCode());
 				if (newMetadata == null || !newMetadata.isSameValueThan(wasMetadata)) {
 					set(wasMetadata, null);
@@ -870,7 +872,7 @@ public class RecordImpl implements Record {
 		this.schemaCode = newSchema.getCode();
 
 		for (Metadata metadata : newSchema.getMetadatas()) {
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+			if (metadata.getDataEntry().getType() == MANUAL) {
 				if (metadata.isMultivalue()) {
 					List<Object> value = getList(metadata);
 					if (value.isEmpty()) {
