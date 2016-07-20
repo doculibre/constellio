@@ -219,6 +219,13 @@ public class SDKPasswords {
 		return sdkPasswords.get("testSharepoint.password.limited");
 	}
 
+	// SSL
+	public static String sslKeystorePassword() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("sslKeystore.password");
+	}
+
+
 	//
 	// Utils
 	private synchronized static void loadCorrectIfRequired() {
