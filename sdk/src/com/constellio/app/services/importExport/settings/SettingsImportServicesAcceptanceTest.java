@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.settings;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.services.importExport.settings.model.*;
@@ -27,6 +28,8 @@ import static org.junit.Assert.fail;
 @UiTest
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
+    public static final String CODE_METADATA_3 = "metadata3";
+    public static final String TITLE_METADATA_3 = "Titre métadonnée no.3";
     Users users = new Users();
 
     SystemConfigurationsManager systemConfigurationsManager;
@@ -451,9 +454,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     @Test
     public void whenImportingCollectionTypesIfCodeIsEmptyThenExceptionIsRaised() throws Exception {
 
-        Map<String, String> tabParams = new HashMap<>();
-        tabParams.put("default", "Métadonnées");
-        tabParams.put("zeTab", "Mon onglet");
+        Map<String, String> tabParams = getTabsMap();
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
                 .addType(new ImportedType().setCode(null).setLabel("Dossier")
@@ -485,12 +486,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     @Test
     public void whenImportingCollectionTypeIfCustomSchemasCodeIsEmptyThenExceptionIsRaised() throws Exception {
 
-        Map<String, String> tabParams = new HashMap<>();
-        tabParams.put("default", "Métadonnées");
-        tabParams.put("zeTab", "Mon onglet");
+        Map<String, String> tabParams = getTabsMap();
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-                .addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                .addType(new ImportedType().setCode(CODE_FOLDER_SCHEMA_TYPE).setLabel("Dossier")
                         .setTabs(toListOfTabs(tabParams))
                         .setDefaultSchema(getFolderDefaultSchema())
                         .addSchema(getFolderSchema().setCode(null))
@@ -503,9 +502,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
     @Test
     public void whenImportingCollectionTypesValuesAreSet() throws Exception {
-        Map<String, String> tabParams = new HashMap<>();
-        tabParams.put("default", "Métadonnées");
-        tabParams.put("zeTab", "Mon onglet");
+
+        Map<String, String> tabParams = getTabsMap();
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         collectionSettings.addType(getImportedType(tabParams));
@@ -514,70 +512,63 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         importSettings();
 
         MetadataSchemaType schemaType = metadataSchemasManager
-                .getSchemaTypes(zeCollection).getSchemaType("folder");
+                .getSchemaTypes(zeCollection).getSchemaType(CODE_FOLDER_SCHEMA_TYPE);
         assertThat(schemaType).isNotNull();
         List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
         assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
 
-        validateTypeImport(schemaType);
+        validateTypeImport(schemaType, false);
 
     }
 
     @Test
     public void whenModifyingCollectionTypesValuesAreSet() throws Exception {
-        Map<String, String> tabParams = new HashMap<>();
-        tabParams.put("default", "Métadonnées");
-        tabParams.put("zeTab", "Mon onglet");
+        Map<String, String> tabParams = getTabsMap();
 
-        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
         collectionSettings.addType(getImportedType(tabParams));
         settings.addCollectionsConfigs(collectionSettings);
 
         importSettings();
 
         MetadataSchemaType schemaType = metadataSchemasManager
-                .getSchemaTypes(zeCollection).getSchemaType("folder");
+                .getSchemaTypes(zeCollection).getSchemaType(CODE_FOLDER_SCHEMA_TYPE);
         assertThat(schemaType).isNotNull();
         List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
         assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
-        validateTypeImport(schemaType);
+
+        validateTypeImport(schemaType, false);
 
         collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
-        collectionSettings.addType(getImportedType(tabParams));
+        collectionSettings.addType(getImportedTypeUpdated());
         settings.addCollectionsConfigs(collectionSettings);
 
+        importSettings();
 
-        /*
-        .addMetadata(new ImportedMetadata().setCode("metadata2").setLabel("Nouveau Titre métadonnée no.2")
-                .setType(MetadataValueType.STRING)
-                .setEnabled(true)
-                .setRequired(false) // X
-                .setTab("default")
-                .setMultiValue(true)
-                .setBehaviours(toListOfString("searchableInSimpleSearch", "searchableInAdvancedSearch",
-                        "unique", "unmodifiable", "sortable")) // X
-                .setSearchable(false) //X
-                .setAdvanceSearchable(true)
-                .setUnique(true)
-                .setUnmodifiable(false) // X
-                .setSortable(true)
-                .setRecordAutocomplete(true)
-                .setEssential(false) // X
-                .setEssentialInSummary(true)
-                .setMultiLingual(true)   // cannot be multivalue and unique at same time !
-                .setDuplicable(true)
-                .setInputMask("9999-0000")
-*/
+        validateTypeImport(schemaType, true);
     }
 
-    private void validateTypeImport(MetadataSchemaType schemaType) {
-        // Default schema
-        MetadataSchema defaultSchema = schemaType.getDefaultSchema();
-        assertThat(defaultSchema).isNotNull();
+    @Test
+    public void whenModifyingCollectionTypesValuesAreUpdated() throws Exception {
 
-        Metadata metadata1 = defaultSchema.get("metadata1");
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addType(getImportedType(getTabsMap()));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = metadataSchemasManager
+                .getSchemaTypes(zeCollection).getSchemaType(CODE_FOLDER_SCHEMA_TYPE);
+        assertThat(schemaType).isNotNull();
+        List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
+        assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
+
+        // metadata1
+        Metadata metadata1 = schemaType.getDefaultSchema().get(CODE_METADATA_1);
         assertThat(metadata1).isNotNull();
-        assertThat(metadata1.getLabel(Language.French)).isEqualTo("Titre métadonnée no.1");
+        assertThat(metadata1.getLabel(Language.French)).isEqualTo(TITLE_METADATA_1);
         assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
         assertThat(metadata1.getInputMask()).isNullOrEmpty();
         assertThat(metadata1.isDefaultRequirement()).isTrue();
@@ -596,38 +587,167 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(metadata1.isUniqueValue()).isFalse();
         assertThat(metadata1.isUnmodifiable()).isFalse();
 
-        // TODO Valider le tab de la métadonnée
-        Metadata metadata2 = defaultSchema.get("metadata2");
+        // Valider le display Config
+        MetadataDisplayConfig displayConfig1 = getAppLayerFactory()
+                .getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata1.getCode());
+        assertThat(displayConfig1).isNotNull();
+        assertThat(displayConfig1.getMetadataGroupCode()).isEqualTo("");
+        assertThat(displayConfig1.isVisibleInAdvancedSearch()).isFalse();
+
+        Metadata metadata2 = schemaType.getDefaultSchema().get(CODE_METADATA_2);
         assertThat(metadata2).isNotNull();
-        assertThat(metadata2.getLabel(Language.French)).isEqualTo("Titre métadonnée no.2");
-        assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
         assertThat(metadata2.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata2.isEnabled()).isTrue();
+        assertThat(metadata2.isEssentialInSummary()).isTrue();
+        assertThat(metadata2.isUniqueValue()).isTrue();
+        assertThat(metadata2.isMultivalue()).isFalse();
+        assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2);
+        assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
         assertThat(metadata2.isDefaultRequirement()).isTrue();
         assertThat(metadata2.isDuplicable()).isTrue();
-        assertThat(metadata2.isEnabled()).isTrue();
         assertThat(metadata2.isEncrypted()).isFalse();
         assertThat(metadata2.isEssential()).isTrue();
-        assertThat(metadata2.isEssentialInSummary()).isTrue();
-        //  TODO à confirmer Francis: Because of inheritance value is different from expected value
-        // assertThat(metadata2.isMultiLingual()).isTrue();
-        assertThat(metadata2.isMultivalue()).isFalse();
         assertThat(metadata2.isSearchable()).isTrue();
-        // TODO valider advanceSearchable
         assertThat(metadata2.isSchemaAutocomplete()).isTrue();
         assertThat(metadata2.isSortable()).isTrue();
-        // TODO valider à quoi correspond isSystemReserved et isUnideletable
-        assertThat(metadata2.isSystemReserved()).isFalse();
-        // TODO valider si l'attribut est settable
-        //assertThat(metadata2.isUndeletable()).isFalse();
-        assertThat(metadata2.isUniqueValue()).isTrue();
         assertThat(metadata2.isUnmodifiable()).isTrue();
+        // valider display config metadata2
+        MetadataDisplayConfig metadata2DisplayConfig = getAppLayerFactory()
+                .getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata2.getCode());
+        assertThat(metadata2DisplayConfig).isNotNull();
+        assertThat(metadata2DisplayConfig.getMetadataGroupCode()).isEqualTo("zeTab");
+        assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isFalse();
 
-        MetadataSchema USRschema1 = schemaType.getSchema("USRschema1");
+
+        assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2_UPDATED);
+        assertThat(metadata2.getInputMask()).isEqualTo("9999-0000");
+        assertThat(metadata2.isDefaultRequirement()).isFalse();
+        assertThat(metadata2.isDuplicable()).isTrue();
+        assertThat(metadata2.isEncrypted()).isFalse();
+        assertThat(metadata2.isEssential()).isFalse();
+        assertThat(metadata2.isSearchable()).isTrue();
+        // TODO valider advanceSearchable : voir display config
+        assertThat(metadata2.isSchemaAutocomplete()).isTrue();
+        assertThat(metadata2.isSortable()).isTrue();
+        assertThat(metadata2.isUnmodifiable()).isFalse();
+        assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isTrue();
+
+        // Update metadata2
+        collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addType(getImportedTypeUpdated());
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        schemaType = metadataSchemasManager
+                .getSchemaTypes(zeCollection).getSchemaType(CODE_FOLDER_SCHEMA_TYPE);
+        assertThat(schemaType).isNotNull();
+        schemaTypeMetadata = schemaType.getAllMetadatas();
+        assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
+/*
+        metadata2 = schemaType.getDefaultSchema().get(CODE_METADATA_2);
+        assertThat(metadata2).isNotNull();
+        assertThat(metadata2.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata2.isEnabled()).isTrue();
+        assertThat(metadata2.isEssentialInSummary()).isTrue();
+        assertThat(metadata2.isUniqueValue()).isTrue();
+        assertThat(metadata2.isMultivalue()).isFalse();
+        assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2);
+        assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
+        assertThat(metadata2.isDefaultRequirement()).isTrue();
+        assertThat(metadata2.isDuplicable()).isTrue();
+        assertThat(metadata2.isEncrypted()).isFalse();
+        assertThat(metadata2.isEssential()).isTrue();
+        assertThat(metadata2.isSearchable()).isTrue();
+        assertThat(metadata2.isSchemaAutocomplete()).isTrue();
+        assertThat(metadata2.isSortable()).isTrue();
+        assertThat(metadata2.isUnmodifiable()).isTrue();
+        // valider display config metadata2
+        metadata2DisplayConfig = getAppLayerFactory()
+                .getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata2.getCode());
+        assertThat(metadata2DisplayConfig).isNotNull();
+        assertThat(metadata2DisplayConfig.getMetadataGroupCode()).isEqualTo("zeTab");
+        assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isFalse();
+        */
+    }
+
+    private void validateTypeImport(MetadataSchemaType schemaType, boolean isUpdate) {
+        // Default schema
+        MetadataSchema defaultSchema = schemaType.getDefaultSchema();
+        assertThat(defaultSchema).isNotNull();
+
+        Metadata metadata1 = defaultSchema.get(CODE_METADATA_1);
+        assertThat(metadata1).isNotNull();
+        assertThat(metadata1.getLabel(Language.French)).isEqualTo(TITLE_METADATA_1);
+        assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata1.getInputMask()).isNullOrEmpty();
+        assertThat(metadata1.isDefaultRequirement()).isTrue();
+        assertThat(metadata1.isDuplicable()).isFalse();
+        assertThat(metadata1.isEnabled()).isTrue();
+        assertThat(metadata1.isEncrypted()).isFalse();
+        assertThat(metadata1.isEssential()).isFalse();
+        assertThat(metadata1.isEssentialInSummary()).isFalse();
+        assertThat(metadata1.isMultiLingual()).isFalse();
+        assertThat(metadata1.isMultivalue()).isFalse();
+        assertThat(metadata1.isSearchable()).isFalse();
+        assertThat(metadata1.isSchemaAutocomplete()).isFalse();
+        assertThat(metadata1.isSortable()).isFalse();
+        assertThat(metadata1.isSystemReserved()).isFalse();
+        assertThat(metadata1.isUndeletable()).isFalse();
+        assertThat(metadata1.isUniqueValue()).isFalse();
+        assertThat(metadata1.isUnmodifiable()).isFalse();
+
+        Metadata metadata2 = defaultSchema.get(CODE_METADATA_2);
+        assertThat(metadata2).isNotNull();
+
+        assertThat(metadata2.getType()).isEqualTo(MetadataValueType.STRING);
+        assertThat(metadata2.isEnabled()).isTrue();
+        assertThat(metadata2.isEssentialInSummary()).isTrue();
+        assertThat(metadata2.isUniqueValue()).isTrue();
+        assertThat(metadata2.isMultivalue()).isFalse();
+
+        MetadataDisplayConfig metadata2DisplayConfig = getAppLayerFactory()
+                .getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata2.getCode());
+        assertThat(metadata2DisplayConfig).isNotNull();
+        //assertThat(metadata2DisplayConfig.getMetadataGroupCode()).isEqualTo("zeTab");
+
+        if (!isUpdate) {
+            assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2);
+            assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
+            assertThat(metadata2.isDefaultRequirement()).isTrue();
+            assertThat(metadata2.isDuplicable()).isTrue();
+            assertThat(metadata2.isEncrypted()).isFalse();
+            assertThat(metadata2.isEssential()).isTrue();
+            assertThat(metadata2.isSearchable()).isTrue();
+            // TODO valider advanceSearchable : voir display config
+            assertThat(metadata2.isSchemaAutocomplete()).isTrue();
+            assertThat(metadata2.isSortable()).isTrue();
+            assertThat(metadata2.isUnmodifiable()).isTrue();
+
+            assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isFalse();
+
+        } else {
+            assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2_UPDATED);
+            assertThat(metadata2.getInputMask()).isEqualTo("9999-0000");
+            assertThat(metadata2.isDefaultRequirement()).isFalse();
+            assertThat(metadata2.isDuplicable()).isTrue();
+            assertThat(metadata2.isEncrypted()).isFalse();
+            assertThat(metadata2.isEssential()).isFalse();
+            assertThat(metadata2.isSearchable()).isTrue();
+            // TODO valider advanceSearchable : voir display config
+            assertThat(metadata2.isSchemaAutocomplete()).isTrue();
+            assertThat(metadata2.isSortable()).isTrue();
+            assertThat(metadata2.isUnmodifiable()).isFalse();
+            assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isTrue();
+
+        }
+
+        MetadataSchema USRschema1 = schemaType.getSchema(CODE_SCHEMA_1);
         assertThat(USRschema1).isNotNull();
 
-        Metadata metadata3 = USRschema1.get("metadata3");
+        Metadata metadata3 = USRschema1.get(CODE_METADATA_3);
         assertThat(metadata3).isNotNull();
-        assertThat(metadata3.getLabel(Language.French)).isEqualTo("Titre métadonnée no.3");
+        assertThat(metadata3.getLabel(Language.French)).isEqualTo(TITLE_METADATA_3);
         assertThat(metadata3.getType()).isEqualTo(MetadataValueType.STRING);
         assertThat(metadata3.getInputMask()).isNullOrEmpty();
         assertThat(metadata3.isDefaultRequirement()).isTrue();

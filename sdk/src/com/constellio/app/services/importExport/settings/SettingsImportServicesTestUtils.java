@@ -65,6 +65,17 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
     protected static final List<String> TAXO_GROUPS_UPDATED = asList();
     protected static final String TAXO_1_CODE = "taxoMyFirstType";
     protected static final String TAXO_2_CODE = "taxoMySecondType";
+    public static final String CODE_METADATA_2 = "metadata2";
+    public static final String TITLE_METADATA_2_UPDATED = "Nouveau Titre métadonnée no.2";
+    public static final String TITLE_METADATA_2 = "Titre métadonnée no.2";
+    public static final String CODE_METADATA_1 = "metadata1";
+    public static final String TITLE_METADATA_1 = "Titre métadonnée no.1";
+    public static final String CODE_SCHEMA_1 = "USRschema1";
+    public static final String CODE_SCHEMA_2 = "USRschema2";
+    public static final String CODE_DEFAULT_SCHEMA = "default";
+
+    public static final String CODE_FOLDER_SCHEMA_TYPE = "folder";
+
     SettingsImportServices services;
     ImportedSettings settings = new ImportedSettings();
     ImportedCollectionSettings zeCollectionSettings;
@@ -90,6 +101,13 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
         zeCollectionSettings.addType(getImportedType(tabParams));
 
         return zeCollectionSettings;
+    }
+
+    protected static Map<String, String> getTabsMap() {
+        Map<String, String> tabParams = new HashMap<>();
+        tabParams.put("default", "Métadonnées");
+        tabParams.put("zeTab", "Mon onglet");
+        return tabParams;
     }
 
     protected List<ImportedConfig> getImportedConfigs() {
@@ -154,15 +172,15 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
     }
 
     protected ImportedMetadataSchema getFolderSchema() {
-        return new ImportedMetadataSchema().setCode("USRschema1")
+        return new ImportedMetadataSchema().setCode(CODE_SCHEMA_1)
                 .addMetadata(getImportedMetadata3());
     }
 
     private ImportedMetadata getImportedMetadata3() {
         return new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
                 .setType(MetadataValueType.STRING)
-                .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
-                .setRequiredIn(Arrays.asList("USRschema1"))
+                .setEnabledIn(toListOfString("default", CODE_SCHEMA_1, CODE_SCHEMA_2))
+                .setRequiredIn(Arrays.asList(CODE_SCHEMA_1))
                 .setMultiValue(true);
     }
 
@@ -172,16 +190,18 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
                 .addMetadata(getImportedMetadata2());
     }
 
-    protected ImportedType getImportedTypeUpdated(Map<String, String> tabParams) {
+    protected ImportedType getImportedTypeUpdated() {
         return new ImportedType().setCode("folder").setLabel("Dossier modifié")
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-                        .addMetadata(new ImportedMetadata().setCode("metadata2").setLabel("Nouveau Titre métadonnée no.2")
+                        .addMetadata(new ImportedMetadata().setCode(CODE_METADATA_2)
+                                .setLabel(TITLE_METADATA_2_UPDATED)
                                 .setType(MetadataValueType.STRING)
                                 .setEnabled(true)
                                 .setRequired(false) // X
                                 .setTab("default")
                                 .setMultiValue(true)
-                                .setBehaviours(toListOfString("searchableInSimpleSearch", "searchableInAdvancedSearch",
+                                .setBehaviours(toListOfString("searchableInSimpleSearch",
+                                        "searchableInAdvancedSearch",
                                         "unique", "unmodifiable", "sortable")) // X
                                 .setSearchable(false) //X
                                 .setAdvanceSearchable(true)
@@ -198,7 +218,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
     }
 
     private ImportedMetadata getImportedMetadata2() {
-        return new ImportedMetadata().setCode("metadata2").setLabel("Titre métadonnée no.2")
+        return new ImportedMetadata().setCode(CODE_METADATA_2).setLabel(TITLE_METADATA_2)
                 .setType(MetadataValueType.STRING)
                 .setEnabled(true)
                 .setRequired(true)
@@ -221,11 +241,11 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
     }
 
     private ImportedMetadata getImportedMetadata1() {
-        return new ImportedMetadata().setCode("metadata1").setLabel("Titre métadonnée no.1")
+        return new ImportedMetadata().setCode(CODE_METADATA_1).setLabel(TITLE_METADATA_1)
                 .setType(MetadataValueType.STRING)
-                .setEnabledIn(toListOfString("default", "USRschema1", "USRschema2"))
-                .setRequiredIn(toListOfString("USRschema1"))
-                .setVisibleInFormIn(toListOfString("default", "USRschema1"));
+                .setEnabledIn(toListOfString(CODE_DEFAULT_SCHEMA, CODE_SCHEMA_1, CODE_SCHEMA_2))
+                .setRequiredIn(toListOfString(CODE_SCHEMA_1))
+                .setVisibleInFormIn(toListOfString(CODE_DEFAULT_SCHEMA, CODE_SCHEMA_1));
     }
 
     protected List<ImportedTab> toListOfTabs(Map<String, String> tabParams) {
