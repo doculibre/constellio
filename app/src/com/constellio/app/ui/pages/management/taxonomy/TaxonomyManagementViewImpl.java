@@ -21,6 +21,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.ListSequencesButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
@@ -301,7 +302,8 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 				}
 			});
 		}
-		if (presenter.getCurrentConcept() != null) {
+		RecordVO currentConcept = presenter.getCurrentConcept();
+		if (currentConcept != null) {
 			actionMenuButtons.add(new EditButton($("TaxonomyManagementView.edit")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
@@ -314,6 +316,9 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					presenter.deleteButtonClicked(presenter.getCurrentConcept());
 				}
 			});
+			if (presenter.isSequenceTable(currentConcept)) {
+				actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
+			}
 		}
 		return actionMenuButtons;
 	}

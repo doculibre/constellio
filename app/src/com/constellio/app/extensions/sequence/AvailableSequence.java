@@ -22,4 +22,5 @@ public class AvailableSequence {
 	public Map<Language, String> getTitles() {
 		return titles;
 	}
+	
 }

@@ -9,15 +9,15 @@ public abstract class SaveButton extends IconButton {
 
 	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/disket.gif");
 
-	public static final String BUTTON_STYLE = "edit-button";
+	public static final String BUTTON_STYLE = "save-button";
 
 	public SaveButton() {
-		super(ICON_RESOURCE, $("edit"), true);
+		super(ICON_RESOURCE, $("save"), true);
 		init();
 	}
 
 	public SaveButton(boolean iconOnly) {
-		super(iconOnly ? ICON_RESOURCE : null, computeCaption($("save"), iconOnly), iconOnly);
+		super(iconOnly ? ICON_RESOURCE : null, computeCaption($("save"), iconOnly), iconOnly, false);
 		init();
 	}
 
