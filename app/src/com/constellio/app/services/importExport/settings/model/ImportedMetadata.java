@@ -10,34 +10,34 @@ public class ImportedMetadata {
     private String code;
     private String label;
     private MetadataValueType type;
-    private boolean enabled = true;
+    private Boolean enabled;// = true;
     private List<String> enabledIn = new ArrayList<>();
-    private boolean required = true;
+    private Boolean required;// = true;
     private List<String> requiredIn = new ArrayList<>();
-    private boolean visibleInForm = true;
+    private Boolean visibleInForm;// = true;
     private List<String> visibleInFormIn = new ArrayList<>();
-    private boolean visibleInDisplay = true;
+    private Boolean visibleInDisplay;// = true;
     private List<String> visibleInDisplayIn = new ArrayList<>();
-    private boolean visibleInSearchResult = false;
+    private Boolean visibleInSearchResult;// = false;
     private List<String> visibleInResultIn = new ArrayList<>();
-    private boolean visibleInTables = false;
+    private Boolean visibleInTables;// = false;
     private List<String> visibleInTablesIn = new ArrayList<>();
 
     private String tab;
-    private boolean multiValue;
+    private Boolean multiValue;
     private List<String> behaviours = new ArrayList<>();
     private String inputMask;
-    private boolean searchable;
-    private boolean advanceSearchable;
-    private boolean unmodifiable;
-    private boolean sortable;
-    private boolean recordAutocomplete;
-    private boolean essential;
-    private boolean essentialInSummary;
-    private boolean multiLingual;
-    private boolean duplicable;
-    private boolean encrypted;
-    private boolean unique;
+    private Boolean searchable;
+    private Boolean advanceSearchable;
+    private Boolean unmodifiable;
+    private Boolean sortable;
+    private Boolean recordAutocomplete;
+    private Boolean essential;
+    private Boolean essentialInSummary;
+    private Boolean multiLingual;
+    private Boolean duplicable;
+    private Boolean encrypted;
+    private Boolean unique;
 
     public String getCode() {
         return code;
@@ -62,20 +62,20 @@ public class ImportedMetadata {
         return this;
     }
 
-    public boolean isEnabled() {
+    public Boolean getEnabled() {
         return enabled;
     }
 
-    public ImportedMetadata setEnabled(boolean enabled) {
+    public ImportedMetadata setEnabled(Boolean enabled) {
         this.enabled = enabled;
         return this;
     }
 
-    public boolean isRequired() {
+    public Boolean getRequired() {
         return required;
     }
 
-    public ImportedMetadata setRequired(boolean required) {
+    public ImportedMetadata setRequired(Boolean required) {
         this.required = required;
         return this;
     }
@@ -98,12 +98,12 @@ public class ImportedMetadata {
         return  enabledIn;
     }
 
-    public ImportedMetadata setMultiValue(boolean multiValue) {
+    public ImportedMetadata setMultiValue(Boolean multiValue) {
         this.multiValue = multiValue;
         return this;
     }
 
-    public boolean isMultiValue(){
+    public Boolean getMultiValue() {
         return  multiValue;
     }
 
@@ -119,21 +119,21 @@ public class ImportedMetadata {
         return behaviours;
     }
 
-    public boolean isSearchable(){
+    public Boolean getSearchable() {
         return searchable;
     }
 
-    public ImportedMetadata setSearchable(boolean searchable) {
+    public ImportedMetadata setSearchable(Boolean searchable) {
         this.searchable = searchable;
         return this;
     }
 
-    public ImportedMetadata setAdvanceSearchable(boolean advanceSearchable) {
+    public ImportedMetadata setAdvanceSearchable(Boolean advanceSearchable) {
         this.advanceSearchable = advanceSearchable;
         return this;
     }
 
-    public boolean isAdvanceSearchable(){
+    public Boolean getAdvanceSearchable() {
         return advanceSearchable;
     }
 
@@ -150,38 +150,38 @@ public class ImportedMetadata {
         return requiredIn;
     }
 
-    public boolean isVisibleInForm() {
+    public Boolean getVisibleInForm() {
         return visibleInForm;
     }
 
-    public ImportedMetadata setVisibleInForm(boolean visibleInForm) {
+    public ImportedMetadata setVisibleInForm(Boolean visibleInForm) {
         this.visibleInForm = visibleInForm;
         return this;
     }
 
-    public boolean isVisibleInDisplay() {
+    public Boolean getVisibleInDisplay() {
         return visibleInDisplay;
     }
 
-    public ImportedMetadata setVisibleInDisplay(boolean visibleInDisplay) {
+    public ImportedMetadata setVisibleInDisplay(Boolean visibleInDisplay) {
         this.visibleInDisplay = visibleInDisplay;
         return this;
     }
 
-    public boolean isVisibleInSearchResult() {
+    public Boolean getVisibleInSearchResult() {
         return visibleInSearchResult;
     }
 
-    public ImportedMetadata setVisibleInSearchResult(boolean visibleInSearchResult) {
+    public ImportedMetadata setVisibleInSearchResult(Boolean visibleInSearchResult) {
         this.visibleInSearchResult = visibleInSearchResult;
         return this;
     }
 
-    public boolean isVisibleInTables() {
+    public Boolean getVisibleInTables() {
         return visibleInTables;
     }
 
-    public ImportedMetadata setVisibleInTables(boolean visibleInTables) {
+    public ImportedMetadata setVisibleInTables(Boolean visibleInTables) {
         this.visibleInTables = visibleInTables;
         return this;
     }
@@ -231,84 +231,84 @@ public class ImportedMetadata {
         return inputMask;
     }
 
-    public boolean isUnmodifiable() {
+    public Boolean getUnmodifiable() {
         return unmodifiable;
     }
 
-    public ImportedMetadata setUnmodifiable(boolean unmodifiable) {
+    public ImportedMetadata setUnmodifiable(Boolean unmodifiable) {
         this.unmodifiable = unmodifiable;
         return this;
     }
 
-    public boolean isSortable() {
+    public Boolean getSortable() {
         return sortable;
     }
 
-    public ImportedMetadata setSortable(boolean sortable) {
+    public ImportedMetadata setSortable(Boolean sortable) {
         this.sortable = sortable;
         return this;
     }
 
-    public boolean isRecordAutocomplete() {
+    public Boolean getRecordAutocomplete() {
         return recordAutocomplete;
     }
 
-    public ImportedMetadata setRecordAutocomplete(boolean recordAutocomplete) {
+    public ImportedMetadata setRecordAutocomplete(Boolean recordAutocomplete) {
         this.recordAutocomplete = recordAutocomplete;
         return this;
     }
 
-    public boolean isEssential() {
+    public Boolean getEssential() {
         return essential;
     }
 
-    public ImportedMetadata setEssential(boolean essential) {
+    public ImportedMetadata setEssential(Boolean essential) {
         this.essential = essential;
         return this;
     }
 
-    public boolean isEssentialInSummary() {
+    public Boolean getEssentialInSummary() {
         return essentialInSummary;
     }
 
-    public ImportedMetadata setEssentialInSummary(boolean essentialInSummary) {
+    public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
         this.essentialInSummary = essentialInSummary;
         return this;
     }
 
-    public boolean isMultiLingual() {
+    public Boolean getMultiLingual() {
         return multiLingual;
     }
 
-    public ImportedMetadata setMultiLingual(boolean multiLingual) {
+    public ImportedMetadata setMultiLingual(Boolean multiLingual) {
         this.multiLingual = multiLingual;
         return this;
     }
 
-    public boolean isDuplicable() {
+    public Boolean getDuplicable() {
         return duplicable;
     }
 
-    public ImportedMetadata setDuplicable(boolean duplicable) {
+    public ImportedMetadata setDuplicable(Boolean duplicable) {
         this.duplicable = duplicable;
         return this;
     }
 
-    public ImportedMetadata setEncrypted(boolean encrypted) {
+    public ImportedMetadata setEncrypted(Boolean encrypted) {
         this.encrypted = encrypted;
         return this;
     }
 
-    public boolean isEncrypted() {
+    public Boolean getEncrypted() {
         return encrypted;
     }
 
-    public ImportedMetadata setUnique(boolean unique) {
+    public ImportedMetadata setUnique(Boolean unique) {
         this.unique = unique;
         return this;
     }
 
-    public boolean isUnique() {
+    public Boolean getUnique() {
         return unique;
     }
 }

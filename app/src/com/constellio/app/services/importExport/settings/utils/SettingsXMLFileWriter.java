@@ -178,37 +178,37 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
 
         metadataElem.setAttribute(TYPE, importedMetadata.getType().name());
 
-        metadataElem.setAttribute(ENABLED, importedMetadata.isEnabled() + "");
+        metadataElem.setAttribute(ENABLED, importedMetadata.getEnabled() + "");
 
         if (!importedMetadata.getEnabledIn().isEmpty()) {
             metadataElem.setAttribute(ENABLED_IN, StringUtils.join(importedMetadata.getEnabledIn(), ","));
         }
 
-        metadataElem.setAttribute(REQUIRED, importedMetadata.isRequired() + "");
+        metadataElem.setAttribute(REQUIRED, importedMetadata.getRequired() + "");
 
         if (!importedMetadata.getRequiredIn().isEmpty()) {
             metadataElem.setAttribute(REQUIRED_IN, StringUtils.join(importedMetadata.getRequiredIn(), ","));
         }
 
-        metadataElem.setAttribute(VISIBLE_IN_FORM, importedMetadata.isVisibleInForm() + "");
+        metadataElem.setAttribute(VISIBLE_IN_FORM, importedMetadata.getVisibleInForm() + "");
 
         if (!importedMetadata.getVisibleInFormIn().isEmpty()) {
             metadataElem.setAttribute(VISIBLE_IN_FORM_IN, StringUtils.join(importedMetadata.getVisibleInFormIn(), ","));
         }
 
-        metadataElem.setAttribute(VISIBLE_IN_DISPLAY, importedMetadata.isVisibleInDisplay() + "");
+        metadataElem.setAttribute(VISIBLE_IN_DISPLAY, importedMetadata.getVisibleInDisplay() + "");
 
         if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
             metadataElem.setAttribute(VISIBLE_IN_DISPLAY_IN, StringUtils.join(importedMetadata.getVisibleInDisplayIn(), ","));
         }
 
-        metadataElem.setAttribute(VISIBLE_IN_SEARCH_RESULT, importedMetadata.isVisibleInSearchResult() + "");
+        metadataElem.setAttribute(VISIBLE_IN_SEARCH_RESULT, importedMetadata.getVisibleInSearchResult() + "");
 
         if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
             metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn(), ","));
         }
 
-        metadataElem.setAttribute(VISIBLE_IN_TABLES, importedMetadata.isVisibleInTables() + "");
+        metadataElem.setAttribute(VISIBLE_IN_TABLES, importedMetadata.getVisibleInTables() + "");
 
         if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
             metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn(), ","));
@@ -218,7 +218,7 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
             metadataElem.setAttribute(TAB, importedMetadata.getTab());
         }
 
-        metadataElem.setAttribute(MULTI_VALUE, importedMetadata.isMultiValue() + "");
+        metadataElem.setAttribute(MULTI_VALUE, importedMetadata.getMultiValue() + "");
 
         if (!importedMetadata.getBehaviours().isEmpty()) {
             metadataElem.setAttribute(BEHAVIOURS, StringUtils.join(importedMetadata.getBehaviours(), ","));
@@ -228,23 +228,23 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
             metadataElem.setAttribute(INPUT_MASK, importedMetadata.getInputMask());
         }
 
-        metadataElem.setAttribute(SEARCHABLE, importedMetadata.isSearchable() + "");
+        metadataElem.setAttribute(SEARCHABLE, importedMetadata.getSearchable() + "");
 
-        metadataElem.setAttribute(ADVANCE_SEARCHABLE, importedMetadata.isAdvanceSearchable() + "");
+        metadataElem.setAttribute(ADVANCE_SEARCHABLE, importedMetadata.getAdvanceSearchable() + "");
 
-        metadataElem.setAttribute(UNMODIFIABLE, importedMetadata.isUnmodifiable() + "");
+        metadataElem.setAttribute(UNMODIFIABLE, importedMetadata.getUnmodifiable() + "");
 
-        metadataElem.setAttribute(SORTABLE, importedMetadata.isSortable() + "");
+        metadataElem.setAttribute(SORTABLE, importedMetadata.getSortable() + "");
 
-        metadataElem.setAttribute(RECORD_AUTOCOMPLETE, importedMetadata.isRecordAutocomplete() + "");
+        metadataElem.setAttribute(RECORD_AUTOCOMPLETE, importedMetadata.getRecordAutocomplete() + "");
 
-        metadataElem.setAttribute(ESSENTIAL, importedMetadata.isEssential() + "");
+        metadataElem.setAttribute(ESSENTIAL, importedMetadata.getEssential() + "");
 
-        metadataElem.setAttribute(ESSENTIAL_IN_SUMMARY, importedMetadata.isEssentialInSummary() + "");
+        metadataElem.setAttribute(ESSENTIAL_IN_SUMMARY, importedMetadata.getEssentialInSummary() + "");
 
-        metadataElem.setAttribute(MULTI_LINGUAL, importedMetadata.isMultiLingual() + "");
+        metadataElem.setAttribute(MULTI_LINGUAL, importedMetadata.getMultiLingual() + "");
 
-        metadataElem.setAttribute(DUPLICABLE, importedMetadata.isDuplicable() + "");
+        metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
 
         defaultSchemaElem.addContent(metadataElem);
     }
@@ -267,7 +267,7 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
         Element listElem = new Element(TAXONOMY);
         listElem.setAttribute(CODE, importedTaxonomy.getCode());
         listElem.setAttribute(TITLE, importedTaxonomy.getTitles().get(TITLE_FR));
-        listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.isVisibleOnHomePage() + "");
+        listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
         listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(importedTaxonomy.getClassifiedTypes(), ','));
         listElem.setAttribute(GROUPS, StringUtils.join(importedTaxonomy.getGroupIds(), ','));
         listElem.setAttribute(USERS, StringUtils.join(importedTaxonomy.getUserIds(), ','));

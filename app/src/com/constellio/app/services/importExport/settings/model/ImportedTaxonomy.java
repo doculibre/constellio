@@ -10,7 +10,7 @@ public class ImportedTaxonomy {
     private String code;
     private Map<String, String> titles = new HashMap<>();
     private List<String> classifiedTypes = new ArrayList<>();
-    private boolean visibleOnHomePage = true;
+    private Boolean visibleOnHomePage = true;
     private List<String> userIds = new ArrayList<>();
     private List<String> groupIds = new ArrayList<>();
 
@@ -34,12 +34,12 @@ public class ImportedTaxonomy {
         return this;
     }
 
-    public ImportedTaxonomy setVisibleOnHomePage(boolean visibleOnHomePage) {
+    public ImportedTaxonomy setVisibleOnHomePage(Boolean visibleOnHomePage) {
         this.visibleOnHomePage = visibleOnHomePage;
         return this;
     }
 
-    public boolean isVisibleOnHomePage(){
+    public Boolean getVisibleOnHomePage() {
         return visibleOnHomePage;
     }
 

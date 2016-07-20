@@ -86,7 +86,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Metadata description = newDomainTypes.get(0).getDefaultSchema().getMetadata(ValueListItem.DESCRIPTION);
 
 		assertThat(code.isUndeletable()).isTrue();
-		//assertThat(code.isUnmodifiable()).isTrue();
+		//assertThat(code.getUnmodifiable()).isTrue();
 		assertThat(code.isSearchable()).isTrue();
 		assertThat(code.getType()).isSameAs(MetadataValueType.STRING);
 
@@ -127,7 +127,7 @@ public class ValueListServicesAcceptanceTest extends ConstellioTest {
 		Metadata parent = taxo1Type.getDefaultSchema().getMetadata(HierarchicalValueListItem.PARENT);
 
 		assertThat(code.isUndeletable()).isTrue();
-		//assertThat(code.isUnmodifiable()).isTrue();
+		//assertThat(code.getUnmodifiable()).isTrue();
 		assertThat(code.isSearchable()).isTrue();
 		assertThat(code.getType()).isSameAs(MetadataValueType.STRING);
 

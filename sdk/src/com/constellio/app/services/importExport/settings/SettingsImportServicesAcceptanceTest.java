@@ -589,125 +589,48 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	public void whenModifyingCollectionTypesValuesAreUpdated()
+	public void whenImportNewMetadatasWithVisibleInTablesAndSearchThenMarkedAsVisibleInTablesAndSearch()
 			throws Exception {
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
-		collectionSettings.addType(getImportedType(getTabsMap()));
+
+		ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
+		folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING)
+				.setVisibleInSearchResult(true).setVisibleInTables(true));
+		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+
+		collectionSettings.addType(folderType.addSchema(customSchema));
 		settings.addCollectionsConfigs(collectionSettings);
 
 		importSettings();
 
-		MetadataSchemaType schemaType = metadataSchemasManager
-				.getSchemaTypes(zeCollection).getSchemaType(CODE_FOLDER_SCHEMA_TYPE);
-		assertThat(schemaType).isNotNull();
-		List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
-		assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
+		SchemaDisplayConfig defaultFolder = schemasDisplayManager.getSchema(zeCollection, "folder_default");
+		assertThat(defaultFolder.getDisplayMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+		assertThat(defaultFolder.getFormMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+		assertThat(defaultFolder.getSearchResultsMetadataCodes())
+				.contains("folder_default_title")
+				.doesNotContain("folder_default_m1");
 
-		// metadata1
-		Metadata metadata1 = schemaType.getDefaultSchema().get(CODE_METADATA_1);
-		assertThat(metadata1).isNotNull();
-		assertThat(metadata1.getLabel(Language.French)).isEqualTo(TITLE_METADATA_1);
-		assertThat(metadata1.getType()).isEqualTo(STRING);
-		assertThat(metadata1.getInputMask()).isNullOrEmpty();
-		assertThat(metadata1.isDefaultRequirement()).isTrue();
-		assertThat(metadata1.isDuplicable()).isFalse();
-		assertThat(metadata1.isEnabled()).isTrue();
-		assertThat(metadata1.isEncrypted()).isFalse();
-		assertThat(metadata1.isEssential()).isFalse();
-		assertThat(metadata1.isEssentialInSummary()).isFalse();
-		assertThat(metadata1.isMultiLingual()).isFalse();
-		assertThat(metadata1.isMultivalue()).isFalse();
-		assertThat(metadata1.isSearchable()).isFalse();
-		assertThat(metadata1.isSchemaAutocomplete()).isFalse();
-		assertThat(metadata1.isSortable()).isFalse();
-		assertThat(metadata1.isSystemReserved()).isFalse();
-		assertThat(metadata1.isUndeletable()).isFalse();
-		assertThat(metadata1.isUniqueValue()).isFalse();
-		assertThat(metadata1.isUnmodifiable()).isFalse();
+		assertThat(defaultFolder.getTableMetadataCodes())
+				.contains("folder_default_title")
+				.doesNotContain("folder_default_m1");
 
-		// Valider le display Config
-		MetadataDisplayConfig displayConfig1 = getAppLayerFactory()
-				.getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata1.getCode());
-		assertThat(displayConfig1).isNotNull();
-		assertThat(displayConfig1.getMetadataGroupCode()).isEqualTo("");
-		assertThat(displayConfig1.isVisibleInAdvancedSearch()).isFalse();
+		SchemaDisplayConfig customFolder = schemasDisplayManager.getSchema(zeCollection, "folder_custom");
+		assertThat(customFolder.getDisplayMetadataCodes())
+				.contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
 
-		Metadata metadata2 = schemaType.getDefaultSchema().get(CODE_METADATA_2);
-		assertThat(metadata2).isNotNull();
-		assertThat(metadata2.getType()).isEqualTo(STRING);
-		assertThat(metadata2.isEnabled()).isTrue();
-		assertThat(metadata2.isEssentialInSummary()).isTrue();
-		assertThat(metadata2.isUniqueValue()).isTrue();
-		assertThat(metadata2.isMultivalue()).isFalse();
-		assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2);
-		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
-		assertThat(metadata2.isDefaultRequirement()).isTrue();
-		assertThat(metadata2.isDuplicable()).isTrue();
-		assertThat(metadata2.isEncrypted()).isFalse();
-		assertThat(metadata2.isEssential()).isTrue();
-		assertThat(metadata2.isSearchable()).isTrue();
-		assertThat(metadata2.isSchemaAutocomplete()).isTrue();
-		assertThat(metadata2.isSortable()).isTrue();
-		assertThat(metadata2.isUnmodifiable()).isTrue();
-		// valider display config metadata2
-		MetadataDisplayConfig metadata2DisplayConfig = getAppLayerFactory()
-				.getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata2.getCode());
-		assertThat(metadata2DisplayConfig).isNotNull();
-		assertThat(metadata2DisplayConfig.getMetadataGroupCode()).isEqualTo("zeTab");
-		assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isFalse();
+		assertThat(customFolder.getFormMetadataCodes())
+				.contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
 
-		assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2_UPDATED);
-		assertThat(metadata2.getInputMask()).isEqualTo("9999-0000");
-		assertThat(metadata2.isDefaultRequirement()).isFalse();
-		assertThat(metadata2.isDuplicable()).isTrue();
-		assertThat(metadata2.isEncrypted()).isFalse();
-		assertThat(metadata2.isEssential()).isFalse();
-		assertThat(metadata2.isSearchable()).isTrue();
-		// TODO valider advanceSearchable : voir display config
-		assertThat(metadata2.isSchemaAutocomplete()).isTrue();
-		assertThat(metadata2.isSortable()).isTrue();
-		assertThat(metadata2.isUnmodifiable()).isFalse();
-		assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isTrue();
+		assertThat(customFolder.getSearchResultsMetadataCodes())
+				.contains("folder_custom_title")
+				.doesNotContain("folder_default_m1", "folder_custom_m2");
 
-		// Update metadata2
-		collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
-		collectionSettings.addType(getImportedTypeUpdated());
-		settings.addCollectionsConfigs(collectionSettings);
-
-		importSettings();
-
-		schemaType = metadataSchemasManager
-				.getSchemaTypes(zeCollection).getSchemaType(CODE_FOLDER_SCHEMA_TYPE);
-		assertThat(schemaType).isNotNull();
-		schemaTypeMetadata = schemaType.getAllMetadatas();
-		assertThat(schemaTypeMetadata).isNotNull().hasSize(95);
-/*
-		metadata2 = schemaType.getDefaultSchema().get(CODE_METADATA_2);
-        assertThat(metadata2).isNotNull();
-        assertThat(metadata2.getType()).isEqualTo(MetadataValueType.STRING);
-        assertThat(metadata2.isEnabled()).isTrue();
-        assertThat(metadata2.isEssentialInSummary()).isTrue();
-        assertThat(metadata2.isUniqueValue()).isTrue();
-        assertThat(metadata2.isMultivalue()).isFalse();
-        assertThat(metadata2.getLabel(Language.French)).isEqualTo(TITLE_METADATA_2);
-        assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
-        assertThat(metadata2.isDefaultRequirement()).isTrue();
-        assertThat(metadata2.isDuplicable()).isTrue();
-        assertThat(metadata2.isEncrypted()).isFalse();
-        assertThat(metadata2.isEssential()).isTrue();
-        assertThat(metadata2.isSearchable()).isTrue();
-        assertThat(metadata2.isSchemaAutocomplete()).isTrue();
-        assertThat(metadata2.isSortable()).isTrue();
-        assertThat(metadata2.isUnmodifiable()).isTrue();
-        // valider display config metadata2
-        metadata2DisplayConfig = getAppLayerFactory()
-                .getMetadataSchemasDisplayManager().getMetadata(zeCollection, metadata2.getCode());
-        assertThat(metadata2DisplayConfig).isNotNull();
-        assertThat(metadata2DisplayConfig.getMetadataGroupCode()).isEqualTo("zeTab");
-        assertThat(metadata2DisplayConfig.isVisibleInAdvancedSearch()).isFalse();
-        */
+		assertThat(customFolder.getTableMetadataCodes())
+				.contains("folder_custom_title")
+				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
 	@Test
@@ -717,7 +640,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedType folderType = new ImportedType().setCode("folder");
+		ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
 		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
 		folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING));
 		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
@@ -759,7 +682,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			throws Exception {
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
-		ImportedType folderType = new ImportedType().setCode("folder");
+		ImportedType folderType = new ImportedType().setDefaultSchema(new ImportedMetadataSchema().setCode("default")).setCode("folder");
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInDisplay(true);
 		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInDisplay(false);
 		ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType(STRING).setVisibleInDisplay(true);

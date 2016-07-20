@@ -11,7 +11,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -137,10 +136,10 @@ public class SettingsImportServices {
         importedMetadata.getVisibleInDisplayIn();
         importedMetadata.getVisibleInFormIn();
         importedMetadata.getVisibleInResultIn();
-        importedMetadata.isVisibleInDisplay();
-        importedMetadata.isVisibleInForm();
-        importedMetadata.isVisibleInSearchResult();
-        importedMetadata.isVisibleInTables();
+        importedMetadata.getVisibleInDisplay();
+        importedMetadata.getVisibleInForm();
+        importedMetadata.getVisibleInSearchResult();
+        importedMetadata.getVisibleInTables();
         */
 
         // TODO create metadata tab if not available
@@ -151,6 +150,7 @@ public class SettingsImportServices {
         SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
         SchemaTypesDisplayTransactionBuilder transactionBuilder = new SchemaTypesDisplayTransactionBuilder(schemaTypes, displayManager);
 
+        /*
         // Display
         for (ImportedTypeMetadata typeItem : typeMetadata) {
 
@@ -189,6 +189,7 @@ public class SettingsImportServices {
             }
         }
         displayManager.execute(transactionBuilder.build());
+        */
     }
 
     private List<ImportedTypeMetadata> loadTypeMetadata(List<ImportedType> types) {
@@ -232,7 +233,7 @@ public class SettingsImportServices {
     }
 
     private void addMetadataVisibleInDisplayItem(ImportedTypeMetadata importedTypeMetadata, String schema, ImportedMetadata importedMetadata) {
-        if (importedMetadata.isVisibleInDisplay()) {
+        if (importedMetadata.getVisibleInDisplay() != null && importedMetadata.getVisibleInDisplay()) {
             importedTypeMetadata.addMetadataIsVisibleInDisplay(schema, importedMetadata);
         }
         if (importedMetadata.getVisibleInDisplayIn().size() > 0) {
@@ -243,7 +244,7 @@ public class SettingsImportServices {
     }
 
     private void addMetadataVisibleInFormItem(ImportedTypeMetadata importedTypeMetadata, String schema, ImportedMetadata importedMetadata) {
-        if (importedMetadata.isVisibleInForm()) {
+        if (importedMetadata.getVisibleInForm() != null && importedMetadata.getVisibleInForm()) {
             importedTypeMetadata.addMetadataIsVisibleInForm(schema, importedMetadata);
         }
         if (importedMetadata.getVisibleInFormIn().size() > 0) {
@@ -254,7 +255,7 @@ public class SettingsImportServices {
     }
 
     private void addMetadataVisibleInSearchResultItem(ImportedTypeMetadata importedTypeMetadata, String schema, ImportedMetadata importedMetadata) {
-        if (importedMetadata.isVisibleInSearchResult()) {
+        if (importedMetadata.getVisibleInSearchResult() != null && importedMetadata.getVisibleInSearchResult()) {
             importedTypeMetadata.addMetadataIsVisibleInResult(schema, importedMetadata);
         }
         if (importedMetadata.getVisibleInResultIn().size() > 0) {
@@ -265,7 +266,7 @@ public class SettingsImportServices {
     }
 
     private void addMetadataVisibleInTablesItems(ImportedTypeMetadata importedTypeMetadata, String schema, ImportedMetadata importedMetadata) {
-        if (importedMetadata.isVisibleInTables()) {
+        if (importedMetadata.getVisibleInTables() != null && importedMetadata.getVisibleInTables()) {
             importedTypeMetadata.addMetadataIsVisibleInTables(schema, importedMetadata);
         }
         if (importedMetadata.getVisibleInTablesIn().size() > 0) {
@@ -303,38 +304,72 @@ public class SettingsImportServices {
     private void createAndAddMetadata(MetadataSchemaTypeBuilder typeBuilder, MetadataSchemaBuilder schemaBuilder,
                                       ImportedMetadata importedMetadata, MetadataSchemaTypesBuilder typesBuilder) {
         MetadataBuilder metadataBuilder;
-        boolean isUpdate = false;
         try {
             metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
             metadataBuilder.setType(importedMetadata.getType());
         } catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
             metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
-            isUpdate = true;
         }
 
         Map<Language, String> labels = new HashMap<>();
         labels.put(Language.French, importedMetadata.getLabel());
         metadataBuilder.setLabels(labels);
 
-        metadataBuilder.setDefaultRequirement(importedMetadata.isRequired());
-
-        metadataBuilder.setDuplicable(importedMetadata.isDuplicable());
-        metadataBuilder.setEnabled(importedMetadata.isEnabled());
-        metadataBuilder.setEncrypted(importedMetadata.isEncrypted());
-        metadataBuilder.setEssential(importedMetadata.isEssential());
-        metadataBuilder.setEssentialInSummary(importedMetadata.isEssentialInSummary());
-        metadataBuilder.setInputMask(importedMetadata.getInputMask());
-        metadataBuilder.setMultiLingual(importedMetadata.isMultiLingual());
-        metadataBuilder.setUniqueValue(importedMetadata.isUnique());
-
-        if (!importedMetadata.isUnique()) {
-            metadataBuilder.setMultivalue(importedMetadata.isMultiValue());
+        if (importedMetadata.getRequired() != null) {
+            metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
         }
-        metadataBuilder.setSchemaAutocomplete(importedMetadata.isRecordAutocomplete());
-        metadataBuilder.setSearchable(importedMetadata.isSearchable());
-        metadataBuilder.setSortable(importedMetadata.isSortable());
 
-        metadataBuilder.setUnmodifiable(importedMetadata.isUnmodifiable());
+        if (importedMetadata.getDuplicable() != null) {
+            metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
+        }
+
+        if (importedMetadata.getEnabled() != null) {
+            metadataBuilder.setEnabled(importedMetadata.getEnabled());
+        }
+
+        if (importedMetadata.getEncrypted() != null) {
+            metadataBuilder.setEncrypted(importedMetadata.getEncrypted());
+        }
+
+        if (importedMetadata.getEssential() != null) {
+            metadataBuilder.setEssential(importedMetadata.getEssential());
+        }
+
+        if (importedMetadata.getEssentialInSummary() != null) {
+            metadataBuilder.setEssentialInSummary(importedMetadata.getEssentialInSummary());
+        }
+
+        metadataBuilder.setInputMask(importedMetadata.getInputMask());
+
+        if (importedMetadata.getMultiLingual() != null) {
+            metadataBuilder.setMultiLingual(importedMetadata.getMultiLingual());
+        }
+
+        if (importedMetadata.getUnique() != null) {
+            metadataBuilder.setUniqueValue(importedMetadata.getUnique());
+        }
+
+        if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
+            if (importedMetadata.getUnique() != null) {
+                metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
+            }
+        }
+
+        if (importedMetadata.getRecordAutocomplete() != null) {
+            metadataBuilder.setSchemaAutocomplete(importedMetadata.getRecordAutocomplete());
+        }
+
+        if (importedMetadata.getSearchable() != null) {
+            metadataBuilder.setSearchable(importedMetadata.getSearchable());
+        }
+
+        if (importedMetadata.getSortable() != null) {
+            metadataBuilder.setSortable(importedMetadata.getSortable());
+        }
+
+        if (importedMetadata.getUnmodifiable() != null) {
+            metadataBuilder.setUnmodifiable(importedMetadata.getUnmodifiable());
+        }
 
         if ("default".equals(schemaBuilder.getCode())) {
             for (String targetSchema : importedMetadata.getEnabledIn()) {
@@ -379,7 +414,7 @@ public class SettingsImportServices {
                                 .withTitle(importedTaxonomy.getTitles().get(TITLE_FR))
                                 .withUserIds(importedTaxonomy.getUserIds())
                                 .withGroupIds(importedTaxonomy.getGroupIds())
-                                .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
+                                .withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
 
                         appLayerFactory.getModelLayerFactory().getTaxonomiesManager().editTaxonomy(taxonomy);
                     }
@@ -393,7 +428,7 @@ public class SettingsImportServices {
             Taxonomy currTaxonomy = taxonomy
                     .withUserIds(importedTaxonomy.getUserIds())
                     .withGroupIds(importedTaxonomy.getGroupIds())
-                    .withVisibleInHomeFlag(importedTaxonomy.isVisibleOnHomePage());
+                    .withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
             appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
                     .addTaxonomy(currTaxonomy, schemasManager);
 
@@ -689,7 +724,7 @@ public class SettingsImportServices {
 
             @Override
             public Boolean isVisible(ImportedMetadata metadata) {
-                return metadata.isVisibleInDisplay();
+                return metadata.getVisibleInDisplay();
             }
         });
     }
