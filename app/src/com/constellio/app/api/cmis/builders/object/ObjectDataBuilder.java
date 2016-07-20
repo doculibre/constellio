@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.builders.object;
 
 import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL;
 
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -66,10 +67,11 @@ public class ObjectDataBuilder {
 
 		callExtensions(result, propertiesBuilder, record);
 
-		//if (includeAcl) {
-		result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
-		result.setIsExactAcl(true);
-		//}
+		boolean neverReturlACL = modelLayerFactory.getSystemConfigurationsManager().getValue(CMIS_NEVER_RETURN_ACL);
+		if (includeAcl && !neverReturlACL) {
+			result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
+			result.setIsExactAcl(true);
+		}
 
 		if (context.isObjectInfoRequired()) {
 			objectInfo.setObject(result);

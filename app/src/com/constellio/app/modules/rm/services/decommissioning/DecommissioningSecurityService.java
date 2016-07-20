@@ -118,4 +118,13 @@ public class DecommissioningSecurityService {
 			return Arrays.asList(DecommissioningMainPresenter.TO_VALIDATE);
 		}
 	}
+	
+	public boolean canCreateContainers(User user) {
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	}
+	
+	public boolean hasAccessToManageContainersPage(User user) {
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	}
+	
 }

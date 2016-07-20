@@ -312,7 +312,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		credentials.createUndeletable(SolrUserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
 		credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
 		credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
-				.setUniqueValue(true).addValidator(EmailValidator.class);
+				.setUniqueValue(false).addValidator(EmailValidator.class);
 		credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
 		credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
 				.setEncrypted(true);

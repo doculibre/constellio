@@ -1,5 +1,6 @@
 package com.constellio.model.services.security.authentification;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -28,7 +29,7 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 	public void setup()
 			throws Exception {
 		configManager = getDataLayerFactory().getConfigManager();
-		hashingService = spy(getIOLayerFactory().newHashingService());
+		hashingService = spy(getIOLayerFactory().newHashingService(BASE64));
 		passwordFileAuthenticationService = getModelLayerFactory()
 				.getPasswordFileAuthenticationService();
 	}

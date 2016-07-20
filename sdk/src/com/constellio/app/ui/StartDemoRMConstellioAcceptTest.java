@@ -5,7 +5,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.io.File;
-import java.util.Arrays;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -31,7 +30,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestPagesComponentsExtensions;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -64,12 +62,8 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-
-
 		recordServices = getModelLayerFactory().newRecordServices();
 		AppLayerFactory appLayerFactory = getAppLayerFactory();
-		appLayerFactory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions.add(
-				new TestPagesComponentsExtensions(appLayerFactory));
 
 		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
 		dataLayerFactory.getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
@@ -86,9 +80,12 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).addLabel(Language.French,"Date metadata 1");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).addLabel(Language.French,"Date metadata 2");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).addLabel(Language.French,"Datetime metadata");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE)
+						.addLabel(Language.French, "Date metadata 1");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE)
+						.addLabel(Language.French, "Date metadata 2");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME)
+						.addLabel(Language.French, "Datetime metadata");
 			}
 		});
 
@@ -105,8 +102,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
 	}
-
-
 
 	private void setup() {
 		givenConfig(RMConfigs.DOCUMENTS_TYPES_CHOICE, DocumentsTypeChoice.ALL_DOCUMENTS_TYPES);

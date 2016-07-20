@@ -1,5 +1,7 @@
 package com.constellio.model.services.factories;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -171,9 +173,9 @@ public class ModelLayerFactory extends LayerFactory {
 						dataLayerFactory.getBackgroundThreadsManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
-						ioServicesFactory.newHashingService(), newUserServices()));
+						ioServicesFactory.newHashingService(BASE64), newUserServices()));
 		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
-				ioServicesFactory.newHashingService());
+				ioServicesFactory.newHashingService(BASE64));
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService);
 		this.emailConfigurationsManager = add(

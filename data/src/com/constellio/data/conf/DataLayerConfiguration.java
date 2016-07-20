@@ -26,6 +26,10 @@ public interface DataLayerConfiguration {
 
 	File getContentDaoFileSystemFolder();
 
+	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
+
+	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
+
 	File getTempFolder();
 
 	ConfigManagerType getSettingsConfigType();
@@ -41,6 +45,8 @@ public interface DataLayerConfiguration {
 	boolean isSecondTransactionLogEnabled();
 
 	boolean isWriteZZRecords();
+
+	HashingEncoding getHashingEncoding();
 
 	File getSecondTransactionLogBaseFolder();
 
@@ -66,4 +72,5 @@ public interface DataLayerConfiguration {
 
 	String createRandomUniqueKey();
 
+	void setHashingEncoding(HashingEncoding encoding);
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -80,6 +81,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(BASE64);
 		givenTimeIs(firstDocumentModificationOClock);
 
 		defineSchemasManager().using(schemas.withAMultivalueContentMetadata());

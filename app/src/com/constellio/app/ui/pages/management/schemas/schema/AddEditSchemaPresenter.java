@@ -49,7 +49,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		this.parameters = params;
 		
 		String schemaCode = params.get("schemaCode");
-		editMode = schemaCode != null;
+		editMode = StringUtils.isNotBlank(schemaCode);
 		
 		MetadataSchemaTypes types = types();
 		MetadataSchema schema;
