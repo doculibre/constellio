@@ -10,7 +10,9 @@ import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -166,18 +168,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		session = givenAdminSessionOnZeCollection();
 
-		List<String> users = new ArrayList<>();
-		for (int i = 1; i <= 100; i++) {
-			String username = "grim.patron." + i;
-			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
-					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
-			userServices.addUpdateUserCredential(userCredential);
-			users.add(username);
-		}
-		for (String username : users) {
-			User user = userServices.getUserInCollection(username, zeCollection);
-			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isFalse();
-		}
+		List<String> users = createDummyUsers(100);
 
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
 		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
@@ -194,6 +185,73 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isTrue();
 		}
 
+	}
+
+	@Test
+	public void whenCreateFoldersAndAddACLTo20UsersThenOK()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		List<String> users = createDummyUsers(75);
+
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+
+		List<Ace> aces = new ArrayList<>();
+		aces.add(ace("constellio:removeInheritance", RW));
+		for (String user : users) {
+			aces.add(ace(user, RW));
+		}
+
+		cmisFolder2.setAcl(aces);
+
+		int counter = 0;
+
+		for (int i = 0; i < 10; i++) {
+			counter++;
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("cmis:name", "Sub folder " + counter);
+			cmisFolder2.createFolder(parameters);
+			List<Ace> subFolderAces = new ArrayList<>(aces);
+			subFolderAces.remove(counter);
+
+			cmisFolder2.setAcl(subFolderAces);
+
+			for (int j = 0; j < 5; j++) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("cmis:name", "Sub folder " + counter);
+				cmisFolder2.createFolder(parameters);
+				List<Ace> subFolderAces = new ArrayList<>(aces);
+				subFolderAces.remove(counter);
+
+				cmisFolder2.setAcl(subFolderAces);
+			}
+		}
+
+		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		List<Ace> aces = new ArrayList<>();
+		for (String user : users) {
+			aces.add(ace(user, R));
+		}
+		cmisFolder2.addAcl(aces, REPOSITORYDETERMINED);
+
+		recordServices.refresh(zeCollectionRecords.folder2);
+
+	}
+
+	private List<String> createDummyUsers(int qty) {
+		List<String> users = new ArrayList<>();
+		for (int i = 1; i <= 20; i++) {
+			String username = "grim.patron." + i;
+			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
+			userServices.addUpdateUserCredential(userCredential);
+			users.add(username);
+		}
+		for (String username : users) {
+			User user = userServices.getUserInCollection(username, zeCollection);
+			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isFalse();
+		}
+		return users;
 	}
 
 	@Test
