@@ -2,11 +2,9 @@ package com.constellio.app.extensions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
@@ -90,19 +88,12 @@ public class AppLayerCollectionExtensions {
 	public List<AvailableSequence> getAvailableSequencesForRecord(Record record) {
 
 		AvailableSequenceForRecordParams params = new AvailableSequenceForRecordParams(record);
-		Set<String> codes = new HashSet<>();
 		List<AvailableSequence> availableSequences = new ArrayList<>();
 
 		for (CollectionSequenceExtension extension : collectionSequenceExtensions) {
 			List<AvailableSequence> extensionSequences = extension.getAvailableSequencesForRecord(params);
 			if (extensionSequences != null) {
-				for (AvailableSequence sequence : extensionSequences) {
-					if (!codes.contains(sequence.getCode())) {
-						codes.add(sequence.getCode());
-						availableSequences.add(sequence);
-					}
-				}
-
+				availableSequences.addAll(extensionSequences);
 			}
 		}
 

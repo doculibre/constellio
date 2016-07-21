@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.taxonomy;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassif
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -21,6 +23,8 @@ import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Taxonomy;
@@ -37,6 +41,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
+	
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String CONCEPT_ID = "conceptId";
 
@@ -44,9 +49,24 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	TaxonomyVO taxonomy;
 	String conceptId;
 	String taxonomyCode;
+	
+	private transient SequenceServices sequenceServices;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
 		super(view);
+		initTransientObjects();
+	}
+
+	private void readObject(java.io.ObjectInputStream stream)
+			throws IOException, ClassNotFoundException {
+		stream.defaultReadObject();
+		initTransientObjects();
+	}
+
+	private void initTransientObjects() {
+		ConstellioFactories constellioFactories = view.getConstellioFactories();
+		SessionContext sessionContext = view.getSessionContext();
+		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
 	}
 
 	public TaxonomyManagementPresenter forParams(String parameters) {
@@ -270,4 +290,9 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	public void searchConcept(String freeText) {
 		view.navigate().to().taxonomySearch(taxonomyCode, freeText);
 	}
+
+	public boolean isSequenceTable(RecordVO recordVO) {
+		return !sequenceServices.getAvailableSequences(recordVO.getId()).isEmpty();
+	}
+	
 }
