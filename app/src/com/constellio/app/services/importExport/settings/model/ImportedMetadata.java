@@ -25,19 +25,9 @@ public class ImportedMetadata {
 
     private String tab;
     private Boolean multiValue;
-    private List<String> behaviours = new ArrayList<>();
+
+    private String behaviours;
     private String inputMask;
-    private Boolean searchable;
-    private Boolean advanceSearchable;
-    private Boolean unmodifiable;
-    private Boolean sortable;
-    private Boolean recordAutocomplete;
-    private Boolean essential;
-    private Boolean essentialInSummary;
-    private Boolean multiLingual;
-    private Boolean duplicable;
-    private Boolean encrypted;
-    private Boolean unique;
 
     public String getCode() {
         return code;
@@ -107,34 +97,17 @@ public class ImportedMetadata {
         return  multiValue;
     }
 
-    public ImportedMetadata setBehaviours(List<String> behaviours) {
-        this.behaviours.clear();
-        if (behaviours != null) {
-            this.behaviours = behaviours;
-        }
+    public ImportedMetadata setBehaviours(String behaviours) {
+        this.behaviours = behaviours;
         return this;
     }
 
-    public List<String> getBehaviours(){
+    public String getBehaviours() {
         return behaviours;
     }
 
-    public Boolean getSearchable() {
-        return searchable;
-    }
-
-    public ImportedMetadata setSearchable(Boolean searchable) {
-        this.searchable = searchable;
-        return this;
-    }
-
-    public ImportedMetadata setAdvanceSearchable(Boolean advanceSearchable) {
-        this.advanceSearchable = advanceSearchable;
-        return this;
-    }
-
-    public Boolean getAdvanceSearchable() {
-        return advanceSearchable;
+    public List<String> getRequiredIn() {
+        return requiredIn;
     }
 
     public ImportedMetadata setRequiredIn(List<String> requiredIn) {
@@ -144,10 +117,6 @@ public class ImportedMetadata {
 
     public MetadataValueType getType() {
         return type;
-    }
-
-    public List<String> getRequiredIn() {
-        return requiredIn;
     }
 
     public Boolean getVisibleInForm() {
@@ -231,84 +200,4 @@ public class ImportedMetadata {
         return inputMask;
     }
 
-    public Boolean getUnmodifiable() {
-        return unmodifiable;
-    }
-
-    public ImportedMetadata setUnmodifiable(Boolean unmodifiable) {
-        this.unmodifiable = unmodifiable;
-        return this;
-    }
-
-    public Boolean getSortable() {
-        return sortable;
-    }
-
-    public ImportedMetadata setSortable(Boolean sortable) {
-        this.sortable = sortable;
-        return this;
-    }
-
-    public Boolean getRecordAutocomplete() {
-        return recordAutocomplete;
-    }
-
-    public ImportedMetadata setRecordAutocomplete(Boolean recordAutocomplete) {
-        this.recordAutocomplete = recordAutocomplete;
-        return this;
-    }
-
-    public Boolean getEssential() {
-        return essential;
-    }
-
-    public ImportedMetadata setEssential(Boolean essential) {
-        this.essential = essential;
-        return this;
-    }
-
-    public Boolean getEssentialInSummary() {
-        return essentialInSummary;
-    }
-
-    public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
-        this.essentialInSummary = essentialInSummary;
-        return this;
-    }
-
-    public Boolean getMultiLingual() {
-        return multiLingual;
-    }
-
-    public ImportedMetadata setMultiLingual(Boolean multiLingual) {
-        this.multiLingual = multiLingual;
-        return this;
-    }
-
-    public Boolean getDuplicable() {
-        return duplicable;
-    }
-
-    public ImportedMetadata setDuplicable(Boolean duplicable) {
-        this.duplicable = duplicable;
-        return this;
-    }
-
-    public ImportedMetadata setEncrypted(Boolean encrypted) {
-        this.encrypted = encrypted;
-        return this;
-    }
-
-    public Boolean getEncrypted() {
-        return encrypted;
-    }
-
-    public ImportedMetadata setUnique(Boolean unique) {
-        this.unique = unique;
-        return this;
-    }
-
-    public Boolean getUnique() {
-        return unique;
-    }
 }

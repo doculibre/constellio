@@ -34,15 +34,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
     public static final String MULTI_VALUE = "multiValue";
     public static final String BEHAVIOURS = "behaviours";
     public static final String INPUT_MASK = "inputMask";
-    public static final String SEARCHABLE = "searchable";
-    public static final String ADVANCE_SEARCHABLE = "advanceSearchable";
-    public static final String UNMODIFIABLE = "unmodifiable";
-    public static final String SORTABLE = "sortable";
-    public static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
-    public static final String ESSENTIAL = "essential";
-    public static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
-    public static final String MULTI_LINGUAL = "multiLingual";
-    public static final String DUPLICABLE = "duplicable";
+
     public static final String VISIBLE_IN_FORM = "visibleInForm";
     protected static final String FOLDER = "folder";
     protected static final String DOCUMENT = "document";
@@ -200,19 +192,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
                                 .setRequired(false) // X
                                 .setTab("default")
                                 .setMultiValue(true)
-                                .setBehaviours(toListOfString("searchableInSimpleSearch",
-                                        "searchableInAdvancedSearch",
-                                        "unique", "unmodifiable", "sortable")) // X
-                                .setSearchable(false) //X
-                                .setAdvanceSearchable(true)
-                                .setUnique(true)
-                                .setUnmodifiable(false) // X
-                                .setSortable(true)
-                                .setRecordAutocomplete(true)
-                                .setEssential(false) // X
-                                .setEssentialInSummary(true)
-                                .setMultiLingual(true)   // cannot be multivalue and unique at same time !
-                                .setDuplicable(true)
+                                .setBehaviours("searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable") // X
                                 .setInputMask("9999-0000")
                         ));
     }
@@ -224,19 +204,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
                 .setRequired(true)
                 .setTab("zeTab")
                 .setMultiValue(true)
-                .setBehaviours(toListOfString("searchableInSimpleSearch", "searchableInAdvancedSearch",
-                        "unique", "unmodifiable", "sortable", "recordAutocomplete", "essential",
-                        "essentialInSummary", "multiLingual", "duplicable"))
-                .setSearchable(true)
-                .setAdvanceSearchable(true)
-                .setUnique(true)
-                .setUnmodifiable(true)
-                .setSortable(true)
-                .setRecordAutocomplete(true)
-                .setEssential(true)
-                .setEssentialInSummary(true)
-                .setMultiLingual(true)   // cannot be multivalue and unique at same time !
-                .setDuplicable(true)
+                .setBehaviours("searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential, essentialInSummary,multiLingual,duplicable")
                 .setInputMask("9999-9999");
     }
 

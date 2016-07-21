@@ -37,4 +37,5 @@ public class ImportedSettings {
 		this.collectionsSettings = collectionsSettings;
 		return this;
 	}
+
 }

@@ -66,4 +66,5 @@ public class ImportedValueList {
 	public boolean isHierarchical() {
 		return hierarchical;
 	}
+
 }

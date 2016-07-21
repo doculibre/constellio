@@ -22,4 +22,5 @@ public class ImportedConfig {
 	public String getValue() {
 		return value;
 	}
+
 }

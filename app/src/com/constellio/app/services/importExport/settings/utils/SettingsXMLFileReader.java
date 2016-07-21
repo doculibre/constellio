@@ -4,6 +4,7 @@ import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jersey.server.wadl.internal.generators.resourcedoc.xhtml.Elements;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
@@ -11,8 +12,6 @@ import java.util.*;
 
 public class SettingsXMLFileReader extends SettingsXMLFileConstants {
 
-    public static final String ENCRYPTED = "encrypted";
-    public static final String UNIQUE = "unique";
     private Document document;
 
     public SettingsXMLFileReader(Document document) {
@@ -72,14 +71,10 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
     }
 
     private ImportedMetadata readMetadata(Element element) {
-        List<String> properties = new ArrayList<>();
-        if (element.getAttribute(BEHAVIOURS) != null &&
-                StringUtils.isNotBlank(element.getAttributeValue(BEHAVIOURS))) {
-            properties.addAll(Arrays.asList(StringUtils.split(element.getAttributeValue(BEHAVIOURS), ',')));
-        }
 
         ImportedMetadata importedMetadata = new ImportedMetadata();
         importedMetadata.setCode(element.getAttributeValue(CODE));
+
         importedMetadata.setType(EnumUtils.getEnum(MetadataValueType.class, element.getAttributeValue(TYPE)));
 
         if (element.getAttribute(ENABLED) != null) {
@@ -91,72 +86,66 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
             importedMetadata.setEnabledIn(toListOfString(element.getAttributeValue(ENABLED_IN)));
         }
 
-        importedMetadata.setVisibleInDisplay(properties.contains(VISIBLE_IN_DISPLAY));
+        if (element.getAttribute(INPUT_MASK) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(INPUT_MASK))) {
+            importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
+        }
+
+        if (element.getAttribute(MULTIVALUE) != null) {
+            importedMetadata.setMultiValue(Boolean.parseBoolean(element.getAttributeValue(MULTIVALUE)));
+        }
+
+        String behaviours = element.getAttributeValue(BEHAVIOURS);
+        if (StringUtils.isNotBlank(behaviours)) {
+            importedMetadata.setBehaviours(behaviours);
+        }
 
         if (element.getAttribute(REQUIRED) != null) {
             importedMetadata.setRequired(Boolean.parseBoolean(element.getAttributeValue(REQUIRED)));
         }
-
-        if (element.getAttribute(TAB) != null) {
-            importedMetadata.setTab(element.getAttributeValue(TAB));
-        }
-
-        importedMetadata.setMultiValue(properties.contains(MULTIVALUE));
-
-        if (properties.size() > 0) {
-            importedMetadata.setBehaviours(properties);
-        }
-
-        importedMetadata.setSearchable(properties.contains(SEARCHABLE_IN_SIMPLE_SEARCH));
-
-        importedMetadata.setAdvanceSearchable(properties.contains(SEARCHABLE_IN_ADVANCED_SEARCH));
 
         if (element.getAttribute(REQUIRED_IN) != null &&
                 StringUtils.isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
             importedMetadata.setRequiredIn(toListOfString(element.getAttributeValue(REQUIRED_IN)));
         }
 
-        importedMetadata.setUnique(properties.contains(UNIQUE));
+        if (element.getAttribute(TAB) != null) {
+            importedMetadata.setTab(element.getAttributeValue(TAB));
+        }
+
+        if (element.getAttributeValue(VISIBLE_IN_DISPLAY) != null) {
+            importedMetadata.setVisibleInDisplay(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_DISPLAY)));
+        }
+
+        if (element.getAttribute(VISIBLE_IN_DISPLAY_IN) != null) {
+            importedMetadata.setVisibleInDisplayIn(toListOfString(element.getAttributeValue(VISIBLE_IN_DISPLAY_IN)));
+        }
 
         if (element.getAttribute(VISIBLE_IN_FORM) != null) {
             importedMetadata.setVisibleInForm(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_FORM)));
         }
 
-        importedMetadata.setVisibleInDisplay(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_DISPLAY)));
-
-        importedMetadata.setVisibleInSearchResult(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)));
-
-        importedMetadata.setVisibleInTables(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_TABLES)));
-
-        importedMetadata.setVisibleInFormIn(toListOfString(element.getAttributeValue(VISIBLE_IN_FORM_IN)));
-
-        importedMetadata.setVisibleInDisplayIn(toListOfString(element.getAttributeValue(VISIBLE_IN_DISPLAY_IN)));
-
-        importedMetadata.setVisibleInResultIn(toListOfString(element.getAttributeValue(VISIBLE_IN_RESULT_IN)));
-
-        importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
-
-        if (element.getAttribute(INPUT_MASK) != null &&
-                StringUtils.isNotBlank(element.getAttributeValue(INPUT_MASK))) {
-            importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
+        if (element.getAttribute(VISIBLE_IN_FORM_IN) != null) {
+            importedMetadata.setVisibleInFormIn(toListOfString(element.getAttributeValue(VISIBLE_IN_FORM_IN)));
         }
 
-        importedMetadata.setUnmodifiable(properties.contains(UNMODIFIABLE));
+        if (element.getAttribute(VISIBLE_IN_RESULT_IN) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
+            importedMetadata.setVisibleInResultIn(toListOfString(element.getAttributeValue(VISIBLE_IN_RESULT_IN)));
+        }
 
-        importedMetadata.setSortable(properties.contains(SORTABLE));
+        if (element.getAttributeValue(VISIBLE_IN_SEARCH_RESULT) != null) {
+            importedMetadata.setVisibleInSearchResult(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)));
+        }
 
-        importedMetadata.setRecordAutocomplete(properties.contains(RECORD_AUTOCOMPLETE));
+        if (element.getAttribute(VISIBLE_IN_TABLES) != null) {
+            importedMetadata.setVisibleInTables(Boolean.parseBoolean(element.getAttributeValue(VISIBLE_IN_TABLES)));
+        }
 
-        importedMetadata.setEssential(properties.contains(ESSENTIAL));
-
-        importedMetadata.setEssentialInSummary(properties.contains(ESSENTIAL_IN_SUMMARY));
-
-        importedMetadata.setMultiLingual(properties.contains(MULTI_LINGUAL));
-
-        importedMetadata.setDuplicable(properties.contains(DUPLICATE));
-
-        importedMetadata.setEncrypted(properties.contains(ENCRYPTED));
-
+        if (element.getAttribute(VISIBLE_IN_TABLES_IN) != null &&
+                StringUtils.isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
+            importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
+        }
 
         return importedMetadata;
     }

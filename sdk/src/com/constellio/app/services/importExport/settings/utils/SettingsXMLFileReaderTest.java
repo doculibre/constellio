@@ -50,7 +50,6 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
         assertThat(configs.get(4).getValue()).isEqualTo("15");
         assertThat(configs.get(5).getKey()).isEqualTo("yearEndDate");
         assertThat(configs.get(5).getValue()).isEqualTo("02/28");
-
         List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
         assertThat(collectionSettings).hasSize(1);
 
@@ -64,8 +63,6 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
         ImportedValueList refValueList = getValueListA();
         ImportedValueList valueListItemA = valueLists.get(0);
         assertThat(valueListItemA).isEqualTo(refValueList);
-
-
     }
 
     public Document getDocument() {

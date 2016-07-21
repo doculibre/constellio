@@ -12,6 +12,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -25,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class SettingsImportServices {
 
@@ -37,20 +39,32 @@ public class SettingsImportServices {
     static final String TAXO = "taxo";
     static final String CONFIG = "config";
     static final String VALUE = "value";
-    final String INVALID_COLLECTION_CODE = "invalidCollectionCode";
-    final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
-    final String CODE = "code";
-    final String INVALID_VALUE_LIST_CODE = "InvalidValueListCode";
-    final String EMPTY_TAXONOMY_CODE = "EmptyTaxonomyCode";
-    final String INVALID_TAXONOMY_CODE_PREFIX = "InvalidTaxonomyCodePrefix";
-    final String INVALID_TAXONOMY_CODE_SUFFIX = "InvalidTaxonomyCodeSuffix";
-    final String DDV_PREFIX = "ddvUSR";
-    final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
-    final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
-    final String EMPTY_TYPE_CODE = "emptyTypeCode";
-    final String EMPTY_TAB_CODE = "emptyTabCode";
-    final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
-    final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
+    static final String ENCRYPTED = "encrypted";
+    static final String INVALID_COLLECTION_CODE = "invalidCollectionCode";
+    static final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
+    static final String CODE = "code";
+    static final String INVALID_VALUE_LIST_CODE = "InvalidValueListCode";
+    static final String EMPTY_TAXONOMY_CODE = "EmptyTaxonomyCode";
+    static final String INVALID_TAXONOMY_CODE_PREFIX = "InvalidTaxonomyCodePrefix";
+    static final String INVALID_TAXONOMY_CODE_SUFFIX = "InvalidTaxonomyCodeSuffix";
+    static final String DDV_PREFIX = "ddvUSR";
+    static final String INVALID_CONFIGURATION_VALUE = "invalidConfigurationValue";
+    static final String CONFIGURATION_NOT_FOUND = "configurationNotFound";
+    static final String EMPTY_TYPE_CODE = "emptyTypeCode";
+    static final String EMPTY_TAB_CODE = "emptyTabCode";
+    static final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
+    static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
+
+    static final String SEARCHABLE = "searchable";
+    static final String ADVANCE_SEARCHABLE = "advanceSearchable";
+    static final String UNMODIFIABLE = "unmodifiable";
+    public static final String SORTABLE = "sortable";
+    public static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
+    public static final String ESSENTIAL = "essential";
+    public static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
+    public static final String MULTI_LINGUAL = "multiLingual";
+    public static final String DUPLICABLE = "duplicable";
+    static final String UNIQUE = "unique";
 
     AppLayerFactory appLayerFactory;
     SystemConfigurationsManager systemConfigurationsManager;
@@ -330,56 +344,62 @@ public class SettingsImportServices {
             metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
         }
 
-        if (importedMetadata.getDuplicable() != null) {
-            metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
+        List<String> properties = new ArrayList<>();
+        if (StringUtils.isNotBlank(importedMetadata.getBehaviours())) {
+            properties.addAll(asList(StringUtils.split(importedMetadata.getBehaviours(), ',')));
+        }
+
+
+        if (properties.contains("duplicable")) {
+            metadataBuilder.setDuplicable(true);
         }
 
         if (importedMetadata.getEnabled() != null) {
             metadataBuilder.setEnabled(importedMetadata.getEnabled());
         }
 
-        if (importedMetadata.getEncrypted() != null) {
-            metadataBuilder.setEncrypted(importedMetadata.getEncrypted());
+        if (properties.contains(ENCRYPTED)) {
+            metadataBuilder.setEncrypted(true);
         }
 
-        if (importedMetadata.getEssential() != null) {
-            metadataBuilder.setEssential(importedMetadata.getEssential());
+        if (properties.contains(ESSENTIAL)) {
+            metadataBuilder.setEssential(true);
         }
 
-        if (importedMetadata.getEssentialInSummary() != null) {
-            metadataBuilder.setEssentialInSummary(importedMetadata.getEssentialInSummary());
+        if (properties.contains(ESSENTIAL_IN_SUMMARY)) {
+            metadataBuilder.setEssentialInSummary(true);
         }
 
         metadataBuilder.setInputMask(importedMetadata.getInputMask());
 
-        if (importedMetadata.getMultiLingual() != null) {
-            metadataBuilder.setMultiLingual(importedMetadata.getMultiLingual());
+        if (properties.contains(MULTI_LINGUAL)) {
+            metadataBuilder.setMultiLingual(true);
         }
 
-        if (importedMetadata.getUnique() != null) {
-            metadataBuilder.setUniqueValue(importedMetadata.getUnique());
+        if (properties.contains(UNIQUE)) {
+            metadataBuilder.setUniqueValue(true);
         }
 
-        if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
-            if (importedMetadata.getUnique() != null) {
+        if (!properties.contains(UNIQUE)) {
+            if (importedMetadata.getMultiValue() != null && !importedMetadata.getMultiValue()) {
                 metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
             }
         }
 
-        if (importedMetadata.getRecordAutocomplete() != null) {
-            metadataBuilder.setSchemaAutocomplete(importedMetadata.getRecordAutocomplete());
+        if (properties.contains(RECORD_AUTOCOMPLETE)) {
+            metadataBuilder.setSchemaAutocomplete(true);
         }
 
-        if (importedMetadata.getSearchable() != null) {
-            metadataBuilder.setSearchable(importedMetadata.getSearchable());
+        if (properties.contains(SEARCHABLE)) {
+            metadataBuilder.setSearchable(true);
         }
 
-        if (importedMetadata.getSortable() != null) {
-            metadataBuilder.setSortable(importedMetadata.getSortable());
+        if (properties.contains(SORTABLE)) {
+            metadataBuilder.setSortable(true);
         }
 
-        if (importedMetadata.getUnmodifiable() != null) {
-            metadataBuilder.setUnmodifiable(importedMetadata.getUnmodifiable());
+        if (properties.contains(UNMODIFIABLE)) {
+            metadataBuilder.setUnmodifiable(false);
         }
 
         if ("default".equals(schemaBuilder.getCode())) {
@@ -411,10 +431,12 @@ public class SettingsImportServices {
                 for (final ImportedTaxonomy importedTaxonomy : settings.getTaxonomies()) {
                     String typeCode = importedTaxonomy.getCode();
                     String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
-                    String title = importedTaxonomy.getTitles().get(TITLE_FR);
+                    String title = null;
+                    if (StringUtils.isNotBlank(importedTaxonomy.getTitles().get(TITLE_FR))) {
+                        title = importedTaxonomy.getTitles().get(TITLE_FR);
+                    }
 
                     if (!schemaTypes.hasType(importedTaxonomy.getCode())) {
-
                         Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
 
                         taxonomies.put(taxonomy, importedTaxonomy);
@@ -463,31 +485,54 @@ public class SettingsImportServices {
 
                     final String code = importedValueList.getCode();
 
+                    String codeModeText = importedValueList.getCodeMode();
+                    ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode schemaTypeCodeMode =
+                            ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
+
+                    if (StringUtils.isNotBlank(codeModeText)) {
+                        schemaTypeCodeMode = EnumUtils.getEnum(ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.class, codeModeText);
+                    }
+
                     if (!collectionSchemaTypes.hasType(code)) {
-
-                        String codeModeText = importedValueList.getCodeMode();
-                        ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode schemaTypeCodeMode =
-                                ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
-
-                        if (StringUtils.isNotBlank(codeModeText)) {
-                            schemaTypeCodeMode = EnumUtils.getEnum(ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.class, codeModeText);
-                        }
 
                         ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
                         if (!importedValueList.isHierarchical()) {
+
                             builder.createValueListItemSchema(code,
                                     importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
                         } else {
                             builder.createHierarchicalValueListItemSchema(code,
                                     importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
                         }
-                    } else {
-                        Map<Language, String> labels = new HashMap<>();
-                        labels.put(Language.French, importedValueList.getTitles().get(TITLE_FR));
-                        labels.put(Language.English, importedValueList.getTitles().get(TITLE_EN));
-                        schemaTypesBuilder.getSchemaType(importedValueList.getCode()).setLabels(labels);
 
+                    } else {
+                        MetadataSchemaTypeBuilder builder = schemaTypesBuilder.getSchemaType(importedValueList.getCode());
+
+                        if (!importedValueList.getTitles().isEmpty()) {
+                            Map<Language, String> labels = new HashMap<>();
+                            labels.put(Language.French, importedValueList.getTitles().get(TITLE_FR));
+                            labels.put(Language.English, importedValueList.getTitles().get(TITLE_EN));
+                            builder.setLabels(labels);
+                        }
+
+                        if (StringUtils.isNotBlank(codeModeText)) {
+
+                            MetadataBuilder metadataBuilder = builder.getDefaultSchema().getMetadata("code");
+                            if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.DISABLED == schemaTypeCodeMode) {
+                                metadataBuilder.setDefaultRequirement(false);
+                                metadataBuilder.setEnabled(false);
+                            } else if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.FACULTATIVE == schemaTypeCodeMode) {
+                                metadataBuilder.setDefaultRequirement(false);
+                                metadataBuilder.setEnabled(false);
+                                metadataBuilder.setUniqueValue(false);
+                            } else if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE == schemaTypeCodeMode) {
+                                metadataBuilder.setEnabled(true);
+                                metadataBuilder.setDefaultRequirement(true);
+                                metadataBuilder.setUniqueValue(true);
+                            }
+                        }
+                        // TODO update code mode
                     }
                 }
             }
@@ -683,7 +728,7 @@ public class SettingsImportServices {
     }
 
     private void validateBooleanValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
-        if (!Arrays.asList("true", "false").contains(String.valueOf(importedConfig.getValue()))) {
+        if (!asList("true", "false").contains(String.valueOf(importedConfig.getValue()))) {
             Map<String, Object> parameters = toParametersMap(importedConfig);
             validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
         }

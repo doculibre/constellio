@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
@@ -38,6 +39,8 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
     public static final String REQUIRED = "required";
     public static final String ENABLED_IN = "enabledIn";
     public static final String ENABLED = "enabled";
+    public static final String UNIQUE = "unique";
+    public static final String ENCRYPTED = "encrypted";
 
     private Document document;
     private Element settingsElement;
@@ -137,12 +140,12 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
         }
         schemasElement.addContent(schemaElement);
 
-        addSchemaMetadata(importedType, customSchema, schemaElement);
+        addSchemaMetadata(customSchema, schemaElement);
     }
 
-    private void addSchemaMetadata(ImportedType importedType, ImportedMetadataSchema customSchema, Element schemaElement) {
+    private void addSchemaMetadata(ImportedMetadataSchema customSchema, Element schemaElement) {
         for (ImportedMetadata importedMetadata : customSchema.getAllMetadata()) {
-            addMetadatum(importedType, schemaElement, importedMetadata);
+            addMetadatum(schemaElement, importedMetadata);
         }
     }
 
@@ -152,7 +155,7 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
 
         ImportedMetadataSchema defaultSchema = importedType.getDefaultSchema();
 
-        addSchemaMetadata(importedType, defaultSchema, defaultSchemaElem);
+        addSchemaMetadata(defaultSchema, defaultSchemaElem);
     }
 
     private void addTabs(ImportedType importedType, Element typeItem) {
@@ -171,88 +174,85 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
         tabsElement.addContent(tabElem);
     }
 
-    private void addMetadatum(ImportedType importedType, Element defaultSchemaElem, ImportedMetadata importedMetadata) {
+    private void addMetadatum(Element defaultSchemaElem, ImportedMetadata importedMetadata) {
+
         Element metadataElem = new Element(METADATA);
         metadataElem.setAttribute(CODE, importedMetadata.getCode());
-        addMetadataTitle(importedType, importedMetadata, metadataElem);
+
+        if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
+            metadataElem.setAttribute("title", importedMetadata.getLabel());
+        }
+
+        List<String> behaviours = new ArrayList<>();
 
         metadataElem.setAttribute(TYPE, importedMetadata.getType().name());
 
-        metadataElem.setAttribute(ENABLED, importedMetadata.getEnabled() + "");
+        if (importedMetadata.getEnabled() != null) {
+            metadataElem.setAttribute(ENABLED, importedMetadata.getEnabled() + "");
+        }
 
         if (!importedMetadata.getEnabledIn().isEmpty()) {
             metadataElem.setAttribute(ENABLED_IN, StringUtils.join(importedMetadata.getEnabledIn(), ","));
-        }
-
-        metadataElem.setAttribute(REQUIRED, importedMetadata.getRequired() + "");
-
-        if (!importedMetadata.getRequiredIn().isEmpty()) {
-            metadataElem.setAttribute(REQUIRED_IN, StringUtils.join(importedMetadata.getRequiredIn(), ","));
-        }
-
-        metadataElem.setAttribute(VISIBLE_IN_FORM, importedMetadata.getVisibleInForm() + "");
-
-        if (!importedMetadata.getVisibleInFormIn().isEmpty()) {
-            metadataElem.setAttribute(VISIBLE_IN_FORM_IN, StringUtils.join(importedMetadata.getVisibleInFormIn(), ","));
-        }
-
-        metadataElem.setAttribute(VISIBLE_IN_DISPLAY, importedMetadata.getVisibleInDisplay() + "");
-
-        if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
-            metadataElem.setAttribute(VISIBLE_IN_DISPLAY_IN, StringUtils.join(importedMetadata.getVisibleInDisplayIn(), ","));
-        }
-
-        metadataElem.setAttribute(VISIBLE_IN_SEARCH_RESULT, importedMetadata.getVisibleInSearchResult() + "");
-
-        if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
-            metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn(), ","));
-        }
-
-        metadataElem.setAttribute(VISIBLE_IN_TABLES, importedMetadata.getVisibleInTables() + "");
-
-        if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
-            metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn(), ","));
-        }
-
-        if (StringUtils.isNotBlank(importedMetadata.getTab())) {
-            metadataElem.setAttribute(TAB, importedMetadata.getTab());
-        }
-
-        metadataElem.setAttribute(MULTI_VALUE, importedMetadata.getMultiValue() + "");
-
-        if (!importedMetadata.getBehaviours().isEmpty()) {
-            metadataElem.setAttribute(BEHAVIOURS, StringUtils.join(importedMetadata.getBehaviours(), ","));
         }
 
         if (StringUtils.isNotBlank(importedMetadata.getInputMask())) {
             metadataElem.setAttribute(INPUT_MASK, importedMetadata.getInputMask());
         }
 
-        metadataElem.setAttribute(SEARCHABLE, importedMetadata.getSearchable() + "");
+        if (importedMetadata.getMultiValue() != null && importedMetadata.getMultiValue()) {
+            metadataElem.setAttribute(MULTI_VALUE, importedMetadata.getMultiValue() + "");
+        }
 
-        metadataElem.setAttribute(ADVANCE_SEARCHABLE, importedMetadata.getAdvanceSearchable() + "");
+        if (importedMetadata.getRequired() != null) {
+            metadataElem.setAttribute(REQUIRED, importedMetadata.getRequired() + "");
+        }
 
-        metadataElem.setAttribute(UNMODIFIABLE, importedMetadata.getUnmodifiable() + "");
+        if (!importedMetadata.getRequiredIn().isEmpty()) {
+            metadataElem.setAttribute(REQUIRED_IN, StringUtils.join(importedMetadata.getRequiredIn(), ","));
+        }
 
-        metadataElem.setAttribute(SORTABLE, importedMetadata.getSortable() + "");
+        if (StringUtils.isNotBlank(importedMetadata.getTab())) {
+            metadataElem.setAttribute(TAB, importedMetadata.getTab());
+        }
 
-        metadataElem.setAttribute(RECORD_AUTOCOMPLETE, importedMetadata.getRecordAutocomplete() + "");
+        if (importedMetadata.getVisibleInDisplay() != null) {
+            metadataElem.setAttribute(VISIBLE_IN_DISPLAY, importedMetadata.getVisibleInDisplay() + "");
+        }
 
-        metadataElem.setAttribute(ESSENTIAL, importedMetadata.getEssential() + "");
+        if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
+            metadataElem.setAttribute(VISIBLE_IN_DISPLAY_IN, StringUtils.join(importedMetadata.getVisibleInDisplayIn(), ","));
+        }
 
-        metadataElem.setAttribute(ESSENTIAL_IN_SUMMARY, importedMetadata.getEssentialInSummary() + "");
 
-        metadataElem.setAttribute(MULTI_LINGUAL, importedMetadata.getMultiLingual() + "");
+        if (importedMetadata.getVisibleInForm() != null) {
+            metadataElem.setAttribute(VISIBLE_IN_FORM, importedMetadata.getVisibleInForm() + "");
+        }
 
-        metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
+        if (!importedMetadata.getVisibleInFormIn().isEmpty()) {
+            metadataElem.setAttribute(VISIBLE_IN_FORM_IN, StringUtils.join(importedMetadata.getVisibleInFormIn(), ","));
+        }
+
+        if (importedMetadata.getVisibleInResultIn() != null) {
+            metadataElem.setAttribute(VISIBLE_IN_SEARCH_RESULT, importedMetadata.getVisibleInSearchResult() + "");
+        }
+
+        if (importedMetadata.getVisibleInSearchResult() != null) {
+            metadataElem.setAttribute(VISIBLE_IN_SEARCH_RESULT, importedMetadata.getVisibleInSearchResult() + "");
+        }
+
+        if (importedMetadata.getVisibleInTables() != null) {
+            metadataElem.setAttribute(VISIBLE_IN_TABLES, importedMetadata.getVisibleInTables() + "");
+        }
+
+        if (!importedMetadata.getVisibleInTablesIn().isEmpty()) {
+            metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn()));
+        }
+
+        if (StringUtils.isNotBlank(importedMetadata.getBehaviours())) {
+            metadataElem.setAttribute(BEHAVIOURS, StringUtils.join(importedMetadata.getBehaviours(), ','));
+        }
 
         defaultSchemaElem.addContent(metadataElem);
-    }
-
-    private void addMetadataTitle(ImportedType importedType, ImportedMetadata importedMetadata, Element metadataElem) {
-        if (StringUtils.isNotBlank(importedType.getLabel())) {
-            metadataElem.setAttribute("title", importedMetadata.getLabel());
-        }
     }
 
     private void addTaxonomies(ImportedCollectionSettings importedCollectionSettings, Element collectionSettingsElem) {

@@ -68,4 +68,5 @@ public class ImportedTaxonomy {
     public List<String> getClassifiedTypes() {
         return classifiedTypes;
     }
+
 }

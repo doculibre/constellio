@@ -19,10 +19,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
@@ -30,8 +34,6 @@ import static org.junit.Assert.fail;
 @UiTest
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
-    public static final String CODE_METADATA_3 = "metadata3";
-    public static final String TITLE_METADATA_3 = "Titre métadonnée no.3";
     Users users = new Users();
 
     SystemConfigurationsManager systemConfigurationsManager;
@@ -116,23 +118,21 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionConfigSettingsIfCollectionCodeIsEmptyThenExceptionIsRaised()
+    public void whenImportingConfigSettingsIfCollectionCodeIsEmptyThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("")
                 .addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
                         .setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
                         .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
-                        .setHierarchical(false)
-                ));
+                        .setHierarchical(false)));
 
         assertThatErrorsWhileImportingSettingsExtracting()
                 .contains(tuple("SettingsImportServices_invalidCollectionCode"));
-
     }
 
     @Test
-    public void whenImportingCollectionConfigSettingsIfCollectionCodeDoesNotExistThenExceptionIsRaised()
+    public void whenImportingConfigSettingsIfCollectionCodeDoesNotExistThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("unknonCollection")
@@ -148,7 +148,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionValueListIfCodeIsInvalidThenExceptionIsRaised()
+    public void whenImportingValueListIfCodeIsInvalidThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
@@ -164,7 +164,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionValueListIfCodeDoesNotStartWithDDVPrefixThenExceptionIsRaised()
+    public void whenImportingValueListIfCodeDoesNotStartWithDDVPrefixThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
@@ -181,7 +181,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
     @Test
     //@InDevelopmentTest
-    public void whenImportingCollectionConfigsSettingsThenSetted()
+    public void whenImportingConfigsSettingsThenSet()
             throws Exception {
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -239,8 +239,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(codeMetadata.isEnabled()).isTrue();
         assertThat(metadataSchemaType.getDefaultSchema().hasMetadataWithCode("parent")).isFalse();
 
-        // TODO Valid3r classifiedTypes : Obtenir les schemata qu'on a défini, et vérifier q'une métadonnée de type reférenc3 pointant sur le domaine de valeur a été créée
-
         //newWebDriver();
         //waitUntilICloseTheBrowsers();
     }
@@ -267,12 +265,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(codeA);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR);
-        Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
-        assertThat(codeMetadata).isNotNull();
-        assertThat(codeMetadata.isDefaultRequirement()).isFalse();
-        assertThat(codeMetadata.isUniqueValue()).isFalse();
-        assertThat(codeMetadata.isEnabled()).isFalse();
-        assertThat(codeMetadata.isChildOfRelationship()).isFalse();
 
         valueList.setTitles(toTitlesMap(TITLE_FR_UPDATED, TITLE_EN_UPDATED))
                 .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
@@ -283,17 +275,54 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         metadataSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType(codeA);
         assertThat(metadataSchemaType).isNotNull();
         assertThat(metadataSchemaType.getLabels().get(Language.French)).isEqualTo(TITLE_FR_UPDATED);
-        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
-        assertThat(codeMetadata).isNotNull();
-        assertThat(codeMetadata.isDefaultRequirement()).isFalse();
-        assertThat(codeMetadata.isUniqueValue()).isFalse();
-        assertThat(codeMetadata.isEnabled()).isFalse();
-        assertThat(codeMetadata.isChildOfRelationship()).isFalse();
 
     }
 
     @Test
-    public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised()
+    //@InDevelopmentTest
+    public void whenModifyingValueListCodeModeThenValueIsUpdated()
+            throws Exception {
+
+        String codeA = "ddvUSRcodeDuDomaineDeValeurA";
+        ImportedValueList valueList = new ImportedValueList().setCode(codeA)
+                .setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+                .setCodeMode("DISABLED");
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addValueList(valueList);
+
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaTypes schemaTypes = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(codeA);
+        Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
+        assertThat(codeMetadata).isNotNull();
+        assertThat(codeMetadata.isDefaultRequirement()).isFalse();
+        assertThat(codeMetadata.isEnabled()).isFalse();
+
+        assertThat(metadataSchemaType).isNotNull();
+
+        valueList.setCodeMode("REQUIRED_AND_UNIQUE");
+        collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+        collectionSettings.addValueList(valueList);
+        importSettings();
+
+        schemaTypes = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+        metadataSchemaType = schemaTypes.getSchemaType(codeA);
+        codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
+        assertThat(codeMetadata).isNotNull();
+        assertThat(codeMetadata.isDefaultRequirement()).isTrue();
+        assertThat(codeMetadata.isUniqueValue()).isTrue();
+        assertThat(codeMetadata.isEnabled()).isTrue();
+
+    }
+
+    @Test
+    public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
@@ -311,7 +340,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised()
+    public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
@@ -325,11 +354,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         assertThatErrorsWhileImportingSettingsExtracting()
                 .contains(tuple("SettingsImportServices_InvalidTaxonomyCodePrefix"));
-
     }
 
     @Test
-    public void whenImportingCollectionTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
+    public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
             throws Exception {
 
         settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
@@ -347,7 +375,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionTaxonomyConfigSettingsThenConfigsAreSaved()
+    public void whenImportingTaxonomyConfigSettingsThenConfigsAreSaved()
             throws Exception {
 
         settings.addCollectionsConfigs(getZeCollectionSettings());
@@ -369,12 +397,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(taxonomy1.getUserIds()).hasSize(2).isEqualTo(TAXO_USERS);
 
         MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
-        List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy1));
+        List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
         assertThat(references).hasSize(1);
         assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
         MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
-        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy1));
+        references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
         assertThat(references).hasSize(1);
         assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
@@ -387,27 +415,23 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(taxonomy2.getGroupIds()).isEmpty();
         assertThat(taxonomy2.getUserIds()).isEmpty();
 
-        references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy2));
+        references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy2));
         assertThat(references).isEmpty();
 
         documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
-        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy2));
+        references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy2));
         assertThat(references).isEmpty();
 
     }
 
     @Test
-    public void whenModifyingCollectionTaxonomyConfigSettingsThenConfigsAreUpdated()
+    public void whenModifyingCollectionTaxonomyTitleThenConfigsAreUpdated()
             throws Exception {
 
         ImportedCollectionSettings collectionSettings =
                 new ImportedCollectionSettings().setCode(zeCollection);
         ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-                .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-                .setVisibleOnHomePage(false)
-                .setUserIds(TAXO_USERS)
-                .setGroupIds(TAXO_GROUPS);
+                .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN));
 
         settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
 
@@ -423,26 +447,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         assertThat(taxonomy).isNotNull();
         assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
-        assertThat(taxonomy.isVisibleInHomePage()).isFalse();
-        assertThat(taxonomy.getGroupIds()).hasSize(1).isEqualTo(TAXO_GROUPS);
-        assertThat(taxonomy.getUserIds()).hasSize(2).isEqualTo(TAXO_USERS);
 
-        MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
-        List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
-        assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
-
-        MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
-        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
-        assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
-
+        // modify title
         collectionSettings.addTaxonomy(importedTaxonomy
-                .setTitles(toTitlesMap(TAXO_1_TITLE_FR_UPDATED, TAXO_1_TITLE_EN))
-                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
-                .setVisibleOnHomePage(false)
-                .setUserIds(TAXO_USERS_UPDATED)
-                .setGroupIds(TAXO_GROUPS_UPDATED));
+                .setTitles(toTitlesMap(TAXO_1_TITLE_FR_UPDATED, TAXO_1_TITLE_EN)));
 
         importSettings();
 
@@ -451,26 +459,126 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         assertThat(taxonomy).isNotNull();
         assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR_UPDATED);
-        assertThat(taxonomy.isVisibleInHomePage()).isFalse();
-        assertThat(taxonomy.getGroupIds()).isEmpty();
-        assertThat(taxonomy.getUserIds()).hasSize(1).isEqualTo(TAXO_USERS_UPDATED);
-
-        folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
-        references = folderSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
-        assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
-
-        documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
-        references = documentSchemaType.getTaxonomyRelationshipReferences(Arrays.asList(taxonomy));
-        assertThat(references).hasSize(1);
-        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
-
-        // TODO Valider si on met à jour les classifiedTypes !
-
     }
 
     @Test
-    public void whenImportingCollectionTypesIfCodeIsEmptyThenExceptionIsRaised()
+    public void whenModifyingTaxonomyVisibleInHomePageThenConfigsAreUpdated()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+        ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+                .setVisibleOnHomePage(false);
+
+        settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+
+        importSettings();
+
+        MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(TAXO_1_CODE);
+        assertThat(metadataSchemaType).isNotNull();
+
+        Taxonomy taxonomy = getAppLayerFactory().getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
+
+        assertThat(taxonomy).isNotNull();
+        assertThat(taxonomy.isVisibleInHomePage()).isFalse();
+
+        importedTaxonomy.setVisibleOnHomePage(true);
+        collectionSettings.addTaxonomy(importedTaxonomy);
+
+        importSettings();
+
+        taxonomy = getAppLayerFactory().getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
+
+        assertThat(taxonomy).isNotNull();
+        assertThat(taxonomy.isVisibleInHomePage()).isTrue();
+    }
+
+    @Test
+    //@InDevelopmentTest
+    public void whenModifyingCollectionTaxonomyUsersAndGroupsThenConfigsAreUpdated()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+        ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+                .setUserIds(asList(gandalf, robin))
+                .setGroupIds(asList("group1"));
+
+        settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+
+        importSettings();
+
+        MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(TAXO_1_CODE);
+        assertThat(metadataSchemaType).isNotNull();
+
+        Taxonomy taxonomy = getAppLayerFactory().getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
+
+        assertThat(taxonomy).isNotNull();
+        assertThat(taxonomy.getGroupIds()).hasSize(1).containsExactly("group1");
+        assertThat(taxonomy.getUserIds()).hasSize(2).containsExactly(gandalf, robin);
+
+        //newWebDriver();
+        //waitUntilICloseTheBrowsers();
+
+        collectionSettings.addTaxonomy(importedTaxonomy
+                .setUserIds(asList(aliceWonderland))
+                .setGroupIds(asList("group2", "group3")));
+
+        importSettings();
+
+        taxonomy = getAppLayerFactory().getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
+
+        assertThat(taxonomy).isNotNull();
+        assertThat(taxonomy.getGroupIds()).hasSize(2).containsExactly("group2", "group3");
+        assertThat(taxonomy.getUserIds()).hasSize(1).containsExactly(aliceWonderland);
+    }
+
+    @Test
+    public void whenImportingTaxonomyThenClassifiedInIsSet()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+        ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+                .setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+                .setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
+
+        settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+
+        importSettings();
+
+        MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+
+        MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(TAXO_1_CODE);
+        assertThat(metadataSchemaType).isNotNull();
+
+        Taxonomy taxonomy = getAppLayerFactory().getModelLayerFactory()
+                .getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
+
+        assertThat(taxonomy).isNotNull();
+        assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+
+        MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
+        List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
+        assertThat(references).hasSize(1);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+
+        MetadataSchema documentSchemaType = schemaTypes.getDefaultSchema(DOCUMENT);
+        references = documentSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
+        assertThat(references).hasSize(1);
+        assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
+    }
+
+    @Test
+    public void whenImportingTypesIfCodeIsEmptyThenExceptionIsRaised()
             throws Exception {
 
         Map<String, String> tabParams = getTabsMap();
@@ -488,7 +596,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionTypeTabIfCodeIsEmptyThenExceptionIsRaised()
+    public void whenImportingTypeTabIfCodeIsEmptyThenExceptionIsRaised()
             throws Exception {
 
         Map<String, String> tabParams = new HashMap<>();
@@ -504,7 +612,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionTypeIfCustomSchemasCodeIsEmptyThenExceptionIsRaised()
+    public void whenImportingTypeIfCustomSchemasCodeIsEmptyThenExceptionIsRaised()
             throws Exception {
 
         Map<String, String> tabParams = getTabsMap();
@@ -522,7 +630,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void whenImportingCollectionTypesValuesAreSet()
+    public void whenImportingTypesValuesAreSet()
             throws Exception {
 
         Map<String, String> tabParams = new HashMap<>();
@@ -543,7 +651,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
                 .setType(MetadataValueType.STRING)
-                .setBehaviours(toListOfString("searchableInSimpleSearch", "searchableInAdvancedSearch"))
+                .setBehaviours("searchableInSimpleSearch,searchableInAdvancedSearch")
                 .setInputMask("9999-9999");
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
@@ -711,6 +819,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(metadata1.isUnmodifiable()).isFalse();
     }
 
+    // VisibleInForm=true, visibleInDisplay=true, visibleInTables= false, visibleInSearchResult=false
     @Test
     public void whenImportNewMetadatasThenMarkedAsVisibleInFormAndDisplayButNotInTablesAndSearch()
             throws Exception {
@@ -756,7 +865,96 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
                 .doesNotContain("folder_default_m1", "folder_custom_m2");
     }
 
-    // display and search results but not form and not tables
+    // default: visibleInDisplay=true, VisibleInForm=true, visibleInSearchResult=false, visibleInTables=false
+    // custom : visibleInDisplay=true, VisibleInForm=true, visibleInSearchResult=false, visibleInTables=false
+    @Test
+    public void whenImportNewMetadatasWithVisibleInSearchAndTablesThenMarkedAsVisibleInFormAndDisplayAndTablesAndSearch()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInForm(true).setVisibleInTables(true));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+
+        collectionSettings.addType(folderType.addSchema(customSchema));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        SchemaDisplayConfig defaultFolder = getAppLayerFactory().getMetadataSchemasDisplayManager()
+                .getSchema(zeCollection, "folder_default");
+        assertThat(defaultFolder.getDisplayMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getFormMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getSearchResultsMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        assertThat(defaultFolder.getTableMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        SchemaDisplayConfig customFolder = schemasDisplayManager.getSchema(zeCollection, "folder_custom");
+        assertThat(customFolder.getDisplayMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getFormMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getSearchResultsMetadataCodes())
+                .contains("folder_custom_title", "folder_default_m1")
+                .doesNotContain("folder_custom_m2");
+
+        assertThat(customFolder.getTableMetadataCodes())
+                .contains("folder_custom_title", "folder_default_m1")
+                .doesNotContain("folder_custom_m2");
+    }
+
+    // VisibleInForm=true, visibleInDisplay=true, visibleInTables= false, visiInSearchResult=false
+    @Test
+    public void whenImportNewMetadatasWithVisibleInSearchAndFormTablesThenMarkedAsVisibleInFormAndDisplayAndTablesAndSearch()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInForm(true).setVisibleInTables(true));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+
+        collectionSettings.addType(folderType.addSchema(customSchema));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        SchemaDisplayConfig defaultFolder = getAppLayerFactory().getMetadataSchemasDisplayManager()
+                .getSchema(zeCollection, "folder_default");
+        assertThat(defaultFolder.getDisplayMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getFormMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getSearchResultsMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        assertThat(defaultFolder.getTableMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        SchemaDisplayConfig customFolder = schemasDisplayManager.getSchema(zeCollection, "folder_custom");
+        assertThat(customFolder.getDisplayMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getFormMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getSearchResultsMetadataCodes())
+                .contains("folder_custom_title", "folder_default_m1")
+                .doesNotContain("folder_custom_m2");
+
+        assertThat(customFolder.getTableMetadataCodes())
+                .contains("folder_custom_title", "folder_default_m1")
+                .doesNotContain("folder_custom_m2");
+    }
+
+    // default_m1: visibleInDisplay=true, visibleInSearch=true, visibleInForm=false, visibleInTables=false
     @Test
     public void whenImportNewMetadatasThenMarkedAsVisibleInDisplayAndSearchResultsButNotInFormAndTables()
             throws Exception {
@@ -804,6 +1002,150 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         assertThat(customFolder.getTableMetadataCodes())
                 .contains("folder_custom_title")
+                .doesNotContain("folder_default_m1", "folder_custom_m2");
+    }
+
+    // default_m1: visibleInDisplay=false, visibleInSearch=true, visibleInForm=true, visibleInTables=false
+    // custom_m2: visibleInDisplay=true, visibleInSearch=false, visibleInForm=false, visibleInTables=false
+    @Test
+    public void whenImportNewMetadatasThenMarkedAsVisibleInSearchAndFormButNotInDisplayAndTables()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(
+                new ImportedMetadataSchema().setCode("default"));
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
+                .setVisibleInDisplay(false).setVisibleInSearchResult(true).setVisibleInForm(true).setType(STRING));
+
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInSearchResult(false));
+
+        collectionSettings.addType(folderType.addSchema(customSchema));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        SchemaDisplayConfig defaultFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_default");
+
+        assertThat(defaultFolder.getDisplayMetadataCodes()).contains("folder_default_title").doesNotContain("folder_default_m1");
+        assertThat(defaultFolder.getSearchResultsMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getTableMetadataCodes())
+                .contains("folder_default_title")
+                .doesNotContain("folder_default_m1");
+        assertThat(defaultFolder.getFormMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        SchemaDisplayConfig customFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
+        assertThat(customFolder.getDisplayMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m2")
+                .doesNotContain("folder_custom_m1");
+
+        assertThat(customFolder.getFormMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1")
+                .doesNotContain("folder_custom_m2");
+
+        assertThat(customFolder.getSearchResultsMetadataCodes())
+                .contains("folder_custom_title")
+                .doesNotContain("folder_default_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getTableMetadataCodes())
+                .contains("folder_custom_title")
+                .doesNotContain("folder_default_m1", "folder_custom_m2");
+    }
+
+    // default_m1: visibleInDisplay=true, visibleInSearch=true, visibleInForm=true, visibleInTables=true
+    // custom_m2: visibleInDisplay=true, visibleInSearch=false, visibleInForm=true, visibleInTables=false
+    @Test
+    public void whenImportNewMetadatasWithAllVisibleThenAllMarkedAsVisible()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(
+                new ImportedMetadataSchema().setCode("default"));
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
+                .setVisibleInSearchResult(true).setVisibleInTables(true).setType(STRING));
+
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+
+        collectionSettings.addType(folderType.addSchema(customSchema));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        SchemaDisplayConfig defaultFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_default");
+
+        assertThat(defaultFolder.getDisplayMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getSearchResultsMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getTableMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getFormMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        SchemaDisplayConfig customFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
+        assertThat(customFolder.getDisplayMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getFormMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getSearchResultsMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1")
+                .doesNotContain("folder_default_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getTableMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1")
+                .doesNotContain("folder_default_m1", "folder_custom_m2");
+    }
+
+    // default_m1: visibleInDisplay=false, visibleInSearch=true, visibleInForm=false, visibleInTables=true
+    // custom_m2: visibleInDisplay=true, visibleInSearch=false, visibleInForm=true, visibleInTables=false
+    @Test
+    public void whenImportNewMetadatasWithVisibleInSearchAndTablesThenFlagsAreSet()
+            throws Exception {
+
+        ImportedCollectionSettings collectionSettings =
+                new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(
+                new ImportedMetadataSchema().setCode("default"));
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
+                .setVisibleInSearchResult(true).setVisibleInTables(true).setType(STRING));
+
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+
+        collectionSettings.addType(folderType.addSchema(customSchema));
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        SchemaDisplayConfig defaultFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_default");
+
+        assertThat(defaultFolder.getDisplayMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getSearchResultsMetadataCodes()).contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getTableMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+        assertThat(defaultFolder.getFormMetadataCodes())
+                .contains("folder_default_title", "folder_default_m1");
+
+        SchemaDisplayConfig customFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
+        assertThat(customFolder.getDisplayMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getFormMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getSearchResultsMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1")
+                .doesNotContain("folder_default_m1", "folder_custom_m2");
+
+        assertThat(customFolder.getTableMetadataCodes())
+                .contains("folder_custom_title", "folder_custom_m1")
                 .doesNotContain("folder_default_m1", "folder_custom_m2");
     }
 
@@ -959,7 +1301,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void givenNewMetadatasWithVisibleInTablesFlagDefinedThenOK()
+    public void givenNewMetadataWithVisibleInTablesFlagDefinedThenOK()
             throws Exception {
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -977,12 +1319,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         importSettings();
 
-        SchemaDisplayConfig defaultFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_default");
+        SchemaDisplayConfig defaultFolder = getAppLayerFactory()
+                .getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_default");
         assertThat(defaultFolder.getTableMetadataCodes())
                 .contains("folder_default_title", "folder_default_m1")
                 .doesNotContain("folder_default_m2");
 
-        SchemaDisplayConfig customFolder = getAppLayerFactory().getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
+        SchemaDisplayConfig customFolder = getAppLayerFactory()
+                .getMetadataSchemasDisplayManager().getSchema(zeCollection, "folder_custom");
         assertThat(customFolder.getTableMetadataCodes())
                 .contains("folder_custom_title", "folder_custom_m1", "folder_custom_m3")
                 .doesNotContain("folder_custom_m2", "folder_custom_m4");
@@ -1024,7 +1368,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
                 .setType(MetadataValueType.STRING)
-                .setBehaviours(toListOfString("searchableInSimpleSearch", "searchableInAdvancedSearch"))
+                .setBehaviours("searchableInSimpleSearch,searchableInAdvancedSearch")
                 .setInputMask("9999-9999");
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
