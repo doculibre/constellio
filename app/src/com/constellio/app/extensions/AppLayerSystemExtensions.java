@@ -1,9 +1,7 @@
 package com.constellio.app.extensions;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.UpdateModeExtension;
@@ -24,19 +22,12 @@ public class AppLayerSystemExtensions {
 
 		AvailableSequenceForSystemParams params = new AvailableSequenceForSystemParams();
 
-		Set<String> codes = new HashSet<>();
 		List<AvailableSequence> availableSequences = new ArrayList<>();
 
 		for (SystemSequenceExtension extension : systemSequenceExtensions) {
 			List<AvailableSequence> extensionSequences = extension.getAvailableSequences(params);
 			if (extensionSequences != null) {
-				for (AvailableSequence sequence : extensionSequences) {
-					if (!codes.contains(sequence.getCode())) {
-						codes.add(sequence.getCode());
-						availableSequences.add(sequence);
-					}
-				}
-
+				availableSequences.addAll(extensionSequences);
 			}
 		}
 
