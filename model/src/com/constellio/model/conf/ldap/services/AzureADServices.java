@@ -276,11 +276,12 @@ public class AzureADServices implements LDAPServices {
 					if (ldapUserSyncConfiguration.isUserAccepted(userDisplayName)) {
 						LDAPUser ldapUser = new LDAPUser();
 						ldapUsers.put(userObjectId, ldapUser);
-						ldapUser.setId(userJsonObject.optString("userPrincipalName"));
-						ldapUser.setName(userJsonObject.optString("displayName"));
+						ldapUser.setId(userJsonObject.optString("objectId"));
+						ldapUser.setEmail(userJsonObject.optString("userPrincipalName"));
+						ldapUser.setName(userJsonObject.optString("mailNickname"));
 						ldapUser.setFamilyName(userJsonObject.optString("surname"));
 						ldapUser.setGivenName(userJsonObject.optString("givenName"));
-						ldapUser.setEmail(userJsonObject.optString("email"));
+						//ldapUser.setEmail(userJsonObject.optString("email")); there mail
 						ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
 						ldapUser.setLieuTravail(userJsonObject.optString("department"));
 						ldapUser.setMsExchDelegateListBL(null); // TODO
