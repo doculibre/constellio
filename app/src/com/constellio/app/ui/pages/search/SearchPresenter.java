@@ -332,15 +332,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public String getSortCriterionValueAmong(List<MetadataVO> sortableMetadata) {
-		if(this.sortCriterion == null){
+		if (this.sortCriterion == null) {
 			return null;
 		}
 		if (!this.sortCriterion.startsWith("global_")) {
 			return this.sortCriterion;
 		} else {
 			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(this.sortCriterion);
-			for(MetadataVO metadata : sortableMetadata){
-				if(metadata.getLocalCode().equals(localCode)){
+			for (MetadataVO metadata : sortableMetadata) {
+				if (metadata.getLocalCode().equals(localCode)) {
 					return metadata.getCode();
 				}
 			}

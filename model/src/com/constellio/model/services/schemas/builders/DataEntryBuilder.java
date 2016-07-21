@@ -99,13 +99,17 @@ public class DataEntryBuilder {
 
 	public MetadataBuilder asFixedSequence(String fixedSequenceCode) {
 		metadata.dataEntry = new SequenceDataEntry(fixedSequenceCode, null);
-		metadata.setType(STRING);
+		if (metadata.getType() == null) {
+			metadata.setType(STRING);
+		}
 		return metadata;
 	}
 
 	public MetadataBuilder asSequenceDefinedByMetadata(String metadataLocalCode) {
 		metadata.dataEntry = new SequenceDataEntry(null, metadataLocalCode);
-		metadata.setType(STRING);
+		if (metadata.getType() == null) {
+			metadata.setType(STRING);
+		}
 		return metadata;
 	}
 }
