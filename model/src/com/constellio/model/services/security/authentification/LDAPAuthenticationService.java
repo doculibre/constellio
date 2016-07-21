@@ -81,7 +81,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			try {
 				ldapServices.authenticateUser(ldapServerConfiguration, userEmail, password);
 				return true;
-			} catch (CouldNotConnectUserToLDAP e) {
+			} catch (Throwable e) {
 				LOGGER.info("Error when trying to authenticate user " + username + " with email " + userEmail, e);
 				return false;
 			}

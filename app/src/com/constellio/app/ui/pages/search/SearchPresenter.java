@@ -332,6 +332,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public String getSortCriterionValueAmong(List<MetadataVO> sortableMetadata) {
+		if(this.sortCriterion == null){
+			return null;
+		}
 		if (!this.sortCriterion.startsWith("global_")) {
 			return this.sortCriterion;
 		} else {
