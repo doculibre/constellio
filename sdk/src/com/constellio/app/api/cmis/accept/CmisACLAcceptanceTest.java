@@ -2,6 +2,7 @@ package com.constellio.app.api.cmis.accept;
 
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,10 +10,13 @@ import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
@@ -20,12 +24,16 @@ import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -36,10 +44,14 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
 @DriverTest
 public class CmisACLAcceptanceTest extends ConstellioTest {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CmisACLAcceptanceTest.class);
+
 	UserServices userServices;
 	TaxonomiesManager taxonomiesManager;
 	MetadataSchemasManager metadataSchemasManager;
@@ -121,6 +133,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		chuckId = users.chuckNorrisIn(zeCollection).getId();
 		heroesId = users.heroesIn(zeCollection).getId();
 		robinId = users.robinIn(zeCollection).getId();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
 	}
 
 	@Test
@@ -149,6 +163,160 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
+	}
+
+	@Test
+	public void whenAddACLTo100UsersThenOk()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		List<String> users = createDummyUsers(100);
+
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+		assertThat(cmisFolder2.getAllowableActions().getAllowableActions()).contains(Action.CAN_APPLY_ACL, Action.CAN_GET_ACL);
+		List<Ace> aces = new ArrayList<>();
+		for (String user : users) {
+			aces.add(ace(user, R));
+		}
+		cmisFolder2.addAcl(aces, REPOSITORYDETERMINED);
+
+		recordServices.refresh(zeCollectionRecords.folder2);
+
+		for (String username : users) {
+			User user = userServices.getUserInCollection(username, zeCollection);
+			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isTrue();
+		}
+
+	}
+
+	@Test
+	public void whenAddAceWith()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		List<String> users = createDummyUsers(5);
+		Folder aFolder = cmisFolder(zeCollectionRecords.folder2);
+
+		assertThat(userServices.getUserInCollection("bob", zeCollection).hasWriteAccess().on(zeCollectionRecords.folder2))
+				.isFalse();
+		assertThat(userServices.getUserInCollection("alice", zeCollection).hasWriteAccess().on(zeCollectionRecords.folder2))
+				.isFalse();
+
+		List<Ace> aces = new ArrayList<>();
+		aces.add(ace("constellio:removeInheritance", RW));
+		for (String user : users) {
+			aces.add(ace(user, RW));
+		}
+		aces.add(ace("bob", RW));
+		aces.add(ace("alice", RW));
+
+		aFolder.setAcl(aces);
+
+		Map<String, Object> subFolderParameters = new HashMap<>();
+		subFolderParameters.put("cmis:name", "Sub folder ");
+		subFolderParameters.put(PropertyIds.OBJECT_TYPE_ID, "folder_default");
+		Folder subFolder = aFolder.createFolder(subFolderParameters);
+
+		subFolder.setAcl(aces);
+
+		Record subFolderRecord = recordServices.getDocumentById(subFolder.getId());
+		for (String user : users) {
+			assertThat(userServices.getUserInCollection(user, zeCollection).hasWriteAccess().on(subFolderRecord)).isTrue();
+		}
+		assertThat(userServices.getUserInCollection("bob", zeCollection).hasWriteAccess().on(subFolderRecord)).isTrue();
+		assertThat(userServices.getUserInCollection("alice", zeCollection).hasWriteAccess().on(subFolderRecord)).isTrue();
+	}
+
+	@Test
+	@SlowTest
+	public void whenCreateHierarchyOfFoldersAndAddACLTo35UsersThenOK()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+
+		List<String> users = createDummyUsers(35);
+
+		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
+
+		List<Ace> aces = new ArrayList<>();
+		aces.add(ace("constellio:removeInheritance", RW));
+		for (String user : users) {
+			aces.add(ace(user, RW));
+		}
+
+		cmisFolder2.setAcl(aces);
+		List<String> ids = new ArrayList<>();
+
+		Map<String, List<String>> usersWithAccess = new HashMap<>();
+		int counter = 0;
+
+		for (int i = 0; i < 4; i++) {
+			counter++;
+			Map<String, Object> subFolderParameters = new HashMap<>();
+			subFolderParameters.put("cmis:name", "Sub folder " + counter);
+			subFolderParameters.put(PropertyIds.OBJECT_TYPE_ID, "folder_default");
+			Folder subFolder = cmisFolder2.createFolder(subFolderParameters);
+			List<Ace> subFolderAces = new ArrayList<>(aces);
+			subFolderAces.remove(counter);
+			subFolder.setAcl(subFolderAces);
+			usersWithAccess.put(subFolder.getId(), usersWithAccess(subFolderAces));
+
+			for (int j = 0; j < 5; j++) {
+				counter++;
+				Map<String, Object> subSubFolderParameters = new HashMap<>();
+				subSubFolderParameters.put("cmis:name", "Sub folder " + counter);
+				subSubFolderParameters.put(PropertyIds.OBJECT_TYPE_ID, "folder_default");
+				Folder subSubFolder = cmisFolder2.createFolder(subSubFolderParameters);
+				List<Ace> subSubFolderAces = new ArrayList<>(aces);
+				subSubFolderAces.remove(counter);
+				subSubFolder.setAcl(subSubFolderAces);
+				usersWithAccess.put(subSubFolder.getId(), usersWithAccess(subSubFolderAces));
+			}
+		}
+
+		for (Map.Entry<String, List<String>> entry : usersWithAccess.entrySet()) {
+			Record record = recordServices.getDocumentById(entry.getKey());
+
+			for (String username : users) {
+				User user = userServices.getUserInCollection(username, zeCollection);
+
+				if (entry.getValue().contains(username)) {
+					assertThat(user.hasReadAccess().on(record))
+							.describedAs(user.getUsername() + " access on record " + entry.getKey()).isTrue();
+				} else {
+					assertThat(user.hasReadAccess().on(record))
+							.describedAs(user.getUsername() + " access on record " + entry.getKey()).isFalse();
+				}
+			}
+
+		}
+	}
+
+	private List<String> usersWithAccess(List<Ace> aces) {
+		List<String> users = new ArrayList<>();
+
+		for (Ace ace : aces) {
+			if (!"constellio:removeInheritance".equals(ace.getPrincipalId())) {
+				users.add(ace.getPrincipalId());
+			}
+		}
+
+		return users;
+	}
+
+	private List<String> createDummyUsers(int qty) {
+		List<String> users = new ArrayList<>();
+		for (int i = 1; i <= qty; i++) {
+			String username = "grim.patron." + i;
+			UserCredential userCredential = userServices.createUserCredential(username, "Grim", "Patron",
+					username + "@constellio.com", new ArrayList<String>(), asList(zeCollection), ACTIVE);
+			userServices.addUpdateUserCredential(userCredential);
+			users.add(username);
+		}
+		for (String username : users) {
+			User user = userServices.getUserInCollection(username, zeCollection);
+			assertThat(user.hasReadAccess().on(zeCollectionRecords.folder2)).isFalse();
+		}
+		return users;
 	}
 
 	@Test
@@ -217,6 +385,29 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenAclDisabledThenNotReturned()
+			throws Exception {
+		session = givenAdminSessionOnZeCollection();
+		givenFolderInheritingTaxonomyAuthorizations();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		session.getDefaultContext().setIncludeAcls(false);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		session.getDefaultContext().setIncludeAcls(true);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNotNull();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, true);
+		session.getDefaultContext().setIncludeAcls(false);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
+
+		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, true);
+		session.getDefaultContext().setIncludeAcls(true);
+		assertThat(cmisFolder(zeCollectionRecords.folder2).getAcl()).isNull();
+	}
+
+	@Test
 	public void whenSetACLThenAuthorizationsCreated()
 			throws Exception {
 		session = givenAdminSessionOnZeCollection();
@@ -278,7 +469,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 				tuple(false, RW, edouard), tuple(true, RW, gandalf));
 
 		cmisFolder2
-				.setAcl(asList(ace("constellio:removeInheritance", new ArrayList<String>()), ace(gandalf, RW), ace(dakota, RW)));
+				.setAcl(asList(ace("constellio:removeInheritance", new ArrayList<String>()), ace(gandalf, RW),
+						ace(dakota, RW)));
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
 				tuple(constellio_RW, asList(gandalfId, dakotaId), asList(zeCollectionRecords.folder2.getId()))
@@ -290,10 +482,11 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		assertThatAcesOf(zeCollectionRecords.folder2_1).containsOnly(
 				tuple(false, RW, gandalf), tuple(false, RW, dakota));
 
-		cmisFolder2.applyAcl(asList(ace(aliceWonderland, RW), ace(charles, RW)), asList(ace(gandalf, RW)), REPOSITORYDETERMINED);
+		cmisFolder2
+				.applyAcl(asList(ace(aliceWonderland, RW), ace(charles, RW)), asList(ace(gandalf, RW)), REPOSITORYDETERMINED);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(dakotaId, aliceId, charlesId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asList(charlesId, dakotaId, aliceId), asList(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(

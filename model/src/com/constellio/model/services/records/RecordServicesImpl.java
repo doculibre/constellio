@@ -24,6 +24,7 @@ import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.Recor
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.ReferenceToNonExistentIndex;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -46,6 +47,14 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModificationUsersAndDateRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordEvent;
@@ -367,33 +376,95 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		}
 
-		if (transaction.getRecordUpdateOptions().isExtractorsEnabled()) {
-			boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
-			List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
-			for (Record record : records) {
-				recordPopulateServices.populate(record);
+		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
+		List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
+		for (Record record : records) {
+			recordPopulateServices.populate(record);
 
-				if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
-					if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
-						updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
-					}
-					if (validations) {
-						validationServices.validateManualMetadatas(record, recordProvider, transaction);
-					}
-					try {
-						automaticMetadataServices
-								.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
-					} catch (RuntimeException e) {
-						throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
-					}
-					if (validations) {
-						validationServices.validateCyclicReferences(record, recordProvider, transaction);
-						validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
-						validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+
+			if (onlyValidateRecord == null || onlyValidateRecord.equals(record.getId())) {
+
+				for (RecordPreparationStep step : schema.getPreparationSteps()) {
+
+					if (step instanceof CalculateMetadatasRecordPreparationStep) {
+						try {
+							for (Metadata metadata : step.getMetadatas()) {
+								automaticMetadataServices.updateAutomaticMetadata((RecordImpl) record, recordProvider, metadata,
+										reindexation, types);
+							}
+						} catch (RuntimeException e) {
+							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
+						}
+					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
+						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
+							updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
+						}
+
+					} else if (step instanceof SequenceRecordPreparationStep) {
+						SequencesManager sequencesManager = modelFactory.getDataLayerFactory().getSequencesManager();
+						for (Metadata metadata : step.getMetadatas()) {
+
+							SequenceDataEntry dataEntry = (SequenceDataEntry) metadata.getDataEntry();
+							if (dataEntry.getFixedSequenceCode() != null) {
+								if (record.get(metadata) == null) {
+									String sequenceCode = dataEntry.getFixedSequenceCode();
+									record.set(metadata,
+											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+								}
+							} else {
+								Metadata metadataProvidingSequenceCode = schema
+										.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
+
+								if (record.isModified(metadataProvidingSequenceCode)) {
+									String sequenceCode = record.get(metadataProvidingSequenceCode);
+									record.set(metadata,
+											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+								}
+							}
+
+						}
+
+						if (validations) {
+							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas());
+						}
+
+					} else if (step instanceof ValidateCyclicReferencesRecordPreparationStep) {
+						if (validations) {
+							validationServices.validateCyclicReferences(record, recordProvider, types, schema.getMetadatas());
+						}
+
+					} else if (step instanceof ValidateMetadatasRecordPreparationStep) {
+						if (validations) {
+							validationServices.validateMetadatas(record, recordProvider, transaction, step.getMetadatas());
+						}
+
+					} else if (step instanceof ValidateUsingSchemaValidatorsRecordPreparationStep) {
+						if (validations) {
+							validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+						}
 					}
 				}
-
 			}
+
+			//				if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
+			//					updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
+			//				}
+			//				if (validations) {
+			//					validationServices.validateManualMetadatas(record, recordProvider, transaction);
+			//				}
+			//				try {
+			//					automaticMetadataServices
+			//							.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
+			//				} catch (RuntimeException e) {
+			//					throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
+			//				}
+			//				if (validations) {
+			//					validationServices.validateCyclicReferences(record, recordProvider, transaction);
+			//					validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
+			//					validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
+			//				}
+			//			}
 
 		}
 
@@ -786,7 +857,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
@@ -798,13 +869,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().physicallyDelete(record, user);
 	}
 
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
-	public void physicallyDelete(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		newRecordDeleteServices().physicallyDelete(record, user, options);
@@ -822,7 +893,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordDeleteOptions options) {
+	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
@@ -841,23 +912,24 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public void logicallyDelete(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		newRecordDeleteServices().logicallyDelete(record, user);
-		refresh(record);
+		logicallyDelete(record, user, new RecordLogicalDeleteOptions());
 	}
 
-	public void logicallyDeletePrincipalConceptIncludingRecords(Record record, User user) {
+	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
 		refresh(record);
 		refresh(user);
-		newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
-		refresh(record);
-	}
 
-	public void logicallyDeletePrincipalConceptExcludingRecords(Record record, User user) {
-		refresh(record);
-		refresh(user);
-		newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
+		//		String recordSchemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		//		if (taxonomy != null && taxonomy.getSchemaTypes().contains(recordSchemaType)) {
+		//			if (options.behaviorForRecordsAttachedToTaxonomy == LogicallyDeleteTaxonomyRecordsBehavior.KEEP_RECORDS) {
+		//				newRecordDeleteServices().logicallyDeletePrincipalConceptExcludingRecords(record, user);
+		//			} else {
+		//				newRecordDeleteServices().logicallyDeletePrincipalConceptIncludingRecords(record, user);
+		//			}
+		//		} else {
+		newRecordDeleteServices().logicallyDelete(record, user, options);
+		//		}
+
 		refresh(record);
 	}
 

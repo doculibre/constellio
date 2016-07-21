@@ -11,10 +11,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.services.schemas.testimpl.TestMetadataValueCalculator;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -27,6 +29,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;
@@ -434,58 +437,10 @@ public class MetadataSchemaBuilderTest extends ConstellioTest {
 		customSchemaBuilder.validateLocalCode("tes_t");
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void whenBuildingThenCalculateAutomaticMetadataDependenciesAndOrderThemUsingDependencyUtils() {
-		DependencyUtils<String> dependencyUtils = mock(DependencyUtils.class);
-		SchemaUtils schemaUtils = mock(SchemaUtils.class);
-		Map<String, Set<String>> dependencies = mock(Map.class);
-
-		Metadata firstMetadata = newMockedMetadataWithCode("m1");
-		Metadata secondMetadata = newMockedMetadataWithCode("m2");
-		List<Metadata> metadatas = asList(firstMetadata, secondMetadata);
-
-		doReturn(metadatas).when(defaultSchemaBuilder).buildMetadatas(typesFactory, modelLayerFactory);
-		doReturn(dependencyUtils).when(defaultSchemaBuilder).newDependencyUtils();
-		doReturn(schemaUtils).when(defaultSchemaBuilder).newSchemaUtils();
-
-		when(schemaUtils.calculatedMetadataDependencies(metadatas)).thenReturn(dependencies);
-		when(dependencyUtils.sortByDependency(dependencies))
-				.thenReturn(asList("m2", "m1"));
-
-		MetadataSchema schema = defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
-
-		assertThat(schema.getAutomaticMetadatas()).containsExactly(secondMetadata, firstMetadata);
-
-	}
-
 	private Metadata newMockedMetadataWithCode(String code) {
 		Metadata secondMetadata = mock(Metadata.class);
 		when(secondMetadata.getLocalCode()).thenReturn(code);
 		return secondMetadata;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test(expected = MetadataSchemaBuilderRuntimeException.CyclicDependenciesInMetadata.class)
-	public void givenCyclicDependenciesWhenBuildingThenException() {
-		Metadata firstMetadata = newMockedMetadataWithCode("m1");
-		Metadata secondMetadata = newMockedMetadataWithCode("m2");
-
-		Map<String, Set<String>> dependencies = mock(Map.class);
-		List<Metadata> metadatas = asList(firstMetadata, secondMetadata);
-		doReturn(metadatas).when(defaultSchemaBuilder).buildMetadatas(typesFactory, modelLayerFactory);
-
-		SchemaUtils schemaUtils = mock(SchemaUtils.class);
-		DependencyUtils<String> dependencyUtils = mock(DependencyUtils.class);
-		doReturn(dependencyUtils).when(defaultSchemaBuilder).newDependencyUtils();
-		doReturn(schemaUtils).when(defaultSchemaBuilder).newSchemaUtils();
-
-		when(schemaUtils.calculatedMetadataDependencies(metadatas)).thenReturn(dependencies);
-		when(dependencyUtils.sortByDependency(dependencies))
-				.thenThrow(DependencyUtilsRuntimeException.CyclicDependency.class);
-
-		defaultSchemaBuilder.buildDefault(typesFactory, modelLayerFactory);
-
 	}
 
 	@Test

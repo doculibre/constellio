@@ -63,12 +63,26 @@ public class RecordValidationServices {
 		}
 	}
 
-	public void validateCyclicReferences(Record record, RecordProvider recordProvider, Transaction transaction)
+	public void validateMetadatas(Record record, RecordProvider recordProvider, Transaction transaction, List<Metadata> metadatas)
+			throws RecordServicesException.ValidationException {
+		ValidationErrors validationErrors = validateMetadatasReturningErrors(record, recordProvider, transaction, metadatas);
+		if (!validationErrors.getValidationErrors().isEmpty()) {
+			throw new RecordServicesException.ValidationException(record, validationErrors);
+		}
+	}
+
+	public void validateCyclicReferences(Record record, RecordProvider recordProvider)
 			throws RecordServicesException.ValidationException {
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
 		List<Metadata> metadatas = getManualMetadatas(schema);
+		validateCyclicReferences(record, recordProvider, schemaTypes, metadatas);
+	}
+
+	public void validateCyclicReferences(Record record, RecordProvider recordProvider, MetadataSchemaTypes schemaTypes,
+			List<Metadata> metadatas)
+			throws RecordServicesException.ValidationException {
 		ValidationErrors validationErrors = new ValidationErrors();
 		new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
 
@@ -121,6 +135,13 @@ public class RecordValidationServices {
 			}
 		}
 		return manualMetadatas;
+	}
+
+	ValidationErrors validateMetadatasReturningErrors(Record record, RecordProvider recordProvider,
+			Transaction transaction, List<Metadata> metadatas) {
+		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
+		return validateMetadatasReturningErrors(record, recordProvider, schemaTypes, metadatas, transaction);
 	}
 
 	ValidationErrors validateManualMetadatasReturningErrors(Record record, RecordProvider recordProvider,

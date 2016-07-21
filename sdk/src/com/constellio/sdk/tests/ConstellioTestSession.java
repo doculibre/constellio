@@ -207,4 +207,5 @@ public class ConstellioTestSession {
 	public boolean isDeveloperTest() {
 		return skipTestsRule.isMainTest() || skipTestsRule.isInDevelopmentTest();
 	}
+
 }

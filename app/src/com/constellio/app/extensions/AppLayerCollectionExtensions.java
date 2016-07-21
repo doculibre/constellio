@@ -2,9 +2,11 @@ package com.constellio.app.extensions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
@@ -32,6 +34,9 @@ import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.sequence.AvailableSequence;
+import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
+import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -74,11 +79,35 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
+
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
 	}
 
 	//----------------- Callers ---------------
+
+	public List<AvailableSequence> getAvailableSequencesForRecord(Record record) {
+
+		AvailableSequenceForRecordParams params = new AvailableSequenceForRecordParams(record);
+		Set<String> codes = new HashSet<>();
+		List<AvailableSequence> availableSequences = new ArrayList<>();
+
+		for (CollectionSequenceExtension extension : collectionSequenceExtensions) {
+			List<AvailableSequence> extensionSequences = extension.getAvailableSequencesForRecord(params);
+			if (extensionSequences != null) {
+				for (AvailableSequence sequence : extensionSequences) {
+					if (!codes.contains(sequence.getCode())) {
+						codes.add(sequence.getCode());
+						availableSequences.add(sequence);
+					}
+				}
+
+			}
+		}
+
+		return availableSequences;
+	}
 
 	public void buildRecordVO(BuildRecordVOParams params) {
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {

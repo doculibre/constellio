@@ -352,7 +352,6 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-
 		metadata.put(LOGICALLY_DELETED_ON, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
@@ -368,7 +367,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(ERROR_ON_PHYSICAL_DELETION)
-						.setType(MetadataValueType.BOOLEAN).setDefaultValue(false);
+						.setType(MetadataValueType.BOOLEAN);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

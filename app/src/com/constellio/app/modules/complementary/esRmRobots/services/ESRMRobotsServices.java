@@ -15,7 +15,7 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordDeleteOptions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
@@ -34,7 +34,7 @@ public class ESRMRobotsServices {
 	public void deleteRobotFoldersAndDocuments(final User currentUser, final String robotId, final ProgressInfo progressInfo)
 			throws Exception {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(currentUser.getCollection(), modelLayerFactory);
-		final RecordDeleteOptions deleteOptions = new RecordDeleteOptions().setMostReferencesToNull(true);
+		final RecordPhysicalDeleteOptions deleteOptions = new RecordPhysicalDeleteOptions().setMostReferencesToNull(true);
 		final LogicalSearchCondition documentsCondition = from(rm.documentSchemaType())
 				.where(rm.document.schema().get(Document.CREATED_BY_ROBOT)).isEqualTo(robotId);
 		final LogicalSearchCondition foldersCondition = from(rm.folder.schemaType())

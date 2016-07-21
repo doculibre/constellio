@@ -116,9 +116,9 @@ public interface RecordServices {
 
 	void physicallyDelete(Record record, User user);
 
-	void physicallyDelete(Record record, User user, RecordDeleteOptions options);
+	void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options);
 
-	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options);
+	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options);
 
 	boolean isLogicallyDeletable(Record record, User user);
 
@@ -130,9 +130,7 @@ public interface RecordServices {
 
 	void logicallyDelete(Record record, User user);
 
-	void logicallyDeletePrincipalConceptIncludingRecords(Record record, User user);
-
-	void logicallyDeletePrincipalConceptExcludingRecords(Record record, User user);
+	void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options);
 
 	List<Record> getVisibleRecordsWithReferenceTo(Record record, User user);
 

@@ -1,5 +1,6 @@
 package com.constellio.model.utils;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
@@ -56,7 +57,7 @@ public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTe
 		};
 
 		IOServices ioServices = getIOLayerFactory().newIOServices();
-		HashingService hashingServices = getIOLayerFactory().newHashingService();
+		HashingService hashingServices = getIOLayerFactory().newHashingService(BASE64);
 		configManager = new FileSystemConfigManager(newTempFolder(), ioServices, hashingServices);
 
 		collectionsListManager = new CollectionsListManager(configManager);

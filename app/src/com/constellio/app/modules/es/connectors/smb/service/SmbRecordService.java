@@ -1,6 +1,10 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +16,8 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class SmbRecordService {
 	private ESSchemasRecordsServices es;
@@ -153,27 +159,29 @@ public class SmbRecordService {
 	public List<String> getRecordsWithDifferentTraversalCode() {
 		List<String> recordsToDelete = new ArrayList<>();
 
-		for (ConnectorSmbDocument document : getDocumentsToDelete()) {
-			recordsToDelete.add(document.getUrl());
+		for (Iterator<String> documentIterator = getDocumentUrlsToDelete(); documentIterator.hasNext(); ) {
+			recordsToDelete.add(documentIterator.next());
 		}
 
-		for (ConnectorSmbFolder folder : getFoldersToDelete()) {
-			recordsToDelete.add(folder.getUrl());
+		for (Iterator<String> folderIterator = getFolderUrlsToDelete(); folderIterator.hasNext(); ) {
+			recordsToDelete.add(folderIterator.next());
 		}
 
 		return recordsToDelete;
 	}
 
-	private List<ConnectorSmbDocument> getDocumentsToDelete() {
-		return es.searchConnectorSmbDocuments(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstance)
+	private Iterator<String> getDocumentUrlsToDelete() {
+		return es.getUrlsIterator(new LogicalSearchQuery(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstance)
 				.andWhere(es.connectorDocument.traversalCode())
-				.isNotEqual(connectorInstance.getTraversalCode()));
+				.isNotEqual(connectorInstance.getTraversalCode())));
+
 	}
 
-	private List<ConnectorSmbFolder> getFoldersToDelete() {
-		return es.searchConnectorSmbFolders(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstance)
-				.andWhere(es.connectorDocument.traversalCode())
-				.isNotEqual(connectorInstance.getTraversalCode()));
+	private Iterator<String> getFolderUrlsToDelete() {
+		return es.getUrlsIterator(new LogicalSearchQuery(from(es.connectorSmbDocument.schemaType())
+				.where(es.fromConnectorSmbFolderWhereConnectorIs(connectorInstance)
+						.andWhere(es.connectorDocument.traversalCode())
+						.isNotEqual(connectorInstance.getTraversalCode()))));
 	}
 
 	public String getRecordIdForFolder(String url) {
@@ -256,4 +264,13 @@ public class SmbRecordService {
 		// TODO Benoit. Evaluate if it should be synchronized
 		connectorInstance.setResumeUrl(url);
 	}
+
+	public Iterator<ConnectorSmbDocument> getAllDocumentsInFolder(ConnectorDocument<?> folderToDelete) {
+		if (folderToDelete.getPaths().isEmpty()) {
+			return new ArrayList<ConnectorSmbDocument>().iterator();
+		}
+		String path = folderToDelete.getPaths().get(0);
+		return es.iterateConnectorSmbDocuments(where(Schemas.PATH).isStartingWithText(path));
+	}
+
 }

@@ -17,6 +17,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -94,31 +95,38 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 	private void initTests()
 			throws RecordServicesException {
-		category = rm.newCategory().setCode("zCat").setTitle("Ze category").setRetentionRules(asList(records.ruleId_1));
-		recordServices.add(category);
-		parentFolderInCategory_A = records.getFolder_A01().setCategoryEntered(category);
-		subFolder_B = rm.newFolder().setParentFolder(parentFolderInCategory_A).setTitle("subFolder_B")
-				.setOpenDate(TimeProvider.getLocalDate());
-		recordServices.add(subFolder_B);
-		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema));
-		recordServices.add(taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B).setTitle("zTask"));
+
+		Transaction transaction = new Transaction();
+		transaction.add(category = rm.newCategory().setCode("zCat").setTitle("Ze category")
+				.setRetentionRules(asList(records.ruleId_1)));
+		transaction.add(parentFolderInCategory_A = records.getFolder_A01().setCategoryEntered(category));
+		transaction.add(subFolder_B = rm.newFolderWithId("subFolder_B").setParentFolder(parentFolderInCategory_A)
+				.setTitle("subFolder_B").setOpenDate(TimeProvider.getLocalDate()));
+
+		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema, "taskReferencesFolderB"));
+		transaction.add(taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B).setTitle("zTask"));
+		recordServices.execute(transaction);
+
+		//Nouha : Le record 'parentFolderInCategory_A' n'était pas sauvegardé
 	}
 
 	@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
 			throws Exception {
 		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-		parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
+		recordServices.refresh(parentFolderInCategory_A);
 		try {
-			deleteService
-					.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-							new RecordDeleteOptions().setMostReferencesToNull(true));
+			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
-			assertThat(relatedRecords).contains(taskReferencesFolderB.getId());
-			assertThat(relatedRecords).doesNotContain(subFolder_B.getId(), category.getId());
-			parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
+			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
+					.doesNotContain(subFolder_B.getId(), category.getId());
+
+			recordServices.refresh(parentFolderInCategory_A);
+
+			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
 			assertThat(parentFolderInCategory_A.getCategory()).isNull();
 		}
 	}
@@ -126,17 +134,22 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk2()
 			throws Exception {
+
+		recordServices.refresh(parentFolderInCategory_A);
+		assertThat(parentFolderInCategory_A.getCategoryEntered()).isEqualTo(category.getId());
+
 		deleteService.logicallyDelete(category.getWrappedRecord(), null);
-		category = rm.getCategory(category.getId());
+		recordServices.refresh(category);
 		try {
-			deleteService
-					.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
-			parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
+			deleteService.physicallyDelete(category.getWrappedRecord(), null,
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+			recordServices.refresh(parentFolderInCategory_A);
 			assertThat(parentFolderInCategory_A.getCategoryEntered()).isNull();
 			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
 			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
-			//pas sure?!
+
+			//TODO Nouha : Pourquoi subFolder_B? Ce dossier n'a pas de référence vers category
 			assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());
 			assertThat(relatedRecords).doesNotContain(taskReferencesFolderB.getId());
 		}
@@ -149,13 +162,17 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
 		deleteService.logicallyDelete(category.getWrappedRecord(), null);
 		deleteService.logicallyDelete(taskReferencesFolderB.getWrappedRecord(), null);
-		category = rm.getCategory(category.getId());
+
+		recordServices.refresh(category);
+
+		//TODO Nouha : On ne peut pas faire ça, car des dossiers se retrouvent sans catégorie, ce qui cause une erreur de validation
 		deleteService
-				.physicallyDelete(category.getWrappedRecord(), null, new RecordDeleteOptions().setMostReferencesToNull(true));
+				.physicallyDelete(category.getWrappedRecord(), null,
+						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 
 		parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
 		deleteService
 				.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-						new RecordDeleteOptions().setMostReferencesToNull(true));
+						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 	}
 }

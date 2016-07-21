@@ -1,6 +1,7 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DO_NOTHING;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -128,7 +129,7 @@ public class ESRMRobotsServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		notAUnitItest = true;
 		prepareSystem(withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus());
@@ -240,10 +241,10 @@ public class ESRMRobotsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull()))
 				.extracting("title", "content.currentVersion.hash", "content.currentVersion.version")
 				.containsOnly(
-						tuple("1.txt", "F+roHxDf6G8Ks/bQjnaxc1fPjuw=", "1.0"),
-						tuple("2.txt", "B/Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
+						tuple("1.txt", "F-roHxDf6G8Ks_bQjnaxc1fPjuw=", "1.0"),
+						tuple("2.txt", "B_Y1uv947wtmT6zR294q3eAkHOs=", "1.0"),
 						tuple("3.txt", "LhTJnquyaSPRtdZItiSx0UNkpcc=", "1.0"),
-						tuple("4.txt", "fRNOVjfA/c+w6xobmII/eIPU6s4=", "1.0")
+						tuple("4.txt", "fRNOVjfA_c-w6xobmII_eIPU6s4=", "1.0")
 				);
 
 		User user = users.adminIn(zeCollection);

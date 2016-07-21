@@ -15,6 +15,7 @@ import org.jdom2.Element;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -37,6 +38,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
+import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class MetadataSchemaXMLReader3 {
@@ -525,7 +527,22 @@ public class MetadataSchemaXMLReader3 {
 
 			} else if (dataEntry.getAttributeValue("calculator") != null) {
 				String calculator = dataEntry.getAttributeValue("calculator");
-				metadataBuilder.defineDataEntry().asCalculated(calculator);
+				ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
+				if ("parametrized".equals(calculator)) {
+					metadataBuilder.defineDataEntry().asCalculated(
+							(MetadataValueCalculator<?>) utils.toObject(dataEntry, Parametrized.class));
+				} else {
+					metadataBuilder.defineDataEntry().asCalculated(calculator);
+				}
+
+			} else if (dataEntry.getAttributeValue("fixedSequenceCode") != null) {
+				String fixedSequenceCode = dataEntry.getAttributeValue("fixedSequenceCode");
+				metadataBuilder.defineDataEntry().asFixedSequence(fixedSequenceCode);
+
+			} else if (dataEntry.getAttributeValue("metadataProvidingSequenceCode") != null) {
+				String metadataProvidingSequenceCode = dataEntry.getAttributeValue("metadataProvidingSequenceCode");
+				metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(metadataProvidingSequenceCode);
+
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {

@@ -1,6 +1,6 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2.FORMAT_ATTRIBUTE;
+import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3.FORMAT_ATTRIBUTE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpact
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader1;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader2;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader3;
-import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -111,7 +111,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
-				new MetadataSchemaXMLWriter2().writeEmptyDocument(collection, document);
+				new MetadataSchemaXMLWriter3().writeEmptyDocument(collection, document);
 			}
 		};
 		oneXmlConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
@@ -142,7 +142,10 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}
 
-				return typesBuilder.build(typesFactory, modelLayerFactory);
+				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory, modelLayerFactory);
+
+
+				return builtTypes;
 			}
 		};
 	}
@@ -239,7 +242,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throws OptimisticLocking {
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
 
-		Document document = new MetadataSchemaXMLWriter2().write(schemaTypes);
+		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
 		List<SchemaTypesAlterationImpact> impacts = calculateImpactsOf(schemaTypesBuilder);
 		List<BatchProcess> batchProcesses = prepareBatchProcesses(impacts, schemaTypesBuilder.getCollection());
 

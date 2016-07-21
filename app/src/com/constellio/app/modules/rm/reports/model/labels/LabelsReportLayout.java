@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.reports.model.labels;
 
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.RectangleReadOnly;
 
 public enum LabelsReportLayout {
 
@@ -9,9 +10,12 @@ public enum LabelsReportLayout {
 	AVERY_5159_V2(2, 7, PageSize.LETTER, 12f, 0f, 17f, 17f),
 	AVERY_5161(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
 
-	AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
-	//AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 60, 60),
-	//AVERY_5162(2, 7, PageSize.LETTER, 12, 12, 60, 60),
+	//AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
+
+	//AVERY_5162(2, 7, new RectangleReadOnly(612.0F, 900.0F), 18, 18, 60, 60),//new RectangleReadOnly(612.0F, 792.0F)
+	AVERY_5162(2, 7, PageSize.LETTER, 18, 18, 50,50),
+	//AVERY_5162(2, 7, PageSize.LETTER, 12, 12, 12, 57, 57),
+	AVERY_5162_V1(2, 7, PageSize.LETTER, 12, 12, 57f, 57f),//60, 60),OK
 	//AVERY_5162(2, 7, PageSize.LETTER, 2, 3, 60, 60),
 
 	AVERY_5163(2, 10, PageSize.LETTER, ((6f / 32f) * 72f), ((2f / 16f) * 72f), ((6f / 16f) * 72f), ((12f / 32f) * 72f)),
@@ -66,4 +70,5 @@ public enum LabelsReportLayout {
 	public float getBottomMargin() {
 		return bottomMargin;
 	}
+
 }

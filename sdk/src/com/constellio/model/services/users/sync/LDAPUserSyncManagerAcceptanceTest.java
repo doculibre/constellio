@@ -2,6 +2,7 @@ package com.constellio.model.services.users.sync;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +45,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		givenCollectionWithTitle(businessCollection, "Collection de Rida");
 		modelLayerFactory = getModelLayerFactory();
 
-		userServices = modelLayerFactory.newUserServices();
+		userServices = spy(modelLayerFactory.newUserServices());
 		userCredentialsManager = modelLayerFactory.getUserCredentialsManager();
 		globalGroupsManager = modelLayerFactory.getGlobalGroupsManager();
 		this.ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
@@ -338,5 +339,28 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		bfay = userServices.getUser("bfay");
 		currentGroups = bfay.getGlobalGroups();
 		assertThat(currentGroups).containsOnly(groupB, groupC);
+	}
+
+	@SlowTest
+	@Test
+	public void whenSearchingMoreThan1000UsersThenReturnAllUsers()
+			throws Exception {
+		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+		ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(ldapUserSyncConfiguration.getUser(),
+				ldapUserSyncConfiguration.getPassword(),
+				ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getGroupFilter(),
+				ldapUserSyncConfiguration.getDurationBetweenExecution(), ldapUserSyncConfiguration.getGroupBaseContextList(),
+				Arrays.asList("OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca"));
+		getModelLayerFactory().getLdapConfigurationManager()
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+
+		LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
+
+		ldapUserSyncManager.synchronize();
+
+		List<UserCredential> allUsers = userServices.getAllUserCredentials();
+
+		assertThat(allUsers.size()).isGreaterThan(3000);
 	}
 }

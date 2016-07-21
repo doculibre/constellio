@@ -2,7 +2,6 @@ package com.constellio.model.services.contents;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ContentVersionDataSummary {
 
@@ -42,6 +41,6 @@ public class ContentVersionDataSummary {
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+		return "ContentVersionDataSummary{hash=" + hash + ", mimetype=" + mimetype + ", length=" + length + "}";
 	}
 }

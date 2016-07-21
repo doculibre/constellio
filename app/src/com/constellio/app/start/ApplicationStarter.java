@@ -130,7 +130,8 @@ public class ApplicationStarter {
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
-		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2");
+		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello");
+
 		sslContextFactory.setExcludeCipherSuites(
 				"SSL_RSA_WITH_DES_CBC_SHA",
 				"SSL_DHE_RSA_WITH_DES_CBC_SHA",
@@ -147,7 +148,8 @@ public class ApplicationStarter {
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA");
+				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA"
+		);
 
 		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
 		connector.setPort(params.getPort());

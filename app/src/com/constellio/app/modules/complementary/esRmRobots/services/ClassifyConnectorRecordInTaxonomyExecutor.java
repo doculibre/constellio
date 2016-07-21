@@ -470,7 +470,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
 
-		if (!RMTaxonomies.CLASSIFICATION_PLAN.equals(taxonomy)) {
+		if (!RMTaxonomies.CLASSIFICATION_PLAN.equals(taxonomy) || rmFolder.getCategoryEntered() == null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
 		rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());

@@ -36,6 +36,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
 	public static final SystemConfiguration BATCH_PROCESSING_MODE;
 
+	public static final SystemConfiguration CMIS_NEVER_RETURN_ACL;
+
 	public static final SystemConfiguration DATE_FORMAT;
 	public static final SystemConfiguration DATE_TIME_FORMAT;
 	public static final SystemConfiguration TRASH_PURGE_DELAI;
@@ -85,6 +87,7 @@ public class ConstellioEIMConfigs {
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class));
+		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}

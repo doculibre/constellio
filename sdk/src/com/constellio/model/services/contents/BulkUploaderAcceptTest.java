@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE32;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +30,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		hashingService = getIOLayerFactory().newHashingService();
+		hashingService = getIOLayerFactory().newHashingService(BASE32);
 		fileParser = getModelLayerFactory().newFileParser();
 
 		File zipFile = getTestResourceFile("10000files.bigf.zip");
@@ -46,8 +47,9 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 	@Test
 	@SlowTest
-	public void whenBulkUploading1000FilesThenAllHaveCorrectSizeHashingLanguageParsedContentAndBinaryContent()
+	public void whenBulkUploading10000FilesThenAllHaveCorrectSizeHashingLanguageParsedContentAndBinaryContent()
 			throws Exception {
+
 		test(10000);
 	}
 
@@ -71,6 +73,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 		iterator = newIterator();
 		for (int i = 0; i < qty; i++) {
+			System.out.println("Validating content #" + i);
 			String key = "upload" + i;
 			final byte[] bytes = iterator.next().getBytes();
 

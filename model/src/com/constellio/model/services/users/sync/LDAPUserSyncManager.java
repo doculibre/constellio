@@ -137,15 +137,24 @@ public class LDAPUserSyncManager implements StatefulService {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
 		for (LDAPGroup ldapGroup : ldapGroups) {
 			GlobalGroup group = createGlobalGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
-			userServices.addUpdateGlobalGroup(group);
-			updatedUsersAndGroups.addGroupCode(group.getCode());
+			try {
+				userServices.addUpdateGlobalGroup(group);
+				updatedUsersAndGroups.addGroupCode(group.getCode());
+			} catch (Throwable e) {
+				LOGGER.error("Group ignored due to error when trying to add it " + group.getCode(), e);
+			}
+
 		}
 
 		for (LDAPUser ldapUser : ldapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-				userServices.addUpdateUserCredential(userCredential);
-				updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+				try {
+					userServices.addUpdateUserCredential(userCredential);
+					updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+				} catch (Throwable e) {
+					LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
+				}
 			}
 		}
 

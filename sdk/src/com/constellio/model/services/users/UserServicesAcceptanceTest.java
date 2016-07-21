@@ -604,6 +604,22 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		fail("Expected exception not thrown");
 	}
 
+
+	@Test
+	public void givenTwoUsersWithSameEmailThenOk()
+			throws Exception {
+		givenCollection1();
+		givenUserAndPassword();
+
+		UserCredential user2 = userServices.createUserCredential(
+				chuckNorris + "Other", "Chuck", "Norris", "chuck.norris@doculibre.com", new ArrayList<String>(),
+				new ArrayList<String>(),
+				UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null);
+		userServices.addUpdateUserCredential(user2);
+
+		assertThat(userServices.getUser(chuckNorris + "Other").getEmail()).isEqualTo(user.getEmail());
+
+	}
 	// ---- Exception tests
 
 	@Test(expected = UserServicesRuntimeException_NoSuchUser.class)

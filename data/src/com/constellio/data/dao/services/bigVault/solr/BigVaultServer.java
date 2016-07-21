@@ -20,6 +20,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
@@ -78,9 +79,7 @@ public class BigVaultServer implements Cloneable {
 			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
-
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
-
 		this.bigVaultLogger = bigVaultLogger;
 		this.name = name;
 		this.extensions = extensions;
@@ -227,6 +226,21 @@ public class BigVaultServer implements Cloneable {
 				int code = getExceptionCode(remoteSolrException);
 				return handleRemoteSolrExceptionWhileAddingRecords(transaction, currentAttempt + 1, remoteSolrException, code);
 			}
+
+			StringBuilder stringBuilder = new StringBuilder("Failed to execute this transaction : \n<transaction>");
+
+			for (SolrInputDocument document : transaction.getUpdatedDocuments()) {
+				stringBuilder.append(ClientUtils.toXML(document));
+				stringBuilder.append("\n");
+			}
+			for (SolrInputDocument document : transaction.getNewDocuments()) {
+				stringBuilder.append(ClientUtils.toXML(document));
+				stringBuilder.append("\n");
+			}
+			stringBuilder.append("\n");
+			stringBuilder.append("</transaction>");
+			LOGGER.error(stringBuilder.toString());
+
 			throw new BigVaultException.CouldNotExecuteQuery("" + maxFailAttempt + " errors occured while add/updating records",
 					e);
 		}

@@ -1,6 +1,5 @@
 package com.constellio.model.entities.schemas;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,7 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 		List<Metadata> metadatas = Arrays.asList(metadata1, metadata2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();
 		MetadataSchema schema = new MetadataSchema("aCode", "aCode", "zeCollection", labels, metadatas, false, true, validators,
-				new ArrayList<Metadata>());
+				null);
 
 		schema.getMetadatas().clear();
 	}

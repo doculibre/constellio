@@ -51,4 +51,6 @@ public interface ModelLayerConfiguration {
 	DataLayerConfiguration getDataLayerConfiguration();
 
 	boolean isPreviousPrivateKeyLost();
+
+	File getContentImportThreadFolder();
 }
