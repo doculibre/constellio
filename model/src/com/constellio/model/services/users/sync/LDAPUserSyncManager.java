@@ -125,7 +125,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private List<String> getNonEmptyUrls(LDAPServerConfiguration serverConfiguration) {
-		if (serverConfiguration.getDirectoryType() == LDAPDirectoryType.AZUR_AD) {
+		if (serverConfiguration.getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
 			return Arrays.asList(serverConfiguration.getAuthorityUrl());
 		} else {
 			return serverConfiguration.getUrls();

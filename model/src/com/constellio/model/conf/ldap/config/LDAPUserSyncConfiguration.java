@@ -45,6 +45,7 @@ public class LDAPUserSyncConfiguration {
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
 			List<String> selectedCollectionsCodes) {
 		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
+		this.azurUserSynchConfig.setClientId(azurUserSynchConfig.getClientId());
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
@@ -139,6 +140,10 @@ public class LDAPUserSyncConfiguration {
 	}
 
 	public String getClientSecret(){
-		return this.azurUserSynchConfig.applicationKey;
+		return this.azurUserSynchConfig.getApplicationKey();
+	}
+
+	public String getClientId() {
+		return this.azurUserSynchConfig.getClientId();
 	}
 }

@@ -81,10 +81,11 @@ public class LDAPConfigurationManager implements StatefulService {
 				} else {
 					directoryType = LDAPDirectoryType.ACTIVE_DIRECTORY;
 				}
-				if (directoryType == LDAPDirectoryType.AZUR_AD) {
+				if (directoryType == LDAPDirectoryType.AZURE_AD) {
 					properties.put("ldap.serverConfiguration.authorityUrl", ldapServerConfiguration.getAuthorityUrl());
 					properties.put("ldap.serverConfiguration.authorityTenantId", ldapServerConfiguration.getTenantName());
 					properties.put("ldap.serverConfiguration.clientId", ldapServerConfiguration.getClientId());
+					properties.put("ldap.syncConfiguration.clientId", ldapUserSyncConfiguration.getClientId());
 					properties.put("ldap.syncConfiguration.applicationKey", ldapUserSyncConfiguration.getClientSecret());
 				} else {
 					properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
@@ -197,7 +198,7 @@ public class LDAPConfigurationManager implements StatefulService {
 		Boolean authenticationActive = configs.getLdapAuthenticationActive();
 		if (authenticationActive) {
 			LDAPDirectoryType directoryType = configs.getDirectoryType();
-			if (directoryType == LDAPDirectoryType.AZUR_AD) {
+			if (directoryType == LDAPDirectoryType.AZURE_AD) {
 				validateAzurConfig(configs, ldapUserSyncConfiguration);
 			} else {
 				validateADAndEDirectoryConfiguration(configs, ldapUserSyncConfiguration);
@@ -246,7 +247,7 @@ public class LDAPConfigurationManager implements StatefulService {
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
 		Boolean active = getBooleanValue(configs, "ldap.authentication.active", false);
 
-		if (directoryType == LDAPDirectoryType.AZUR_AD) {
+		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			String authorityUrl = getString(configs, "ldap.serverConfiguration.authorityUrl", null);
 			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
 			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
@@ -279,9 +280,12 @@ public class LDAPConfigurationManager implements StatefulService {
 		List<String> selectedCollections = getSharpSeparatedValuesWithoutBlanks(configs,
 				"ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
-		if (directoryType == LDAPDirectoryType.AZUR_AD) {
+		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			String applicationKey = getString(configs, "ldap.syncConfiguration.applicationKey", null);
-			AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey(applicationKey);
+			String synchClientId =  getString(configs, "ldap.syncConfiguration.clientId", null);
+			AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig()
+					.setApplicationKey(applicationKey)
+					.setClientId(synchClientId);
 			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
 					selectedCollections);
 		} else {
@@ -332,8 +336,8 @@ public class LDAPConfigurationManager implements StatefulService {
 			return LDAPDirectoryType.ACTIVE_DIRECTORY;
 		} else if (directoryTypeString.equals(LDAPDirectoryType.E_DIRECTORY.getCode().toLowerCase())) {
 			return LDAPDirectoryType.E_DIRECTORY;
-		} else if (directoryTypeString.equals(LDAPDirectoryType.AZUR_AD.getCode().toLowerCase())) {
-			return LDAPDirectoryType.AZUR_AD;
+		} else if (directoryTypeString.equals(LDAPDirectoryType.AZURE_AD.getCode().toLowerCase())) {
+			return LDAPDirectoryType.AZURE_AD;
 		} else {
 			throw new PropertiesModelLayerConfigurationRuntimeException.PropertiesModelLayerConfigurationRuntimeException_InvalidLdapType(
 					directoryTypeString);

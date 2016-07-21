@@ -113,12 +113,12 @@ public class LDAPConfigManagementPresenter extends
 
 	public void typeChanged(LDAPDirectoryType previousDirectoryType, LDAPDirectoryType newValue) {
 		switch (previousDirectoryType) {
-		case AZUR_AD:
+		case AZURE_AD:
 			view.updateComponents();
 			break;
 		case ACTIVE_DIRECTORY:
 		case E_DIRECTORY:
-			if (newValue == LDAPDirectoryType.AZUR_AD) {
+			if (newValue == LDAPDirectoryType.AZURE_AD) {
 				view.updateComponents();
 			}
 			break;

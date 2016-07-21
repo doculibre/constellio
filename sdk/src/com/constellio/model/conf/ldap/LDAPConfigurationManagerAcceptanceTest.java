@@ -47,7 +47,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		AzureADServerConfig serverConfig = new AzureADServerConfig().setClientId("zclientId").setAuthorityUrl("zUrl")
 				.setAuthorityTenantId("zTanentId");
 		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(serverConfig, false);
-		AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey("zApplicationKey");
+		AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey("zApplicationKey").setClientId("synchClientId");
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(azurConf, azurUsersRegex,
 				azurGroupsRegex, azurDuration, azurCollections);
 		ldapConfigManager.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
@@ -155,7 +155,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		assertThat(ldapServerConfiguration.getAuthorityUrl()).isEqualTo("zUrl");
 		assertThat(ldapServerConfiguration.getTenantName()).isEqualTo("zTanentId");
 
-		assertThat(ldapServerConfiguration.getDirectoryType()).isEqualTo(LDAPDirectoryType.AZUR_AD);
+		assertThat(ldapServerConfiguration.getDirectoryType()).isEqualTo(LDAPDirectoryType.AZURE_AD);
 		assertThat(ldapServerConfiguration.getUrls()).isNull();
 		assertThat(ldapServerConfiguration.getDomains()).isNull();
 
@@ -170,6 +170,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = ldapConfigManager.getLDAPUserSyncConfiguration(true);
 
 		assertThat(ldapUserSyncConfiguration.getClientSecret()).isEqualTo("zApplicationKey");
+		assertThat(ldapUserSyncConfiguration.getClientId()).isEqualTo("synchClientId");
 		assertThat(ldapUserSyncConfiguration.getGroupFilter().getAcceptedRegex()).isEqualTo(azurGroupsRegex.getAcceptedRegex());
 		assertThat(ldapUserSyncConfiguration.getGroupFilter().getRejectedRegex()).isEqualTo(azurGroupsRegex.getRejectedRegex());
 		assertThat(ldapUserSyncConfiguration.getUserFilter().getAcceptedRegex()).isEqualTo(azurUsersRegex.getAcceptedRegex());

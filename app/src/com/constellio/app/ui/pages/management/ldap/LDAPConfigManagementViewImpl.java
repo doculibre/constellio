@@ -68,7 +68,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 	@Override
 	protected String getAuthenticationPassword() {
-		if (getDirectoryType() == LDAPDirectoryType.AZUR_AD) {
+		if (getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
 			return azurAuthenticationTab.getTestPassword();
 		} else {
 			return defaultSynchTab.getTestPassword();
@@ -77,7 +77,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 	@Override
 	protected String getAuthenticationUser() {
-		if (getDirectoryType() == LDAPDirectoryType.AZUR_AD) {
+		if (getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
 			return azurAuthenticationTab.getTestUser();
 		} else {
 			return defaultSynchTab.getTestUser();
@@ -87,7 +87,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	protected Component createConfigTabSheet() {
 		LDAPDirectoryType directoryType = getDirectoryType();
 		switch (directoryType) {
-		case AZUR_AD:
+		case AZURE_AD:
 			return createAzureConfigTabSheet();
 		case ACTIVE_DIRECTORY:
 		case E_DIRECTORY:
@@ -119,7 +119,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 	@Override
 	protected LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
-		if (getDirectoryType() == LDAPDirectoryType.AZUR_AD) {
+		if (getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
 			return azurSynchTab.getLDAPUserSyncConfiguration();
 		} else {
 			return defaultSynchTab.getLDAPUserSyncConfiguration();
@@ -129,7 +129,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	@Override
 	protected LDAPServerConfiguration getLDAPServerConfiguration() {
 		LDAPDirectoryType directoryType = getDirectoryType();
-		if (directoryType == LDAPDirectoryType.AZUR_AD) {
+		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			return azurAuthenticationTab.getLDAPServerConfiguration();
 		} else {
 			return defaultAuthenticationTab.getLDAPServerConfiguration();
@@ -193,7 +193,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	}
 
 	private class AzurSynchTab extends VerticalLayout {
-		Field applicationKey;
+		Field applicationKey, clientId;
 
 		private AzurSynchTab() {
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
@@ -204,6 +204,10 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			addComponent(durationField);
 			buildCollectionsPanel();
 			addComponent(collectionsComponent);
+			clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
+			clientId.setCaption($("LDAPConfigManagementView.clientId"));
+			addComponent(clientId);
+
 			applicationKey = createStringField(ldapUserSyncConfiguration.getClientSecret(), true);
 			applicationKey.setCaption($("LDAPConfigManagementView.applicationKey"));
 			addComponent(applicationKey);
@@ -224,9 +228,14 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
 			AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig()
-					.setApplicationKey(azurSynchTab.getApplicationKey());
+					.setApplicationKey(azurSynchTab.getApplicationKey())
+					.setClientId(azurSynchTab.getClientId());
 			return new LDAPUserSyncConfiguration(azurUserSynchConfig, getUserFilter(), getGroupsFilter(),
 					durationField.getDuration(), selectedCollections());
+		}
+
+		private String getClientId() {
+			return (String) clientId.getValue();
 		}
 	}
 

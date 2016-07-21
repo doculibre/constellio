@@ -42,30 +42,6 @@ import com.microsoft.aad.adal4j.ClientCredential;
 public class AzureADServices implements LDAPServices {
 	Logger LOGGER = LoggerFactory.getLogger(LDAPServicesImpl.class);
 
-	private String getAccessToken(LDAPServerConfiguration ldapServerConfiguration, LDAPUserSyncConfiguration synchConf)
-			throws Throwable {
-		String authority = ldapServerConfiguration.getAuthorityUrl() + ldapServerConfiguration.getTenantName();
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-		try {
-			AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
-			Future<AuthenticationResult> authenticationResultFuture = authenticationContext
-					.acquireToken(ldapServerConfiguration.
-							getResource(),
-							new ClientCredential(ldapServerConfiguration.getClientId(),
-									synchConf.getClientSecret()),
-							null);
-			AuthenticationResult authenticationResult = authenticationResultFuture.get();
-			if (authenticationResult == null) {
-				return null;
-			} else {
-				return authenticationResult.getAccessToken();
-			}
-		} finally {
-			executorService.shutdown();
-		}
-	}
-
 	@Override
 	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
 			throws CouldNotConnectUserToLDAP {
@@ -355,6 +331,30 @@ public class AzureADServices implements LDAPServices {
 		}
 
 		return new LDAPUsersAndGroups(new HashSet<>(ldapUsers.values()), new HashSet<>(ldapGroups.values()));
+	}
+
+	private String getAccessToken(LDAPServerConfiguration ldapServerConfiguration, LDAPUserSyncConfiguration synchConf)
+			throws Throwable {
+		String authority = ldapServerConfiguration.getAuthorityUrl() + ldapServerConfiguration.getTenantName();
+		ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+		try {
+			AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
+			Future<AuthenticationResult> authenticationResultFuture = authenticationContext
+					.acquireToken(ldapServerConfiguration.
+									getResource(),
+							new ClientCredential(synchConf.getClientId(),
+									synchConf.getClientSecret()),
+							null);
+			AuthenticationResult authenticationResult = authenticationResultFuture.get();
+			if (authenticationResult == null) {
+				return null;
+			} else {
+				return authenticationResult.getAccessToken();
+			}
+		} finally {
+			executorService.shutdown();
+		}
 	}
 
 }

@@ -24,7 +24,7 @@ public class LDAPServerConfiguration implements Serializable {
 	}
 
 	public LDAPServerConfiguration(AzureADServerConfig serverConfig, Boolean ldapAuthenticationActive) {
-		this.directoryType = LDAPDirectoryType.AZUR_AD;
+		this.directoryType = LDAPDirectoryType.AZURE_AD;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
 		this.azurServerConfig.authorityTenantId = serverConfig.authorityTenantId;
 		this.azurServerConfig.authorityUrl = serverConfig.authorityUrl;
