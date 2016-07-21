@@ -4,6 +4,8 @@ import java.util.Iterator;
 
 public interface ImportDataIterator extends Iterator<ImportData> {
 
+	ImportDataOptions getOptions();
+
 	void close();
 }
 

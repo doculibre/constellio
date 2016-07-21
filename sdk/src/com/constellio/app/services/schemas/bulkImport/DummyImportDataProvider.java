@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
 
@@ -47,6 +48,11 @@ public class DummyImportDataProvider implements ImportDataProvider {
 			private boolean closed;
 
 			private int index;
+
+			@Override
+			public ImportDataOptions getOptions() {
+				return new ImportDataOptions();
+			}
 
 			@Override
 			public void close() {

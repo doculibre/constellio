@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -154,7 +156,7 @@ public class RecordsImportServices implements ImportServices {
 			boolean typeImportFinished = false;
 			while (!typeImportFinished) {
 
-				Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
+				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
 						progressionHandler, user, types, extensions, addUpdateCount);
 				if (skipped > 0 && skipped == previouslySkipped) {
@@ -173,7 +175,7 @@ public class RecordsImportServices implements ImportServices {
 	}
 
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
-			Iterator<ImportData> importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
+			ImportDataIterator importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
 			MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount) {
 
 		int skipped = 0;
@@ -184,7 +186,7 @@ public class RecordsImportServices implements ImportServices {
 				List<ImportData> batch = importDataBatches.next();
 				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
 				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction,
-						types, progressionHandler, extensions, addUpdateCount);
+						types, progressionHandler, extensions, addUpdateCount, importDataIterator.getOptions());
 				recordServices.executeHandlingImpactsAsync(transaction);
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
@@ -199,7 +201,8 @@ public class RecordsImportServices implements ImportServices {
 
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
-			ProgressionHandler progressionHandler, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount) {
+			ProgressionHandler progressionHandler, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
+			ImportDataOptions options) {
 
 		BulkUploader bulkUploader = null;
 		List<Metadata> contentMetadatas = types.getAllContentMetadatas();
@@ -259,7 +262,7 @@ public class RecordsImportServices implements ImportServices {
 				try {
 
 					Record record = buildRecord(bulkUploader, importResults, user, resolverCache, user.getCollection(),
-							schemaType, toImport, types, extensions);
+							schemaType, toImport, types, extensions, options);
 					transaction.add(record);
 					addUpdateCount.incrementAndGet();
 
@@ -300,7 +303,7 @@ public class RecordsImportServices implements ImportServices {
 
 	Record buildRecord(BulkUploader bulkUploader, BulkImportResults importResults, User user, ResolverCache resolverCache,
 			String collection, String schemaTypeCode, ImportData toImport, MetadataSchemaTypes types,
-			ModelLayerCollectionExtensions extensions)
+			ModelLayerCollectionExtensions extensions, ImportDataOptions options)
 			throws SkippedRecordException {
 		MetadataSchemaType schemaType = getMetadataSchemaType(collection, schemaTypeCode);
 		MetadataSchema newSchema = getMetadataSchema(collection, schemaTypeCode + "_" + toImport.getSchema());
@@ -311,7 +314,11 @@ public class RecordsImportServices implements ImportServices {
 			record = modelLayerFactory.newSearchServices()
 					.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
 		} else {
-			record = recordServices.newRecordWithSchema(newSchema);
+			if (options.isImportAsLegacyId()) {
+				record = recordServices.newRecordWithSchema(newSchema);
+			} else {
+				record = recordServices.newRecordWithSchema(newSchema, legacyId);
+			}
 		}
 
 		if (!newSchema.getCode().equals(record.getSchemaCode())) {
