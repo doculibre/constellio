@@ -2,18 +2,23 @@ package com.constellio.app.ui.pages.management.schemaRecords;
 
 import java.io.IOException;
 
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> {
+	
+	private transient SequenceServices sequenceServices;
 
 	public DisplaySchemaRecordPresenter(DisplaySchemaRecordView view) {
 		super(view);
-		init();
+		initTransientObjects();
 	}
 
 	public void forSchema(String schemaCode) {
@@ -23,10 +28,13 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		init();
+		initTransientObjects();
 	}
 
-	private void init() {
+	private void initTransientObjects() {
+		ConstellioFactories constellioFactories = view.getConstellioFactories();
+		SessionContext sessionContext = view.getSessionContext();
+		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
 	}
 
 	public RecordVO getRecordVO(String id) {
@@ -53,4 +61,9 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		Record restrictedRecord = recordServices().getDocumentById(params);
 		return new SchemaRecordsPresentersServices(appLayerFactory).canViewSchemaTypeRecord(restrictedRecord, user);
 	}
+
+	public boolean isSequenceTable(RecordVO recordVO) {
+		return !sequenceServices.getAvailableSequences(recordVO.getId()).isEmpty();
+	}
+	
 }

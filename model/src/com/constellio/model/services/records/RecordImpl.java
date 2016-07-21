@@ -889,6 +889,11 @@ public class RecordImpl implements Record {
 		markAsModified(Schemas.SCHEMA);
 	}
 
+	@Override
+	public boolean isOfSchemaType(String type) {
+		return schemaCode.startsWith(type + "_");
+	}
+
 	private static boolean isDefaultValue(Object value, Metadata metadata) {
 		if (metadata.isMultivalue()) {
 			Object defaultValue = metadata.getDefaultValue();
