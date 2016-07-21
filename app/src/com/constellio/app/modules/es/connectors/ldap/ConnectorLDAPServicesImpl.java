@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 
 import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
-import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 
 public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 	private static final Logger LOGGER = LogManager.getLogger(ConnectorLDAPServicesImpl.class);
@@ -172,7 +172,7 @@ public class ConnectorLDAPServicesImpl implements ConnectorLDAPServices {
 	@Override
 	public LdapContext connectToLDAP(String url, String user, String password, Boolean followReferences,
 			boolean activeDirectory) {
-		return new LDAPServices().connectToLDAP(new ArrayList<String>(), url, user, password, followReferences, activeDirectory);
+		return new LDAPServicesImpl().connectToLDAP(new ArrayList<String>(), url, user, password, followReferences, activeDirectory);
 	}
 
 	@Override

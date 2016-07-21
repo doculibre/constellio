@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records importAsLegacyId="false">
+    <record id="zeCategory22200">
+        <code>X2222</code>
+        <title>Element Category</title>
+        <description>earth, water, fire and wind</description>
+        <keywords multivalue="true">
+            <item>grass</item>
+            <item>aqua</item>
+            <item>torch</item>
+            <item>gas</item>
+        </keywords>
+        <retentionRules multivalue="true">
+            <item>zeRule1</item>
+            <item>zeRule2</item>
+        </retentionRules>
+        <parent></parent>
+    </record>
+    <record id="zeCategory22230">
+        <code>X2223</code>
+        <title>Water Category</title>
+        <description>It is so cold here...</description>
+        <keywords multivalue="true">
+            <item>aqua</item>
+            <item>wet</item>
+            <item>rain</item>
+        </keywords>
+        <retentionRules></retentionRules>
+        <parent>zeCategory22200</parent>
+    </record>
+</records>

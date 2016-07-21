@@ -1,14 +1,20 @@
 package com.constellio.app.ui;
 
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.model.conf.AzureADTestConf;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.services.AzureADServices;
+import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -19,7 +25,7 @@ import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver
 
 @UiTest
 @MainTest
-public class StartDemoRMConstellioWithLDAPAcceptTest extends ConstellioTest {
+public class StartDemoRMConstellioWithAzureAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
@@ -44,8 +50,8 @@ public class StartDemoRMConstellioWithLDAPAcceptTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		LDAPUserSyncConfiguration userSync = LDAPTestConfig.getLDAPUserSyncConfiguration();
-		LDAPServerConfiguration serverConf = LDAPTestConfig.getLDAPServerConfiguration();
+		LDAPUserSyncConfiguration userSync = AzureADTestConf.getLDAPUserSyncConfiguration(zeCollection);
+		LDAPServerConfiguration serverConf = AzureADTestConf.getLDAPServerConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(serverConf, userSync);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		System.out.println(userServices.getAllUserCredentials().size());
@@ -60,8 +66,21 @@ public class StartDemoRMConstellioWithLDAPAcceptTest extends ConstellioTest {
 	@MainTestDefaultStart
 	public void startOnLoginPage()
 			throws Exception {
-		driver = newWebDriver();
-		waitUntilICloseTheBrowsers();
+		AzureADServices azurService = new AzureADServices();
+		List<String> result = azurService.getTestSynchronisationUsersNames(AzureADTestConf.getLDAPServerConfiguration(),
+				AzureADTestConf.getLDAPUserSyncConfiguration());
+		System.out.println(StringUtils.join(result, "\n"));
+		result = azurService.getTestSynchronisationGroups(AzureADTestConf.getLDAPServerConfiguration(),
+				AzureADTestConf.getLDAPUserSyncConfiguration());
+		System.out.println(StringUtils.join(result, "\n"));
+		LDAPUsersAndGroups importResult = azurService
+				.importUsersAndGroups(AzureADTestConf.getLDAPServerConfiguration(),
+						AzureADTestConf.getLDAPUserSyncConfiguration(), "");
+		System.out.println(importResult);
+
+		//driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
+
+		//waitUntilICloseTheBrowsers();
 
 	}
 

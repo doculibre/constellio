@@ -225,6 +225,27 @@ public class SDKPasswords {
 		return sdkPasswords.get("sslKeystore.password");
 	}
 
+	//Azure AD
+	public static String testAzureSynchClientId() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("testAzure.synch.clientId");
+	}
+
+	public static String testAzureTenantName() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("testAzure.tenantName");
+	}
+
+	public static String testAzureSynchApplicationKey() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("testAzure.synch.applicationKey");
+	}
+
+	public static String testAzureAuthenticationApplicationId() {
+		loadCorrectIfRequired();
+		return sdkPasswords.get("testAzure.authentication.clientId");
+	}
+
 
 	//
 	// Utils
