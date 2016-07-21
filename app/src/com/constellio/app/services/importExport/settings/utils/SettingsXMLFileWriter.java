@@ -128,11 +128,11 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
         typeItem.addContent(schemasElement);
 
         for (ImportedMetadataSchema customSchema : importedType.getCustomSchemas()) {
-            addSchemaItem(importedType, schemasElement, customSchema);
+            addSchemaItem(schemasElement, customSchema);
         }
     }
 
-    private void addSchemaItem(ImportedType importedType, Element schemasElement, ImportedMetadataSchema customSchema) {
+    private void addSchemaItem(Element schemasElement, ImportedMetadataSchema customSchema) {
         Element schemaElement = new Element(SCHEMA);
         schemaElement.setAttribute(CODE, customSchema.getCode());
         if (StringUtils.isNotBlank(customSchema.getLabel())) {

@@ -1,6 +1,5 @@
 package com.constellio.app.services.importExport.settings;
 
-import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -12,7 +11,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -23,7 +21,10 @@ import com.constellio.model.services.schemas.builders.*;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -58,12 +59,12 @@ public class SettingsImportServices {
     static final String SEARCHABLE = "searchable";
     static final String ADVANCE_SEARCHABLE = "advanceSearchable";
     static final String UNMODIFIABLE = "unmodifiable";
-    public static final String SORTABLE = "sortable";
-    public static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
-    public static final String ESSENTIAL = "essential";
-    public static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
-    public static final String MULTI_LINGUAL = "multiLingual";
-    public static final String DUPLICABLE = "duplicable";
+    static final String SORTABLE = "sortable";
+    static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
+    static final String ESSENTIAL = "essential";
+    static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
+    static final String MULTI_LINGUAL = "multiLingual";
+    static final String DUPLICABLE = "duplicable";
     static final String UNIQUE = "unique";
 
     AppLayerFactory appLayerFactory;
@@ -124,14 +125,12 @@ public class SettingsImportServices {
                         typeBuilder = types.getSchemaType(importedType.getCode());
                     }
 
-                    // Default schema metadata
                     MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 
                     importCustomSchemata(types, importedType.getCustomSchemas(), typeBuilder);
 
                     importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types);
 
-                    // Valider si les changements sont pris en charge !!!
                 }
 
 
@@ -344,62 +343,56 @@ public class SettingsImportServices {
             metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
         }
 
-        List<String> properties = new ArrayList<>();
-        if (StringUtils.isNotBlank(importedMetadata.getBehaviours())) {
-            properties.addAll(asList(StringUtils.split(importedMetadata.getBehaviours(), ',')));
-        }
-
-
-        if (properties.contains("duplicable")) {
-            metadataBuilder.setDuplicable(true);
+        if (importedMetadata.getDuplicable() != null) {
+            metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
         }
 
         if (importedMetadata.getEnabled() != null) {
             metadataBuilder.setEnabled(importedMetadata.getEnabled());
         }
 
-        if (properties.contains(ENCRYPTED)) {
-            metadataBuilder.setEncrypted(true);
+        if (importedMetadata.getEncrypted() != null) {
+            metadataBuilder.setEncrypted(importedMetadata.getEncrypted());
         }
 
-        if (properties.contains(ESSENTIAL)) {
-            metadataBuilder.setEssential(true);
+        if (importedMetadata.getEssential() != null) {
+            metadataBuilder.setEssential(importedMetadata.getEssential());
         }
 
-        if (properties.contains(ESSENTIAL_IN_SUMMARY)) {
+        if (importedMetadata.getEssentialInSummary() != null) {
             metadataBuilder.setEssentialInSummary(true);
         }
 
         metadataBuilder.setInputMask(importedMetadata.getInputMask());
 
-        if (properties.contains(MULTI_LINGUAL)) {
+        if (importedMetadata.getMultiLingual() != null) {
             metadataBuilder.setMultiLingual(true);
         }
 
-        if (properties.contains(UNIQUE)) {
+        if (importedMetadata.getUnique() != null) {
             metadataBuilder.setUniqueValue(true);
         }
 
-        if (!properties.contains(UNIQUE)) {
-            if (importedMetadata.getMultiValue() != null && !importedMetadata.getMultiValue()) {
+        if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
+            if (importedMetadata.getMultiValue() != null) {
                 metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
             }
         }
 
-        if (properties.contains(RECORD_AUTOCOMPLETE)) {
-            metadataBuilder.setSchemaAutocomplete(true);
+        if (importedMetadata.getRecordAutoComplete() != null) {
+            metadataBuilder.setSchemaAutocomplete(importedMetadata.getRecordAutoComplete());
         }
 
-        if (properties.contains(SEARCHABLE)) {
-            metadataBuilder.setSearchable(true);
+        if (importedMetadata.getSearchable() != null) {
+            metadataBuilder.setSearchable(importedMetadata.getSearchable());
         }
 
-        if (properties.contains(SORTABLE)) {
-            metadataBuilder.setSortable(true);
+        if (importedMetadata.getSortable() != null) {
+            metadataBuilder.setSortable(importedMetadata.getSortable());
         }
 
-        if (properties.contains(UNMODIFIABLE)) {
-            metadataBuilder.setUnmodifiable(false);
+        if (importedMetadata.getUnmodifiable() != null) {
+            metadataBuilder.setUnmodifiable(importedMetadata.getUnmodifiable());
         }
 
         if ("default".equals(schemaBuilder.getCode())) {

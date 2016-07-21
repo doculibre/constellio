@@ -10,17 +10,17 @@ public class ImportedMetadata {
     private String code;
     private String label;
     private MetadataValueType type;
-    private Boolean enabled = true;
+    private Boolean enabled;// = true;
     private List<String> enabledIn = new ArrayList<>();
-    private Boolean required = true;
+    private Boolean required;// = true;
     private List<String> requiredIn = new ArrayList<>();
-    private Boolean visibleInForm = true;
+    private Boolean visibleInForm;// = true;
     private List<String> visibleInFormIn = new ArrayList<>();
-    private Boolean visibleInDisplay = true;
+    private Boolean visibleInDisplay;// = true;
     private List<String> visibleInDisplayIn = new ArrayList<>();
-    private Boolean visibleInSearchResult = false;
+    private Boolean visibleInSearchResult;// = false;
     private List<String> visibleInResultIn = new ArrayList<>();
-    private Boolean visibleInTables = false;
+    private Boolean visibleInTables;// = false;
     private List<String> visibleInTablesIn = new ArrayList<>();
 
     private String tab;
@@ -28,6 +28,16 @@ public class ImportedMetadata {
 
     private String behaviours;
     private String inputMask;
+    private Boolean duplicable;
+    private Boolean encrypted;
+    private Boolean essential;
+    private Boolean essentialInSummary;
+    private Boolean multiLingual;
+    private Boolean unique;
+    private Boolean recordAutoComplete;
+    private Boolean searchable;
+    private Boolean sortable;
+    private Boolean unmodifiable;
 
     public String getCode() {
         return code;
@@ -88,6 +98,17 @@ public class ImportedMetadata {
         return  enabledIn;
     }
 
+
+    public ImportedMetadata setEssential(Boolean essential) {
+        this.essential = essential;
+        return this;
+    }
+
+    public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
+        this.essentialInSummary = essentialInSummary;
+        return null;
+    }
+
     public ImportedMetadata setMultiValue(Boolean multiValue) {
         this.multiValue = multiValue;
         return this;
@@ -104,6 +125,42 @@ public class ImportedMetadata {
 
     public String getBehaviours() {
         return behaviours;
+    }
+
+
+    public Boolean getDuplicable() {
+        return duplicable;
+    }
+
+    public ImportedMetadata setDuplicable(Boolean duplicable) {
+        this.duplicable = duplicable;
+        return this;
+    }
+
+    public Boolean getEncrypted() {
+        return encrypted;
+    }
+
+    public ImportedMetadata setEncrypted(Boolean encrypted) {
+        this.encrypted = encrypted;
+        return this;
+    }
+
+    public Boolean getEssential() {
+        return essential;
+    }
+
+    public Boolean getEssentialInSummary() {
+        return essentialInSummary;
+    }
+
+    public String getInputMask() {
+        return inputMask;
+    }
+
+    public ImportedMetadata setInputMask(String inputMask) {
+        this.inputMask = inputMask;
+        return this;
     }
 
     public List<String> getRequiredIn() {
@@ -191,13 +248,28 @@ public class ImportedMetadata {
         return this;
     }
 
-    public ImportedMetadata setInputMask(String inputMask) {
-        this.inputMask = inputMask;
-        return this;
+    public Boolean getMultiLingual() {
+        return multiLingual;
     }
 
-    public String getInputMask() {
-        return inputMask;
+    public Boolean getRecordAutoComplete() {
+        return recordAutoComplete;
+    }
+
+    public Boolean getSearchable() {
+        return searchable;
+    }
+
+    public Boolean getSortable() {
+        return sortable;
+    }
+
+    public Boolean getUnmodifiable() {
+        return unmodifiable;
+    }
+
+    public Boolean getUnique() {
+        return unique;
     }
 
 }

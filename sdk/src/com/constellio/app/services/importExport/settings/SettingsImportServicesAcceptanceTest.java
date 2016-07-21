@@ -29,6 +29,7 @@ import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParamete
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 @UiTest
@@ -181,7 +182,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
     @Test
     //@InDevelopmentTest
-    public void whenImportingConfigsSettingsThenSet()
+    public void whenImportingValueListsThenSet()
             throws Exception {
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -524,6 +525,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(taxonomy.getGroupIds()).hasSize(1).containsExactly("group1");
         assertThat(taxonomy.getUserIds()).hasSize(2).containsExactly(gandalf, robin);
 
+
+        assertFalse("Le titre de la taxonomie par défaut n'est pas affiché dans la table des taxo", true);
+
         //newWebDriver();
         //waitUntilICloseTheBrowsers();
 
@@ -642,16 +646,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1")
-                .setType(MetadataValueType.STRING)
-                .setEnabledIn(toListOfString("default", "custom"))
-                .setRequiredIn(toListOfString("custom"))
-                .setVisibleInFormIn(toListOfString("default", "custom"));
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING);
         defaultSchema.addMetadata(m1);
 
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING)
-                .setBehaviours("searchableInSimpleSearch,searchableInAdvancedSearch")
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(MetadataValueType.STRING)
                 .setInputMask("9999-9999");
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
@@ -670,39 +668,23 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1");
         assertThat(metadata1.getType()).isEqualTo(STRING);
         assertThat(metadata1.getInputMask()).isNullOrEmpty();
-        assertThat(metadata1.isDefaultRequirement()).isTrue();
-        assertThat(metadata1.isDuplicable()).isFalse();
-        assertThat(metadata1.isEnabled()).isTrue();
-        assertThat(metadata1.isEncrypted()).isFalse();
-        assertThat(metadata1.isEssential()).isFalse();
-        assertThat(metadata1.isEssentialInSummary()).isFalse();
-        assertThat(metadata1.isMultiLingual()).isFalse();
-        assertThat(metadata1.isMultivalue()).isFalse();
-        assertThat(metadata1.isSearchable()).isFalse();
-        assertThat(metadata1.isSchemaAutocomplete()).isFalse();
-        assertThat(metadata1.isSortable()).isFalse();
-        assertThat(metadata1.isSystemReserved()).isFalse();
-        assertThat(metadata1.isUndeletable()).isFalse();
-        assertThat(metadata1.isUniqueValue()).isFalse();
-        assertThat(metadata1.isUnmodifiable()).isFalse();
 
         Metadata metadata1Custom = schemaType.getSchema("folder_custom").get("folder_custom_m1");
         assertThat(metadata1Custom).isNotNull();
 
         Metadata metadata2 = schemaType.getSchema("folder_custom").get("folder_custom_m2");
         assertThat(metadata2).isNotNull();
-        assertThat(metadata1Custom.isDefaultRequirement()).isTrue();
         assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
 
     }
 
     @Test
-    public void givenNewMetadataWhenModifyingLabelThenUpdated() throws Exception {
+    public void givenNewMetadataWhenModifyingMetadataLabelThenUpdated() throws Exception {
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType()
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setLabel("m1_label");
         folderType.getDefaultSchema().addMetadata(m1);
         collectionSettings.addType(folderType);
 
@@ -721,7 +703,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         Metadata metadata1 = defaultSchema.get("folder_default_m1");
 
         assertThat(metadata1).isNotNull();
-        assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1");
+        assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1_label");
 
         m1.setLabel("m1_label_updated");
         importSettings();
@@ -736,7 +718,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
     }
 
     @Test
-    public void givenNewMetadataWhenModifyingInputMaskThenUpdated() throws Exception {
+    public void givenNewMetadataWhenModifyingMetadataInputMaskThenUpdated() throws Exception {
 
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType()
@@ -774,6 +756,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
     }
 
+
     @Test
     public void givenNewMetadatasDefaultValuesThenDefaultValuesOK() throws Exception {
 
@@ -802,7 +785,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1");
         assertThat(metadata1.getType()).isEqualTo(STRING);
         assertThat(metadata1.getInputMask()).isNullOrEmpty();
-        assertThat(metadata1.isDefaultRequirement()).isTrue();
+        assertThat(metadata1.isDefaultRequirement()).isFalse();
         assertThat(metadata1.isDuplicable()).isFalse();
         assertThat(metadata1.isEnabled()).isTrue();
         assertThat(metadata1.isEncrypted()).isFalse();
@@ -1368,7 +1351,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
                 .setType(MetadataValueType.STRING)
-                .setBehaviours("searchableInSimpleSearch,searchableInAdvancedSearch")
                 .setInputMask("9999-9999");
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
@@ -1380,9 +1362,248 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         MetadataSchemaType schemaType = metadataSchemasManager
                 .getSchemaTypes(zeCollection).getSchemaType("folder");
-        assertThat(schemaType.getMetadata("folder_custom_m1").isEnabled()).isTrue();
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEnabled()).isTrue();
 
     }
+
+    @Test
+    public void whenUpdatingDuplicableThenFlagIsSet() throws Exception {
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+        folderType.setDefaultSchema(defaultSchema);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING).setDuplicable(false);
+        defaultSchema.addMetadata(m1);
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
+                .setType(MetadataValueType.STRING).setDuplicable(true);
+
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+        folderType.addSchema(customSchema);
+        collectionSettings.addType(folderType);
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isDuplicable()).isFalse();
+
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isDuplicable()).isFalse();
+
+        Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isDuplicable()).isTrue();
+
+        defaultSchema.addMetadata(m1.setDuplicable(true));
+        customSchema.addMetadata(m2.setDuplicable(false));
+        importSettings();
+
+        schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isDuplicable()).isTrue();
+
+        folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isDuplicable()).isTrue();
+
+        folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isDuplicable()).isFalse();
+
+
+    }
+
+    @Test
+    public void whenUpdatingEnabledThenFlagIsSet() throws Exception {
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+        folderType.setDefaultSchema(defaultSchema);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+                .setEnabled(true);
+        defaultSchema.addMetadata(m1);
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
+                .setType(MetadataValueType.STRING).setEnabled(true);
+
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+
+        folderType.addSchema(customSchema);
+
+        collectionSettings.addType(folderType);
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isEnabled()).isTrue();
+
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEnabled()).isTrue();
+
+        Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isEnabled()).isTrue();
+
+        m1.setEncrypted(true);
+        m2.setEncrypted(false);
+        importSettings();
+
+        schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isEncrypted()).isTrue();
+
+        folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEncrypted()).isTrue();
+
+        folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isEncrypted()).isFalse();
+
+    }
+
+    @Test
+    public void whenUpdatingEncryptedThenFlagIsSet() throws Exception {
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+        folderType.setDefaultSchema(defaultSchema);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+                .setEncrypted(true);
+        defaultSchema.addMetadata(m1);
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
+                .setType(MetadataValueType.STRING).setEncrypted(false);
+
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+
+        folderType.addSchema(customSchema);
+
+        ImportedMetadata m3 = new ImportedMetadata().setCode("m3")
+                .setType(MetadataValueType.STRING).setEncrypted(true);
+        ImportedMetadataSchema customSchema1 = new ImportedMetadataSchema().setCode("custom1").addMetadata(m3);
+        folderType.addSchema(customSchema1);
+
+        collectionSettings.addType(folderType);
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isEncrypted()).isTrue();
+
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEncrypted()).isTrue();
+
+        Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isEncrypted()).isFalse();
+
+        Metadata folder_custom1_m1 = schemaType.getMetadata("folder_custom1_m1");
+        assertThat(folder_custom1_m1.isEncrypted()).isTrue();
+
+        Metadata folder_custom1_m3 = schemaType.getMetadata("folder_custom1_m3");
+        assertThat(folder_custom1_m3.isEncrypted()).isTrue();
+
+        m1.setEncrypted(false);
+        m2.setEncrypted(true);
+        m3.setEncrypted(false);
+        importSettings();
+
+        schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+        folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isEncrypted()).isFalse();
+
+        folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEncrypted()).isFalse();
+
+        folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isEncrypted()).isTrue();
+
+        folder_custom1_m1 = schemaType.getMetadata("folder_custom1_m1");
+        assertThat(folder_custom1_m1.isEncrypted()).isFalse();
+
+        folder_custom1_m3 = schemaType.getMetadata("folder_custom1_m3");
+        assertThat(folder_custom1_m3.isEncrypted()).isFalse();
+
+    }
+
+    @Test
+    public void whenUpdatingEssentialAndEssentialInSummaryThenFlagIsSet() throws Exception {
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+        folderType.setDefaultSchema(defaultSchema);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+                .setEssential(true).setEssentialInSummary(false);
+        defaultSchema.addMetadata(m1);
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
+                .setType(MetadataValueType.STRING).setEssential(false).setEssentialInSummary(true);
+
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+
+        folderType.addSchema(customSchema);
+
+        collectionSettings.addType(folderType);
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+
+        Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isEssential()).isTrue();
+        assertThat(folder_default_m1.isEssentialInSummary()).isFalse();
+
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEssential()).isTrue();
+        assertThat(folder_custom_m1.isEssentialInSummary()).isTrue();
+
+        Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isEssential()).isFalse();
+        assertThat(folder_custom_m2.isEssentialInSummary()).isTrue();
+
+        m1.setEssential(false).setEssentialInSummary(true);
+        m2.setEssential(true).setEssentialInSummary(false);
+        importSettings();
+
+        schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+
+        folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isEssential()).isFalse();
+        assertThat(folder_default_m1.isEssentialInSummary()).isTrue();
+
+        folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isEssential()).isFalse();
+        assertThat(folder_custom_m1.isEssentialInSummary()).isTrue();
+
+        folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isEssential()).isTrue();
+        assertThat(folder_custom_m2.isEssentialInSummary()).isFalse();
+
+
+    }
+
 
     //-------------------------------------------------------------------------------------
 
