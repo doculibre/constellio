@@ -6,8 +6,8 @@ import java.util.List;
 
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.config.ADAzurServerConfig;
-import com.constellio.model.conf.ldap.config.ADAzurUserSynchConfig;
+import com.constellio.model.conf.ldap.config.AzureADServerConfig;
+import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -152,7 +152,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 			authorityUrl = createStringField(ldapServerConfiguration.getAuthorityUrl(), true);
 			authorityUrl.setCaption($("LDAPConfigManagementView.authorityUrl"));
-			authorityTenantId = createStringField(ldapServerConfiguration.getAuthorityTenantId(), true);
+			authorityTenantId = createStringField(ldapServerConfiguration.getTenantName(), true);
 			authorityTenantId.setCaption($("LDAPConfigManagementView.authorityTenantId"));
 			HorizontalLayout authority = new HorizontalLayout(authorityUrl, authorityTenantId);
 			addComponent(authority);
@@ -185,7 +185,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		}
 
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
-			ADAzurServerConfig serverConfig = new ADAzurServerConfig()
+			AzureADServerConfig serverConfig = new AzureADServerConfig()
 					.setAuthorityTenantId(azurAuthenticationTab.getAuthorityTenantId())
 					.setAuthorityUrl(azurAuthenticationTab.getAuthorityUrl()).setClientId(azurAuthenticationTab.getClientId());
 			return new LDAPServerConfiguration(serverConfig, ldapAuthenticationActive.getValue());
@@ -204,7 +204,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			addComponent(durationField);
 			buildCollectionsPanel();
 			addComponent(collectionsComponent);
-			applicationKey = createStringField(ldapUserSyncConfiguration.getApplicationKey(), true);
+			applicationKey = createStringField(ldapUserSyncConfiguration.getClientSecret(), true);
 			applicationKey.setCaption($("LDAPConfigManagementView.applicationKey"));
 			addComponent(applicationKey);
 			buildUsersAcceptRegex(ldapUserSyncConfiguration);
@@ -223,7 +223,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		}
 
 		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
-			ADAzurUserSynchConfig azurUserSynchConfig = new ADAzurUserSynchConfig()
+			AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig()
 					.setApplicationKey(azurSynchTab.getApplicationKey());
 			return new LDAPUserSyncConfiguration(azurUserSynchConfig, getUserFilter(), getGroupsFilter(),
 					durationField.getDuration(), selectedCollections());

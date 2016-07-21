@@ -14,11 +14,10 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.model.conf.PropertiesModelLayerConfigurationRuntimeException;
-import com.constellio.model.conf.ldap.config.ADAzurServerConfig;
-import com.constellio.model.conf.ldap.config.ADAzurUserSynchConfig;
+import com.constellio.model.conf.ldap.config.AzureADServerConfig;
+import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.config.NonAzurAdServerConfig;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -84,9 +83,9 @@ public class LDAPConfigurationManager implements StatefulService {
 				}
 				if (directoryType == LDAPDirectoryType.AZUR_AD) {
 					properties.put("ldap.serverConfiguration.authorityUrl", ldapServerConfiguration.getAuthorityUrl());
-					properties.put("ldap.serverConfiguration.authorityTenantId", ldapServerConfiguration.getAuthorityTenantId());
+					properties.put("ldap.serverConfiguration.authorityTenantId", ldapServerConfiguration.getTenantName());
 					properties.put("ldap.serverConfiguration.clientId", ldapServerConfiguration.getClientId());
-					properties.put("ldap.syncConfiguration.applicationKey", ldapUserSyncConfiguration.getApplicationKey());
+					properties.put("ldap.syncConfiguration.applicationKey", ldapUserSyncConfiguration.getClientSecret());
 				} else {
 					properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
 					properties
@@ -251,7 +250,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			String authorityUrl = getString(configs, "ldap.serverConfiguration.authorityUrl", null);
 			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
 			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
-			ADAzurServerConfig serverConf = new ADAzurServerConfig().setAuthorityTenantId(authorityTanentId)
+			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId)
 					.setAuthorityUrl(authorityUrl).setClientId(clientId);
 			return new LDAPServerConfiguration(serverConf, active);
 		} else {
@@ -282,7 +281,7 @@ public class LDAPConfigurationManager implements StatefulService {
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
 		if (directoryType == LDAPDirectoryType.AZUR_AD) {
 			String applicationKey = getString(configs, "ldap.syncConfiguration.applicationKey", null);
-			ADAzurUserSynchConfig azurConf = new ADAzurUserSynchConfig().setApplicationKey(applicationKey);
+			AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey(applicationKey);
 			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution,
 					selectedCollections);
 		} else {

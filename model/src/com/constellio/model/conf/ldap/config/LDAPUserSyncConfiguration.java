@@ -17,8 +17,8 @@ public class LDAPUserSyncConfiguration {
 
 	private List<String> selectedCollectionsCodes;
 
-	ADAzurUserSynchConfig azurUserSynchConfig = new ADAzurUserSynchConfig();
-	NonAzurADUserSynchConfig nonAzurADUserSynchConfig = new NonAzurADUserSynchConfig();
+	AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig();
+	NonAzureADUserSynchConfig nonAzureADUserSynchConfig = new NonAzureADUserSynchConfig();
 
 	public LDAPUserSyncConfiguration(String user, String password,
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
@@ -31,17 +31,17 @@ public class LDAPUserSyncConfiguration {
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
 			List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList,
 			List<String> selectedCollectionsCodes) {
-		this.nonAzurADUserSynchConfig.user = user;
-		this.nonAzurADUserSynchConfig.password = password;
+		this.nonAzureADUserSynchConfig.user = user;
+		this.nonAzureADUserSynchConfig.password = password;
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
-		this.nonAzurADUserSynchConfig.groupBaseContextList = groupBaseContextList;
-		this.nonAzurADUserSynchConfig.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
+		this.nonAzureADUserSynchConfig.groupBaseContextList = groupBaseContextList;
+		this.nonAzureADUserSynchConfig.usersWithoutGroupsBaseContextList = usersWithoutGroupsBaseContextList;
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
 	}
 
-	public LDAPUserSyncConfiguration(ADAzurUserSynchConfig azurUserSynchConfig,
+	public LDAPUserSyncConfiguration(AzureADUserSynchConfig azurUserSynchConfig,
 			RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
 			List<String> selectedCollectionsCodes) {
 		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
@@ -52,11 +52,11 @@ public class LDAPUserSyncConfiguration {
 	}
 
 	public String getUser() {
-		return nonAzurADUserSynchConfig.user;
+		return nonAzureADUserSynchConfig.user;
 	}
 
 	public String getPassword() {
-		return nonAzurADUserSynchConfig.password;
+		return nonAzureADUserSynchConfig.password;
 	}
 
 	public boolean isUserAccepted(String userName) {
@@ -91,11 +91,11 @@ public class LDAPUserSyncConfiguration {
 	}
 
 	public List<String> getGroupBaseContextList() {
-		return nonAzurADUserSynchConfig.groupBaseContextList;
+		return nonAzureADUserSynchConfig.groupBaseContextList;
 	}
 
 	public List<String> getUsersWithoutGroupsBaseContextList() {
-		return nonAzurADUserSynchConfig.usersWithoutGroupsBaseContextList;
+		return nonAzureADUserSynchConfig.usersWithoutGroupsBaseContextList;
 	}
 
 	public String getUsersFilterAcceptanceRegex() {
@@ -138,7 +138,7 @@ public class LDAPUserSyncConfiguration {
 		return selectedCollectionsCodes;
 	}
 
-	public String getApplicationKey(){
+	public String getClientSecret(){
 		return this.azurUserSynchConfig.applicationKey;
 	}
 }

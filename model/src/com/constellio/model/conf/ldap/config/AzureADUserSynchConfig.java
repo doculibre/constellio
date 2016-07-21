@@ -1,13 +1,13 @@
 package com.constellio.model.conf.ldap.config;
 
-public class ADAzurUserSynchConfig {
+public class AzureADUserSynchConfig {
 	String applicationKey;
 
 	public String getApplicationKey() {
 		return applicationKey;
 	}
 
-	public ADAzurUserSynchConfig setApplicationKey(String applicationKey) {
+	public AzureADUserSynchConfig setApplicationKey(String applicationKey) {
 		this.applicationKey = applicationKey;
 		return this;
 	}

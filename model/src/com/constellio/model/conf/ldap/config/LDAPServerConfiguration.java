@@ -1,31 +1,29 @@
 package com.constellio.model.conf.ldap.config;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.entities.records.wrappers.Collection;
 
 public class LDAPServerConfiguration implements Serializable {
 	private Boolean ldapAuthenticationActive;
 
 	private LDAPDirectoryType directoryType;
 
-	NonAzurAdServerConfig nonAzurAdServerConfig = new NonAzurAdServerConfig();
-	ADAzurServerConfig azurServerConfig = new ADAzurServerConfig();
+	NonAzureAdServerConfig nonAzureAdServerConfig = new NonAzureAdServerConfig();
+	AzureADServerConfig azurServerConfig = new AzureADServerConfig();
 
 	public LDAPServerConfiguration(List<String> urls, List<String> domains, LDAPDirectoryType directoryType,
 			Boolean ldapAuthenticationActive, Boolean followReferences) {
-		this.nonAzurAdServerConfig.urls = Collections.unmodifiableList(urls);
-		this.nonAzurAdServerConfig.domains = Collections.unmodifiableList(domains);
+		this.nonAzureAdServerConfig.urls = Collections.unmodifiableList(urls);
+		this.nonAzureAdServerConfig.domains = Collections.unmodifiableList(domains);
 		this.directoryType = directoryType;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
-		this.nonAzurAdServerConfig.followReferences = followReferences;
+		this.nonAzureAdServerConfig.followReferences = followReferences;
 	}
 
-	public LDAPServerConfiguration(ADAzurServerConfig serverConfig, Boolean ldapAuthenticationActive) {
+	public LDAPServerConfiguration(AzureADServerConfig serverConfig, Boolean ldapAuthenticationActive) {
 		this.directoryType = LDAPDirectoryType.AZUR_AD;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
 		this.azurServerConfig.authorityTenantId = serverConfig.authorityTenantId;
@@ -34,11 +32,11 @@ public class LDAPServerConfiguration implements Serializable {
 	}
 
 	public List<String> getUrls() {
-		return nonAzurAdServerConfig.urls;
+		return nonAzureAdServerConfig.urls;
 	}
 
 	public List<String> getDomains() {
-		return nonAzurAdServerConfig.domains;
+		return nonAzureAdServerConfig.domains;
 	}
 
 	public LDAPDirectoryType getDirectoryType() {
@@ -50,18 +48,22 @@ public class LDAPServerConfiguration implements Serializable {
 	}
 
 	public Boolean getFollowReferences() {
-		return nonAzurAdServerConfig.followReferences;
+		return nonAzureAdServerConfig.followReferences;
 	}
 
 	public String getAuthorityUrl() {
 		return this.azurServerConfig.authorityUrl;
 	}
 
-	public String getAuthorityTenantId() {
-		return this.azurServerConfig.authorityTenantId;
+	public String getTenantName() {
+		return this.azurServerConfig.getTenantName();
 	}
 
 	public String getClientId() {
-		return this.azurServerConfig.clientId;
+		return this.azurServerConfig.getClientId();
+	}
+
+	public String getResource() {
+		return this.azurServerConfig.getResource();
 	}
 }

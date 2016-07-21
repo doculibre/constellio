@@ -9,7 +9,7 @@ public class LDAPServicesFactory {
 		case ACTIVE_DIRECTORY:
 			return new LDAPServicesImpl();
 		case AZUR_AD:
-			return new AzurADServices();
+			return new AzureADServices();
 		default:
 			throw new RuntimeException("Unsupported type " + directoryType);
 		}

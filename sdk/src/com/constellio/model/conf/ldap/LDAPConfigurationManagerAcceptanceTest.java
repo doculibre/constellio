@@ -11,8 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.conf.LDAPTestConfig;
-import com.constellio.model.conf.ldap.config.ADAzurServerConfig;
-import com.constellio.model.conf.ldap.config.ADAzurUserSynchConfig;
+import com.constellio.model.conf.ldap.config.AzureADServerConfig;
+import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -44,10 +44,10 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private void saveValidAzurConfig() {
-		ADAzurServerConfig serverConfig = new ADAzurServerConfig().setClientId("zclientId").setAuthorityUrl("zUrl")
+		AzureADServerConfig serverConfig = new AzureADServerConfig().setClientId("zclientId").setAuthorityUrl("zUrl")
 				.setAuthorityTenantId("zTanentId");
 		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(serverConfig, false);
-		ADAzurUserSynchConfig azurConf = new ADAzurUserSynchConfig().setApplicationKey("zApplicationKey");
+		AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey("zApplicationKey");
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(azurConf, azurUsersRegex,
 				azurGroupsRegex, azurDuration, azurCollections);
 		ldapConfigManager.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
@@ -104,7 +104,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		assertThat(ldapServerConfiguration.getUrls()).containsAll(LDAPTestConfig.getUrls());
 		assertThat(ldapServerConfiguration.getDomains()).containsAll(LDAPTestConfig.getDomains());
 
-		assertThat(ldapServerConfiguration.getAuthorityTenantId()).isNull();
+		assertThat(ldapServerConfiguration.getTenantName()).isNull();
 		assertThat(ldapServerConfiguration.getAuthorityUrl()).isEqualTo("https://login.microsoftonline.com/");
 		assertThat(ldapServerConfiguration.getClientId()).isNull();
 	}
@@ -139,7 +139,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		assertThat(ldapUserSyncConfiguration.isUserAccepted("testAuj")).isFalse();
 		assertThat(ldapUserSyncConfiguration.isUserAccepted("admin")).isFalse();
 
-		assertThat(ldapUserSyncConfiguration.getApplicationKey()).isNull();
+		assertThat(ldapUserSyncConfiguration.getClientSecret()).isNull();
 	}
 
 	@Test
@@ -153,7 +153,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(ldapServerConfiguration.getClientId()).isEqualTo("zclientId");
 		assertThat(ldapServerConfiguration.getAuthorityUrl()).isEqualTo("zUrl");
-		assertThat(ldapServerConfiguration.getAuthorityTenantId()).isEqualTo("zTanentId");
+		assertThat(ldapServerConfiguration.getTenantName()).isEqualTo("zTanentId");
 
 		assertThat(ldapServerConfiguration.getDirectoryType()).isEqualTo(LDAPDirectoryType.AZUR_AD);
 		assertThat(ldapServerConfiguration.getUrls()).isNull();
@@ -169,7 +169,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = ldapConfigManager.getLDAPUserSyncConfiguration(true);
 
-		assertThat(ldapUserSyncConfiguration.getApplicationKey()).isEqualTo("zApplicationKey");
+		assertThat(ldapUserSyncConfiguration.getClientSecret()).isEqualTo("zApplicationKey");
 		assertThat(ldapUserSyncConfiguration.getGroupFilter().getAcceptedRegex()).isEqualTo(azurGroupsRegex.getAcceptedRegex());
 		assertThat(ldapUserSyncConfiguration.getGroupFilter().getRejectedRegex()).isEqualTo(azurGroupsRegex.getRejectedRegex());
 		assertThat(ldapUserSyncConfiguration.getUserFilter().getAcceptedRegex()).isEqualTo(azurUsersRegex.getAcceptedRegex());
