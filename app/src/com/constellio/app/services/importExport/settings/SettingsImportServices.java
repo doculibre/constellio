@@ -12,6 +12,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -127,7 +128,7 @@ public class SettingsImportServices {
 
                     MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 
-                    importCustomSchemata(types, importedType.getCustomSchemas(), typeBuilder);
+                    importCustomSchemata(types, importedType.getCustomSchemata(), typeBuilder);
 
                     importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types);
 
@@ -222,7 +223,7 @@ public class SettingsImportServices {
 
             List<ImportedMetadataSchema> importedMetadataSchemata = new ArrayList<>();
             importedMetadataSchemata.add(type.getDefaultSchema());
-            importedMetadataSchemata.addAll(type.getCustomSchemas());
+            importedMetadataSchemata.addAll(type.getCustomSchemata());
 
             addTypeSchemaMetadata(importedMetadataSchemata, importedTypeMetadata);
 
@@ -328,7 +329,8 @@ public class SettingsImportServices {
         MetadataBuilder metadataBuilder;
         try {
             metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
-            metadataBuilder.setType(importedMetadata.getType());
+            MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
+            metadataBuilder.setType(type);
         } catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
             metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
         }
@@ -367,9 +369,9 @@ public class SettingsImportServices {
 
         // TODO Valider le comportement
         if (importedMetadata.getMultiValue() != null) {
-            if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
+//            if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
                 metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
-            }
+//            }
         }
 
         if (importedMetadata.getRecordAutoComplete() != null) {
@@ -491,7 +493,7 @@ public class SettingsImportServices {
 
                         ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-                        if (!importedValueList.isHierarchical()) {
+                        if (importedValueList.getHierarchical() == null || importedValueList.getHierarchical()) {
 
                             builder.createValueListItemSchema(code,
                                     importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
@@ -588,7 +590,7 @@ public class SettingsImportServices {
 
             validateTabs(errors, importedType.getTabs());
 
-            validateCustomSchemas(errors, importedType.getCustomSchemas());
+            validateCustomSchemas(errors, importedType.getCustomSchemata());
 
         }
     }

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -646,10 +645,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING");
         defaultSchema.addMetadata(m1);
 
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(MetadataValueType.STRING)
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
                 .setInputMask("9999-9999");
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
@@ -666,7 +665,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
         assertThat(metadata1).isNotNull();
         assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1");
-        assertThat(metadata1.getType()).isEqualTo(STRING);
+        assertThat(metadata1.getType()).isEqualTo("STRING");
         assertThat(metadata1.getInputMask()).isNullOrEmpty();
 
         Metadata metadata1Custom = schemaType.getSchema("folder_custom").get("folder_custom_m1");
@@ -684,7 +683,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType()
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setLabel("m1_label");
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setLabel("m1_label");
         folderType.getDefaultSchema().addMetadata(m1);
         collectionSettings.addType(folderType);
 
@@ -723,7 +722,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType()
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setInputMask("9999-9999").setType(STRING);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setInputMask("9999-9999").setType("STRING");
         folderType.getDefaultSchema().addMetadata(m1);
         collectionSettings.addType(folderType);
 
@@ -763,7 +762,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType()
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING");
         folderType.getDefaultSchema().addMetadata(m1);
         collectionSettings.addType(folderType);
 
@@ -783,7 +782,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         assertThat(metadata1).isNotNull();
         assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1");
-        assertThat(metadata1.getType()).isEqualTo(STRING);
+        assertThat(metadata1.getType()).isEqualTo("STRING");
         assertThat(metadata1.getInputMask()).isNullOrEmpty();
         assertThat(metadata1.isDefaultRequirement()).isFalse();
         assertThat(metadata1.isDuplicable()).isFalse();
@@ -812,8 +811,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
-        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING));
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType("STRING"));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
         settings.addCollectionsConfigs(collectionSettings);
@@ -859,8 +858,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
-        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInForm(true).setVisibleInTables(true));
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType("STRING").setVisibleInForm(true).setVisibleInTables(true));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
         settings.addCollectionsConfigs(collectionSettings);
@@ -903,8 +902,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         ImportedType folderType = new ImportedType().setCode("folder").setDefaultSchema(new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
-        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInForm(true).setVisibleInTables(true));
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+        folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1").setType("STRING").setVisibleInForm(true).setVisibleInTables(true));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
         settings.addCollectionsConfigs(collectionSettings);
@@ -949,9 +948,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
                 new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
         folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
-                .setVisibleInDisplay(true).setVisibleInSearchResult(true).setType(STRING));
+                .setVisibleInDisplay(true).setVisibleInSearchResult(true).setType("STRING"));
 
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING)
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING")
                 .setVisibleInDisplay(false).setVisibleInSearchResult(false));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
@@ -1001,9 +1000,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
                 new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
         folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
-                .setVisibleInDisplay(false).setVisibleInSearchResult(true).setVisibleInForm(true).setType(STRING));
+                .setVisibleInDisplay(false).setVisibleInSearchResult(true).setVisibleInForm(true).setType("STRING"));
 
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInSearchResult(false));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING").setVisibleInSearchResult(false));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
         settings.addCollectionsConfigs(collectionSettings);
@@ -1051,9 +1050,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
                 new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
         folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
-                .setVisibleInSearchResult(true).setVisibleInTables(true).setType(STRING));
+                .setVisibleInSearchResult(true).setVisibleInTables(true).setType("STRING"));
 
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
         settings.addCollectionsConfigs(collectionSettings);
@@ -1098,9 +1097,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
                 new ImportedMetadataSchema().setCode("default"));
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom");
         folderType.getDefaultSchema().addMetadata(new ImportedMetadata().setCode("m1")
-                .setVisibleInSearchResult(true).setVisibleInTables(true).setType(STRING));
+                .setVisibleInSearchResult(true).setVisibleInTables(true).setType("STRING"));
 
-        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType(STRING));
+        customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
         collectionSettings.addType(folderType.addSchema(customSchema));
         settings.addCollectionsConfigs(collectionSettings);
@@ -1139,10 +1138,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType().setDefaultSchema(
                 new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInDisplay(true);
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInDisplay(false);
-        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType(STRING).setVisibleInDisplay(true);
-        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType(STRING).setVisibleInDisplay(false);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setVisibleInDisplay(true);
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING").setVisibleInDisplay(false);
+        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("STRING").setVisibleInDisplay(true);
+        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType("STRING").setVisibleInDisplay(false);
         folderType.getDefaultSchema().addMetadata(m1).addMetadata(m2);
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
                 .setCode("custom").addMetadata(m3).addMetadata(m4);
@@ -1189,10 +1188,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType().setDefaultSchema(
                 new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInForm(true);
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInForm(false);
-        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType(STRING).setVisibleInForm(true);
-        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType(STRING).setVisibleInForm(false);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setVisibleInForm(true);
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING").setVisibleInForm(false);
+        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("STRING").setVisibleInForm(true);
+        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType("STRING").setVisibleInForm(false);
         folderType.getDefaultSchema().addMetadata(m1).addMetadata(m2);
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m3).addMetadata(m4);
 
@@ -1238,10 +1237,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType().setDefaultSchema(
                 new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInSearchResult(true);
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInSearchResult(false);
-        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType(STRING).setVisibleInSearchResult(true);
-        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType(STRING).setVisibleInSearchResult(false);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setVisibleInSearchResult(true);
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING").setVisibleInSearchResult(false);
+        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("STRING").setVisibleInSearchResult(true);
+        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType("STRING").setVisibleInSearchResult(false);
         folderType.getDefaultSchema().addMetadata(m1).addMetadata(m2);
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom")
                 .addMetadata(m3).addMetadata(m4);
@@ -1290,10 +1289,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         ImportedType folderType = new ImportedType().setDefaultSchema(
                 new ImportedMetadataSchema().setCode("default")).setCode("folder");
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(STRING).setVisibleInTables(true);
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(STRING).setVisibleInTables(false);
-        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType(STRING).setVisibleInTables(true);
-        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType(STRING).setVisibleInTables(false);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setVisibleInTables(true);
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING").setVisibleInTables(false);
+        ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("STRING").setVisibleInTables(true);
+        ImportedMetadata m4 = new ImportedMetadata().setCode("m4").setType("STRING").setVisibleInTables(false);
         folderType.getDefaultSchema().addMetadata(m1).addMetadata(m2);
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m3).addMetadata(m4);
 
@@ -1343,14 +1342,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         folderType.setDefaultSchema(defaultSchema);
 
         ImportedMetadata m1 = new ImportedMetadata().setCode("m1")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabledIn(toListOfString("default", "custom"))
                 .setRequiredIn(toListOfString("custom"))
                 .setVisibleInFormIn(toListOfString("default", "custom"));
         defaultSchema.addMetadata(m1);
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setInputMask("9999-9999");
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
@@ -1376,11 +1375,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING).setDuplicable(false);
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setDuplicable(false);
         defaultSchema.addMetadata(m1);
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING).setDuplicable(true);
+                .setType("STRING").setDuplicable(true);
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
         folderType.addSchema(customSchema);
@@ -1427,12 +1426,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
                 .setEnabled(true);
         defaultSchema.addMetadata(m1);
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING).setEnabled(true);
+                .setType("STRING").setEnabled(true);
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
 
@@ -1480,19 +1479,19 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
                 .setEncrypted(true);
         defaultSchema.addMetadata(m1);
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING).setEncrypted(false);
+                .setType("STRING").setEncrypted(false);
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
 
         folderType.addSchema(customSchema);
 
         ImportedMetadata m3 = new ImportedMetadata().setCode("m3")
-                .setType(MetadataValueType.STRING).setEncrypted(true);
+                .setType("STRING").setEncrypted(true);
         ImportedMetadataSchema customSchema1 = new ImportedMetadataSchema().setCode("custom1").addMetadata(m3);
         folderType.addSchema(customSchema1);
 
@@ -1551,12 +1550,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
                 .setEssential(true).setEssentialInSummary(false);
         defaultSchema.addMetadata(m1);
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING).setEssential(false).setEssentialInSummary(true);
+                .setType("STRING").setEssential(false).setEssentialInSummary(true);
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
                 .setCode("custom").addMetadata(m2);
@@ -1613,12 +1612,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
                 .setMultiValue(true).setMultiLingual(false);
         defaultSchema.addMetadata(m1);
 
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setMultiValue(false).setMultiLingual(true);
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
@@ -1676,11 +1675,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
         folderType.setDefaultSchema(defaultSchema);
 
-        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
                 .setMultiLingual(true);
         defaultSchema.addMetadata(m1);
 
-        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(MetadataValueType.STRING)
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
                 .setMultiLingual(false);
 
         ImportedMetadataSchema customSchema = new ImportedMetadataSchema()

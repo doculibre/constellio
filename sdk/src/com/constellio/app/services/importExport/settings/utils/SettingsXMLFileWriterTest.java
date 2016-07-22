@@ -4,6 +4,7 @@ import com.constellio.app.services.importExport.settings.SettingsImportServicesT
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileConstants.*;
 import org.apache.tools.ant.util.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -22,7 +23,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
+public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils implements SettingsXMLFileConstants {
 
     private SettingsXMLFileWriter writer;
 
@@ -188,19 +189,19 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
         tabParams.put("zeTab", "Mon onglet");
 
         ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabledIn(toListOfString("default", "custom1", "custom2"))
                 .setRequiredIn(toListOfString("custom1"))
                 .setVisibleInFormIn(toListOfString("default", "custom1"));
 
         String behaviours = "searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable";
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
-                .setType(MetadataValueType.STRING).setEnabled(true).setRequired(true)
-                .setTab("zeTab").setMultiValue(true).setBehaviours(behaviours)
+                .setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
+                .setTab("zeTab").setBehaviours(behaviours)
                 .setInputMask("9999-9999");
 
         ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setLabel("Titre m3")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabledIn(toListOfString("default", "custom1", "custom2"))
                 .setRequiredIn(Arrays.asList("custom1"))
                 .setMultiValue(true);
@@ -251,42 +252,41 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
         assertThat(defaultSchemaElem.getChildren()).hasSize(2);
 
         Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
-
         assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
         assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
-        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo(MetadataValueType.STRING.name());
-        assertThat(metadata1Elem.getAttributeValue(ENABLED)).isEqualTo("true");
+        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(metadata1Elem.getAttributeValue(ENABLED)).isNull();
         assertThat(metadata1Elem.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
-        assertThat(metadata1Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
+        assertThat(metadata1Elem.getAttributeValue(REQUIRED)).isNull();
         assertThat(metadata1Elem.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM)).isEqualTo("true");
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
         assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isEqualTo("default,custom1");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isEqualTo("true");
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
         assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isEqualTo("false");
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
         assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES)).isEqualTo("false");
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
         assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata1Elem.getAttributeValue(TAB)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(MULTI_VALUE)).isEqualTo(null);
+        assertThat(metadata1Elem.getAttributeValue(MULTI_VALUE)).isNull();
         assertThat(metadata1Elem.getAttributeValue(BEHAVIOURS)).isNull();
         assertThat(metadata1Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
         Element metadata2Elem = defaultSchemaElem.getChildren().get(1);
         assertThat(metadata2Elem.getAttributeValue(CODE)).isEqualTo("m2");
         assertThat(metadata2Elem.getAttributeValue(TITLE)).isEqualTo("titre m2");
-        assertThat(metadata2Elem.getAttributeValue(TYPE)).isEqualTo(MetadataValueType.STRING.name());
+        assertThat(metadata2Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
         assertThat(metadata2Elem.getAttributeValue(ENABLED)).isEqualTo("true");
         assertThat(metadata2Elem.getAttributeValue(ENABLED_IN)).isNullOrEmpty();
         assertThat(metadata2Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
         assertThat(metadata2Elem.getAttributeValue(REQUIRED_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM)).isEqualTo("true");
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
         assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isEqualTo("true");
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
         assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isEqualTo("false");
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
         assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES)).isEqualTo("false");
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
         assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata2Elem.getAttributeValue(TAB)).isEqualTo("zeTab");
         assertThat(metadata2Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
@@ -309,18 +309,18 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
         assertThat(metadata3Elem).isNotNull();
         assertThat(metadata3Elem.getAttributeValue(CODE)).isEqualTo("m3");
         assertThat(metadata3Elem.getAttributeValue(TITLE)).isEqualTo("Titre m3");
-        assertThat(metadata3Elem.getAttributeValue(TYPE)).isEqualTo(MetadataValueType.STRING.name());
-        assertThat(metadata3Elem.getAttributeValue(ENABLED)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(metadata3Elem.getAttributeValue(ENABLED)).isNull();
         assertThat(metadata3Elem.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
-        assertThat(metadata3Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(REQUIRED)).isNull();
         assertThat(metadata3Elem.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_FORM)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isNullOrEmpty();
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isEqualTo("false");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES)).isEqualTo("false");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(TAB)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
@@ -336,7 +336,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
 
         System.out.println("File Saved!");
     }
-
 
     @Test
     public void whenWritingSettingsFileThenElementsPresent() throws IOException {
@@ -370,44 +369,51 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
                 .setTitles(toTitlesMap("domaine4", "valueList4"))
                 .setHierarchical(false));
 
-        zeCollectionSettings.addTaxonomy(new ImportedTaxonomy().setCode("taxoT1Type")
+        ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
                 .setTitles(toTitlesMap("taxo1Titre1", "taxoTitle1"))
                 .setClassifiedTypes(toListOfString("document", "folder"))
                 .setVisibleOnHomePage(false)
                 .setUserIds(asList("user1", "user2"))
-                .setGroupIds(asList("group1")));
+                .setGroupIds(asList("group1"));
+        zeCollectionSettings.addTaxonomy(taxonomy1);
 
-        zeCollectionSettings.addTaxonomy(new ImportedTaxonomy().setCode("taxoT2Type")
-                .setTitles(toTitlesMap("taxo1Titre2", "taxoTitle2")));
+        ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
+                .setTitles(toTitlesMap("taxo1Titre2", "taxoTitle2"));
+        zeCollectionSettings.addTaxonomy(taxonomy2);
 
         Map<String, String> tabParams = new HashMap<>();
         tabParams.put("default", "Métadonnées");
         tabParams.put("zeTab", "Mon onglet");
 
         ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabledIn(toListOfString("default", "custom1", "custom2"))
                 .setRequiredIn(toListOfString("custom1"))
                 .setVisibleInFormIn(toListOfString("default", "custom1"));
 
-        String behaviours = "searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable";
+        String behaviours = "searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable," +
+                "sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable";
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
-                .setType(MetadataValueType.STRING).setEnabled(true).setRequired(true)
-                .setTab("zeTab").setMultiValue(true).setBehaviours(behaviours)
+                .setType("STRING").setEnabled(true).setRequired(true)
+                .setTab("zeTab").setMultiValue(true)
+                .setSearchable(true).setAdvanceSearchable(true).setUnique(true).setUnmodifiable(true)
+                .setSortable(true).setRecordAutoComplete(true).setEssential(true).setEssentialInSummary(true)
+                .setMultiLingual(true).setDuplicable(true).setBehaviours(behaviours)
                 .setInputMask("9999-9999");
 
         ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setLabel("Titre m3")
-                .setType(MetadataValueType.STRING)
-                .setEnabledIn(toListOfString("default", "custom1", "custom2"))
-                .setRequiredIn(Arrays.asList("custom1"))
-                .setMultiValue(true);
-        zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                .setType("STRING").setEnabledIn(toListOfString("default", "custom1", "custom2"))
+                .setRequiredIn(Arrays.asList("custom1")).setMultiValue(true);
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default")
+                .addMetadata(m1)
+                .addMetadata(m2);
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom1")
+                .addMetadata(m3);
+        ImportedType importedType = new ImportedType().setCode("folder").setLabel("Dossier")
                 .setTabs(toListOfTabs(tabParams))
-                .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
-                        .addMetadata(m1)
-                        .addMetadata(m2))
-                .addSchema(new ImportedMetadataSchema().setCode("custom1")
-                        .addMetadata(m3)));
+                .setDefaultSchema(defaultSchema)
+                .addSchema(customSchema);
+        zeCollectionSettings.addType(importedType);
 
         ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
         writer.writeSettings(importedSettings);
@@ -469,50 +475,49 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
         assertThat(defaultSchemaElem).isNotNull();
         assertThat(defaultSchemaElem.getChildren()).hasSize(2);
 
-        Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
+        Element m1Element = defaultSchemaElem.getChildren().get(0);
+        assertThat(m1Element.getAttributeValue(CODE)).isEqualTo("m1");
+        assertThat(m1Element.getAttributeValue(TITLE)).isEqualTo("titre m1");
+        assertThat(m1Element.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(m1Element.getAttributeValue(ENABLED)).isNull();
+        assertThat(m1Element.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
+        assertThat(m1Element.getAttributeValue(REQUIRED)).isNull();
+        assertThat(m1Element.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_FORM)).isNull();
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_FORM_IN)).isEqualTo("default,custom1");
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
+        assertThat(m1Element.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
+        assertThat(m1Element.getAttributeValue(TAB)).isNullOrEmpty();
+        assertThat(m1Element.getAttributeValue(MULTI_VALUE)).isNull();
+        assertThat(m1Element.getAttributeValue(BEHAVIOURS)).isNull();
+        assertThat(m1Element.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
-        assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
-        assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
-        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo(MetadataValueType.STRING.name());
-        assertThat(metadata1Elem.getAttributeValue(ENABLED)).isEqualTo("true");
-        assertThat(metadata1Elem.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
-        assertThat(metadata1Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
-        assertThat(metadata1Elem.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM)).isEqualTo("true");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isEqualTo("default,custom1");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isEqualTo("true");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isEqualTo("false");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES)).isEqualTo("false");
-        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(TAB)).isNullOrEmpty();
-        assertThat(metadata1Elem.getAttributeValue(MULTI_VALUE)).isEqualTo(null);
-        assertThat(metadata1Elem.getAttributeValue(BEHAVIOURS)).isNull();
-        assertThat(metadata1Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
-
-        Element metadata2Elem = defaultSchemaElem.getChildren().get(1);
-        assertThat(metadata2Elem.getAttributeValue(CODE)).isEqualTo("m2");
-        assertThat(metadata2Elem.getAttributeValue(TITLE)).isEqualTo("titre m2");
-        assertThat(metadata2Elem.getAttributeValue(TYPE)).isEqualTo(MetadataValueType.STRING.name());
-        assertThat(metadata2Elem.getAttributeValue(ENABLED)).isEqualTo("true");
-        assertThat(metadata2Elem.getAttributeValue(ENABLED_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
-        assertThat(metadata2Elem.getAttributeValue(REQUIRED_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM)).isEqualTo("true");
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isEqualTo("true");
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isEqualTo("false");
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES)).isEqualTo("false");
-        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
-        assertThat(metadata2Elem.getAttributeValue(TAB)).isEqualTo("zeTab");
-        assertThat(metadata2Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
+        Element m2Element = defaultSchemaElem.getChildren().get(1);
+        assertThat(m2Element.getAttributeValue(CODE)).isEqualTo("m2");
+        assertThat(m2Element.getAttributeValue(TITLE)).isEqualTo("titre m2");
+        assertThat(m2Element.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(m2Element.getAttributeValue(ENABLED)).isEqualTo("true");
+        assertThat(m2Element.getAttributeValue(ENABLED_IN)).isNullOrEmpty();
+        assertThat(m2Element.getAttributeValue(REQUIRED)).isEqualTo("true");
+        assertThat(m2Element.getAttributeValue(REQUIRED_IN)).isNullOrEmpty();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_FORM)).isNull();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_FORM_IN)).isNullOrEmpty();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
+        assertThat(m2Element.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
+        assertThat(m2Element.getAttributeValue(TAB)).isEqualTo("zeTab");
+        assertThat(m2Element.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
         List<String> expectedBehaviours = StringUtils.split(behaviours, ',');
-        List<String> actualBehaviours = StringUtils.split(metadata2Elem.getAttributeValue(BEHAVIOURS), ',');
+        List<String> actualBehaviours = StringUtils.split(m2Element.getAttributeValue(BEHAVIOURS), ',');
         assertThat(actualBehaviours.containsAll(expectedBehaviours)).isTrue();
-        assertThat(metadata2Elem.getAttributeValue(INPUT_MASK)).isEqualTo("9999-9999");
+        assertThat(m2Element.getAttributeValue(INPUT_MASK)).isEqualTo("9999-9999");
 
         Element customSchemata = typesElement.getChildren().get(0).getChild("schemas");
         assertThat(customSchemata).isNotNull();
@@ -528,18 +533,18 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils {
         assertThat(metadata3Elem).isNotNull();
         assertThat(metadata3Elem.getAttributeValue(CODE)).isEqualTo("m3");
         assertThat(metadata3Elem.getAttributeValue(TITLE)).isEqualTo("Titre m3");
-        assertThat(metadata3Elem.getAttributeValue(TYPE)).isEqualTo(MetadataValueType.STRING.name());
-        assertThat(metadata3Elem.getAttributeValue(ENABLED)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(metadata3Elem.getAttributeValue(ENABLED)).isNull();
         assertThat(metadata3Elem.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
-        assertThat(metadata3Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(REQUIRED)).isNull();
         assertThat(metadata3Elem.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_FORM)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isNullOrEmpty();
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isEqualTo("true");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isEqualTo("false");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
-        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES)).isEqualTo("false");
+        assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(TAB)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");

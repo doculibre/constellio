@@ -5,42 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
-
-    public static final String DEFAULT_SCHEMA = "default-schema";
-    public static final String METADATA = "metadata";
-    public static final String LABEL = "label";
-    public static final String SCHEMA = "schema";
-    public static final String SCHEMAS = "schemas";
-    public static final String DUPLICABLE = "duplicable";
-    public static final String MULTI_LINGUAL = "multiLingual";
-    public static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
-    public static final String ESSENTIAL = "essential";
-    public static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
-    public static final String SORTABLE = "sortable";
-    public static final String UNMODIFIABLE = "unmodifiable";
-    public static final String ADVANCE_SEARCHABLE = "advanceSearchable";
-    public static final String SEARCHABLE = "searchable";
-    public static final String INPUT_MASK = "inputMask";
-    public static final String BEHAVIOURS = "behaviours";
-    public static final String MULTI_VALUE = "multiValue";
-    public static final String VISIBLE_IN_TABLES_IN = "visibleInTablesIn";
-    public static final String VISIBLE_IN_TABLES = "visibleInTables";
-    public static final String VISIBLE_IN_RESULT_IN = "visibleInResultIn";
-    public static final String VISIBLE_IN_DISPLAY_IN = "visibleInDisplayIn";
-    public static final String VISIBLE_IN_SEARCH_RESULT = "visibleInSearchResult";
-    public static final String VISIBLE_IN_DISPLAY = "visibleInDisplay";
-    public static final String VISIBLE_IN_FORM_IN = "visibleInFormIn";
-    public static final String VISIBLE_IN_FORM = "visibleInForm";
-    public static final String REQUIRED_IN = "requiredIn";
-    public static final String REQUIRED = "required";
-    public static final String ENABLED_IN = "enabledIn";
-    public static final String ENABLED = "enabled";
-    public static final String UNIQUE = "unique";
-    public static final String ENCRYPTED = "encrypted";
+public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
     private Document document;
     private Element settingsElement;
@@ -127,7 +94,7 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
         Element schemasElement = new Element(SCHEMAS);
         typeItem.addContent(schemasElement);
 
-        for (ImportedMetadataSchema customSchema : importedType.getCustomSchemas()) {
+        for (ImportedMetadataSchema customSchema : importedType.getCustomSchemata()) {
             addSchemaItem(schemasElement, customSchema);
         }
     }
@@ -183,9 +150,11 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
             metadataElem.setAttribute("title", importedMetadata.getLabel());
         }
 
-        List<String> behaviours = new ArrayList<>();
+        metadataElem.setAttribute(TYPE, importedMetadata.getType());
 
-        metadataElem.setAttribute(TYPE, importedMetadata.getType().name());
+        if (importedMetadata.getDuplicable() != null) {
+            metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
+        }
 
         if (importedMetadata.getEnabled() != null) {
             metadataElem.setAttribute(ENABLED, importedMetadata.getEnabled() + "");
@@ -199,7 +168,47 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
             metadataElem.setAttribute(INPUT_MASK, importedMetadata.getInputMask());
         }
 
-        if (importedMetadata.getMultiValue() != null && importedMetadata.getMultiValue()) {
+        if (importedMetadata.getMultiLingual() != null) {
+            metadataElem.setAttribute(MULTI_LINGUAL, importedMetadata.getMultiLingual() + "");
+        }
+
+        if (importedMetadata.getEncrypted() != null) {
+            metadataElem.setAttribute(ENCRYPTED, importedMetadata.getEncrypted() + "");
+        }
+
+        if (importedMetadata.getEssential() != null) {
+            metadataElem.setAttribute(ESSENTIAL, importedMetadata.getEssential() + "");
+        }
+
+        if (importedMetadata.getEssentialInSummary() != null) {
+            metadataElem.setAttribute(ESSENTIAL_IN_SUMMARY, importedMetadata.getEssentialInSummary() + "");
+        }
+
+        if (importedMetadata.getRecordAutoComplete() != null) {
+            metadataElem.setAttribute(RECORD_AUTOCOMPLETE, importedMetadata.getRecordAutoComplete() + "");
+        }
+
+        if (importedMetadata.getSearchable() != null) {
+            metadataElem.setAttribute(SEARCHABLE, importedMetadata.getSearchable() + "");
+        }
+
+        if (importedMetadata.getSortable() != null) {
+            metadataElem.setAttribute(SORTABLE, importedMetadata.getSortable() + "");
+        }
+
+        if (importedMetadata.getUnique() != null) {
+            metadataElem.setAttribute(UNIQUE, importedMetadata.getUnique() + "");
+        }
+
+        if (importedMetadata.getUnmodifiable() != null) {
+            metadataElem.setAttribute(UNMODIFIABLE, importedMetadata.getUnmodifiable() + "");
+        }
+
+        if (importedMetadata.getAdvanceSearchable() != null) {
+            metadataElem.setAttribute(ADVANCE_SEARCHABLE, importedMetadata.getAdvanceSearchable() + "");
+        }
+
+        if (importedMetadata.getMultiValue() != null) {
             metadataElem.setAttribute(MULTI_VALUE, importedMetadata.getMultiValue() + "");
         }
 
@@ -232,8 +241,8 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
             metadataElem.setAttribute(VISIBLE_IN_FORM_IN, StringUtils.join(importedMetadata.getVisibleInFormIn(), ","));
         }
 
-        if (importedMetadata.getVisibleInResultIn() != null) {
-            metadataElem.setAttribute(VISIBLE_IN_SEARCH_RESULT, importedMetadata.getVisibleInSearchResult() + "");
+        if (!importedMetadata.getVisibleInResultIn().isEmpty()) {
+            metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn()));
         }
 
         if (importedMetadata.getVisibleInSearchResult() != null) {
@@ -287,11 +296,18 @@ public class SettingsXMLFileWriter extends SettingsXMLFileConstants {
         Element listElem = new Element(VALUE_LIST);
         listElem.setAttribute(CODE, valueList.getCode());
         listElem.setAttribute(TITLE, valueList.getTitles().get(TITLE_FR));
-        listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(valueList.getClassifiedTypes(), ','));
+
+        if (!valueList.getClassifiedTypes().isEmpty()) {
+            listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(valueList.getClassifiedTypes(), ','));
+        }
+
         if (StringUtils.isNotBlank(valueList.getCodeMode())) {
             listElem.setAttribute(CODE_MODE, valueList.getCodeMode());
         }
-        listElem.setAttribute(HIERARCHICAL, valueList.isHierarchical() + "");
+
+        if (valueList.getHierarchical() != null) {
+            listElem.setAttribute(HIERARCHICAL, valueList.getHierarchical() + "");
+        }
 
         valueListsElem.addContent(listElem);
     }

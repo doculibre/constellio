@@ -9,7 +9,7 @@ public class ImportedMetadata {
 
     private String code;
     private String label;
-    private MetadataValueType type;
+    private String type;
     private Boolean enabled;// = true;
     private List<String> enabledIn = new ArrayList<>();
     private Boolean required;// = true;
@@ -38,6 +38,7 @@ public class ImportedMetadata {
     private Boolean searchable;
     private Boolean sortable;
     private Boolean unmodifiable;
+    private Boolean advanceSearchable;
 
     public String getCode() {
         return code;
@@ -57,7 +58,11 @@ public class ImportedMetadata {
         return label;
     }
 
-    public ImportedMetadata setType(MetadataValueType type) {
+    public String getType() {
+        return type;
+    }
+
+    public ImportedMetadata setType(String type) {
         this.type = type;
         return this;
     }
@@ -181,10 +186,6 @@ public class ImportedMetadata {
         return this;
     }
 
-    public MetadataValueType getType() {
-        return type;
-    }
-
     public Boolean getVisibleInForm() {
         return visibleInForm;
     }
@@ -261,20 +262,53 @@ public class ImportedMetadata {
         return recordAutoComplete;
     }
 
+    public ImportedMetadata setRecordAutoComplete(Boolean recordAutoComplete) {
+        this.recordAutoComplete = recordAutoComplete;
+        return this;
+    }
+
     public Boolean getSearchable() {
         return searchable;
+    }
+
+    public ImportedMetadata setSearchable(Boolean searchable) {
+        this.searchable = searchable;
+        return this;
     }
 
     public Boolean getSortable() {
         return sortable;
     }
 
+    public ImportedMetadata setSortable(Boolean sortable) {
+        this.sortable = sortable;
+        return this;
+    }
+
     public Boolean getUnmodifiable() {
         return unmodifiable;
+    }
+
+    public ImportedMetadata setUnmodifiable(Boolean unmodifiable) {
+        this.unmodifiable = unmodifiable;
+        return this;
+    }
+
+    public ImportedMetadata setUnique(Boolean unique) {
+        this.unique = unique;
+        return this;
     }
 
     public Boolean getUnique() {
         return unique;
     }
 
+    public Boolean getAdvanceSearchable() {
+        return advanceSearchable;
+    }
+
+    public ImportedMetadata setAdvanceSearchable(Boolean advanceSearchable) {
+        this.advanceSearchable = advanceSearchable;
+        return this;
+    }
 }

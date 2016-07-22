@@ -1,17 +1,19 @@
 package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.model.*;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.glassfish.jersey.server.wadl.internal.generators.resourcedoc.xhtml.Elements;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
 import java.util.*;
 
-public class SettingsXMLFileReader extends SettingsXMLFileConstants {
+public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
+    public static final String VISIBLE_IN_HOME_PAGE = "visibleInHomePage";
+    public static final String USERS = "users";
+    public static final String GROUPS = "groups";
+    public static final String CLASSIFIED_TYPES = "classifiedTypes";
+    public static final String TITLE = "title";
     private Document document;
 
     public SettingsXMLFileReader(Document document) {
@@ -53,9 +55,25 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
     }
 
     private ImportedType readType(Element typeElement) {
-        return new ImportedType().setCode(typeElement.getAttributeValue(CODE))
+        return new ImportedType()
+                .setCode(typeElement.getAttributeValue(CODE))
                 .setTabs(getTabs(typeElement.getChild(TABS)))
-                .setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA)));
+                .setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA)))
+                .setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas")));
+    }
+
+    private List<ImportedMetadataSchema> readCustomSchemata(Element schemataElement) {
+        List<ImportedMetadataSchema> schemata = new ArrayList<>();
+        for (Element schemaElement : schemataElement.getChildren()) {
+            ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema();
+            if (schemaElement.getAttribute("code") != null) {
+                importedMetadataSchema.setCode(schemaElement.getAttributeValue("code"));
+            }
+
+            importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
+            schemata.add(importedMetadataSchema);
+        }
+        return schemata;
     }
 
     private ImportedMetadataSchema readDefaultSchema(Element element) {
@@ -74,8 +92,49 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
 
         ImportedMetadata importedMetadata = new ImportedMetadata();
         importedMetadata.setCode(element.getAttributeValue(CODE));
+        importedMetadata.setLabel(element.getAttributeValue(TITLE));
 
-        importedMetadata.setType(EnumUtils.getEnum(MetadataValueType.class, element.getAttributeValue(TYPE)));
+        importedMetadata.setType(element.getAttributeValue(TYPE));
+
+        if (element.getAttribute(SEARCHABLE) != null) {
+            importedMetadata.setSearchable(Boolean.parseBoolean(element.getAttributeValue(SEARCHABLE)));
+        }
+
+        if (element.getAttribute(ADVANCE_SEARCHABLE) != null) {
+            importedMetadata.setAdvanceSearchable(Boolean.parseBoolean(element.getAttributeValue(ADVANCE_SEARCHABLE)));
+        }
+
+        if (element.getAttribute(UNMODIFIABLE) != null) {
+            importedMetadata.setUnmodifiable(Boolean.parseBoolean(element.getAttributeValue(UNMODIFIABLE)));
+        }
+
+        if (element.getAttribute(UNIQUE) != null) {
+            importedMetadata.setUnique(Boolean.parseBoolean(element.getAttributeValue(UNIQUE)));
+        }
+
+        if (element.getAttribute(SORTABLE) != null) {
+            importedMetadata.setSortable(Boolean.parseBoolean(element.getAttributeValue(SORTABLE)));
+        }
+
+        if (element.getAttribute(RECORD_AUTOCOMPLETE) != null) {
+            importedMetadata.setRecordAutoComplete(Boolean.parseBoolean(element.getAttributeValue(RECORD_AUTOCOMPLETE)));
+        }
+
+        if (element.getAttribute(ESSENTIAL) != null) {
+            importedMetadata.setEssential(Boolean.parseBoolean(element.getAttributeValue(ESSENTIAL)));
+        }
+
+        if (element.getAttribute(ESSENTIAL_IN_SUMMARY) != null) {
+            importedMetadata.setEssentialInSummary(Boolean.parseBoolean(element.getAttributeValue(ESSENTIAL_IN_SUMMARY)));
+        }
+
+        if (element.getAttribute(MULTI_LINGUAL) != null) {
+            importedMetadata.setMultiLingual(Boolean.parseBoolean(element.getAttributeValue(MULTI_LINGUAL)));
+        }
+
+        if (element.getAttribute(DUPLICABLE) != null) {
+            importedMetadata.setDuplicable(Boolean.parseBoolean(element.getAttributeValue(DUPLICABLE)));
+        }
 
         if (element.getAttribute(ENABLED) != null) {
             importedMetadata.setEnabled(Boolean.parseBoolean(element.getAttributeValue(ENABLED)));
@@ -91,8 +150,8 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
             importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
         }
 
-        if (element.getAttribute(MULTIVALUE) != null) {
-            importedMetadata.setMultiValue(Boolean.parseBoolean(element.getAttributeValue(MULTIVALUE)));
+        if (element.getAttribute(MULTI_VALUE) != null) {
+            importedMetadata.setMultiValue(Boolean.parseBoolean(element.getAttributeValue(MULTI_VALUE)));
         }
 
         String behaviours = element.getAttributeValue(BEHAVIOURS);
@@ -172,13 +231,29 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
     }
 
     private ImportedTaxonomy readTaxonomy(Element child) {
-        return new ImportedTaxonomy()
-                .setCode(child.getAttributeValue(CODE))
-                .setTitles(getTitles(child.getAttributeValue("title")))
-                .setClassifiedTypes(getValueListClassifiedTypes(child.getAttributeValue("classifiedTypes")))
-                .setGroupIds(toListOfString(child.getAttributeValue("groups")))
-                .setUserIds(toListOfString(child.getAttributeValue("users")))
-                .setVisibleOnHomePage(Boolean.valueOf(child.getAttributeValue("visibleInHomePage")));
+        ImportedTaxonomy taxonomy = new ImportedTaxonomy();
+        taxonomy.setCode(child.getAttributeValue(CODE));
+        if (child.getAttribute(TITLE) != null) {
+            taxonomy.setTitles(getTitles(child.getAttributeValue(TITLE)));
+        }
+
+        if (child.getAttribute(CLASSIFIED_TYPES) != null) {
+            taxonomy.setClassifiedTypes(getValueListClassifiedTypes(child.getAttributeValue(CLASSIFIED_TYPES)));
+        }
+
+        if (child.getAttribute(GROUPS) != null) {
+            taxonomy.setGroupIds(toListOfString(child.getAttributeValue(GROUPS)));
+        }
+
+        if (child.getAttribute(USERS) != null) {
+            taxonomy.setUserIds(toListOfString(child.getAttributeValue(USERS)));
+        }
+
+        if (child.getAttribute(VISIBLE_IN_HOME_PAGE) != null) {
+            taxonomy.setVisibleOnHomePage(Boolean.valueOf(child.getAttributeValue(VISIBLE_IN_HOME_PAGE)));
+        }
+
+        return taxonomy;
     }
 
     private List<String> toListOfString(String stringValue) {
@@ -197,12 +272,25 @@ public class SettingsXMLFileReader extends SettingsXMLFileConstants {
     }
 
     private ImportedValueList readValueList(Element element) {
-        return new ImportedValueList()
-                .setCode(element.getAttributeValue(CODE))
-                .setTitles(getTitles(element.getAttributeValue("title")))
-                .setClassifiedTypes(getValueListClassifiedTypes(element.getAttributeValue("classifiedTypes")))
-                .setCodeMode(element.getAttributeValue("codeMode"))
-                .setHierarchical(Boolean.valueOf(element.getAttributeValue("hierarchical")));
+        ImportedValueList valueList = new ImportedValueList()
+                .setCode(element.getAttributeValue(CODE));
+        if (element.getAttribute(TITLE) != null) {
+            valueList.setTitles(getTitles(element.getAttributeValue(TITLE)));
+        }
+
+        if (element.getAttribute(CLASSIFIED_TYPES) != null) {
+            valueList.setClassifiedTypes(getValueListClassifiedTypes(element.getAttributeValue(CLASSIFIED_TYPES)));
+        }
+
+        if (element.getAttribute("codeMode") != null) {
+            valueList.setCodeMode(element.getAttributeValue("codeMode"));
+        }
+
+        if (element.getAttribute("hierarchical") != null) {
+            valueList.setHierarchical(Boolean.valueOf(element.getAttributeValue("hierarchical")));
+        }
+
+        return valueList;
     }
 
     private List<String> getValueListClassifiedTypes(String stringValue) {
