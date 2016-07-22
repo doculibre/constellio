@@ -1,8 +1,5 @@
 package com.constellio.app.ui;
 
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,11 +7,8 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.conf.AzureADTestConf;
-import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.services.AzureADServices;
-import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -66,21 +60,9 @@ public class StartDemoRMConstellioWithAzureAcceptTest extends ConstellioTest {
 	@MainTestDefaultStart
 	public void startOnLoginPage()
 			throws Exception {
-		AzureADServices azurService = new AzureADServices();
-		List<String> result = azurService.getTestSynchronisationUsersNames(AzureADTestConf.getLDAPServerConfiguration(),
-				AzureADTestConf.getLDAPUserSyncConfiguration());
-		System.out.println(StringUtils.join(result, "\n"));
-		result = azurService.getTestSynchronisationGroups(AzureADTestConf.getLDAPServerConfiguration(),
-				AzureADTestConf.getLDAPUserSyncConfiguration());
-		System.out.println(StringUtils.join(result, "\n"));
-		LDAPUsersAndGroups importResult = azurService
-				.importUsersAndGroups(AzureADTestConf.getLDAPServerConfiguration(),
-						AzureADTestConf.getLDAPUserSyncConfiguration(), "");
-		System.out.println(importResult);
+		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 
-		//driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
-
-		//waitUntilICloseTheBrowsers();
+		waitUntilICloseTheBrowsers();
 
 	}
 

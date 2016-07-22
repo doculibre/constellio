@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
-import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
@@ -182,12 +180,7 @@ public class AzureADServices implements LDAPServices {
 		Client client = ClientBuilder.newClient();
 
 		WebTarget webTarget = client.target(AzureADServerConfig.GRAPH_API_URL + ldapServerConfiguration.getTenantName());
-		Response response = webTarget
-				.path("/groups")
-				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
-				.request(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, accessToken)
-				.get();
+		Response response = getAllGroupsResponse(webTarget, accessToken);
 		String responseText = response.readEntity(String.class);
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			JSONArray groupsJsonArray = new JSONObject(responseText).getJSONArray("value");
@@ -195,21 +188,13 @@ public class AzureADServices implements LDAPServices {
 			for (int i = 0, jsonArrayLength = groupsJsonArray.length(); i < jsonArrayLength; i++) {
 				try {
 					JSONObject groupJsonObject = groupsJsonArray.getJSONObject(i);
-					String groupObjectId = groupJsonObject.optString("objectId");
-					String groupDisplayName = groupJsonObject.optString("displayName");
+					LDAPGroup ldapGroup = createLDAPGroupFromJsonObject(groupJsonObject);
 
-					if (ldapUserSyncConfiguration.isGroupAccepted(groupDisplayName)) {
-						LDAPGroup ldapGroup = new LDAPGroup(groupDisplayName, groupObjectId);
+					if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+						String groupObjectId = ldapGroup.getDistinguishedName();
 						ldapGroups.put(groupObjectId, ldapGroup);
 
-						response = webTarget
-								.path("/groups")
-								.path(groupObjectId)
-								.path("$links/members")
-								.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
-								.request(MediaType.APPLICATION_JSON)
-								.header(HttpHeaders.AUTHORIZATION, accessToken)
-								.get();
+						response = getGroupMembersResponse(webTarget, groupObjectId, accessToken);
 						responseText = response.readEntity(String.class);
 						if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 							JSONArray groupMembersJsonArray = new JSONObject(responseText).getJSONArray("value");
@@ -218,28 +203,15 @@ public class AzureADServices implements LDAPServices {
 								 j < groupMembersJsonArrayLength; j++) {
 								String groupMemberUrl = groupMembersJsonArray.getJSONObject(i).optString("url");
 								if (groupMemberUrl.endsWith("Microsoft.DirectoryServices.User")) {
-									response = client.target(groupMemberUrl)
-											.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
-											.request(MediaType.APPLICATION_JSON)
-											.header(HttpHeaders.AUTHORIZATION, accessToken)
-											.get();
+									response = getObjectResponseByUrl(client, groupMemberUrl, accessToken);
 									responseText = response.readEntity(String.class);
 									if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 										JSONObject groupUserJsonObject = new JSONObject(responseText);
-
-										LDAPUser ldapUser = new LDAPUser();
-										ldapUser.addGroup(ldapGroup);
-										ldapUser.setId(groupUserJsonObject.optString("userPrincipalName"));
-										ldapUser.setName(groupUserJsonObject.optString("displayName"));
-										ldapUser.setFamilyName(groupUserJsonObject.optString("surname"));
-										ldapUser.setGivenName(groupUserJsonObject.optString("givenName"));
-										ldapUser.setEmail(groupUserJsonObject.optString("email"));
-										ldapUser.setEnabled(Boolean.valueOf(groupUserJsonObject.optString("accountEnabled")));
-										ldapUser.setLieuTravail(groupUserJsonObject.optString("department"));
-										ldapUser.setMsExchDelegateListBL(null); // TODO
-										ldapUser.setLastLogon(
-												new DateTime(groupUserJsonObject.optString("refreshTokensValidFromDateTime"))
-														.toDate());
+										LDAPUser ldapUser = createLDAPUserFromJsonObject(groupUserJsonObject);
+										if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+											//FIXME ldapUser not added to answer!
+											ldapUser.addGroup(ldapGroup);
+										}
 									}
 								}
 							}
@@ -256,12 +228,7 @@ public class AzureADServices implements LDAPServices {
 			LOGGER.error(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
 		}
 
-		response = webTarget
-				.path("/users")
-				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
-				.request(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, accessToken)
-				.get();
+		response = getAllUsersResponse(webTarget, accessToken);
 		responseText = response.readEntity(String.class);
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			JSONArray usersJsonArray = new JSONObject(responseText).getJSONArray("value");
@@ -269,54 +236,40 @@ public class AzureADServices implements LDAPServices {
 			for (int i = 0, jsonArrayLength = usersJsonArray.length(); i < jsonArrayLength; i++) {
 				try {
 					JSONObject userJsonObject = usersJsonArray.getJSONObject(i);
+					LDAPUser ldapUser = createLDAPUserFromJsonObject(userJsonObject);
+					ldapUsers.put(ldapUser.getId(), ldapUser);
 
-					String userObjectId = userJsonObject.optString("objectId");
-					String userDisplayName = userJsonObject.optString("displayName");
+					if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
 
-					if (ldapUserSyncConfiguration.isUserAccepted(userDisplayName)) {
-						LDAPUser ldapUser = new LDAPUser();
-						ldapUsers.put(userObjectId, ldapUser);
-						ldapUser.setId(userJsonObject.optString("objectId"));
-						ldapUser.setEmail(userJsonObject.optString("userPrincipalName"));
-						ldapUser.setName(userJsonObject.optString("mailNickname"));
-						ldapUser.setFamilyName(userJsonObject.optString("surname"));
-						ldapUser.setGivenName(userJsonObject.optString("givenName"));
-						//ldapUser.setEmail(userJsonObject.optString("email")); there mail
-						ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
-						ldapUser.setLieuTravail(userJsonObject.optString("department"));
-						ldapUser.setMsExchDelegateListBL(null); // TODO
-						ldapUser.setLastLogon(new DateTime(userJsonObject.optString("refreshTokensValidFromDateTime")).toDate());
+						String userObjectId = ldapUser.getId();
 
-						response = webTarget
-								.path("/users")
-								.path(userObjectId)
-								.path("$links/memberOf")
-								.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
-								.request(MediaType.APPLICATION_JSON)
-								.header(HttpHeaders.AUTHORIZATION, accessToken)
-								.get();
+						response = getUserGroupsResponse(webTarget, userObjectId, accessToken);
 						responseText = response.readEntity(String.class);
 						if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 							JSONArray userGroupJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-							for (int j = 0, userGroupsJsonArrayLength = userGroupJsonArray.length();
-								 j < userGroupsJsonArrayLength; j++) {
-								String userGroupUrl = userGroupJsonArray.getJSONObject(i).optString("url");
+							for (int j = 0;	 j < userGroupJsonArray.length(); j++) {
+								String userGroupUrl = "";
+								try{
+									JSONObject object = userGroupJsonArray.getJSONObject(i);
+									userGroupUrl = object.optString("url");
+								}catch(JSONException e){
+									//FIXME na b some groups are not added
+									e.printStackTrace();
+								}
+
 								if (userGroupUrl.endsWith("Microsoft.DirectoryServices.Group")) {
-									response = client.target(userGroupUrl)
-											.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
-											.request(MediaType.APPLICATION_JSON)
-											.header(HttpHeaders.AUTHORIZATION, accessToken)
-											.get();
+									response = getObjectResponseByUrl(client, userGroupUrl, accessToken);
 									responseText = response.readEntity(String.class);
 									if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 										JSONObject userGroupJsonObject = new JSONObject(responseText);
+										LDAPGroup ldapGroup = createLDAPGroupFromJsonObject(userGroupJsonObject);
 
-										LDAPGroup ldapGroup = new LDAPGroup(userGroupJsonObject.optString("displayName"),
-												userGroupJsonObject.optString("objectId"));
-										Set<LDAPGroup> userGroups = new HashSet<>(ldapUser.getUserGroups());
-										userGroups.add(ldapGroup);
-										ldapUser.setUserGroups(new ArrayList<>(userGroups));
+										if (ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+											Set<LDAPGroup> userGroups = new HashSet<>(ldapUser.getUserGroups());
+											userGroups.add(ldapGroup);
+											ldapUser.setUserGroups(new ArrayList<>(userGroups));
+										}
 									}
 								}
 							}
@@ -326,7 +279,8 @@ public class AzureADServices implements LDAPServices {
 						}
 					}
 				} catch (JSONException e) {
-					// TODO
+					//FIXME
+					e.printStackTrace();
 				}
 			}
 		} else {
@@ -334,6 +288,76 @@ public class AzureADServices implements LDAPServices {
 		}
 
 		return new LDAPUsersAndGroups(new HashSet<>(ldapUsers.values()), new HashSet<>(ldapGroups.values()));
+	}
+
+	private Response getUserGroupsResponse(WebTarget webTarget, String userObjectId, String accessToken) {
+		return webTarget
+				.path("/users")
+				.path(userObjectId)
+				.path("$links/memberOf")
+				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
+				.request(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, accessToken)
+				.get();
+	}
+
+	private Response getAllUsersResponse(WebTarget webTarget, String accessToken) {
+		return webTarget
+				.path("/users")
+				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
+				.request(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, accessToken)
+				.get();
+	}
+
+	private Response getObjectResponseByUrl(Client client, String objectUrl, String accessToken) {
+		return client.target(objectUrl)
+				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
+				.request(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, accessToken)
+				.get();
+	}
+
+	private Response getAllGroupsResponse(WebTarget webTarget, String accessToken) {
+		return webTarget
+				.path("/groups")
+				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
+				.request(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, accessToken)
+				.get();
+	}
+
+	private Response getGroupMembersResponse(WebTarget webTarget, String groupObjectId, String accessToken) {
+		return webTarget
+				.path("/groups")
+				.path(groupObjectId)
+				.path("$links/members")
+				.queryParam("api-version", AzureADServerConfig.GRAPH_API_VERSION)
+				.request(MediaType.APPLICATION_JSON)
+				.header(HttpHeaders.AUTHORIZATION, accessToken)
+				.get();
+	}
+
+	private LDAPGroup createLDAPGroupFromJsonObject(JSONObject groupJsonObject) {
+		String groupObjectId = groupJsonObject.optString("objectId");
+		String groupDisplayName = groupJsonObject.optString("displayName");
+		return new LDAPGroup(groupDisplayName, groupObjectId);
+	}
+
+	private LDAPUser createLDAPUserFromJsonObject(JSONObject userJsonObject) {
+		LDAPUser ldapUser = new LDAPUser();
+		ldapUser.setId(userJsonObject.optString("objectId"));
+		ldapUser.setName(userJsonObject.optString("mailNickname"));//not displayName
+		ldapUser.setFamilyName(userJsonObject.optString("surname"));
+		ldapUser.setGivenName(userJsonObject.optString("givenName"));
+		//ldapUser.setEmail(userJsonObject.optString("email")); there mail but with several values instead we ll use userPrincipalName
+		ldapUser.setEmail(userJsonObject.optString("userPrincipalName"));
+		ldapUser.setEnabled(Boolean.valueOf(userJsonObject.optString("accountEnabled")));
+		ldapUser.setLieuTravail(userJsonObject.optString("department"));
+		ldapUser.setMsExchDelegateListBL(null); // TODO
+		ldapUser.setLastLogon(new DateTime(userJsonObject.optString("refreshTokensValidFromDateTime")).toDate());
+
+		return ldapUser;
 	}
 
 	private String getAccessToken(LDAPServerConfiguration ldapServerConfiguration, LDAPUserSyncConfiguration synchConf)
