@@ -137,9 +137,9 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			if (this.ldapServerConfiguration.getFollowReferences()) {
 				env.put(Context.REFERRAL, "follow");
 			}
-			if (url.startsWith("ldaps")) {
+			if (StringUtils.startsWith(url, "ldaps")) {
 				//env.put(Context.SECURITY_PROTOCOL, "ssl");
-				env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.MySSLSocketFactory");
+				env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.DummySSLSocketFactory");
 			}
 			InitialLdapContext context = new InitialLdapContext(env, connCtls);
 			for (String securityPrincipal : securityPrincipals) {

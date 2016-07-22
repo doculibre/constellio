@@ -8,7 +8,7 @@ import javax.net.ssl.X509TrustManager;
 /**
  * http://stackoverflow.com/questions/4615163/how-to-accept-self-signed-certificates-for-jndi-ldap-connections/4829055#4829055
  */
-public class DummyTrustmanager implements X509TrustManager {
+public class DummyTrustManager1 implements X509TrustManager {
 	public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
 		// do nothing
 	}

@@ -43,7 +43,6 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 		givenCollectionWithUsers("administrator");
 		saveValidLDAPConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
-
 		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword());
 		assertThat(authenticated).isTrue();
 	}

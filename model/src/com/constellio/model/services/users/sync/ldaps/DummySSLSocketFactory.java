@@ -14,13 +14,13 @@ import javax.net.ssl.TrustManager;
 /**
  * http://stackoverflow.com/questions/4615163/how-to-accept-self-signed-certificates-for-jndi-ldap-connections/4829055#4829055
  */
-public class MySSLSocketFactory extends SSLSocketFactory {
+public class DummySSLSocketFactory extends SSLSocketFactory {
 	private SSLSocketFactory socketFactory;
 
-	public MySSLSocketFactory() {
+	public DummySSLSocketFactory() {
 		try {
 			SSLContext ctx = SSLContext.getInstance("TLS");
-			ctx.init(null, new TrustManager[] { new DummyTrustmanager() }, new SecureRandom());
+			ctx.init(null, new TrustManager[] { new DummyTrustManager1() }, new SecureRandom());
 			socketFactory = ctx.getSocketFactory();
 		} catch (Exception ex) {
 			ex.printStackTrace(System.err);
@@ -29,7 +29,7 @@ public class MySSLSocketFactory extends SSLSocketFactory {
 	}
 
 	public static SocketFactory getDefault() {
-		return new MySSLSocketFactory();
+		return new DummySSLSocketFactory();
 	}
 
 	@Override
