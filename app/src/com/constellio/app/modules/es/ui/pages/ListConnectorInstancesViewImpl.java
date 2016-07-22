@@ -107,22 +107,22 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 //				};
 //			}
 //		});
-				buttonsContainer.addButton(new ContainerButton() {
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DeleteButton() {
 					@Override
-					protected Button newButtonInstance(final Object itemId) {
-						return new DeleteButton() {
-							@Override
-							protected void confirmButtonClick(ConfirmDialog dialog) {
-								Integer index = (Integer) itemId;
-								RecordVO entity = dataProvider.getRecordVO(index);
-								presenter.deleteButtonClicked(entity);
-							}
-						};
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						Integer index = (Integer) itemId;
+						RecordVO entity = dataProvider.getRecordVO(index);
+						presenter.deleteButtonClicked(entity);
 					}
-				});
+				};
+			}
+		});
 		recordsContainer = buttonsContainer;
 
-		Table table = new RecordVOTable(
+		RecordVOTable table = new RecordVOTable(
 				$("ListConnectorInstancesView.tableTitle", dataProvider.size(), dataProvider.getSchema().getLabel(
 						getSessionContext().getCurrentLocale())),
 				recordsContainer);

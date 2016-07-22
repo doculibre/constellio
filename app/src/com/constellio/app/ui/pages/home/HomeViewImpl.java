@@ -21,10 +21,12 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTreeTabSheet;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -155,16 +157,17 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildRecentItemTable(RecentItemTable recentItems) {
-		RecentTable table = new RecentTable(
+		String tableId = "HomeView." + recentItems.getCode();
+		RecentTable table = new RecentTable(tableId,
 				recentItems.getItems(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
 		table.setSizeFull();
 		table.addStyleName("record-table");
 		return table;
 	}
 
-	private Table buildRecordTable(RecordTable recordTable) {
-		Table table = new RecordVOTable(
-				recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext()));
+	private Table buildRecordTable(final RecordTable recordTable) {
+		RecordVODataProvider dataProvider = recordTable.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		Table table = new RecordVOTable(dataProvider);
 		table.addStyleName("record-table");
 		table.setSizeFull();
 		for (Object item : table.getContainerPropertyIds()) {
@@ -261,8 +264,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		}
 	}
 
-	private class RecentTable extends Table {
-		public RecentTable(List<RecentItem> recentItems) {
+	private class RecentTable extends BaseTable {
+		
+		public RecentTable(String tableId, List<RecentItem> recentItems) {
+			super(tableId);
 			setContainerDataSource(new BeanItemContainer<>(RecentItem.class, recentItems));
 
 			addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
