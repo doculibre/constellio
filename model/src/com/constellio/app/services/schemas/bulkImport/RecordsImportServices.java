@@ -190,7 +190,8 @@ public class RecordsImportServices implements ImportServices {
 
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			ImportDataIterator importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
-			MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount) {
+			MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
+			BulkImportParams params) {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
@@ -200,7 +201,7 @@ public class RecordsImportServices implements ImportServices {
 				List<ImportData> batch = importDataBatches.next();
 				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
 				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction,
-						types, progressionHandler, extensions, addUpdateCount, importDataIterator.getOptions());
+						types, progressionHandler, extensions, addUpdateCount, errors, params, importDataIterator.getOptions());
 				recordServices.executeHandlingImpactsAsync(transaction);
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
@@ -221,7 +222,7 @@ public class RecordsImportServices implements ImportServices {
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
 			ProgressionHandler progressionHandler, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
-			ImportDataOptions options, BulkImportParams params) {
+			ValidationErrors errors, BulkImportParams params, ImportDataOptions options) {
 
 		BulkUploader bulkUploader = null;
 		List<Metadata> contentMetadatas = types.getAllContentMetadatas();
