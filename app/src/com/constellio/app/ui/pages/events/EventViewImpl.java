@@ -48,7 +48,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	private Table buildTable() {
 		final RecordVODataProvider dataProvider = presenter.getDataProvider();
 		final String eventType = presenter.getEventType();
-		Container container= new RecordVOLazyContainer(dataProvider);
+		Container container = new RecordVOLazyContainer(dataProvider);
 
 		String title = EventTypeUtils.getEventTypeCaption(eventType) + "(" + container.size() + ")";
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
@@ -64,7 +64,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				}
 			}
 		};
-		if(isRecordEvent){
+		if (isRecordEvent){
 			table.collapseColumn(Schemas.TITLE.getLocalCode());
 		}
 		table.setPageLength(table.getItemIds().size());
