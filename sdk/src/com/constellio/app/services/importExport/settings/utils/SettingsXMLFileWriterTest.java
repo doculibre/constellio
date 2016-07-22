@@ -3,8 +3,6 @@ package com.constellio.app.services.importExport.settings.utils;
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileConstants.*;
 import org.apache.tools.ant.util.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -327,7 +325,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(metadata3Elem.getAttributeValue(BEHAVIOURS)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
-        String outputFilePath = "/home/constellio/workspaces/settings-import-tests/settings-types-output.xml";
+        String outputFilePath = "settings-types-output.xml";
         File outputFile = new File(outputFilePath);
 
         XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
@@ -551,7 +549,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(metadata3Elem.getAttributeValue(BEHAVIOURS)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
-        String outputFilePath = "/home/constellio/workspaces/settings-import-tests/settings-output.xml";
+        String outputFilePath = "settings-output.xml";
         File outputFile = new File(outputFilePath);
 
         XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
@@ -559,46 +557,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         xmlOutputter.output(writer.getDocument(), fileOutputStream);
 
         System.out.println("File Saved!");
-    }
-
-    @Test
-    public void givenAConfigurationFileWhenReadThenLoaded() throws IOException {
-
-        String inputFilePath = "/home/constellio/workspaces/settings-import-tests/settings-input.xml";
-        File inputFile = new File(inputFilePath);
-        Document originalDocument = getDocumentFromFile(inputFile);
-
-        ImportedSettings settings = new SettingsXMLFileReader(originalDocument).read();
-
-        assertThat(settings.getConfigs()).hasSize(6);
-        // configs
-        List<ImportedConfig> configs = settings.getConfigs();
-        assertThat(configs).isNotEmpty().hasSize(6);
-        assertThat(configs.get(0).getKey()).isEqualTo("documentRetentionRules");
-        assertThat(configs.get(0).getValue()).isEqualTo("true");
-        assertThat(configs.get(1).getKey()).isEqualTo("enforceCategoryAndRuleRelationshipInFolder");
-        assertThat(configs.get(1).getValue()).isEqualTo("false");
-        assertThat(configs.get(2).getKey()).isEqualTo("calculatedCloseDate");
-        assertThat(configs.get(2).getValue()).isEqualTo("false");
-        assertThat(configs.get(3).getKey()).isEqualTo("calculatedCloseDateNumberOfYearWhenFixedRule");
-        assertThat(configs.get(3).getValue()).isEqualTo("2015");
-        assertThat(configs.get(4).getKey()).isEqualTo("closeDateRequiredDaysBeforeYearEnd");
-        assertThat(configs.get(4).getValue()).isEqualTo("15");
-        assertThat(configs.get(5).getKey()).isEqualTo("yearEndDate");
-        assertThat(configs.get(5).getValue()).isEqualTo("02/28");
-
-        ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsConfigs().get(0);
-        assertThat(zeCollectionSettings).isNotNull();
-        assertThat(zeCollectionSettings.getCode()).isEqualTo(zeCollection);
-
-        List<ImportedValueList> valueLists = zeCollectionSettings.getValueLists();
-        assertThat(valueLists).isNotEmpty().hasSize(4);
-
-        ImportedValueList valueList1 = valueLists.get(0);
-        assertThat(valueList1.getCode()).isEqualTo("ddvUSRvl1");
-        assertThat(valueList1.getTitles()).containsEntry("title_fr", "domaine1");
-        assertThat(valueList1.getClassifiedTypes()).containsExactly("document", "folder");
-        assertThat(valueList1.getCodeMode()).isEqualTo("DISABLED");
     }
 
     Document getDocumentFromFile(File file) {

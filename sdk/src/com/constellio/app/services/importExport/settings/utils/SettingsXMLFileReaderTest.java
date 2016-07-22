@@ -200,7 +200,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
     }
 
     @Test
-    public void givenAValidDocumentWhenReadingCollectionTypesThenOK() {
+    public void givenAValidDocumentWhenReadingCollectionTypeTabsThenOK() {
         ImportedSettings importedSettings = reader.read();
         assertThat(importedSettings).isNotNull();
 
@@ -225,6 +225,24 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
         ImportedTab tab2 = folderType.getTabs().get(1);
         assertThat(tab2.getCode()).isEqualTo("default");
         assertThat(tab2.getValue()).isEqualTo("Métadonnées");
+    }
+
+    @Test
+    public void givenAValidDocumentWhenReadingCollectionDefaultSchemaThenOK() {
+        ImportedSettings importedSettings = reader.read();
+        assertThat(importedSettings).isNotNull();
+
+        List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+        assertThat(collectionSettings).hasSize(2);
+
+        // zeCollection
+        ImportedCollectionSettings anotherCollectionSettings = collectionSettings.get(0);
+
+        List<ImportedType> list1 = anotherCollectionSettings.getTypes();
+        assertThat(list1.size()).isEqualTo(2);
+
+        ImportedType folderType = list1.get(0);
+        assertThat(folderType.getCode()).isEqualTo("folder");
 
         // default-schema
         ImportedMetadataSchema folderDefaultSchema = folderType.getDefaultSchema();
@@ -258,75 +276,44 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
         assertThat(m2.getRequired()).isTrue();
         assertThat(m2.getTab()).isEqualTo("zeTab");
         assertThat(m2.getBehaviours()).isEqualTo(behaviours);
-
-
-// default
-        /* <type code="folder" label="Dossier">
-        <schemas>
-          <schema code="custom1">
-            <metadata code="m3" title="Titre m3" type="STRING" enabledIn="default,custom1,custom2" multiValue="true" requiredIn="custom1" />
-          </schema>
-        </schemas>
-      </type>
-<type code="document" label="Document">
-        <tabs>
-          <tab code="anotherTab" value="Mon nouvel onglet" />
-          <tab code="default" value="Métadonnées" />
-        </tabs>
-        <default-schema>
-          <metadata code="m4" title="titre m4" type="STRING" enabledIn="custom3" requiredIn="custom3" visibleInForm="true" />
-        </default-schema>
-        <schemas>
-          <schema code="custom3">
-          <metadata code="m5" title="titre m5" type="STRING" duplicable="true" enabled="true" essential="true"  searchable="true" sortable="true" unique="true" unmodifiable="true" advanceSearchable="true" multiValue="true" required="true" tab="anotherTab" />
-            <metadata code="m6" title="Titre m6" type="STRING" multiValue="true" />
-          </schema>
-        </schemas>
-      </type>
-      */
-
     }
 
     @Test
-    public void givenAValidSettingsDocumentWhenReadingThenDataAreAllLoaded() {
+    public void givenAValidDocumentWhenReadingZeCollectionCustomSchemataThenOK() {
         ImportedSettings importedSettings = reader.read();
         assertThat(importedSettings).isNotNull();
-
-        // configs
-        List<ImportedConfig> configs = importedSettings.getConfigs();
-        assertThat(configs).isNotEmpty().hasSize(6);
-        assertThat(configs.get(0).getKey()).isEqualTo("documentRetentionRules");
-        assertThat(configs.get(0).getValue()).isEqualTo("true");
-        assertThat(configs.get(1).getKey()).isEqualTo("enforceCategoryAndRuleRelationshipInFolder");
-        assertThat(configs.get(1).getValue()).isEqualTo("false");
-        assertThat(configs.get(2).getKey()).isEqualTo("calculatedCloseDate");
-        assertThat(configs.get(2).getValue()).isEqualTo("false");
-        assertThat(configs.get(3).getKey()).isEqualTo("calculatedCloseDateNumberOfYearWhenFixedRule");
-        assertThat(configs.get(3).getValue()).isEqualTo("2015");
-        assertThat(configs.get(4).getKey()).isEqualTo("closeDateRequiredDaysBeforeYearEnd");
-        assertThat(configs.get(4).getValue()).isEqualTo("15");
-        assertThat(configs.get(5).getKey()).isEqualTo("yearEndDate");
-        assertThat(configs.get(5).getValue()).isEqualTo("02/28");
 
         List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
         assertThat(collectionSettings).hasSize(2);
 
-        ImportedCollectionSettings zeCollectionSettings = collectionSettings.get(0);
-        assertThat(zeCollectionSettings).isNotNull();
-        assertThat(zeCollectionSettings.getCode()).isEqualTo(zeCollection);
+        // zeCollection
+        ImportedCollectionSettings anotherCollectionSettings = collectionSettings.get(0);
 
-        List<ImportedValueList> valueLists = zeCollectionSettings.getValueLists();
-        assertThat(valueLists).isNotEmpty().hasSize(4);
+        List<ImportedType> list1 = anotherCollectionSettings.getTypes();
+        assertThat(list1.size()).isEqualTo(2);
 
-        // anotherCollection
-        ImportedCollectionSettings anotherCollectionSettings = collectionSettings.get(1);
-        assertThat(anotherCollectionSettings).isNotNull();
-        assertThat(anotherCollectionSettings.getCode()).isEqualTo("anotherCollection");
+        ImportedType folderType = list1.get(0);
+        assertThat(folderType.getCode()).isEqualTo("folder");
 
+        // custom-schema
+        List<ImportedMetadataSchema> list = folderType.getCustomSchemata();
+        assertThat(list).hasSize(1);
+
+        ImportedMetadataSchema folderCustomSchema = list.get(0);
+        List<ImportedMetadata> customSchemaMetadata = folderCustomSchema.getAllMetadata();
+        assertThat(customSchemaMetadata).hasSize(1);
+        ImportedMetadata m3 = customSchemaMetadata.get(0);
+        assertThat(m3.getCode()).isEqualTo("m3");
+        assertThat(m3.getLabel()).isEqualTo("Titre m3");
+        assertThat(m3.getType()).isEqualTo("STRING");
+        assertThat(m3.getEnabledIn()).containsExactly("default", "custom1", "custom2");
+        assertThat(m3.getRequiredIn()).containsExactly("custom1");
+        assertThat(m3.getVisibleInFormIn()).isEmpty();
+        assertThat(m3.getMultiValue()).isTrue();
     }
 
     public Document getDocument() {
-        String inputFilePath = "/home/constellio/workspaces/settings-import-tests/settings-input.xml";
+        String inputFilePath = "settings-input.xml";
         File inputFile = new File(inputFilePath);
         SAXBuilder builder = new SAXBuilder();
         try {

@@ -370,7 +370,7 @@ public class SettingsImportServices {
         // TODO Valider le comportement
         if (importedMetadata.getMultiValue() != null) {
 //            if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
-                metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
+            metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
 //            }
         }
 
@@ -452,10 +452,21 @@ public class SettingsImportServices {
         for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
             Taxonomy taxonomy = entry.getKey();
             ImportedTaxonomy importedTaxonomy = entry.getValue();
+
+            Boolean visibleInHomepage = importedTaxonomy.getVisibleOnHomePage();
+            if (visibleInHomepage == null) { // keep system value if exists
+                Taxonomy taxonomyFor = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collectionCode, importedTaxonomy.getCode());
+                if (taxonomyFor != null) {
+                    visibleInHomepage = taxonomyFor.isVisibleInHomePage();
+                } else {
+                    visibleInHomepage = true;
+                }
+            }
+
             Taxonomy currTaxonomy = taxonomy
                     .withUserIds(importedTaxonomy.getUserIds())
                     .withGroupIds(importedTaxonomy.getGroupIds())
-                    .withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
+                    .withVisibleInHomeFlag(visibleInHomepage);
             appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
                     .addTaxonomy(currTaxonomy, schemasManager);
 

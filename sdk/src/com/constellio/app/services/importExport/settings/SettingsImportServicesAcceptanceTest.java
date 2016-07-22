@@ -1641,6 +1641,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(folder_custom_m1.isMultivalue()).isTrue();
         assertThat(folder_custom_m1.isMultiLingual()).isFalse();
 
+        // TODO Valider s'il est possible/permis de modifier les attributs
         Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
         assertThat(folder_custom_m2.isMultivalue()).isFalse();
         assertThat(folder_custom_m2.isMultiLingual()).isTrue();
