@@ -106,7 +106,7 @@ public class ImportedMetadata {
 
     public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
         this.essentialInSummary = essentialInSummary;
-        return null;
+        return this;
     }
 
     public ImportedMetadata setMultiValue(Boolean multiValue) {
@@ -120,6 +120,15 @@ public class ImportedMetadata {
 
     public ImportedMetadata setBehaviours(String behaviours) {
         this.behaviours = behaviours;
+        return this;
+    }
+
+    public Boolean getMultiLingual() {
+        return multiLingual;
+    }
+
+    public ImportedMetadata setMultiLingual(Boolean multiLingual) {
+        this.multiLingual = multiLingual;
         return this;
     }
 
@@ -246,10 +255,6 @@ public class ImportedMetadata {
     public ImportedMetadata setVisibleInTablesIn(List<String> visibleInTablesIn) {
         this.visibleInTablesIn = visibleInTablesIn;
         return this;
-    }
-
-    public Boolean getMultiLingual() {
-        return multiLingual;
     }
 
     public Boolean getRecordAutoComplete() {

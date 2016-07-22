@@ -1558,7 +1558,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
                 .setType(MetadataValueType.STRING).setEssential(false).setEssentialInSummary(true);
 
-        ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
+                .setCode("custom").addMetadata(m2);
 
         folderType.addSchema(customSchema);
 
@@ -1576,7 +1577,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
         Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
         assertThat(folder_custom_m1.isEssential()).isTrue();
-        assertThat(folder_custom_m1.isEssentialInSummary()).isTrue();
+        assertThat(folder_custom_m1.isEssentialInSummary()).isFalse();
 
         Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
         assertThat(folder_custom_m2.isEssential()).isFalse();
@@ -1601,6 +1602,125 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
         assertThat(folder_custom_m2.isEssential()).isTrue();
         assertThat(folder_custom_m2.isEssentialInSummary()).isFalse();
 
+    }
+
+    @Test
+    public void whenUpdatingMultivalueAndMultiLingualThenFlagIsSet() throws Exception {
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+        folderType.setDefaultSchema(defaultSchema);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+                .setMultiValue(true).setMultiLingual(false);
+        defaultSchema.addMetadata(m1);
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
+                .setType(MetadataValueType.STRING)
+                .setMultiValue(false).setMultiLingual(true);
+
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
+                .setCode("custom").addMetadata(m2);
+
+        folderType.addSchema(customSchema);
+
+        collectionSettings.addType(folderType);
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+
+        Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isMultivalue()).isTrue();
+        assertThat(folder_default_m1.isMultiLingual()).isFalse();
+
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isMultivalue()).isTrue();
+        assertThat(folder_custom_m1.isMultiLingual()).isFalse();
+
+        Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isMultivalue()).isFalse();
+        assertThat(folder_custom_m2.isMultiLingual()).isTrue();
+
+        m1.setMultiValue(false).setMultiLingual(true);
+        m2.setMultiValue(true).setMultiLingual(false);
+        importSettings();
+
+        schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+
+        folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isMultivalue()).isFalse();
+        assertThat(folder_default_m1.isMultiLingual()).isTrue();
+
+        folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isMultivalue()).isFalse();
+        assertThat(folder_custom_m1.isMultiLingual()).isTrue();
+
+        folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isMultivalue()).isTrue();
+        assertThat(folder_custom_m2.isMultiLingual()).isFalse();
+
+    }
+
+    @Test
+    public void whenUpdatingMultiLingualThenFlagIsSet() throws Exception {
+
+        ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+        ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+        folderType.setDefaultSchema(defaultSchema);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType(MetadataValueType.STRING)
+                .setMultiLingual(true);
+        defaultSchema.addMetadata(m1);
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType(MetadataValueType.STRING)
+                .setMultiLingual(false);
+
+        ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
+                .setCode("custom").addMetadata(m2);
+
+        folderType.addSchema(customSchema);
+
+        collectionSettings.addType(folderType);
+        settings.addCollectionsConfigs(collectionSettings);
+
+        importSettings();
+
+        MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+
+        // TODO valider que les inheritedBehaivours multivalue=false et multiLingual=false empêchent de modifier
+        Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isMultiLingual()).isTrue();
+
+        Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isMultiLingual()).isTrue();
+
+        Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isMultiLingual()).isFalse();
+
+        m1.setMultiLingual(false);
+        m2.setMultiLingual(true);
+        importSettings();
+
+        schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+                .getSchemaTypes(zeCollection).getSchemaType("folder");
+
+        folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+        assertThat(folder_default_m1.isMultiLingual()).isFalse();
+
+        folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+        assertThat(folder_custom_m1.isMultiLingual()).isFalse();
+
+        folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+        assertThat(folder_custom_m2.isMultiLingual()).isTrue();
 
     }
 

@@ -339,10 +339,6 @@ public class SettingsImportServices {
             metadataBuilder.setLabels(labels);
         }
 
-        if (importedMetadata.getRequired() != null) {
-            metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
-        }
-
         if (importedMetadata.getDuplicable() != null) {
             metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
         }
@@ -360,21 +356,18 @@ public class SettingsImportServices {
         }
 
         if (importedMetadata.getEssentialInSummary() != null) {
-            metadataBuilder.setEssentialInSummary(true);
+            metadataBuilder.setEssentialInSummary(importedMetadata.getEssentialInSummary());
         }
 
         metadataBuilder.setInputMask(importedMetadata.getInputMask());
 
         if (importedMetadata.getMultiLingual() != null) {
-            metadataBuilder.setMultiLingual(true);
+            metadataBuilder.setMultiLingual(importedMetadata.getMultiLingual());
         }
 
-        if (importedMetadata.getUnique() != null) {
-            metadataBuilder.setUniqueValue(true);
-        }
-
-        if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
-            if (importedMetadata.getMultiValue() != null) {
+        // TODO Valider le comportement
+        if (importedMetadata.getMultiValue() != null) {
+            if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
                 metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
             }
         }
@@ -383,12 +376,20 @@ public class SettingsImportServices {
             metadataBuilder.setSchemaAutocomplete(importedMetadata.getRecordAutoComplete());
         }
 
+        if (importedMetadata.getRequired() != null) {
+            metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
+        }
+
         if (importedMetadata.getSearchable() != null) {
             metadataBuilder.setSearchable(importedMetadata.getSearchable());
         }
 
         if (importedMetadata.getSortable() != null) {
             metadataBuilder.setSortable(importedMetadata.getSortable());
+        }
+
+        if (importedMetadata.getUnique() != null) {
+            metadataBuilder.setUniqueValue(importedMetadata.getUnique());
         }
 
         if (importedMetadata.getUnmodifiable() != null) {
