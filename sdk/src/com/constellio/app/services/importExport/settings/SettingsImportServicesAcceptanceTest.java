@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.settings;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -795,7 +796,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		assertThat(metadata1).isNotNull();
 		assertThat(metadata1.getLabel(Language.French)).isEqualTo("m1");
-		assertThat(metadata1.getType()).isEqualTo("STRING");
+		assertThat(metadata1.getType()).isEqualTo(STRING);
 		assertThat(metadata1.getInputMask()).isNullOrEmpty();
 		assertThat(metadata1.isDefaultRequirement()).isFalse();
 		assertThat(metadata1.isDuplicable()).isFalse();
@@ -1637,8 +1638,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(folder_custom_m2.isEssentialInSummary()).isFalse();
 
 	}
-
-
 
 	//TODO Temporaire @Test
 	public void whenUpdatingMultivalueAndMultiLingualThenFlagIsSet()
