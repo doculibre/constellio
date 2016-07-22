@@ -18,6 +18,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
@@ -26,10 +27,13 @@ import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -148,7 +152,8 @@ public class SettingsImportServices {
 
 					importCustomSchemata(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 
-					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types, newMetadatas);
+					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types,
+							newMetadatas);
 
 				}
 
@@ -158,8 +163,8 @@ public class SettingsImportServices {
 		MetadataSchemaTypes newSchemaTypes = schemasManager.getSchemaTypes(schemaTypes.getCollection());
 		updateSettingsMetadata(settings, newSchemaTypes, newMetadatas);
 
-
 	}
+
 	private void updateSettingsMetadata(ImportedCollectionSettings settings, MetadataSchemaTypes schemaTypes,
 			KeyListMap<String, String> newMetadatas) {
 		// TODO set tabs
@@ -201,7 +206,7 @@ public class SettingsImportServices {
 		displayManager.execute(transactionBuilder.build());
 
         /*
-        // Display
+		// Display
         for (ImportedTypeMetadata typeItem : typeMetadata) {
 
             Map<String, MetadataSchema> metadataSchemataCache = new HashMap<>();
@@ -242,16 +247,15 @@ public class SettingsImportServices {
         */
 	}
 
-
 	private void setupTypeDisplayConfig(SchemaTypesDisplayTransactionBuilder transactionBuilder,
 			ImportedType importedType, MetadataSchemaType type, KeyListMap<String, String> newMetadatas) {
 
 		Map<String, Map<String, Boolean>> schemaMetasDisplayVisibility, schemaMetasFormVisibility,
 				schemaMetasSearchVisibility, schemaMetasTablesVisibility;
-		schemaMetasDisplayVisibility = getSchemasMetasVisibility(type, importedType, DISPLAY, newMetadatas);
-		schemaMetasFormVisibility = getSchemasMetasVisibility(type, importedType, FORM, newMetadatas);
-		schemaMetasSearchVisibility = getSchemasMetasVisibility(type, importedType, SEARCH, newMetadatas);
-		schemaMetasTablesVisibility = getSchemasMetasVisibility(type, importedType, TABLES, newMetadatas);
+		schemaMetasDisplayVisibility = getSchemasMetasVisibility(type, importedType, ListType.DISPLAY, newMetadatas);
+		schemaMetasFormVisibility = getSchemasMetasVisibility(type, importedType, ListType.FORM, newMetadatas);
+		schemaMetasSearchVisibility = getSchemasMetasVisibility(type, importedType, ListType.SEARCH, newMetadatas);
+		schemaMetasTablesVisibility = getSchemasMetasVisibility(type, importedType, ListType.TABLES, newMetadatas);
 
 		for (MetadataSchema schema : type.getAllSchemas()) {
 			SchemaDisplayConfig schemaDisplayConfig = transactionBuilder.updateSchemaDisplayConfig(schema);
@@ -307,7 +311,7 @@ public class SettingsImportServices {
 
 		for (Map.Entry<String, List<String>> newMetadataInSchemaEntry : newMetadatas.getMapEntries()) {
 
-			if (listType == DISPLAY || listType == FORM) {
+			if (listType == ListType.DISPLAY || listType == ListType.FORM) {
 				if (newMetadataInSchemaEntry.getKey().equals(type.getDefaultSchema().getCode())) {
 					for (MetadataSchema schema : type.getAllSchemas()) {
 						for (String metadataLocalCode : newMetadataInSchemaEntry.getValue()) {
@@ -348,7 +352,7 @@ public class SettingsImportServices {
 			}
 		}
 
-		for (ImportedMetadataSchema metadataSchema : importedType.getCustomSchemas()) {
+		for (ImportedMetadataSchema metadataSchema : importedType.getCustomSchemata()) {
 			Map<String, Boolean> schemaMetadatas = schemasMetadatas.get(metadataSchema.getCode());
 			if (schemaMetadatas == null) {
 				schemaMetadatas = new HashMap<>();
@@ -462,7 +466,8 @@ public class SettingsImportServices {
 	}
 
 	private void importSchema(MetadataSchemaTypesBuilder types,
-			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema, KeyListMap<String, String> newMetadatas) {
+			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
+			KeyListMap<String, String> newMetadatas) {
 		MetadataSchemaBuilder customSchemaBuilder;
 		try {
 			customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
