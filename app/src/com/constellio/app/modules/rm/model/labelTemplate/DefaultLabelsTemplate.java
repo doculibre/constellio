@@ -213,19 +213,20 @@ public class DefaultLabelsTemplate {
 
 		LabelTemplateField categoryCodeField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Folder.CATEGORY_CODE,
-				null, 1, 1, 14, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
+				null, 1, 1, 14, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 60,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
 		LabelTemplateField folderIdField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.IDENTIFIER,
-				null, 15, 1, 5, 4, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
+				null, 15, 1, 9, 3, FontFamily.HELVETICA.name(), 8.0f, true, true, 62,
 				LabelTemplateFieldHorizontalAlignment.RIGHT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 
+		//FIXME add plugin for larger title size
 		LabelTemplateField folderTitleField = new LabelTemplateField(
 				Folder.DEFAULT_SCHEMA + "_" + Schemas.TITLE_CODE,
-				null, 1, 5, 28, 2, FontFamily.HELVETICA.name(), 8.0f, true, true, 130,
+				null, 1, 4, 28, 3, FontFamily.HELVETICA.name(), 12.0f, true, true, 130,
 				LabelTemplateFieldHorizontalAlignment.LEFT,
 				LabelTemplateFieldVerticalAlignment.CENTER, null, null, null);
 

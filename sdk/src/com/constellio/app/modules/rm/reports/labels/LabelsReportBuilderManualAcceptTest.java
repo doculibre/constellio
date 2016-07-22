@@ -129,25 +129,25 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		categoryCodeField.positionX = 1;
 		categoryCodeField.positionY = 1;
 		categoryCodeField.width = 14;
-		categoryCodeField.height = 4;
-		categoryCodeField.setValue("categoryCodeField");
+		categoryCodeField.height = 3;
+		categoryCodeField.setValue("x4 1840");
 		categoryCodeField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField folderIdField = new LabelsReportField();
 		folderIdField.positionX = 15;
 		folderIdField.positionY = 1;
-		folderIdField.width = 5;
-		folderIdField.height = 4;
-		folderIdField.setValue("FolderId");
+		folderIdField.width = 9;
+		folderIdField.height = 3;
+		folderIdField.setValue("00000100092 id");
 		folderIdField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField folderTitleField = new LabelsReportField();
 		folderTitleField.positionX = 1;
-		folderTitleField.positionY = 5;
+		folderTitleField.positionY = 4;
 		folderTitleField.width = 28;
-		folderTitleField.height = 2;
-		folderTitleField.setValue("FolderTitle");
-		folderTitleField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+		folderTitleField.height = 3;
+		folderTitleField.setValue("SIMPLEX-Entente de partenariat 2017 de partenariat 2017");
+		folderTitleField.setFont(new LabelsReportFont().setSize(12.0f).setBold(true).setItalic(true));
 
 		LabelsReportField copyStatusCodeField = new LabelsReportField();
 		copyStatusCodeField.positionX = 14;
@@ -187,9 +187,9 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 						sticker, sticker, sticker, sticker, sticker);
 
 		model.setLabelsReportLabels(stickers);
-		model.setPrintBorders(true);
+		model.setPrintBorders(false);
 
-		build(new LabelsReportBuilder(model));
+		buildAndOpen(new LabelsReportBuilder(model));
 	}
 
 
