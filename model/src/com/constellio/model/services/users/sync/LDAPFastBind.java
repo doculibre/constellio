@@ -67,10 +67,15 @@ public class LDAPFastBind {
 			env.put(Context.REFERRAL, "follow");
 		}
 
+		if (ldapurl.startsWith("ldaps")) {
+			//env.put(Context.SECURITY_PROTOCOL, "ssl");
+			env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.MySSLSocketFactory");
+		}
+
 		if (activeDirectory) {
 			connCtls = new Control[] { new FastBindConnectionControl() };
 		} else {
-			connCtls = new Control[] { };
+			connCtls = new Control[] {};
 		}
 
 		//first time we initialize the context, no credentials are supplied
@@ -87,7 +92,7 @@ public class LDAPFastBind {
 			ctx = new InitialLdapContext(env, connCtls);
 		} catch (NamingException e) {
 			if (activeDirectory) {
-				connCtls = new Control[] { };
+				connCtls = new Control[] {};
 				try {
 					ctx = new InitialLdapContext(env, connCtls);
 				} catch (NamingException e2) {

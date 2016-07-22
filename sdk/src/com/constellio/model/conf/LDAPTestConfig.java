@@ -104,4 +104,11 @@ public class LDAPTestConfig {
 				getUsersWithoutGroupsBaseContextList(), asList("zeCollection"));
 	}
 
+	public static LDAPServerConfiguration getLDAPSServerConfiguration() {
+		return new LDAPServerConfiguration(getLDAPSUrls(), getDomains(), getDirectoryType(), true, false);
+	}
+
+	private static List<String> getLDAPSUrls() {
+		return asList(new String[] { SDKPasswords.testLDAPSServer() });
+	}
 }

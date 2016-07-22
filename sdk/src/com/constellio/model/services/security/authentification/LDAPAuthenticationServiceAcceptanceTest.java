@@ -24,6 +24,20 @@ import com.constellio.sdk.tests.ConstellioTest;
 public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 
 	@Test
+	public void givenLdapsWhenAuthenticatingUsersThenOK()
+			throws Exception {
+		givenCollectionWithUsers("administrator");
+		saveValidLDAPSConfig();
+		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
+
+		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword());
+		assertThat(authenticated).isTrue();
+
+		authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword() + "salt");
+		assertThat(authenticated).isFalse();
+	}
+
+	@Test
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingValidLdapUsersWithValidCredentialsThenSuccess()
 			throws Exception {
 		givenCollectionWithUsers("administrator");
@@ -48,6 +62,13 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 
 	private void saveValidLDAPConfig() {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+		getModelLayerFactory().getLdapConfigurationManager()
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+	}
+
+	private void saveValidLDAPSConfig() {
+		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPSServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager()
 				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
