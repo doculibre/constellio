@@ -5,39 +5,48 @@ import java.util.List;
 
 public class ImportedMetadataSchema {
 
-    private String code;
-    private List<ImportedMetadata> metadatas = new ArrayList<>();
-    private String label;
+	private String code;
+	private List<ImportedMetadata> metadatas = new ArrayList<>();
+	private String label;
 
-    public ImportedMetadataSchema setCode(String code) {
-        this.code = code;
-        return this;
-    }
+	public ImportedMetadataSchema setCode(String code) {
+		this.code = code;
+		return this;
+	}
 
-    public String getCode(){
-        return code;
-    }
+	public String getCode() {
+		return code;
+	}
 
-    public ImportedMetadataSchema addMetadata(ImportedMetadata importedMetadata) {
-        metadatas.add(importedMetadata);
-        return this;
-    }
+	public ImportedMetadataSchema addMetadata(ImportedMetadata importedMetadata) {
+		metadatas.add(importedMetadata);
+		return this;
+	}
 
-    public ImportedMetadataSchema setAllMetadatas(List<ImportedMetadata> metadata){
-        this.metadatas = metadata;
-        return  this;
-    }
+	public ImportedMetadataSchema setAllMetadatas(List<ImportedMetadata> metadata) {
+		this.metadatas = metadata;
+		return this;
+	}
 
-    public List<ImportedMetadata> getAllMetadata(){
-        return metadatas;
-    }
+	public List<ImportedMetadata> getAllMetadata() {
+		return metadatas;
+	}
 
-    public ImportedMetadataSchema setLabel(String label){
-        this.label = label;
-        return this;
-    }
+	public ImportedMetadata getMetadata(String localCode) {
+		for (ImportedMetadata metadata : metadatas) {
+			if (localCode.equals(metadata.getCode())) {
+				return metadata;
+			}
+		}
+		return null;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public ImportedMetadataSchema setLabel(String label) {
+		this.label = label;
+		return this;
+	}
+
+	public String getLabel() {
+		return label;
+	}
 }

@@ -1,275 +1,320 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.schemas.MetadataValueType;
+
 public class ImportedMetadata {
 
-    private String code;
-    private String label;
-    private MetadataValueType type;
-    private Boolean enabled;// = true;
-    private List<String> enabledIn = new ArrayList<>();
-    private Boolean required;// = true;
-    private List<String> requiredIn = new ArrayList<>();
-    private Boolean visibleInForm;// = true;
-    private List<String> visibleInFormIn = new ArrayList<>();
-    private Boolean visibleInDisplay;// = true;
-    private List<String> visibleInDisplayIn = new ArrayList<>();
-    private Boolean visibleInSearchResult;// = false;
-    private List<String> visibleInResultIn = new ArrayList<>();
-    private Boolean visibleInTables;// = false;
-    private List<String> visibleInTablesIn = new ArrayList<>();
+	private String code;
+	private String label;
+	private MetadataValueType type;
+	private Boolean enabled;// = true;
+	private List<String> enabledIn = new ArrayList<>();
+	private Boolean required;// = true;
+	private List<String> requiredIn = new ArrayList<>();
+	private Boolean visibleInForm;// = true;
+	private List<String> visibleInFormIn = new ArrayList<>();
+	private Boolean visibleInDisplay;// = true;
+	private List<String> visibleInDisplayIn = new ArrayList<>();
+	private Boolean visibleInSearchResult;// = false;
+	private List<String> visibleInResultIn = new ArrayList<>();
+	private Boolean visibleInTables;// = false;
+	private List<String> visibleInTablesIn = new ArrayList<>();
 
-    private String tab;
-    private Boolean multiValue;
+	private String tab;
+	private Boolean multiValue;
 
-    private String behaviours;
-    private String inputMask;
-    private Boolean duplicable;
-    private Boolean encrypted;
-    private Boolean essential;
-    private Boolean essentialInSummary;
-    private Boolean multiLingual;
-    private Boolean unique;
-    private Boolean recordAutoComplete;
-    private Boolean searchable;
-    private Boolean sortable;
-    private Boolean unmodifiable;
+	private String behaviours;
+	private String inputMask;
+	private Boolean duplicable;
+	private Boolean encrypted;
+	private Boolean essential;
+	private Boolean essentialInSummary;
+	private Boolean multiLingual;
+	private Boolean unique;
+	private Boolean recordAutoComplete;
+	private Boolean searchable;
+	private Boolean sortable;
+	private Boolean unmodifiable;
 
-    public String getCode() {
-        return code;
-    }
+	public String getCode() {
+		return code;
+	}
 
-    public ImportedMetadata setCode(String code) {
-        this.code = code;
-        return this;
-    }
+	public ImportedMetadata setCode(String code) {
+		this.code = code;
+		return this;
+	}
 
-    public ImportedMetadata setLabel(String label) {
-        this.label = label;
-        return this;
-    }
+	public ImportedMetadata setLabel(String label) {
+		this.label = label;
+		return this;
+	}
 
-    public String getLabel(){
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public ImportedMetadata setType(MetadataValueType type) {
-        this.type = type;
-        return this;
-    }
+	public ImportedMetadata setType(MetadataValueType type) {
+		this.type = type;
+		return this;
+	}
 
-    public Boolean getEnabled() {
-        return enabled;
-    }
+	public Boolean getEnabled() {
+		return enabled;
+	}
 
-    public ImportedMetadata setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-        return this;
-    }
+	public ImportedMetadata setEnabled(Boolean enabled) {
+		this.enabled = enabled;
+		return this;
+	}
 
-    public Boolean getRequired() {
-        return required;
-    }
+	public Boolean getRequired() {
+		return required;
+	}
 
-    public ImportedMetadata setRequired(Boolean required) {
-        this.required = required;
-        return this;
-    }
+	public ImportedMetadata setRequired(Boolean required) {
+		this.required = required;
+		return this;
+	}
 
-    public String getTab() {
-        return tab;
-    }
+	public String getTab() {
+		return tab;
+	}
 
-    public ImportedMetadata setTab(String tab) {
-        this.tab = tab;
-        return this;
-    }
+	public ImportedMetadata setTab(String tab) {
+		this.tab = tab;
+		return this;
+	}
 
-    public ImportedMetadata setEnabledIn(List<String> enabledIn) {
-        this.enabledIn = enabledIn;
-        return this;
-    }
+	public ImportedMetadata setEnabledIn(List<String> enabledIn) {
+		this.enabledIn = enabledIn;
+		return this;
+	}
 
-    public List<String> getEnabledIn(){
-        return  enabledIn;
-    }
+	public List<String> getEnabledIn() {
+		return enabledIn;
+	}
 
+	public ImportedMetadata setEssential(Boolean essential) {
+		this.essential = essential;
+		return this;
+	}
 
-    public ImportedMetadata setEssential(Boolean essential) {
-        this.essential = essential;
-        return this;
-    }
+	public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
+		this.essentialInSummary = essentialInSummary;
+		return null;
+	}
 
-    public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
-        this.essentialInSummary = essentialInSummary;
-        return null;
-    }
+	public ImportedMetadata setMultiValue(Boolean multiValue) {
+		this.multiValue = multiValue;
+		return this;
+	}
 
-    public ImportedMetadata setMultiValue(Boolean multiValue) {
-        this.multiValue = multiValue;
-        return this;
-    }
+	public Boolean getMultiValue() {
+		return multiValue;
+	}
 
-    public Boolean getMultiValue() {
-        return  multiValue;
-    }
+	public ImportedMetadata setBehaviours(String behaviours) {
+		this.behaviours = behaviours;
+		return this;
+	}
 
-    public ImportedMetadata setBehaviours(String behaviours) {
-        this.behaviours = behaviours;
-        return this;
-    }
+	public String getBehaviours() {
+		return behaviours;
+	}
 
-    public String getBehaviours() {
-        return behaviours;
-    }
+	public Boolean getDuplicable() {
+		return duplicable;
+	}
 
+	public ImportedMetadata setDuplicable(Boolean duplicable) {
+		this.duplicable = duplicable;
+		return this;
+	}
 
-    public Boolean getDuplicable() {
-        return duplicable;
-    }
+	public Boolean getEncrypted() {
+		return encrypted;
+	}
 
-    public ImportedMetadata setDuplicable(Boolean duplicable) {
-        this.duplicable = duplicable;
-        return this;
-    }
+	public ImportedMetadata setEncrypted(Boolean encrypted) {
+		this.encrypted = encrypted;
+		return this;
+	}
 
-    public Boolean getEncrypted() {
-        return encrypted;
-    }
+	public Boolean getEssential() {
+		return essential;
+	}
 
-    public ImportedMetadata setEncrypted(Boolean encrypted) {
-        this.encrypted = encrypted;
-        return this;
-    }
+	public Boolean getEssentialInSummary() {
+		return essentialInSummary;
+	}
 
-    public Boolean getEssential() {
-        return essential;
-    }
+	public String getInputMask() {
+		return inputMask;
+	}
 
-    public Boolean getEssentialInSummary() {
-        return essentialInSummary;
-    }
+	public ImportedMetadata setInputMask(String inputMask) {
+		this.inputMask = inputMask;
+		return this;
+	}
 
-    public String getInputMask() {
-        return inputMask;
-    }
+	public List<String> getRequiredIn() {
+		return requiredIn;
+	}
 
-    public ImportedMetadata setInputMask(String inputMask) {
-        this.inputMask = inputMask;
-        return this;
-    }
+	public ImportedMetadata setRequiredIn(List<String> requiredIn) {
+		this.requiredIn = requiredIn;
+		return this;
+	}
 
-    public List<String> getRequiredIn() {
-        return requiredIn;
-    }
+	public MetadataValueType getType() {
+		return type;
+	}
 
-    public ImportedMetadata setRequiredIn(List<String> requiredIn) {
-        this.requiredIn = requiredIn;
-        return this;
-    }
+	public Boolean getVisibleInForm() {
+		return visibleInForm;
+	}
 
-    public MetadataValueType getType() {
-        return type;
-    }
+	public ImportedMetadata setVisibleInForm(Boolean visibleInForm) {
+		this.visibleInForm = visibleInForm;
+		return this;
+	}
 
-    public Boolean getVisibleInForm() {
-        return visibleInForm;
-    }
+	public Boolean getVisibleInDisplay() {
+		return visibleInDisplay;
+	}
 
-    public ImportedMetadata setVisibleInForm(Boolean visibleInForm) {
-        this.visibleInForm = visibleInForm;
-        return this;
-    }
+	public ImportedMetadata setVisibleInDisplay(Boolean visibleInDisplay) {
+		this.visibleInDisplay = visibleInDisplay;
+		return this;
+	}
 
-    public Boolean getVisibleInDisplay() {
-        return visibleInDisplay;
-    }
+	public Boolean getVisibleInSearchResult() {
+		return visibleInSearchResult;
+	}
 
-    public ImportedMetadata setVisibleInDisplay(Boolean visibleInDisplay) {
-        this.visibleInDisplay = visibleInDisplay;
-        return this;
-    }
+	public ImportedMetadata setVisibleInSearchResult(Boolean visibleInSearchResult) {
+		this.visibleInSearchResult = visibleInSearchResult;
+		return this;
+	}
 
-    public Boolean getVisibleInSearchResult() {
-        return visibleInSearchResult;
-    }
+	public Boolean getVisibleInTables() {
+		return visibleInTables;
+	}
 
-    public ImportedMetadata setVisibleInSearchResult(Boolean visibleInSearchResult) {
-        this.visibleInSearchResult = visibleInSearchResult;
-        return this;
-    }
+	public ImportedMetadata setVisibleInTables(Boolean visibleInTables) {
+		this.visibleInTables = visibleInTables;
+		return this;
+	}
 
-    public Boolean getVisibleInTables() {
-        return visibleInTables;
-    }
+	public List<String> getVisibleInFormIn() {
+		return visibleInFormIn;
+	}
 
-    public ImportedMetadata setVisibleInTables(Boolean visibleInTables) {
-        this.visibleInTables = visibleInTables;
-        return this;
-    }
+	public ImportedMetadata setVisibleInFormIn(List<String> visibleInFormIn) {
+		this.visibleInFormIn = visibleInFormIn;
+		return this;
+	}
 
-    public List<String> getVisibleInFormIn() {
-        return visibleInFormIn;
-    }
+	public List<String> getVisibleInDisplayIn() {
+		return visibleInDisplayIn;
+	}
 
-    public ImportedMetadata setVisibleInFormIn(List<String> visibleInFormIn) {
-        this.visibleInFormIn = visibleInFormIn;
-        return this;
-    }
+	public ImportedMetadata setVisibleInDisplayIn(List<String> visibleInDisplayIn) {
+		this.visibleInDisplayIn = visibleInDisplayIn;
+		return this;
+	}
 
-    public List<String> getVisibleInDisplayIn() {
-        return visibleInDisplayIn;
-    }
+	public List<String> getVisibleInResultIn() {
+		return visibleInResultIn;
+	}
 
-    public ImportedMetadata setVisibleInDisplayIn(List<String> visibleInDisplayIn) {
-        this.visibleInDisplayIn = visibleInDisplayIn;
-        return this;
-    }
+	public ImportedMetadata setVisibleInResultIn(List<String> visibleInResultIn) {
+		this.visibleInResultIn = visibleInResultIn;
+		return this;
+	}
 
-    public List<String> getVisibleInResultIn() {
-        return visibleInResultIn;
-    }
+	public List<String> getVisibleInTablesIn() {
+		return visibleInTablesIn;
+	}
 
-    public ImportedMetadata setVisibleInResultIn(List<String> visibleInResultIn) {
-        this.visibleInResultIn = visibleInResultIn;
-        return this;
-    }
+	public ImportedMetadata setVisibleInTablesIn(List<String> visibleInTablesIn) {
+		this.visibleInTablesIn = visibleInTablesIn;
+		return this;
+	}
 
-    public List<String> getVisibleInTablesIn() {
-        return visibleInTablesIn;
-    }
+	public List<String> getVisibleInListInSchemas(ListType listType) {
+		switch (listType) {
 
-    public ImportedMetadata setVisibleInTablesIn(List<String> visibleInTablesIn) {
-        this.visibleInTablesIn = visibleInTablesIn;
-        return this;
-    }
+		case DISPLAY:
+			return getVisibleInDisplayIn();
 
-    public Boolean getMultiLingual() {
-        return multiLingual;
-    }
+		case FORM:
+			return getVisibleInFormIn();
 
-    public Boolean getRecordAutoComplete() {
-        return recordAutoComplete;
-    }
+		case SEARCH:
+			return getVisibleInResultIn();
 
-    public Boolean getSearchable() {
-        return searchable;
-    }
+		case TABLES:
+			return getVisibleInTablesIn();
 
-    public Boolean getSortable() {
-        return sortable;
-    }
+		default:
+			throw new RuntimeException("Unsupported list " + listType);
 
-    public Boolean getUnmodifiable() {
-        return unmodifiable;
-    }
+		}
 
-    public Boolean getUnique() {
-        return unique;
-    }
+	}
 
+	public Boolean getVisible(ListType listType) {
+		switch (listType) {
+
+		case DISPLAY:
+			return getVisibleInDisplay();
+
+		case FORM:
+			return getVisibleInForm();
+
+		case SEARCH:
+			return getVisibleInSearchResult();
+
+		case TABLES:
+			return getVisibleInTables();
+
+		default:
+			throw new RuntimeException("Unsupported list " + listType);
+
+		}
+
+	}
+
+	public Boolean getMultiLingual() {
+		return multiLingual;
+	}
+
+	public Boolean getRecordAutoComplete() {
+		return recordAutoComplete;
+	}
+
+	public Boolean getSearchable() {
+		return searchable;
+	}
+
+	public Boolean getSortable() {
+		return sortable;
+	}
+
+	public Boolean getUnmodifiable() {
+		return unmodifiable;
+	}
+
+	public Boolean getUnique() {
+		return unique;
+	}
+
+	public enum ListType {
+		DISPLAY, FORM, SEARCH, TABLES
+	}
 }
