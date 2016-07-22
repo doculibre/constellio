@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
@@ -77,7 +78,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		Runnable synchronizeAction = new Runnable() {
 			@Override
 			public void run() {
-				synchronize();
+				synchronizeIfPossible(new LDAPSynchProgressionInfo());
 			}
 		};
 
@@ -87,7 +88,22 @@ public class LDAPUserSyncManager implements StatefulService {
 				.executedEvery(userSyncConfiguration.getDurationBetweenExecution()));
 	}
 
+	public synchronized void synchronizeIfPossible(LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
+		if (!Toggle.LDAP_USERS_SYNCH_PROCESS.isEnabled()) {
+			Toggle.LDAP_USERS_SYNCH_PROCESS.enable();
+			try {
+				synchronize(ldapSynchProgressionInfo);
+			} finally {
+				Toggle.LDAP_USERS_SYNCH_PROCESS.disable();
+			}
+		}
+	}
+
 	public synchronized void synchronize() {
+		synchronize(null);
+	}
+
+	public synchronized void synchronize(LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
 		this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(true);
 		this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
 
@@ -103,10 +119,15 @@ public class LDAPUserSyncManager implements StatefulService {
 		for (String url : getNonEmptyUrls(serverConfiguration)) {
 			LDAPUsersAndGroups importedUsersAndgroups = ldapServices
 					.importUsersAndGroups(serverConfiguration, userSyncConfiguration, url);
+			if (ldapSynchProgressionInfo != null) {
+				ldapSynchProgressionInfo.totalGroupsAndUsers = importedUsersAndgroups.getUsers().size() +
+						importedUsersAndgroups.getGroups().size();
+			}
 			Set<LDAPGroup> ldapGroups = importedUsersAndgroups.getGroups();
 			Set<LDAPUser> ldapUsers = importedUsersAndgroups.getUsers();
 
-			UpdatedUsersAndGroups updatedUsersAndGroups = updateUsersAndGroups(ldapUsers, ldapGroups, selectedCollectionsCodes);
+			UpdatedUsersAndGroups updatedUsersAndGroups = updateUsersAndGroups(ldapUsers, ldapGroups, selectedCollectionsCodes,
+					ldapSynchProgressionInfo);
 
 			usersIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getUsersNames());
 			groupsIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getGroupsCodes());
@@ -133,7 +154,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private UpdatedUsersAndGroups updateUsersAndGroups(Set<LDAPUser> ldapUsers, Set<LDAPGroup> ldapGroups,
-			List<String> selectedCollectionsCodes) {
+			List<String> selectedCollectionsCodes, LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
 		UpdatedUsersAndGroups updatedUsersAndGroups = new UpdatedUsersAndGroups();
 		for (LDAPGroup ldapGroup : ldapGroups) {
 			GlobalGroup group = createGlobalGroupFromLdapGroup(ldapGroup, selectedCollectionsCodes);
@@ -143,7 +164,9 @@ public class LDAPUserSyncManager implements StatefulService {
 			} catch (Throwable e) {
 				LOGGER.error("Group ignored due to error when trying to add it " + group.getCode(), e);
 			}
-
+			if (ldapSynchProgressionInfo != null) {
+				ldapSynchProgressionInfo.processedGroupsAndUsers++;
+			}
 		}
 
 		for (LDAPUser ldapUser : ldapUsers) {
@@ -156,6 +179,7 @@ public class LDAPUserSyncManager implements StatefulService {
 					LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
 				}
 			}
+			ldapSynchProgressionInfo.processedGroupsAndUsers++;
 		}
 
 		return updatedUsersAndGroups;
@@ -293,6 +317,19 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		public void addGroupCode(String groupCode) {
 			groupsCodes.add(groupCode);
+		}
+	}
+
+	public static class LDAPSynchProgressionInfo {
+		int totalGroupsAndUsers;
+		int processedGroupsAndUsers;
+
+		public int getProgressPercentage() {
+			if (totalGroupsAndUsers == 0) {
+				return 0;
+			} else {
+				return processedGroupsAndUsers / totalGroupsAndUsers;
+			}
 		}
 	}
 }

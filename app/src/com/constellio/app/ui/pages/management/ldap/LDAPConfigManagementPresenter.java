@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.EmptyDomainsRuntimeException;
 import com.constellio.model.conf.ldap.EmptyUrlsRuntimeException;
 import com.constellio.model.conf.ldap.InvalidUrlRuntimeException;
@@ -23,6 +24,7 @@ import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotCon
 import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 
 public class LDAPConfigManagementPresenter extends
 										   BasePresenter<LDAPConfigManagementView> {
@@ -33,11 +35,11 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public LDAPServerConfiguration getLDAPServerConfiguration() {
-		return view.getConstellioFactories().getModelLayerFactory().getLdapConfigurationManager().getLDAPServerConfiguration();
+		return modelLayerFactory.getLdapConfigurationManager().getLDAPServerConfiguration();
 	}
 
 	public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
-		return view.getConstellioFactories().getModelLayerFactory().getLdapConfigurationManager()
+		return modelLayerFactory.getLdapConfigurationManager()
 				.getLDAPUserSyncConfiguration(true);
 	}
 
@@ -132,5 +134,28 @@ public class LDAPConfigManagementPresenter extends
 
 	public List<String> getSelectedCollections() {
 		return modelLayerFactory.getLdapConfigurationManager().getLDAPUserSyncConfiguration().getSelectedCollectionsCodes();
+	}
+
+	public LDAPSynchProgressionInfo forceSynchronization() {
+		LDAPSynchProgressionInfo info = new LDAPSynchProgressionInfo();
+		new Thread(new ForceSynchThread(info)).start();
+		return info;
+	}
+
+	public boolean isForceSynchVisible() {
+		return !Toggle.LDAP_USERS_SYNCH_PROCESS.isEnabled() && getLDAPServerConfiguration().getLdapAuthenticationActive()
+				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null;
+	}
+
+	private class ForceSynchThread implements Runnable {
+		private final LDAPSynchProgressionInfo info;
+		public ForceSynchThread(LDAPSynchProgressionInfo info) {
+			this.info = info;
+		}
+
+		@Override
+		public void run() {
+			modelLayerFactory.getLdapUserSyncManager().synchronize(info);
+		}
 	}
 }

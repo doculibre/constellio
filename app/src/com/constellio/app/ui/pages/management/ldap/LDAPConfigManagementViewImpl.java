@@ -45,7 +45,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		layout.addComponent(tabsheet);
 
-		buildSaveAndTestButtonsPanel(layout);
+		buildButtonsPanel(layout);
 
 		testAuthentication = new TextArea($("ldap.test.results"));
 		testAuthentication.setSizeFull();

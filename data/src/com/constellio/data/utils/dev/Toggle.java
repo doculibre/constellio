@@ -16,6 +16,7 @@ public class Toggle {
 	public static AvailableToggle SIMULATE_CONNECTOR_DOWNLOAD_CONTENT = newToggle();
 	public static AvailableToggle FORCE_ROLLBACK = newToggle();
 	public static AvailableToggle LOST_PRIVATE_KEY = newToggle();
+	public static AvailableToggle LDAP_USERS_SYNCH_PROCESS = newToggle();
 
 	// ------------------------------------------------
 
