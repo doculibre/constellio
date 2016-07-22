@@ -5,6 +5,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 
 import org.joda.time.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
@@ -30,6 +32,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPConfigManagementView {
+	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigBaseView.class);
 	protected final LDAPConfigManagementPresenter presenter;
 
 	protected CheckBox ldapAuthenticationActive;
@@ -157,14 +160,20 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		Button testButton = new BaseButton($("ldap.test.button")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				testAuthentication.setVisible(true);
-				LDAPServerConfiguration ldapServerConfiguration = getLDAPServerConfiguration();
+				try{
+					testAuthentication.setVisible(true);
+					LDAPServerConfiguration ldapServerConfiguration = getLDAPServerConfiguration();
 
-				LDAPUserSyncConfiguration ldapUserSyncConfiguration = getLDAPUserSyncConfiguration();
-				testAuthentication.setValue(
-						presenter.getAuthenticationResultMessage(ldapServerConfiguration, getAuthenticationUser(), getAuthenticationPassword()) + "\n"
-								+ presenter.getSynchResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration));
-				layout.replaceComponent(testAuthentication, testAuthentication);
+					LDAPUserSyncConfiguration ldapUserSyncConfiguration = getLDAPUserSyncConfiguration();
+					testAuthentication.setValue(
+							presenter.getAuthenticationResultMessage(ldapServerConfiguration, getAuthenticationUser(), getAuthenticationPassword()) + "\n"
+									+ presenter.getSynchResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration));
+					layout.replaceComponent(testAuthentication, testAuthentication);
+				}catch(Throwable e){
+					LOGGER.warn("Error when testing ldap configuration ", e);
+					showErrorMessage(e.getMessage());
+				}
+
 			}
 		};
 

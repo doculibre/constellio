@@ -70,6 +70,9 @@ public class LDAPConfigManagementPresenter extends
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 			String user, String password) {
 		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
+		if(StringUtils.isBlank(user) || StringUtils.isBlank(password)){
+			return $("ldap.authentication.fail");
+		}
 		try {
 			ldapServices.authenticateUser(ldapServerConfiguration, user, password);
 			return $("ldap.authentication.success");
