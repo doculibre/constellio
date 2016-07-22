@@ -290,6 +290,16 @@ public class Transaction {
 		return getRecordUpdateOptions().isSkipReferenceValidation();
 	}
 
+	public void remove(Record record) {
+		for (Iterator<Record> iterator = records.iterator(); iterator.hasNext(); ) {
+			Record aRecord = iterator.next();
+
+			if (aRecord.getId().equals(record.getId())) {
+				iterator.remove();
+			}
+		}
+	}
+
 	public void remove(RecordWrapper recordWrapper) {
 		for (Iterator<Record> iterator = records.iterator(); iterator.hasNext(); ) {
 			Record record = iterator.next();

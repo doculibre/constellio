@@ -108,10 +108,23 @@ public class RecordsImportServices implements ImportServices {
 		return bulkImport(importDataProvider, bulkImportProgressionListener, user, new ArrayList<String>());
 	}
 
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+			final BulkImportProgressionListener bulkImportProgressionListener, final User user,
+			final BulkImportParams params) {
+		return bulkImport(importDataProvider, bulkImportProgressionListener, user, new ArrayList<String>(), params);
+	}
+
 	@Override
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user, List<String> collections)
+			throws RecordsImportServicesRuntimeException {
+		return bulkImport(importDataProvider, bulkImportProgressionListener, user, collections, new BulkImportParams());
+	}
+
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+			final BulkImportProgressionListener bulkImportProgressionListener,
+			final User user, List<String> collections, BulkImportParams params)
 			throws RecordsImportServicesRuntimeException {
 
 		ProgressionHandler progressionHandler = new ProgressionHandler(bulkImportProgressionListener);
@@ -125,7 +138,7 @@ public class RecordsImportServices implements ImportServices {
 			ResolverCache resolverCache = new ResolverCache(modelLayerFactory.newRecordServices(),
 					modelLayerFactory.newSearchServices(), types, importDataProvider);
 			validate(importDataProvider, progressionHandler, types, resolverCache, extensions);
-			return run(importDataProvider, progressionHandler, user, types, resolverCache, extensions);
+			return run(importDataProvider, progressionHandler, user, types, resolverCache, extensions, params);
 		} finally {
 			importDataProvider.close();
 		}
@@ -143,7 +156,8 @@ public class RecordsImportServices implements ImportServices {
 	}
 
 	private BulkImportResults run(ImportDataProvider importDataProvider, ProgressionHandler progressionHandler,
-			User user, MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions) {
+			User user, MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
+			BulkImportParams params) {
 
 		BulkImportResults importResults = new BulkImportResults();
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
@@ -158,7 +172,7 @@ public class RecordsImportServices implements ImportServices {
 
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
-						progressionHandler, user, types, extensions, addUpdateCount);
+						progressionHandler, user, types, extensions, addUpdateCount, params);
 				if (skipped > 0 && skipped == previouslySkipped) {
 					Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
 					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType,
@@ -180,7 +194,7 @@ public class RecordsImportServices implements ImportServices {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
-
+		ValidationErrors errors = new ValidationErrors();
 		while (importDataBatches.hasNext()) {
 			try {
 				List<ImportData> batch = importDataBatches.next();
@@ -196,13 +210,18 @@ public class RecordsImportServices implements ImportServices {
 			}
 
 		}
+
+		if (!errors.isEmpty()) {
+			throw new ValidationRuntimeException(errors);
+		}
+
 		return skipped;
 	}
 
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
 			ProgressionHandler progressionHandler, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
-			ImportDataOptions options) {
+			ImportDataOptions options, BulkImportParams params) {
 
 		BulkUploader bulkUploader = null;
 		List<Metadata> contentMetadatas = types.getAllContentMetadatas();
@@ -243,13 +262,13 @@ public class RecordsImportServices implements ImportServices {
 		}
 
 		int skipped = 0;
+
 		for (ImportData toImport : batch) {
 
-			ValidationErrors errors = new ValidationErrors();
 			ImportDataErrors importDataErrors = new ImportDataErrors(schemaType, errors, toImport);
 			extensions.callRecordImportValidate(schemaType, new ValidationParams(importDataErrors, toImport));
 
-			if (!errors.getValidationErrors().isEmpty()) {
+			if (!errors.getValidationErrors().isEmpty() && params.isStopOnFirstError()) {
 				throw new ValidationRuntimeException(errors);
 			}
 
@@ -270,16 +289,19 @@ public class RecordsImportServices implements ImportServices {
 						recordServices.validateRecordInTransaction(record, transaction);
 
 					} catch (ValidationException e) {
-						ValidationErrors errorsWithExtraImportParameters = new ValidationErrors();
 						for (ValidationError error : e.getErrors().getValidationErrors()) {
 							Map<String, Object> parameters = new HashMap<>(error.getParameters());
-							parameters.put("index", "" + toImport.getIndex());
+							parameters.put("index", "" + (toImport.getIndex() + 1));
 							parameters.put("legacyId", toImport.getLegacyId());
 							parameters.put("schemaType", schemaType);
-							errorsWithExtraImportParameters.add(error.getCode(), parameters);
+							errors.add(error.getCode(), parameters);
 						}
 
-						throw new ValidationRuntimeException(errorsWithExtraImportParameters);
+						if (params.isStopOnFirstError()) {
+							throw new ValidationRuntimeException(errors);
+						} else {
+							transaction.remove(record);
+						}
 					}
 
 					progressionHandler.incrementProgression();
@@ -297,6 +319,7 @@ public class RecordsImportServices implements ImportServices {
 				}
 			}
 		}
+
 		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());
 		return skipped;
 	}
