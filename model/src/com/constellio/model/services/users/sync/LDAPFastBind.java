@@ -33,6 +33,8 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
+import org.apache.commons.lang3.StringUtils;
+
 @SuppressWarnings("serial") class FastBindConnectionControl implements Control {
 	public byte[] getEncodedValue() {
 		return null;
@@ -67,10 +69,15 @@ public class LDAPFastBind {
 			env.put(Context.REFERRAL, "follow");
 		}
 
+		if (StringUtils.startsWith(ldapurl, "ldaps")) {
+			//env.put(Context.SECURITY_PROTOCOL, "ssl");
+			env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.DummySSLSocketFactory");
+		}
+
 		if (activeDirectory) {
 			connCtls = new Control[] { new FastBindConnectionControl() };
 		} else {
-			connCtls = new Control[] { };
+			connCtls = new Control[] {};
 		}
 
 		//first time we initialize the context, no credentials are supplied
@@ -87,7 +94,7 @@ public class LDAPFastBind {
 			ctx = new InitialLdapContext(env, connCtls);
 		} catch (NamingException e) {
 			if (activeDirectory) {
-				connCtls = new Control[] { };
+				connCtls = new Control[] {};
 				try {
 					ctx = new InitialLdapContext(env, connCtls);
 				} catch (NamingException e2) {
