@@ -1,9 +1,5 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType.DISPLAY;
-import static com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType.FORM;
-import static com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType.SEARCH;
-import static com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType.TABLES;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
@@ -22,7 +18,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
@@ -31,14 +26,12 @@ import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -153,10 +146,9 @@ public class SettingsImportServices {
 
 					MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 
-					importCustomSchemata(types, importedType.getCustomSchemas(), typeBuilder, newMetadatas);
+					importCustomSchemata(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 
-					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types,
-							newMetadatas);
+					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types, newMetadatas);
 
 				}
 
@@ -166,8 +158,8 @@ public class SettingsImportServices {
 		MetadataSchemaTypes newSchemaTypes = schemasManager.getSchemaTypes(schemaTypes.getCollection());
 		updateSettingsMetadata(settings, newSchemaTypes, newMetadatas);
 
-	}
 
+	}
 	private void updateSettingsMetadata(ImportedCollectionSettings settings, MetadataSchemaTypes schemaTypes,
 			KeyListMap<String, String> newMetadatas) {
 		// TODO set tabs
@@ -209,7 +201,7 @@ public class SettingsImportServices {
 		displayManager.execute(transactionBuilder.build());
 
         /*
-		// Display
+        // Display
         for (ImportedTypeMetadata typeItem : typeMetadata) {
 
             Map<String, MetadataSchema> metadataSchemataCache = new HashMap<>();
@@ -246,9 +238,10 @@ public class SettingsImportServices {
                 }
             }
         }
-
+        displayManager.execute(transactionBuilder.build());
         */
 	}
+
 
 	private void setupTypeDisplayConfig(SchemaTypesDisplayTransactionBuilder transactionBuilder,
 			ImportedType importedType, MetadataSchemaType type, KeyListMap<String, String> newMetadatas) {
@@ -372,94 +365,94 @@ public class SettingsImportServices {
 		return schemasMetadatas;
 	}
 
-	//	private List<ImportedTypeMetadata> loadTypeMetadata(List<ImportedType> types) {
-	//		List<ImportedTypeMetadata> list = new ArrayList<>();
-	//		for (ImportedType type : types) {
-	//			ImportedTypeMetadata importedTypeMetadata = new ImportedTypeMetadata();
-	//			importedTypeMetadata.setType(type.getCode());
-	//
-	//			List<ImportedMetadataSchema> importedMetadataSchemata = new ArrayList<>();
-	//			importedMetadataSchemata.add(type.getDefaultSchema());
-	//			importedMetadataSchemata.addAll(type.getCustomSchemas());
-	//
-	//			addTypeSchemaMetadata(importedMetadataSchemata, importedTypeMetadata);
-	//
-	//			list.add(importedTypeMetadata);
-	//		}
-	//		return list;
-	//	}
-	//
-	//	private void addTypeSchemaMetadata(List<ImportedMetadataSchema> customMetadataSchemas,
-	//			ImportedTypeMetadata importedTypeMetadata) {
-	//		String schema;
-	//		for (ImportedMetadataSchema importedMetadataSchema : customMetadataSchemas) {
-	//			schema = importedMetadataSchema.getCode();
-	//			importedTypeMetadata.addSchema(schema);
-	//			for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
-	//				addImportedMetadataVisibleProperties(importedTypeMetadata, schema, importedMetadata);
-	//			}
-	//		}
-	//	}
-	//
-	//	private void addImportedMetadataVisibleProperties(ImportedTypeMetadata importedTypeMetadata,
-	//			String schema, ImportedMetadata importedMetadata) {
-	//
-	//		addMetadataVisibleInDisplayItem(importedTypeMetadata, schema, importedMetadata);
-	//
-	//		addMetadataVisibleInFormItem(importedTypeMetadata, schema, importedMetadata);
-	//
-	//		addMetadataVisibleInSearchResultItem(importedTypeMetadata, schema, importedMetadata);
-	//
-	//		addMetadataVisibleInTablesItems(importedTypeMetadata, schema, importedMetadata);
-	//	}
-	//
-	//	private void addMetadataVisibleInDisplayItem(ImportedTypeMetadata importedTypeMetadata, String schema,
-	//			ImportedMetadata importedMetadata) {
-	//		if (importedMetadata.getVisibleInDisplay() != null && importedMetadata.getVisibleInDisplay()) {
-	//			importedTypeMetadata.addMetadataIsVisibleInDisplay(schema, importedMetadata);
-	//		}
-	//		if (importedMetadata.getVisibleInDisplayIn().size() > 0) {
-	//			for (String targetSchema : importedMetadata.getVisibleInDisplayIn()) {
-	//				importedTypeMetadata.addMetadataIsVisibleInDisplay(targetSchema, importedMetadata);
-	//			}
-	//		}
-	//	}
-	//
-	//	private void addMetadataVisibleInFormItem(ImportedTypeMetadata importedTypeMetadata, String schema,
-	//			ImportedMetadata importedMetadata) {
-	//		if (importedMetadata.getVisibleInForm() != null && importedMetadata.getVisibleInForm()) {
-	//			importedTypeMetadata.addMetadataIsVisibleInForm(schema, importedMetadata);
-	//		}
-	//		if (importedMetadata.getVisibleInFormIn().size() > 0) {
-	//			for (String targetSchema : importedMetadata.getVisibleInFormIn()) {
-	//				importedTypeMetadata.addMetadataIsVisibleInForm(targetSchema, importedMetadata);
-	//			}
-	//		}
-	//	}
-	//
-	//	private void addMetadataVisibleInSearchResultItem(ImportedTypeMetadata importedTypeMetadata, String schema,
-	//			ImportedMetadata importedMetadata) {
-	//		if (importedMetadata.getVisibleInSearchResult() != null && importedMetadata.getVisibleInSearchResult()) {
-	//			importedTypeMetadata.addMetadataIsVisibleInResult(schema, importedMetadata);
-	//		}
-	//		if (importedMetadata.getVisibleInResultIn().size() > 0) {
-	//			for (String targetSchema : importedMetadata.getVisibleInResultIn()) {
-	//				importedTypeMetadata.addMetadataIsVisibleInResult(targetSchema, importedMetadata);
-	//			}
-	//		}
-	//	}
-	//
-	//	private void addMetadataVisibleInTablesItems(ImportedTypeMetadata importedTypeMetadata, String schema,
-	//			ImportedMetadata importedMetadata) {
-	//		if (importedMetadata.getVisibleInTables() != null && importedMetadata.getVisibleInTables()) {
-	//			importedTypeMetadata.addMetadataIsVisibleInTables(schema, importedMetadata);
-	//		}
-	//		if (importedMetadata.getVisibleInTablesIn().size() > 0) {
-	//			for (String targetSchema : importedMetadata.getVisibleInTablesIn()) {
-	//				importedTypeMetadata.addMetadataIsVisibleInTables(targetSchema, importedMetadata);
-	//			}
-	//		}
-	//	}
+	private List<ImportedTypeMetadata> loadTypeMetadata(List<ImportedType> types) {
+		List<ImportedTypeMetadata> list = new ArrayList<>();
+		for (ImportedType type : types) {
+			ImportedTypeMetadata importedTypeMetadata = new ImportedTypeMetadata();
+			importedTypeMetadata.setType(type.getCode());
+
+			List<ImportedMetadataSchema> importedMetadataSchemata = new ArrayList<>();
+			importedMetadataSchemata.add(type.getDefaultSchema());
+			importedMetadataSchemata.addAll(type.getCustomSchemata());
+
+			addTypeSchemaMetadata(importedMetadataSchemata, importedTypeMetadata);
+
+			list.add(importedTypeMetadata);
+		}
+		return list;
+	}
+
+	private void addTypeSchemaMetadata(List<ImportedMetadataSchema> customMetadataSchemas,
+			ImportedTypeMetadata importedTypeMetadata) {
+		String schema;
+		for (ImportedMetadataSchema importedMetadataSchema : customMetadataSchemas) {
+			schema = importedMetadataSchema.getCode();
+			importedTypeMetadata.addSchema(schema);
+			for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
+				addImportedMetadataVisibleProperties(importedTypeMetadata, schema, importedMetadata);
+			}
+		}
+	}
+
+	private void addImportedMetadataVisibleProperties(ImportedTypeMetadata importedTypeMetadata,
+			String schema, ImportedMetadata importedMetadata) {
+
+		addMetadataVisibleInDisplayItem(importedTypeMetadata, schema, importedMetadata);
+
+		addMetadataVisibleInFormItem(importedTypeMetadata, schema, importedMetadata);
+
+		addMetadataVisibleInSearchResultItem(importedTypeMetadata, schema, importedMetadata);
+
+		addMetadataVisibleInTablesItems(importedTypeMetadata, schema, importedMetadata);
+	}
+
+	private void addMetadataVisibleInDisplayItem(ImportedTypeMetadata importedTypeMetadata, String schema,
+			ImportedMetadata importedMetadata) {
+		if (importedMetadata.getVisibleInDisplay() != null && importedMetadata.getVisibleInDisplay()) {
+			importedTypeMetadata.addMetadataIsVisibleInDisplay(schema, importedMetadata);
+		}
+		if (importedMetadata.getVisibleInDisplayIn().size() > 0) {
+			for (String targetSchema : importedMetadata.getVisibleInDisplayIn()) {
+				importedTypeMetadata.addMetadataIsVisibleInDisplay(targetSchema, importedMetadata);
+			}
+		}
+	}
+
+	private void addMetadataVisibleInFormItem(ImportedTypeMetadata importedTypeMetadata, String schema,
+			ImportedMetadata importedMetadata) {
+		if (importedMetadata.getVisibleInForm() != null && importedMetadata.getVisibleInForm()) {
+			importedTypeMetadata.addMetadataIsVisibleInForm(schema, importedMetadata);
+		}
+		if (importedMetadata.getVisibleInFormIn().size() > 0) {
+			for (String targetSchema : importedMetadata.getVisibleInFormIn()) {
+				importedTypeMetadata.addMetadataIsVisibleInForm(targetSchema, importedMetadata);
+			}
+		}
+	}
+
+	private void addMetadataVisibleInSearchResultItem(ImportedTypeMetadata importedTypeMetadata, String schema,
+			ImportedMetadata importedMetadata) {
+		if (importedMetadata.getVisibleInSearchResult() != null && importedMetadata.getVisibleInSearchResult()) {
+			importedTypeMetadata.addMetadataIsVisibleInResult(schema, importedMetadata);
+		}
+		if (importedMetadata.getVisibleInResultIn().size() > 0) {
+			for (String targetSchema : importedMetadata.getVisibleInResultIn()) {
+				importedTypeMetadata.addMetadataIsVisibleInResult(targetSchema, importedMetadata);
+			}
+		}
+	}
+
+	private void addMetadataVisibleInTablesItems(ImportedTypeMetadata importedTypeMetadata, String schema,
+			ImportedMetadata importedMetadata) {
+		if (importedMetadata.getVisibleInTables() != null && importedMetadata.getVisibleInTables()) {
+			importedTypeMetadata.addMetadataIsVisibleInTables(schema, importedMetadata);
+		}
+		if (importedMetadata.getVisibleInTablesIn().size() > 0) {
+			for (String targetSchema : importedMetadata.getVisibleInTablesIn()) {
+				importedTypeMetadata.addMetadataIsVisibleInTables(targetSchema, importedMetadata);
+			}
+		}
+	}
 
 	private void importCustomSchemata(MetadataSchemaTypesBuilder types, List<ImportedMetadataSchema> importedMetadataSchemata,
 			MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
@@ -469,8 +462,7 @@ public class SettingsImportServices {
 	}
 
 	private void importSchema(MetadataSchemaTypesBuilder types,
-			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
-			KeyListMap<String, String> newMetadatas) {
+			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema, KeyListMap<String, String> newMetadatas) {
 		MetadataSchemaBuilder customSchemaBuilder;
 		try {
 			customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
@@ -494,7 +486,8 @@ public class SettingsImportServices {
 		MetadataBuilder metadataBuilder;
 		try {
 			metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
-			metadataBuilder.setType(importedMetadata.getType());
+			MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
+			metadataBuilder.setType(type);
 		} catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
 			metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
 		}
@@ -503,10 +496,6 @@ public class SettingsImportServices {
 			Map<Language, String> labels = new HashMap<>();
 			labels.put(Language.French, importedMetadata.getLabel());
 			metadataBuilder.setLabels(labels);
-		}
-
-		if (importedMetadata.getRequired() != null) {
-			metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
 		}
 
 		if (importedMetadata.getDuplicable() != null) {
@@ -526,27 +515,28 @@ public class SettingsImportServices {
 		}
 
 		if (importedMetadata.getEssentialInSummary() != null) {
-			metadataBuilder.setEssentialInSummary(true);
+			metadataBuilder.setEssentialInSummary(importedMetadata.getEssentialInSummary());
 		}
 
 		metadataBuilder.setInputMask(importedMetadata.getInputMask());
 
 		if (importedMetadata.getMultiLingual() != null) {
-			metadataBuilder.setMultiLingual(true);
+			metadataBuilder.setMultiLingual(importedMetadata.getMultiLingual());
 		}
 
-		if (importedMetadata.getUnique() != null) {
-			metadataBuilder.setUniqueValue(true);
-		}
-
-		if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
-			if (importedMetadata.getMultiValue() != null) {
-				metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
-			}
+		// TODO Valider le comportement
+		if (importedMetadata.getMultiValue() != null) {
+			//            if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
+			metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
+			//            }
 		}
 
 		if (importedMetadata.getRecordAutoComplete() != null) {
 			metadataBuilder.setSchemaAutocomplete(importedMetadata.getRecordAutoComplete());
+		}
+
+		if (importedMetadata.getRequired() != null) {
+			metadataBuilder.setDefaultRequirement(importedMetadata.getRequired());
 		}
 
 		if (importedMetadata.getSearchable() != null) {
@@ -555,6 +545,10 @@ public class SettingsImportServices {
 
 		if (importedMetadata.getSortable() != null) {
 			metadataBuilder.setSortable(importedMetadata.getSortable());
+		}
+
+		if (importedMetadata.getUnique() != null) {
+			metadataBuilder.setUniqueValue(importedMetadata.getUnique());
 		}
 
 		if (importedMetadata.getUnmodifiable() != null) {
@@ -615,10 +609,22 @@ public class SettingsImportServices {
 		for (Map.Entry<Taxonomy, ImportedTaxonomy> entry : taxonomies.entrySet()) {
 			Taxonomy taxonomy = entry.getKey();
 			ImportedTaxonomy importedTaxonomy = entry.getValue();
+
+			Boolean visibleInHomepage = importedTaxonomy.getVisibleOnHomePage();
+			if (visibleInHomepage == null) { // keep system value if exists
+				Taxonomy taxonomyFor = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
+						.getTaxonomyFor(collectionCode, importedTaxonomy.getCode());
+				if (taxonomyFor != null) {
+					visibleInHomepage = taxonomyFor.isVisibleInHomePage();
+				} else {
+					visibleInHomepage = true;
+				}
+			}
+
 			Taxonomy currTaxonomy = taxonomy
 					.withUserIds(importedTaxonomy.getUserIds())
 					.withGroupIds(importedTaxonomy.getGroupIds())
-					.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
+					.withVisibleInHomeFlag(visibleInHomepage);
 			appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
 					.addTaxonomy(currTaxonomy, schemasManager);
 
@@ -657,7 +663,7 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-						if (!importedValueList.isHierarchical()) {
+						if (importedValueList.getHierarchical() == null || importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
 									importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
@@ -757,7 +763,7 @@ public class SettingsImportServices {
 
 			validateTabs(errors, importedType.getTabs());
 
-			validateCustomSchemas(errors, importedType.getCustomSchemas());
+			validateCustomSchemas(errors, importedType.getCustomSchemata());
 
 		}
 	}
@@ -920,4 +926,49 @@ public class SettingsImportServices {
 		return parameters;
 	}
 
+	private void alterSchemaDisplayList(ImportedType type, SchemaTypesDisplayTransactionBuilder transactionBuilder) {
+
+		alterSchemaList(type, transactionBuilder, new SchemaList() {
+
+			@Override
+			public List<String> getValues(SchemaDisplayConfig config) {
+				return config.getDisplayMetadataCodes();
+			}
+
+			@Override
+			public SchemaDisplayConfig setValues(SchemaDisplayConfig config, List<String> newValues) {
+				return config.withDisplayMetadataCodes(newValues);
+			}
+
+			@Override
+			public List<String> getVisibleIn(ImportedMetadata metadata) {
+				return metadata.getVisibleInDisplayIn();
+			}
+
+			@Override
+			public Boolean isVisible(ImportedMetadata metadata) {
+				return metadata.getVisibleInDisplay();
+			}
+		});
+	}
+
+	private void alterSchemaList(ImportedType type,
+			SchemaTypesDisplayTransactionBuilder transactionBuilder,
+			SchemaList list) {
+
+		//TODO Code générique aux 4 lists!
+
+	}
+
+	private interface SchemaList {
+
+		List<String> getValues(SchemaDisplayConfig config);
+
+		SchemaDisplayConfig setValues(SchemaDisplayConfig config, List<String> newValues);
+
+		List<String> getVisibleIn(ImportedMetadata metadata);
+
+		//return true, false ou null si l'attribut n'est pas spécifié
+		Boolean isVisible(ImportedMetadata metadata);
+	}
 }

@@ -8,7 +8,7 @@ public class ImportedType {
     private String code;
     private List<ImportedTab> tabs = new ArrayList<>();
     private ImportedMetadataSchema defaultSchema;
-    private List<ImportedMetadataSchema> customSchemas = new ArrayList<>();
+    private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
     private String label;
 
     public ImportedType setCode(String code) {
@@ -35,12 +35,12 @@ public class ImportedType {
     }
 
     public ImportedType addSchema(ImportedMetadataSchema customSchema) {
-        this.customSchemas.add(customSchema);
+        this.customSchemata.add(customSchema);
         return this;
     }
 
-    public List<ImportedMetadataSchema> getCustomSchemas() {
-        return customSchemas;
+    public List<ImportedMetadataSchema> getCustomSchemata() {
+        return customSchemata;
     }
 
     public ImportedMetadataSchema getDefaultSchema() {
@@ -53,6 +53,11 @@ public class ImportedType {
 
     public ImportedType setLabel(String label) {
         this.label = label;
+        return this;
+    }
+
+    public ImportedType setCustomSchemata(List<ImportedMetadataSchema> customSchemata) {
+        this.customSchemata = customSchemata;
         return this;
     }
 }

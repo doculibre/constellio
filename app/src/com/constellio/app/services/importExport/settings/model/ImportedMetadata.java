@@ -3,13 +3,11 @@ package com.constellio.app.services.importExport.settings.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
-
 public class ImportedMetadata {
 
 	private String code;
 	private String label;
-	private MetadataValueType type;
+	private String type;
 	private Boolean enabled;// = true;
 	private List<String> enabledIn = new ArrayList<>();
 	private Boolean required;// = true;
@@ -38,6 +36,7 @@ public class ImportedMetadata {
 	private Boolean searchable;
 	private Boolean sortable;
 	private Boolean unmodifiable;
+	private Boolean advanceSearchable;
 
 	public String getCode() {
 		return code;
@@ -48,16 +47,20 @@ public class ImportedMetadata {
 		return this;
 	}
 
+	public String getLabel() {
+		return label;
+	}
+
 	public ImportedMetadata setLabel(String label) {
 		this.label = label;
 		return this;
 	}
 
-	public String getLabel() {
-		return label;
+	public String getType() {
+		return type;
 	}
 
-	public ImportedMetadata setType(MetadataValueType type) {
+	public ImportedMetadata setType(String type) {
 		this.type = type;
 		return this;
 	}
@@ -89,27 +92,12 @@ public class ImportedMetadata {
 		return this;
 	}
 
-	public ImportedMetadata setEnabledIn(List<String> enabledIn) {
-		this.enabledIn = enabledIn;
-		return this;
-	}
-
 	public List<String> getEnabledIn() {
 		return enabledIn;
 	}
 
-	public ImportedMetadata setEssential(Boolean essential) {
-		this.essential = essential;
-		return this;
-	}
-
-	public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
-		this.essentialInSummary = essentialInSummary;
-		return null;
-	}
-
-	public ImportedMetadata setMultiValue(Boolean multiValue) {
-		this.multiValue = multiValue;
+	public ImportedMetadata setEnabledIn(List<String> enabledIn) {
+		this.enabledIn = enabledIn;
 		return this;
 	}
 
@@ -117,13 +105,27 @@ public class ImportedMetadata {
 		return multiValue;
 	}
 
-	public ImportedMetadata setBehaviours(String behaviours) {
-		this.behaviours = behaviours;
+	public ImportedMetadata setMultiValue(Boolean multiValue) {
+		this.multiValue = multiValue;
+		return this;
+	}
+
+	public Boolean getMultiLingual() {
+		return multiLingual;
+	}
+
+	public ImportedMetadata setMultiLingual(Boolean multiLingual) {
+		this.multiLingual = multiLingual;
 		return this;
 	}
 
 	public String getBehaviours() {
 		return behaviours;
+	}
+
+	public ImportedMetadata setBehaviours(String behaviours) {
+		this.behaviours = behaviours;
+		return this;
 	}
 
 	public Boolean getDuplicable() {
@@ -148,8 +150,18 @@ public class ImportedMetadata {
 		return essential;
 	}
 
+	public ImportedMetadata setEssential(Boolean essential) {
+		this.essential = essential;
+		return this;
+	}
+
 	public Boolean getEssentialInSummary() {
 		return essentialInSummary;
+	}
+
+	public ImportedMetadata setEssentialInSummary(Boolean essentialInSummary) {
+		this.essentialInSummary = essentialInSummary;
+		return this;
 	}
 
 	public String getInputMask() {
@@ -168,10 +180,6 @@ public class ImportedMetadata {
 	public ImportedMetadata setRequiredIn(List<String> requiredIn) {
 		this.requiredIn = requiredIn;
 		return this;
-	}
-
-	public MetadataValueType getType() {
-		return type;
 	}
 
 	public Boolean getVisibleInForm() {
@@ -246,6 +254,61 @@ public class ImportedMetadata {
 		return this;
 	}
 
+	public Boolean getRecordAutoComplete() {
+		return recordAutoComplete;
+	}
+
+	public ImportedMetadata setRecordAutoComplete(Boolean recordAutoComplete) {
+		this.recordAutoComplete = recordAutoComplete;
+		return this;
+	}
+
+	public Boolean getSearchable() {
+		return searchable;
+	}
+
+	public ImportedMetadata setSearchable(Boolean searchable) {
+		this.searchable = searchable;
+		return this;
+	}
+
+	public Boolean getSortable() {
+		return sortable;
+	}
+
+	public ImportedMetadata setSortable(Boolean sortable) {
+		this.sortable = sortable;
+		return this;
+	}
+
+	public Boolean getUnmodifiable() {
+		return unmodifiable;
+	}
+
+	public ImportedMetadata setUnmodifiable(Boolean unmodifiable) {
+		this.unmodifiable = unmodifiable;
+		return this;
+	}
+
+	public Boolean getUnique() {
+		return unique;
+	}
+
+	public ImportedMetadata setUnique(Boolean unique) {
+		this.unique = unique;
+		return this;
+	}
+
+	public Boolean getAdvanceSearchable() {
+		return advanceSearchable;
+	}
+
+	public ImportedMetadata setAdvanceSearchable(Boolean advanceSearchable) {
+		this.advanceSearchable = advanceSearchable;
+		return this;
+	}
+
+
 	public List<String> getVisibleInListInSchemas(ListType listType) {
 		switch (listType) {
 
@@ -288,30 +351,6 @@ public class ImportedMetadata {
 
 		}
 
-	}
-
-	public Boolean getMultiLingual() {
-		return multiLingual;
-	}
-
-	public Boolean getRecordAutoComplete() {
-		return recordAutoComplete;
-	}
-
-	public Boolean getSearchable() {
-		return searchable;
-	}
-
-	public Boolean getSortable() {
-		return sortable;
-	}
-
-	public Boolean getUnmodifiable() {
-		return unmodifiable;
-	}
-
-	public Boolean getUnique() {
-		return unique;
 	}
 
 	public enum ListType {

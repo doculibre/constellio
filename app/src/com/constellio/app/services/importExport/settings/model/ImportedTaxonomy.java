@@ -10,7 +10,7 @@ public class ImportedTaxonomy {
     private String code;
     private Map<String, String> titles = new HashMap<>();
     private List<String> classifiedTypes = new ArrayList<>();
-    private Boolean visibleOnHomePage = true;
+    private Boolean visibleOnHomePage;
     private List<String> userIds = new ArrayList<>();
     private List<String> groupIds = new ArrayList<>();
 

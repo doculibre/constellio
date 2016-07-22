@@ -15,7 +15,7 @@ public class ImportedValueList {
 
 	Map<String, String> titles = new HashMap<>();
 
-	boolean hierarchical;
+	Boolean hierarchical;
 
 	public String getCode() {
 		return code;
@@ -44,11 +44,6 @@ public class ImportedValueList {
 		return this;
 	}
 
-	public ImportedValueList addClassifiedTypes(String classifiedType) {
-		this.classifiedTypes.add(classifiedType);
-		return this;
-	}
-
 	public Map<String, String> getTitles() {
 		return titles;
 	}
@@ -63,7 +58,7 @@ public class ImportedValueList {
 		return this;
 	}
 
-	public boolean isHierarchical() {
+	public Boolean getHierarchical() {
 		return hierarchical;
 	}
 

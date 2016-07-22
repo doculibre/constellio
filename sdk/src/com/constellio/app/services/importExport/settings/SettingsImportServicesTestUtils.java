@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.settings;
 
 import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileConstants;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -8,8 +9,8 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 
-public class SettingsImportServicesTestUtils extends ConstellioTest {
-
+public class SettingsImportServicesTestUtils extends ConstellioTest implements SettingsXMLFileConstants {
+/*
     public static final String CODE = "code";
     public static final String TITLE = "title";
     public static final String VISIBLE_IN_HOME_PAGE = "visibleInHomePage";
@@ -31,11 +32,13 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
     public static final String VISIBLE_IN_TABLES = "visibleInTables";
     public static final String VISIBLE_IN_TABLES_IN = "visibleInTablesIn";
     public static final String TAB = "tab";
-    public static final String MULTI_VALUE = "multiValue";
+    public static final String MULTI_VALUE = "multivalue";
     public static final String BEHAVIOURS = "behaviours";
     public static final String INPUT_MASK = "inputMask";
 
     public static final String VISIBLE_IN_FORM = "visibleInForm";
+    */
+
     protected static final String FOLDER = "folder";
     protected static final String DOCUMENT = "document";
     protected static final String TITLE_FR = "Le titre du domaine de valeurs 1";
@@ -170,7 +173,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
 
     private ImportedMetadata getImportedMetadata3() {
         return new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabledIn(toListOfString("default", CODE_SCHEMA_1, CODE_SCHEMA_2))
                 .setRequiredIn(Arrays.asList(CODE_SCHEMA_1))
                 .setMultiValue(true);
@@ -187,7 +190,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
                         .addMetadata(new ImportedMetadata().setCode(CODE_METADATA_2)
                                 .setLabel(TITLE_METADATA_2_UPDATED)
-                                .setType(MetadataValueType.STRING)
+                                .setType("STRING")
                                 .setEnabled(true)
                                 .setRequired(false) // X
                                 .setTab("default")
@@ -199,7 +202,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
 
     private ImportedMetadata getImportedMetadata2() {
         return new ImportedMetadata().setCode(CODE_METADATA_2).setLabel(TITLE_METADATA_2)
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabled(true)
                 .setRequired(true)
                 .setTab("zeTab")
@@ -210,7 +213,7 @@ public class SettingsImportServicesTestUtils extends ConstellioTest {
 
     private ImportedMetadata getImportedMetadata1() {
         return new ImportedMetadata().setCode(CODE_METADATA_1).setLabel(TITLE_METADATA_1)
-                .setType(MetadataValueType.STRING)
+                .setType("STRING")
                 .setEnabledIn(toListOfString(CODE_DEFAULT_SCHEMA, CODE_SCHEMA_1, CODE_SCHEMA_2))
                 .setRequiredIn(toListOfString(CODE_SCHEMA_1))
                 .setVisibleInFormIn(toListOfString(CODE_DEFAULT_SCHEMA, CODE_SCHEMA_1));
