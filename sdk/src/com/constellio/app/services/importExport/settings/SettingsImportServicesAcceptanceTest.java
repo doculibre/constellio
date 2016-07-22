@@ -191,7 +191,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	//@InDevelopmentTest
 	public void whenImportingValueListsThenSet()
 			throws Exception {
@@ -437,7 +437,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	public void whenModifyingCollectionTaxonomyTitleThenConfigsAreUpdated()
 			throws Exception {
 
@@ -510,7 +510,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(taxonomy.isVisibleInHomePage()).isTrue();
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	//@InDevelopmentTest
 	public void whenModifyingCollectionTaxonomyUsersAndGroupsThenConfigsAreUpdated()
 			throws Exception {
@@ -644,7 +644,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	public void whenImportingTypesValuesAreSet()
 			throws Exception {
 
@@ -816,7 +816,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	// VisibleInForm=true, visibleInDisplay=true, visibleInTables= false, visibleInSearchResult=false
-	//TODO Temporaire @Test
+	@Test
 	public void whenImportNewMetadatasThenMarkedAsVisibleInFormAndDisplayButNotInTablesAndSearch()
 			throws Exception {
 
@@ -1164,7 +1164,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.doesNotContain("folder_default_m1", "folder_custom_m2");
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	public void givenNewMetadataWithVisibleInDisplayFlagDefinedThenOK()
 			throws Exception {
 
@@ -1315,7 +1315,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.doesNotContain("folder_custom_m1", "folder_custom_m3");
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	public void givenNewMetadataWithVisibleInTablesFlagDefinedThenOK()
 			throws Exception {
 
@@ -1639,7 +1639,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	public void whenUpdatingMultivalueAndMultiLingualThenFlagIsSet()
 			throws Exception {
 
@@ -1704,7 +1704,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-	//TODO Temporaire @Test
+	@Test
 	public void whenUpdatingMultiLingualThenFlagIsSet()
 			throws Exception {
 
