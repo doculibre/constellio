@@ -11,7 +11,9 @@ import java.util.Map;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -32,6 +34,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -250,12 +253,31 @@ public class SettingsImportServices {
 	private void setupTypeDisplayConfig(SchemaTypesDisplayTransactionBuilder transactionBuilder,
 			ImportedType importedType, MetadataSchemaType type, KeyListMap<String, String> newMetadatas) {
 
+		SchemaTypeDisplayConfig schemaTypeDisplayConfig = transactionBuilder.updateSchemaTypeDisplayConfig(type);
+		Map<String, Map<Language, String>> allTabs = new HashMap<>(schemaTypeDisplayConfig.getMetadataGroup());
+
 		Map<String, Map<String, Boolean>> schemaMetasDisplayVisibility, schemaMetasFormVisibility,
 				schemaMetasSearchVisibility, schemaMetasTablesVisibility;
 		schemaMetasDisplayVisibility = getSchemasMetasVisibility(type, importedType, ListType.DISPLAY, newMetadatas);
 		schemaMetasFormVisibility = getSchemasMetasVisibility(type, importedType, ListType.FORM, newMetadatas);
 		schemaMetasSearchVisibility = getSchemasMetasVisibility(type, importedType, ListType.SEARCH, newMetadatas);
 		schemaMetasTablesVisibility = getSchemasMetasVisibility(type, importedType, ListType.TABLES, newMetadatas);
+
+		for (ImportedMetadata importedMetadata : importedType.getDefaultSchema().getAllMetadata()) {
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				Metadata metadata = schema.getMetadata(importedMetadata.getCode());
+				configureMetadataDisplay(metadata, importedMetadata, transactionBuilder, allTabs);
+			}
+		}
+
+		for (ImportedMetadataSchema importedMetadataSchema : importedType.getCustomSchemata()) {
+			for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
+
+				String code = type.getCode() + "_" + importedMetadataSchema.getCode() + "_" + importedMetadata.getCode();
+				Metadata metadata = type.getMetadata(code);
+				configureMetadataDisplay(metadata, importedMetadata, transactionBuilder, allTabs);
+			}
+		}
 
 		for (MetadataSchema schema : type.getAllSchemas()) {
 			SchemaDisplayConfig schemaDisplayConfig = transactionBuilder.updateSchemaDisplayConfig(schema);
@@ -279,6 +301,30 @@ public class SettingsImportServices {
 			transactionBuilder.addReplacing(schemaDisplayConfig);
 		}
 
+		transactionBuilder.add(schemaTypeDisplayConfig.withMetadataGroup(allTabs));
+
+	}
+
+	private void configureMetadataDisplay(Metadata metadata, ImportedMetadata importedMetadata,
+			SchemaTypesDisplayTransactionBuilder transactionBuilder, Map<String, Map<Language, String>> allTabs) {
+
+		MetadataDisplayConfig displayConfig = transactionBuilder.updateMetadataDisplayConfig(metadata);
+		String tab = importedMetadata.getTab();
+		if ("default".equals(tab)) {
+			tab = "";
+		}
+		if (StringUtils.isNotBlank(importedMetadata.getTab())) {
+			displayConfig = displayConfig.withMetadataGroup(tab);
+			if (!allTabs.containsKey(tab) && StringUtils.isNotBlank(tab)) {
+				Map<Language, String> labels = new HashMap<>();
+				for (Language language : metadata.getLabels().keySet()) {
+					labels.put(language, tab);
+				}
+				allTabs.put(tab, labels);
+			}
+		}
+
+		transactionBuilder.addReplacing(displayConfig);
 	}
 
 	private List<String> apply(String schema, List<String> metadatas, Map<String, Boolean> metasVisibility) {
@@ -348,6 +394,18 @@ public class SettingsImportServices {
 						schemasMetadatas.put(schema.getLocalCode(), schemaMetadatas);
 					}
 					schemaMetadatas.put(metadata.getCode(), visibleInAllSchemas);
+				}
+			} else {
+				List<String> visibleInSchemas = metadata.getVisibleInListInSchemas(listType);
+				if (visibleInSchemas != null && visibleInSchemas.size() > 0) {
+					for (MetadataSchema schema : type.getAllSchemas()) {
+						Map<String, Boolean> schemaMetadatas = schemasMetadatas.get(schema.getLocalCode());
+						if (schemaMetadatas == null) {
+							schemaMetadatas = new HashMap<>();
+							schemasMetadatas.put(schema.getLocalCode(), schemaMetadatas);
+						}
+						schemaMetadatas.put(metadata.getCode(), visibleInSchemas.contains(schema.getLocalCode()));
+					}
 				}
 			}
 		}
