@@ -609,16 +609,19 @@ public class SettingsImportServices {
 						if (StringUtils.isNotBlank(codeModeText)) {
 
 							MetadataBuilder metadataBuilder = builder.getDefaultSchema().getMetadata("code");
-							if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.DISABLED == schemaTypeCodeMode) {
+							if (ValueListItemSchemaTypeBuilder
+									.ValueListItemSchemaTypeCodeMode.DISABLED == schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
+								metadataBuilder.setUniqueValue(false);
 								metadataBuilder.setEnabled(false);
 							} else if (ValueListItemSchemaTypeBuilder
 									.ValueListItemSchemaTypeCodeMode.FACULTATIVE
 									== schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
-								metadataBuilder.setEnabled(false);
 								metadataBuilder.setUniqueValue(false);
-							} else if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE
+								metadataBuilder.setEnabled(true);
+							} else if (ValueListItemSchemaTypeBuilder
+									.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE
 									== schemaTypeCodeMode) {
 								metadataBuilder.setEnabled(true);
 								metadataBuilder.setDefaultRequirement(true);

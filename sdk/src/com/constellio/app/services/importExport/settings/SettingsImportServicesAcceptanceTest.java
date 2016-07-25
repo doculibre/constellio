@@ -9,7 +9,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
@@ -44,6 +43,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -509,9 +509,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(references).hasSize(1);
 		assertThat(references).extracting("referencedSchemaType").containsOnly(TAXO_1_CODE);
 
-		importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
-				.setClassifiedTypes(toListOfString("document"));
+		importedTaxonomy1.setClassifiedTypes(toListOfString("document"));
 
 		importSettings();
 
@@ -2113,6 +2111,140 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
+	@Test
+	//@InDevelopmentTest
+	public void whenUpdatingRecordAutoCompleteThenFlagIsSet()
+			throws Exception {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
+				.setRecordAutoComplete(true);
+
+		defaultSchema.addMetadata(m1);
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING").setRecordAutoComplete(false);
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+
+		folderType.addSchema(customSchema);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory()
+				.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isSchemaAutocomplete()).isTrue();
+
+		Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+		assertThat(folder_custom_m1.isSchemaAutocomplete()).isTrue();
+
+		Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+		assertThat(folder_custom_m2.isSchemaAutocomplete()).isFalse();
+
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+		// inverser et re-importer
+		m1.setRecordAutoComplete(false);
+		m2.setRecordAutoComplete(true);
+		importSettings();
+
+		schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isSchemaAutocomplete()).isFalse();
+
+		folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+		assertThat(folder_custom_m1.isSchemaAutocomplete()).isFalse();
+
+		folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+		assertThat(folder_custom_m2.isSchemaAutocomplete()).isTrue();
+
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	//@InDevelopmentTest
+	public void whenUpdatingSearchableAndSortableThenOK()
+			throws Exception {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
+				.setRecordAutoComplete(true).setSearchable(true).setSortable(true);
+
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default")
+				.addMetadata(m1);
+
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
+				.setRecordAutoComplete(false).setSearchable(false).setSortable(false);
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+
+		folderType.addSchema(customSchema);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory()
+				.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isSearchable()).isTrue();
+		assertThat(folder_default_m1.isSortable()).isTrue();
+
+		Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+		assertThat(folder_custom_m1.isSearchable()).isTrue();
+		assertThat(folder_custom_m1.isSortable()).isTrue();
+
+		Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+		assertThat(folder_custom_m2.isSearchable()).isFalse();
+		assertThat(folder_custom_m2.isSortable()).isFalse();
+
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+		// inverser et re-importer
+		m1.setRecordAutoComplete(false).setSearchable(false).setSortable(false);
+		m2.setRecordAutoComplete(true).setSearchable(true).setSortable(true);
+		importSettings();
+
+		schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		folder_default_m1 = schemaType.getMetadata("folder_default_m1");
+		assertThat(folder_default_m1.isSearchable()).isFalse();
+		assertThat(folder_default_m1.isSortable()).isFalse();
+
+		folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
+		assertThat(folder_custom_m1.isSearchable()).isFalse();
+		assertThat(folder_custom_m1.isSortable()).isFalse();
+
+		folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
+		assertThat(folder_custom_m2.isSearchable()).isTrue();
+		assertThat(folder_custom_m2.isSortable()).isTrue();
+
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+	}
 	//-------------------------------------------------------------------------------------
 
 	private void importSettings()
@@ -2147,8 +2279,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void setUp()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTest(users),
-				withCollection("anotherCollection"));
+				withZeCollection().withConstellioRMModule().withAllTest(users), withCollection("anotherCollection"));
 		services = new SettingsImportServices(getAppLayerFactory());
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
