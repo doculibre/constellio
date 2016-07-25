@@ -420,7 +420,7 @@ public class SettingsImportServices {
 			metadataBuilder.setMultiLingual(importedMetadata.getMultiLingual());
 		}
 
-        if (importedMetadata.getMultiValue() != null) {
+		if (importedMetadata.getMultiValue() != null) {
 			metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
 		}
 
@@ -485,13 +485,59 @@ public class SettingsImportServices {
 					if (!schemaTypes.hasType(importedTaxonomy.getCode())) {
 						Taxonomy taxonomy = valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title);
 
-						taxonomies.put(taxonomy, importedTaxonomy);
-					} else {
-						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy)
-								.withTitle(importedTaxonomy.getTitles().get(TITLE_FR))
+						if (importedTaxonomy.getVisibleOnHomePage() != null) {
+							taxonomy = taxonomy.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
+						}
+
+						taxonomy = taxonomy.withTitle(importedTaxonomy.getTitles().get(TITLE_FR))
 								.withUserIds(importedTaxonomy.getUserIds())
-								.withGroupIds(importedTaxonomy.getGroupIds())
-								.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
+								.withGroupIds(importedTaxonomy.getGroupIds());
+
+						taxonomies.put(taxonomy, importedTaxonomy);
+
+					} else {
+						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy);
+
+						if (StringUtils.isNotBlank(importedTaxonomy.getTitles().get(TITLE_FR))) {
+							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitles().get(TITLE_FR));
+						}
+
+						if (importedTaxonomy.getVisibleOnHomePage() != null) {
+							taxonomy = taxonomy.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
+						}
+
+						if (!importedTaxonomy.getGroupIds().isEmpty()) {
+							taxonomy = taxonomy.withGroupIds(importedTaxonomy.getGroupIds());
+						}
+
+						if (!importedTaxonomy.getUserIds().isEmpty()) {
+							taxonomy = taxonomy.withUserIds(importedTaxonomy.getUserIds());
+						}
+
+						String groupLabel = $(CLASSIFIED_IN_GROUP_LABEL);
+
+						List<MetadataSchemaType> classifiedTypes = valueListServices.getClassifiedSchemaTypes(taxonomy);
+						for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
+							boolean found = false;
+							for(MetadataSchemaType type : classifiedTypes) {
+								if(classifiedType.equals(type.getCode())){
+									found = true;
+									break;
+								}
+							}
+
+							if(!found){
+								valueListServices
+										.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
+							}
+						}
+
+						List<MetadataSchemaType> missing = new ArrayList<>();
+						for(MetadataSchemaType type : classifiedTypes) {
+							if(!importedTaxonomy.getClassifiedTypes().contains(type.getCode())){
+								missing.add(type);
+							}
+						}
 
 						appLayerFactory.getModelLayerFactory().getTaxonomiesManager().editTaxonomy(taxonomy);
 					}
@@ -503,23 +549,8 @@ public class SettingsImportServices {
 			Taxonomy taxonomy = entry.getKey();
 			ImportedTaxonomy importedTaxonomy = entry.getValue();
 
-			Boolean visibleInHomepage = importedTaxonomy.getVisibleOnHomePage();
-			if (visibleInHomepage == null) { // keep system value if exists
-				Taxonomy taxonomyFor = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-						.getTaxonomyFor(collectionCode, importedTaxonomy.getCode());
-				if (taxonomyFor != null) {
-					visibleInHomepage = taxonomyFor.isVisibleInHomePage();
-				} else {
-					visibleInHomepage = true;
-				}
-			}
-
-			Taxonomy currTaxonomy = taxonomy
-					.withUserIds(importedTaxonomy.getUserIds())
-					.withGroupIds(importedTaxonomy.getGroupIds())
-					.withVisibleInHomeFlag(visibleInHomepage);
 			appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
-					.addTaxonomy(currTaxonomy, schemasManager);
+					.addTaxonomy(taxonomy, schemasManager);
 
 			String groupLabel = $(CLASSIFIED_IN_GROUP_LABEL);
 			for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
@@ -556,7 +587,7 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
-						if (importedValueList.getHierarchical() == null || importedValueList.getHierarchical()) {
+						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
 									importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
@@ -581,7 +612,8 @@ public class SettingsImportServices {
 							if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.DISABLED == schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
 								metadataBuilder.setEnabled(false);
-							} else if (ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.FACULTATIVE
+							} else if (ValueListItemSchemaTypeBuilder
+									.ValueListItemSchemaTypeCodeMode.FACULTATIVE
 									== schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
 								metadataBuilder.setEnabled(false);
@@ -593,7 +625,6 @@ public class SettingsImportServices {
 								metadataBuilder.setUniqueValue(true);
 							}
 						}
-						// TODO update code mode
 					}
 				}
 			}
