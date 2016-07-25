@@ -104,6 +104,7 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
@@ -388,6 +389,19 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private RegexConfig createRegexConfig(int i) {
 		Pattern regex = Pattern.compile("regex" + i);
 		return new RegexConfig("inputMetadata" + i, regex, "value" + i, RegexConfigType.SUBSTITUTION);
+	}
+
+	@Test
+	public void givenSchemaWithCodeContainingDefaultThenWorkNormally()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaBuilder builder = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("USRdefaults");
+				builder.create("zeMeta").setType(STRING);
+			}
+		}));
+
 	}
 
 	@Test
