@@ -204,6 +204,27 @@ public class LangUtils {
 		return count;
 	}
 
+	public static int nullableNaturalCompare(Comparable v1, Comparable v2) {
+		if (v1 == null) {
+
+			if (v2 == null) {
+				return 0;
+			} else {
+				return -1;
+			}
+
+		} else {
+
+			if (v2 == null) {
+				return 1;
+			} else {
+				return v1.compareTo(v2);
+			}
+
+		}
+
+	}
+
 	public static class ListComparisonResults<T> {
 
 		private List<T> newItems;
