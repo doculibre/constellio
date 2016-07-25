@@ -46,6 +46,7 @@ public class LDAPUserSyncManager implements StatefulService {
 	LDAPUserSyncConfiguration userSyncConfiguration;
 	LDAPServerConfiguration serverConfiguration;
 	BackgroundThreadsManager backgroundThreadsManager;
+	boolean processingSynchronizationOfUsers = false;
 
 	public LDAPUserSyncManager(UserServices userServices, GlobalGroupsManager globalGroupsManager,
 			LDAPConfigurationManager ldapConfigurationManager, BackgroundThreadsManager backgroundThreadsManager) {
@@ -88,22 +89,22 @@ public class LDAPUserSyncManager implements StatefulService {
 				.executedEvery(userSyncConfiguration.getDurationBetweenExecution()));
 	}
 
+	public synchronized void synchronizeIfPossible(){
+		synchronizeIfPossible(null);
+	}
+
 	public synchronized void synchronizeIfPossible(LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
-		if (!Toggle.LDAP_USERS_SYNCH_PROCESS.isEnabled()) {
-			Toggle.LDAP_USERS_SYNCH_PROCESS.enable();
+		if (!processingSynchronizationOfUsers) {
+			processingSynchronizationOfUsers = true;
 			try {
 				synchronize(ldapSynchProgressionInfo);
 			} finally {
-				Toggle.LDAP_USERS_SYNCH_PROCESS.disable();
+				processingSynchronizationOfUsers = false;
 			}
 		}
 	}
 
-	public synchronized void synchronize() {
-		synchronize(null);
-	}
-
-	public synchronized void synchronize(LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
+	private synchronized void synchronize(LDAPSynchProgressionInfo ldapSynchProgressionInfo) {
 		this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(true);
 		this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
 
@@ -179,7 +180,9 @@ public class LDAPUserSyncManager implements StatefulService {
 					LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
 				}
 			}
-			ldapSynchProgressionInfo.processedGroupsAndUsers++;
+			if (ldapSynchProgressionInfo != null) {
+				ldapSynchProgressionInfo.processedGroupsAndUsers++;
+			}
 		}
 
 		return updatedUsersAndGroups;
@@ -298,6 +301,10 @@ public class LDAPUserSyncManager implements StatefulService {
 		return usernames;
 	}
 
+	public boolean isSynchronizing() {
+		return this.processingSynchronizationOfUsers;
+	}
+
 	private class UpdatedUsersAndGroups {
 
 		private Set<String> usersNames = new HashSet<>();
@@ -321,8 +328,8 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	public static class LDAPSynchProgressionInfo {
-		int totalGroupsAndUsers;
-		int processedGroupsAndUsers;
+		int totalGroupsAndUsers = 0;
+		int processedGroupsAndUsers = 0;
 
 		public int getProgressPercentage() {
 			if (totalGroupsAndUsers == 0) {

@@ -65,7 +65,7 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 		// UserServices userServices = getModelLayerFactory().newUserServices();
 		// System.out.println(userServices.getAllUserCredentials().size());
 		getModelLayerFactory().getLdapUserSyncManager()
-				.synchronize();
+				.synchronizeIfPossible();
 
 		// System.out.println(userServices.getAllUserCredentials().size());
 

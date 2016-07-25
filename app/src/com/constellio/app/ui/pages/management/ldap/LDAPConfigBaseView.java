@@ -49,6 +49,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected CollectionsSelectionPanel collectionsComponent;
 	protected DurationPanel durationField;
 	protected Button saveButton;
+	private BaseButton forceUsersSynchronization;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
@@ -180,7 +181,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 			}
 		};
 
-		Button forceUsersSynchronization = new BaseButton($("ldap.forceSynch.button")) {
+		forceUsersSynchronization = new BaseButton($("ldap.forceSynch.button")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				LDAPSynchProgressionInfo progression = presenter
@@ -195,6 +196,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 				LDAPServerConfiguration ldapServerConfigurationVO = getLDAPServerConfiguration();
 				LDAPUserSyncConfiguration ldapUserSyncConfigurationVO = getLDAPUserSyncConfiguration();
 				presenter.saveConfigurations(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
+				forceUsersSynchronization.setVisible(presenter.isForceSynchVisible());
 			}
 		};
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);

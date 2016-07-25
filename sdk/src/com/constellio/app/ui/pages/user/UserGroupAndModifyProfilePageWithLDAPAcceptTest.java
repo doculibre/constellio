@@ -516,7 +516,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		userSync.setDurationBetweenExecution(null);
 		serverConf = LDAPTestConfig.getLDAPServerConfiguration();
 		ldapConfigurationManager.saveLDAPConfiguration(serverConf, userSync);
-		getModelLayerFactory().getLdapUserSyncManager().synchronize();
+		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 	}
 
 	private void addAdministratorInCollection(UserServices userServices) {
@@ -535,7 +535,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	private void synchronizeLDAP() {
 		userSync.setDurationBetweenExecution(Duration.standardDays(1));
 		ldapConfigurationManager.saveLDAPConfiguration(serverConf, userSync);
-		getModelLayerFactory().getLdapUserSyncManager().synchronize();
+		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 	}
 
 	private void givenUserAddPage() {

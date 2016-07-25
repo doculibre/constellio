@@ -66,13 +66,16 @@ public class LDAPConfigManagementPresenter extends
 					"\n " + StringUtils.join(e.getDomains(), "; "));
 		} catch (InvalidUrlRuntimeException e) {
 			view.showErrorMessage($("ldap.InvalidUrlRuntimeException") + ": " + e.getUrl());
+		} catch (Throwable e) {
+			LOGGER.warn("Error when trying to save ldap config", e);
+			view.showErrorMessage($("ldap.save.error") + ": " + e.getMessage());
 		}
 	}
 
 	public String getAuthenticationResultMessage(LDAPServerConfiguration ldapServerConfiguration,
 			String user, String password) {
 		LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(ldapServerConfiguration.getDirectoryType());
-		if(StringUtils.isBlank(user) || StringUtils.isBlank(password)){
+		if (StringUtils.isBlank(user) || StringUtils.isBlank(password)) {
 			return $("ldap.authentication.fail");
 		}
 		try {
@@ -137,25 +140,32 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public LDAPSynchProgressionInfo forceSynchronization() {
-		LDAPSynchProgressionInfo info = new LDAPSynchProgressionInfo();
-		new Thread(new ForceSynchThread(info)).start();
-		return info;
+		if (!modelLayerFactory.getLdapUserSyncManager().isSynchronizing()) {
+			LDAPSynchProgressionInfo info = new LDAPSynchProgressionInfo();
+			new Thread(new ForceSynchThread(info)).start();
+			return info;
+		} else {
+			view.showMessage($("ldap.processingSynchronization"));
+			return new LDAPSynchProgressionInfo();
+		}
 	}
 
 	public boolean isForceSynchVisible() {
-		return !Toggle.LDAP_USERS_SYNCH_PROCESS.isEnabled() && getLDAPServerConfiguration().getLdapAuthenticationActive()
+		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
+				.getLdapAuthenticationActive()
 				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null;
 	}
 
 	private class ForceSynchThread implements Runnable {
 		private final LDAPSynchProgressionInfo info;
+
 		public ForceSynchThread(LDAPSynchProgressionInfo info) {
 			this.info = info;
 		}
 
 		@Override
 		public void run() {
-			modelLayerFactory.getLdapUserSyncManager().synchronize(info);
+			modelLayerFactory.getLdapUserSyncManager().synchronizeIfPossible(info);
 		}
 	}
 }
