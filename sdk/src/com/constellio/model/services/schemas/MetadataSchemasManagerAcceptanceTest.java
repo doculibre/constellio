@@ -396,6 +396,19 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenSchemaWithCodeContainingDefaultThenWorkNormally()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaBuilder builder = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("USRdefaults");
+				builder.create("zeMeta").setType(STRING);
+			}
+		}));
+
+	}
+
+	@Test
 	public void whenSavingDefaultSchemaMetadataThenCodeConserved()
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata());

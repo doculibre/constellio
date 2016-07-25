@@ -130,7 +130,7 @@ public class MetadataSchemaXMLReader3 {
 
 		metadataBuilder.setLabels(readLabels(metadataElement));
 
-		if (metadataBuilder.getInheritance() != null && !metadataBuilder.getCode().contains("default")) {
+		if (metadataBuilder.getInheritance() != null && !metadataBuilder.getCode().contains("_default_")) {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);
 		} else {
 			parseMetadataWithoutInheritance(metadataElement, metadataBuilder, collectionSchema);
