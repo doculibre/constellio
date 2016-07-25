@@ -660,29 +660,29 @@ public class Folder extends RMObject {
 		return this;
 	}
 
-	public LocalDateTime getManualExpecteTransferdDate() {
+	public LocalDate getManualExpecteTransferdDate() {
 		return get(MANUAL_EXPECTED_TRANSFER_DATE);
 	}
 
-	public Folder setManualExpectedTransferDate(LocalDateTime date) {
+	public Folder setManualExpectedTransferDate(LocalDate date) {
 		set(MANUAL_EXPECTED_TRANSFER_DATE, date);
 		return this;
 	}
 
-	public LocalDateTime getManualExpectedDepositDate() {
+	public LocalDate getManualExpectedDepositDate() {
 		return get(MANUAL_EXPECTED_DEPOSIT_DATE);
 	}
 
-	public Folder setManualExpectedDepositDate(LocalDateTime date) {
+	public Folder setManualExpectedDepositDate(LocalDate date) {
 		set(MANUAL_EXPECTED_DEPOSIT_DATE, date);
 		return this;
 	}
 
-	public LocalDateTime getManualExpectedDestructionDate() {
+	public LocalDate getManualExpectedDestructionDate() {
 		return get(MANUAL_EXPECTED_DESTRIUCTION_DATE);
 	}
 
-	public Folder setManualExpectedDestructionDate(LocalDateTime date) {
+	public Folder setManualExpectedDestructionDate(LocalDate date) {
 		set(MANUAL_EXPECTED_DESTRIUCTION_DATE, date);
 		return this;
 	}

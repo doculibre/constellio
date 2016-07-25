@@ -14,9 +14,15 @@ public class FolderExpectedDepositDateCalculator2
 
 	LocalDependency<List<LocalDate>> depositDatesParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).whichIsMultivalue();
+	private LocalDependency<LocalDate> manualExpectedDepositDate = LocalDependency.toADate(Folder.MANUAL_EXPECTED_DEPOSIT_DATE);
 
 	@Override
 	LocalDependency<List<LocalDate>> getDatesDependency() {
 		return depositDatesParam;
+	}
+
+	@Override
+	protected LocalDependency<LocalDate> getManualDateDependency() {
+		return manualExpectedDepositDate;
 	}
 }

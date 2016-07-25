@@ -213,7 +213,7 @@ public class RMConfigs {
 
 		add(ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA = decommissioning
 				.createEnum("archivisticCalculatorsWithManualMetadata", CalculatorWithManualMetadataChoice.class)
-				.withDefaultValue(CalculatorWithManualMetadataChoice.ENABLE_DURING_IMPORT)
+				.withDefaultValue(CalculatorWithManualMetadataChoice.DISABLE)
 				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
 	}
 

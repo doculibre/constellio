@@ -14,9 +14,16 @@ public class FolderExpectedTransferDateCalculator2
 
 	LocalDependency<List<LocalDate>> transferDatesParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).whichIsMultivalue();
+	private LocalDependency<LocalDate> manualExpectedTransferDate= LocalDependency
+			.toADate(Folder.MANUAL_EXPECTED_TRANSFER_DATE);
 
 	@Override
 	LocalDependency<List<LocalDate>> getDatesDependency() {
 		return transferDatesParam;
+	}
+
+	@Override
+	protected LocalDependency<LocalDate> getManualDateDependency() {
+		return manualExpectedTransferDate;
 	}
 }
