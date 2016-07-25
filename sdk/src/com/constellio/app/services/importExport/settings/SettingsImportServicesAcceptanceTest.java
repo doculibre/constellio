@@ -202,10 +202,21 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			throws Exception {
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
-		collectionSettings.addValueList(getValueListA());
-		collectionSettings.addValueList(getValueListB());
-		collectionSettings.addValueList(getValueListC());
-		collectionSettings.addValueList(getValueListD());
+		collectionSettings.addValueList(new ImportedValueList().setCode(CODE_1_VALUE_LIST)
+				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+				.setCodeMode("DISABLED"));
+		collectionSettings.addValueList(new ImportedValueList().setCode(CODE_2_VALUE_LIST)
+				.setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
+				.setClassifiedTypes(toListOfString(DOCUMENT))
+				.setCodeMode("FACULTATIVE"));
+		collectionSettings.addValueList(new ImportedValueList().setCode(CODE_3_VALUE_LIST)
+				.setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
+				.setCodeMode("REQUIRED_AND_UNIQUE")
+				.setHierarchical(true));
+		collectionSettings.addValueList(new ImportedValueList().setCode(CODE_4_VALUE_LIST)
+				.setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
+				.setHierarchical(false));
 
 		settings.addCollectionsConfigs(collectionSettings);
 
@@ -1974,7 +1985,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	public void whenUpdatingMultivalueAndMultiLingualThenFlagIsSet()
+	public void whenUpdatingMultivalueThenFlagIsSet()
 			throws Exception {
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -1983,16 +1994,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
 		folderType.setDefaultSchema(defaultSchema);
 
-		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
-				.setMultiValue(true).setMultiLingual(false);
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setMultiValue(true);
 		defaultSchema.addMetadata(m1);
 
-		ImportedMetadata m2 = new ImportedMetadata().setCode("m2")
-				.setType("STRING")
-				.setMultiValue(false).setMultiLingual(true);
-
-		ImportedMetadataSchema customSchema = new ImportedMetadataSchema()
-				.setCode("custom").addMetadata(m2);
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING").setMultiValue(false);
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
 
 		folderType.addSchema(customSchema);
 
@@ -2001,21 +2007,18 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		importSettings();
 
-		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager()
-				.getSchemaTypes(zeCollection).getSchemaType("folder");
+		MetadataSchemaType schemaType = getAppLayerFactory().getModelLayerFactory()
+				.getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder");
 
 		Metadata folder_default_m1 = schemaType.getMetadata("folder_default_m1");
 		assertThat(folder_default_m1.isMultivalue()).isTrue();
-		assertThat(folder_default_m1.isMultiLingual()).isFalse();
 
 		Metadata folder_custom_m1 = schemaType.getMetadata("folder_custom_m1");
 		assertThat(folder_custom_m1.isMultivalue()).isTrue();
-		assertThat(folder_custom_m1.isMultiLingual()).isFalse();
 
 		// TODO Valider s'il est possible/permis de modifier les attributs
 		Metadata folder_custom_m2 = schemaType.getMetadata("folder_custom_m2");
 		assertThat(folder_custom_m2.isMultivalue()).isFalse();
-		assertThat(folder_custom_m2.isMultiLingual()).isTrue();
 
 		m1.setMultiValue(false).setMultiLingual(true);
 		m2.setMultiValue(true).setMultiLingual(false);

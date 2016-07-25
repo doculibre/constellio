@@ -62,7 +62,6 @@ public class SettingsImportServices {
 	static final String TAXO = "taxo";
 	static final String CONFIG = "config";
 	static final String VALUE = "value";
-	static final String ENCRYPTED = "encrypted";
 	static final String INVALID_COLLECTION_CODE = "invalidCollectionCode";
 	static final String COLLECTION_CODE_NOT_FOUND = "collectionCodeNotFound";
 	static final String CODE = "code";
@@ -77,17 +76,6 @@ public class SettingsImportServices {
 	static final String EMPTY_TAB_CODE = "emptyTabCode";
 	static final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
 	static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
-
-	static final String SEARCHABLE = "searchable";
-	static final String ADVANCE_SEARCHABLE = "advanceSearchable";
-	static final String UNMODIFIABLE = "unmodifiable";
-	static final String SORTABLE = "sortable";
-	static final String RECORD_AUTOCOMPLETE = "recordAutocomplete";
-	static final String ESSENTIAL = "essential";
-	static final String ESSENTIAL_IN_SUMMARY = "essentialInSummary";
-	static final String MULTI_LINGUAL = "multiLingual";
-	static final String DUPLICABLE = "duplicable";
-	static final String UNIQUE = "unique";
 
 	AppLayerFactory appLayerFactory;
 	SystemConfigurationsManager systemConfigurationsManager;
@@ -170,32 +158,6 @@ public class SettingsImportServices {
 
 	private void updateSettingsMetadata(ImportedCollectionSettings settings, MetadataSchemaTypes schemaTypes,
 			KeyListMap<String, String> newMetadatas) {
-		// TODO set tabs
-		// 1- créer tab si elle n'existe pas
-		// 2- configurer la propriété tab de la métadonnée
-
-		// affichage dans la page
-		/*
-		// TODO valider si/comnment setter advanceSearchable:  voir DisplayConfig/MetadataDisplay
-        // TODO valider comment seeter le groupe/tab : voir displayConfig
-
-        importedMetadata.getVisibleInDisplay();
-        importedMetadata.getVisibleInDisplayIn();
-
-        importedMetadata.getVisibleInForm();
-        importedMetadata.getVisibleInFormIn();
-
-        importedMetadata.getVisibleInResultIn();
-        importedMetadata.getVisibleInSearchResult();
-
-        importedMetadata.getVisibleInTables();
-        importedMetadata.getVisibleInTablesIn();
-        */
-
-		// TODO create metadata tab if not available
-		// TODO set metadta tab
-
-		//  List<ImportedTypeMetadata> typesMetadata = loadTypeMetadata(settings.getTypes());
 
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = new SchemaTypesDisplayTransactionBuilder(schemaTypes,
@@ -208,46 +170,6 @@ public class SettingsImportServices {
 
 		displayManager.execute(transactionBuilder.build());
 
-        /*
-		// Display
-        for (ImportedTypeMetadata typeItem : typeMetadata) {
-
-            Map<String, MetadataSchema> metadataSchemataCache = new HashMap<>();
-
-            String typeCode = typeItem.getType();
-
-            // Update schemaType
-            // Creer le group
-            // l'ajouter au type
-            transactionBuilder.updateSchemaTypeDisplayConfig(schemaTypes.getSchemaType(typeCode));
-
-            // foreach schema in which display is updated
-            for (String schema : typeItem.getSchemata()) {
-                String prefixedSchemaCode = typeCode + "_" + schema;
-                MetadataSchema metadataSchema = metadataSchemataCache.get(schema);
-                if (metadataSchema == null && schemaTypes.hasSchema(prefixedSchemaCode)) {
-                    metadataSchema = schemaTypes.getSchema(prefixedSchemaCode);
-                    metadataSchemataCache.put(schema, metadataSchema);
-                }
-
-                if (metadataSchema != null) {
-                    // display
-                    for (String metadataCode : typeItem.getVisibleInDisplayFor(schema)) {
-
-                        String prefixedMetadataCode = typeCode + "_" + schema + "_" + metadataCode;
-
-                        // update metadata
-                        SchemaDisplayConfig displayConfig =
-                                transactionBuilder.updateSchemaDisplayConfig(metadataSchema)
-                                        .withNewDisplayMetadataQueued(metadataCode);
-                        // ajouter le group au displayConfig de la metadonne.
-                        transactionBuilder.add(displayConfig);
-                    }
-                }
-            }
-        }
-        displayManager.execute(transactionBuilder.build());
-        */
 	}
 
 	private void setupTypeDisplayConfig(SchemaTypesDisplayTransactionBuilder transactionBuilder,
@@ -427,95 +349,6 @@ public class SettingsImportServices {
 		return schemasMetadatas;
 	}
 
-	private List<ImportedTypeMetadata> loadTypeMetadata(List<ImportedType> types) {
-		List<ImportedTypeMetadata> list = new ArrayList<>();
-		for (ImportedType type : types) {
-			ImportedTypeMetadata importedTypeMetadata = new ImportedTypeMetadata();
-			importedTypeMetadata.setType(type.getCode());
-
-			List<ImportedMetadataSchema> importedMetadataSchemata = new ArrayList<>();
-			importedMetadataSchemata.add(type.getDefaultSchema());
-			importedMetadataSchemata.addAll(type.getCustomSchemata());
-
-			addTypeSchemaMetadata(importedMetadataSchemata, importedTypeMetadata);
-
-			list.add(importedTypeMetadata);
-		}
-		return list;
-	}
-
-	private void addTypeSchemaMetadata(List<ImportedMetadataSchema> customMetadataSchemas,
-			ImportedTypeMetadata importedTypeMetadata) {
-		String schema;
-		for (ImportedMetadataSchema importedMetadataSchema : customMetadataSchemas) {
-			schema = importedMetadataSchema.getCode();
-			importedTypeMetadata.addSchema(schema);
-			for (ImportedMetadata importedMetadata : importedMetadataSchema.getAllMetadata()) {
-				addImportedMetadataVisibleProperties(importedTypeMetadata, schema, importedMetadata);
-			}
-		}
-	}
-
-	private void addImportedMetadataVisibleProperties(ImportedTypeMetadata importedTypeMetadata,
-			String schema, ImportedMetadata importedMetadata) {
-
-		addMetadataVisibleInDisplayItem(importedTypeMetadata, schema, importedMetadata);
-
-		addMetadataVisibleInFormItem(importedTypeMetadata, schema, importedMetadata);
-
-		addMetadataVisibleInSearchResultItem(importedTypeMetadata, schema, importedMetadata);
-
-		addMetadataVisibleInTablesItems(importedTypeMetadata, schema, importedMetadata);
-	}
-
-	private void addMetadataVisibleInDisplayItem(ImportedTypeMetadata importedTypeMetadata, String schema,
-			ImportedMetadata importedMetadata) {
-		if (importedMetadata.getVisibleInDisplay() != null && importedMetadata.getVisibleInDisplay()) {
-			importedTypeMetadata.addMetadataIsVisibleInDisplay(schema, importedMetadata);
-		}
-		if (importedMetadata.getVisibleInDisplayIn().size() > 0) {
-			for (String targetSchema : importedMetadata.getVisibleInDisplayIn()) {
-				importedTypeMetadata.addMetadataIsVisibleInDisplay(targetSchema, importedMetadata);
-			}
-		}
-	}
-
-	private void addMetadataVisibleInFormItem(ImportedTypeMetadata importedTypeMetadata, String schema,
-			ImportedMetadata importedMetadata) {
-		if (importedMetadata.getVisibleInForm() != null && importedMetadata.getVisibleInForm()) {
-			importedTypeMetadata.addMetadataIsVisibleInForm(schema, importedMetadata);
-		}
-		if (importedMetadata.getVisibleInFormIn().size() > 0) {
-			for (String targetSchema : importedMetadata.getVisibleInFormIn()) {
-				importedTypeMetadata.addMetadataIsVisibleInForm(targetSchema, importedMetadata);
-			}
-		}
-	}
-
-	private void addMetadataVisibleInSearchResultItem(ImportedTypeMetadata importedTypeMetadata, String schema,
-			ImportedMetadata importedMetadata) {
-		if (importedMetadata.getVisibleInSearchResult() != null && importedMetadata.getVisibleInSearchResult()) {
-			importedTypeMetadata.addMetadataIsVisibleInResult(schema, importedMetadata);
-		}
-		if (importedMetadata.getVisibleInResultIn().size() > 0) {
-			for (String targetSchema : importedMetadata.getVisibleInResultIn()) {
-				importedTypeMetadata.addMetadataIsVisibleInResult(targetSchema, importedMetadata);
-			}
-		}
-	}
-
-	private void addMetadataVisibleInTablesItems(ImportedTypeMetadata importedTypeMetadata, String schema,
-			ImportedMetadata importedMetadata) {
-		if (importedMetadata.getVisibleInTables() != null && importedMetadata.getVisibleInTables()) {
-			importedTypeMetadata.addMetadataIsVisibleInTables(schema, importedMetadata);
-		}
-		if (importedMetadata.getVisibleInTablesIn().size() > 0) {
-			for (String targetSchema : importedMetadata.getVisibleInTablesIn()) {
-				importedTypeMetadata.addMetadataIsVisibleInTables(targetSchema, importedMetadata);
-			}
-		}
-	}
-
 	private void importCustomSchemata(MetadataSchemaTypesBuilder types, List<ImportedMetadataSchema> importedMetadataSchemata,
 			MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
 		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
@@ -587,11 +420,8 @@ public class SettingsImportServices {
 			metadataBuilder.setMultiLingual(importedMetadata.getMultiLingual());
 		}
 
-		// TODO Valider le comportement
-		if (importedMetadata.getMultiValue() != null) {
-			//            if (importedMetadata.getUnique() == null || !importedMetadata.getUnique()) {
+        if (importedMetadata.getMultiValue() != null) {
 			metadataBuilder.setMultivalue(importedMetadata.getMultiValue());
-			//            }
 		}
 
 		if (importedMetadata.getRecordAutoComplete() != null) {
@@ -989,49 +819,4 @@ public class SettingsImportServices {
 		return parameters;
 	}
 
-	private void alterSchemaDisplayList(ImportedType type, SchemaTypesDisplayTransactionBuilder transactionBuilder) {
-
-		alterSchemaList(type, transactionBuilder, new SchemaList() {
-
-			@Override
-			public List<String> getValues(SchemaDisplayConfig config) {
-				return config.getDisplayMetadataCodes();
-			}
-
-			@Override
-			public SchemaDisplayConfig setValues(SchemaDisplayConfig config, List<String> newValues) {
-				return config.withDisplayMetadataCodes(newValues);
-			}
-
-			@Override
-			public List<String> getVisibleIn(ImportedMetadata metadata) {
-				return metadata.getVisibleInDisplayIn();
-			}
-
-			@Override
-			public Boolean isVisible(ImportedMetadata metadata) {
-				return metadata.getVisibleInDisplay();
-			}
-		});
-	}
-
-	private void alterSchemaList(ImportedType type,
-			SchemaTypesDisplayTransactionBuilder transactionBuilder,
-			SchemaList list) {
-
-		//TODO Code générique aux 4 lists!
-
-	}
-
-	private interface SchemaList {
-
-		List<String> getValues(SchemaDisplayConfig config);
-
-		SchemaDisplayConfig setValues(SchemaDisplayConfig config, List<String> newValues);
-
-		List<String> getVisibleIn(ImportedMetadata metadata);
-
-		//return true, false ou null si l'attribut n'est pas spécifié
-		Boolean isVisible(ImportedMetadata metadata);
-	}
 }
