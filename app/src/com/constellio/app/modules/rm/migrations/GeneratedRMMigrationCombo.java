@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
 import static java.util.Arrays.asList;
 
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -21,12 +20,12 @@ import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDe
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator3;
 import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderStatusCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderArchivisticStatusCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryCopyRetentionRulesOnDocumentTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryLevelCalculator;
@@ -3536,7 +3535,7 @@ public final class GeneratedRMMigrationCombo {
     folder_administrativeUnitAncestors.defineDataEntry().asCopied(folder_administrativeUnit, administrativeUnit_unitAncestors);
     folder_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     folder_applicableCopyRule.defineDataEntry().asCalculated(FolderApplicableCopyRuleCalculator.class);
-    folder_archivisticStatus.defineDataEntry().asCalculated(FolderStatusCalculator.class);
+    folder_archivisticStatus.defineDataEntry().asCalculated(FolderArchivisticStatusCalculator2.class);
     folder_calendarYear.defineDataEntry().asCalculated(FolderCalendarYearCalculator.class);
     folder_category.defineDataEntry().asCalculated(FolderApplicableCategoryCalculator.class);
     folder_categoryCode.defineDataEntry().asCopied(folder_category, category_code);
@@ -3546,9 +3545,9 @@ public final class GeneratedRMMigrationCombo {
     folder_copyRulesExpectedTransferDates.defineDataEntry().asCalculated(FolderCopyRulesExpectedTransferDatesCalculator.class);
     folder_copyStatus.defineDataEntry().asCalculated(FolderCopyStatusCalculator3.class);
     folder_decommissioningDate.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator.class);
-    folder_expectedDepositDate.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator.class);
-    folder_expectedDestructionDate.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator.class);
-    folder_expectedTransferDate.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator.class);
+    folder_expectedDepositDate.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator2.class);
+    folder_expectedDestructionDate.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator2.class);
+    folder_expectedTransferDate.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator2.class);
     folder_filingSpace.defineDataEntry().asCalculated(FolderAppliedFilingSpaceCalculator.class);
     folder_filingSpaceCode.defineDataEntry().asCopied(folder_filingSpace, filingSpace_code);
     folder_folderType.defineDataEntry().asCopied(folder_type, ddvFolderType_title);

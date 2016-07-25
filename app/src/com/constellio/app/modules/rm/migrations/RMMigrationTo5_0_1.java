@@ -36,13 +36,13 @@ import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDe
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderMainCopyRuleCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderStatusCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderArchivisticStatusCalculator2;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListContainersCalculator;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListFoldersCalculator;
 import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListHasAnalogicalMediumTypesCalculator;
@@ -969,13 +969,13 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 				.defineDataEntry().asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.EXPECTED_TRANSFER_DATE).setType(DATE)
-				.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator2.class);
 
 		defaultSchema.createUndeletable(Folder.EXPECTED_DEPOSIT_DATE).setType(DATE)
-				.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator2.class);
 
 		defaultSchema.createUndeletable(Folder.EXPECTED_DESTRUCTION_DATE).setType(DATE)
-				.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator.class);
+				.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator2.class);
 
 		defaultSchema.createUndeletable(Folder.RETENTION_RULE_ENTERED)
 				.defineReferencesTo(retentionRuleSchemaType);
@@ -986,7 +986,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 				.defineDataEntry().asCalculated(FolderAppliedRetentionRuleCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.ARCHIVISTIC_STATUS).defineAsEnum(FolderStatus.class)
-				.defineDataEntry().asCalculated(FolderStatusCalculator.class);
+				.defineDataEntry().asCalculated(FolderArchivisticStatusCalculator2.class);
 
 		defaultSchema.createUndeletable(Folder.COPY_STATUS).defineAsEnum(CopyType.class)
 				.defineDataEntry().asCalculated(FolderCopyStatusCalculator.class).setDefaultRequirement(true);
