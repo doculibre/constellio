@@ -9,9 +9,14 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +24,11 @@ import java.util.Map;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.data.MapEntry;
 import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,10 +40,15 @@ import com.constellio.app.services.importExport.settings.model.ImportedCollectio
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -43,7 +58,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -119,19 +134,29 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
-				.isEqualTo(false);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE))
-				.isEqualTo(2015);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR))
-				.isEqualTo(15);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE)).isEqualTo(2015);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR)).isEqualTo(15);
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
-				.isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON)).isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
+	}
+
+	@Test
+	public void whenImportSequencesThenOK()
+			throws Exception {
+		settings.addSequence(new ImportedSequence().setKey("digits").setValue("1234567890"));
+		settings.addSequence(new ImportedSequence().setKey("letters").setValue("Aa-Zz"));
+
+		importSettings();
+
+		// TODO In progress !!!
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
+
 	}
 
 	@Test
@@ -156,8 +181,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
-						.setHierarchical(false)
-				));
+						.setHierarchical(false)));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_collectionCodeNotFound"));
@@ -172,8 +196,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addValueList(new ImportedValueList().setCode(null)
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
-						.setHierarchical(false)
-				));
+						.setHierarchical(false)));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_InvalidValueListCode"));
@@ -188,8 +211,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addValueList(new ImportedValueList().setCode("USRcodeDuDomaineDeValeur1")
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
-						.setHierarchical(false)
-				));
+						.setHierarchical(false)));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_InvalidValueListCode"));
@@ -685,13 +707,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTypesIfCodeIsEmptyThenExceptionIsRaised()
 			throws Exception {
 
-		Map<String, String> tabParams = getTabsMap();
-
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-				.addType(new ImportedType().setCode(null).setLabel("Dossier")
-						.setTabs(toListOfTabs(tabParams))
-						.setDefaultSchema(getFolderDefaultSchema())
-						.addSchema(getFolderSchema()))
+				.addType(new ImportedType().setCode(null).setLabel("Dossier"))
 		);
 
 		assertThatErrorsWhileImportingSettingsExtracting()
@@ -707,8 +724,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		tabParams.put("default", "Métadonnées");
 		tabParams.put("", "Mon onglet");
 
+		ImportedType importedType = new ImportedType().setCode("folder")
+				.setLabel("Dossier").setTabs(toListOfTabs(tabParams));
+
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-				.addType(getImportedType(tabParams)));
+				.addType(importedType));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_emptyTabCode"));
@@ -721,12 +741,40 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		Map<String, String> tabParams = getTabsMap();
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
-				.addType(new ImportedType().setCode(CODE_FOLDER_SCHEMA_TYPE).setLabel("Dossier")
-						.setTabs(toListOfTabs(tabParams))
-						.setDefaultSchema(getFolderDefaultSchema())
-						.addSchema(getFolderSchema().setCode(null))
-				));
+		ImportedMetadata m1 = new ImportedMetadata().setCode(CODE_METADATA_1).setLabel(TITLE_METADATA_1)
+				.setType("STRING")
+				.setEnabledIn(toListOfString(CODE_DEFAULT_SCHEMA, CODE_SCHEMA_1, CODE_SCHEMA_2))
+				.setRequiredIn(toListOfString(CODE_SCHEMA_1))
+				.setVisibleInFormIn(toListOfString(CODE_DEFAULT_SCHEMA, CODE_SCHEMA_1));
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode(CODE_METADATA_2).setLabel(TITLE_METADATA_2)
+				.setType("STRING")
+				.setEnabled(true)
+				.setRequired(true)
+				.setTab("zeTab")
+				.setMultiValue(true)
+				.setBehaviours(
+						"searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential, essentialInSummary,multiLingual,duplicable")
+				.setInputMask("9999-9999");
+
+		ImportedMetadata m3 = new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", CODE_SCHEMA_1, CODE_SCHEMA_2))
+				.setRequiredIn(Arrays.asList(CODE_SCHEMA_1))
+				.setMultiValue(true);
+
+
+		ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema().setCode("default")
+				.addMetadata(m1)
+				.addMetadata(m2);
+
+		ImportedType importedType = new ImportedType().setCode(CODE_FOLDER_SCHEMA_TYPE).setLabel("Dossier")
+				.setTabs(toListOfTabs(tabParams))
+				.setDefaultSchema(importedMetadataSchema)
+				.addSchema(new ImportedMetadataSchema().setCode(CODE_SCHEMA_1)
+						.addMetadata(m3).setCode(null));
+		settings.addCollectionsConfigs(new ImportedCollectionSettings()
+				.setCode(zeCollection).addType(importedType));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_invalidSchemaCode"));
@@ -775,6 +823,76 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Metadata metadata2 = schemaType.getSchema("folder_custom").get("folder_custom_m2");
 		assertThat(metadata2).isNotNull();
 		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
+
+	}
+
+	@Test
+	//@InDevelopmentTest
+	public void whenImportingManyTypesValuesAreSet()
+			throws Exception {
+
+		Map<String, String> tabParams = new HashMap<>();
+		tabParams.put("default", "Métadonnées");
+		tabParams.put("zeTab", "Mon onglet");
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING");
+		defaultSchema.addMetadata(m1);
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
+				.setInputMask("9999-9999");
+
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+		folderType.addSchema(customSchema);
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		ImportedCollectionSettings anotherCollectionSettings =
+				new ImportedCollectionSettings().setCode("anotherCollection");
+		anotherCollectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(anotherCollectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(schemaType.getAllMetadatas().size()).isEqualTo(94);
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+		assertThat(metadata1.getLabel(French)).isEqualTo("m1");
+		assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(metadata1.getInputMask()).isNullOrEmpty();
+
+		Metadata metadata1Custom = schemaType.getSchema("folder_custom").get("folder_custom_m1");
+		assertThat(metadata1Custom).isNotNull();
+
+		Metadata metadata2 = schemaType.getSchema("folder_custom").get("folder_custom_m2");
+		assertThat(metadata2).isNotNull();
+		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
+
+		schemaType = metadataSchemasManager
+				.getSchemaTypes("anotherCollection").getSchemaType("folder");
+
+		metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+		assertThat(metadata1.getLabel(French)).isEqualTo("m1");
+		assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(metadata1.getInputMask()).isNullOrEmpty();
+
+		metadata1Custom = schemaType.getSchema("folder_custom").get("folder_custom_m1");
+		assertThat(metadata1Custom).isNotNull();
+
+		metadata2 = schemaType.getSchema("folder_custom").get("folder_custom_m2");
+		assertThat(metadata2).isNotNull();
+		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
+
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
 
 	}
 
@@ -2183,7 +2301,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
 
-
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
 				.setRecordAutoComplete(true).setSearchable(true).setSortable(true);
 
@@ -2245,7 +2362,132 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		//waitUntilICloseTheBrowsers();
 
 	}
+
+
+	@Test
+	public void testWriteAndReadImportSettings()
+			throws IOException {
+
+		Map<String, String> tabParams = new HashMap<>();
+		tabParams.put("default", "Métadonnées");
+		tabParams.put("zeTab", "Mon onglet");
+
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
+		settings.addConfig(new ImportedConfig().setKey("documentRetentionRules").setValue("true"));
+		settings.addConfig(new ImportedConfig().setKey("enforceCategoryAndRuleRelationshipInFolder").setValue("false"));
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("false"));
+		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule").setValue("2015"));
+		settings.addConfig(new ImportedConfig().setKey("closeDateRequiredDaysBeforeYearEnd").setValue("15"));
+		settings.addConfig(new ImportedConfig().setKey("yearEndDate").setValue("02/28"));
+		settings.addConfig(new ImportedConfig().setKey("decommissioningDateBasedOn").setValue("OPEN_DATE"));
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
+				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
+				.setCodeMode("DISABLED");
+		collectionSettings.addValueList(v1);
+
+		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
+				.setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
+				.setClassifiedTypes(toListOfString(DOCUMENT))
+				.setCodeMode("FACULTATIVE");
+		collectionSettings.addValueList(v2);
+
+		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
+				.setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
+				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
+		collectionSettings.addValueList(v3);
+
+		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
+				.setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
+				.setHierarchical(false);
+		collectionSettings.addValueList(v4);
+
+
+		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
+				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+				.setClassifiedTypes(toListOfString("document", "folder"))
+				.setVisibleOnHomePage(false)
+				.setUserIds(asList(gandalf, bobGratton))
+				.setGroupIds(asList("group1"));
+		collectionSettings.addTaxonomy(importedTaxonomy1);
+
+		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
+				.setTitles(toTitlesMap(TAXO_2_TITLE_FR, TAXO_2_TITLE_EN));
+		collectionSettings.addTaxonomy(importedTaxonomy2);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setEnabledIn(asList("custom1", "custom2")).setEncrypted(false).setEssential(true).setEssentialInSummary(false)
+				.setMultiLingual(true).setMultiValue(false).setRecordAutoComplete(false)
+				.setRequired(true).setRequiredIn(asList("custom1")).setSearchable(false)
+				.setSortable(false).setUnique(true)
+				.setUnmodifiable(true).setVisibleInDisplay(true).setVisibleInForm(true)
+				.setVisibleInSearchResult(false).setVisibleInTables(false);
+		defaultSchema.addMetadata(m1);
+
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
+				.setInputMask("9999-9999").setAdvanceSearchable(true).setDuplicable(true).setEnabled(true)
+				.setEnabledIn(asList("custom1", "custom2")).setEncrypted(false)
+				.setEssential(true).setEssentialInSummary(false)
+				.setMultiLingual(true).setMultiValue(false).setRecordAutoComplete(true)
+				.setRequired(false).setRequiredIn(asList("custom2")).setSearchable(true)
+				.setSortable(true).setUnique(true)
+				.setUnmodifiable(true).setVisibleInDisplay(true).setVisibleInForm(true)
+				.setVisibleInSearchResult(true).setVisibleInTables(false);
+
+		ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("STRING")
+				.setInputMask("111-222").setAdvanceSearchable(true).setDuplicable(true).setEnabled(true)
+				.setEncrypted(false).setEssential(true).setEssentialInSummary(false)
+				.setMultiLingual(true).setMultiValue(false).setRecordAutoComplete(true)
+				.setRequired(false).setSearchable(true).setSortable(true).setUnique(true)
+				.setUnmodifiable(true).setVisibleInDisplay(true).setVisibleInForm(true)
+				.setVisibleInSearchResult(true).setVisibleInTables(false);
+
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2).addMetadata(m3);
+		folderType.addSchema(customSchema);
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		ImportedCollectionSettings anotherCollectionSettings =
+				new ImportedCollectionSettings().setCode("anotherCollection");
+		anotherCollectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(anotherCollectionSettings);
+
+		// write settings settings to file ==> file1
+		Document outDocument = new SettingsXMLFileWriter().writeSettings(settings);
+
+		// read file1 to setting1
+		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument).read();
+		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
+
+		// write settings1 to file ==> file2
+		Document outDocument1 = new SettingsXMLFileWriter().writeSettings(settingsRead1);
+
+		// read file2 to setting2
+		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1).read();
+		assertThat(settingsRead2).isEqualToComparingFieldByField(settingsRead1);
+
+	}
+
+
 	//-------------------------------------------------------------------------------------
+
+
+	Document getDocumentFromFile(File file) {
+		SAXBuilder builder = new SAXBuilder();
+		try {
+			return builder.build(file);
+		} catch (JDOMException e) {
+			throw new ConfigManagerRuntimeException("JDOM2 Exception", e);
+		} catch (IOException e) {
+			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
+		}
+	}
 
 	private void importSettings()
 			throws com.constellio.model.frameworks.validation.ValidationException {
@@ -2300,4 +2542,37 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			}
 		}
 	}
+
+	static final String FOLDER = "folder";
+	static final String DOCUMENT = "document";
+	static final String TITLE_FR = "Le titre du domaine de valeurs 1";
+	static final String TITLE_EN = "First value list's title";
+	static final String TITLE_FR_UPDATED = "Nouveau titre du domaine de valeurs 1";
+	static final String TITLE_EN_UPDATED = "First value list's updated title";
+	static final String TAXO_1_TITLE_FR = "Le titre de la taxonomie 1";
+	static final String TAXO_1_TITLE_FR_UPDATED = "Nouveau titre de la taxonomie 1";
+	static final String TAXO_1_TITLE_EN = "First taxonomy's title";
+	static final String TAXO_2_TITLE_FR = "Le titre de la taxonomie 2";
+	static final String TAXO_2_TITLE_EN = "Second taxonomy's title";
+	static final String CODE_1_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur1";
+	static final String CODE_2_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur2";
+	static final String CODE_3_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur3";
+	static final String CODE_4_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur4";
+	static final List<String> TAXO_USERS = asList("gandalf", "edouard");
+	static final List<String> TAXO_GROUPS = asList("heroes");
+	static final String TAXO_1_CODE = "taxoMyFirstType";
+	static final String TAXO_2_CODE = "taxoMySecondType";
+	static final String CODE_METADATA_2 = "metadata2";
+	static final String TITLE_METADATA_2 = "Titre métadonnée no.2";
+	static final String CODE_METADATA_1 = "metadata1";
+	static final String TITLE_METADATA_1 = "Titre métadonnée no.1";
+	static final String CODE_SCHEMA_1 = "USRschema1";
+	static final String CODE_SCHEMA_2 = "USRschema2";
+	static final String CODE_DEFAULT_SCHEMA = "default";
+	static final String CODE_FOLDER_SCHEMA_TYPE = "folder";
+
+	SettingsImportServices services;
+	ImportedSettings settings = new ImportedSettings();
+	ImportedCollectionSettings zeCollectionSettings;
+	ImportedCollectionSettings anotherCollectionSettings;
 }

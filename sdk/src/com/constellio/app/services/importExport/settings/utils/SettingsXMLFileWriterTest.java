@@ -102,7 +102,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setCodeMode("DISABLED"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
                 .setTitles(toTitlesMap("domaine2", "valueList2"))
-                .setClassifiedTypes(toListOfString(DOCUMENT))
+                .setClassifiedTypes(toListOfString("document"))
                 .setCodeMode("FACULTATIVE"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
                 .setTitles(toTitlesMap("domaine3", "valueList3"))
@@ -357,7 +357,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setCodeMode("DISABLED"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
                 .setTitles(toTitlesMap("domaine2", "valueList2"))
-                .setClassifiedTypes(toListOfString(DOCUMENT))
+                .setClassifiedTypes(toListOfString("document"))
                 .setCodeMode("FACULTATIVE"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
                 .setTitles(toTitlesMap("domaine3", "valueList3"))

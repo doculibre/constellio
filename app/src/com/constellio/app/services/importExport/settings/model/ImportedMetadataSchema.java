@@ -3,6 +3,9 @@ package com.constellio.app.services.importExport.settings.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class ImportedMetadataSchema {
 
 	private String code;
@@ -48,5 +51,16 @@ public class ImportedMetadataSchema {
 
 	public String getLabel() {
 		return label;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
+
+	}
+
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
 	}
 }

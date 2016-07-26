@@ -3,7 +3,7 @@ package com.constellio.app.services.importExport.settings.model;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class ImportedConfig {
+public class ImportedSequence {
 
 	String key;
 	String value;
@@ -12,12 +12,12 @@ public class ImportedConfig {
 		return key;
 	}
 
-	public ImportedConfig setKey(String key) {
+	public ImportedSequence setKey(String key) {
 		this.key = key;
 		return this;
 	}
 
-	public ImportedConfig setValue(String value) {
+	public ImportedSequence setValue(String value) {
 		this.value = value;
 		return this;
 	}

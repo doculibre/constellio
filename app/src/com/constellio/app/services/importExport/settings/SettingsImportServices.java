@@ -53,7 +53,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 public class SettingsImportServices {
 
-	public static final String CLASSIFIED_IN_GROUP_LABEL = "classifiedInGroupLabel";
+	static final String CLASSIFIED_IN_GROUP_LABEL = "classifiedInGroupLabel";
 	static final String TAXO_PREFIX = "taxo";
 	static final String TYPE = "Type";
 	static final String TAXO_SUFFIX = TYPE;
@@ -76,7 +76,6 @@ public class SettingsImportServices {
 	static final String EMPTY_TAB_CODE = "emptyTabCode";
 	static final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
 	static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
-
 	AppLayerFactory appLayerFactory;
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager schemasManager;
@@ -110,7 +109,9 @@ public class SettingsImportServices {
 	}
 
 	private void importCollectionConfigurations(final ImportedCollectionSettings collectionSettings) {
+
 		final String collectionCode = collectionSettings.getCode();
+
 		final MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collectionCode);
 
 		importCollectionsValueLists(collectionSettings, collectionCode, schemaTypes);
@@ -205,20 +206,16 @@ public class SettingsImportServices {
 			SchemaDisplayConfig schemaDisplayConfig = transactionBuilder.updateSchemaDisplayConfig(schema);
 
 			schemaDisplayConfig = schemaDisplayConfig.withDisplayMetadataCodes(apply(schema.getCode(),
-					schemaDisplayConfig.getDisplayMetadataCodes(),
-					schemaMetasDisplayVisibility.get(schema.getLocalCode())));
+					schemaDisplayConfig.getDisplayMetadataCodes(), schemaMetasDisplayVisibility.get(schema.getLocalCode())));
 
 			schemaDisplayConfig = schemaDisplayConfig.withFormMetadataCodes(apply(schema.getCode(),
-					schemaDisplayConfig.getFormMetadataCodes(),
-					schemaMetasFormVisibility.get(schema.getLocalCode())));
+					schemaDisplayConfig.getFormMetadataCodes(), schemaMetasFormVisibility.get(schema.getLocalCode())));
 
 			schemaDisplayConfig = schemaDisplayConfig.withSearchResultsMetadataCodes(apply(schema.getCode(),
-					schemaDisplayConfig.getSearchResultsMetadataCodes(),
-					schemaMetasSearchVisibility.get(schema.getLocalCode())));
+					schemaDisplayConfig.getSearchResultsMetadataCodes(), schemaMetasSearchVisibility.get(schema.getLocalCode())));
 
 			schemaDisplayConfig = schemaDisplayConfig.withTableMetadataCodes(apply(schema.getCode(),
-					schemaDisplayConfig.getTableMetadataCodes(),
-					schemaMetasTablesVisibility.get(schema.getLocalCode())));
+					schemaDisplayConfig.getTableMetadataCodes(), schemaMetasTablesVisibility.get(schema.getLocalCode())));
 
 			transactionBuilder.addReplacing(schemaDisplayConfig);
 		}
@@ -519,22 +516,22 @@ public class SettingsImportServices {
 						List<MetadataSchemaType> classifiedTypes = valueListServices.getClassifiedSchemaTypes(taxonomy);
 						for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
 							boolean found = false;
-							for(MetadataSchemaType type : classifiedTypes) {
-								if(classifiedType.equals(type.getCode())){
+							for (MetadataSchemaType type : classifiedTypes) {
+								if (classifiedType.equals(type.getCode())) {
 									found = true;
 									break;
 								}
 							}
 
-							if(!found){
+							if (!found) {
 								valueListServices
 										.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
 							}
 						}
 
 						List<MetadataSchemaType> missing = new ArrayList<>();
-						for(MetadataSchemaType type : classifiedTypes) {
-							if(!importedTaxonomy.getClassifiedTypes().contains(type.getCode())){
+						for (MetadataSchemaType type : classifiedTypes) {
+							if (!importedTaxonomy.getClassifiedTypes().contains(type.getCode())) {
 								missing.add(type);
 							}
 						}
@@ -615,14 +612,12 @@ public class SettingsImportServices {
 								metadataBuilder.setUniqueValue(false);
 								metadataBuilder.setEnabled(false);
 							} else if (ValueListItemSchemaTypeBuilder
-									.ValueListItemSchemaTypeCodeMode.FACULTATIVE
-									== schemaTypeCodeMode) {
+									.ValueListItemSchemaTypeCodeMode.FACULTATIVE == schemaTypeCodeMode) {
 								metadataBuilder.setDefaultRequirement(false);
 								metadataBuilder.setUniqueValue(false);
 								metadataBuilder.setEnabled(true);
 							} else if (ValueListItemSchemaTypeBuilder
-									.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE
-									== schemaTypeCodeMode) {
+									.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE == schemaTypeCodeMode) {
 								metadataBuilder.setEnabled(true);
 								metadataBuilder.setDefaultRequirement(true);
 								metadataBuilder.setUniqueValue(true);
@@ -701,7 +696,7 @@ public class SettingsImportServices {
 				Map<String, Object> parameters = new HashMap();
 				parameters.put(CONFIG, CODE);
 				parameters.put(VALUE, schema.getCode());
-				errors.add(SettingsImportServices.class, INVALID_SCHEMA_CODE, parameters);
+				errors.add(SettingsImportServices.class, $(INVALID_SCHEMA_CODE, schema.getCode()), parameters);
 			}
 		}
 	}
@@ -712,7 +707,7 @@ public class SettingsImportServices {
 				Map<String, Object> parameters = new HashMap();
 				parameters.put(CONFIG, CODE);
 				parameters.put(VALUE, tab.getCode());
-				errors.add(SettingsImportServices.class, EMPTY_TAB_CODE, parameters);
+				errors.add(SettingsImportServices.class, $(EMPTY_TAB_CODE), parameters);
 			}
 		}
 	}
@@ -722,7 +717,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap();
 			parameters.put(CONFIG, "default-schema");
 			parameters.put(VALUE, null);
-			errors.add(SettingsImportServices.class, NULL_DEFAULT_SCHEMA, parameters);
+			errors.add(SettingsImportServices.class, $(NULL_DEFAULT_SCHEMA), parameters);
 		}
 	}
 
@@ -731,7 +726,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, typeCode);
-			errors.add(SettingsImportServices.class, EMPTY_TYPE_CODE, parameters);
+			errors.add(SettingsImportServices.class, $(EMPTY_TYPE_CODE), parameters);
 		}
 	}
 
@@ -747,20 +742,17 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, importedTaxonomy.getCode());
-			validationErrors.add(SettingsImportServices.class,
-					EMPTY_TAXONOMY_CODE, parameters);
+			validationErrors.add(SettingsImportServices.class, $(EMPTY_TAXONOMY_CODE), parameters);
 		} else if (!code.startsWith(TAXO_PREFIX)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, importedTaxonomy.getCode());
-			validationErrors.add(SettingsImportServices.class,
-					INVALID_TAXONOMY_CODE_PREFIX, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_TAXONOMY_CODE_PREFIX), parameters);
 		} else if (!code.endsWith(TAXO_SUFFIX)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, importedTaxonomy.getCode());
-			validationErrors.add(SettingsImportServices.class,
-					INVALID_TAXONOMY_CODE_SUFFIX, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_TAXONOMY_CODE_SUFFIX), parameters);
 		}
 	}
 
@@ -776,8 +768,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, collectionCode);
-			validationErrors.add(SettingsImportServices.class,
-					INVALID_COLLECTION_CODE, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_COLLECTION_CODE), parameters);
 		} else {
 			try {
 				schemasManager.getSchemaTypes(collectionCode);
@@ -785,8 +776,7 @@ public class SettingsImportServices {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(CONFIG, CODE);
 				parameters.put(VALUE, collectionCode);
-				validationErrors.add(SettingsImportServices.class,
-						COLLECTION_CODE_NOT_FOUND, parameters);
+				validationErrors.add(SettingsImportServices.class, $(COLLECTION_CODE_NOT_FOUND, collectionCode), parameters);
 			}
 		}
 	}
@@ -797,8 +787,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, importedValueList.getCode());
 			parameters.put(VALUE, importedValueList.getTitles().get(TITLE_FR));
-			validationErrors.add(SettingsImportServices.class,
-					INVALID_VALUE_LIST_CODE, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_VALUE_LIST_CODE, importedValueList.getCode()), parameters);
 		}
 	}
 
@@ -807,10 +796,10 @@ public class SettingsImportServices {
 			SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
 			if (config == null) {
 				Map<String, Object> parameters = toParametersMap(importedConfig);
-				validationErrors.add(SettingsImportServices.class, CONFIGURATION_NOT_FOUND, parameters);
+				validationErrors.add(SettingsImportServices.class, $(CONFIGURATION_NOT_FOUND), parameters);
 			} else if (importedConfig.getValue() == null) {
 				Map<String, Object> parameters = toParametersMap(importedConfig);
-				validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+				validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE, importedConfig.getKey()), parameters);
 			} else {
 				if (config.getType() == SystemConfigurationType.BOOLEAN) {
 					validateBooleanValueConfig(validationErrors, importedConfig);
@@ -826,7 +815,7 @@ public class SettingsImportServices {
 	private void validateBooleanValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
 		if (!asList("true", "false").contains(String.valueOf(importedConfig.getValue()))) {
 			Map<String, Object> parameters = toParametersMap(importedConfig);
-			validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
 		}
 	}
 
@@ -835,14 +824,14 @@ public class SettingsImportServices {
 			Integer.parseInt(importedConfig.getValue());
 		} catch (NumberFormatException e) {
 			Map<String, Object> parameters = toParametersMap(importedConfig);
-			validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
 		}
 	}
 
 	private void validateStringValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
 		if (importedConfig.getValue() == null) {
 			Map<String, Object> parameters = toParametersMap(importedConfig);
-			validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
+			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
 		}
 	}
 

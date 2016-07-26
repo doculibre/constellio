@@ -144,6 +144,15 @@ public class i18n {
 		return sb.toString();
 	}
 
+
+	public static List<String> asListOfMessages(ValidationErrors errors) {
+		List<String> messages = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+		return messages;
+	}
+
 	public static String $(ValidationError error) {
 		String key = error.getCode();
 		Map<String, Object> args = error.getParameters();
@@ -212,4 +221,5 @@ public class i18n {
 		}
 		throw new RuntimeException("Current locale"+ loc + " does not correspond to any language" + StringUtils.join(languages, ","));
 	}
+
 }
