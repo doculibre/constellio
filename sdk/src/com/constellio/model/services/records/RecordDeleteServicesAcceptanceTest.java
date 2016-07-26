@@ -122,7 +122,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
 			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
+			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
 			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
 					.doesNotContain(subFolder_B.getId(), category.getId());
 
@@ -149,7 +149,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 			assertThat(parentFolderInCategory_A.getCategoryEntered()).isNull();
 			fail("should find dependent references");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			Set<String> relatedRecords = e.getRecordsWithUnremovableReferences();
+			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
 
 			//TODO Nouha : Pourquoi subFolder_B? Ce dossier n'a pas de référence vers category
 			assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());

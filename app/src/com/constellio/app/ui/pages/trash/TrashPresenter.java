@@ -29,9 +29,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.trash.TrashServices;
+import com.constellio.model.services.trash.TrashServices.RecordsIdsAndTitles;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Table;
 
@@ -142,18 +144,20 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 						//FIXME
 						new Table());
 				extension.navigateToView(navigationParams);
+				break;
 			}
 		}
-		//FIXME
-		view.navigate().to().displaySchemaRecord(entity.getId());
 	}
 
 	public String getRelatedRecordsMessage(RecordVO recordVO) {
-		List<String> relatedRecordsIds = trashServices().getRelatedRecords(recordVO.getId(), getCurrentUser());
-		if (relatedRecordsIds.isEmpty()) {
+		RecordsIdsAndTitles relatedRecordsIdsAndTitles = trashServices().getRelatedRecords(recordVO.getId(), getCurrentUser());
+		Set<String> relatedRecordIds = relatedRecordsIdsAndTitles.getRecordsIds();
+		Set<String> relatedRecordTitles = relatedRecordsIdsAndTitles.getRecordsTitles();
+		if (relatedRecordIds.isEmpty()) {
 			return $("TrashView.noRelatedRecord");
 		} else {
-			return $("TrashView.relatedRecordIds") + "\n" + StringUtils.join(relatedRecordsIds, ",");
+			return $("TrashView.relatedRecordIds") + "<br>" + StringUtils.join(relatedRecordIds, "<br>")
+					+ "<br>" + $("TrashView.relatedRecordTitles") + "<br>" + StringUtils.join(relatedRecordTitles, "<br>");
 		}
 	}
 }

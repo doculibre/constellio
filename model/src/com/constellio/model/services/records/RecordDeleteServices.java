@@ -232,6 +232,7 @@ public class RecordDeleteServices {
 
 	public void physicallyDelete(final Record record, User user, RecordPhysicalDeleteOptions options) {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
+		final Set<String> recordsIdsTitlesWithUnremovableReferences = new HashSet<>();
 		if (!isPhysicallyDeletable(record, user, options)) {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
 		}
@@ -285,6 +286,7 @@ public class RecordDeleteServices {
 									} catch (ValidationException e) {
 										e.printStackTrace();
 										recordsWithUnremovableReferences.add(recordWithRef.getId());
+										recordsIdsTitlesWithUnremovableReferences.add(recordWithRef.getTitle());
 									}
 
 								}
@@ -317,7 +319,7 @@ public class RecordDeleteServices {
 			}
 		} else {
 			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(record.getId(),
-					recordsWithUnremovableReferences);
+					recordsWithUnremovableReferences, recordsIdsTitlesWithUnremovableReferences);
 		}
 	}
 
