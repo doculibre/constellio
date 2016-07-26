@@ -102,14 +102,6 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		validateAces(addAces);
 		validateAces(removeAces);
 
-		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, objectId).process().getAces();
-
-		List<Ace> acesToAdd = getAcesToAdd(currentAces);
-		List<Ace> acesToRemove = getAcesToRemove(currentAces);
-
-		createNewAuthorizations(user, acesToAdd);
-		removeAuthorizations(user, acesToRemove);
-
 		if (hasCommandToRemoveAllInheritedAuthorizations()) {
 			Record record = recordServices.getDocumentById(objectId);
 			for (Authorization auth : getInheritedObjectAuthorizationsWithPermission(objectId)) {
@@ -117,6 +109,14 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			}
 
 		}
+
+		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, objectId).process().getAces();
+
+		List<Ace> acesToAdd = getAcesToAdd(currentAces);
+		List<Ace> acesToRemove = getAcesToRemove(currentAces);
+
+		createNewAuthorizations(user, acesToAdd);
+		removeAuthorizations(user, acesToRemove);
 
 		return new GetAclRequest(repository, appLayerFactory, objectId).process();
 	}

@@ -19,6 +19,7 @@ import org.joda.time.format.DateTimeFormatter;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.TimeProvider;
@@ -27,6 +28,8 @@ import com.constellio.model.services.records.ContentImportVersion;
 import com.google.common.base.Strings;
 
 public class XMLFileImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
+
+	public static final String IMPORT_AS_LEGACY_ID = "importAsLegacyId";
 
 	public static final String RECORDS_TAG = "records";
 	public static final String RECORD_TAG = "record";
@@ -65,6 +68,8 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 	protected XMLStreamReader xmlReader;
 
 	private IOServices ioServices;
+
+	private ImportDataOptions options = new ImportDataOptions();
 
 	public XMLFileImportDataIterator(Reader reader, IOServices ioServices) {
 		this.reader = reader;
@@ -110,6 +115,9 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 					patterns = new HashMap<>();
 					patterns.put(DATETIME_PATTERN, xmlReader.getAttributeValue("", DATETIME_PATTERN));
 					patterns.put(DATE_PATTERN, xmlReader.getAttributeValue("", DATE_PATTERN));
+
+					options.setImportAsLegacyId(!"false".equals(xmlReader.getAttributeValue("", IMPORT_AS_LEGACY_ID)));
+
 					break;
 				case RECORD_TAG:
 					schema = xmlReader.getAttributeValue("", SCHEMA_ATTR);
@@ -387,6 +395,12 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Override
+	public ImportDataOptions getOptions() {
+		hasNext();
+		return options;
 	}
 
 	@Override

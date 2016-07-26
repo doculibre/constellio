@@ -1,7 +1,10 @@
 package com.constellio.data.dao.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.frenchPangram;
+import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -21,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import com.constellio.data.conf.DigitSeparatorMode;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.io.services.facades.FileService;
@@ -60,7 +64,138 @@ public class ContentDaoRealTest extends ConstellioTest {
 			vaultDao = getDataLayerFactory().getContentsDao();
 
 		} else if (testCase.equals(givenContentDaoIsTheFileSystemImpl)) {
-			vaultDao = new FileSystemContentDao(newTempFolder(), getIOLayerFactory().newIOServices());
+			vaultDao = new FileSystemContentDao(newTempFolder(), getIOLayerFactory().newIOServices(),
+					getDataLayerFactory().getDataLayerConfiguration());
+		}
+	}
+
+	@Test
+	public void givenContentDaoConfiguredWithTwoDigitSeperatorThenOK()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerConfiguration()
+				.setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.TWO_DIGITS);
+
+		assertThat(getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemDigitsSeparatorMode())
+				.isEqualTo(DigitSeparatorMode.TWO_DIGITS);
+
+		vaultDao.add("anIdWithoutSlash", newInputStreamOfTextContent("test1"));
+		vaultDao.add("anIdWithA/Slash", newInputStreamOfTextContent("test2"));
+		vaultDao.add("z+", newInputStreamOfTextContent("test3"));
+		vaultDao.add("z+q=1", newInputStreamOfTextContent("test4"));
+		vaultDao.add("z+q", newInputStreamOfTextContent("test5"));
+		vaultDao.add("z+/z+q=1k", newInputStreamOfTextContent("test6"));
+
+		assertThat(vaultDao.getContentInputStream("anIdWithoutSlash", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test1"));
+
+		assertThat(vaultDao.getContentInputStream("anIdWithA/Slash", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test2"));
+
+		assertThat(vaultDao.getContentInputStream("z+", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test3"));
+
+		assertThat(vaultDao.getContentInputStream("z+q=1", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test4"));
+
+		assertThat(vaultDao.getContentInputStream("z+q", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test5"));
+		assertThat(vaultDao.getContentInputStream("z+/z+q=1k", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test6"));
+
+		if (vaultDao instanceof FileSystemContentDao) {
+			File root = ((FileSystemContentDao) vaultDao).rootFolder;
+			assertThat(root.listFiles()).extracting("name", "file").containsOnly(
+					tuple("an", false),
+					tuple("anIdWithA", false),
+					tuple("z+", false)
+			);
+
+			assertThat(new File(root, "an").listFiles()).extracting("name", "file").containsOnly(
+					tuple("anIdWithoutSlash", true)
+			);
+
+			assertThat(new File(root, "anIdWithA").listFiles()).extracting("name", "file").containsOnly(
+					tuple("Slash", true)
+			);
+
+			assertThat(new File(root, "z+").listFiles()).extracting("name", "file").containsOnly(
+					tuple("z+q=1", true),
+					tuple("z+q=1k", true),
+					tuple("z+q", true),
+					tuple("z+", true)
+			);
+		}
+	}
+
+	@Test
+	public void givenContentDaoConfiguredWithThreeOneDigitSeperatorThenOK()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerConfiguration()
+				.setHashingEncoding(BASE64_URL_ENCODED);
+
+		getDataLayerFactory().getDataLayerConfiguration()
+				.setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
+
+		vaultDao.add("anIdWithoutSlash", newInputStreamOfTextContent("test1"));
+		vaultDao.add("anotherId", newInputStreamOfTextContent("test2"));
+		vaultDao.add("z", newInputStreamOfTextContent("test4"));
+		vaultDao.add("zz", newInputStreamOfTextContent("test5"));
+		vaultDao.add("zzz", newInputStreamOfTextContent("test6"));
+		vaultDao.add("zzzz", newInputStreamOfTextContent("test7"));
+
+		assertThat(vaultDao.getContentInputStream("anIdWithoutSlash", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test1"));
+
+		assertThat(vaultDao.getContentInputStream("anotherId", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test2"));
+
+		assertThat(vaultDao.getContentInputStream("z", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test4"));
+
+		assertThat(vaultDao.getContentInputStream("zz", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test5"));
+		assertThat(vaultDao.getContentInputStream("zzz", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test6"));
+		assertThat(vaultDao.getContentInputStream("zzzz", SDK_STREAM)).hasContentEqualTo(
+				newInputStreamOfTextContent("test7"));
+
+		if (vaultDao instanceof FileSystemContentDao) {
+			File root = ((FileSystemContentDao) vaultDao).rootFolder;
+			assertThat(root.listFiles()).extracting("name", "file").containsOnly(
+					tuple("a", false),
+					tuple("z", false)
+			);
+
+			assertThat(new File(root, "a").listFiles()).extracting("name", "file").containsOnly(
+					tuple("an", false)
+			);
+
+			assertThat(new File(root, "a" + separator + "an").listFiles()).extracting("name", "file").containsOnly(
+					tuple("anI", false),
+					tuple("ano", false)
+			);
+
+			assertThat(new File(root, "a" + separator + "an" + separator + "anI").listFiles()).extracting("name", "file")
+					.containsOnly(tuple("anIdWithoutSlash", true));
+
+			assertThat(new File(root, "a" + separator + "an" + separator + "ano").listFiles()).extracting("name", "file")
+					.containsOnly(tuple("anotherId", true));
+
+			assertThat(new File(root, "z").listFiles()).extracting("name", "file").containsOnly(
+					tuple("z", true),
+					tuple("zz", false)
+			);
+
+			assertThat(new File(root, "z" + separator + "zz").listFiles()).extracting("name", "file").containsOnly(
+					tuple("zz", true),
+					tuple("zzz", false)
+			);
+
+			assertThat(new File(root, "z" + separator + "zz" + separator + "zzz").listFiles()).extracting("name", "file")
+					.containsOnly(tuple("zzz", true), tuple("zzzz", true));
+
 		}
 	}
 

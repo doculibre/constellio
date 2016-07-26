@@ -20,7 +20,9 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
@@ -55,15 +57,19 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -73,10 +79,13 @@ import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
@@ -104,6 +113,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	RecordsImportServices services;
 
 	ModelLayerExtensions extensions;
+
+	SearchServices searchServices;
 
 	BulkImportProgressionListener progressionListener = new LoggerBulkImportProgressionListener();
 
@@ -208,7 +219,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
 				withZeCollection().withAllTestUsers()
 		);
@@ -226,6 +237,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		extensions.forCollection(zeCollection).recordImportExtensions.add(firstImportBehavior);
 		extensions.forCollection(zeCollection).recordImportExtensions.add(secondImportBehavior);
 		extensions.forCollection(zeCollection).recordImportExtensions.add(otherTypeBehavior);
+		searchServices = getModelLayerFactory().newSearchServices();
 	}
 
 	@Test
@@ -1317,7 +1329,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource1 = getTestResourceFile("resource1.docx").getAbsolutePath().replace(".docx", ".dodocx");
 		String testResource2 = getTestResourceFile("resource2.pdf").getAbsolutePath();
 		String testResource3 = "http://www.perdu.com/edouardLechat.pdf";
-		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
+		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAContentMetadata()
@@ -1375,10 +1387,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String testResource4 = getTestResourceFile("resource4.docx").getAbsolutePath();
 		String testResource5 = getTestResourceFile("resource5.pdf").getAbsolutePath();
 		String testResource1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
-		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
+		String testResource2Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
 		String testResource3Hash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
 		String testResource4Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
-		String testResource5Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
+		String testResource5Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAContentMetadata()
@@ -1509,7 +1521,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		} catch (ValidationRuntimeException e) {
 			assertThat(extractingSimpleCodeAndParameters(e, "index", "legacyId", "schemaType", "metadataCode", "metadataLabel",
 					"basedOnMetadatas")).containsOnly(
-					tuple("ValueRequirementValidator_requiredValueForMetadata", "1", "3", zeSchema.typeCode(),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "2", "3", zeSchema.typeCode(),
 							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
 							"[numberMetadata, booleanMetadata]")
 			);
@@ -1759,6 +1771,82 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		Record record3 = recordWithLegacyId("13");
 		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
+	}
+
+	public static class NoZMetadataValidator implements RecordMetadataValidator<String> {
+
+		@Override
+		public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+			if (value != null && value.contains("p")) {
+				validationErrors.add(NoZMetadataValidator.class, "noP");
+			}
+		}
+	}
+
+	@Test
+	public void whenImportingWithStopErrorModeThenStopWithoutExecutingCurrentBatch()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
+								.add(NoZMetadataValidator.class);
+					}
+				}));
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin);
+
+			fail("ValidationRuntimeException expected");
+		} catch (ValidationRuntimeException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "index")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142")
+			);
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(100);
+	}
+
+	@Test
+	public void whenImportingWithContinueErrorModeThenContinue()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
+								.add(NoZMetadataValidator.class);
+					}
+				}));
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin,
+					new BulkImportParams().setStopOnFirstError(false));
+
+			fail("ValidationRuntimeException expected");
+		} catch (ValidationRuntimeException e) {
+			e.printStackTrace();
+			assertThat(extractingSimpleCodeAndParameters(e, "index")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142"),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "188"),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "244")
+			);
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
 	}
 
 	private void validateCorrectlyImported() {

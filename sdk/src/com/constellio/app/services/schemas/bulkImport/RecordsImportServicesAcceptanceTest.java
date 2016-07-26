@@ -2,6 +2,7 @@ package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -37,6 +38,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -64,7 +66,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
@@ -76,6 +78,45 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	}
+
+	@Test
+	public void whenImportingZipOfXMLFilesWithRealIdsThenImportedCorrectly()
+			throws Exception {
+
+		File zipFile = buildZipWith("administrativeUnit.xml", "categoryWithRealIds.xml:category.xml",
+				"retentionRuleWithRealIds.xml:retentionRule.xml");
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+
+		RetentionRule zeRule1 = rm.getRetentionRuleWithLegacyId("zeRule1");
+		assertThat(zeRule1.getId()).isEqualTo("zeRule1");
+
+		RetentionRule zeRule2 = rm.getRetentionRuleWithLegacyId("zeRule2");
+		assertThat(zeRule2.getId()).isEqualTo("zeRule2");
+
+		Category zeCategory22200 = rm.getCategoryWithLegacyId("zeCategory22200");
+		assertThat(zeCategory22200.getId()).isEqualTo("zeCategory22200");
+		assertThat(zeCategory22200.getRententionRules()).containsOnly("zeRule1", "zeRule2");
+
+		Category zeCategory22230 = rm.getCategoryWithLegacyId("zeCategory22230");
+		assertThat(zeCategory22230.getId()).isEqualTo("zeCategory22230");
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+
+	}
+
+	@Test(expected = RecordServicesRuntimeException.IdAlreadyExisting.class)
+	public void givenRecordsWithIdAlreadyExistingWhenImportingZipOfXMLFilesWithRealIdsThenException()
+			throws Exception {
+
+		getModelLayerFactory().newRecordServices().add(rm.newDocumentTypeWithId("zeRule2").setCode("ze").setTitle("ze"));
+
+		File zipFile = buildZipWith("administrativeUnit.xml", "categoryWithRealIds.xml:category.xml",
+				"retentionRuleWithRealIds.xml:retentionRule.xml");
+
+		importServices.bulkImport(XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile), progressionListener, admin);
+
 	}
 
 	@Test
@@ -107,6 +148,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		givenTimeIs(shishOClock);
 
 		Folder folder660 = rm.getFolderWithLegacyId("660");
+		assertThat(folder660.getId()).isNotEqualTo("660");
 		assertThat(folder660.getFormCreatedBy()).isEqualTo(users.aliceIn(zeCollection).getId());
 		assertThat(folder660.getFormCreatedOn()).isEqualTo(new LocalDateTime(2001, 1, 1, 1, 1, 1));
 		assertThat(folder660.getFormModifiedBy()).isEqualTo(users.bobIn(zeCollection).getId());
@@ -275,6 +317,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private void importAndValidate() {
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));
+		assertThat(category1.getId()).isNotEqualTo("22200");
 		assertThat(category1.getCode()).isEqualTo("X2222");
 		assertThat(category1.getTitle()).isEqualTo("Element Category");
 		assertThat(category1.getDescription()).isEqualTo("earth, water, fire and wind");
@@ -299,6 +342,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(category3.getParent()).isEqualTo(category2.getId());
 
 		AdministrativeUnit administrativeUnit1 = rm.wrapAdministrativeUnit(expectedRecordWithLegacyId("40"));
+		assertThat(administrativeUnit1.getId()).isNotEqualTo("40");
 		assertThat(administrativeUnit1.getCode()).isEqualTo("2014AKA");
 		assertThat(administrativeUnit1.getDescription()).isEqualTo("I am a very wonderful Administrative Unit !");
 		assertThat(administrativeUnit1.getTitle()).isEqualTo("Administrative Unit Wonderful");
@@ -354,7 +398,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private void importAndValidateDocumentWithVersions() {
 		String testResourceHash = "jLWaqQbCOSAPT4G3P75XnJJOmmo=";
-		String testSecondResourceHash = "I/9qXqJxoU3dKHeM8bM/S4j8eIE=";
+		String testSecondResourceHash = "I_9qXqJxoU3dKHeM8bM_S4j8eIE=";
 
 		Document document1 = rm.wrapDocument(expectedRecordWithLegacyId("00000000001"));
 		Content content1 = document1.getContent();

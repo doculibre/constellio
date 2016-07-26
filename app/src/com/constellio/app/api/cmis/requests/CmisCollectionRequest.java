@@ -38,18 +38,17 @@ public abstract class CmisCollectionRequest<T> {
 	public final T processRequest() {
 		Logger logger = getLogger();
 
-		logger.info("calling cmis request " + toString().replace("com.constellio.app.api.cmis.requests.", ""));
-
 		try {
 			T response = process();
-			logger.info("Response : " + response);
 			return response;
 		} catch (ConstellioCmisException e) {
-			logger.error("Constellio exception in " + this, e);
+			String requestString = toString().replace("com.constellio.app.api.cmis.requests.", "");
+			logger.error("Constellio exception while calling cmis request ' " + requestString + "'", e);
 			throw new CmisExceptions_Runtime(e.getMessage());
 
 		} catch (Throwable t) {
-			logger.error("Unexpected exception in " + this, t);
+			String requestString = toString().replace("com.constellio.app.api.cmis.requests.", "");
+			logger.error("Unepected exception while calling cmis request ' " + requestString + "'", t);
 
 			throw new CmisExceptions_Runtime(t.getMessage());
 		}

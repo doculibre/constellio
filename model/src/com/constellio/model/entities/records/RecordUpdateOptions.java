@@ -19,8 +19,6 @@ public class RecordUpdateOptions {
 
 	private boolean validationsEnabled = true;
 
-	private boolean extractorsEnabled = true;
-
 	public RecordUpdateOptions() {
 
 	}
@@ -32,7 +30,6 @@ public class RecordUpdateOptions {
 		this.updateModificationInfos = copy.updateModificationInfos;
 		this.fullRewrite = copy.fullRewrite;
 		this.validationsEnabled = copy.validationsEnabled;
-		this.extractorsEnabled = copy.extractorsEnabled;
 	}
 
 	public RecordUpdateOptions forceReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {
@@ -82,15 +79,6 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setUpdateModificationInfos(boolean updateModificationInfos) {
 		this.updateModificationInfos = updateModificationInfos;
-		return this;
-	}
-
-	public boolean isExtractorsEnabled() {
-		return extractorsEnabled;
-	}
-
-	public RecordUpdateOptions setExtractorsEnabled(boolean extractorsEnabled) {
-		this.extractorsEnabled = extractorsEnabled;
 		return this;
 	}
 

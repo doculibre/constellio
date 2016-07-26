@@ -129,25 +129,25 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		categoryCodeField.positionX = 1;
 		categoryCodeField.positionY = 1;
 		categoryCodeField.width = 14;
-		categoryCodeField.height = 4;
-		categoryCodeField.setValue("categoryCodeField");
+		categoryCodeField.height = 3;
+		categoryCodeField.setValue("x4 1840");
 		categoryCodeField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField folderIdField = new LabelsReportField();
 		folderIdField.positionX = 15;
 		folderIdField.positionY = 1;
-		folderIdField.width = 5;
-		folderIdField.height = 4;
-		folderIdField.setValue("FolderId");
+		folderIdField.width = 9;
+		folderIdField.height = 3;
+		folderIdField.setValue("00000100092 id");
 		folderIdField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
 
 		LabelsReportField folderTitleField = new LabelsReportField();
 		folderTitleField.positionX = 1;
-		folderTitleField.positionY = 5;
+		folderTitleField.positionY = 4;
 		folderTitleField.width = 28;
-		folderTitleField.height = 2;
-		folderTitleField.setValue("FolderTitle");
-		folderTitleField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+		folderTitleField.height = 3;
+		folderTitleField.setValue("SIMPLEX-Entente de partenariat 2017 de partenariat 2017");
+		folderTitleField.setFont(new LabelsReportFont().setSize(12.0f).setBold(true).setItalic(true));
 
 		LabelsReportField copyStatusCodeField = new LabelsReportField();
 		copyStatusCodeField.positionX = 14;
@@ -179,6 +179,77 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		labelsReportField1.setFont(new LabelsReportFont().setSize(8.0f).setBold(false).setItalic(false));
 
 		List<LabelsReportField> fields = Arrays.asList(labelsReportField1);*/
+
+		LabelsReportLabel sticker = new LabelsReportLabel(labelTemplateFields);
+
+		List<LabelsReportLabel> stickers = Arrays
+				.asList(sticker, sticker, sticker, sticker, sticker, sticker, sticker, sticker, sticker,
+						sticker, sticker, sticker, sticker, sticker);
+
+		model.setLabelsReportLabels(stickers);
+		model.setPrintBorders(false);
+
+		buildAndOpen(new LabelsReportBuilder(model));
+	}
+
+
+	@Test
+	public void givenRight5162ThenSheetIsCorrectlyDivided() {
+
+		LabelsReportModel model = new LabelsReportModel();
+
+		LabelsReportLayout labelsReportLayout = LabelsReportLayout.AVERY_5162;
+		model.setLayout(labelsReportLayout);
+		model.setColumnsNumber(30);
+		model.setRowsNumber(10);
+
+		List<LabelsReportField> labelTemplateFields = new ArrayList<>();
+
+		LabelsReportField folderIdField = new LabelsReportField();
+		folderIdField.positionX = 1;
+		folderIdField.positionY = 1;
+		folderIdField.width = 5;
+		folderIdField.height = 4;
+		folderIdField.setValue("FolderId");
+		folderIdField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+
+		LabelsReportField categoryCodeField = new LabelsReportField();
+		categoryCodeField.positionX = 6;
+		categoryCodeField.positionY = 1;
+		categoryCodeField.width = 14;
+		categoryCodeField.height = 4;
+		categoryCodeField.setValue("categoryCodeField");
+		categoryCodeField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+
+		LabelsReportField folderTitleField = new LabelsReportField();
+		folderTitleField.positionX = 1;
+		folderTitleField.positionY = 5;
+		folderTitleField.width = 28;
+		folderTitleField.height = 2;
+		folderTitleField.setValue("FolderTitle");
+		folderTitleField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+
+		LabelsReportField copyStatusCodeField = new LabelsReportField();
+		copyStatusCodeField.positionX = 14;
+		copyStatusCodeField.positionY = 7;
+		copyStatusCodeField.width = 1;
+		copyStatusCodeField.height = 2;
+		copyStatusCodeField.setValue("P");
+		copyStatusCodeField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+
+		LabelsReportField openDateField = new LabelsReportField();
+		openDateField.positionX = 20;
+		openDateField.positionY = 7;
+		openDateField.width = 9;
+		openDateField.height = 2;
+		openDateField.setValue("200-10-04");
+		openDateField.setFont(new LabelsReportFont().setSize(8.0f).setBold(true).setItalic(true));
+
+		labelTemplateFields.add(categoryCodeField);
+		labelTemplateFields.add(folderIdField);
+		labelTemplateFields.add(folderTitleField);
+		labelTemplateFields.add(copyStatusCodeField);
+		labelTemplateFields.add(openDateField);
 
 		LabelsReportLabel sticker = new LabelsReportLabel(labelTemplateFields);
 

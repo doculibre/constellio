@@ -102,14 +102,13 @@ public class LangUtils {
 	public static <T> ListComparisonResults<T> compare(List<T> before, List<T> after) {
 		List<T> newItems = new ArrayList<>();
 		List<T> removedItems = new ArrayList<>();
-		 if (after == null) {
+		if (after == null) {
 			removedItems = new ArrayList<>(before);
 
 		} else if (before == null) {
 			newItems = new ArrayList<>(after);
 
-		} else if (after != null && after != null ){
-
+		} else if (after != null && after != null) {
 
 			if (before != null) {
 				for (T item : before) {
@@ -194,6 +193,36 @@ public class LangUtils {
 		Set<T> set1 = new HashSet<>(list1);
 		Set<T> set2 = new HashSet<>(list2);
 		return set1.equals(set2);
+	}
+
+	public static int countIteratorValues(Iterator<?> iterator) {
+		int count = 0;
+		while (iterator.hasNext()) {
+			iterator.next();
+			count++;
+		}
+		return count;
+	}
+
+	public static int nullableNaturalCompare(Comparable v1, Comparable v2) {
+		if (v1 == null) {
+
+			if (v2 == null) {
+				return 0;
+			} else {
+				return -1;
+			}
+
+		} else {
+
+			if (v2 == null) {
+				return 1;
+			} else {
+				return v1.compareTo(v2);
+			}
+
+		}
+
 	}
 
 	public static class ListComparisonResults<T> {
@@ -314,5 +343,24 @@ public class LangUtils {
 		parameters.put(key2, value2);
 		parameters.put(key3, value3);
 		return parameters;
+	}
+
+	public static <V> Iterator<V> synchronizedIterator(final Iterator<V> nestedIterator) {
+		return new Iterator<V>() {
+			@Override
+			public synchronized boolean hasNext() {
+				return nestedIterator.hasNext();
+			}
+
+			@Override
+			public synchronized V next() {
+				return nestedIterator.next();
+			}
+
+			@Override
+			public synchronized void remove() {
+				nestedIterator.remove();
+			}
+		};
 	}
 }

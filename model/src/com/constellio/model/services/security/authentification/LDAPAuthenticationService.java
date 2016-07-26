@@ -1,16 +1,11 @@
 package com.constellio.model.services.security.authentification;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
@@ -25,9 +20,12 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
+import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
@@ -68,13 +66,33 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		if (username.equals(ADMIN_USERNAME)) {
 			return adminAuthenticationService.authenticate(username, password);
 		}
-		if(StringUtils.isBlank(password)){
-			return false;
-		}
-		boolean authenticated = false;
 		if (StringUtils.isBlank(password)) {
+			LOGGER.info("invalid blank password");
 			return false;
 		}
+		return authenticateLDAPUser(username, password);
+	}
+
+	private boolean authenticateLDAPUser(String username, String password) {
+		LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
+		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
+			LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(directoryType);
+			String userEmail = userServices.getUser(username).getEmail();
+			try {
+				ldapServices.authenticateUser(ldapServerConfiguration, userEmail, password);
+				return true;
+			} catch (Throwable e) {
+				LOGGER.info("Error when trying to authenticate user " + username + " with email " + userEmail, e);
+				return false;
+			}
+		} else {
+			return authenticateDefaultLDAPUser(username, password);
+		}
+	}
+
+	//TODO : refactoring move to LDAPServicesImpl
+	private boolean authenticateDefaultLDAPUser(String username, String password) {
+		boolean authenticated = false;
 		for (String url : ldapServerConfiguration.getUrls()) {
 			authenticated = authenticate(username, password, url);
 
@@ -108,12 +126,13 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	private String getUserDomain(String username, String url) {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration();
-		LDAPServices ldapServices = new LDAPServices();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		boolean isAD = (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), url,
 				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
 				ldapServerConfiguration.getFollowReferences(), isAD);
-		String dnForUser = ldapServices.dnForUser(ctx, username, ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList());
+		String dnForUser = ldapServices
+				.dnForUser(ctx, username, ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList());
 		try {
 			ctx.close();
 		} catch (NamingException e) {
@@ -136,6 +155,10 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			env.put("java.naming.ldap.attributes.binary", "tokenGroups objectSid");
 			if (this.ldapServerConfiguration.getFollowReferences()) {
 				env.put(Context.REFERRAL, "follow");
+			}
+			if (StringUtils.startsWith(url, "ldaps")) {
+				//env.put(Context.SECURITY_PROTOCOL, "ssl");
+				env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.DummySSLSocketFactory");
 			}
 			InitialLdapContext context = new InitialLdapContext(env, connCtls);
 			for (String securityPrincipal : securityPrincipals) {
@@ -190,13 +213,13 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 	private String getUserDn(String username, String domain, String url)
 			throws NamingException {
-		try{
+		try {
 			UserCredential user = userServices.getUser(username);
-			if(StringUtils.isNotBlank(user.getDn())){
+			if (StringUtils.isNotBlank(user.getDn())) {
 				return user.getDn();
 			}
-		} catch(UserServicesRuntimeException_NoSuchUser e){
-			LOGGER.warn("Trying to authenticate non constellio user "+ username, e);
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			LOGGER.warn("Trying to authenticate non constellio user " + username, e);
 		}
 
 		String ldapUser = this.ldapConfigurationManager.getLDAPUserSyncConfiguration().getUser();
@@ -204,12 +227,12 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 
 		LdapContext ldapContext = null;
 		try {
-			ldapContext = new LDAPServices()
+			ldapContext = new LDAPServicesImpl()
 					.connectToLDAP(Collections.EMPTY_LIST, url, ldapUser,
 							ldapPassword, ldapServerConfiguration.getFollowReferences(), false);
 
 			String usernameBeforeDomain = StringUtils.substringBefore(username, "@");
-			return new LDAPServices().dnForEdirectoryUser(ldapContext, domain, usernameBeforeDomain);
+			return new LDAPServicesImpl().dnForEdirectoryUser(ldapContext, domain, usernameBeforeDomain);
 		} finally {
 			if (ldapContext != null) {
 				ldapContext.close();

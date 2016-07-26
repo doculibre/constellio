@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.NoSuchConstructor;
 import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
 import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.CorrectParametrizedClass;
 import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.PrivateConstructorClass;
@@ -89,11 +88,6 @@ public class ParametrizedInstanceUtilsTest {
 		assertThat(loaded.getInstanceParameters()).isEqualTo(multipleNullValueParametrizedClass.getInstanceParameters());
 	}
 
-	@Test(expected = NoSuchConstructor.class)
-	public void givenIncorrectParameterThenNoSuchConstructorThrown() {
-		utils.toObject(rootElement, correctParametrizedClass.getClass());
-	}
-
 	@Test(expected = UnsupportedArgument.class)
 	public void givenUnsupportedArgumentThenUnsupportedArgumentThrown() {
 		Metadata metadata = Mockito.mock(Metadata.class);
@@ -113,7 +107,7 @@ public class ParametrizedInstanceUtilsTest {
 
 	@Test(expected = CannotInstanciate.class)
 	public void givenReflectionExceptionInParameterThenCannotInstanciateThrown() {
-		List<Class> parameterClasses = Mockito.mock(List.class);
+		List<Class<?>> parameterClasses = Mockito.mock(List.class);
 		List<Object> parameters = Mockito.mock(List.class);
 
 		when(rootElement.getAttribute("name")).thenReturn(new Attribute("name",

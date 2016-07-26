@@ -29,7 +29,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchResultSimpleTable extends RecordVOTable implements SearchResultTable {
@@ -60,17 +62,11 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 					Object itemId = event.getItemId();
 					RecordVO recordVO = container.getRecordVO((int) itemId);
 					
-					final ConstellioUI ui = ConstellioUI.getCurrent();
-					String collection = ui.getSessionContext().getCurrentCollection();
-					AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
-					AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
-					List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
-
-					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
-					NavigationParams navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(), SearchResultSimpleTable.this);
-					for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
-						recordNavigationExtension.prepareLinkToView(navigationParams);
-					}
+					Window recordWindow = new BaseWindow();
+					recordWindow.setWidth("90%");
+					recordWindow.setHeight("90%");
+					recordWindow.setContent(new RecordDisplay(recordVO));
+					UI.getCurrent().addWindow(recordWindow);
 //				}
 			}
 		});

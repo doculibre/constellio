@@ -36,7 +36,7 @@ public class StartConstellioDevMain {
 		RecordPopulateServices.LOG_CONTENT_MISSING = false;
 		Toggle.SIMULATE_CONNECTOR_DOWNLOAD_CONTENT.enable();
 
-		AppLayerFactory factory = SDKScriptUtils.startApplicationWithoutBackgroundProcessesAndAuthentication();
+		AppLayerFactory factory = SDKScriptUtils.startApplicationWithBatchProcessesAndBackgroundThreads();
 
 		ApplicationStarter.startApplication(false, getWebContentDir(), 7070);
 

@@ -38,6 +38,8 @@ import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
@@ -94,7 +96,8 @@ public class DataLayerFactory extends LayerFactory {
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
-					ioServicesFactory.newIOServices(), ioServicesFactory.newHashingService()));
+					ioServicesFactory.newIOServices(),
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -123,7 +126,7 @@ public class DataLayerFactory extends LayerFactory {
 
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices()));
+			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
 
 		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
 			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
@@ -292,5 +295,9 @@ public class DataLayerFactory extends LayerFactory {
 
 	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
 		return this.transactionLogRecoveryManager;
+	}
+
+	public SequencesManager getSequencesManager() {
+		return new SolrSequencesManager(newRecordDao());
 	}
 }

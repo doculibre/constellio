@@ -75,7 +75,8 @@ public class ExcelDataIterator extends LazyIterator<Map<String, Object>> impleme
 					if (cell.isDate()) {
 						line.put(column, new LocalDate(cell.getDate()));
 					} else {
-						line.put(column, cell.getContents());
+						String content = cell.getContents();
+						line.put(column, content == null ? null : content.trim());
 					}
 				}
 			}

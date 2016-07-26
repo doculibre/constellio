@@ -121,7 +121,7 @@ public class ListSchemaRecordsViewImpl extends BaseViewImpl implements ListSchem
 		});
 		recordsContainer = buttonsContainer;
 
-		Table table = new RecordVOTable($("ListSchemaRecordsView.tableTitle", dataProvider.size()), recordsContainer);
+		RecordVOTable table = new RecordVOTable($("ListSchemaRecordsView.tableTitle", dataProvider.size()), recordsContainer);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);

@@ -1,5 +1,6 @@
 package com.constellio.data.dao.services.transactionLog;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static java.util.Arrays.asList;
@@ -45,6 +46,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
@@ -94,6 +96,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(SecondTransactionLogManager.class);
 		logBaseFolder = newTempFolder();
@@ -146,6 +149,9 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		});
 		schemas.refresh();
 
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG, false);
+
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 		ContentVersionDataSummary data = contentManager
@@ -187,7 +193,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		log.destroyAndRebuildSolrCollection();
 
 		Content content = recordServices.getDocumentById("zeRecord").get(zeSchema.contentMetadata());
-		assertThat(content.getCurrentVersion().getHash()).isEqualTo("io25znMv7hM3k+m441kYKBEHbbE=");
+		assertThat(content.getCurrentVersion().getHash()).isEqualTo("io25znMv7hM3k-m441kYKBEHbbE=");
 
 	}
 

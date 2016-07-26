@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Set;
 
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,6 +33,7 @@ import com.constellio.model.services.trash.TrashServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
+@InDevelopmentTest
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 	private static final String CUSTOM_TASK_SCHEMA_LOCAL_CODE = "zTaskSchema";

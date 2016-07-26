@@ -17,6 +17,8 @@ import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -37,7 +39,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 
-public class RecordVOTable extends Table {
+public class RecordVOTable extends BaseTable {
 
 	public static final String STYLE_NAME = "record-table";
 	public static final String CLICKABLE_ROW_STYLE_NAME = "clickable-row";
@@ -48,14 +50,8 @@ public class RecordVOTable extends Table {
 	private boolean contextMenuPossible = true;
 
 	public RecordVOTable() {
-		super();
+		super(null);
 		init();
-	}
-
-	public RecordVOTable(String caption, Container dataSource, Boolean collapsingAllowed) {
-		super(caption, dataSource);
-		init();
-		setColumnCollapsingAllowed(collapsingAllowed);
 	}
 
 	public RecordVOTable(String caption, Container dataSource) {
@@ -63,13 +59,47 @@ public class RecordVOTable extends Table {
 	}
 
 	public RecordVOTable(String caption) {
-		super(caption);
+		super(null, caption);
 		init();
 	}
 
 	public RecordVOTable(RecordVODataProvider dataProvider) {
+		super(null);
 		setContainerDataSource(new RecordVOLazyContainer(dataProvider));
 		init();
+	}
+
+	public RecordVOTable(String caption, Container dataSource, Boolean collapsingAllowed) {
+		super(null, caption, dataSource);
+		init();
+		setColumnCollapsingAllowed(collapsingAllowed);
+	}
+
+	@Override
+	protected String getTableId() {
+		String tableId;
+		if (schemaVO != null) {
+			String componentId = getId();
+			String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
+			String navigatorStateWithoutParams;
+			if (navigatorState.indexOf("/") != -1) {
+				navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
+			} else {
+				navigatorStateWithoutParams = navigatorState;
+			}
+			tableId = navigatorStateWithoutParams + "." + schemaVO.getCode();
+			if (componentId != null) {
+				tableId += "." + componentId;
+			}
+		} else {
+			tableId = null;
+		}
+		return tableId;
+	}
+
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		return new RecordVOTableColumnsManager();
 	}
 
 	private void init() {
@@ -103,7 +133,7 @@ public class RecordVOTable extends Table {
 				return false;
 			}
 		});
-	}
+	}	
 
 	private boolean isDecomList(RecordVO recordVO) {
 		if (recordVO.getSchema() != null) {

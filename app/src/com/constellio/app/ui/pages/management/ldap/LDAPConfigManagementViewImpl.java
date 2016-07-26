@@ -4,238 +4,346 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import org.joda.time.Duration;
-
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
-import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.StringListComponent;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.RegexFilter;
-import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.constellio.model.conf.ldap.config.AzureADServerConfig;
+import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.ValoTheme;
 
-public class LDAPConfigManagementViewImpl extends BaseViewImpl implements LDAPConfigManagementView {
-    private LDAPConfigManagementPresenter presenter;
+public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements LDAPConfigManagementView {
+	private AzurAuthenticationTab azurAuthenticationTab;
+	private AzurSynchTab azurSynchTab;
 
-    private Button saveButton;
-    private CheckBox ldapAuthenticationActive;
-    private CheckBox followReferences;
-    private DurationPanel durationField;
+	private DefaultAuthenticationTab defaultAuthenticationTab;
+	private DefaultSynchTab defaultSynchTab;
 
-    private Field directoryTypeField;
-    private StringListComponent urlsField;
-    private StringListComponent domainsField;
-    private StringListComponent groupsField;
-    private StringListComponent usersField;
-    private Field userField;
-    private Field passwordField;
-    private Field usersAcceptanceRegexField;
-    private Field usersRejectionRegexField;
-    private Field groupsAcceptanceRegexField;
-    private Field groupsRejectionRegexField;
-    private TextArea testAuthentication;
-    private CollectionsSelectionPanel collectionsComponent;
+	protected Component tabsheet;
+	protected VerticalLayout layout;
 
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		layout = new VerticalLayout();
+		layout.setSizeFull();
+		layout.setSpacing(true);
+		buildLDAPActiveCheckBox();
+		layout.addComponent(super.ldapAuthenticationActive);
+		buildDirectoryTypeField();
+		layout.addComponent(super.directoryTypeField);
 
-    public LDAPConfigManagementViewImpl() {
-        super();
-        this.presenter = new LDAPConfigManagementPresenter(this);
-    }
+		tabsheet = createConfigTabSheet();
 
-    @Override
-    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        VerticalLayout layout = new VerticalLayout();
-        layout.setSizeFull();
-        layout.setSpacing(true);
+		layout.addComponent(tabsheet);
 
-        buildLdapServerConfigComponent(layout);
-        buildLdapUserSyncConfigComponent(layout);
-        buildSaveAndTestButtonsPanel(layout);
-        return layout;
-    }
+		buildSaveAndTestButtonsPanel(layout);
 
-    private void buildSaveAndTestButtonsPanel(final VerticalLayout layout) {
-        Panel buttonsPanel = new Panel();
-        buttonsPanel.setSizeUndefined();
-        buttonsPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+		testAuthentication = new TextArea($("ldap.test.results"));
+		testAuthentication.setSizeFull();
+		testAuthentication.setEnabled(false);
+		testAuthentication.setVisible(false);
+		layout.addComponent(testAuthentication);
+		//layout.addComponent(saveButton);
+		//layout.setComponentAlignment(saveButton, Alignment.BOTTOM_RIGHT);
 
-        Button testButton = new BaseButton($("ldap.test.button")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                testAuthentication.setVisible(true);
-                LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(), followReferences.getValue());
-                LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(userField.getValue().toString(), passwordField.getValue().toString(),
-                        getUserFilter(), getGroupsFilter(),
-                        durationField.getDuration(), groupsField.getValues(), usersField.getValues());
-                testAuthentication.setValue(presenter.getAuthenticationResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration) + "\n" + presenter.getSynchResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration));
-                layout.replaceComponent(testAuthentication, testAuthentication);
-            }
-        };
+		return layout;
+	}
 
+	@Override
+	public void updateComponents() {
+		Component newTabSheet = createConfigTabSheet();
+		layout.replaceComponent(tabsheet, newTabSheet);
+		tabsheet = newTabSheet;
+		testAuthentication.setVisible(false);
+	}
 
-        saveButton = new BaseButton($("save")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                LDAPServerConfiguration ldapServerConfigurationVO = new LDAPServerConfiguration(urlsField.getValues(), domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(), followReferences.getValue());
-                LDAPUserSyncConfiguration ldapUserSyncConfigurationVO = new LDAPUserSyncConfiguration(userField.getValue().toString(), passwordField.getValue().toString(),
-                        getUserFilter(), getGroupsFilter(),
-                        durationField.getDuration(), groupsField.getValues(), usersField.getValues(), collectionsComponent.getSelectedCollections());
-                presenter.saveConfigurations(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
-            }
-        };
-        saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+	@Override
+	protected String getAuthenticationPassword() {
+		if (getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
+			return azurAuthenticationTab.getTestPassword();
+		} else {
+			return defaultSynchTab.getTestPassword();
+		}
+	}
 
-        HorizontalLayout hlayout = new HorizontalLayout(testButton, saveButton);
-        hlayout.addComponent(saveButton);
-        buttonsPanel.setContent(hlayout);
-        layout.addComponent(buttonsPanel);
-        layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
-    }
+	@Override
+	protected String getAuthenticationUser() {
+		if (getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
+			return azurAuthenticationTab.getTestUser();
+		} else {
+			return defaultSynchTab.getTestUser();
+		}
+	}
 
-    private RegexFilter getGroupsFilter() {
-        return new RegexFilter(groupsAcceptanceRegexField.getValue().toString(), groupsRejectionRegexField.getValue().toString());
-    }
+	protected Component createConfigTabSheet() {
+		LDAPDirectoryType directoryType = getDirectoryType();
+		switch (directoryType) {
+		case AZURE_AD:
+			return createAzureConfigTabSheet();
+		case ACTIVE_DIRECTORY:
+		case E_DIRECTORY:
+			return createDefaultLDAPTabSheet();
+		default:
+			throw new RuntimeException("unknown type " + directoryType);
+		}
+	}
 
-    private RegexFilter getUserFilter() {
-        return new RegexFilter(usersAcceptanceRegexField.getValue().toString(), usersRejectionRegexField.getValue().toString());
-    }
+	private Component createDefaultLDAPTabSheet() {
+		TabSheet returnTabSheet = new TabSheet();
+		defaultAuthenticationTab = new DefaultAuthenticationTab();
+		returnTabSheet.addTab(defaultAuthenticationTab, $("LDAPConfigManagementView.authentication"));
 
-    private LDAPDirectoryType getDirectoryType() {
-        return LDAPDirectoryType.valueOf(directoryTypeField.getValue().toString());
-    }
+		defaultSynchTab = new DefaultSynchTab();
+		returnTabSheet.addTab(defaultSynchTab, $("LDAPConfigManagementView.synchronisation"));
+		return returnTabSheet;
+	}
 
-    private void buildLdapServerConfigComponent(VerticalLayout layout) {
-        LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
+	private TabSheet createAzureConfigTabSheet() {
+		TabSheet returnTabSheet = new TabSheet();
+		azurAuthenticationTab = new AzurAuthenticationTab();
+		returnTabSheet.addTab(azurAuthenticationTab, $("LDAPConfigManagementView.authentication"));
 
-        ldapAuthenticationActive = new CheckBox($("ldap.authentication.active"));
-        ldapAuthenticationActive.setValue(ldapServerConfiguration.getLdapAuthenticationActive());
-        layout.addComponent(ldapAuthenticationActive);
-        followReferences = new CheckBox($("ldap.authentication.followReferences"));
-        followReferences.setValue(ldapServerConfiguration.getFollowReferences());
-        layout.addComponent(followReferences);
-        LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
-        directoryTypeField = createEnumField(directoryType, LDAPDirectoryType.class.getEnumConstants());
-        directoryTypeField.setCaption($("ldap.serverConfiguration.directoryType"));
-        layout.addComponent(directoryTypeField);
-        List<String> urls = ldapServerConfiguration.getUrls();
-        urlsField = new StringListComponent();
-        urlsField.setCaption($("ldap.serverConfiguration.urls"));
-        urlsField.setValues(urls);
-        urlsField.setRequired(true);
-        layout.addComponent(urlsField);
-        List<String> domains = ldapServerConfiguration.getDomains();
-        domainsField = new StringListComponent();
-        domainsField.setCaption($("ldap.serverConfiguration.domains"));
-        domainsField.setValues(domains);
-        domainsField.setRequired(true);
-        layout.addComponent(domainsField);
-    }
+		azurSynchTab = new AzurSynchTab();
+		returnTabSheet.addTab(azurSynchTab, $("LDAPConfigManagementView.synchronisation"));
+		return returnTabSheet;
+	}
 
-    private void buildLdapUserSyncConfigComponent(VerticalLayout layout) {
-        String title = $("ImportUsersFileViewImpl.collection");
-        collectionsComponent = new CollectionsSelectionPanel(title, presenter.getAllCollections());
-        layout.addComponent(collectionsComponent);
-        LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
-        Duration duration = ldapUserSyncConfiguration.getDurationBetweenExecution();
-        durationField = new DurationPanel();
-        durationField.setCaption($("ldap.syncConfiguration.durationBetweenExecution"));
-        durationField.setDuration(duration);
-        layout.addComponent(durationField);
-        List<String> groups = ldapUserSyncConfiguration.getGroupBaseContextList();
-        groupsField = new StringListComponent();
-        groupsField.setCaption($("ldap.syncConfiguration.groupsBaseContextList"));
-        groupsField.setValues(groups);
-        layout.addComponent(groupsField);
-        List<String> users = ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList();
-        usersField = new StringListComponent();
-        usersField.setCaption($("ldap.syncConfiguration.usersWithoutGroupsBaseContextList"));
-        usersField.setValues(users);
-        layout.addComponent(usersField);
-        String user = ldapUserSyncConfiguration.getUser();
-        userField = createStringField(user, true);
-        userField.setCaption($("ldap.syncConfiguration.user.login"));
-        layout.addComponent(userField);
-        String password = ldapUserSyncConfiguration.getPassword();
-        passwordField = new PasswordField($("ldap.syncConfiguration.user.password"));//PasswordField($("ldap.syncConfiguration.user.password"));
-        passwordField.setValue(password);
-        passwordField.setRequired(true);
-        layout.addComponent(passwordField);
-        String usersAcceptanceRegex = ldapUserSyncConfiguration.getUsersFilterAcceptanceRegex();
-        usersAcceptanceRegexField = createStringField(usersAcceptanceRegex, false);
-        usersAcceptanceRegexField.setCaption($("ldap.syncConfiguration.userFilter.acceptedRegex"));
-        layout.addComponent(usersAcceptanceRegexField);
-        String usersRejectionRegex = ldapUserSyncConfiguration.getUsersFilterRejectionRegex();
-        usersRejectionRegexField = createStringField(usersRejectionRegex, false);
-        usersRejectionRegexField.setCaption($("ldap.syncConfiguration.userFilter.rejectedRegex"));
-        layout.addComponent(usersRejectionRegexField);
-        String groupsAcceptanceRegex = ldapUserSyncConfiguration.getGroupsFilterAcceptanceRegex();
-        groupsAcceptanceRegexField = createStringField(groupsAcceptanceRegex, false);
-        groupsAcceptanceRegexField.setCaption($("ldap.syncConfiguration.groupFilter.acceptedRegex"));
-        layout.addComponent(groupsAcceptanceRegexField);
-        String groupsRejectionRegex = ldapUserSyncConfiguration.getGroupsFilterRejectionRegex();
-        groupsRejectionRegexField = createStringField(groupsRejectionRegex, false);
-        groupsRejectionRegexField.setCaption($("ldap.syncConfiguration.groupFilter.rejectedRegex"));
-        layout.addComponent(groupsRejectionRegexField);
+	@Override
+	protected LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
+		if (getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
+			return azurSynchTab.getLDAPUserSyncConfiguration();
+		} else {
+			return defaultSynchTab.getLDAPUserSyncConfiguration();
+		}
+	}
 
-        testAuthentication = new TextArea($("ldap.test.results"));
-        testAuthentication.setSizeFull();
-        testAuthentication.setEnabled(false);
-        testAuthentication.setVisible(false);
-        layout.addComponent(testAuthentication);
-    }
+	@Override
+	protected LDAPServerConfiguration getLDAPServerConfiguration() {
+		LDAPDirectoryType directoryType = getDirectoryType();
+		if (directoryType == LDAPDirectoryType.AZURE_AD) {
+			return azurAuthenticationTab.getLDAPServerConfiguration();
+		} else {
+			return defaultAuthenticationTab.getLDAPServerConfiguration();
+		}
+	}
 
-    private Field createStringField(String value, boolean required) {
-        TextField textField = new TextField();
-        textField.setRequired(required);
-        if (value!= null){
-            textField.setValue(value);
-        }
-        return textField;
-    }
+	private class AzurAuthenticationTab extends VerticalLayout {
+		private Field clientId, authorityUrl, authorityTenantId;
+		private Field userField;
+		private Field passwordField;
 
-    private Field createEnumField(Enum enumeration, Enum[] constants) {
-        ComboBox combobox = new BaseComboBox();
-        combobox.setNullSelectionAllowed(false);
-        for (Enum value : constants) {
-            combobox.addItem(value.name());
-            combobox.setItemCaption(value.name(), $(value.getClass().getSimpleName() + "." + value.name()));
-        }
-        combobox.setValue(enumeration.name());
-        combobox.setRequired(true);
-        return combobox;
-    }
+		private AzurAuthenticationTab() {
+			LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
+			setSpacing(true);
+			setSizeFull();
 
-    @Override
-    protected String getTitle() {
-        return $("LDAPConfigManagementView.viewTitle");
-    }
+			clientId = createStringField(ldapServerConfiguration.getClientId(), true);
+			clientId.setCaption($("LDAPConfigManagementView.clientId"));
+			addComponent(clientId);
 
-    @Override
-    protected Button.ClickListener getBackButtonClickListener() {
-        return new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                presenter.backButtonClick();
-            }
-        };
-    }
+			authorityUrl = createStringField(ldapServerConfiguration.getAuthorityUrl(), true);
+			authorityUrl.setCaption($("LDAPConfigManagementView.authorityUrl"));
+			authorityTenantId = createStringField(ldapServerConfiguration.getTenantName(), true);
+			authorityTenantId.setCaption($("LDAPConfigManagementView.authorityTenantId"));
+			HorizontalLayout authority = new HorizontalLayout(authorityUrl, authorityTenantId);
+			addComponent(authority);
 
+			userField = new TextField($("LDAPConfigManagementView.testAuthenticationUser"));
+			addComponent(userField);
 
+			passwordField = new PasswordField($("LDAPConfigManagementView.testAuthenticationPassword"));
+			addComponent(passwordField);
+		}
+
+		public String getAuthorityUrl() {
+			return (String) authorityUrl.getValue();
+		}
+
+		public String getAuthorityTenantId() {
+			return (String) authorityTenantId.getValue();
+		}
+
+		public String getClientId() {
+			return (String) clientId.getValue();
+		}
+
+		public String getTestUser() {
+			return (String) userField.getValue();
+		}
+
+		public String getTestPassword() {
+			return (String) passwordField.getValue();
+		}
+
+		public LDAPServerConfiguration getLDAPServerConfiguration() {
+			AzureADServerConfig serverConfig = new AzureADServerConfig()
+					.setAuthorityTenantId(azurAuthenticationTab.getAuthorityTenantId())
+					.setAuthorityUrl(azurAuthenticationTab.getAuthorityUrl()).setClientId(azurAuthenticationTab.getClientId());
+			return new LDAPServerConfiguration(serverConfig, ldapAuthenticationActive.getValue());
+		}
+	}
+
+	private class AzurSynchTab extends VerticalLayout {
+		Field applicationKey, clientId;
+
+		private AzurSynchTab() {
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
+			setSpacing(true);
+			setSizeFull();
+
+			buildDurationField(ldapUserSyncConfiguration);
+			addComponent(durationField);
+			buildCollectionsPanel();
+			addComponent(collectionsComponent);
+			clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
+			clientId.setCaption($("LDAPConfigManagementView.clientId"));
+			addComponent(clientId);
+
+			applicationKey = createStringField(ldapUserSyncConfiguration.getClientSecret(), true);
+			applicationKey.setCaption($("LDAPConfigManagementView.applicationKey"));
+			addComponent(applicationKey);
+			buildUsersAcceptRegex(ldapUserSyncConfiguration);
+			addComponent(usersAcceptanceRegexField);
+			buildUsersRejectRegex(ldapUserSyncConfiguration);
+			addComponent(usersRejectionRegexField);
+			buildGroupsAcceptRegex(ldapUserSyncConfiguration);
+			addComponent(groupsAcceptanceRegexField);
+			buildGroupsRejectRegex(ldapUserSyncConfiguration);
+			addComponent(groupsRejectionRegexField);
+
+		}
+
+		public String getApplicationKey() {
+			return (String) applicationKey.getValue();
+		}
+
+		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
+			AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig()
+					.setApplicationKey(azurSynchTab.getApplicationKey())
+					.setClientId(azurSynchTab.getClientId());
+			return new LDAPUserSyncConfiguration(azurUserSynchConfig, getUserFilter(), getGroupsFilter(),
+					durationField.getDuration(), selectedCollections());
+		}
+
+		private String getClientId() {
+			return (String) clientId.getValue();
+		}
+	}
+
+	private class DefaultAuthenticationTab extends VerticalLayout {
+		private CheckBox followReferences;
+
+		private StringListComponent urlsField;
+		private StringListComponent domainsField;
+
+		private DefaultAuthenticationTab() {
+			setSizeFull();
+			setSpacing(true);
+
+			buildLdapServerConfigComponent(this);
+		}
+
+		private void buildLdapServerConfigComponent(VerticalLayout layout) {
+			LDAPServerConfiguration ldapServerConfiguration = presenter.getLDAPServerConfiguration();
+
+			followReferences = new CheckBox($("ldap.authentication.followReferences"));
+			followReferences.setValue(ldapServerConfiguration.getFollowReferences());
+			layout.addComponent(followReferences);
+			List<String> urls = ldapServerConfiguration.getUrls();
+			urlsField = new StringListComponent();
+			urlsField.setCaption($("ldap.serverConfiguration.urls"));
+			urlsField.setValues(urls);
+			urlsField.setRequired(true);
+			layout.addComponent(urlsField);
+
+			List<String> domains = ldapServerConfiguration.getDomains();
+			domainsField = new StringListComponent();
+			domainsField.setCaption($("ldap.serverConfiguration.domains"));
+			domainsField.setValues(domains);
+			domainsField.setRequired(true);
+			layout.addComponent(domainsField);
+		}
+		public LDAPServerConfiguration getLDAPServerConfiguration() {
+			return new LDAPServerConfiguration(urlsField.getValues(),
+					domainsField.getValues(), getDirectoryType(), ldapAuthenticationActive.getValue(),
+					followReferences.getValue());
+		}
+	}
+
+	private class DefaultSynchTab extends VerticalLayout {
+		private StringListComponent groupsField;
+		private StringListComponent usersField;
+		private Field userField;
+		private Field passwordField;
+
+		private DefaultSynchTab() {
+			setSizeFull();
+			setSpacing(true);
+
+			buildLdapUserSyncConfigComponent(this);
+		}
+
+		private void buildLdapUserSyncConfigComponent(VerticalLayout layout) {
+			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
+
+			buildDurationField(ldapUserSyncConfiguration);
+			layout.addComponent(durationField);
+			buildCollectionsPanel();
+			layout.addComponent(collectionsComponent);
+
+			List<String> groups = ldapUserSyncConfiguration.getGroupBaseContextList();
+			groupsField = new StringListComponent();
+			groupsField.setCaption($("ldap.syncConfiguration.groupsBaseContextList"));
+			groupsField.setValues(groups);
+			layout.addComponent(groupsField);
+			List<String> users = ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList();
+			usersField = new StringListComponent();
+			usersField.setCaption($("ldap.syncConfiguration.usersWithoutGroupsBaseContextList"));
+			usersField.setValues(users);
+			layout.addComponent(usersField);
+			String user = ldapUserSyncConfiguration.getUser();
+			userField = createStringField(user, true);
+			userField.setCaption($("ldap.syncConfiguration.user.login"));
+			layout.addComponent(userField);
+			String password = ldapUserSyncConfiguration.getPassword();
+			passwordField = new PasswordField(
+					$("ldap.syncConfiguration.user.password"));//PasswordField($("ldap.syncConfiguration.user.password"));
+			passwordField.setValue(password);
+			passwordField.setRequired(true);
+			layout.addComponent(passwordField);
+			buildUsersAcceptRegex(ldapUserSyncConfiguration);
+			layout.addComponent(usersAcceptanceRegexField);
+			buildUsersRejectRegex(ldapUserSyncConfiguration);
+			layout.addComponent(usersRejectionRegexField);
+			buildGroupsAcceptRegex(ldapUserSyncConfiguration);
+			layout.addComponent(groupsAcceptanceRegexField);
+			buildGroupsRejectRegex(ldapUserSyncConfiguration);
+			layout.addComponent(groupsRejectionRegexField);
+
+		}
+
+		public String getTestUser() {
+			return (String) userField.getValue();
+		}
+
+		public String getTestPassword() {
+			return (String) passwordField.getValue();
+		}
+
+		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
+			return new LDAPUserSyncConfiguration(
+					userField.getValue().toString(), passwordField.getValue().toString(),
+					getUserFilter(), getGroupsFilter(),
+					durationField.getDuration(), groupsField.getValues(), usersField.getValues(), selectedCollections());
+		}
+	}
 }

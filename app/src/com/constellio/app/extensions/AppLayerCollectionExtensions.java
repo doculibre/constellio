@@ -32,6 +32,9 @@ import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.sequence.AvailableSequence;
+import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
+import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
@@ -74,11 +77,28 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
+
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
 	}
 
 	//----------------- Callers ---------------
+
+	public List<AvailableSequence> getAvailableSequencesForRecord(Record record) {
+
+		AvailableSequenceForRecordParams params = new AvailableSequenceForRecordParams(record);
+		List<AvailableSequence> availableSequences = new ArrayList<>();
+
+		for (CollectionSequenceExtension extension : collectionSequenceExtensions) {
+			List<AvailableSequence> extensionSequences = extension.getAvailableSequencesForRecord(params);
+			if (extensionSequences != null) {
+				availableSequences.addAll(extensionSequences);
+			}
+		}
+
+		return availableSequences;
+	}
 
 	public void buildRecordVO(BuildRecordVOParams params) {
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {

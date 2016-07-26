@@ -7,12 +7,16 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class BulkUploader {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(BulkUploader.class);
 	private static final String READ_STREAM_RESOURCE = "BatchContentsUploader-readStream";
 
 	AtomicInteger progression = new AtomicInteger();
@@ -74,7 +78,10 @@ public class BulkUploader {
 				} finally {
 					ioServices.closeQuietly(inputStream);
 				}
-				progression.incrementAndGet();
+				int currentProgression = progression.incrementAndGet();
+				if (currentProgression % 100 == 0) {
+					LOGGER.info("Bulk uploading " + currentProgression + "/" + total);
+				}
 			}
 		});
 	}
