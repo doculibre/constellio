@@ -9,6 +9,7 @@ import java.util.List;
 
 public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
+
     private Document document;
     private Element settingsElement;
 
@@ -26,10 +27,27 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
         addGlobalConfigs(importedSettings.getConfigs());
 
+        addSequences(importedSettings.getSequences());
+
         addCollectionsSettings(importedSettings.getCollectionsConfigs());
 
         return document;
 
+    }
+
+    public void addSequences(List<ImportedSequence> sequences) {
+        Element sequencesElem = new Element(SEQUENCES);
+        settingsElement.addContent(sequencesElem);
+        for (ImportedSequence importedSequence : sequences) {
+            sequencesElem.addContent(buildSequenceElement(importedSequence));
+        }
+    }
+
+    private Element buildSequenceElement(ImportedSequence importedSequence) {
+        Element element = new Element(SEQUENCE);
+        element.setAttribute(KEY, importedSequence.getKey());
+        element.setAttribute(VALUE, importedSequence.getValue());
+        return element;
     }
 
     public void addGlobalConfigs(List<ImportedConfig> configs) {
@@ -311,4 +329,5 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
         valueListsElem.addContent(listElem);
     }
+
 }

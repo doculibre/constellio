@@ -49,6 +49,7 @@ import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileRe
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -59,6 +60,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
@@ -145,17 +147,73 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON)).isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
 	}
 
+
 	@Test
-	public void whenImportSequencesThenOK()
+	public void whenImportSequencesWithEmptySequenceIdThenError()
 			throws Exception {
-		settings.addSequence(new ImportedSequence().setKey("digits").setValue("1234567890"));
-		settings.addSequence(new ImportedSequence().setKey("letters").setValue("Aa-Zz"));
+
+		settings.addSequence(new ImportedSequence().setKey("").setValue("1"));
 
 		importSettings();
 
-		// TODO In progress !!!
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
+		assertThatErrorsWhileImportingSettingsExtracting()
+				.contains(tuple("SettingsImportServices_sequenceIdNullOrEmpty"));
+
+	}
+
+	@Test
+	public void whenImportSequencesWithNonNumericalSequenceIdThenError()
+			throws Exception {
+
+		settings.addSequence(new ImportedSequence().setKey("a").setValue("1"));
+
+		importSettings();
+
+		assertThatErrorsWhileImportingSettingsExtracting()
+				.contains(tuple("SettingsImportServices_sequenceIdNotNumerical"));
+
+	}
+
+	@Test
+	public void whenImportSequencesWithNonNumericalValueThenError()
+			throws Exception {
+
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("a"));
+
+		importSettings();
+
+		assertThatErrorsWhileImportingSettingsExtracting()
+				.contains(tuple("SettingsImportServices_sequenceValueNotNumerical"));
+
+	}
+
+	@Test
+	@InDevelopmentTest
+	public void whenImportSequencesThenOK()
+			throws Exception {
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("1"));
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("2"));
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("3"));
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("4"));
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("5"));
+
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("1"));
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("2"));
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("3"));
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("4"));
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("5"));
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("6"));
+		settings.addSequence(new ImportedSequence().setKey("2").setValue("7"));
+
+		importSettings();
+
+		SequencesManager sequencesManager = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory()				.getSequencesManager();
+
+		assertThat(sequencesManager .getLastSequenceValue("1")).isEqualTo(5);
+		assertThat(sequencesManager .getLastSequenceValue("2")).isEqualTo(7);
+
+		newWebDriver();
+		waitUntilICloseTheBrowsers();
 
 	}
 
@@ -2381,7 +2439,21 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		settings.addConfig(new ImportedConfig().setKey("yearEndDate").setValue("02/28"));
 		settings.addConfig(new ImportedConfig().setKey("decommissioningDateBasedOn").setValue("OPEN_DATE"));
 
-		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+		List<ImportedSequence> sequences = new ArrayList<>();
+		sequences.add(new ImportedSequence().setKey("1").setValue("1"));
+		sequences.add(new ImportedSequence().setKey("1").setValue("2"));
+		sequences.add(new ImportedSequence().setKey("1").setValue("3"));
+
+		sequences.add(new ImportedSequence().setKey("2").setValue("1"));
+		sequences.add(new ImportedSequence().setKey("2").setValue("2"));
+		sequences.add(new ImportedSequence().setKey("2").setValue("3"));
+		sequences.add(new ImportedSequence().setKey("2").setValue("4"));
+		sequences.add(new ImportedSequence().setKey("2").setValue("5"));
+
+		settings.setImportedSequences(sequences);
+
+		ImportedCollectionSettings collectionSettings =
+									new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
 				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))

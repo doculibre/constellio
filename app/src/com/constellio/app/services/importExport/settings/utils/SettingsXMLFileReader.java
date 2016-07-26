@@ -14,6 +14,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
     public static final String GROUPS = "groups";
     public static final String CLASSIFIED_TYPES = "classifiedTypes";
     public static final String TITLE = "title";
+    public static final String SEQUENCES = "sequences";
     private Document document;
 
     public SettingsXMLFileReader(Document document) {
@@ -26,9 +27,21 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
         ImportedSettings importedSettings = new ImportedSettings()
                 .setConfigs(readConfigs(rootNode.getChild(CONFIGS)))
+                .setImportedSequences(readSequences(rootNode.getChild(SEQUENCES)))
                 .setCollectionsSettings(readCollectionSettings(rootNode.getChildren(COLLECTION_SETTINGS)));
 
         return importedSettings;
+    }
+
+    private List<ImportedSequence> readSequences(Element sequencesElement) {
+        List<ImportedSequence> sequences = new ArrayList<>();
+        for(Element child : sequencesElement.getChildren()){
+            ImportedSequence importedSequence = new ImportedSequence();
+            importedSequence.setKey(child.getAttributeValue("key"));
+            importedSequence.setValue(child.getAttributeValue("value"));
+            sequences.add(importedSequence);
+        }
+        return sequences;
     }
 
     private List<ImportedCollectionSettings> readCollectionSettings(List<Element> elements) {

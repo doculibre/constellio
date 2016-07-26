@@ -25,6 +25,8 @@ public interface SettingsXMLFileConstants {
     String VALUE_LISTS = "valueLists";
     String TAB = "tab";
     String CONFIGS = "configs";
+    String SEQUENCES = "sequences";
+    String SEQUENCE = "sequence";
 
     String DEFAULT_SCHEMA = "default-schema";
     String METADATA = "metadata";

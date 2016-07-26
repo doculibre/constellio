@@ -22,6 +22,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
@@ -29,6 +30,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -101,6 +103,8 @@ public class SettingsImportServices {
 			throws ValidationException {
 
 		importGlobalConfigurations(settings);
+
+		importSequences(settings);
 
 		for (final ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
 
@@ -629,6 +633,14 @@ public class SettingsImportServices {
 		});
 	}
 
+	private void importSequences(ImportedSettings settings) {
+		SequencesManager sequenceManager = appLayerFactory.getModelLayerFactory()
+				.getDataLayerFactory().getSequencesManager();
+		for (ImportedSequence sequence : settings.getSequences()) {
+			sequenceManager.set(sequence.getKey(), Integer.parseInt(sequence.getValue()));
+		}
+	}
+
 	private void importGlobalConfigurations(ImportedSettings settings) {
 		for (ImportedConfig importedConfig : settings.getConfigs()) {
 			SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
@@ -653,6 +665,8 @@ public class SettingsImportServices {
 			throws ValidationException {
 
 		validateGlobalConfigs(settings, validationErrors);
+
+		validateSequences(settings, validationErrors);
 
 		validateCollectionConfigs(settings, validationErrors);
 
@@ -787,7 +801,38 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, importedValueList.getCode());
 			parameters.put(VALUE, importedValueList.getTitles().get(TITLE_FR));
-			validationErrors.add(SettingsImportServices.class, $(INVALID_VALUE_LIST_CODE, importedValueList.getCode()), parameters);
+			validationErrors
+					.add(SettingsImportServices.class, $(INVALID_VALUE_LIST_CODE, importedValueList.getCode()), parameters);
+		}
+	}
+
+	private void validateSequences(ImportedSettings settings, ValidationErrors validationErrors) {
+		for (ImportedSequence importedSequence : settings.getSequences()) {
+
+			if (StringUtils.isBlank(importedSequence.getKey())) {
+				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
+				validationErrors.add(SettingsImportServices.class, "sequenceIdNullOrEmpty", parameters);
+			}
+
+			if (isNotNumerical(importedSequence.getKey())) {
+				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
+				validationErrors.add(SettingsImportServices.class, "sequenceIdNotNumerical", parameters);
+
+			}
+
+			if (isNotNumerical(importedSequence.getValue())) {
+				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
+				validationErrors.add(SettingsImportServices.class, "sequenceValueNotNumerical", parameters);
+			}
+		}
+	}
+
+	private boolean isNotNumerical(String value) {
+		try {
+			Integer.parseInt(value);
+			return false;
+		} catch (NumberFormatException e) {
+			return true;
 		}
 	}
 
@@ -795,11 +840,12 @@ public class SettingsImportServices {
 		for (ImportedConfig importedConfig : settings.getConfigs()) {
 			SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
 			if (config == null) {
-				Map<String, Object> parameters = toParametersMap(importedConfig);
+				Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
 				validationErrors.add(SettingsImportServices.class, $(CONFIGURATION_NOT_FOUND), parameters);
 			} else if (importedConfig.getValue() == null) {
-				Map<String, Object> parameters = toParametersMap(importedConfig);
-				validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE, importedConfig.getKey()), parameters);
+				Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
+				validationErrors
+						.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE, importedConfig.getKey()), parameters);
 			} else {
 				if (config.getType() == SystemConfigurationType.BOOLEAN) {
 					validateBooleanValueConfig(validationErrors, importedConfig);
@@ -814,7 +860,7 @@ public class SettingsImportServices {
 
 	private void validateBooleanValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
 		if (!asList("true", "false").contains(String.valueOf(importedConfig.getValue()))) {
-			Map<String, Object> parameters = toParametersMap(importedConfig);
+			Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
 			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
 		}
 	}
@@ -823,22 +869,22 @@ public class SettingsImportServices {
 		try {
 			Integer.parseInt(importedConfig.getValue());
 		} catch (NumberFormatException e) {
-			Map<String, Object> parameters = toParametersMap(importedConfig);
+			Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
 			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
 		}
 	}
 
 	private void validateStringValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
 		if (importedConfig.getValue() == null) {
-			Map<String, Object> parameters = toParametersMap(importedConfig);
+			Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
 			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
 		}
 	}
 
-	private Map<String, Object> toParametersMap(ImportedConfig importedConfig) {
+	private Map<String, Object> toParametersMap(String key, Object value) {
 		Map<String, Object> parameters = new HashMap();
-		parameters.put(CONFIG, importedConfig.getKey());
-		parameters.put(VALUE, importedConfig.getValue());
+		parameters.put(CONFIG, key);
+		parameters.put(VALUE, value);
 		return parameters;
 	}
 

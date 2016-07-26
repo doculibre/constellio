@@ -87,6 +87,48 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
     }
 
     @Test
+    public void whenAddingSequencesThenElementsAreAdded() {
+
+        List<ImportedSequence> sequences = new ArrayList<>();
+        sequences.add(new ImportedSequence().setKey("1").setValue("1"));
+        sequences.add(new ImportedSequence().setKey("1").setValue("2"));
+        sequences.add(new ImportedSequence().setKey("1").setValue("3"));
+
+        sequences.add(new ImportedSequence().setKey("2").setValue("1"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("2"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("3"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("4"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("5"));
+
+        writer.addSequences(sequences);
+
+        assertThat(writer.getDocument().getRootElement().getChildren()).isNotEmpty().hasSize(1);
+        Element sequencesElement = writer.getDocument().getRootElement().getChild("sequences");
+        assertThat(sequencesElement).isNotNull();
+        List<Element> children = sequencesElement.getChildren();
+        assertThat(children).hasSize(8);
+
+        assertThat(children.get(0).getAttributeValue("key")).isEqualTo("1");
+        assertThat(children.get(0).getAttributeValue("value")).isEqualTo("1");
+
+        assertThat(children.get(1).getAttributeValue("key")).isEqualTo("1");
+        assertThat(children.get(1).getAttributeValue("value")).isEqualTo("2");
+
+        assertThat(children.get(2).getAttributeValue("key")).isEqualTo("1");
+        assertThat(children.get(2).getAttributeValue("value")).isEqualTo("3");
+
+        assertThat(children.get(3).getAttributeValue("key")).isEqualTo("2");
+        assertThat(children.get(3).getAttributeValue("value")).isEqualTo("1");
+
+        assertThat(children.get(5).getAttributeValue("key")).isEqualTo("2");
+        assertThat(children.get(5).getAttributeValue("value")).isEqualTo("3");
+
+        assertThat(children.get(7).getAttributeValue("key")).isEqualTo("2");
+        assertThat(children.get(7).getAttributeValue("value")).isEqualTo("5");
+
+    }
+
+    @Test
     public void whenAddingNullCollectionSettingsThenElementIsNotAdded() {
         writer.addCollectionsSettings(null);
         assertThat(writer.getDocument().getRootElement().getChildren()).isEmpty();
@@ -349,6 +391,19 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         configs.add((new ImportedConfig().setKey("yearEndDate").setValue("02/28")));
 
         writer.addGlobalConfigs(configs);
+
+        List<ImportedSequence> sequences = new ArrayList<>();
+        sequences.add(new ImportedSequence().setKey("1").setValue("1"));
+        sequences.add(new ImportedSequence().setKey("1").setValue("2"));
+        sequences.add(new ImportedSequence().setKey("1").setValue("3"));
+
+        sequences.add(new ImportedSequence().setKey("2").setValue("1"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("2"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("3"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("4"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("5"));
+
+        writer.addSequences(sequences);
 
         ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")

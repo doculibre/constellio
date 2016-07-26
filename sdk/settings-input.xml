@@ -8,7 +8,16 @@
         <config key="closeDateRequiredDaysBeforeYearEnd" value="15"/>
         <config key="yearEndDate" value="02/28"/>
     </configs>
-    <configs/>
+    <sequences>
+	    <sequence key="1" value="1"/>
+	    <sequence key="1" value="2"/>
+	    <sequence key="1" value="3"/>
+	    <sequence key="2" value="1"/>
+	    <sequence key="2" value="2"/>
+	    <sequence key="2" value="3"/>
+	    <sequence key="2" value="4"/>
+	    <sequence key="2" value="5"/>
+    </sequences>
     <collection-settings code="zeCollection">
         <valueLists>
             <valueList code="ddvUSRvl1" title="domaine1" classifiedTypes="document,folder" codeMode="DISABLED"

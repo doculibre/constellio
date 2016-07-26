@@ -17,6 +17,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedCollectio
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
@@ -33,6 +34,39 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 	public void setup() {
 		document = getDocument();
 		reader = new SettingsXMLFileReader(document);
+	}
+
+	@Test
+	public void givenAValidDocumentWhenReadingThenSequencesAreOK() {
+		ImportedSettings importedSettings = reader.read();
+		assertThat(importedSettings).isNotNull();
+
+		// configs
+		List<ImportedSequence> sequences = importedSettings.getSequences();
+		assertThat(sequences).isNotEmpty().hasSize(8);
+		assertThat(sequences.get(0).getKey()).isEqualTo("1");
+		assertThat(sequences.get(0).getValue()).isEqualTo("1");
+
+		assertThat(sequences.get(1).getKey()).isEqualTo("1");
+		assertThat(sequences.get(1).getValue()).isEqualTo("2");
+
+		assertThat(sequences.get(2).getKey()).isEqualTo("1");
+		assertThat(sequences.get(2).getValue()).isEqualTo("3");
+
+		assertThat(sequences.get(3).getKey()).isEqualTo("2");
+		assertThat(sequences.get(3).getValue()).isEqualTo("1");
+
+		assertThat(sequences.get(4).getKey()).isEqualTo("2");
+		assertThat(sequences.get(4).getValue()).isEqualTo("2");
+
+		assertThat(sequences.get(5).getKey()).isEqualTo("2");
+		assertThat(sequences.get(5).getValue()).isEqualTo("3");
+
+		assertThat(sequences.get(6).getKey()).isEqualTo("2");
+		assertThat(sequences.get(6).getValue()).isEqualTo("4");
+
+		assertThat(sequences.get(7).getKey()).isEqualTo("2");
+		assertThat(sequences.get(7).getValue()).isEqualTo("5");
 	}
 
 	@Test
