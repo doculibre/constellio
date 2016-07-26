@@ -12,11 +12,11 @@ import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class FolderStatusCalculatorTest extends ConstellioTest {
+public class FolderArchivisticStatusCalculator2Test extends ConstellioTest {
 
 	@Mock CalculatorParameters parameters;
 
-	FolderStatusCalculator calculator = new FolderStatusCalculator();
+	FolderArchivisticStatusCalculator2 calculator = new FolderArchivisticStatusCalculator2();
 
 	LocalDate november3_2012 = new LocalDate(2012, 11, 3);
 	LocalDate november4_2012 = new LocalDate(2012, 11, 4);

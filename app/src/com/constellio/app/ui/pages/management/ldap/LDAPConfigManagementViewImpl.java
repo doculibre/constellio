@@ -10,6 +10,7 @@ import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.googlecode.mp4parser.contentprotection.PlayReadyHeader.PlayReadyRecord;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -45,7 +46,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		layout.addComponent(tabsheet);
 
-		buildSaveAndTestButtonsPanel(layout);
+		buildButtonsPanel(layout);
 
 		testAuthentication = new TextArea($("ldap.test.results"));
 		testAuthentication.setSizeFull();
@@ -341,9 +342,13 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
 			return new LDAPUserSyncConfiguration(
-					userField.getValue().toString(), passwordField.getValue().toString(),
+					notNull(userField), notNull(passwordField),
 					getUserFilter(), getGroupsFilter(),
 					durationField.getDuration(), groupsField.getValues(), usersField.getValues(), selectedCollections());
 		}
+	}
+
+	private String notNull(Field field) {
+		return (field.getValue() != null)? field.getValue().toString() : "";
 	}
 }

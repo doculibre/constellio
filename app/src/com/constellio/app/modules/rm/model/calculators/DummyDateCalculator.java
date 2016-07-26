@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -12,26 +13,25 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
-public class FolderStatusCalculator implements MetadataValueCalculator<FolderStatus> {
+public class DummyDateCalculator implements MetadataValueCalculator<LocalDate> {
 	LocalDependency<String> titleParam = LocalDependency.toAString(Folder.TITLE);
 	@Override
-	public FolderStatus calculate(CalculatorParameters parameters) {
-		return FolderStatus.ACTIVE;
+	public LocalDate calculate(CalculatorParameters parameters) {
+		return new LocalDate();
 	}
 
 	@Override
-	public FolderStatus getDefaultValue() {
+	public LocalDate getDefaultValue() {
 		return null;
 	}
 
 	@Override
 	public MetadataValueType getReturnType() {
-		return MetadataValueType.ENUM;
+		return MetadataValueType.DATE;
 	}
 
 	@Override
 	public boolean isMultiValue() {
-
 		return false;
 	}
 

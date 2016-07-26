@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
 import static java.util.Arrays.asList;
 
 import com.constellio.app.entities.modules.MigrationResourcesProvider;

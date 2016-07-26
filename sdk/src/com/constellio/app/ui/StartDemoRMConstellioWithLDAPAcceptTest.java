@@ -49,7 +49,7 @@ public class StartDemoRMConstellioWithLDAPAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(serverConf, userSync);
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		System.out.println(userServices.getAllUserCredentials().size());
-		getModelLayerFactory().getLdapUserSyncManager().synchronize();
+		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 
 		System.out.println(userServices.getAllUserCredentials().size());
 		//		UserCredential administrator = userServices.getUser("Administrator");

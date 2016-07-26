@@ -13,10 +13,12 @@ import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
 import com.constellio.app.ui.framework.components.DurationPanel;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchProgressionInfo;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
@@ -47,6 +49,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	protected CollectionsSelectionPanel collectionsComponent;
 	protected DurationPanel durationField;
 	protected Button saveButton;
+	private BaseButton forceUsersSynchronization;
 
 	protected LDAPConfigBaseView() {
 		this.presenter = new LDAPConfigManagementPresenter(this);
@@ -68,7 +71,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	}
 
 	@Override
-	public void updateComponents(){
+	public void updateComponents() {
 
 	}
 
@@ -152,7 +155,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 				presenter.getSelectedCollections());
 	}
 
-	protected void buildSaveAndTestButtonsPanel(final VerticalLayout layout) {
+	protected void buildButtonsPanel(final VerticalLayout layout) {
 		Panel buttonsPanel = new Panel();
 		buttonsPanel.setSizeUndefined();
 		buttonsPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
@@ -160,16 +163,17 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		Button testButton = new BaseButton($("ldap.test.button")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				try{
+				try {
 					testAuthentication.setVisible(true);
 					LDAPServerConfiguration ldapServerConfiguration = getLDAPServerConfiguration();
 
 					LDAPUserSyncConfiguration ldapUserSyncConfiguration = getLDAPUserSyncConfiguration();
 					testAuthentication.setValue(
-							presenter.getAuthenticationResultMessage(ldapServerConfiguration, getAuthenticationUser(), getAuthenticationPassword()) + "\n"
+							presenter.getAuthenticationResultMessage(ldapServerConfiguration, getAuthenticationUser(),
+									getAuthenticationPassword()) + "\n"
 									+ presenter.getSynchResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration));
 					layout.replaceComponent(testAuthentication, testAuthentication);
-				}catch(Throwable e){
+				} catch (Throwable e) {
 					LOGGER.warn("Error when testing ldap configuration ", e);
 					showErrorMessage(e.getMessage());
 				}
@@ -177,17 +181,27 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 			}
 		};
 
+		forceUsersSynchronization = new BaseButton($("ldap.forceSynch.button")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				LDAPSynchProgressionInfo progression = presenter
+						.forceSynchronization();
+			}
+		};
+		forceUsersSynchronization.setVisible(presenter.isForceSynchVisible());
+
 		saveButton = new BaseButton($("save")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				LDAPServerConfiguration ldapServerConfigurationVO = getLDAPServerConfiguration();
 				LDAPUserSyncConfiguration ldapUserSyncConfigurationVO = getLDAPUserSyncConfiguration();
 				presenter.saveConfigurations(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
+				forceUsersSynchronization.setVisible(presenter.isForceSynchVisible());
 			}
 		};
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-		HorizontalLayout hLayout = new HorizontalLayout(testButton, saveButton);
+		HorizontalLayout hLayout = new HorizontalLayout(testButton, forceUsersSynchronization, saveButton);
 		hLayout.addComponent(saveButton);
 		buttonsPanel.setContent(hLayout);
 		layout.addComponent(buttonsPanel);
@@ -210,9 +224,10 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		return LDAPDirectoryType.valueOf(directoryTypeField.getValue().toString());
 	}
 
-	protected List<String> selectedCollections(){
+	protected List<String> selectedCollections() {
 		return collectionsComponent.getSelectedCollections();
 	}
+
 	protected abstract LDAPUserSyncConfiguration getLDAPUserSyncConfiguration();
 
 	protected abstract LDAPServerConfiguration getLDAPServerConfiguration();
