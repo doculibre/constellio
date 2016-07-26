@@ -87,6 +87,12 @@ public class Folder extends RMObject {
 	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	public static final String CALENDAR_YEAR = "calendarYear";
 
+
+	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
+	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
+	public static final String MANUAL_EXPECTED_DESTRIUCTION_DATE = "manualExpectedDesctructionDate";
+	public static final String MANUAL_ARCHIVISTIC_STATUS = "manualArchivisticStatus";
+
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -653,5 +659,43 @@ public class Folder extends RMObject {
 		set(CALENDAR_YEAR_ENTERED, year);
 		return this;
 	}
+
+	public LocalDate getManualExpecteTransferdDate() {
+		return get(MANUAL_EXPECTED_TRANSFER_DATE);
+	}
+
+	public Folder setManualExpectedTransferDate(LocalDate date) {
+		set(MANUAL_EXPECTED_TRANSFER_DATE, date);
+		return this;
+	}
+
+	public LocalDate getManualExpectedDepositDate() {
+		return get(MANUAL_EXPECTED_DEPOSIT_DATE);
+	}
+
+	public Folder setManualExpectedDepositDate(LocalDate date) {
+		set(MANUAL_EXPECTED_DEPOSIT_DATE, date);
+		return this;
+	}
+
+	public LocalDate getManualExpectedDestructionDate() {
+		return get(MANUAL_EXPECTED_DESTRIUCTION_DATE);
+	}
+
+	public Folder setManualExpectedDestructionDate(LocalDate date) {
+		set(MANUAL_EXPECTED_DESTRIUCTION_DATE, date);
+		return this;
+	}
+
+	public FolderStatus getManualArchivisticStatus() {
+		return get(MANUAL_ARCHIVISTIC_STATUS);
+	}
+
+	public Folder setManualArchivisticStatus(FolderStatus status) {
+		set(MANUAL_ARCHIVISTIC_STATUS, status);
+		return this;
+	}
+
+
 }
 
