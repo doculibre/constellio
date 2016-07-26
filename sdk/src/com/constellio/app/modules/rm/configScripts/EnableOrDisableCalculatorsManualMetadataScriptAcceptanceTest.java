@@ -18,13 +18,12 @@ public class EnableOrDisableCalculatorsManualMetadataScriptAcceptanceTest extend
 
 	RMSchemasRecordsServices rm;
 
-	private DemoTestRecords records = new DemoTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withRMTest(records).withFoldersAndContainersOfEveryStatus()
+				withZeCollection().withConstellioRMModule()
 		);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
