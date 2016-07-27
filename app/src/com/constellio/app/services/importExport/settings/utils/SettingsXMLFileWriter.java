@@ -275,8 +275,49 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
             metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn()));
         }
 
-        if (StringUtils.isNotBlank(importedMetadata.getBehaviours())) {
-            metadataElem.setAttribute(BEHAVIOURS, StringUtils.join(importedMetadata.getBehaviours(), ','));
+        if (importedMetadata.getDataEntry() != null) {
+
+            ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
+
+            Element dataEntryElem = new Element("data-entry");
+            dataEntryElem.setAttribute("type", dataEntry.getType());
+            metadataElem.addContent(dataEntryElem);
+
+            switch(dataEntry.getType()){
+            case "calculated":
+                if(StringUtils.isNotBlank(dataEntry.getCalculator())){
+                    dataEntryElem.setAttribute("calculator", dataEntry.getCalculator());
+                }
+                break;
+
+            case "copied":
+                if(StringUtils.isNotBlank(dataEntry.getReferencedMetadata())){
+                    dataEntryElem.setAttribute("referenceMetadata", dataEntry.getReferencedMetadata());
+                }
+
+                if(StringUtils.isNotBlank(dataEntry.getReferencedMetadata())){
+                    dataEntryElem.setAttribute("copiedMetadata", dataEntry.getCopiedMetadata());
+                }
+                break;
+
+            case "jexl":
+                if(StringUtils.isNotBlank(dataEntry.getPattern())){
+                    dataEntryElem.setAttribute("pattern", dataEntry.getPattern());
+                }
+                break;
+
+            case "sequence":
+                if(StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
+                    dataEntryElem.setAttribute("fixedSequenceCode", dataEntry.getFixedSequenceCode());
+                } else {
+                    dataEntryElem.setAttribute("metadataProvidingSequenceCode", dataEntry.getMetadataProvidingSequenceCode());
+                }
+                break;
+
+            default:
+                break;
+            }
+
         }
 
         defaultSchemaElem.addContent(metadataElem);

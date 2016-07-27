@@ -219,6 +219,296 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(taxonomy1Elem.getAttributeValue(GROUPS)).isEqualTo("group1");
     }
 
+	/*
+		1. ImportedMetadataManualDataEntry.java
+		2. ImportedMetadataSequenceDataEntry.java : un des deux argument est null. JAMAIS LES DEUX !!
+		3. ImportedMetadataJEXLDataEntry.java
+		4. ImportedMetadataCalculatedDataEntry.java
+		5. ImportedMetadataCopiedDataEntry.java
+		6. Parameterized calculators
+	*/
+
+    @Test
+    public void whenWritingTypesWithCalculatedDataEntryTypeMetadataThenOK() throws IOException {
+
+        ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        String qualifiedName = "com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator";
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
+                .setType("STRING")
+                .setEnabledIn(toListOfString("default", "custom1", "custom2"))
+                .setRequiredIn(toListOfString("custom1"))
+                .setVisibleInFormIn(toListOfString("default", "custom1"))
+                .setDataEntry(ImportedDataEntry.asCalculated(qualifiedName));
+
+        zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+                        .addMetadata(m1)));
+
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        writer.writeSettings(importedSettings);
+
+        List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
+        assertThat(collectionElements).hasSize(1);
+
+        Element zeCollectionElem = collectionElements.get(0);
+        assertThat(zeCollectionElem.getAttributeValue(CODE)).isEqualTo(zeCollection);
+
+        List<Element> children = zeCollectionElem.getChildren();
+
+        // types
+        Element typesElement = children.get(2);
+        // folder type
+        Element folderTypeElement = typesElement.getChildren().get(0);
+        assertThat(folderTypeElement.getAttributeValue(CODE)).isEqualTo("folder");
+
+        // default-schema
+        Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
+        assertThat(defaultSchemaElem).isNotNull();
+
+        Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
+        assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
+        assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
+        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+
+        Element dataEntry = metadata1Elem.getChildren("data-entry").get(0);
+        assertThat(dataEntry.getAttributeValue("type")).isEqualTo("calculated");
+        assertThat(dataEntry.getAttributeValue("calculator")).isEqualTo(qualifiedName);
+
+        String outputFilePath = "settings-types-output.xml";
+        File outputFile = new File(outputFilePath);
+
+        XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+        FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+        xmlOutputter.output(writer.getDocument(), fileOutputStream);
+
+        System.out.println("File Saved!");
+    }
+
+    @Test
+    public void whenWritingTypesWithCopiedDataEntryTypeMetadataThenOK() throws IOException {
+
+        ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
+                .setType("STRING")
+                .setEnabledIn(toListOfString("default", "custom1", "custom2"))
+                .setRequiredIn(toListOfString("custom1"))
+                .setVisibleInFormIn(toListOfString("default", "custom1"))
+                .setDataEntry(ImportedDataEntry.asCopied("category").withCopiedMetadata("title"));
+
+        zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+                        .addMetadata(m1)));
+
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        writer.writeSettings(importedSettings);
+
+        List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
+        assertThat(collectionElements).hasSize(1);
+
+        Element zeCollectionElem = collectionElements.get(0);
+        assertThat(zeCollectionElem.getAttributeValue(CODE)).isEqualTo(zeCollection);
+
+        List<Element> children = zeCollectionElem.getChildren();
+
+        // types
+        Element typesElement = children.get(2);
+        // folder type
+        Element folderTypeElement = typesElement.getChildren().get(0);
+        assertThat(folderTypeElement.getAttributeValue(CODE)).isEqualTo("folder");
+
+        // default-schema
+        Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
+        assertThat(defaultSchemaElem).isNotNull();
+
+        Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
+        assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
+        assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
+        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+
+        Element dataEntry = metadata1Elem.getChildren("data-entry").get(0);
+        assertThat(dataEntry.getAttributeValue("type")).isEqualTo("copied");
+        assertThat(dataEntry.getAttributeValue("referenceMetadata")).isEqualTo("category");
+        assertThat(dataEntry.getAttributeValue("copiedMetadata")).isEqualTo("title");
+
+        String outputFilePath = "settings-types-output.xml";
+        File outputFile = new File(outputFilePath);
+
+        XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+        FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+        xmlOutputter.output(writer.getDocument(), fileOutputStream);
+
+        System.out.println("File Saved!");
+    }
+
+
+    @Test
+    public void whenWritingTypesWithJEXLDataEntryTypeMetadataThenOK() throws IOException {
+
+        ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        String pattern = "## This is a comment on the first line\n"
+                + "'Prefixe ' + title+ ' Suffixe'\n"
+                + "## This is a comment on the last line";
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
+                .setType("STRING")
+                .setEnabledIn(toListOfString("default", "custom1", "custom2"))
+                .setRequiredIn(toListOfString("custom1"))
+                .setVisibleInFormIn(toListOfString("default", "custom1"))
+                .setDataEntry(ImportedDataEntry.asJEXLScript("title").withPattern(pattern));
+
+        zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+                        .addMetadata(m1)));
+
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        writer.writeSettings(importedSettings);
+
+        List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
+        assertThat(collectionElements).hasSize(1);
+
+        Element zeCollectionElem = collectionElements.get(0);
+        assertThat(zeCollectionElem.getAttributeValue(CODE)).isEqualTo(zeCollection);
+
+        List<Element> children = zeCollectionElem.getChildren();
+
+        // types
+        Element typesElement = children.get(2);
+        // folder type
+        Element folderTypeElement = typesElement.getChildren().get(0);
+        assertThat(folderTypeElement.getAttributeValue(CODE)).isEqualTo("folder");
+
+        // default-schema
+        Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
+        assertThat(defaultSchemaElem).isNotNull();
+
+        Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
+        assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
+        assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
+        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+
+        Element dataEntry = metadata1Elem.getChildren("data-entry").get(0);
+        assertThat(dataEntry.getAttributeValue("type")).isEqualTo("jexl");
+        assertThat(dataEntry.getAttributeValue("pattern")).isEqualTo(pattern);
+
+        String outputFilePath = "settings-types-output.xml";
+        File outputFile = new File(outputFilePath);
+
+        XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+        FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+        xmlOutputter.output(writer.getDocument(), fileOutputStream);
+
+        System.out.println("File Saved!");
+    }
+
+    @Test
+    public void whenWritingTypesWithSequenceDataEntryTypeMetadataThenOK() throws IOException {
+
+        ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+        ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
+                .setType("STRING")
+                .setEnabledIn(toListOfString("default", "custom1", "custom2"))
+                .setRequiredIn(toListOfString("custom1"))
+                .setVisibleInFormIn(toListOfString("default", "custom1"))
+                .setDataEntry(ImportedDataEntry.asFixedSequence("zeSequence"));
+
+        ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
+                .setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
+                .setInputMask("9999-9999")
+                .setDataEntry(ImportedDataEntry.asMetadataProvidingSequence("id"));
+
+        zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
+                .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
+                        .addMetadata(m1))
+                .addSchema(new ImportedMetadataSchema().setCode("custom1")
+                        .addMetadata(m2)));
+
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        writer.writeSettings(importedSettings);
+
+        List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
+        assertThat(collectionElements).hasSize(1);
+
+        Element zeCollectionElem = collectionElements.get(0);
+        assertThat(zeCollectionElem.getAttributeValue(CODE)).isEqualTo(zeCollection);
+
+        List<Element> children = zeCollectionElem.getChildren();
+
+        // types
+        Element typesElement = children.get(2);
+        assertThat(typesElement).isNotNull();
+        assertThat(typesElement.getChildren()).hasSize(1);
+
+        // folder type
+        Element folderTypeElement = typesElement.getChildren().get(0);
+        assertThat(folderTypeElement).isNotNull();
+        assertThat(folderTypeElement.getAttributeValue(CODE)).isEqualTo("folder");
+
+        // default-schema
+        Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
+        assertThat(defaultSchemaElem).isNotNull();
+
+        Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
+        assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
+        assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
+        assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(metadata1Elem.getAttributeValue(ENABLED)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
+        assertThat(metadata1Elem.getAttributeValue(REQUIRED)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isEqualTo("default,custom1");
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
+        assertThat(metadata1Elem.getAttributeValue(TAB)).isNullOrEmpty();
+        assertThat(metadata1Elem.getAttributeValue(MULTI_VALUE)).isNull();
+        assertThat(metadata1Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
+
+        Element dataEntry = metadata1Elem.getChildren("data-entry").get(0);
+        assertThat(dataEntry.getAttributeValue("type")).isEqualTo("sequence");
+        assertThat(dataEntry.getAttributeValue("fixedSequenceCode")).isEqualTo("zeSequence");
+        assertThat(dataEntry.getAttributeValue("metadataProvidingSequenceCode")).isNullOrEmpty();
+
+        Element customSchemata = typesElement.getChildren().get(0).getChild("schemas");
+        Element schema1Element = customSchemata.getChildren().get(0);
+        Element metadata2Elem = schema1Element.getChildren().get(0);
+        assertThat(metadata2Elem.getAttributeValue(CODE)).isEqualTo("m2");
+        assertThat(metadata2Elem.getAttributeValue(TITLE)).isEqualTo("titre m2");
+        assertThat(metadata2Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+        assertThat(metadata2Elem.getAttributeValue(ENABLED)).isEqualTo("true");
+        assertThat(metadata2Elem.getAttributeValue(ENABLED_IN)).isNullOrEmpty();
+        assertThat(metadata2Elem.getAttributeValue(REQUIRED)).isEqualTo("true");
+        assertThat(metadata2Elem.getAttributeValue(REQUIRED_IN)).isNullOrEmpty();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isNullOrEmpty();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
+        assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
+        assertThat(metadata2Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
+        assertThat(metadata2Elem.getAttributeValue(INPUT_MASK)).isEqualTo("9999-9999");
+
+        String outputFilePath = "settings-types-output.xml";
+        File outputFile = new File(outputFilePath);
+
+        XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+        FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+        xmlOutputter.output(writer.getDocument(), fileOutputStream);
+
+        System.out.println("File Saved!");
+    }
+
+
+
     @Test
     public void whenWritingTypesThenElementsPresent() throws IOException {
 
@@ -234,10 +524,9 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setRequiredIn(toListOfString("custom1"))
                 .setVisibleInFormIn(toListOfString("default", "custom1"));
 
-        String behaviours = "searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable";
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
                 .setType("STRING").setEnabled(true).setRequired(true).setMultiValue(true)
-                .setTab("zeTab").setBehaviours(behaviours)
+                .setTab("zeTab")
                 .setInputMask("9999-9999");
 
         ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setLabel("Titre m3")
@@ -309,7 +598,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata1Elem.getAttributeValue(TAB)).isNullOrEmpty();
         assertThat(metadata1Elem.getAttributeValue(MULTI_VALUE)).isNull();
-        assertThat(metadata1Elem.getAttributeValue(BEHAVIOURS)).isNull();
         assertThat(metadata1Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
         Element metadata2Elem = defaultSchemaElem.getChildren().get(1);
@@ -330,9 +618,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(metadata2Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata2Elem.getAttributeValue(TAB)).isEqualTo("zeTab");
         assertThat(metadata2Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
-        List<String> expectedBehaviours = StringUtils.split(behaviours, ',');
-        List<String> actualBehaviours = StringUtils.split(metadata2Elem.getAttributeValue(BEHAVIOURS), ',');
-        assertThat(actualBehaviours.containsAll(expectedBehaviours)).isTrue();
         assertThat(metadata2Elem.getAttributeValue(INPUT_MASK)).isEqualTo("9999-9999");
 
         Element customSchemata = typesElement.getChildren().get(0).getChild("schemas");
@@ -364,7 +649,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(TAB)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
-        assertThat(metadata3Elem.getAttributeValue(BEHAVIOURS)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
         String outputFilePath = "settings-types-output.xml";
@@ -438,14 +722,12 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setRequiredIn(toListOfString("custom1"))
                 .setVisibleInFormIn(toListOfString("default", "custom1"));
 
-        String behaviours = "searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable," +
-                "sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable";
         ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setLabel("titre m2")
                 .setType("STRING").setEnabled(true).setRequired(true)
                 .setTab("zeTab").setMultiValue(true)
                 .setSearchable(true).setAdvanceSearchable(true).setUnique(true).setUnmodifiable(true)
                 .setSortable(true).setRecordAutoComplete(true).setEssential(true).setEssentialInSummary(true)
-                .setMultiLingual(true).setDuplicable(true).setBehaviours(behaviours)
+                .setMultiLingual(true).setDuplicable(true)
                 .setInputMask("9999-9999");
 
         ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setLabel("Titre m3")
@@ -540,7 +822,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(m1Element.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(m1Element.getAttributeValue(TAB)).isNullOrEmpty();
         assertThat(m1Element.getAttributeValue(MULTI_VALUE)).isNull();
-        assertThat(m1Element.getAttributeValue(BEHAVIOURS)).isNull();
         assertThat(m1Element.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
         Element m2Element = defaultSchemaElem.getChildren().get(1);
@@ -561,9 +842,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(m2Element.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(m2Element.getAttributeValue(TAB)).isEqualTo("zeTab");
         assertThat(m2Element.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
-        List<String> expectedBehaviours = StringUtils.split(behaviours, ',');
-        List<String> actualBehaviours = StringUtils.split(m2Element.getAttributeValue(BEHAVIOURS), ',');
-        assertThat(actualBehaviours.containsAll(expectedBehaviours)).isTrue();
         assertThat(m2Element.getAttributeValue(INPUT_MASK)).isEqualTo("9999-9999");
 
         Element customSchemata = typesElement.getChildren().get(0).getChild("schemas");
@@ -595,7 +873,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(metadata3Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(TAB)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(MULTI_VALUE)).isEqualTo("true");
-        assertThat(metadata3Elem.getAttributeValue(BEHAVIOURS)).isNullOrEmpty();
         assertThat(metadata3Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
         String outputFilePath = "settings-output.xml";

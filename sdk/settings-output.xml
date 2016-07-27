@@ -9,14 +9,9 @@
     <config key="yearEndDate" value="02/28" />
   </configs>
   <sequences>
-    <sequence key="1" value="1" />
-    <sequence key="1" value="2" />
-    <sequence key="1" value="3" />
-    <sequence key="2" value="1" />
-    <sequence key="2" value="2" />
-    <sequence key="2" value="3" />
-    <sequence key="2" value="4" />
-    <sequence key="2" value="5" />
+    <sequence key="1" value="10" />
+    <sequence key="2" value="23" />
+    <sequence key="3" value="43" />
   </sequences>
   <configs />
   <sequences />
@@ -39,7 +34,7 @@
         </tabs>
         <default-schema>
           <metadata code="m1" title="titre m1" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1" visibleInFormIn="default,custom1" />
-          <metadata code="m2" title="titre m2" type="STRING" duplicable="true" enabled="true" inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true" recordAutocomplete="true" searchable="true" sortable="true" unique="true" unmodifiable="true" advanceSearchable="true" multivalue="true" required="true" tab="zeTab" behaviours="searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable," />
+          <metadata code="m2" title="titre m2" type="STRING" duplicable="true" enabled="true" inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true" recordAutocomplete="true" searchable="true" sortable="true" unique="true" unmodifiable="true" advanceSearchable="true" multivalue="true" required="true" tab="zeTab" />
         </default-schema>
         <schemas>
           <schema code="custom1">

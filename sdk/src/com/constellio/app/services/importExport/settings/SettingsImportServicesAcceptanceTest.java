@@ -32,9 +32,11 @@ import org.junit.Test;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
@@ -49,12 +51,18 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -104,6 +112,198 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	ImportedSettings settings = new ImportedSettings();
 	ImportedCollectionSettings zeCollectionSettings;
 	ImportedCollectionSettings anotherCollectionSettings;
+
+	@Test
+	//@InDevelopmentTest
+	public void whenImportingMetadataWithCopiedDataEntryTypeThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedDataEntry importedDataEntry =
+				ImportedDataEntry.asCopied("category").withCopiedMetadata("title");
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
+				.setDataEntry(importedDataEntry);
+
+		defaultSchema.addMetadata(m1);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+
+		DataEntry dataEntry = metadata1.getDataEntry();
+
+		assertThat(dataEntry).isNotNull();
+		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.COPIED);
+		CopiedDataEntry copiedDataEntry = (CopiedDataEntry) dataEntry;
+
+		assertThat(copiedDataEntry.getCopiedMetadata()).isEqualTo("folder_default_title");
+		assertThat(copiedDataEntry.getReferenceMetadata()).isEqualTo("folder_default_category");
+
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	//@InDevelopmentTest
+	public void whenImportingMetadataWithCalculatedDataEntryWithoutArgumentsThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedDataEntry importedDataEntry =
+				ImportedDataEntry.asCalculated("com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator");
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("DATE")
+				.setDataEntry(importedDataEntry);
+
+		defaultSchema.addMetadata(m1);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+
+		DataEntry dataEntry = metadata1.getDataEntry();
+
+		assertThat(dataEntry).isNotNull();
+		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.CALCULATED);
+		CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) dataEntry;
+
+		MetadataValueCalculator<?> calculator = calculatedDataEntry.getCalculator();
+		assertThat(calculator).isInstanceOf(FolderExpectedDepositDateCalculator.class);
+
+		assertThat(calculator.getReturnType()).isEqualTo(MetadataValueType.DATE);
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	//@InDevelopmentTest
+	public void whenImportingMetadataWithJEXLDataEntryCodeThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		String pattern = "## This is a comment on the first line\n"
+				+ "'Prefixe ' + title+ ' Suffixe'\n"
+				+ "## This is a comment on the last line";
+		ImportedDataEntry importedDataEntry1 = ImportedDataEntry.asJEXLScript(pattern);
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
+				.setDataEntry(importedDataEntry1);
+
+		defaultSchema.addMetadata(m1);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+		assertThat(metadata1.getLabel(French)).isEqualTo("m1");
+		assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(metadata1.getInputMask()).isNullOrEmpty();
+
+		DataEntry dataEntry = metadata1.getDataEntry();
+
+		assertThat(dataEntry).isNotNull();
+		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.CALCULATED);
+		CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) dataEntry;
+
+		MetadataValueCalculator<?> calculator = calculatedDataEntry.getCalculator();
+		assertThat(calculator).isInstanceOf(JEXLMetadataValueCalculator.class);
+		assertThat(calculator.getReturnType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(((JEXLMetadataValueCalculator)calculator).getJexlScript().getSourceText()).isEqualTo(pattern);
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
+
+	}
+
+	@Test
+	public void whenImportingMetadataWithSequenceDataEntryCodeThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedDataEntry importedDataEntry1 = ImportedDataEntry.asFixedSequence("zeSequence");
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
+				.setDataEntry(importedDataEntry1);
+
+		ImportedDataEntry importedDataEntry2 = ImportedDataEntry.asMetadataProvidingSequence("id");
+		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
+				.setDataEntry(importedDataEntry2);
+
+		defaultSchema.addMetadata(m1).addMetadata(m2);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionsConfigs(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+		assertThat(metadata1.getLabel(French)).isEqualTo("m1");
+		assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(metadata1.getInputMask()).isNullOrEmpty();
+
+		DataEntry dataEntry = metadata1.getDataEntry();
+
+		assertThat(dataEntry).isNotNull();
+		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.SEQUENCE);
+		assertThat(((SequenceDataEntry) dataEntry).getFixedSequenceCode()).isEqualTo("zeSequence");
+		assertThat(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode()).isNullOrEmpty();
+
+		Metadata metadata2 = schemaType.getDefaultSchema().get("folder_default_m2");
+		assertThat(metadata2).isNotNull();
+		assertThat(metadata2.getLabel(French)).isEqualTo("m2");
+		assertThat(metadata2.getType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(metadata2.getInputMask()).isNullOrEmpty();
+
+		DataEntry dataEntry2 = metadata2.getDataEntry();
+
+		assertThat(dataEntry2).isNotNull();
+		assertThat(dataEntry2.getType()).isEqualTo(DataEntryType.SEQUENCE);
+		assertThat(((SequenceDataEntry) dataEntry2).getFixedSequenceCode()).isNullOrEmpty();
+		assertThat(((SequenceDataEntry) dataEntry2).getMetadataProvidingSequenceCode()).isEqualTo("id");
+
+	}
 
 	@Test
 	public void whenImportingUnknownConfigsThenConfigsAreNotSet()
@@ -246,7 +446,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_sequenceValueNotNumerical"));
-
 
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
 				.doesNotContain("The value of the sequence is non numerical")
@@ -900,8 +1099,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setRequired(true)
 				.setTab("zeTab")
 				.setMultiValue(true)
-				.setBehaviours(
-						"searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential, essentialInSummary,multiLingual,duplicable")
 				.setInputMask("9999-9999");
 
 		ImportedMetadata m3 = new ImportedMetadata().setCode("metadata3").setLabel("Titre métadonnée no.3")
@@ -955,7 +1152,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		MetadataSchemaType schemaType = metadataSchemasManager
 				.getSchemaTypes(zeCollection).getSchemaType("folder");
-		assertThat(schemaType.getAllMetadatas().size()).isEqualTo(94);
 
 		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
 		assertThat(metadata1).isNotNull();
@@ -1006,7 +1202,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		MetadataSchemaType schemaType = metadataSchemasManager
 				.getSchemaTypes(zeCollection).getSchemaType("folder");
-		assertThat(schemaType.getAllMetadatas().size()).isEqualTo(94);
 
 		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
 		assertThat(metadata1).isNotNull();
@@ -1059,8 +1254,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		MetadataSchemaType schemaType = metadataSchemasManager
 				.getSchemaTypes(zeCollection).getSchemaType("folder");
-		List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
-		assertThat(schemaTypeMetadata).isNotNull().hasSize(93);
 
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		assertThat(defaultSchema).isNotNull();
@@ -1099,8 +1292,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		MetadataSchemaType schemaType = metadataSchemasManager
 				.getSchemaTypes(zeCollection).getSchemaType("folder");
-		List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
-		assertThat(schemaTypeMetadata).isNotNull().hasSize(93);
 
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		assertThat(defaultSchema).isNotNull();
@@ -1139,8 +1330,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		MetadataSchemaType schemaType = metadataSchemasManager
 				.getSchemaTypes(zeCollection).getSchemaType("folder");
-		List<Metadata> schemaTypeMetadata = schemaType.getAllMetadatas();
-		assertThat(schemaTypeMetadata).isNotNull().hasSize(93);
 
 		MetadataSchema defaultSchema = schemaType.getDefaultSchema();
 		assertThat(defaultSchema).isNotNull();

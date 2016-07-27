@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
@@ -46,6 +47,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.DataEntryBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
@@ -398,6 +400,37 @@ public class SettingsImportServices {
 			metadataBuilder.setLabels(labels);
 		}
 
+		// TODO refactor set data entry
+		ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
+		if (dataEntry != null) {
+			switch (dataEntry.getType().toLowerCase()) {
+			case "sequence":
+				setSequenceDataEntry(metadataBuilder, dataEntry);
+				break;
+
+			case "jexl":
+				metadataBuilder.defineDataEntry().asJexlScript(dataEntry.getPattern());
+				break;
+
+			case "calculated":
+				metadataBuilder.defineDataEntry().asCalculated(dataEntry.getCalculator());
+				break;
+
+			case "copied":
+				if(StringUtils.isNotBlank(dataEntry.getReferencedMetadata())){
+					MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
+					MetadataBuilder copiedMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getCopiedMetadata());
+
+					metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
+
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+
 		if (importedMetadata.getDuplicable() != null) {
 			metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
 		}
@@ -465,6 +498,14 @@ public class SettingsImportServices {
 					}
 				}
 			}
+		}
+	}
+
+	private void setSequenceDataEntry(MetadataBuilder metadataBuilder, ImportedDataEntry dataEntry) {
+		if(StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
+			metadataBuilder.defineDataEntry().asFixedSequence(dataEntry.getFixedSequenceCode());
+		} else {
+			metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(dataEntry.getMetadataProvidingSequenceCode());
 		}
 	}
 

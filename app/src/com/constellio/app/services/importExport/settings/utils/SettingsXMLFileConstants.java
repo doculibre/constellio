@@ -35,7 +35,6 @@ public interface SettingsXMLFileConstants {
     String SCHEMAS = "schemas";
     String DUPLICABLE = "duplicable";
     String INPUT_MASK = "inputMask";
-    String BEHAVIOURS = "behaviours";
     String MULTI_LINGUAL = "multiLingual";
     String MULTI_VALUE = "multivalue";
     String VISIBLE_IN_TABLES_IN = "visibleInTablesIn";

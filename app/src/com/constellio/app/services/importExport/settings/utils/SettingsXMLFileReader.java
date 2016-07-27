@@ -167,11 +167,6 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
             importedMetadata.setMultiValue(Boolean.parseBoolean(element.getAttributeValue(MULTI_VALUE)));
         }
 
-        String behaviours = element.getAttributeValue(BEHAVIOURS);
-        if (StringUtils.isNotBlank(behaviours)) {
-            importedMetadata.setBehaviours(behaviours);
-        }
-
         if (element.getAttribute(REQUIRED) != null) {
             importedMetadata.setRequired(Boolean.parseBoolean(element.getAttributeValue(REQUIRED)));
         }

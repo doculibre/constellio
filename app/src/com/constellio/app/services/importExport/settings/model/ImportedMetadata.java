@@ -27,7 +27,6 @@ public class ImportedMetadata {
 	private String tab;
 	private Boolean multiValue;
 
-	private String behaviours;
 	private String inputMask;
 	private Boolean duplicable;
 	private Boolean encrypted;
@@ -40,6 +39,8 @@ public class ImportedMetadata {
 	private Boolean sortable;
 	private Boolean unmodifiable;
 	private Boolean advanceSearchable;
+
+	private ImportedDataEntry dataEntry;
 
 	public String getCode() {
 		return code;
@@ -119,15 +120,6 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setMultiLingual(Boolean multiLingual) {
 		this.multiLingual = multiLingual;
-		return this;
-	}
-
-	public String getBehaviours() {
-		return behaviours;
-	}
-
-	public ImportedMetadata setBehaviours(String behaviours) {
-		this.behaviours = behaviours;
 		return this;
 	}
 
@@ -356,10 +348,18 @@ public class ImportedMetadata {
 
 	}
 
+	public ImportedMetadata setDataEntry(ImportedDataEntry dataEntry) {
+		this.dataEntry = dataEntry;
+		return this;
+	}
+
+	public ImportedDataEntry getDataEntry() {
+		return dataEntry;
+	}
+
 	public enum ListType {
 		DISPLAY, FORM, SEARCH, TABLES
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {

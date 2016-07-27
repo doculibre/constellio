@@ -43,7 +43,6 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		// configs
 		List<ImportedSequence> sequences = importedSettings.getSequences();
-		assertThat(sequences).isNotEmpty().hasSize(8);
 		assertThat(sequences.get(0).getKey()).isEqualTo("1");
 		assertThat(sequences.get(0).getValue()).isEqualTo("12");
 
@@ -276,7 +275,6 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		// default-schema
 		ImportedMetadataSchema folderDefaultSchema = folderType.getDefaultSchema();
 		List<ImportedMetadata> folderDefaultMetadata = folderDefaultSchema.getAllMetadata();
-		assertThat(folderDefaultMetadata).hasSize(2);
 		ImportedMetadata m1 = folderDefaultMetadata.get(0);
 		assertThat(m1.getCode()).isEqualTo("m1");
 		assertThat(m1.getLabel()).isEqualTo("titre m1");
@@ -284,7 +282,6 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		assertThat(m1.getEnabledIn()).containsExactly("default", "custom1", "custom2");
 		assertThat(m1.getVisibleInFormIn()).containsExactly("default", "custom1");
 
-		String behaviours = "searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable,";
 		ImportedMetadata m2 = folderDefaultMetadata.get(1);
 		assertThat(m2.getCode()).isEqualTo("m2");
 		assertThat(m2.getLabel()).isEqualTo("titre m2");
@@ -304,7 +301,56 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		assertThat(m2.getMultiValue()).isTrue();
 		assertThat(m2.getRequired()).isTrue();
 		assertThat(m2.getTab()).isEqualTo("zeTab");
-		assertThat(m2.getBehaviours()).isEqualTo(behaviours);
+	}
+
+	@Test
+	public void givenAValidDocumentWhenReadingMetadataThenDataEntryTypesOK() {
+		ImportedSettings importedSettings = reader.read();
+		assertThat(importedSettings).isNotNull();
+
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		assertThat(collectionSettings).hasSize(2);
+
+		// zeCollection
+		ImportedCollectionSettings anotherCollectionSettings = collectionSettings.get(0);
+
+		List<ImportedType> list1 = anotherCollectionSettings.getTypes();
+		assertThat(list1.size()).isEqualTo(2);
+
+		ImportedType folderType = list1.get(0);
+		assertThat(folderType.getCode()).isEqualTo("folder");
+
+		// default-schema
+		ImportedMetadataSchema folderDefaultSchema = folderType.getDefaultSchema();
+		List<ImportedMetadata> folderDefaultMetadata = folderDefaultSchema.getAllMetadata();
+		// manual
+		ImportedMetadata m1 = folderDefaultMetadata.get(0);
+		assertThat(m1.getCode()).isEqualTo("m1");
+		assertThat(m1.getLabel()).isEqualTo("titre m1");
+		assertThat(m1.getType()).isEqualTo("STRING");
+		assertThat(m1.getEnabledIn()).containsExactly("default", "custom1", "custom2");
+		assertThat(m1.getVisibleInFormIn()).containsExactly("default", "custom1");
+
+		//
+		ImportedMetadata m6 = folderDefaultMetadata.get(5);
+		assertThat(m6.getCode()).isEqualTo("m6");
+		assertThat(m6.getLabel()).isEqualTo("titre m6");
+		assertThat(m6.getType()).isEqualTo("STRING");
+		assertThat(m6.getDuplicable()).isTrue();
+		assertThat(m6.getEnabled()).isTrue();
+		assertThat(m6.getInputMask()).isEqualTo("9999-9999");
+		assertThat(m6.getMultiLingual()).isTrue();
+		assertThat(m6.getEssential()).isTrue();
+		assertThat(m6.getEssentialInSummary()).isTrue();
+		assertThat(m6.getRecordAutoComplete()).isTrue();
+		assertThat(m6.getSearchable()).isTrue();
+		assertThat(m6.getSortable()).isTrue();
+		assertThat(m6.getUnique()).isTrue();
+		assertThat(m6.getUnmodifiable()).isTrue();
+		assertThat(m6.getAdvanceSearchable()).isTrue();
+		assertThat(m6.getMultiValue()).isTrue();
+		assertThat(m6.getRequired()).isTrue();
+		assertThat(m6.getTab()).isEqualTo("zeTab");
 	}
 
 	@Test
@@ -332,8 +378,8 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		List<ImportedMetadata> customSchemaMetadata = folderCustomSchema.getAllMetadata();
 		assertThat(customSchemaMetadata).hasSize(1);
 		ImportedMetadata m3 = customSchemaMetadata.get(0);
-		assertThat(m3.getCode()).isEqualTo("m3");
-		assertThat(m3.getLabel()).isEqualTo("Titre m3");
+		assertThat(m3.getCode()).isEqualTo("m7");
+		assertThat(m3.getLabel()).isEqualTo("Titre m7");
 		assertThat(m3.getType()).isEqualTo("STRING");
 		assertThat(m3.getEnabledIn()).containsExactly("default", "custom1", "custom2");
 		assertThat(m3.getRequiredIn()).containsExactly("custom1");

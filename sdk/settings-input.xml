@@ -34,17 +34,53 @@
                     <tab code="default" value="Métadonnées"/>
                 </tabs>
                 <default-schema>
-                    <metadata code="m1" title="titre m1" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1"
-                              visibleInFormIn="default,custom1"/>
-                    <metadata code="m2" title="titre m2" type="STRING" duplicable="true" enabled="true" inputMask="9999-9999"
+		<!-- 
+		1. ImportedMetadataManualDataEntry.java
+		2. ImportedMetadataSequenceDataEntry.java : un des deux argument est null. JAMAIS LES DEUX !!
+		3. ImportedMetadataJEXLDataEntry.java
+		4. ImportedMetadataCalculatedDataEntry.java
+		5. ImportedMetadataCopiedDataEntry.java
+		6. Parameterized calculators
+		-->
+                 <!-- manual -->
+		    <metadata code="m1" title="titre m1" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1"  visibleInFormIn="default,custom1"
+		    duplicable="true" enabled="true"
+                              inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true"
+                              recordAutocomplete="true" searchable="true" sortable="true" unique="true" unmodifiable="true"
+                              advanceSearchable="true" multivalue="true" required="true"  tab="zeTab"/>
+                 <!-- jexl -->
+                    <metadata code="m2" title="titre m2" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1"  visibleInFormIn="default,custom1"
+		    duplicable="true" enabled="true"
+                              inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true"
+                              recordAutocomplete="true" searchable="true" sortable="true" unique="true" unmodifiable="true"
+                              advanceSearchable="true" multivalue="true" required="true"  tab="zeTab">
+			    <data-entry type="jexl" pattern="## This is a comment on the first line
+				'Prefixe ' + title+ ' Suffixe'
+				## This is a comment on the last line"/>
+			</metadata>
+                 <!-- calculated without arguments -->
+                    <metadata code="m3" title="titre m3" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1"  visibleInFormIn="default,custom1">
+			<data-entry type="calculated" calculator="com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator"/>
+		    </metadata>
+                 <!-- copied -->
+		    <metadata code="m4" title="titre m4" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1"  visibleInFormIn="default,custom1">
+			<data-entry type="copied" referenceMetadata="category" copiedMetadata="title"/>
+		    </metadata>
+                 <!-- metadataProvidingSequenceCode -->
+		    <metadata code="m5" title="titre m5" type="STRING" enabledIn="default,custom1,custom2" requiredIn="custom1"  visibleInFormIn="default,custom1">
+			<data-entry type="sequence" metadataProvidingSequenceCode="id"/>
+		    </metadata>
+		 <!-- fixedSequenceCode -->
+		    <metadata code="m6" title="titre m6" type="STRING" duplicable="true" enabled="true" inputMask="9999-9999"
                               multiLingual="true" essential="true" essentialInSummary="true" recordAutocomplete="true"
                               searchable="true" sortable="true" unique="true" unmodifiable="true" advanceSearchable="true"
-                              multivalue="true" required="true" tab="zeTab"
-                              behaviours="searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable,"/>
+                              multivalue="true" required="true" tab="zeTab" >
+			      <data-entry type="sequence" fixedSequenceCode="zeSequence"/>
+			</metadata>
                 </default-schema>
                 <schemas>
                     <schema code="custom1">
-                        <metadata code="m3" title="Titre m3" type="STRING" enabledIn="default,custom1,custom2" multivalue="true"
+                        <metadata code="m7" title="Titre m7" type="STRING" enabledIn="default,custom1,custom2" multivalue="true"
                                   requiredIn="custom1"/>
                     </schema>
                 </schemas>
@@ -89,8 +125,7 @@
                     <metadata code="m2" title="titre m2-anotherCollection " type="STRING" duplicable="true" enabled="true"
                               inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true"
                               recordAutocomplete="true" searchable="true" sortable="true" unique="true" unmodifiable="true"
-                              advanceSearchable="true" multivalue="true" required="true" tab="zeTab"
-                              behaviours="searchableInSimpleSearch,searchableInAdvancedSearch,unique,unmodifiable,sortable,recordAutocomplete,essential,essentialInSummary,multiLingual,duplicable,"/>
+                              advanceSearchable="true" multivalue="true" required="true" tab="zeTab" />
                 </default-schema>
                 <schemas>
                     <schema code="custom1">

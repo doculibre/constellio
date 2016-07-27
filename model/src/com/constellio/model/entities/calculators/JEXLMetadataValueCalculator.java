@@ -42,6 +42,10 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		this.expression = expression;
 	}
 
+	public JexlScript getJexlScript(){
+		return jexlScript;
+	}
+
 	@Override
 	public Object calculate(CalculatorParameters parameters) {
 
