@@ -5,11 +5,18 @@ import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMConfigs {
 
@@ -47,7 +54,8 @@ public class RMConfigs {
 			BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
 			WORKFLOWS_ENABLED,
-			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER;
+			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
+			ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -203,6 +211,10 @@ public class RMConfigs {
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
+		add(ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA = decommissioning
+				.createEnum("archivisticCalculatorsWithManualMetadata", CalculatorWithManualMetadataChoice.class)
+				.withDefaultValue(CalculatorWithManualMetadataChoice.DISABLE)
+				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -326,4 +338,5 @@ public class RMConfigs {
 	public DocumentsTypeChoice getDocumentsTypesChoice() {
 		return manager.getValue(DOCUMENTS_TYPES_CHOICE);
 	}
+
 }

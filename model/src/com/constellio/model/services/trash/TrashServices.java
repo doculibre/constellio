@@ -84,7 +84,7 @@ public class TrashServices {
 			if (recordServices().isRestorable(record, currentUser)) {
 				recordServices().restore(record, currentUser);
 			} else {
-				returnList.add(recordId);
+				returnList.add(record.getTitle());
 			}
 		}
 		return returnList;
@@ -104,7 +104,7 @@ public class TrashServices {
 			try {
 				boolean deleted = handleRecordPhysicalDelete(record, currentUser);
 				if (!deleted) {
-					returnSet.add(recordId);
+					returnSet.add(record.getTitle());
 				}
 			} catch (Throwable e) {
 				LOGGER.warn("record not deleted correctly from trash");
@@ -129,13 +129,14 @@ public class TrashServices {
 		return returnSet;
 	}
 
-	public List<String> getRelatedRecords(String recordId, User user) {
+	public RecordsIdsAndTitles getRelatedRecords(String recordId, User user) {
 		Record record = recordServices().getDocumentById(recordId, user);
 		try {
 			recordServices().physicallyDelete(record, user, new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-			return new ArrayList<>();
+			return new RecordsIdsAndTitles();
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			return new ArrayList<>(e.getRecordsWithUnremovableReferences());
+			return new RecordsIdsAndTitles(e.getRecordsIdsWithUnremovableReferences(),
+					e.getRecordsTiltlesWithUnremovableReferences());
 		}
 	}
 
@@ -167,5 +168,28 @@ public class TrashServices {
 
 	public long getLogicallyDeletedRecordsCount(String collection, User currentUser) {
 		return searchServices.getResultsCount(getTrashRecordsQueryForCollection(collection, currentUser));
+	}
+
+	public static class RecordsIdsAndTitles {
+		final Set<String> recordsIds;
+		final Set<String> recordsTitles;
+		public RecordsIdsAndTitles(Set<String> recordsIds,
+				Set<String> recordsTitles) {
+			this.recordsIds = recordsIds;
+			this.recordsTitles = recordsTitles;
+		}
+
+		public RecordsIdsAndTitles() {
+			this.recordsTitles = new HashSet<>();
+			this.recordsIds = new HashSet<>();
+		}
+
+		public Set<String> getRecordsIds() {
+			return recordsIds;
+		}
+
+		public Set<String> getRecordsTitles() {
+			return recordsTitles;
+		}
 	}
 }

@@ -29,6 +29,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
+import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -185,6 +186,13 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		folder.setCloseDateEntered(december12_2009);
 		folder.setComments(asList(comment1, comment2));
 
+		FolderStatus manualArchivisticStatus = FolderStatus.INACTIVE_DEPOSITED;
+		LocalDate manualDepositDate = january1_2015, manualTransferDate = march31_2005, manualDestructionDate = march31_2016;
+		folder.setManualArchivisticStatus(manualArchivisticStatus);
+		folder.setManualExpectedDepositDate(manualDepositDate);
+		folder.setManualExpectedTransferDate(manualTransferDate);
+		folder.setManualExpectedDestructionDate(manualDestructionDate);
+
 		folder = saveAndLoad(folder);
 
 		assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(records.unitId_11b);
@@ -205,6 +213,11 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.hasAnalogicalMedium()).isTrue();
 		assertThat(folder.hasElectronicMedium()).isFalse();
 		assertThat(folder.getCloseDateEntered()).isEqualTo(december12_2009);
+
+		assertThat(folder.getManualArchivisticStatus()).isEqualTo(manualArchivisticStatus);
+		assertThat(folder.getManualExpecteTransferdDate()).isEqualTo(manualTransferDate);
+		assertThat(folder.getManualExpectedDepositDate()).isEqualTo(manualDepositDate);
+		assertThat(folder.getManualExpectedDestructionDate()).isEqualTo(manualDestructionDate);
 
 	}
 
@@ -1931,6 +1944,101 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenDisabledManualArchivisticMetadataWhenFolderSavedThenManualMetadataNotConsidered()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 10);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 20);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
+				secondary("999-0-D", PA));
+
+		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.DISABLE);
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DEPOSITED)
+				.setManualExpectedTransferDate(january12_2010)
+				.setManualExpectedDepositDate(february16_2012)
+				.setManualExpectedDestructionDate(january1_2015)
+		);
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2056);
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2061);
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2061);
+	}
+
+	@Test
+	public void givenEnabledManualArchivisticMetadataWhenFolderSavedThenManualMetadataConsidered()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 10);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 20);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
+				secondary("999-0-D", PA));
+
+		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(FolderStatus.INACTIVE_DEPOSITED)
+				.setManualExpectedTransferDate(january12_2010)
+				.setManualExpectedDepositDate(february16_2012)
+				.setManualExpectedDestructionDate(january1_2015)
+		);
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.INACTIVE_DEPOSITED);
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(january12_2010);
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(february16_2012);
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(january1_2015);
+	}
+
+	@Test
+	public void givenEnabledManualArchivisticMetadataAndNullManualMetadataWhenFolderSavedThenManualMetadataNotConsidered()
+			throws Exception {
+
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 90);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE, 10);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 20);
+		givenConfig(RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 30);
+		givenConfig(RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD, 40);
+		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
+				secondary("999-0-D", PA));
+
+		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		Folder folder = saveAndLoad(principalFolderWithZeRule()
+				.setOpenDate(february2_2015)
+				.setMediumTypes(MD, PA)
+				.setManualArchivisticStatus(null)
+				.setManualExpectedTransferDate(null)
+				.setManualExpectedDepositDate(null)
+				.setManualExpectedDestructionDate(null)
+		);
+
+		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
+
+		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2056);
+		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2061);
+		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2061);
+	}
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {

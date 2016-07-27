@@ -210,7 +210,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			when(userWithDeletePermission).physicallyDelete(records.folder1(), withMostReferencesRemoved);
 			fail("Physically delete should have failed");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			assertThat(e.getRecordsWithUnremovableReferences()).containsOnly(
+			assertThat(e.getRecordsIdsWithUnremovableReferences()).containsOnly(
 					records.folder2().getId(), records.folder3().getId());
 		}
 		assertThatRecord(records.folder2())
@@ -226,7 +226,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			when(userWithDeletePermission).physicallyDelete(records.folder1(), withMostReferencesRemoved);
 			fail("Physically delete should have failed");
 		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			assertThat(e.getRecordsWithUnremovableReferences()).containsOnly(
+			assertThat(e.getRecordsIdsWithUnremovableReferences()).containsOnly(
 					records.folder2().getId());
 		}
 		assertThatRecord(records.folder2())

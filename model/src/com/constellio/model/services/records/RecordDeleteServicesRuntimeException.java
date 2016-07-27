@@ -48,17 +48,23 @@ public class RecordDeleteServicesRuntimeException extends RuntimeException {
 	public static class RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords
 			extends RecordServicesRuntimeException_CannotPhysicallyDeleteRecord {
 
-		Set<String> recordsWithUnremovableReferences;
+		Set<String> recordsIdsWithUnremovableReferences;
+		Set<String> recordsTiltlesWithUnremovableReferences;
 
 		public RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(String deletedRecordId,
-				Set<String> recordsWithUnremovableReferences) {
+				Set<String> recordsIdsWithUnremovableReferences, Set<String> recordsIdsTitlesWithUnremovableReferences) {
 			super("Cannot physically delete record '" + deletedRecordId + "', cannot remove references to this record on ["
-					+ recordsWithUnremovableReferences + "]");
-			this.recordsWithUnremovableReferences = recordsWithUnremovableReferences;
+					+ recordsIdsWithUnremovableReferences + "]");
+			this.recordsIdsWithUnremovableReferences = recordsIdsWithUnremovableReferences;
+			this.recordsTiltlesWithUnremovableReferences = recordsIdsTitlesWithUnremovableReferences;
 		}
 
-		public Set<String> getRecordsWithUnremovableReferences() {
-			return recordsWithUnremovableReferences;
+		public Set<String> getRecordsIdsWithUnremovableReferences() {
+			return recordsIdsWithUnremovableReferences;
+		}
+
+		public Set<String> getRecordsTiltlesWithUnremovableReferences() {
+			return recordsTiltlesWithUnremovableReferences;
 		}
 	}
 
