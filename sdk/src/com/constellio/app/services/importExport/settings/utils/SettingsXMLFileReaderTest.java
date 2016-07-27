@@ -45,28 +45,16 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		List<ImportedSequence> sequences = importedSettings.getSequences();
 		assertThat(sequences).isNotEmpty().hasSize(8);
 		assertThat(sequences.get(0).getKey()).isEqualTo("1");
-		assertThat(sequences.get(0).getValue()).isEqualTo("1");
+		assertThat(sequences.get(0).getValue()).isEqualTo("12");
 
-		assertThat(sequences.get(1).getKey()).isEqualTo("1");
-		assertThat(sequences.get(1).getValue()).isEqualTo("2");
+		assertThat(sequences.get(1).getKey()).isEqualTo("2");
+		assertThat(sequences.get(1).getValue()).isEqualTo("10");
 
-		assertThat(sequences.get(2).getKey()).isEqualTo("1");
-		assertThat(sequences.get(2).getValue()).isEqualTo("3");
+		assertThat(sequences.get(2).getKey()).isEqualTo("3");
+		assertThat(sequences.get(2).getValue()).isEqualTo("23");
 
-		assertThat(sequences.get(3).getKey()).isEqualTo("2");
-		assertThat(sequences.get(3).getValue()).isEqualTo("1");
-
-		assertThat(sequences.get(4).getKey()).isEqualTo("2");
-		assertThat(sequences.get(4).getValue()).isEqualTo("2");
-
-		assertThat(sequences.get(5).getKey()).isEqualTo("2");
-		assertThat(sequences.get(5).getValue()).isEqualTo("3");
-
-		assertThat(sequences.get(6).getKey()).isEqualTo("2");
-		assertThat(sequences.get(6).getValue()).isEqualTo("4");
-
-		assertThat(sequences.get(7).getKey()).isEqualTo("2");
-		assertThat(sequences.get(7).getValue()).isEqualTo("5");
+		assertThat(sequences.get(3).getKey()).isEqualTo("4");
+		assertThat(sequences.get(3).getValue()).isEqualTo("51");
 	}
 
 	@Test

@@ -153,6 +153,14 @@ public class i18n {
 		return messages;
 	}
 
+	public static List<String> asListOfMessages(ValidationErrors errors, Object... params) {
+		List<String> messages = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error.getCode(), params));
+		}
+		return messages;
+	}
+
 	public static String $(ValidationError error) {
 		String key = error.getCode();
 		Map<String, Object> args = error.getParameters();

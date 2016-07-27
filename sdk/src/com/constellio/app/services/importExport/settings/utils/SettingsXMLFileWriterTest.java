@@ -393,15 +393,9 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         writer.addGlobalConfigs(configs);
 
         List<ImportedSequence> sequences = new ArrayList<>();
-        sequences.add(new ImportedSequence().setKey("1").setValue("1"));
-        sequences.add(new ImportedSequence().setKey("1").setValue("2"));
-        sequences.add(new ImportedSequence().setKey("1").setValue("3"));
-
-        sequences.add(new ImportedSequence().setKey("2").setValue("1"));
-        sequences.add(new ImportedSequence().setKey("2").setValue("2"));
-        sequences.add(new ImportedSequence().setKey("2").setValue("3"));
-        sequences.add(new ImportedSequence().setKey("2").setValue("4"));
-        sequences.add(new ImportedSequence().setKey("2").setValue("5"));
+        sequences.add(new ImportedSequence().setKey("1").setValue("10"));
+        sequences.add(new ImportedSequence().setKey("2").setValue("23"));
+        sequences.add(new ImportedSequence().setKey("3").setValue("43"));
 
         writer.addSequences(sequences);
 

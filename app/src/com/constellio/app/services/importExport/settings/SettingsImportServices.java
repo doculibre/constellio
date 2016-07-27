@@ -78,6 +78,9 @@ public class SettingsImportServices {
 	static final String EMPTY_TAB_CODE = "emptyTabCode";
 	static final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
 	static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
+	static final String SEQUENCE_VALUE_NOT_NUMERICAL = "sequenceValueNotNumerical";
+	static final String SEQUENCE_ID_NOT_NUMERICAL = "sequenceIdNotNumerical";
+	static final String SEQUENCE_ID_NULL_OR_EMPTY = "sequenceIdNullOrEmpty";
 	AppLayerFactory appLayerFactory;
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager schemasManager;
@@ -515,7 +518,7 @@ public class SettingsImportServices {
 							taxonomy = taxonomy.withUserIds(importedTaxonomy.getUserIds());
 						}
 
-						String groupLabel = $(CLASSIFIED_IN_GROUP_LABEL);
+						String groupLabel = CLASSIFIED_IN_GROUP_LABEL;
 
 						List<MetadataSchemaType> classifiedTypes = valueListServices.getClassifiedSchemaTypes(taxonomy);
 						for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
@@ -553,7 +556,7 @@ public class SettingsImportServices {
 			appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
 					.addTaxonomy(taxonomy, schemasManager);
 
-			String groupLabel = $(CLASSIFIED_IN_GROUP_LABEL);
+			String groupLabel = CLASSIFIED_IN_GROUP_LABEL;
 			for (String classifiedType : importedTaxonomy.getClassifiedTypes()) {
 				valueListServices.createAMultivalueClassificationMetadataInGroup(taxonomy, classifiedType, groupLabel);
 			}
@@ -710,7 +713,7 @@ public class SettingsImportServices {
 				Map<String, Object> parameters = new HashMap();
 				parameters.put(CONFIG, CODE);
 				parameters.put(VALUE, schema.getCode());
-				errors.add(SettingsImportServices.class, $(INVALID_SCHEMA_CODE, schema.getCode()), parameters);
+				errors.add(SettingsImportServices.class, INVALID_SCHEMA_CODE, parameters);
 			}
 		}
 	}
@@ -721,7 +724,7 @@ public class SettingsImportServices {
 				Map<String, Object> parameters = new HashMap();
 				parameters.put(CONFIG, CODE);
 				parameters.put(VALUE, tab.getCode());
-				errors.add(SettingsImportServices.class, $(EMPTY_TAB_CODE), parameters);
+				errors.add(SettingsImportServices.class, EMPTY_TAB_CODE, parameters);
 			}
 		}
 	}
@@ -731,7 +734,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap();
 			parameters.put(CONFIG, "default-schema");
 			parameters.put(VALUE, null);
-			errors.add(SettingsImportServices.class, $(NULL_DEFAULT_SCHEMA), parameters);
+			errors.add(SettingsImportServices.class, NULL_DEFAULT_SCHEMA, parameters);
 		}
 	}
 
@@ -740,7 +743,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, typeCode);
-			errors.add(SettingsImportServices.class, $(EMPTY_TYPE_CODE), parameters);
+			errors.add(SettingsImportServices.class, EMPTY_TYPE_CODE, parameters);
 		}
 	}
 
@@ -756,17 +759,17 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, importedTaxonomy.getCode());
-			validationErrors.add(SettingsImportServices.class, $(EMPTY_TAXONOMY_CODE), parameters);
+			validationErrors.add(SettingsImportServices.class, EMPTY_TAXONOMY_CODE, parameters);
 		} else if (!code.startsWith(TAXO_PREFIX)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, importedTaxonomy.getCode());
-			validationErrors.add(SettingsImportServices.class, $(INVALID_TAXONOMY_CODE_PREFIX), parameters);
+			validationErrors.add(SettingsImportServices.class, INVALID_TAXONOMY_CODE_PREFIX, parameters);
 		} else if (!code.endsWith(TAXO_SUFFIX)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, importedTaxonomy.getCode());
-			validationErrors.add(SettingsImportServices.class, $(INVALID_TAXONOMY_CODE_SUFFIX), parameters);
+			validationErrors.add(SettingsImportServices.class, INVALID_TAXONOMY_CODE_SUFFIX, parameters);
 		}
 	}
 
@@ -782,7 +785,7 @@ public class SettingsImportServices {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, CODE);
 			parameters.put(VALUE, collectionCode);
-			validationErrors.add(SettingsImportServices.class, $(INVALID_COLLECTION_CODE), parameters);
+			validationErrors.add(SettingsImportServices.class, INVALID_COLLECTION_CODE, parameters);
 		} else {
 			try {
 				schemasManager.getSchemaTypes(collectionCode);
@@ -790,7 +793,7 @@ public class SettingsImportServices {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(CONFIG, CODE);
 				parameters.put(VALUE, collectionCode);
-				validationErrors.add(SettingsImportServices.class, $(COLLECTION_CODE_NOT_FOUND, collectionCode), parameters);
+				validationErrors.add(SettingsImportServices.class, COLLECTION_CODE_NOT_FOUND, parameters);
 			}
 		}
 	}
@@ -802,7 +805,7 @@ public class SettingsImportServices {
 			parameters.put(CONFIG, importedValueList.getCode());
 			parameters.put(VALUE, importedValueList.getTitles().get(TITLE_FR));
 			validationErrors
-					.add(SettingsImportServices.class, $(INVALID_VALUE_LIST_CODE, importedValueList.getCode()), parameters);
+					.add(SettingsImportServices.class, INVALID_VALUE_LIST_CODE, parameters);
 		}
 	}
 
@@ -811,18 +814,19 @@ public class SettingsImportServices {
 
 			if (StringUtils.isBlank(importedSequence.getKey())) {
 				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
-				validationErrors.add(SettingsImportServices.class, "sequenceIdNullOrEmpty", parameters);
+				validationErrors.add(SettingsImportServices.class, SEQUENCE_ID_NULL_OR_EMPTY, parameters);
 			}
 
 			if (isNotNumerical(importedSequence.getKey())) {
 				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
-				validationErrors.add(SettingsImportServices.class, "sequenceIdNotNumerical", parameters);
+				validationErrors.add(SettingsImportServices.class, SEQUENCE_ID_NOT_NUMERICAL, parameters);
 
 			}
 
 			if (isNotNumerical(importedSequence.getValue())) {
 				Map<String, Object> parameters = toParametersMap(importedSequence.getKey(), importedSequence.getValue());
-				validationErrors.add(SettingsImportServices.class, "sequenceValueNotNumerical", parameters);
+				validationErrors.add(SettingsImportServices.class, SEQUENCE_VALUE_NOT_NUMERICAL, parameters);
+
 			}
 		}
 	}
@@ -841,11 +845,11 @@ public class SettingsImportServices {
 			SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
 			if (config == null) {
 				Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
-				validationErrors.add(SettingsImportServices.class, $(CONFIGURATION_NOT_FOUND), parameters);
+				validationErrors.add(SettingsImportServices.class, CONFIGURATION_NOT_FOUND, parameters);
 			} else if (importedConfig.getValue() == null) {
 				Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
 				validationErrors
-						.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE, importedConfig.getKey()), parameters);
+						.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
 			} else {
 				if (config.getType() == SystemConfigurationType.BOOLEAN) {
 					validateBooleanValueConfig(validationErrors, importedConfig);
@@ -861,7 +865,7 @@ public class SettingsImportServices {
 	private void validateBooleanValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
 		if (!asList("true", "false").contains(String.valueOf(importedConfig.getValue()))) {
 			Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
-			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
+			validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
 		}
 	}
 
@@ -870,14 +874,14 @@ public class SettingsImportServices {
 			Integer.parseInt(importedConfig.getValue());
 		} catch (NumberFormatException e) {
 			Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
-			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
+			validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
 		}
 	}
 
 	private void validateStringValueConfig(ValidationErrors validationErrors, ImportedConfig importedConfig) {
 		if (importedConfig.getValue() == null) {
 			Map<String, Object> parameters = toParametersMap(importedConfig.getKey(), importedConfig.getValue());
-			validationErrors.add(SettingsImportServices.class, $(INVALID_CONFIGURATION_VALUE), parameters);
+			validationErrors.add(SettingsImportServices.class, INVALID_CONFIGURATION_VALUE, parameters);
 		}
 	}
 
@@ -888,4 +892,8 @@ public class SettingsImportServices {
 		return parameters;
 	}
 
+	// TODO
+	// valider que le message d'erreur est du bon locale
+	// assertThatContainsFrenchMessages
+	// assertThatContainsFrenchMessages
 }

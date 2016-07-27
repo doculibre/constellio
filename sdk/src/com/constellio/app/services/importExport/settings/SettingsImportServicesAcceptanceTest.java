@@ -9,16 +9,15 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.assertj.core.api.ListAssert;
@@ -27,8 +26,6 @@ import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +45,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedValueList
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.Taxonomy;
@@ -56,64 +54,122 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.TestUtils;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
 @UiTest
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
+	static final String FOLDER = "folder";
+	static final String DOCUMENT = "document";
+	static final String TITLE_FR = "Le titre du domaine de valeurs 1";
+	static final String TITLE_EN = "First value list's title";
+	static final String TITLE_FR_UPDATED = "Nouveau titre du domaine de valeurs 1";
+	static final String TITLE_EN_UPDATED = "First value list's updated title";
+	static final String TAXO_1_TITLE_FR = "Le titre de la taxonomie 1";
+	static final String TAXO_1_TITLE_FR_UPDATED = "Nouveau titre de la taxonomie 1";
+	static final String TAXO_1_TITLE_EN = "First taxonomy's title";
+	static final String TAXO_2_TITLE_FR = "Le titre de la taxonomie 2";
+	static final String TAXO_2_TITLE_EN = "Second taxonomy's title";
+	static final String CODE_1_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur1";
+	static final String CODE_2_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur2";
+	static final String CODE_3_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur3";
+	static final String CODE_4_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur4";
+	static final List<String> TAXO_USERS = asList("gandalf", "edouard");
+	static final List<String> TAXO_GROUPS = asList("heroes");
+	static final String TAXO_1_CODE = "taxoMyFirstType";
+	static final String TAXO_2_CODE = "taxoMySecondType";
+	static final String CODE_METADATA_2 = "metadata2";
+	static final String TITLE_METADATA_2 = "Titre métadonnée no.2";
+	static final String CODE_METADATA_1 = "metadata1";
+	static final String TITLE_METADATA_1 = "Titre métadonnée no.1";
+	static final String CODE_SCHEMA_1 = "USRschema1";
+	static final String CODE_SCHEMA_2 = "USRschema2";
+	static final String CODE_DEFAULT_SCHEMA = "default";
+	static final String CODE_FOLDER_SCHEMA_TYPE = "folder";
 	List<String> metadataCodes;
 	Users users = new Users();
 
+	//-------------------------------------------------------------------------------------
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager metadataSchemasManager;
 	SchemasDisplayManager schemasDisplayManager;
 	boolean runTwice;
+	SettingsImportServices services;
+	ImportedSettings settings = new ImportedSettings();
+	ImportedCollectionSettings zeCollectionSettings;
+	ImportedCollectionSettings anotherCollectionSettings;
 
 	@Test
 	public void whenImportingUnknownConfigsThenConfigsAreNotSet()
 			throws Exception {
 
+		i18n.setLocale(Locale.ENGLISH);
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
 				tuple("SettingsImportServices_configurationNotFound", "calculatedCloseDateUnknown"));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
+				.doesNotContain("Aucune configuration n'existe pour le code 'calculatedCloseDateUnknown'")
+				.contains("No configuration was found for code calculatedCloseDateUnknown");
+
 	}
 
 	@Test
-	public void whenImportBadBooleanConfigValueThenValidationExceptionThrown()
+	public void givenFrenchLocaleWhenImportBadBooleanConfigValueThenValidationExceptionThrown()
 			throws Exception {
+
+		i18n.setLocale(Locale.FRENCH);
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue("notABoolean"));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
 				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate", "notABoolean"));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
+				.containsOnly("La valeur de la configuration est vide ou nulle")
+				.doesNotContain("The configuration's value is empty or null");
+
 	}
 
 	@Test
-	public void whenImportingBadIntegerConfigValueThenValidationExceptionThrown()
+	public void givenEnglishLocalewhenImportingBadIntegerConfigValueThenValidationExceptionThrown()
 			throws Exception {
+
+		i18n.setLocale(Locale.ENGLISH);
+
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
 				.setValue("helloInteger"));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config", "value").containsOnly(
 				tuple("SettingsImportServices_invalidConfigurationValue",
 						"calculatedCloseDateNumberOfYearWhenFixedRule", "helloInteger"));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
+				.containsOnly("The value of the configuration is empty or null")
+				.doesNotContain("La valeur de la configuration est vide ou nulle");
+
 	}
 
 	@Test
-	public void whenImportingNullValueConfigsThenNullValueExceptionIsRaised()
+	public void giveEnglishLocaleWhenImportingNullValueConfigsThenNullValueExceptionIsRaised()
 			throws Exception {
 
+		i18n.setLocale(Locale.ENGLISH);
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue(null));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
 				tuple("SettingsImportServices_invalidConfigurationValue", "calculatedCloseDate"));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
+				.containsOnly("The value of the configuration is empty or null")
+				.doesNotContain("La valeur de la configuration est vide ou nulle");
 	}
 
 	@Test
@@ -136,96 +192,129 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.DOCUMENT_RETENTION_RULES)).isEqualTo(true);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER)).isEqualTo(false);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER))
+				.isEqualTo(false);
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE)).isEqualTo(false);
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE)).isEqualTo(2015);
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR)).isEqualTo(15);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE))
+				.isEqualTo(2015);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR))
+				.isEqualTo(15);
 
 		assertThat(systemConfigurationsManager.getValue(RMConfigs.YEAR_END_DATE)).isEqualTo("02/28");
 
-		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON)).isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
+		assertThat(systemConfigurationsManager.getValue(RMConfigs.DECOMMISSIONING_DATE_BASED_ON))
+				.isEqualTo(DecommissioningDateBasedOn.OPEN_DATE);
 	}
 
-
 	@Test
-	public void whenImportSequencesWithEmptySequenceIdThenError()
+	public void givenFrenchLocaleWhenImportSequencesWithEmptySequenceIdThenError()
 			throws Exception {
 
+		i18n.setLocale(Locale.FRENCH);
 		settings.addSequence(new ImportedSequence().setKey("").setValue("1"));
-
-		importSettings();
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_sequenceIdNullOrEmpty"));
 
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
+				.contains("L'identifiant de la séquence est vide ou null")
+				.doesNotContain("The id of the sequence is null or empty");
 	}
 
 	@Test
-	public void whenImportSequencesWithNonNumericalSequenceIdThenError()
+	public void givenEnglishLocaleWhenImportSequencesWithNonNumericalSequenceIdThenError()
 			throws Exception {
 
+		i18n.setLocale(Locale.CANADA);
 		settings.addSequence(new ImportedSequence().setKey("a").setValue("1"));
-
-		importSettings();
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_sequenceIdNotNumerical"));
 
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
+				.contains("The id of the sequence id is non numerical")
+				.doesNotContain("L''identifiant de la séquence n''est pas numérique");
 	}
 
 	@Test
-	public void whenImportSequencesWithNonNumericalValueThenError()
+	public void givenFrenchLocaleWhenImportSequencesWithNonNumericalValueThenError()
 			throws Exception {
 
+		i18n.setLocale(Locale.FRENCH);
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("a"));
-
-		importSettings();
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_sequenceValueNotNumerical"));
 
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings()
+				.doesNotContain("The value of the sequence is non numerical")
+				.contains("La valeur de la séquence n'est pas numérique");
 	}
 
 	@Test
-	@InDevelopmentTest
+	public void givenFrenchLocalizationWhenImportSequencesWithNonNumericalValueThenFrenchErrorMessage()
+			throws Exception {
+
+		i18n.setLocale(Locale.FRENCH);
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("a"));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
+				.containsOnly("La valeur de la séquence n'est pas numérique")
+				.doesNotContain("The sequence's value is non numerical");
+
+	}
+
+	@Test
+	public void givenEnglishLocalizationWhenImportSequencesWithNonNumericalValueThenEnglishErrorMessage()
+			throws Exception {
+
+		i18n.setLocale(Locale.ENGLISH);
+		settings.addSequence(new ImportedSequence().setKey("1").setValue("a"));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
+				.contains("The value of the sequence is non numerical")
+				.doesNotContain("La valeur de la séquence n'est pas numérique");
+
+	}
+
+	@Test
+	//@InDevelopmentTest
 	public void whenImportSequencesThenOK()
 			throws Exception {
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("1"));
-		settings.addSequence(new ImportedSequence().setKey("1").setValue("2"));
-		settings.addSequence(new ImportedSequence().setKey("1").setValue("3"));
-		settings.addSequence(new ImportedSequence().setKey("1").setValue("4"));
-		settings.addSequence(new ImportedSequence().setKey("1").setValue("5"));
 
-		settings.addSequence(new ImportedSequence().setKey("2").setValue("1"));
-		settings.addSequence(new ImportedSequence().setKey("2").setValue("2"));
-		settings.addSequence(new ImportedSequence().setKey("2").setValue("3"));
-		settings.addSequence(new ImportedSequence().setKey("2").setValue("4"));
-		settings.addSequence(new ImportedSequence().setKey("2").setValue("5"));
-		settings.addSequence(new ImportedSequence().setKey("2").setValue("6"));
 		settings.addSequence(new ImportedSequence().setKey("2").setValue("7"));
 
 		importSettings();
 
-		SequencesManager sequencesManager = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory()				.getSequencesManager();
+		SequencesManager sequencesManager = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory()
+				.getSequencesManager();
 
-		assertThat(sequencesManager .getLastSequenceValue("1")).isEqualTo(5);
-		assertThat(sequencesManager .getLastSequenceValue("2")).isEqualTo(7);
+		assertThat(sequencesManager.getLastSequenceValue("1")).isEqualTo(1);
+		assertThat(sequencesManager.getLastSequenceValue("2")).isEqualTo(7);
 
-		newWebDriver();
-		waitUntilICloseTheBrowsers();
+		//newWebDriver();
+		//waitUntilICloseTheBrowsers();
 
 	}
 
 	@Test
-	public void whenImportingConfigSettingsIfCollectionCodeIsEmptyThenExceptionIsRaised()
+	public void givenFrenchLocaleWhenImportingConfigSettingsIfCollectionCodeIsEmptyThenExceptionIsRaised()
 			throws Exception {
+
+		i18n.setLocale(Locale.FRENCH);
 
 		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
 						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
+
+		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
+				.containsOnly("Le code de la collection est vide ou null")
+				.doesNotContain("The collection's code is empty or null");
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_invalidCollectionCode"));
@@ -820,7 +909,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setEnabledIn(toListOfString("default", CODE_SCHEMA_1, CODE_SCHEMA_2))
 				.setRequiredIn(Arrays.asList(CODE_SCHEMA_1))
 				.setMultiValue(true);
-
 
 		ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema().setCode("default")
 				.addMetadata(m1)
@@ -2421,7 +2509,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-
 	@Test
 	public void testWriteAndReadImportSettings()
 			throws IOException {
@@ -2453,7 +2540,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		settings.setImportedSequences(sequences);
 
 		ImportedCollectionSettings collectionSettings =
-									new ImportedCollectionSettings().setCode(zeCollection);
+				new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
 				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
@@ -2477,7 +2564,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
-
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
 				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
 				.setClassifiedTypes(toListOfString("document", "folder"))
@@ -2494,7 +2580,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
 		folderType.setDefaultSchema(defaultSchema);
 
-		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setEnabledIn(asList("custom1", "custom2")).setEncrypted(false).setEssential(true).setEssentialInSummary(false)
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING").setEnabledIn(asList("custom1", "custom2"))
+				.setEncrypted(false).setEssential(true).setEssentialInSummary(false)
 				.setMultiLingual(true).setMultiValue(false).setRecordAutoComplete(false)
 				.setRequired(true).setRequiredIn(asList("custom1")).setSearchable(false)
 				.setSortable(false).setUnique(true)
@@ -2546,10 +2633,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	}
 
-
-	//-------------------------------------------------------------------------------------
-
-
 	Document getDocumentFromFile(File file) {
 		SAXBuilder builder = new SAXBuilder();
 		try {
@@ -2572,6 +2655,21 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		} catch (RuntimeException e) {
 			runTwice = false;
 			throw e;
+		}
+	}
+
+	private ListAssert<String> assertThatErrorsContainsLocalizedMessagesWhileImportingSettings(String... params) {
+		try {
+			services.importSettings(settings);
+			runTwice = false;
+			fail("ValidationException expected");
+			return assertThat(new ArrayList<String>());
+		} catch (ValidationException e) {
+			ValidationErrors errors = e.getValidationErrors();
+
+			return assertThat(i18n.asListOfMessages(errors, params));
+
+			//		return assertThat(i18n.asListOfMessages(errors));
 		}
 	}
 
@@ -2614,37 +2712,4 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			}
 		}
 	}
-
-	static final String FOLDER = "folder";
-	static final String DOCUMENT = "document";
-	static final String TITLE_FR = "Le titre du domaine de valeurs 1";
-	static final String TITLE_EN = "First value list's title";
-	static final String TITLE_FR_UPDATED = "Nouveau titre du domaine de valeurs 1";
-	static final String TITLE_EN_UPDATED = "First value list's updated title";
-	static final String TAXO_1_TITLE_FR = "Le titre de la taxonomie 1";
-	static final String TAXO_1_TITLE_FR_UPDATED = "Nouveau titre de la taxonomie 1";
-	static final String TAXO_1_TITLE_EN = "First taxonomy's title";
-	static final String TAXO_2_TITLE_FR = "Le titre de la taxonomie 2";
-	static final String TAXO_2_TITLE_EN = "Second taxonomy's title";
-	static final String CODE_1_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur1";
-	static final String CODE_2_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur2";
-	static final String CODE_3_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur3";
-	static final String CODE_4_VALUE_LIST = "ddvUSRcodeDuDomaineDeValeur4";
-	static final List<String> TAXO_USERS = asList("gandalf", "edouard");
-	static final List<String> TAXO_GROUPS = asList("heroes");
-	static final String TAXO_1_CODE = "taxoMyFirstType";
-	static final String TAXO_2_CODE = "taxoMySecondType";
-	static final String CODE_METADATA_2 = "metadata2";
-	static final String TITLE_METADATA_2 = "Titre métadonnée no.2";
-	static final String CODE_METADATA_1 = "metadata1";
-	static final String TITLE_METADATA_1 = "Titre métadonnée no.1";
-	static final String CODE_SCHEMA_1 = "USRschema1";
-	static final String CODE_SCHEMA_2 = "USRschema2";
-	static final String CODE_DEFAULT_SCHEMA = "default";
-	static final String CODE_FOLDER_SCHEMA_TYPE = "folder";
-
-	SettingsImportServices services;
-	ImportedSettings settings = new ImportedSettings();
-	ImportedCollectionSettings zeCollectionSettings;
-	ImportedCollectionSettings anotherCollectionSettings;
 }
