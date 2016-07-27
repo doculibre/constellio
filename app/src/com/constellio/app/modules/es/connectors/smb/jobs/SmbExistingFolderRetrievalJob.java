@@ -68,7 +68,8 @@ public class SmbExistingFolderRetrievalJob extends ConnectorJob implements SmbCo
 						.error("Unable to get record for url : " + url, "", new LinkedHashMap<String, String>());
 			} else {
 				ConnectorDocument failedFolder = failedFolders.get(0);
-				updater.updateFailedDocumentOrFolder(smbObject, failedFolder);
+				String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
+				updater.updateFailedDocumentOrFolder(smbObject, failedFolder, parentId);
 				eventObserver.push(Arrays.asList(failedFolder));
 			}
 			break;

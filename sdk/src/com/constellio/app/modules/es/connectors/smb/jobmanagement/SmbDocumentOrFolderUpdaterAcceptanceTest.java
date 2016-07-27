@@ -264,7 +264,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setFetched(false)
 				.setLastFetchAttemptDetails("");
 
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document, PARENT_ID);
 
 		// Unchanged
 
@@ -295,7 +295,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isNotZero();
 		assertThat(document.getErrorStackTrace()).isNotEmpty();
 
-		assertThat(document.getParent()).isNull();
+		assertThat(document.getParent()).isEqualTo(PARENT_ID);
 	}
 
 	@Test
@@ -320,7 +320,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setErrorMessage("Error message");
 
 		document = es.newConnectorSmbDocument(connectorInstance);
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, document, PARENT_ID);
 
 		// Initial state
 		assertThat(document.getLastModified()).isNull();
@@ -353,7 +353,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(document.getErrorsCount()).isNotZero();
 		assertThat(document.getErrorStackTrace()).isNotEmpty();
 
-		assertThat(document.getParent()).isNull();
+		assertThat(document.getParent()).isEqualTo(PARENT_ID);
 	}
 
 	@Test
@@ -452,7 +452,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		smbFileDTO.setErrorMessage("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 
 		folder = es.newConnectorSmbFolder(connectorInstance);
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_ID);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -471,6 +471,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorMessage()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 		assertThat(folder.getErrorsCount()).isNotZero();
 		assertThat(folder.getErrorStackTrace()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
+
+		assertThat(folder.getParent()).isEqualTo(PARENT_ID);
 	}
 
 	@Test
@@ -495,7 +497,7 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 				.setTraversalCode(TRAVERSAL_CODE)
 				.setFetched(false);
 
-		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder);
+		documentOrFolderUpdater.updateFailedDocumentOrFolder(smbFileDTO, folder, PARENT_ID);
 
 		assertThat(folder.getUrl()).isEqualTo(smbFileDTO.getUrl())
 				.isNotEmpty();
@@ -514,6 +516,8 @@ public class SmbDocumentOrFolderUpdaterAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getErrorMessage()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
 		assertThat(folder.getErrorsCount()).isNotZero();
 		assertThat(folder.getErrorStackTrace()).isEqualTo("Failed to connect: 0.0.0.0<00>/192.168.1.207");
+
+		assertThat(folder.getParent()).isEqualTo(PARENT_ID);
 	}
 
 	@Test
