@@ -116,20 +116,20 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder) {
+	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentId) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
-			updateFailedDocumentDTO(smbFileDTO, smbDocument);
+			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentId);
 		} else {
 			ConnectorSmbFolder smbFolder = smbRecordService.convertToSmbFolderOrNull(documentOrFolder);
 
 			if (smbFolder != null) {
-				updateFailedFolderDTO(smbFileDTO, smbFolder);
+				updateFailedFolderDTO(smbFileDTO, smbFolder, parentId);
 			}
 		}
 	}
 
-	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument) {
+	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {
 
 		smbDocument.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -138,7 +138,8 @@ public class SmbDocumentOrFolderUpdater {
 				.setFetchedDateTime(TimeProvider.getLocalDateTime())
 				.setUrl(smbFileDTO.getUrl())
 				.setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
-				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED);
+				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED)
+				.setParent(parentId);
 
 		smbDocument.setErrorCode("ErrorCode")
 				.setErrorMessage(smbFileDTO.getErrorMessage())
@@ -146,7 +147,7 @@ public class SmbDocumentOrFolderUpdater {
 				.incrementErrorsCount();
 	}
 
-	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder) {
+	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId) {
 
 		smbFolder.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -158,7 +159,8 @@ public class SmbDocumentOrFolderUpdater {
 				.setErrorCode("ErrorCode")
 				.setErrorMessage(smbFileDTO.getErrorMessage())
 				.setErrorStackTrace(smbFileDTO.getErrorMessage())
-				.incrementErrorsCount();
+				.incrementErrorsCount()
+				.setParent(parentId);
 	}
 
 	public void updateUnmodifiedDocument(SmbFileDTO smbFileDTO, ConnectorDocument<?> document, String parentId) {
