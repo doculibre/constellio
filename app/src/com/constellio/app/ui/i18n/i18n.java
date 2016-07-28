@@ -32,10 +32,12 @@ public class i18n {
 	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
 
 	public static Locale getLocale() {
-		try {
-			return ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		}catch(Throwable e){
-			//LOGGER.warn("error when trying to get session locale", e);
+		if (locale == null) {
+			try {
+				locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+			} catch(Throwable e){
+				//LOGGER.warn("error when trying to get session locale", e);
+			}
 		}
 		return locale;
 	}
