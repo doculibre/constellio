@@ -131,8 +131,8 @@ public class SmbModifiedDocumentRetrievalJobAcceptanceTest extends ConstellioTes
 				.containsOnly(modifyEvent(es.newConnectorSmbDocument(connectorInstance)
 						.setUrl(FILE_URL)));
 
-		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class));
-		verify(smbRecordService, never()).getRecordIdForFolder(anyString());
+		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
+		verify(smbRecordService, times(1)).getRecordIdForFolder(anyString());
 	}
 	
 	@Test
