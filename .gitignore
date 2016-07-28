@@ -56,7 +56,6 @@ benckmarks/
 !/connectors/*/libs/*.jar
 /.idea
 .benchmarks.mv.db
-sdk.properties
 
 /sdk/src/com/intelligid/DeveloperTestSuite.*
 /sdk/intelligid.log*
@@ -71,5 +70,8 @@ sdk.properties
 /client/packaging/Constellio Desktop Agent-cache/
 /caches
 /daemon
+app/ivy.xml
+app/ivysettings.xml
 
-
+Supprimerait app/WebContent/WEB-INF/lib/
+Supprimerait sdk/ConfigurationRoot/

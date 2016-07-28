@@ -3,7 +3,7 @@ package com.constellio.model.entities.schemas;
 public enum MetadataValueType {
 
 	//TODO Rename NUMBER to FLOATING_POINT
-	DATE, DATE_TIME, STRING, TEXT, INTEGER, NUMBER, BOOLEAN, REFERENCE, CONTENT, STRUCTURE, ENUM;
+	DATE, DATE_TIME, STRING, TEXT, INTEGER, NUMBER, BOOLEAN, REFERENCE, CONTENT, STRUCTURE, ENUM, type;
 
 	public boolean isStringOrText() {
 		return this == TEXT || this == STRING;

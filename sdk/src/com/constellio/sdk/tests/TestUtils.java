@@ -509,8 +509,8 @@ public class TestUtils {
 		return extractingSimpleCodeAndParameters(e.getErrors(), parameters);
 	}
 
-	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e,
-			String... parameters) {
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e, String... parameters) {
 		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
 	}
 
@@ -527,4 +527,5 @@ public class TestUtils {
 
 		return tuples;
 	}
+
 }
