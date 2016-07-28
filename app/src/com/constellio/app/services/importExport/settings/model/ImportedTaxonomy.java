@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class ImportedTaxonomy {
 
     private String code;
-    private Map<String, String> titles = new HashMap<>();
+    private String title;
     private List<String> classifiedTypes = new ArrayList<>();
     private Boolean visibleOnHomePage;
     private List<String> userIds = new ArrayList<>();
@@ -23,13 +24,13 @@ public class ImportedTaxonomy {
         return this;
     }
 
-    public ImportedTaxonomy setTitles(Map<String, String> titles) {
-        this.titles = titles;
+    public ImportedTaxonomy setTitle(String title) {
+        this.title = title;
         return this;
     }
 
-    public Map<String, String> getTitles() {
-        return titles;
+    public String getTitle() {
+        return title;
     }
 
     public ImportedTaxonomy setClassifiedTypes(List classifiedTypes){
@@ -82,5 +83,11 @@ public class ImportedTaxonomy {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public String toString() {
+        return "code: " + code + ", title: " + title  + ", classifiedTypes: " + Arrays.toString(classifiedTypes.toArray()) + ", visibleInHomePage: " + visibleOnHomePage + ", groups:" + Arrays
+                .toString(groupIds.toArray())  + ", users: " + Arrays.toString(userIds.toArray());
     }
 }

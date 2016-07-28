@@ -1,7 +1,11 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.script.Bindings;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -15,6 +19,8 @@ public class ImportedCollectionSettings {
 	List<ImportedTaxonomy> taxonomies = new ArrayList<>();
 
 	List<ImportedType> types = new ArrayList<>();
+
+	Map<String, ImportedType> typesMap = new HashMap<>();
 
 	public String getCode() {
 		return code;
@@ -57,6 +63,7 @@ public class ImportedCollectionSettings {
 
 	public ImportedCollectionSettings addType(ImportedType importedType) {
 		types.add(importedType);
+		typesMap.put(importedType.getCode(), importedType);
 		return this;
 	}
 
@@ -66,6 +73,9 @@ public class ImportedCollectionSettings {
 
 	public ImportedCollectionSettings setTypes(List<ImportedType> types) {
 		this.types = types;
+		for(ImportedType type : types){
+			typesMap.put(type.getCode(), type);
+		}
 		return this;
 	}
 
@@ -78,5 +88,9 @@ public class ImportedCollectionSettings {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	public ImportedType getType(String code) {
+		return typesMap.get(code);
 	}
 }

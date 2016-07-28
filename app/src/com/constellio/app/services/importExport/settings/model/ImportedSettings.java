@@ -24,11 +24,11 @@ public class ImportedSettings {
 		return this;
 	}
 
-	public List<ImportedCollectionSettings> getCollectionsConfigs() {
+	public List<ImportedCollectionSettings> getCollectionsSettings() {
 		return collectionsSettings;
 	}
 
-	public ImportedSettings addCollectionsConfigs(ImportedCollectionSettings collectionSettings) {
+	public ImportedSettings addCollectionSettings(ImportedCollectionSettings collectionSettings) {
 		collectionsSettings.add(collectionSettings);
 		return this;
 	}

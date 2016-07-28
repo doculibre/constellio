@@ -1,78 +1,108 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class ImportedType {
 
-    private String code;
-    private List<ImportedTab> tabs = new ArrayList<>();
-    private ImportedMetadataSchema defaultSchema;
-    private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
-    private String label;
+	private String code;
+	private String label;
+	private List<ImportedTab> tabs = new ArrayList<>();
+	private Map<String, ImportedTab> tabsMap = new HashMap<>();
+	private ImportedMetadataSchema defaultSchema;
+	private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
 
-    public ImportedType setCode(String code) {
-        this.code = code;
-        return this;
-    }
+	public String getCode() {
+		return code;
+	}
 
-    public String getCode() {
-        return code;
-    }
+	public ImportedType setCode(String code) {
+		this.code = code;
+		return this;
+	}
 
-    public ImportedType setTabs(List<ImportedTab> importedTabs) {
-        this.tabs = importedTabs;
-        return this;
-    }
+	public List<ImportedTab> getTabs() {
+		return tabs;
+	}
 
-    public List<ImportedTab> getTabs(){
-        return tabs;
-    }
+	public ImportedType setTabs(List<ImportedTab> importedTabs) {
+		this.tabs = importedTabs;
+		for(ImportedTab tab : importedTabs){
+			tabsMap.put(tab.getCode(), tab);
+		}
+		return this;
+	}
 
-    public ImportedType setDefaultSchema(ImportedMetadataSchema defaultSchema) {
-        this.defaultSchema = defaultSchema;
-        return this;
-    }
+	public void addTab(ImportedTab importedTab) {
+		tabs.add(importedTab);
+		tabsMap.put(importedTab.getCode(), importedTab);
+	}
 
-    public ImportedType addSchema(ImportedMetadataSchema customSchema) {
-        this.customSchemata.add(customSchema);
-        return this;
-    }
+	public ImportedTab getTab(String code){
+		return tabsMap.get(code);
+	}
 
-    public List<ImportedMetadataSchema> getCustomSchemata() {
-        return customSchemata;
-    }
+	public ImportedType addSchema(ImportedMetadataSchema customSchema) {
+		this.customSchemata.add(customSchema);
+		return this;
+	}
 
-    public ImportedMetadataSchema getDefaultSchema() {
-        return defaultSchema;
-    }
+	public List<ImportedMetadataSchema> getCustomSchemata() {
+		return customSchemata;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public ImportedType setCustomSchemata(List<ImportedMetadataSchema> customSchemata) {
+		this.customSchemata = customSchemata;
+		return this;
+	}
 
-    public ImportedType setLabel(String label) {
-        this.label = label;
-        return this;
-    }
+	public ImportedMetadataSchema getDefaultSchema() {
+		return defaultSchema;
+	}
 
-    public ImportedType setCustomSchemata(List<ImportedMetadataSchema> customSchemata) {
-        this.customSchemata = customSchemata;
-        return this;
-    }
+	public ImportedType setDefaultSchema(ImportedMetadataSchema defaultSchema) {
+		this.defaultSchema = defaultSchema;
+		return this;
+	}
 
+	public String getLabel() {
+		return label;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
+	public ImportedType setLabel(String label) {
+		this.label = label;
+		return this;
+	}
 
-    }
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+	}
+
+	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("code: " + code + ", label: " + label);
+		if (tabs != null) {
+			sb.append(", tabs: " + Arrays.toString(tabs.toArray()));
+		}
+
+		if (defaultSchema != null) {
+			sb.append(", defaultSchema: " + defaultSchema.toString());
+		}
+
+		return sb.toString();
+	}
+
 }
