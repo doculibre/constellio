@@ -48,7 +48,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 
 	private RecordServices recordServices;
 	private String folderDeletedLogicallyId, documentDeletedLogicallyId, categoryDeletedLogicallyId,
-			documentInADeletedFolder;
+			documentInADeletedFolder, documentInADeletedFolderTitle;
 	User admin;
 	private SearchServices searchServices;
 	private Task task;
@@ -122,6 +122,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 		Document doc = rm.newDocument().setFolder(folderA1).setTitle("zDoc");
 		recordServices.add(doc);
 		documentInADeletedFolder = doc.getId();
+		documentInADeletedFolderTitle = doc.getTitle();
 		recordServices.logicallyDelete(folderA1.getWrappedRecord(), adminUser);
 		Category category = records.getCategory_X13();
 		categoryDeletedLogicallyId = category.getId();
@@ -212,7 +213,7 @@ public class TrashServicesAcceptanceTest extends ConstellioTest {
 	public void givenNonRestorableRecordWhenRestoreSelectionThenRecordNotRestored()
 			throws Exception {
 		List<String> notRestored = trashServices.restoreSelection(new HashSet<>(asList(documentInADeletedFolder)), admin);
-		assertThat(notRestored).containsOnly(documentInADeletedFolder);
+		assertThat(notRestored).containsOnly(documentInADeletedFolderTitle);
 		Record doc = recordServices.getDocumentById(documentInADeletedFolder);
 		assertThatRecord(doc).hasMetadataValue(Schemas.LOGICALLY_DELETED_STATUS, true);
 	}
