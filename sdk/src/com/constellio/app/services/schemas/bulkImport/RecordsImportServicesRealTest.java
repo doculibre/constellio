@@ -1902,11 +1902,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 	private ValidationError newZeSchemaValidationError(String code, Map<String, Object> parameters) {
 		parameters.put("schemaType", zeSchema.typeCode());
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
 	private ValidationError newValidationError(String code, Map<String, Object> parameters) {
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
 	private BulkImportResults bulkImport(ImportDataProvider importDataProvider,

@@ -295,7 +295,7 @@ public class RecordsImportServices implements ImportServices {
 							parameters.put("index", "" + (toImport.getIndex() + 1));
 							parameters.put("legacyId", toImport.getLegacyId());
 							parameters.put("schemaType", schemaType);
-							errors.add(error.getCode(), parameters);
+							errors.add(error, parameters);
 						}
 
 						if (params.isStopOnFirstError()) {
