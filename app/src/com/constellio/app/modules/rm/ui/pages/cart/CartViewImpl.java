@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
@@ -259,9 +260,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		TabSheet tabSheet = new TabSheet();
-		folderTable = buildTable(presenter.getFolderRecords());
-		documentTable = buildTable(presenter.getDocumentRecords());
-		containerTable = buildTable(presenter.getContainerRecords());
+		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
+		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
+		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
 		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new VerticalLayout(buildFolderFilterComponent(),folderTable));
 		folderTab.setCaption($("CartView.foldersTab"));
 		folderLayout.setDescription(Folder.SCHEMA_TYPE);
@@ -294,9 +295,20 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return mainLayout;
 	}
 
-	private Table buildTable(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		final Container container = buildContainer(dataProvider);
-		Table table = new RecordVOTable($("CartView.records", container.size()), container);
+		Table table = new RecordVOTable($("CartView.records", container.size()), container) {
+			@Override
+			protected String getTableId() {
+				return tableId;
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new TableColumnsManager();
+			}
+			
+		};
 		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -331,7 +343,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			dataProvider = presenter.getFilteredFolderRecords(folderFilterField.getValue());
 		}
-		Table newTable = buildTable(dataProvider);
+		Table newTable = buildTable("CartView.folders", dataProvider);
 		folderLayout.replaceComponent(folderTable,newTable);
 		folderTable = newTable;
 	}
@@ -344,7 +356,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			dataProvider = presenter.getFilteredDocumentRecords(documentFilterField.getValue());
 		}
-		Table newTable = buildTable(dataProvider);
+		Table newTable = buildTable("CartView.documents", dataProvider);
 		documentLayout.replaceComponent(documentTable,newTable);
 		documentTable = newTable;
 	}
@@ -357,7 +369,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			dataProvider = presenter.getFilteredContainerRecords(containerFilterField.getValue());
 		}
-		Table newTable = buildTable(dataProvider);
+		Table newTable = buildTable("CartView.containers", dataProvider);
 		containerLayout.replaceComponent(containerTable,newTable);
 		containerTable = newTable;
 	}

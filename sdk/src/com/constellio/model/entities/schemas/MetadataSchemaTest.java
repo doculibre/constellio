@@ -67,7 +67,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 		List<Taxonomy> taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 
 		MetadataSchema schema = new MetadataSchema("default", "second_default", "zeCollection", labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 
 		MetadataSchemaType schemaType = new MetadataSchemaType("second", "zeCollection", asMap(Language.French, "titre"),
 				new ArrayList<MetadataSchema>(),
@@ -97,7 +97,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata);
 
 		MetadataSchema schema = new MetadataSchema("default", "zeType_default", "zeCollection", labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);
@@ -125,7 +125,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 						textMetadata, relationToT1, relationToT2);
 
 		MetadataSchema schema = new MetadataSchema("default", "t2_default", "zeCollection", labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), new ArrayList<Metadata>());
+				true, new HashSet<RecordValidator>(), null);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);

@@ -25,6 +25,7 @@ import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTestSession;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
 import com.constellio.sdk.tests.SkipTestsRule;
@@ -365,7 +366,7 @@ public class SeleniumTestFeatures {
 		assertThat(cmis11).exists().isDirectory();
 		assertThat(cmis11.listFiles()).isNotEmpty();
 
-		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, "ncix123$");
+		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, SDKPasswords.sslKeystorePassword());
 
 		applicationStarted = true;
 		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");

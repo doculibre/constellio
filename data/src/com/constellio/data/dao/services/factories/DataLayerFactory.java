@@ -38,6 +38,8 @@ import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
@@ -293,5 +295,9 @@ public class DataLayerFactory extends LayerFactory {
 
 	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
 		return this.transactionLogRecoveryManager;
+	}
+
+	public SequencesManager getSequencesManager() {
+		return new SolrSequencesManager(newRecordDao());
 	}
 }

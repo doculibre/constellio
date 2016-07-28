@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -28,8 +29,6 @@ public class MetadataSchema {
 
 	private Map<Language, String> labels;
 
-	private final List<Metadata> automaticMetadatas;
-
 	private final MetadataList metadatas;
 
 	private final Boolean undeletable;
@@ -40,10 +39,12 @@ public class MetadataSchema {
 
 	private final Map<String, Metadata> indexByAtomicCode;
 
+	private MetadataSchemaCalculatedInfos calculatedInfos;
+
 	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
 			List<Metadata> metadatas,
 			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			List<Metadata> automaticMetadatas) {
+			MetadataSchemaCalculatedInfos calculatedInfos) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
@@ -53,7 +54,7 @@ public class MetadataSchema {
 		this.metadatas = new MetadataList(metadatas).unModifiable();
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
-		this.automaticMetadatas = automaticMetadatas;
+		this.calculatedInfos = calculatedInfos;
 		this.indexByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 	}
 
@@ -112,7 +113,7 @@ public class MetadataSchema {
 	}
 
 	public List<Metadata> getAutomaticMetadatas() {
-		return automaticMetadatas;
+		return calculatedInfos.getAutomaticMetadatas();
 	}
 
 	public List<Metadata> getTaxonomyRelationshipReferences(List<Taxonomy> taxonomies) {
@@ -137,12 +138,12 @@ public class MetadataSchema {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators");
+		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators", "calculatedInfos");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators");
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators", "calculatedInfos");
 	}
 
 	@Override
@@ -164,5 +165,9 @@ public class MetadataSchema {
 
 	public boolean isInTransactionLog() {
 		return inTransactionLog;
+	}
+
+	public List<RecordPreparationStep> getPreparationSteps() {
+		return calculatedInfos.getRecordPreparationSteps();
 	}
 }

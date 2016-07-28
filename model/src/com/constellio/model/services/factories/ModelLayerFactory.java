@@ -63,6 +63,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
@@ -108,6 +109,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final LDAPUserSyncManager ldapUserSyncManager;
 	private final PasswordFileAuthenticationService passwordFileAuthenticationService;
 	private final EmailQueueManager emailQueueManager;
+	private final TrashQueueManager trashQueueManager;
 	private final RecordsCaches recordsCaches = new RecordsCaches();
 	private final SecurityTokenManager securityTokenManager;
 	protected Key applicationEncryptionKey;
@@ -185,6 +187,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.storedBatchProcessProgressionServices = add(new StoredBatchProcessProgressionServices(configManager));
 		this.searchBoostManager = add(
 				new SearchBoostManager(configManager, collectionsListManager));
+		this.trashQueueManager = add(new TrashQueueManager(this));
 
 	}
 
@@ -430,5 +433,9 @@ public class ModelLayerFactory extends LayerFactory {
 	public void setAuthenticationService(AuthenticationService authenticationService) {
 		ensureNotYetInitialized();
 		this.authenticationManager = authenticationService;
+	}
+
+	public TrashQueueManager getTrashQueueManager() {
+		return trashQueueManager;
 	}
 }

@@ -13,9 +13,9 @@ import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.ConstellioMenuImpl.ConstellioMenuButton;
@@ -150,7 +150,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		}
 
 		PagesComponentsExtensionParams params = new PagesComponentsExtensionParams(header, mainMenu, contentFooterLayout, this,
-				contentViewWrapper, contentFooterWrapperLayout);
+				contentViewWrapper, contentFooterWrapperLayout, presenter.getUser());
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateView(params);
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		if (collection != null) {

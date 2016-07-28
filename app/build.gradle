@@ -77,6 +77,7 @@ dependencies {
     compile "org.samba.jcifs:jcifs_gcm:322"
     compile "vaadin:breadcrumb:1.7.3"
     compile "vaadin:mediaelementjs-player:1.2.6"
+    compile group: 'org.apache.commons', name: 'commons-jexl3', version: '3.0'
 
     //compile files("libs/jcifs_gcm_322.jar")
     //compile files("libs/vaadin-breadcrumb-1.7.3.jar")

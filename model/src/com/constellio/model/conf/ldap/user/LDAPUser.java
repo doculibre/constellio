@@ -114,7 +114,9 @@ public class LDAPUser {
 		strb.append("enabled :" + enabled + "\n");
 		strb.append("lieuTravail :" + lieuTravail + "\n");
 		strb.append("userGroups :\n" + StringUtils.join(userGroups.toArray(), "\n"));
-		strb.append("msExchDelegateListBL :\n" + StringUtils.join(msExchDelegateListBL.toArray()) + "\n");
+		if(msExchDelegateListBL != null){
+			strb.append("msExchDelegateListBL :\n" + StringUtils.join(msExchDelegateListBL.toArray()) + "\n");
+		}
 		return strb.toString();
 	}
 

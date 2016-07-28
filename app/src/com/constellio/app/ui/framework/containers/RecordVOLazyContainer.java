@@ -24,7 +24,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 	private RecordVODataProvider dataProvider;
 
 	public RecordVOLazyContainer(RecordVODataProvider dataProvider) {
-		super(new RecordVOLazyQueryDefinition(dataProvider), new RecordVOLazyQueryFactory(dataProvider));
+		super(new RecordVOLazyQueryDefinition(dataProvider, false), new RecordVOLazyQueryFactory(dataProvider));
 		this.dataProvider = dataProvider;
 		dataProvider.addDataRefreshListener(new DataRefreshListener() {
 			@Override
@@ -54,13 +54,22 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 		 * //@param batchSize
 		 * //@param idPropertyId
 		 */
-		public RecordVOLazyQueryDefinition(RecordVODataProvider dataProvider) {
+		public RecordVOLazyQueryDefinition(RecordVODataProvider dataProvider, boolean tableMetadatasOnly) {
 			super(true, 100, null);
 			this.dataProvider = dataProvider;
 
 			MetadataSchemaVO schema = dataProvider.getSchema();
 			if (schema != null) {
-				for (MetadataVO metadata : schema.getTableMetadatas()) {
+				List<MetadataVO> queryMetadataVOs = schema.getTableMetadatas();
+				if (!tableMetadatasOnly) {
+					List<MetadataVO> allMetadataVOs = schema.getDisplayMetadatas();
+					for (MetadataVO metadataVO : allMetadataVOs) {
+						if (!queryMetadataVOs.contains(metadataVO)) {
+							queryMetadataVOs.add(metadataVO);
+						}
+					}
+				}
+				for (MetadataVO metadata : queryMetadataVOs) {
 					super.addProperty(metadata, metadata.getJavaType(), null, true, true);
 				}
 			}

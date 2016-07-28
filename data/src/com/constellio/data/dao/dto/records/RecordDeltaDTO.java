@@ -17,6 +17,11 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 	private final Map<String, Object> copyfields;
 
 	//TODO Remove initialFields param, replacing it with recordDTO
+	public RecordDeltaDTO(RecordDTO recordDTO, Map<String, Object> modifiedFields) {
+		this(recordDTO, modifiedFields, recordDTO.getFields(), new HashMap<String, Object>());
+	}
+
+	//TODO Remove initialFields param, replacing it with recordDTO
 	public RecordDeltaDTO(RecordDTO recordDTO, Map<String, Object> modifiedFields, Map<String, Object> initialFields) {
 		this(recordDTO, modifiedFields, initialFields, new HashMap<String, Object>());
 	}

@@ -23,8 +23,8 @@ import com.constellio.app.ui.pages.globalGroup.ListGlobalGroupPage;
 import com.constellio.app.ui.pages.profile.ModifyProfilePage;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -516,7 +516,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 		userSync.setDurationBetweenExecution(null);
 		serverConf = LDAPTestConfig.getLDAPServerConfiguration();
 		ldapConfigurationManager.saveLDAPConfiguration(serverConf, userSync);
-		getModelLayerFactory().getLdapUserSyncManager().synchronize();
+		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 	}
 
 	private void addAdministratorInCollection(UserServices userServices) {
@@ -535,7 +535,7 @@ public class UserGroupAndModifyProfilePageWithLDAPAcceptTest extends ConstellioT
 	private void synchronizeLDAP() {
 		userSync.setDurationBetweenExecution(Duration.standardDays(1));
 		ldapConfigurationManager.saveLDAPConfiguration(serverConf, userSync);
-		getModelLayerFactory().getLdapUserSyncManager().synchronize();
+		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 	}
 
 	private void givenUserAddPage() {

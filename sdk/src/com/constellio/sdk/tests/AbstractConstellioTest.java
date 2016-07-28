@@ -1132,7 +1132,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				}
 				if (preparator.demoTestRecords) {
 					try {
-						DemoTestRecords records = preparator.demoTestRecordsObject.setup(modelLayerFactory);
+						DemoTestRecords records = preparator.demoTestRecordsObject.setup(getAppLayerFactory());
 						if (preparator.foldersAndContainersOfEveryStatus) {
 							records = records.withFoldersAndContainersOfEveryStatus();
 						}

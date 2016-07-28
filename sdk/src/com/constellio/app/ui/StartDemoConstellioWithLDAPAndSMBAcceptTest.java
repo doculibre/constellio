@@ -12,8 +12,8 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -65,7 +65,7 @@ public class StartDemoConstellioWithLDAPAndSMBAcceptTest extends ConstellioTest 
 		// UserServices userServices = getModelLayerFactory().newUserServices();
 		// System.out.println(userServices.getAllUserCredentials().size());
 		getModelLayerFactory().getLdapUserSyncManager()
-				.synchronize();
+				.synchronizeIfPossible();
 
 		// System.out.println(userServices.getAllUserCredentials().size());
 

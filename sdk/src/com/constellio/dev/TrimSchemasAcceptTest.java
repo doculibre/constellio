@@ -22,7 +22,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader1;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader2;
-import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -57,7 +57,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 				.read("collection", originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory());
 		MetadataSchemaTypes types = typesBuilder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
 
-		Document trimmedDocument = new MetadataSchemaXMLWriter2().write(types);
+		Document trimmedDocument = new MetadataSchemaXMLWriter3().write(types);
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
 

@@ -5,6 +5,7 @@ import com.vaadin.ui.Button;
 
 @SuppressWarnings("serial")
 public abstract class BaseButton extends Button {
+	
 	public BaseButton(String caption) {
 		setCaption(caption);
 

@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -98,6 +100,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	ComponentState getEditButtonState() {
 		Record record = currentDocument();
 		User user = getCurrentUser();
+		if (isNotBlank(record.<String>get(LEGACY_ID)) && !user.has(RMPermissionsTo.MODIFY_IMPORTED_DOCUMENTS).on(record)) {
+			return ComponentState.INVISIBLE;
+		}
 		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
 				&& extensions.isRecordModifiableBy(record, user));
 	}
@@ -211,6 +216,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if (parentFolder.getArchivisticStatus().isSemiActive()) {
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
+			}
+			if (isNotBlank((String) currentDocument().get(LEGACY_ID))) {
+				return ComponentState
+						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument()));
 			}
 			return ComponentState.ENABLED;
 		}

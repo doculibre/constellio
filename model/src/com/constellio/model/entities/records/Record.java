@@ -14,7 +14,7 @@ public interface Record extends Serializable, CollectionObject {
 	public static final String PUBLIC_TOKEN = "__public__";
 
 	public String getId();
-	
+
 	String getTitle();
 
 	public long getVersion();
@@ -58,4 +58,6 @@ public interface Record extends Serializable, CollectionObject {
 	void markAsModified(Metadata metadata);
 
 	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
+
+	boolean isOfSchemaType(String type);
 }

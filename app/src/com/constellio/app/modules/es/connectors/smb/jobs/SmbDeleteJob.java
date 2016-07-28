@@ -1,5 +1,8 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -18,6 +21,7 @@ import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
+import com.constellio.app.modules.es.services.crawler.DeleteEventOptions;
 
 public class SmbDeleteJob extends ConnectorJob implements SmbConnectorJob {
 	private static final String jobName = SmbDeleteJob.class.getSimpleName();
@@ -82,12 +86,12 @@ public class SmbDeleteJob extends ConnectorJob implements SmbConnectorJob {
 			} else {
 				ConnectorDocument<?> folderToDelete = foldersToDelete.get(0);
 				List<ConnectorDocument<?>> deletedConnectors = new ArrayList<>();
-				for (Iterator<ConnectorSmbDocument> iterator = smbRecordService.getAllDocumentsInFolder(folderToDelete); iterator
-						.hasNext(); ) {
-					deletedConnectors.add(iterator.next());
-				}
+				////deletedConnectors.addAll(smbRecordService.getAllDocumentsInFolder(folderToDelete));
 				deletedConnectors.add(folderToDelete);
-				eventObserver.deleteEvents(deletedConnectors.toArray(new ConnectorDocument[] {}));
+				DeleteEventOptions options = new DeleteEventOptions();
+				options.getPhysicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
+				options.getLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(LOGICALLY_DELETE_THEM);
+				eventObserver.deleteEvents(options, deletedConnectors.toArray(new ConnectorDocument[] {}));
 			}
 		} else {
 			List<ConnectorDocument<?>> documentsToDelete = smbRecordService.getExistingDocumentsWithUrl(url);
