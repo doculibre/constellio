@@ -193,4 +193,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	public abstract boolean seeRolesField();
 
 	public abstract boolean seeAccessField();
+
+	public Boolean hasUserAccess(String accessCode) {
+		return getCurrentUser().hasCollectionAccess(accessCode);
+	}
 }
