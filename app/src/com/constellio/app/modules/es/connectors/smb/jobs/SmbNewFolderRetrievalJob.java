@@ -56,7 +56,8 @@ public class SmbNewFolderRetrievalJob extends ConnectorJob implements SmbConnect
 			break;
 		case FAILED_DTO:
 			ConnectorDocument failedFolder = smbRecordService.newConnectorSmbFolder(url);
-			updater.updateFailedDocumentOrFolder(smbObject, failedFolder);
+			String failedFolderParentId = smbRecordService.getRecordIdForFolder(parentUrl);
+			updater.updateFailedDocumentOrFolder(smbObject, failedFolder, failedFolderParentId);
 			eventObserver.push(Arrays.asList(failedFolder));
 			break;
 		case DELETE_DTO:

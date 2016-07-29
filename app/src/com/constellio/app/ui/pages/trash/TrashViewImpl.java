@@ -111,7 +111,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
 				if (!notDeleted.isEmpty()) {
-					showMessage($("TrashView.deleteNotPossibleForRecords") + ":\n" + StringUtils.join(notDeleted, "\n"));
+					showMessage($("TrashView.deleteNotPossibleForRecords") + ":<br>" + StringUtils.join(notDeleted, "<br>"));
 				}
 			}
 		};
@@ -129,7 +129,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 				rebuildTrashTable();
 				enableOrDisableActionButtons();
 				if (!notRestored.isEmpty()) {
-					showMessage($("TrashView.restoreNotPossibleForRecords") + ":\n" + StringUtils.join(notRestored, "\n"));
+					showMessage($("TrashView.restoreNotPossibleForRecords") + ":<br>" + StringUtils.join(notRestored, "<br>"));
 				}
 			}
 		};

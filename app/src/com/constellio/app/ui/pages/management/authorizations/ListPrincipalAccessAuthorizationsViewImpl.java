@@ -126,11 +126,11 @@ public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorization
 		}
 
 		protected void buildAccessField() {
-			//FIXME accessRoles doit etre alimenté avec la bonne valeur soit les accès de l utilisateur à la collection courante
 			accessRoles = new ListOptionGroup($("AuthorizationsView.access"));
 			ListPrincipalAccessAuthorizationsPresenter accessPresenter = (ListPrincipalAccessAuthorizationsPresenter) presenter;
 			for (String accessCode : accessPresenter.getCollectionAccessChoicesModifiableByCurrentUser()) {
 				accessRoles.addItem(accessCode);
+				accessRoles.setValue(presenter.hasUserAccess(accessCode));
 				accessRoles.setItemCaption(accessCode, $("AuthorizationsView." + accessCode));
 			}
 			accessRoles.setMultiSelect(true);

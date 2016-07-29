@@ -152,10 +152,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	protected List<Authorization> getAllAuthorizations() {
-		if (authorizations == null) {
+		//if (authorizations == null) {
 			Record record = presenterService().getRecord(recordId);
 			authorizations = authorizationsServices().getRecordAuthorizations(record);
-		}
+		//}
 		return authorizations;
 	}
 
@@ -193,4 +193,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	public abstract boolean seeRolesField();
 
 	public abstract boolean seeAccessField();
+
+	public Boolean hasUserAccess(String accessCode) {
+		return getCurrentUser().hasCollectionAccess(accessCode);
+	}
 }
