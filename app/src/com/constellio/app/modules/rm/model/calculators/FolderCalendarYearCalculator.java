@@ -12,9 +12,10 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 
 public class FolderCalendarYearCalculator implements MetadataValueCalculator<LocalDate> {
-	//LocalDependency<String> calendarYearParam = LocalDependency.toAString(Folder.CALENDAR_YEAR_ENTERED);
+	LocalDependency<String> calendarYearParam = LocalDependency.toAString(Schemas.LEGACY_ID.getLocalCode());
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
@@ -48,6 +49,6 @@ public class FolderCalendarYearCalculator implements MetadataValueCalculator<Loc
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return new ArrayList<>();//Arrays.asList(calendarYearParam);
+		return Arrays.asList(calendarYearParam);
 	}
 }
