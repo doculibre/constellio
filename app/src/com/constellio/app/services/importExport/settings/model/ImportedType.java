@@ -9,12 +9,13 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.schemas.MetadataSchema;
+
 public class ImportedType {
 
 	private String code;
 	private String label;
 	private List<ImportedTab> tabs = new ArrayList<>();
-	private Map<String, ImportedTab> tabsMap = new HashMap<>();
 	private ImportedMetadataSchema defaultSchema;
 	private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
 
@@ -33,19 +34,20 @@ public class ImportedType {
 
 	public ImportedType setTabs(List<ImportedTab> importedTabs) {
 		this.tabs = importedTabs;
-		for(ImportedTab tab : importedTabs){
-			tabsMap.put(tab.getCode(), tab);
-		}
 		return this;
 	}
 
 	public void addTab(ImportedTab importedTab) {
 		tabs.add(importedTab);
-		tabsMap.put(importedTab.getCode(), importedTab);
 	}
 
 	public ImportedTab getTab(String code){
-		return tabsMap.get(code);
+		for(ImportedTab importedTab : tabs){
+			if(importedTab.getCode().equals(code)){
+				return importedTab;
+			}
+		}
+		return null;
 	}
 
 	public ImportedType addSchema(ImportedMetadataSchema customSchema) {
@@ -105,4 +107,12 @@ public class ImportedType {
 		return sb.toString();
 	}
 
+	public ImportedMetadataSchema getSchema(String code) {
+		for(ImportedMetadataSchema importedMetadataSchema : customSchemata){
+			if (importedMetadataSchema.getCode().equals(code)) {
+				return importedMetadataSchema;
+			}
+		}
+		return null;
+	}
 }

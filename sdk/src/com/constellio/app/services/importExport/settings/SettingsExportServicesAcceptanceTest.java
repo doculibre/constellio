@@ -48,6 +48,15 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
+	MetadataSchemasManager metadataSchemasManager;
+	SchemasDisplayManager schemasDisplayManager;
+	SettingsExportServices services;
+	ImportedSettings settings = new ImportedSettings();
+	ImportedCollectionSettings zeCollectionSettings;
+	ImportedCollectionSettings anotherCollectionSettings;
+	SystemConfigurationsManager systemConfigurationsManager;
+	List<String> collections = new ArrayList<>();
+
 	@Test
 	public void whenExportingThenGlobalConfigsAreOK()
 			throws ValidationException {
@@ -55,6 +64,8 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(settings).isNotNull();
 		assertThat(settings.getConfigs()).isNotEmpty().hasSize(61);
 	}
+
+	//--------------------------------------------------------------------
 
 	@Test
 	public void whenExportingNonExistingCollectionThenError()
@@ -85,7 +96,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsSettings().get(0);
 		assertThat(zeCollectionSettings).isNotNull();
 		assertThat(zeCollectionSettings.getTaxonomies().size()).isEqualTo(valueListServices.getTaxonomies().size());
-		for(ImportedTaxonomy importedTaxonomy : zeCollectionSettings.getTaxonomies()){
+		for (ImportedTaxonomy importedTaxonomy : zeCollectionSettings.getTaxonomies()) {
 			System.out.println(importedTaxonomy.toString());
 		}
 	}
@@ -134,7 +145,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(folderMetadataGroup.size()).isEqualTo(importedFolderType.getTabs().size());
 
-		for(Map.Entry<String, Map<Language, String>> tabEntry : folderMetadataGroup.entrySet()){
+		for (Map.Entry<String, Map<Language, String>> tabEntry : folderMetadataGroup.entrySet()) {
 			ImportedTab tab = importedFolderType.getTab(tabEntry.getKey());
 			assertThat(tab).isNotNull();
 			// TODO Valider si on traite seulement le titre en francais
@@ -154,7 +165,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenCollectionsListWhenExportingThenCollectionTypesDefaultSchemaMetadataOK()
+	public void givenCollectionsListWhenExportingThenCollectionTypesDefaultSchemaOK()
 			throws ValidationException, IOException {
 
 		ImportedSettings settings = services.exportSettings(asList(zeCollection));
@@ -180,9 +191,8 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(defaultSchemaMetadata.size()).isEqualTo(importedMetadata.size());
 
-		for(Metadata metadata : defaultSchemaMetadata){
+		for (Metadata metadata : defaultSchemaMetadata) {
 			assertThat(importedMetadataSchema.getMetadata(metadata.getCode())).isNotNull();
-
 		}
 
 		String outputFilePath = "settings-export-output.xml";
@@ -197,11 +207,83 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		System.out.println("File Saved!");
 	}
 
+	@Test
+	public void givenCollectionsListWhenExportingThenCollectionTypesCustomSchemataOK()
+			throws ValidationException, IOException {
 
+		ImportedSettings settings = services.exportSettings(asList(zeCollection));
 
+		ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsSettings().get(0);
 
+		MetadataSchemaType folderSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(folderSchemaType).isNotNull();
 
-	//--------------------------------------------------------------------
+		List<MetadataSchema> customSchemata = folderSchemaType.getAllSchemas();
+		assertThat(customSchemata).isNotNull();
+
+		ImportedType importedFolderType = zeCollectionSettings.getType("folder");
+		assertThat(importedFolderType).isNotNull();
+
+		List<ImportedMetadataSchema> importedTypeCustomSchemata = importedFolderType.getCustomSchemata();
+		assertThat(importedTypeCustomSchemata).isNotEmpty();
+
+		assertThat(customSchemata.size()).isEqualTo(importedTypeCustomSchemata.size());
+
+		for (MetadataSchema customSchema : customSchemata) {
+			assertThat(importedFolderType.getSchema(customSchema.getCode())).isNotNull();
+		}
+
+		String outputFilePath = "settings-export-output.xml";
+		File outputFile = new File(outputFilePath);
+
+		Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+		xmlOutputter.output(document, fileOutputStream);
+
+		System.out.println("File Saved!");
+	}
+
+	@Test
+	public void givenCollectionsListWhenExportingThenFolderMetadataOK()
+			throws ValidationException, IOException {
+
+		ImportedSettings settings = services.exportSettings(asList(zeCollection));
+
+		ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsSettings().get(0);
+
+		MetadataSchemaType folderSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(folderSchemaType).isNotNull();
+
+		List<MetadataSchema> folderSchemata = folderSchemaType.getAllSchemas();
+		assertThat(folderSchemata).isNotNull();
+
+		ImportedType importedFolderType = zeCollectionSettings.getType("folder");
+		assertThat(importedFolderType).isNotNull();
+
+		for(MetadataSchema metadataSchema : folderSchemata){
+			ImportedMetadataSchema importedMetadataSchema = importedFolderType.getSchema(metadataSchema.getCode());
+			assertThat(importedMetadataSchema).isNotNull();
+
+			for(Metadata metadata : metadataSchema.getMetadatas()){
+				ImportedMetadata importedMetadata = importedMetadataSchema.getMetadata(metadata.getCode());
+				assertThat(importedMetadata).isNotNull();
+				// TODO valider les flags de la métadonnée
+			}
+		}
+
+		String outputFilePath = "settings-export-output.xml";
+		File outputFile = new File(outputFilePath);
+
+		Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
+		xmlOutputter.output(document, fileOutputStream);
+
+		System.out.println("File Saved!");
+	}
 
 	private ListAssert<Tuple> assertThatErrorsWhileExportingSettingsExtracting(String... parameters)
 			throws com.constellio.model.frameworks.validation.ValidationException {
@@ -215,15 +297,6 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 			return assertThat(extractingSimpleCodeAndParameters(e, parameters));
 		}
 	}
-
-	MetadataSchemasManager metadataSchemasManager;
-	SchemasDisplayManager schemasDisplayManager;
-	SettingsExportServices services;
-	ImportedSettings settings = new ImportedSettings();
-	ImportedCollectionSettings zeCollectionSettings;
-	ImportedCollectionSettings anotherCollectionSettings;
-	SystemConfigurationsManager systemConfigurationsManager;
-	List<String> collections = new ArrayList<>();
 
 	@Before
 	public void setUp()
