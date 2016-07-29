@@ -46,8 +46,8 @@ public class ListSelectWebElement {
 		select.deselectAll();
 	}
 
-	//	public boolean isEnabled() {
-	//		return element.findElement(By.tagName("input")).isEnabled();
+	//	public boolean getEnabled() {
+	//		return element.findElement(By.tagName("input")).getEnabled();
 	//	}
 	//
 	//	public boolean isChecked() {

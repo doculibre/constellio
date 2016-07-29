@@ -88,6 +88,13 @@ public class SchemaDisplayConfig {
 		return withDisplayMetadataCodes(displayMetadataCodes);
 	}
 
+	public SchemaDisplayConfig withNewDisplayMetadataQueued(String metadataCode) {
+		List<String> displayMetadataCodes = new ArrayList<>();
+		displayMetadataCodes.addAll(this.displayMetadataCodes);
+		displayMetadataCodes.add(metadataCode);
+		return withDisplayMetadataCodes(displayMetadataCodes);
+	}
+
 	public SchemaDisplayConfig withNewFormMetadata(String metadataCode) {
 		List<String> formMetadatas = new ArrayList<>();
 		formMetadatas.addAll(this.formMetadataCodes);
@@ -172,5 +179,6 @@ public class SchemaDisplayConfig {
 		}
 		return returnedCodes;
 	}
+
 
 }

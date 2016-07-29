@@ -7,7 +7,6 @@ import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImpo
 import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.REQUIRED_VALUE;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
-import static com.constellio.sdk.tests.TestUtils.asMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
@@ -238,7 +237,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		parameters.put("index", "1");
 		parameters.put("legacyId", null);
 		parameters.put("schemaType", "retentionRule");
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
 	private StructureMapBuilder givenCopyRetentionRule(List<Object> copyRetentionRule) {
