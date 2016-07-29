@@ -371,4 +371,9 @@ public class ImportedMetadata {
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
 	}
+
+	@Override
+	public String toString() {
+		return "code: " + code + ", label: " + label + ", type: " + type + ", tab: " + tab;
+	}
 }

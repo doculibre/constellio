@@ -83,7 +83,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection
@@ -103,7 +103,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection
@@ -116,28 +116,28 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedValueList vl1 = list1.get(0);
 		assertThat(vl1.getCode()).isEqualTo("ddvUSRvl1");
-		assertThat(vl1.getTitles()).containsEntry("title_fr", "domaine1");
+		assertThat(vl1.getTitle()).isEqualTo("domaine1");
 		assertThat(vl1.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(vl1.getCodeMode()).isEqualTo("DISABLED");
 		assertThat(vl1.getHierarchical()).isFalse();
 
 		ImportedValueList vl2 = list1.get(1);
 		assertThat(vl2.getCode()).isEqualTo("ddvUSRvl2");
-		assertThat(vl2.getTitles()).containsEntry("title_fr", "domaine2");
+		assertThat(vl2.getTitle()).isEqualTo("domaine2");
 		assertThat(vl2.getClassifiedTypes()).containsExactly("document");
 		assertThat(vl2.getCodeMode()).isEqualTo("FACULTATIVE");
 		assertThat(vl2.getHierarchical()).isFalse();
 
 		ImportedValueList vl3 = list1.get(2);
 		assertThat(vl3.getCode()).isEqualTo("ddvUSRvl3");
-		assertThat(vl3.getTitles()).containsEntry("title_fr", "domaine3");
+		assertThat(vl3.getTitle()).isEqualTo("domaine3");
 		assertThat(vl3.getClassifiedTypes()).isEmpty();
 		assertThat(vl3.getCodeMode()).isEqualTo("REQUIRED_AND_UNIQUE");
 		assertThat(vl3.getHierarchical()).isTrue();
 
 		ImportedValueList vl4 = list1.get(3);
 		assertThat(vl4.getCode()).isEqualTo("ddvUSRvl4");
-		assertThat(vl4.getTitles()).containsEntry("title_fr", "domaine4");
+		assertThat(vl4.getTitle()).isEqualTo("domaine4");
 		assertThat(vl4.getClassifiedTypes()).isEmpty();
 		assertThat(vl4.getCodeMode()).isNull();
 		assertThat(vl4.getHierarchical()).isFalse();
@@ -149,7 +149,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// anotherCollection
@@ -162,7 +162,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedValueList vl5 = list2.get(0);
 		assertThat(vl5.getCode()).isEqualTo("ddvUSRvl4");
-		assertThat(vl5.getTitles()).containsEntry("title_fr", "domaine4");
+		assertThat(vl5.getTitle()).isEqualTo("domaine4");
 		assertThat(vl5.getClassifiedTypes()).isEmpty();
 		assertThat(vl5.getCodeMode()).isEqualTo("DISABLED");
 		assertThat(vl5.getHierarchical()).isTrue();
@@ -173,7 +173,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection
@@ -186,7 +186,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedTaxonomy taxo1 = list1.get(0);
 		assertThat(taxo1.getCode()).isEqualTo("taxoT1Type");
-		assertThat(taxo1.getTitles()).containsEntry("title_fr", "taxo1Titre1");
+		assertThat(taxo1.getTitle()).isEqualTo( "taxo1Titre1");
 		assertThat(taxo1.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(taxo1.getGroupIds()).containsExactly("group1");
 		assertThat(taxo1.getUserIds()).containsExactly("user1", "user2");
@@ -194,7 +194,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedTaxonomy taxo2 = list1.get(1);
 		assertThat(taxo2.getCode()).isEqualTo("taxoT2Type");
-		assertThat(taxo2.getTitles()).containsEntry("title_fr", "taxo1Titre2");
+		assertThat(taxo2.getTitle()).isEqualTo( "taxo1Titre2");
 		assertThat(taxo2.getClassifiedTypes()).isEmpty();
 		assertThat(taxo2.getGroupIds()).isEmpty();
 		assertThat(taxo2.getUserIds()).isEmpty();
@@ -206,7 +206,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// anotherCollection
@@ -219,7 +219,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 
 		ImportedTaxonomy taxo3 = list2.get(0);
 		assertThat(taxo3.getCode()).isEqualTo("taxoT3Type");
-		assertThat(taxo3.getTitles()).containsEntry("title_fr", "taxo1Titre3");
+		assertThat(taxo3.getTitle()).isEqualTo( "taxo1Titre3");
 		assertThat(taxo3.getClassifiedTypes()).containsExactly("document", "folder");
 		assertThat(taxo3.getGroupIds()).containsExactly("group1");
 		assertThat(taxo3.getUserIds()).containsExactly("user1", "user2");
@@ -232,7 +232,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection
@@ -260,7 +260,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection
@@ -308,7 +308,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection
@@ -358,7 +358,7 @@ public class SettingsXMLFileReaderTest extends SettingsImportServicesTestUtils {
 		ImportedSettings importedSettings = reader.read();
 		assertThat(importedSettings).isNotNull();
 
-		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsConfigs();
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
 		assertThat(collectionSettings).hasSize(2);
 
 		// zeCollection

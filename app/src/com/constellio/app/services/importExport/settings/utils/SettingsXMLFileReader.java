@@ -242,7 +242,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
         ImportedTaxonomy taxonomy = new ImportedTaxonomy();
         taxonomy.setCode(child.getAttributeValue(CODE));
         if (child.getAttribute(TITLE) != null) {
-            taxonomy.setTitles(getTitles(child.getAttributeValue(TITLE)));
+            taxonomy.setTitle(child.getAttributeValue(TITLE));
         }
 
         if (child.getAttribute(CLASSIFIED_TYPES) != null) {
@@ -283,7 +283,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
         ImportedValueList valueList = new ImportedValueList()
                 .setCode(element.getAttributeValue(CODE));
         if (element.getAttribute(TITLE) != null) {
-            valueList.setTitles(getTitles(element.getAttributeValue(TITLE)));
+            valueList.setTitle(element.getAttributeValue(TITLE));
         }
 
         if (element.getAttribute(CLASSIFIED_TYPES) != null) {
@@ -307,12 +307,6 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
             classifiedTypes.addAll(Arrays.asList(StringUtils.split(stringValue, ',')));
         }
         return classifiedTypes;
-    }
-
-    private Map<String, String> getTitles(String title) {
-        Map<String, String> titles = new HashMap<>();
-        titles.put("title_fr", title);
-        return titles;
     }
 
     private List<ImportedConfig> readConfigs(Element configs) {

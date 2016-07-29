@@ -16,7 +16,7 @@ public class ImportedValueList {
 
 	List<String> classifiedTypes = new ArrayList<>();
 
-	Map<String, String> titles = new HashMap<>();
+	String title;
 
 	Boolean hierarchical;
 
@@ -47,12 +47,12 @@ public class ImportedValueList {
 		return this;
 	}
 
-	public Map<String, String> getTitles() {
-		return titles;
+	public String getTitle() {
+		return title;
 	}
 
-	public ImportedValueList setTitles(Map<String, String> titles) {
-		this.titles = titles;
+	public ImportedValueList setTitle(String title) {
+		this.title = title;
 		return this;
 	}
 

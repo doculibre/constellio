@@ -37,4 +37,9 @@ public class ImportedTab {
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
     }
+
+    @Override
+    public String toString() {
+        return "code: " + code + ", value: " + value;
+    }
 }
