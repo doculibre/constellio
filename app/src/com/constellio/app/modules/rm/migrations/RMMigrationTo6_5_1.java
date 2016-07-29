@@ -11,9 +11,12 @@ import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDate
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator2;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -29,6 +32,44 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		new SchemaAlterationsFor6_5_1(collection, provider, factory).migrate();
 		modifyArchivisticCalculators(collection, factory);
 
+		makeArchivisticDatesBasedOnNumbers(collection, factory);
+	}
+
+	private void makeArchivisticDatesBasedOnNumbers(String collection, AppLayerFactory factory) {
+		deleteIfPossibleFolderCalendarYearMetadata();
+		deleteIfPossibleFolderCalendarYearEntredMetadata();
+		deleteIfPossibleDocumentCalendarYearMetadata();
+		deleteIfPossibleDocuemntCalendarYearEntredMetadata();
+		createFolderTimeRangeMetadata();
+		//change calculators
+	}
+
+	private void createFolderTimeRangeMetadata() {
+
+	}
+
+	private void deleteIfPossibleDocuemntCalendarYearEntredMetadata() {
+
+	}
+
+	private void deleteIfPossibleDocumentCalendarYearMetadata() {
+	}
+
+	private void deleteIfPossibleFolderCalendarYearEntredMetadata() {
+
+	}
+
+	private void deleteIfPossibleFolderCalendarYearMetadata() {
+		//TODO
+		Metadata metadata = null;
+		if(!isUsed(metadata)){
+			//folderDefaultSchema.deleteMetadataWithoutValidation(metadata.getOriginalMetadata());
+		}
+
+	}
+
+	private boolean isUsed(Metadata metadata) {
+		return false;
 	}
 
 	private void modifyArchivisticCalculators(String collection, AppLayerFactory factory) {
@@ -58,6 +99,15 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder folderDefaultSchema = types().getDefaultSchema(Folder.SCHEMA_TYPE);
+			MetadataSchemaBuilder documentDefaultSchema = types().getDefaultSchema(Document.SCHEMA_TYPE);
+			createArchivisticManualMetadata(folderDefaultSchema);
+
+
+		}
+
+
+
+		private void createArchivisticManualMetadata(MetadataSchemaBuilder folderDefaultSchema) {
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_ARCHIVISTIC_STATUS).setType(ENUM).defineAsEnum(FolderStatus.class)
 					.setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE).setType(DATE).setEnabled(false);
