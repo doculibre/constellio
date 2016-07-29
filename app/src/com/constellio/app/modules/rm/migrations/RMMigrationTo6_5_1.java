@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.migrations;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -40,12 +41,8 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		deleteIfPossibleFolderCalendarYearEntredMetadata();
 		deleteIfPossibleDocumentCalendarYearMetadata();
 		deleteIfPossibleDocuemntCalendarYearEntredMetadata();
-		createFolderTimeRangeMetadata();
+
 		//change calculators
-	}
-
-	private void createFolderTimeRangeMetadata() {
-
 	}
 
 	private void deleteIfPossibleDocuemntCalendarYearEntredMetadata() {
@@ -101,10 +98,13 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 			MetadataSchemaBuilder folderDefaultSchema = types().getDefaultSchema(Folder.SCHEMA_TYPE);
 			MetadataSchemaBuilder documentDefaultSchema = types().getDefaultSchema(Document.SCHEMA_TYPE);
 			createArchivisticManualMetadata(folderDefaultSchema);
-
-
+			createFolderTimeRangeMetadata(folderDefaultSchema);
 		}
 
+		private void createFolderTimeRangeMetadata(MetadataSchemaBuilder folderDefaultSchema) {
+			folderDefaultSchema.create(Folder.TIME_RANGE).setType(STRING)
+					.setInputMask("9999-9999").setEnabled(false);
+		}
 
 
 		private void createArchivisticManualMetadata(MetadataSchemaBuilder folderDefaultSchema) {

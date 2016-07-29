@@ -92,8 +92,8 @@ public class Folder extends RMObject {
 
 	public static final String TIME_RANGE = "timerange";
 
-	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
-	public static final String CALENDAR_YEAR = "calendarYear";
+	//public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
+	//public static final String CALENDAR_YEAR = "calendarYear";
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -650,10 +650,6 @@ public class Folder extends RMObject {
 	public Folder setFormModifiedOn(LocalDateTime dateTime) {
 		set(FORM_MODIFIED_ON, dateTime);
 		return this;
-	}
-
-	public Folder getCalendarYearEntered() {
-		return get(CALENDAR_YEAR_ENTERED);
 	}
 
 	public LocalDate getManualExpecteTransferdDate() {
