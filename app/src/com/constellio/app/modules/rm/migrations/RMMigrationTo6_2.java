@@ -123,6 +123,7 @@ public class RMMigrationTo6_2 implements MigrationScript {
 			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 			folderSchemaType.get(Folder.MAIN_COPY_RULE).defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
 
+			//FIXME remove in another
 			folderSchemaType.createUndeletable(Folder.CALENDAR_YEAR_ENTERED).setType(MetadataValueType.STRING);
 
 			folderSchemaType.createUndeletable(Folder.CALENDAR_YEAR).setType(MetadataValueType.DATE).defineDataEntry()

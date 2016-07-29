@@ -84,15 +84,16 @@ public class Folder extends RMObject {
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
-	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
-	public static final String CALENDAR_YEAR = "calendarYear";
-
 
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
 	public static final String MANUAL_EXPECTED_DESTRIUCTION_DATE = "manualExpectedDesctructionDate";
 	public static final String MANUAL_ARCHIVISTIC_STATUS = "manualArchivisticStatus";
 
+	public static final String TIME_RANGE = "timerange";
+
+	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
+	public static final String CALENDAR_YEAR = "calendarYear";
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -653,11 +654,6 @@ public class Folder extends RMObject {
 
 	public Folder getCalendarYearEntered() {
 		return get(CALENDAR_YEAR_ENTERED);
-	}
-
-	public Folder setCalendarYearEntered(String year) {
-		set(CALENDAR_YEAR_ENTERED, year);
-		return this;
 	}
 
 	public LocalDate getManualExpecteTransferdDate() {
