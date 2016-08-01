@@ -21,9 +21,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class Migration6_5_1_HelperAcceptanceTest extends ConstellioTest {
-	//isUsed
-	//givenUndeletableMetadataWhen
-
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	RecordServices recordServices;
