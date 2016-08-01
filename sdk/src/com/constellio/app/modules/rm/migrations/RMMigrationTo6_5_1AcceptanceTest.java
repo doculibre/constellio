@@ -17,7 +17,7 @@ import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 	@Test
-	public void givenPreviousSystemWithEmptyMetadtaToDeleteWhenMigratingThenAllMetadataToDeleteAreDeleted()
+	public void givenPreviousSystemWithEmptyMetadataToDeleteWhenMigratingThenAllMetadataToDeleteAreDeleted()
 			throws Exception {
 		givenPreviousSystemWithEmptyMetadtaToDelete();
 		MetadataSchemaTypes types = getModelLayerFactory()
@@ -32,7 +32,7 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPreviousSystemWithMetadtaToDeleteHavingValuesWhenMigratingThenAllMetadataToDeleteAreDisabled()
+	public void givenPreviousSystemWithMetadataToDeleteHavingValuesWhenMigratingThenAllMetadataToDeleteAreDisabled()
 			throws Exception {
 		givenPreviousSystemWithMetadtaToDeleteHavingValues();
 		MetadataSchemaTypes types = getModelLayerFactory()
