@@ -88,7 +88,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 				transferDate = input.expectedTransferDate;
 			}
 
-			LocalDate baseDateFromSemiActiveDelay = input.getAjustedBaseDateFromSemiActiveDelay();
+			LocalDate baseDateFromSemiActiveDelay = input.getAjustedBaseDateFromSemiActiveDelay(parameters.get(yearEndParam));
 
 			if (!input.copy.isIgnoreActivePeriod()) {
 				baseDateFromSemiActiveDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
@@ -200,10 +200,10 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 			}
 		}
 
-		public LocalDate getAjustedBaseDateFromSemiActiveDelay() {
+		public LocalDate getAjustedBaseDateFromSemiActiveDelay(String yearEnd) {
 			String metadata = copy.getSemiActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes);
+			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
 			if (date == null) {
 				return null;
 			} else {

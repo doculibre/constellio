@@ -65,7 +65,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 			return null;
 		} else {
 			LocalDate baseDateFromFolder = getBaseAjustedDate(input);
-			LocalDate baseDateFromSemiActiveDelay = input.getAjustedBaseDateFromActiveDelay();
+			LocalDate baseDateFromSemiActiveDelay = input.getAjustedBaseDateFromActiveDelay(parameters.get(yearEndParam));
 			LocalDate baseDate = max(baseDateFromFolder, baseDateFromSemiActiveDelay);
 			return input.calculateSemiActiveBasedOn(baseDate);
 		}
@@ -143,10 +143,10 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(date, yearEnd, requiredDaysBeforeYearEnd);
 		}
 
-		public LocalDate getAjustedBaseDateFromActiveDelay() {
+		public LocalDate getAjustedBaseDateFromActiveDelay(String yearEnd) {
 			String metadata = copy.getActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes);
+			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
 			return date == null ? null : ajustToFinancialYear(date);
 		}
 	}

@@ -4,7 +4,10 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import org.joda.time.LocalDate;
+
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -26,12 +29,19 @@ public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDepend
 
 	@Override
 	public boolean isDependentOf(Metadata metadata) {
-		if (metadata.getType() == MetadataValueType.DATE || metadata.getType() == MetadataValueType.DATE_TIME) {
+		if (metadata.getType() == MetadataValueType.DATE || metadata.getType() == MetadataValueType.DATE_TIME
+				|| metadata.getType() == MetadataValueType.STRING) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
 
 		} else {
 			return false;
 		}
 	}
+
+	/*@Deprecated
+	@Override
+	public LocalDate getDate(String metadata, DynamicDependencyValues values) {
+		return super.getDate(metadata, values);
+	}*/
 
 }

@@ -34,6 +34,9 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
 	ConfigDependency<Integer> configInactiveNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
+
+	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
+
 	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
 
 	@Override
@@ -61,7 +64,8 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 		} else if (input.archivisticStatus.isSemiActive()) {
 			baseTransferDate = input.decommissioningDate;
-			LocalDate dateSpecifiedInCopyRule = input.getAjustedBaseDateFromSemiActiveDelay(copyRule);
+			LocalDate dateSpecifiedInCopyRule = input
+					.getAjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			baseTransferDate = LangUtils.min(baseTransferDate, dateSpecifiedInCopyRule);
 
 		} else {
@@ -69,7 +73,8 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 				expectedTransferDate = input.copyRulesExpectedTransferDate.get(index);
 			}
 
-			LocalDate dateSpecifiedInCopyRule = input.getAjustedBaseDateFromSemiActiveDelay(copyRule);
+			LocalDate dateSpecifiedInCopyRule = input
+					.getAjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
 			} else {
@@ -117,14 +122,14 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 		}
 
-		public LocalDate getAjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy) {
+		public LocalDate getAjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {
 			String semiActiveMetadata = copy.getSemiActiveDateMetadata();
 
 			if (semiActiveMetadata != null && semiActiveMetadata.equals(copy.getActiveDateMetadata())) {
 				return null;
 
 			} else {
-				LocalDate date = datesAndDateTimesParam.getDate(semiActiveMetadata, datesAndDateTimes);
+				LocalDate date = datesAndDateTimesParam.getDate(semiActiveMetadata, datesAndDateTimes, yearEnd);
 				if (date == null) {
 					return null;
 				} else {
