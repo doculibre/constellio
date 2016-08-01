@@ -52,7 +52,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		deleteIfPossibleOrDisableDocumentCalendarYearMetadata(collection, appLayerFactory);
 		deleteIfPossibleOrDisableDocuemntCalendarYearEntredMetadata(collection, appLayerFactory);
 
-		//TODO change archivistic calculators
+		//2. TODO change archivistic calculators
 	}
 
 	private void deleteIfPossibleOrDisableDocuemntCalendarYearEntredMetadata(String collection, AppLayerFactory appLayerFactory) {
