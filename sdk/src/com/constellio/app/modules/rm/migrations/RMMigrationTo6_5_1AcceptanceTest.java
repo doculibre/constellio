@@ -16,7 +16,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
-	//TODO tests
 	@Test
 	public void givenPreviousSystemWithEmptyMetadtaToDeleteWhenMigratingThenAllMetadataToDeleteAreDeleted()
 			throws Exception {
@@ -69,7 +68,7 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 	private void givenPreviousSystemWithMetadtaToDeleteHavingValues() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, "6.5MetadataToDeleteWithValues.zip");
+		File state = new File(statesFolder, "6.4MetadataToDeleteWithValues.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
@@ -77,7 +76,7 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 	private void givenPreviousSystemWithEmptyMetadtaToDelete() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, "6.5MetadataToDeleteWithoutValues.zip");
+		File state = new File(statesFolder, "6.4MetadataToDeleteWithoutValues.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
