@@ -96,7 +96,6 @@ public abstract class DynamicLocalDependency implements Dependency {
 		}
 	}
 
-	//TODO test
 	private LocalDate convert(String metadata, Object date, String yearEnd) {
 		if (date == null) {
 			return null;
@@ -130,7 +129,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 			throw new RuntimeException("Invalid range date format " + dateAsString + " for metadata " + metadata);
 		}
 		try {
-			int year = Integer.valueOf((dateAsString).substring(4, 9));
+			int year = Integer.valueOf((dateAsString).substring(5, 9));
 			return asDate(year, yearEnd);
 		} catch (NumberFormatException e) {
 			throw new RuntimeException(
