@@ -137,7 +137,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 					if (!copy.isIgnoreActivePeriod()) {
 						date = calculateExpectedTransferDate(copy, date, semiActiveNumberOfYearWhenVariableDelayPeriod);
 					}
-					date = ajustToFinancialYear(date);
+					date = adjustToFinancialYear(date);
 					return date;
 				}
 			}

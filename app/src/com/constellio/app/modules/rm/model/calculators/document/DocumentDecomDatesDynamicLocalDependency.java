@@ -30,7 +30,7 @@ public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDepend
 	@Override
 	public boolean isDependentOf(Metadata metadata) {
 		if (metadata.getType() == MetadataValueType.DATE || metadata.getType() == MetadataValueType.DATE_TIME
-				|| metadata.getType() == MetadataValueType.STRING) {
+				|| metadata.getType() == MetadataValueType.NUMBER) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
 
 		} else {

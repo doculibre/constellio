@@ -78,7 +78,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 			String metadata = copy.getActiveDateMetadata();
 
 			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
-			return date == null ? null : ajustToFinancialYear(date);
+			return date == null ? null : adjustToFinancialYear(date);
 		}
 	}
 }

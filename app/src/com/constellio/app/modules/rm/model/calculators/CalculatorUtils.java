@@ -18,7 +18,9 @@ public class CalculatorUtils {
 		}
 	}
 
-	public static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
+
+	//FIXME make it private?
+	static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
 		if (date == null) {
 			return null;
 		}
