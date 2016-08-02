@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportedDataEntry {
 
@@ -16,14 +17,14 @@ public class ImportedDataEntry {
 	private String referencedMetadata;
 	private String copiedMetadata;
 
-	private ImportedDataEntry(){
+	private ImportedDataEntry() {
 	}
 
-	public static ImportedDataEntry asFixedSequence(String fixedSequenceCode){
+	public static ImportedDataEntry asFixedSequence(String fixedSequenceCode) {
 		return new ImportedDataEntry().withType("sequence").withFixedSequenceCode(fixedSequenceCode);
 	}
 
-	public static ImportedDataEntry asMetadataProvidingSequence(String metadataProvidingSequenceCode){
+	public static ImportedDataEntry asMetadataProvidingSequence(String metadataProvidingSequenceCode) {
 		return new ImportedDataEntry().withType("sequence").withMetadataProvidingSequenceCode(metadataProvidingSequenceCode);
 	}
 
@@ -63,7 +64,7 @@ public class ImportedDataEntry {
 
 	public ImportedDataEntry withFixedSequenceCode(String fixedSequenceCode) {
 		this.fixedSequenceCode = fixedSequenceCode;
-		return  this;
+		return this;
 	}
 
 	public String getMetadataProvidingSequenceCode() {
@@ -111,6 +112,11 @@ public class ImportedDataEntry {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 }

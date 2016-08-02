@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.settings;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -47,7 +48,6 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.DataEntryBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
@@ -111,7 +111,7 @@ public class SettingsImportServices {
 
 		importSequences(settings);
 
-		for (final ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
+		for (final ImportedCollectionSettings collectionSettings : settings.getCollectionsSettings()) {
 
 			importCollectionConfigurations(collectionSettings);
 		}
@@ -156,6 +156,7 @@ public class SettingsImportServices {
 					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types,
 							newMetadatas);
 
+					importCustomSchemataMetadatas(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 				}
 
 			}
@@ -360,18 +361,25 @@ public class SettingsImportServices {
 		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
 			importSchema(types, typeBuilder, importedMetadataSchema, newMetadatas);
 		}
+
+	}
+
+	private void importCustomSchemataMetadatas(MetadataSchemaTypesBuilder types,
+			List<ImportedMetadataSchema> importedMetadataSchemata,
+			MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
+		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
+			MetadataSchemaBuilder customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+			importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types, newMetadatas);
+		}
 	}
 
 	private void importSchema(MetadataSchemaTypesBuilder types,
 			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
 			KeyListMap<String, String> newMetadatas) {
-		MetadataSchemaBuilder customSchemaBuilder;
-		try {
-			customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
-		} catch (MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined e) {
-			customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+
+		if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
+			typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
 		}
-		importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types, newMetadatas);
 	}
 
 	private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder,
@@ -387,11 +395,19 @@ public class SettingsImportServices {
 			ImportedMetadata importedMetadata, MetadataSchemaTypesBuilder typesBuilder) {
 		MetadataBuilder metadataBuilder;
 		try {
-			metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
-			MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
-			metadataBuilder.setType(type);
-		} catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
 			metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
+
+		} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+			metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
+			if (metadataBuilder.getInheritance() == null) {
+				MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
+				metadataBuilder.setType(type);
+				if (type == REFERENCE) {
+					MetadataSchemaTypeBuilder referencedTypeBuilder = typesBuilder
+							.getSchemaType(importedMetadata.getReferencedType());
+					metadataBuilder.defineReferences().set(referencedTypeBuilder);
+				}
+			}
 		}
 
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
@@ -400,36 +416,7 @@ public class SettingsImportServices {
 			metadataBuilder.setLabels(labels);
 		}
 
-		// TODO refactor set data entry
-		ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
-		if (dataEntry != null) {
-			switch (dataEntry.getType().toLowerCase()) {
-			case "sequence":
-				setSequenceDataEntry(metadataBuilder, dataEntry);
-				break;
-
-			case "jexl":
-				metadataBuilder.defineDataEntry().asJexlScript(dataEntry.getPattern());
-				break;
-
-			case "calculated":
-				metadataBuilder.defineDataEntry().asCalculated(dataEntry.getCalculator());
-				break;
-
-			case "copied":
-				if(StringUtils.isNotBlank(dataEntry.getReferencedMetadata())){
-					MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
-					MetadataBuilder copiedMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getCopiedMetadata());
-
-					metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
-
-				}
-				break;
-
-			default:
-				break;
-			}
-		}
+		setMetadataDataEntry(schemaBuilder, importedMetadata, metadataBuilder);
 
 		if (importedMetadata.getDuplicable() != null) {
 			metadataBuilder.setDuplicable(importedMetadata.getDuplicable());
@@ -501,8 +488,41 @@ public class SettingsImportServices {
 		}
 	}
 
+	private void setMetadataDataEntry(MetadataSchemaBuilder schemaBuilder, ImportedMetadata importedMetadata,
+			MetadataBuilder metadataBuilder) {
+		ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
+		if (dataEntry != null) {
+			switch (dataEntry.getType().toLowerCase()) {
+			case "sequence":
+				setSequenceDataEntry(metadataBuilder, dataEntry);
+				break;
+
+			case "jexl":
+				metadataBuilder.defineDataEntry().asJexlScript(dataEntry.getPattern());
+				break;
+
+			case "calculated":
+				metadataBuilder.defineDataEntry().asCalculated(dataEntry.getCalculator());
+				break;
+
+			case "copied":
+				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
+					MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
+					MetadataBuilder copiedMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getCopiedMetadata());
+
+					metadataBuilder.defineDataEntry().asCopied(referenceMetadataBuilder, copiedMetadataBuilder);
+
+				}
+				break;
+
+			default:
+				break;
+			}
+		}
+	}
+
 	private void setSequenceDataEntry(MetadataBuilder metadataBuilder, ImportedDataEntry dataEntry) {
-		if(StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
+		if (StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
 			metadataBuilder.defineDataEntry().asFixedSequence(dataEntry.getFixedSequenceCode());
 		} else {
 			metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(dataEntry.getMetadataProvidingSequenceCode());
@@ -523,8 +543,8 @@ public class SettingsImportServices {
 					String typeCode = importedTaxonomy.getCode();
 					String taxoCode = StringUtils.substringBetween(typeCode, TAXO, TYPE);
 					String title = null;
-					if (StringUtils.isNotBlank(importedTaxonomy.getTitles().get(TITLE_FR))) {
-						title = importedTaxonomy.getTitles().get(TITLE_FR);
+					if (StringUtils.isNotBlank(importedTaxonomy.getTitle())) {
+						title = importedTaxonomy.getTitle();
 					}
 
 					if (!schemaTypes.hasType(importedTaxonomy.getCode())) {
@@ -534,7 +554,7 @@ public class SettingsImportServices {
 							taxonomy = taxonomy.withVisibleInHomeFlag(importedTaxonomy.getVisibleOnHomePage());
 						}
 
-						taxonomy = taxonomy.withTitle(importedTaxonomy.getTitles().get(TITLE_FR))
+						taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle())
 								.withUserIds(importedTaxonomy.getUserIds())
 								.withGroupIds(importedTaxonomy.getGroupIds());
 
@@ -543,8 +563,8 @@ public class SettingsImportServices {
 					} else {
 						Taxonomy taxonomy = getTaxonomyFor(collectionCode, importedTaxonomy);
 
-						if (StringUtils.isNotBlank(importedTaxonomy.getTitles().get(TITLE_FR))) {
-							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitles().get(TITLE_FR));
+						if (StringUtils.isNotBlank(importedTaxonomy.getTitle())) {
+							taxonomy = taxonomy.withTitle(importedTaxonomy.getTitle());
 						}
 
 						if (importedTaxonomy.getVisibleOnHomePage() != null) {
@@ -635,19 +655,18 @@ public class SettingsImportServices {
 						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
-									importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
+									importedValueList.getTitle(), schemaTypeCodeMode);
 						} else {
 							builder.createHierarchicalValueListItemSchema(code,
-									importedValueList.getTitles().get(TITLE_FR), schemaTypeCodeMode);
+									importedValueList.getTitle(), schemaTypeCodeMode);
 						}
 
 					} else {
 						MetadataSchemaTypeBuilder builder = schemaTypesBuilder.getSchemaType(importedValueList.getCode());
 
-						if (!importedValueList.getTitles().isEmpty()) {
+						if (StringUtils.isNotBlank(importedValueList.getTitle())) {
 							Map<Language, String> labels = new HashMap<>();
-							labels.put(Language.French, importedValueList.getTitles().get(TITLE_FR));
-							labels.put(Language.English, importedValueList.getTitles().get(TITLE_EN));
+							labels.put(Language.French, importedValueList.getTitle());
 							builder.setLabels(labels);
 						}
 
@@ -721,7 +740,7 @@ public class SettingsImportServices {
 
 	private void validateCollectionConfigs(ImportedSettings settings, ValidationErrors validationErrors) {
 
-		for (ImportedCollectionSettings collectionSettings : settings.getCollectionsConfigs()) {
+		for (ImportedCollectionSettings collectionSettings : settings.getCollectionsSettings()) {
 
 			validateCollectionCode(validationErrors, collectionSettings);
 
@@ -844,7 +863,7 @@ public class SettingsImportServices {
 				!importedValueList.getCode().startsWith(DDV_PREFIX)) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(CONFIG, importedValueList.getCode());
-			parameters.put(VALUE, importedValueList.getTitles().get(TITLE_FR));
+			parameters.put(VALUE, importedValueList.getTitle());
 			validationErrors
 					.add(SettingsImportServices.class, INVALID_VALUE_LIST_CODE, parameters);
 		}
@@ -932,9 +951,4 @@ public class SettingsImportServices {
 		parameters.put(VALUE, value);
 		return parameters;
 	}
-
-	// TODO
-	// valider que le message d'erreur est du bon locale
-	// assertThatContainsFrenchMessages
-	// assertThatContainsFrenchMessages
 }

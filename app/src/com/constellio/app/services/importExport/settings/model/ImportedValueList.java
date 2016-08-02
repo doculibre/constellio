@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 
 public class ImportedValueList {
 
@@ -16,7 +19,7 @@ public class ImportedValueList {
 
 	List<String> classifiedTypes = new ArrayList<>();
 
-	Map<String, String> titles = new HashMap<>();
+	String title;
 
 	Boolean hierarchical;
 
@@ -33,6 +36,11 @@ public class ImportedValueList {
 		return codeMode;
 	}
 
+	public ImportedValueList setCodeMode(ValueListItemSchemaTypeCodeMode codeMode) {
+		this.codeMode = codeMode.name();
+		return this;
+	}
+
 	public ImportedValueList setCodeMode(String codeMode) {
 		this.codeMode = codeMode;
 		return this;
@@ -47,12 +55,12 @@ public class ImportedValueList {
 		return this;
 	}
 
-	public Map<String, String> getTitles() {
-		return titles;
+	public String getTitle() {
+		return title;
 	}
 
-	public ImportedValueList setTitles(Map<String, String> titles) {
-		this.titles = titles;
+	public ImportedValueList setTitle(String title) {
+		this.title = title;
 		return this;
 	}
 
@@ -74,5 +82,10 @@ public class ImportedValueList {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

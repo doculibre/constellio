@@ -34,6 +34,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
@@ -50,6 +51,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -70,7 +72,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
-@UiTest
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
 	static final String FOLDER = "folder";
@@ -114,7 +115,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	ImportedCollectionSettings anotherCollectionSettings;
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenImportingMetadataWithCopiedDataEntryTypeThenOK()
 			throws ValidationException {
 
@@ -132,7 +133,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.addMetadata(m1);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -157,7 +158,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenImportingMetadataWithCalculatedDataEntryWithoutArgumentsThenOK()
 			throws ValidationException {
 
@@ -168,14 +169,15 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.setDefaultSchema(defaultSchema);
 
 		ImportedDataEntry importedDataEntry =
-				ImportedDataEntry.asCalculated("com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator");
+				ImportedDataEntry
+						.asCalculated("com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator");
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("DATE")
 				.setDataEntry(importedDataEntry);
 
 		defaultSchema.addMetadata(m1);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -195,13 +197,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(calculator).isInstanceOf(FolderExpectedDepositDateCalculator.class);
 
 		assertThat(calculator.getReturnType()).isEqualTo(MetadataValueType.DATE);
-		//newWebDriver();
-		//waitUntilICloseTheBrowsers();
 
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenImportingMetadataWithJEXLDataEntryCodeThenOK()
 			throws ValidationException {
 
@@ -221,7 +221,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.addMetadata(m1);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -243,9 +243,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataValueCalculator<?> calculator = calculatedDataEntry.getCalculator();
 		assertThat(calculator).isInstanceOf(JEXLMetadataValueCalculator.class);
 		assertThat(calculator.getReturnType()).isEqualTo(MetadataValueType.STRING);
-		assertThat(((JEXLMetadataValueCalculator)calculator).getJexlScript().getSourceText()).isEqualTo(pattern);
-		//newWebDriver();
-		//waitUntilICloseTheBrowsers();
+		assertThat(((JEXLMetadataValueCalculator) calculator).getJexlScript().getSourceText()).isEqualTo(pattern);
 
 	}
 
@@ -270,7 +268,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		defaultSchema.addMetadata(m1).addMetadata(m2);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -479,7 +477,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenImportSequencesThenOK()
 			throws Exception {
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("1"));
@@ -505,9 +503,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		i18n.setLocale(Locale.FRENCH);
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("")
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode("")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
-						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
+						.setTitle("Le titre du domaine de valeurs 1")
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -523,9 +521,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingConfigSettingsIfCollectionCodeDoesNotExistThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode("unknonCollection")
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode("unknonCollection")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
-						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
+						.setTitle("Le titre du domaine de valeurs 1")
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -538,9 +536,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListIfCodeIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(null)
-						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
+						.setTitle("Le titre du domaine de valeurs 1")
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -553,9 +551,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListIfCodeDoesNotStartWithDDVPrefixThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode("USRcodeDuDomaineDeValeur1")
-						.setTitles(toTitlesMap("Le titre du domaine de valeurs 1", "First value list's title"))
+						.setTitle("Le titre du domaine de valeurs 1")
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -565,34 +563,34 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenImportingValueListsThenSet()
 			throws Exception {
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
-				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+				.setTitle(TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 		collectionSettings.addValueList(v1);
 
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
-				.setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
+				.setTitle("Le titre du domaine de valeurs 2")
 				.setClassifiedTypes(toListOfString(DOCUMENT))
 				.setCodeMode("FACULTATIVE");
 		collectionSettings.addValueList(v2);
 
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
-				.setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
+				.setTitle("Le titre du domaine de valeurs 3")
 				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
 		collectionSettings.addValueList(v3);
 
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
-				.setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
+				.setTitle("Le titre du domaine de valeurs 4")
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -651,14 +649,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		ImportedValueList valueList = new ImportedValueList().setCode(codeA)
-				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+				.setTitle(TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		collectionSettings.addValueList(valueList);
 
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -668,7 +666,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo(TITLE_FR);
 
-		valueList.setTitles(toTitlesMap(TITLE_FR_UPDATED, TITLE_EN_UPDATED))
+		valueList.setTitle(TITLE_FR_UPDATED)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 
@@ -681,19 +679,19 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenModifyingValueListCodeModeThenValueIsUpdated()
 			throws Exception {
 
 		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		ImportedValueList valueList = new ImportedValueList().setCode(codeA)
-				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+				.setTitle(TITLE_FR)
 				.setCodeMode("DISABLED");
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		collectionSettings.addValueList(valueList);
 
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -728,9 +726,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode(null)
-						.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+						.setTitle(TAXO_1_TITLE_FR)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -746,9 +744,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode("anotherPrefixTaxonomy")
-						.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+						.setTitle(TAXO_1_TITLE_FR)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -763,9 +761,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeSuffixIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode("taxoPrefixTaxonomy")
-						.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+						.setTitle(TAXO_1_TITLE_FR)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -784,7 +782,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList(gandalf, bobGratton))
@@ -792,10 +790,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
 		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
-				.setTitles(toTitlesMap(TAXO_2_TITLE_FR, TAXO_2_TITLE_EN));
+				.setTitle(TAXO_2_TITLE_FR);
 		zeCollectionSettings.addTaxonomy(importedTaxonomy2);
 
-		settings.addCollectionsConfigs(zeCollectionSettings);
+		settings.addCollectionSettings(zeCollectionSettings);
 
 		importSettings();
 
@@ -848,11 +846,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
-		settings.addCollectionsConfigs(zeCollectionSettings);
+		settings.addCollectionSettings(zeCollectionSettings);
 
 		importSettings();
 
@@ -903,9 +901,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN));
+				.setTitle(TAXO_1_TITLE_FR);
 
-		settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
 
 		importSettings();
 
@@ -922,7 +920,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		// modify title
 		collectionSettings.addTaxonomy(importedTaxonomy
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR_UPDATED, TAXO_1_TITLE_EN)));
+				.setTitle(TAXO_1_TITLE_FR_UPDATED));
 
 		importSettings();
 
@@ -942,7 +940,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
 				.setVisibleOnHomePage(false);
 
-		settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
 
 		importSettings();
 
@@ -970,7 +968,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenModifyingCollectionTaxonomyUsersAndGroupsThenConfigsAreUpdated()
 			throws Exception {
 
@@ -980,7 +978,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setUserIds(asList(gandalf, robin))
 				.setGroupIds(asList("group1"));
 
-		settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
 
 		importSettings();
 
@@ -1020,10 +1018,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
 
-		settings.addCollectionsConfigs(collectionSettings.addTaxonomy(importedTaxonomy));
+		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
 
 		importSettings();
 
@@ -1053,7 +1051,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTypesIfCodeIsEmptyThenExceptionIsRaised()
 			throws Exception {
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addType(new ImportedType().setCode(null).setLabel("Dossier"))
 		);
 
@@ -1073,7 +1071,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedType importedType = new ImportedType().setCode("folder")
 				.setLabel("Dossier").setTabs(toListOfTabs(tabParams));
 
-		settings.addCollectionsConfigs(new ImportedCollectionSettings().setCode(zeCollection)
+		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addType(importedType));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
@@ -1116,7 +1114,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setDefaultSchema(importedMetadataSchema)
 				.addSchema(new ImportedMetadataSchema().setCode(CODE_SCHEMA_1)
 						.addMetadata(m3).setCode(null));
-		settings.addCollectionsConfigs(new ImportedCollectionSettings()
+		settings.addCollectionSettings(new ImportedCollectionSettings()
 				.setCode(zeCollection).addType(importedType));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
@@ -1143,10 +1141,13 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadata m2 = new ImportedMetadata().setCode("m2").setType("STRING")
 				.setInputMask("9999-9999");
 
-		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
+		ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("REFERENCE")
+				.setReferencedType(Category.SCHEMA_TYPE);
+
+		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2).addMetadata(m3);
 		folderType.addSchema(customSchema);
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1166,10 +1167,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(metadata2).isNotNull();
 		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
 
+		Metadata metadata3 = schemaType.getSchema("folder_custom").get("folder_custom_m3");
+		assertThat(metadata3.getType()).isEqualTo(MetadataValueType.REFERENCE);
+		assertThat(metadata3.getAllowedReferences().getAllowedSchemaType()).isEqualTo(Category.SCHEMA_TYPE);
+
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenImportingManyTypesValuesAreSet()
 			throws Exception {
 
@@ -1191,12 +1196,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
 		folderType.addSchema(customSchema);
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		ImportedCollectionSettings anotherCollectionSettings =
 				new ImportedCollectionSettings().setCode("anotherCollection");
 		anotherCollectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(anotherCollectionSettings);
+		settings.addCollectionSettings(anotherCollectionSettings);
 
 		importSettings();
 
@@ -1232,9 +1237,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(metadata2).isNotNull();
 		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
 
-		//newWebDriver();
-		//waitUntilICloseTheBrowsers();
-
 	}
 
 	@Test
@@ -1248,7 +1250,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.getDefaultSchema().addMetadata(m1);
 		collectionSettings.addType(folderType);
 
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1286,7 +1288,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.getDefaultSchema().addMetadata(m1);
 		collectionSettings.addType(folderType);
 
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1324,7 +1326,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.getDefaultSchema().addMetadata(m1);
 		collectionSettings.addType(folderType);
 
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1372,7 +1374,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1422,7 +1424,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1469,7 +1471,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1519,7 +1521,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setVisibleInDisplay(false));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1574,7 +1576,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				new ImportedMetadata().setCode("m2").setType("STRING").setVisibleInSearchResult(false).setVisibleInForm(false));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1626,7 +1628,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1675,7 +1677,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		customSchema.addMetadata(new ImportedMetadata().setCode("m2").setType("STRING"));
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1727,7 +1729,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setCode("custom").addMetadata(m3).addMetadata(m4).addMetadata(m5custom).addMetadata(m6custom);
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1786,7 +1788,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setCode("custom").addMetadata(m3).addMetadata(m4).addMetadata(m5custom).addMetadata(m6custom);
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1845,7 +1847,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setCode("custom").addMetadata(m3).addMetadata(m4).addMetadata(m5custom).addMetadata(m6custom);
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1906,7 +1908,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.setCode("custom").addMetadata(m3).addMetadata(m4).addMetadata(m5custom).addMetadata(m6custom);
 
 		collectionSettings.addType(folderType.addSchema(customSchema));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -1961,7 +1963,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addSchema(new ImportedMetadataSchema().setCode("custom1"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom2"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom3")));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2012,7 +2014,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addSchema(new ImportedMetadataSchema().setCode("custom1"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom2"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom3")));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2063,7 +2065,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addSchema(new ImportedMetadataSchema().setCode("custom1"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom2"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom3")));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2114,7 +2116,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.addSchema(new ImportedMetadataSchema().setCode("custom1"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom2"))
 				.addSchema(new ImportedMetadataSchema().setCode("custom3")));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2149,6 +2151,177 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
+	public void givenMetadataWithCustomLabelInCustomSchemasThenOK()
+			throws Exception {
+		runTwice = false;
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+		ImportedType folderType = new ImportedType().setDefaultSchema(
+				new ImportedMetadataSchema().setCode("default")).setCode("folder");
+		ImportedMetadata defaultM1 = folderType.getDefaultSchema().newMetadata("m1").setType("STRING").setLabel("M1 label");
+		ImportedMetadata defaultM2 = folderType.getDefaultSchema().newMetadata("m2").setType("STRING").setLabel("M2 label");
+		ImportedMetadata defaultM3 = folderType.getDefaultSchema().newMetadata("m3").setType("STRING").setLabel("M3 label");
+
+		ImportedMetadataSchema customSchema1 = folderType.newSchema("custom1");
+		ImportedMetadata custom1M1 = customSchema1.newMetadata("m1").setLabel("Custom M1 label");
+		ImportedMetadata custom1M2 = customSchema1.newMetadata("m2");
+		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2");
+		ImportedMetadata custom2M2 = customSchema2.newMetadata("m2").setLabel("Custom M2 label");
+
+		collectionSettings.addType(folderType.addSchema(customSchema1).addSchema(customSchema2));
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(zeCollection);
+		assertThat(types.getMetadata("folder_default_m1").getLabel(Language.French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_default_m2").getLabel(Language.French)).isEqualTo("M2 label");
+		assertThat(types.getMetadata("folder_default_m3").getLabel(Language.French)).isEqualTo("M3 label");
+
+		assertThat(types.getMetadata("folder_custom1_m1").getLabel(Language.French)).isEqualTo("Custom M1 label");
+		assertThat(types.getMetadata("folder_custom1_m2").getLabel(Language.French)).isEqualTo("M2 label");
+		assertThat(types.getMetadata("folder_custom1_m3").getLabel(Language.French)).isEqualTo("M3 label");
+
+		assertThat(types.getMetadata("folder_custom2_m1").getLabel(Language.French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_custom2_m2").getLabel(Language.French)).isEqualTo("Custom M2 label");
+		assertThat(types.getMetadata("folder_custom2_m3").getLabel(Language.French)).isEqualTo("M3 label");
+
+		custom1M1.setLabel("");
+		custom1M2.setLabel("New custom label 1");
+		custom2M2.setLabel("New custom label 2");
+		defaultM3.setLabel("New m3 label");
+
+		importSettings();
+
+		types = metadataSchemasManager.getSchemaTypes(zeCollection);
+		assertThat(types.getMetadata("folder_default_m1").getLabel(Language.French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_default_m2").getLabel(Language.French)).isEqualTo("M2 label");
+		assertThat(types.getMetadata("folder_default_m3").getLabel(Language.French)).isEqualTo("New m3 label");
+
+		assertThat(types.getMetadata("folder_custom1_m1").getLabel(Language.French)).isEqualTo("Custom M1 label");
+		assertThat(types.getMetadata("folder_custom1_m2").getLabel(Language.French)).isEqualTo("New custom label 1");
+		assertThat(types.getMetadata("folder_custom1_m3").getLabel(Language.French)).isEqualTo("New m3 label");
+
+		assertThat(types.getMetadata("folder_custom2_m1").getLabel(Language.French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_custom2_m2").getLabel(Language.French)).isEqualTo("New custom label 2");
+		assertThat(types.getMetadata("folder_custom2_m3").getLabel(Language.French)).isEqualTo("New m3 label");
+
+	}
+
+	@Test
+	public void givenMetadataWithCustomRequirementStatusInCustomSchemasThenOK()
+			throws Exception {
+		runTwice = false;
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+		ImportedType folderType = new ImportedType().setDefaultSchema(
+				new ImportedMetadataSchema().setCode("default")).setCode("folder");
+		ImportedMetadata defaultM1 = folderType.getDefaultSchema().newMetadata("m1").setType("STRING").setRequired(true);
+		ImportedMetadata defaultM2 = folderType.getDefaultSchema().newMetadata("m2").setType("STRING").setRequired(false);
+		ImportedMetadata defaultM3 = folderType.getDefaultSchema().newMetadata("m3").setType("STRING").setRequired(true);
+
+		ImportedMetadataSchema customSchema1 = folderType.newSchema("custom1");
+		ImportedMetadata custom1M1 = customSchema1.newMetadata("m1").setRequired(false);
+		ImportedMetadata custom1M2 = customSchema1.newMetadata("m2").setRequired(true);
+		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2");
+		ImportedMetadata custom2M1 = customSchema2.newMetadata("m1");
+
+		collectionSettings.addType(folderType.addSchema(customSchema1).addSchema(customSchema2));
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(zeCollection);
+		assertThat(types.getMetadata("folder_default_m1").isDefaultRequirement()).isTrue();
+		assertThat(types.getMetadata("folder_default_m2").isDefaultRequirement()).isFalse();
+		assertThat(types.getMetadata("folder_default_m3").isDefaultRequirement()).isTrue();
+
+		assertThat(types.getMetadata("folder_custom1_m1").isDefaultRequirement()).isFalse();
+		assertThat(types.getMetadata("folder_custom1_m2").isDefaultRequirement()).isTrue();
+		assertThat(types.getMetadata("folder_custom1_m3").isDefaultRequirement()).isTrue();
+
+		assertThat(types.getMetadata("folder_custom2_m1").isDefaultRequirement()).isTrue();
+		assertThat(types.getMetadata("folder_custom2_m2").isDefaultRequirement()).isFalse();
+		assertThat(types.getMetadata("folder_custom2_m3").isDefaultRequirement()).isTrue();
+
+		defaultM1.setRequired(false);
+		defaultM2.setRequired(true);
+		defaultM3.setRequired(false);
+		custom1M1.setRequired(true);
+		custom1M2.setRequired(false);
+
+		importSettings();
+		types = metadataSchemasManager.getSchemaTypes(zeCollection);
+		assertThat(types.getMetadata("folder_default_m1").isDefaultRequirement()).isFalse();
+		assertThat(types.getMetadata("folder_default_m2").isDefaultRequirement()).isTrue();
+		assertThat(types.getMetadata("folder_default_m3").isDefaultRequirement()).isFalse();
+
+		assertThat(types.getMetadata("folder_custom1_m1").isDefaultRequirement()).isTrue();
+		assertThat(types.getMetadata("folder_custom1_m2").isDefaultRequirement()).isFalse();
+		assertThat(types.getMetadata("folder_custom1_m3").isDefaultRequirement()).isFalse();
+
+		assertThat(types.getMetadata("folder_custom2_m1").isDefaultRequirement()).isFalse();
+		assertThat(types.getMetadata("folder_custom2_m2").isDefaultRequirement()).isTrue();
+		assertThat(types.getMetadata("folder_custom2_m3").isDefaultRequirement()).isFalse();
+
+	}
+
+	@Test
+	public void givenMetadataWithCustomEnabledStatusInCustomSchemasThenOK()
+			throws Exception {
+		runTwice = false;
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+		ImportedType folderType = new ImportedType().setDefaultSchema(
+				new ImportedMetadataSchema().setCode("default")).setCode("folder");
+		ImportedMetadata defaultM1 = folderType.getDefaultSchema().newMetadata("m1").setType("STRING").setEnabled(true);
+		ImportedMetadata defaultM2 = folderType.getDefaultSchema().newMetadata("m2").setType("STRING").setEnabled(false);
+		ImportedMetadata defaultM3 = folderType.getDefaultSchema().newMetadata("m3").setType("STRING").setEnabled(true);
+
+		ImportedMetadataSchema customSchema1 = folderType.newSchema("custom1");
+		ImportedMetadata custom1M1 = customSchema1.newMetadata("m1").setEnabled(false);
+		ImportedMetadata custom1M2 = customSchema1.newMetadata("m2").setEnabled(true);
+		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2");
+		ImportedMetadata custom2M1 = customSchema2.newMetadata("m1");
+
+		collectionSettings.addType(folderType.addSchema(customSchema1).addSchema(customSchema2));
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(zeCollection);
+		assertThat(types.getMetadata("folder_default_m1").isEnabled()).isTrue();
+		assertThat(types.getMetadata("folder_default_m2").isEnabled()).isFalse();
+		assertThat(types.getMetadata("folder_default_m3").isEnabled()).isTrue();
+
+		assertThat(types.getMetadata("folder_custom1_m1").isEnabled()).isFalse();
+		assertThat(types.getMetadata("folder_custom1_m2").isEnabled()).isTrue();
+		assertThat(types.getMetadata("folder_custom1_m3").isEnabled()).isTrue();
+
+		assertThat(types.getMetadata("folder_custom2_m1").isEnabled()).isTrue();
+		assertThat(types.getMetadata("folder_custom2_m2").isEnabled()).isFalse();
+		assertThat(types.getMetadata("folder_custom2_m3").isEnabled()).isTrue();
+
+		defaultM1.setEnabled(false);
+		defaultM2.setEnabled(true);
+		defaultM3.setEnabled(false);
+		custom1M1.setEnabled(true);
+		custom1M2.setEnabled(false);
+
+		importSettings();
+		types = metadataSchemasManager.getSchemaTypes(zeCollection);
+		assertThat(types.getMetadata("folder_default_m1").isEnabled()).isFalse();
+		assertThat(types.getMetadata("folder_default_m2").isEnabled()).isTrue();
+		assertThat(types.getMetadata("folder_default_m3").isEnabled()).isFalse();
+
+		assertThat(types.getMetadata("folder_custom1_m1").isEnabled()).isTrue();
+		assertThat(types.getMetadata("folder_custom1_m2").isEnabled()).isFalse();
+		assertThat(types.getMetadata("folder_custom1_m3").isEnabled()).isFalse();
+
+		assertThat(types.getMetadata("folder_custom2_m1").isEnabled()).isFalse();
+		assertThat(types.getMetadata("folder_custom2_m2").isEnabled()).isTrue();
+		assertThat(types.getMetadata("folder_custom2_m3").isEnabled()).isFalse();
+
+	}
+
+	@Test
 	public void givenMetadataInTabsThenOk()
 			throws Exception {
 
@@ -2164,7 +2337,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		folderType.getDefaultSchema().addMetadata(m1).addMetadata(m2).addMetadata(m3);
 		collectionSettings.addType(folderType.addSchema(new ImportedMetadataSchema().setCode("custom")));
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 		assertThat(schemasDisplayManager.getType(zeCollection, "folder").getMetadataGroup()).containsOnly(
@@ -2259,7 +2432,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
 		folderType.addSchema(customSchema);
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2289,7 +2462,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2);
 		folderType.addSchema(customSchema);
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2343,7 +2516,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.addSchema(customSchema);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2402,7 +2575,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.addSchema(customSchema1);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2470,7 +2643,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.addSchema(customSchema);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2529,7 +2702,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.addSchema(customSchema);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2565,7 +2738,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenUpdatingRecordAutoCompleteThenFlagIsSet()
 			throws Exception {
 
@@ -2586,7 +2759,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.addSchema(customSchema);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2628,7 +2801,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-	//@InDevelopmentTest
+
 	public void whenUpdatingSearchableAndSortableThenOK()
 			throws Exception {
 
@@ -2651,7 +2824,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.addSchema(customSchema);
 
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
@@ -2732,29 +2905,29 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				new ImportedCollectionSettings().setCode(zeCollection);
 
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
-				.setTitles(toTitlesMap(TITLE_FR, TITLE_EN))
+				.setTitle(TITLE_FR)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 		collectionSettings.addValueList(v1);
 
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
-				.setTitles(toTitlesMap("Le titre du domaine de valeurs 2", "Second value list's title"))
+				.setTitle("Le titre du domaine de valeurs 2")
 				.setClassifiedTypes(toListOfString(DOCUMENT))
 				.setCodeMode("FACULTATIVE");
 		collectionSettings.addValueList(v2);
 
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
-				.setTitles(toTitlesMap("Le titre du domaine de valeurs 3", "Third value list's title"))
+				.setTitle("Le titre du domaine de valeurs 3")
 				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
 		collectionSettings.addValueList(v3);
 
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
-				.setTitles(toTitlesMap("Le titre du domaine de valeurs 4", "Fourth value list's title"))
+				.setTitle("Le titre du domaine de valeurs 4")
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitles(toTitlesMap(TAXO_1_TITLE_FR, TAXO_1_TITLE_EN))
+				.setTitle(TAXO_1_TITLE_FR)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList(gandalf, bobGratton))
@@ -2762,7 +2935,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		collectionSettings.addTaxonomy(importedTaxonomy1);
 
 		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
-				.setTitles(toTitlesMap(TAXO_2_TITLE_FR, TAXO_2_TITLE_EN));
+				.setTitle(TAXO_2_TITLE_FR);
 		collectionSettings.addTaxonomy(importedTaxonomy2);
 
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
@@ -2799,18 +2972,19 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2).addMetadata(m3);
 		folderType.addSchema(customSchema);
 		collectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(collectionSettings);
+		settings.addCollectionSettings(collectionSettings);
 
 		ImportedCollectionSettings anotherCollectionSettings =
 				new ImportedCollectionSettings().setCode("anotherCollection");
 		anotherCollectionSettings.addType(folderType);
-		settings.addCollectionsConfigs(anotherCollectionSettings);
+		settings.addCollectionSettings(anotherCollectionSettings);
 
 		// write settings settings to file ==> file1
 		Document outDocument = new SettingsXMLFileWriter().writeSettings(settings);
 
 		// read file1 to setting1
 		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument).read();
+		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
 		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
 
 		// write settings1 to file ==> file2

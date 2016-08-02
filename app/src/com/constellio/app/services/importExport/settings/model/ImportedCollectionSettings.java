@@ -1,10 +1,15 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.script.Bindings;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportedCollectionSettings {
 
@@ -23,6 +28,16 @@ public class ImportedCollectionSettings {
 	public ImportedCollectionSettings setCode(String code) {
 		this.code = code;
 		return this;
+	}
+
+	public ImportedValueList newCustomValueList(String code) {
+		if (!code.startsWith("ddvUSR")) {
+			code = "ddvUSR" + code;
+		}
+
+		ImportedValueList importedValueList = new ImportedValueList().setCode(code);
+		addValueList(importedValueList);
+		return importedValueList;
 	}
 
 	public ImportedCollectionSettings addValueList(ImportedValueList valueList) {
@@ -78,5 +93,19 @@ public class ImportedCollectionSettings {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	public ImportedType getType(String code) {
+		for (ImportedType importedType : types) {
+			if (code.equals(importedType.getCode())) {
+				return importedType;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

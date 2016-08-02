@@ -1,10 +1,14 @@
 package com.constellio.app.services.importExport.settings.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportedMetadataSchema {
 
@@ -24,6 +28,12 @@ public class ImportedMetadataSchema {
 	public ImportedMetadataSchema addMetadata(ImportedMetadata importedMetadata) {
 		metadatas.add(importedMetadata);
 		return this;
+	}
+
+	public ImportedMetadata newMetadata(String localCode) {
+		ImportedMetadata importedMetadata = new ImportedMetadata().setCode(localCode);
+		metadatas.add(importedMetadata);
+		return importedMetadata;
 	}
 
 	public ImportedMetadataSchema setAllMetadatas(List<ImportedMetadata> metadata) {
@@ -62,5 +72,10 @@ public class ImportedMetadataSchema {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

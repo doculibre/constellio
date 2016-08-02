@@ -99,7 +99,7 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	@Override
 	public List<String> getAvailableSchemaTypes() {
 		List<String> schemaTypes = new ArrayList<>();
-		if (tempFolder != null) {
+		if (tempFolder != null && tempFolder.listFiles() != null) {
 			for (File file : tempFolder.listFiles()) {
 				if (file.getName().endsWith(".xml")) {
 					schemaTypes.add(file.getName().replace(".xml", ""));

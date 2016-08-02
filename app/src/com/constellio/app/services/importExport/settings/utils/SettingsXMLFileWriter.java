@@ -29,7 +29,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
         addSequences(importedSettings.getSequences());
 
-        addCollectionsSettings(importedSettings.getCollectionsConfigs());
+        addCollectionsSettings(importedSettings.getCollectionsSettings());
 
         return document;
 
@@ -128,19 +128,21 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
         addSchemaMetadata(customSchema, schemaElement);
     }
 
-    private void addSchemaMetadata(ImportedMetadataSchema customSchema, Element schemaElement) {
-        for (ImportedMetadata importedMetadata : customSchema.getAllMetadata()) {
+    private void addSchemaMetadata(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+        for (ImportedMetadata importedMetadata : metadataSchema.getAllMetadata()) {
             addMetadatum(schemaElement, importedMetadata);
         }
     }
 
     private void addDefaultSchema(ImportedType importedType, Element typeItem) {
-        Element defaultSchemaElem = new Element(DEFAULT_SCHEMA);
-        typeItem.addContent(defaultSchemaElem);
+        if (importedType.getDefaultSchema() != null) {
+            Element defaultSchemaElem = new Element(DEFAULT_SCHEMA);
+            typeItem.addContent(defaultSchemaElem);
 
-        ImportedMetadataSchema defaultSchema = importedType.getDefaultSchema();
+            ImportedMetadataSchema defaultSchema = importedType.getDefaultSchema();
 
-        addSchemaMetadata(defaultSchema, defaultSchemaElem);
+            addSchemaMetadata(defaultSchema, defaultSchemaElem);
+        }
     }
 
     private void addTabs(ImportedType importedType, Element typeItem) {
@@ -334,7 +336,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
     private void addTaxonomy(Element taxonomiesElem, ImportedTaxonomy importedTaxonomy) {
         Element listElem = new Element(TAXONOMY);
         listElem.setAttribute(CODE, importedTaxonomy.getCode());
-        listElem.setAttribute(TITLE, importedTaxonomy.getTitles().get(TITLE_FR));
+        listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
         listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
         listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(importedTaxonomy.getClassifiedTypes(), ','));
         listElem.setAttribute(GROUPS, StringUtils.join(importedTaxonomy.getGroupIds(), ','));
@@ -354,7 +356,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
     private void addValueListItem(Element valueListsElem, ImportedValueList valueList) {
         Element listElem = new Element(VALUE_LIST);
         listElem.setAttribute(CODE, valueList.getCode());
-        listElem.setAttribute(TITLE, valueList.getTitles().get(TITLE_FR));
+        listElem.setAttribute(TITLE, valueList.getTitle());
 
         if (!valueList.getClassifiedTypes().isEmpty()) {
             listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(valueList.getClassifiedTypes(), ','));

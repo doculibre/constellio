@@ -3,7 +3,7 @@ package com.constellio.app.services.importExport.settings.utils;
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import org.apache.tools.ant.util.StringUtils;
+
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -139,22 +139,22 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")
-                .setTitles(toTitlesMap("domaine1", "valueList1"))
+                .setTitle("domaine1")
                 .setClassifiedTypes(toListOfString("document", "folder"))
                 .setCodeMode("DISABLED"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
-                .setTitles(toTitlesMap("domaine2", "valueList2"))
+                .setTitle("domaine2")
                 .setClassifiedTypes(toListOfString("document"))
                 .setCodeMode("FACULTATIVE"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
-                .setTitles(toTitlesMap("domaine3", "valueList3"))
+                .setTitle("domaine3")
                 .setCodeMode("REQUIRED_AND_UNIQUE")
                 .setHierarchical(true));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl4")
-                .setTitles(toTitlesMap("domaine4", "valueList4"))
+                .setTitle("domaine4")
                 .setHierarchical(false));
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -184,7 +184,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
         ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-                .setTitles(toTitlesMap("taxo1Titre1", "taxoTitle1"))
+                .setTitle("taxo1Titre1")
                 .setClassifiedTypes(toListOfString("document", "folder"))
                 .setVisibleOnHomePage(false)
                 .setUserIds(asList("user1", "user2"))
@@ -192,10 +192,10 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         zeCollectionSettings.addTaxonomy(taxonomy1);
 
         ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-                .setTitles(toTitlesMap("taxo1Titre2", "taxoTitle2"));
+                .setTitle("taxo1Titre2");
         zeCollectionSettings.addTaxonomy(taxonomy2);
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -219,15 +219,6 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(taxonomy1Elem.getAttributeValue(GROUPS)).isEqualTo("group1");
     }
 
-	/*
-		1. ImportedMetadataManualDataEntry.java
-		2. ImportedMetadataSequenceDataEntry.java : un des deux argument est null. JAMAIS LES DEUX !!
-		3. ImportedMetadataJEXLDataEntry.java
-		4. ImportedMetadataCalculatedDataEntry.java
-		5. ImportedMetadataCopiedDataEntry.java
-		6. Parameterized calculators
-	*/
-
     @Test
     public void whenWritingTypesWithCalculatedDataEntryTypeMetadataThenOK() throws IOException {
 
@@ -245,7 +236,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
                         .addMetadata(m1)));
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -301,7 +292,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
                         .addMetadata(m1)));
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -363,7 +354,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setDefaultSchema(new ImportedMetadataSchema().setCode("default")
                         .addMetadata(m1)));
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -426,7 +417,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .addSchema(new ImportedMetadataSchema().setCode("custom1")
                         .addMetadata(m2)));
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -542,7 +533,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .addSchema(new ImportedMetadataSchema().setCode("custom1")
                         .addMetadata(m3)));
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
@@ -685,23 +676,23 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 
         ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")
-                .setTitles(toTitlesMap("domaine1", "valueList1"))
+                .setTitle("domaine1")
                 .setClassifiedTypes(toListOfString("document", "folder"))
                 .setCodeMode("DISABLED"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
-                .setTitles(toTitlesMap("domaine2", "valueList2"))
+                .setTitle("domaine2")
                 .setClassifiedTypes(toListOfString("document"))
                 .setCodeMode("FACULTATIVE"));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
-                .setTitles(toTitlesMap("domaine3", "valueList3"))
+                .setTitle("domaine3")
                 .setCodeMode("REQUIRED_AND_UNIQUE")
                 .setHierarchical(true));
         zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl4")
-                .setTitles(toTitlesMap("domaine4", "valueList4"))
+                .setTitle("domaine4")
                 .setHierarchical(false));
 
         ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-                .setTitles(toTitlesMap("taxo1Titre1", "taxoTitle1"))
+                .setTitle("taxo1Titre1")
                 .setClassifiedTypes(toListOfString("document", "folder"))
                 .setVisibleOnHomePage(false)
                 .setUserIds(asList("user1", "user2"))
@@ -709,7 +700,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         zeCollectionSettings.addTaxonomy(taxonomy1);
 
         ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-                .setTitles(toTitlesMap("taxo1Titre2", "taxoTitle2"));
+                .setTitle("taxo1Titre2");
         zeCollectionSettings.addTaxonomy(taxonomy2);
 
         Map<String, String> tabParams = new HashMap<>();
@@ -744,7 +735,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .addSchema(customSchema);
         zeCollectionSettings.addType(importedType);
 
-        ImportedSettings importedSettings = new ImportedSettings().addCollectionsConfigs(zeCollectionSettings);
+        ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
         writer.writeSettings(importedSettings);
 
         List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");

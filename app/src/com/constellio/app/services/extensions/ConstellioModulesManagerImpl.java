@@ -288,6 +288,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			enabledModuleIds.add(enabledModule.getId());
 		}
 
+		boolean newModulesEnabled = false;
 		for (InstallableModule complementaryModule : getComplementaryModules()) {
 			if (enabledModuleIds.containsAll(getDependencies(complementaryModule))) {
 				if (!isInstalled(complementaryModule)) {
@@ -296,8 +297,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 				}
 				if (!isModuleEnabled(collection, complementaryModule)) {
 					returnList.addAll(enableValidModuleAndGetInvalidOnes(collection, complementaryModule));
+					newModulesEnabled = true;
 				}
 			}
+		}
+		if (newModulesEnabled) {
+			enabledModuleIds.addAll(enableComplementaryModules(collection));
 		}
 		return returnList;
 	}
