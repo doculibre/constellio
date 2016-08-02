@@ -65,7 +65,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 			return null;
 		} else {
 			LocalDate baseDateFromFolder = getBaseAjustedDate(input);
-			LocalDate baseDateFromSemiActiveDelay = input.getAjustedBaseDateFromActiveDelay(parameters.get(yearEndParam));
+			LocalDate baseDateFromSemiActiveDelay = input.getAdjustedBaseDateFromActiveDelay(parameters.get(yearEndParam));
 			LocalDate baseDate = max(baseDateFromFolder, baseDateFromSemiActiveDelay);
 			return input.calculateSemiActiveBasedOn(baseDate);
 		}
@@ -76,7 +76,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 
 	private LocalDate getBaseAjustedDate(CalculatorInput input) {
 		if (input.preferedDecommissioningDateBasedOn == OPEN_DATE || input.folderCloseDate == null) {
-			return input.ajustToFinancialYear(input.folderOpenDate);
+			return input.adjustToFinancialYear(input.folderOpenDate);
 		} else {
 			return input.folderCloseDate;
 		}
@@ -139,15 +139,15 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 			return CalculatorUtils.calculateExpectedTransferDate(copy, baseDate, numberOfYearWhenSemiActiveVariableDelay);
 		}
 
-		LocalDate ajustToFinancialYear(LocalDate date) {
+		LocalDate adjustToFinancialYear(LocalDate date) {
 			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(date, yearEnd, requiredDaysBeforeYearEnd);
 		}
 
-		public LocalDate getAjustedBaseDateFromActiveDelay(String yearEnd) {
+		public LocalDate getAdjustedBaseDateFromActiveDelay(String yearEnd) {
 			String metadata = copy.getActiveDateMetadata();
 
 			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
-			return date == null ? null : ajustToFinancialYear(date);
+			return date == null ? null : adjustToFinancialYear(date);
 		}
 	}
 }

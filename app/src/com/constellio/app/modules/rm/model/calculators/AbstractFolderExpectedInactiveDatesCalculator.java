@@ -65,7 +65,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 		} else if (input.archivisticStatus.isSemiActive()) {
 			baseTransferDate = input.decommissioningDate;
 			LocalDate dateSpecifiedInCopyRule = input
-					.getAjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
+					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			baseTransferDate = LangUtils.min(baseTransferDate, dateSpecifiedInCopyRule);
 
 		} else {
@@ -74,7 +74,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			}
 
 			LocalDate dateSpecifiedInCopyRule = input
-					.getAjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
+					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
 			} else {
@@ -122,7 +122,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 		}
 
-		public LocalDate getAjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {
+		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {
 			String semiActiveMetadata = copy.getSemiActiveDateMetadata();
 
 			if (semiActiveMetadata != null && semiActiveMetadata.equals(copy.getActiveDateMetadata())) {
