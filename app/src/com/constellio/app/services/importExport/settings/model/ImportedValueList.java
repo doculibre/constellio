@@ -7,6 +7,9 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 
 public class ImportedValueList {
 
@@ -31,6 +34,11 @@ public class ImportedValueList {
 
 	public String getCodeMode() {
 		return codeMode;
+	}
+
+	public ImportedValueList setCodeMode(ValueListItemSchemaTypeCodeMode codeMode) {
+		this.codeMode = codeMode.name();
+		return this;
 	}
 
 	public ImportedValueList setCodeMode(String codeMode) {
@@ -74,5 +82,10 @@ public class ImportedValueList {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

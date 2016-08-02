@@ -2,13 +2,14 @@ package com.constellio.app.services.importExport.settings.model;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportedConfig {
 
 	String key;
 	String value;
 
-	public String getKey(){
+	public String getKey() {
 		return key;
 	}
 
@@ -26,7 +27,6 @@ public class ImportedConfig {
 		return value;
 	}
 
-
 	@Override
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
@@ -40,6 +40,6 @@ public class ImportedConfig {
 
 	@Override
 	public String toString() {
-		return "key: "+key + ", value: " + value;
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

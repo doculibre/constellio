@@ -169,24 +169,28 @@ public class MigrationServices {
 			migrateWithoutException(new CoreMigrationCombo(), null, collection);
 		}
 
-		List<Migration> migrations = getAllMigrationsFor(newModule && appLayerFactory.getAppLayerConfiguration()
-				.isFastMigrationsEnabled(), collection);
-
-		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
+		List<Migration> migrations;
 
 		boolean firstMigration = true;
+		boolean fastMigrationEnabled = appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled();
+		while (modulesNotMigratedCorrectly.isEmpty() &&
+				!(migrations = filterRunnedMigration(collection,
+						getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
 
-		for (Migration migration : filteredMigrations) {
-			if (toVersion == null || VersionsComparator.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
+			System.out.println("Migrating collection " + collection + " : " + migrations);
+			for (Migration migration : migrations) {
+				if (toVersion == null || VersionsComparator
+						.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
 
-				if (firstMigration) {
-					ensureSchemasHaveCommonMetadata(collection);
-					firstMigration = false;
-				}
+					if (firstMigration) {
+						ensureSchemasHaveCommonMetadata(collection);
+						firstMigration = false;
+					}
 
-				boolean exceptionWhenMigrating = migrateWithoutException(migration, collection);
-				if (exceptionWhenMigrating) {
-					modulesNotMigratedCorrectly.add(migration.getMigrationId());
+					boolean exceptionWhenMigrating = migrateWithoutException(migration, collection);
+					if (exceptionWhenMigrating) {
+						modulesNotMigratedCorrectly.add(migration.getMigrationId());
+					}
 				}
 			}
 		}

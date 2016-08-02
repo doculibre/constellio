@@ -5,12 +5,16 @@ import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class ImportedMetadata {
 
 	private String code;
 	private String label;
 	private String type;
+	private String referencedType;
 	private Boolean enabled;// = true;
 	private List<String> enabledIn = new ArrayList<>();
 	private Boolean required;// = true;
@@ -62,6 +66,11 @@ public class ImportedMetadata {
 
 	public String getType() {
 		return type;
+	}
+
+	public ImportedMetadata setType(MetadataValueType type) {
+		setType(type.name());
+		return this;
 	}
 
 	public ImportedMetadata setType(String type) {
@@ -303,6 +312,14 @@ public class ImportedMetadata {
 		return this;
 	}
 
+	public String getReferencedType() {
+		return referencedType;
+	}
+
+	public ImportedMetadata setReferencedType(String referencedType) {
+		this.referencedType = referencedType;
+		return this;
+	}
 
 	public List<String> getVisibleInListInSchemas(ListType listType) {
 		switch (listType) {
@@ -374,6 +391,6 @@ public class ImportedMetadata {
 
 	@Override
 	public String toString() {
-		return "code: " + code + ", label: " + label + ", type: " + type + ", tab: " + tab;
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

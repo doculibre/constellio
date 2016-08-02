@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.settings;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -155,6 +156,7 @@ public class SettingsImportServices {
 					importSchemaMetadatas(typeBuilder, importedType.getDefaultSchema(), defaultSchemaBuilder, types,
 							newMetadatas);
 
+					importCustomSchemataMetadatas(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 				}
 
 			}
@@ -359,18 +361,25 @@ public class SettingsImportServices {
 		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
 			importSchema(types, typeBuilder, importedMetadataSchema, newMetadatas);
 		}
+
+	}
+
+	private void importCustomSchemataMetadatas(MetadataSchemaTypesBuilder types,
+			List<ImportedMetadataSchema> importedMetadataSchemata,
+			MetadataSchemaTypeBuilder typeBuilder, KeyListMap<String, String> newMetadatas) {
+		for (ImportedMetadataSchema importedMetadataSchema : importedMetadataSchemata) {
+			MetadataSchemaBuilder customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+			importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types, newMetadatas);
+		}
 	}
 
 	private void importSchema(MetadataSchemaTypesBuilder types,
 			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
 			KeyListMap<String, String> newMetadatas) {
-		MetadataSchemaBuilder customSchemaBuilder;
-		try {
-			customSchemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
-		} catch (MetadataSchemaTypeBuilderRuntimeException.SchemaAlreadyDefined e) {
-			customSchemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+
+		if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
+			typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
 		}
-		importSchemaMetadatas(typeBuilder, importedMetadataSchema, customSchemaBuilder, types, newMetadatas);
 	}
 
 	private void importSchemaMetadatas(MetadataSchemaTypeBuilder typeBuilder,
@@ -386,11 +395,19 @@ public class SettingsImportServices {
 			ImportedMetadata importedMetadata, MetadataSchemaTypesBuilder typesBuilder) {
 		MetadataBuilder metadataBuilder;
 		try {
-			metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
-			MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
-			metadataBuilder.setType(type);
-		} catch (MetadataSchemaBuilderRuntimeException.MetadataAlreadyExists e) {
 			metadataBuilder = schemaBuilder.get(importedMetadata.getCode());
+
+		} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
+			metadataBuilder = schemaBuilder.create(importedMetadata.getCode());
+			if (metadataBuilder.getInheritance() == null) {
+				MetadataValueType type = EnumUtils.getEnum(MetadataValueType.class, importedMetadata.getType());
+				metadataBuilder.setType(type);
+				if (type == REFERENCE) {
+					MetadataSchemaTypeBuilder referencedTypeBuilder = typesBuilder
+							.getSchemaType(importedMetadata.getReferencedType());
+					metadataBuilder.defineReferences().set(referencedTypeBuilder);
+				}
+			}
 		}
 
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
@@ -489,7 +506,7 @@ public class SettingsImportServices {
 				break;
 
 			case "copied":
-				if(StringUtils.isNotBlank(dataEntry.getReferencedMetadata())){
+				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
 					MetadataBuilder referenceMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getReferencedMetadata());
 					MetadataBuilder copiedMetadataBuilder = schemaBuilder.getMetadata(dataEntry.getCopiedMetadata());
 
@@ -505,7 +522,7 @@ public class SettingsImportServices {
 	}
 
 	private void setSequenceDataEntry(MetadataBuilder metadataBuilder, ImportedDataEntry dataEntry) {
-		if(StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
+		if (StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
 			metadataBuilder.defineDataEntry().asFixedSequence(dataEntry.getFixedSequenceCode());
 		} else {
 			metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(dataEntry.getMetadataProvidingSequenceCode());

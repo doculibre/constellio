@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportedMetadataSchema {
 
@@ -27,6 +28,12 @@ public class ImportedMetadataSchema {
 	public ImportedMetadataSchema addMetadata(ImportedMetadata importedMetadata) {
 		metadatas.add(importedMetadata);
 		return this;
+	}
+
+	public ImportedMetadata newMetadata(String localCode) {
+		ImportedMetadata importedMetadata = new ImportedMetadata().setCode(localCode);
+		metadatas.add(importedMetadata);
+		return importedMetadata;
 	}
 
 	public ImportedMetadataSchema setAllMetadatas(List<ImportedMetadata> metadata) {
@@ -69,6 +76,6 @@ public class ImportedMetadataSchema {
 
 	@Override
 	public String toString() {
-		return "code: " + code + ", label: " + label + ", metadata: " + Arrays.asList(metadatas);
+		return ToStringBuilder.reflectionToString(this);
 	}
 }

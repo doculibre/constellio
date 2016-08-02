@@ -94,6 +94,7 @@ public class SchemasDisplayManager
 				}
 			});
 		}
+
 	}
 
 	private void validate(SchemaDisplayManagerTransaction transaction) {

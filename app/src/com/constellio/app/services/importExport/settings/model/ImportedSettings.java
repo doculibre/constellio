@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class ImportedSettings {
 
@@ -53,6 +54,11 @@ public class ImportedSettings {
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public String toString() {
+		return ToStringBuilder.reflectionToString(this);
 	}
 
 	public List<ImportedSequence> getSequences(){

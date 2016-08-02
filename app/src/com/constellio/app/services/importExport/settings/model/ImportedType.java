@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import com.constellio.model.entities.schemas.MetadataSchema;
 
@@ -41,13 +42,19 @@ public class ImportedType {
 		tabs.add(importedTab);
 	}
 
-	public ImportedTab getTab(String code){
-		for(ImportedTab importedTab : tabs){
-			if(importedTab.getCode().equals(code)){
+	public ImportedTab getTab(String code) {
+		for (ImportedTab importedTab : tabs) {
+			if (importedTab.getCode().equals(code)) {
 				return importedTab;
 			}
 		}
 		return null;
+	}
+
+	public ImportedMetadataSchema newSchema(String code) {
+		ImportedMetadataSchema schema = new ImportedMetadataSchema().setCode(code);
+		this.customSchemata.add(schema);
+		return schema;
 	}
 
 	public ImportedType addSchema(ImportedMetadataSchema customSchema) {
@@ -95,20 +102,22 @@ public class ImportedType {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder("code: " + code + ", label: " + label);
-		if (tabs != null) {
-			sb.append(", tabs: " + Arrays.toString(tabs.toArray()));
-		}
+		return ToStringBuilder.reflectionToString(this);
+	}
 
-		if (defaultSchema != null) {
-			sb.append(", defaultSchema: " + defaultSchema.toString());
+	public ImportedMetadataSchema getSchemaNotNull(String code) {
+		ImportedMetadataSchema schema = getSchema(code);
+		if (schema == null) {
+			throw new RuntimeException("No such schema with code '" + code + "'");
 		}
-
-		return sb.toString();
+		return schema;
 	}
 
 	public ImportedMetadataSchema getSchema(String code) {
-		for(ImportedMetadataSchema importedMetadataSchema : customSchemata){
+		if ("default".equals(code)) {
+			return defaultSchema;
+		}
+		for (ImportedMetadataSchema importedMetadataSchema : customSchemata) {
 			if (importedMetadataSchema.getCode().equals(code)) {
 				return importedMetadataSchema;
 			}
