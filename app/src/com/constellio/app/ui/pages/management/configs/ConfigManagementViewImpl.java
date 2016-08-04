@@ -60,42 +60,43 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 		final SystemConfigurationGroupdataProvider dataProvider = presenter.systemConfigurationGroupDataProvider();
 		for (String groupCode : dataProvider.getCodesList()) {
 			List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getConfigs();
-			GridLayout gridLayout = new GridLayout(2, configs.size() + 1);
-			gridLayout.setSizeFull();
-			gridLayout.setId(groupCode);
-			gridLayout.setSpacing(true);
+			if(!configs.isEmpty()){
+				GridLayout gridLayout = new GridLayout(2, configs.size() + 1);
+				gridLayout.setSizeFull();
+				gridLayout.setId(groupCode);
+				gridLayout.setSpacing(true);
 
-			for (int i = 0; i < configs.size(); i++) {
-				SystemConfigurationVO currentConfigurationVO = configs.get(i);
-				Label currentLabel = new Label(presenter.getLabel(groupCode, currentConfigurationVO.getCode()));
-				currentLabel.setSizeFull();
-				gridLayout.addComponent(currentLabel, 0, i);
-				Field<?> field = createField(currentConfigurationVO);
-				field.setId(groupCode + i);
-				field.addStyleName(CONFIG_ELEMENT_VALUE);
-				field.addValueChangeListener(new ValueChangeListener() {
-					@Override
-					public void valueChange(ValueChangeEvent event) {
-						Field field = (Field) event.getProperty();
-						String id = field.getId();
-						String groupCode = tabsheet.getSelectedTab().getId();
-						String iString = StringUtils.substringAfter(id, groupCode);
-						int i = Integer.valueOf(iString);
-						Object value = field.getValue();
-						if (value == null) {
-							dataProvider.valueChange(groupCode, i, null);
-						} else {
-							dataProvider.valueChange(groupCode, i, value);
+				for (int i = 0; i < configs.size(); i++) {
+					SystemConfigurationVO currentConfigurationVO = configs.get(i);
+					Label currentLabel = new Label(presenter.getLabel(groupCode, currentConfigurationVO.getCode()));
+					currentLabel.setSizeFull();
+					gridLayout.addComponent(currentLabel, 0, i);
+					Field<?> field = createField(currentConfigurationVO);
+					field.setId(groupCode + i);
+					field.addStyleName(CONFIG_ELEMENT_VALUE);
+					field.addValueChangeListener(new ValueChangeListener() {
+						@Override
+						public void valueChange(ValueChangeEvent event) {
+							Field field = (Field) event.getProperty();
+							String id = field.getId();
+							String groupCode = tabsheet.getSelectedTab().getId();
+							String iString = StringUtils.substringAfter(id, groupCode);
+							int i = Integer.valueOf(iString);
+							Object value = field.getValue();
+							if (value == null) {
+								dataProvider.valueChange(groupCode, i, null);
+							} else {
+								dataProvider.valueChange(groupCode, i, value);
+							}
+
 						}
+					});
+					field.setSizeFull();
+					gridLayout.addComponent(field, 1, i);
+				}
 
-					}
-				});
-				field.setSizeFull();
-				gridLayout.addComponent(field, 1, i);
+				tabsheet.addTab(gridLayout, presenter.getGroupLabel(groupCode));
 			}
-
-			tabsheet.addTab(gridLayout, presenter.getGroupLabel(groupCode));
-
 		}
 		layout.addComponent(tabsheet);
 
