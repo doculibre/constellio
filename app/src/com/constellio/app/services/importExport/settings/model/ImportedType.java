@@ -124,4 +124,10 @@ public class ImportedType {
 		}
 		return null;
 	}
+
+	public ImportedMetadataSchema newDefaultSchema() {
+		ImportedMetadataSchema schema = new ImportedMetadataSchema().setCode("default");
+		this.defaultSchema = schema;
+		return defaultSchema;
+	}
 }

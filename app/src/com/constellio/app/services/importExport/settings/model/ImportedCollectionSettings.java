@@ -70,6 +70,12 @@ public class ImportedCollectionSettings {
 		return this;
 	}
 
+	public ImportedType newType(String code) {
+		ImportedType type = new ImportedType().setCode(code);
+		types.add(type);
+		return type;
+	}
+
 	public ImportedCollectionSettings addType(ImportedType importedType) {
 		types.add(importedType);
 		return this;
