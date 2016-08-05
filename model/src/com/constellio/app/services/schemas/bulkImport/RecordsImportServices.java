@@ -4,6 +4,7 @@ import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
 import static java.util.Arrays.asList;
 
 import java.io.InputStream;
@@ -58,6 +59,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RecordsImportServices implements ImportServices {
@@ -78,6 +80,7 @@ public class RecordsImportServices implements ImportServices {
 	private RecordServices recordServices;
 	private ContentManager contentManager;
 	private IOServices ioServices;
+	private SearchServices searchServices;
 	private int batchSize;
 	private URLResolver urlResolver;
 
@@ -90,6 +93,7 @@ public class RecordsImportServices implements ImportServices {
 		this.batchSize = batchSize;
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		recordServices = modelLayerFactory.newRecordServices();
+		searchServices = modelLayerFactory.newSearchServices();
 		contentManager = modelLayerFactory.getContentManager();
 		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		this.urlResolver = urlResolver;
@@ -162,6 +166,8 @@ public class RecordsImportServices implements ImportServices {
 		BulkImportResults importResults = new BulkImportResults();
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
 		for (String schemaType : importedSchemaTypes) {
+
+			boolean recordsBeforeImport = searchServices.hasResults(from(types.getSchemaType(schemaType)).returnAll());
 			progressionHandler.beforeImportOf(schemaType);
 			List<String> uniqueMetadatas = types.getSchemaType(schemaType).getAllMetadatas()
 					.onlyWithType(STRING).onlyUniques().toLocalCodesList();
@@ -172,7 +178,7 @@ public class RecordsImportServices implements ImportServices {
 
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
-						progressionHandler, user, types, extensions, addUpdateCount, params);
+						progressionHandler, user, types, extensions, addUpdateCount, params, recordsBeforeImport);
 				if (skipped > 0 && skipped == previouslySkipped) {
 					Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
 					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType,
@@ -191,7 +197,7 @@ public class RecordsImportServices implements ImportServices {
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			ImportDataIterator importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
 			MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
-			BulkImportParams params) {
+			BulkImportParams params, boolean recordsBeforeImport) {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
@@ -199,7 +205,11 @@ public class RecordsImportServices implements ImportServices {
 		while (importDataBatches.hasNext()) {
 			try {
 				List<ImportData> batch = importDataBatches.next();
-				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
+				Transaction transaction = new Transaction();
+				transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
+				if (!recordsBeforeImport) {
+					transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);
+				}
 				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction,
 						types, progressionHandler, extensions, addUpdateCount, errors, params, importDataIterator.getOptions());
 				recordServices.executeHandlingImpactsAsync(transaction);

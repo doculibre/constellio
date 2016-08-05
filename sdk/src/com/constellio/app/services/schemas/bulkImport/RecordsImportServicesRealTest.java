@@ -16,12 +16,14 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_STRING_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_NOT_UNIQUE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.METADATA_NOT_UNIQUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_IDS;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
@@ -75,6 +77,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
@@ -83,6 +86,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -113,6 +117,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	RecordsImportServices services;
 
 	ModelLayerExtensions extensions;
+
+	RecordServices recordServices;
 
 	SearchServices searchServices;
 
@@ -155,7 +161,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					"structureMetadata");
 
 			if (structureFields != null && structureFields.containsKey("zeTitle")) {
-				buildParams.getRecord().set(Schemas.TITLE, structureFields.get("zeTitle"));
+				buildParams.getRecord().set(TITLE, structureFields.get("zeTitle"));
 			}
 		}
 	};
@@ -237,6 +243,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		extensions.forCollection(zeCollection).recordImportExtensions.add(firstImportBehavior);
 		extensions.forCollection(zeCollection).recordImportExtensions.add(secondImportBehavior);
 		extensions.forCollection(zeCollection).recordImportExtensions.add(otherTypeBehavior);
+		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 	}
 
@@ -273,7 +280,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 2");
+		assertThat(record.get(TITLE)).isEqualTo("new title 2");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
@@ -284,7 +291,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 3");
+		assertThat(record.get(TITLE)).isEqualTo("new title 3");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
@@ -300,7 +307,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 3");
+		assertThat(record.get(TITLE)).isEqualTo("new title 3");
 		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
 		assertThat(record.get(zeSchema.dateMetadata())).isNull();
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isNull();
@@ -335,7 +342,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isTrue();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(aDate);
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(aDateTime);
@@ -371,7 +378,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
@@ -407,7 +414,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -426,7 +433,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_custom");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -445,7 +452,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -509,7 +516,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
 			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
-			assertThat(record.get(Schemas.TITLE)).isEqualTo("Record " + i);
+			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be true")
 					.isTrue();
 		}
@@ -518,7 +525,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
 			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
-			assertThat(record.get(Schemas.TITLE)).isEqualTo("Record " + i);
+			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be false")
 					.isFalse();
 		}
@@ -1251,7 +1258,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
@@ -1319,6 +1326,68 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		} catch (ValidationRuntimeException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(newZeSchemaValidationError(LEGACY_ID_NOT_UNIQUE, asMap("legacyId", "42")));
+		}
+
+	}
+
+	@Test
+	public void givenTwoImportedRecordHaveSameUniqueMetadataInSameSchemaTypeThenValidationException()
+			throws Exception {
+
+		defineSchemasManager()
+				.using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique).withAnotherSchemaStringMetadata());
+
+		anotherSchemaTypeRecords
+				.add(defaultSchemaData().setId("41").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField("stringMetadata", "42"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("45").addField("title", "Record 2").addField("stringMetadata", "v1"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationRuntimeException e) {
+			String metadataCode = "zeSchemaType_default_stringMetadata";
+			Map<String, String> labels = new HashMap<>();
+			labels.put("fr", "A toAString metadata");
+			assertThat(extractingSimpleCodeAndParameters(e, "legacyId", "metadataCode",
+					"metadataLabel", "value")).containsOnly(
+					tuple("RecordsImportServices_metadataNotUnique", "43", metadataCode, labels, "v1"),
+					tuple("RecordsImportServices_metadataNotUnique", "45", metadataCode, labels, "v1")
+			);
+
+		}
+
+	}
+
+	@Test
+	public void givenAnImportedRecordHaveSameUniqueMetadataThanOtherExistingRecordThenException()
+			throws Exception {
+
+		defineSchemasManager()
+				.using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique).withAnotherSchemaStringMetadata());
+
+		recordServices
+				.add(new TestRecord(anotherSchema).set(TITLE, "existing record Z").set(anotherSchema.stringMetadata(), "v3"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record A").set(zeSchema.stringMetadata(), "v1"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record B").set(zeSchema.stringMetadata(), "v2"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record C").set(zeSchema.stringMetadata(), "v4"));
+
+		anotherSchemaTypeRecords
+				.add(defaultSchemaData().setId("41").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField("stringMetadata", "v2"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField("stringMetadata", "v3"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationRuntimeException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataCode", "index", "legacyId", "value")).containsOnly(
+					tuple("MetadataUniqueValidator_nonUniqueMetadata", "zeSchemaType_default_stringMetadata", "1", "42", "v1"),
+					tuple("MetadataUniqueValidator_nonUniqueMetadata", "zeSchemaType_default_stringMetadata", "2", "43", "v2")
+			);
 		}
 
 	}
@@ -1523,6 +1592,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					"basedOnMetadatas")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", "2", "3", zeSchema.typeCode(),
 							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
+							"[numberMetadata, booleanMetadata]"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "3", "4", "zeSchemaType",
+							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
 							"[numberMetadata, booleanMetadata]")
 			);
 
@@ -1546,7 +1618,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		@Override
 		public String calculate(CalculatorParameters parameters) {
 			Double number = parameters.get(numberDependency);
-			return number == 42.0 ? "Bingo!" : null;
+			return new Double(42.0).equals(number) ? "Bingo!" : null;
 		}
 
 		@Override
@@ -1580,7 +1652,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
@@ -1616,7 +1688,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
@@ -1653,7 +1725,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title")
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
 				.set(zeSchema.stringMetadata(), "previouslySavedRecordCode"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
@@ -1764,13 +1836,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("11");
-		assertThat(record1.get(Schemas.TITLE)).isEqualTo("pouet");
+		assertThat(record1.get(TITLE)).isEqualTo("pouet");
 
 		Record record2 = recordWithLegacyId("12");
-		assertThat(record2.get(Schemas.TITLE)).isEqualTo("Record 2");
+		assertThat(record2.get(TITLE)).isEqualTo("Record 2");
 
 		Record record3 = recordWithLegacyId("13");
-		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
+		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
 	}
 
 	public static class NoZMetadataValidator implements RecordMetadataValidator<String> {
@@ -1860,34 +1932,34 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		assertThat(record1.getId()).isNotEqualTo("1");
 		assertThat(record1.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record1.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record1.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record2.getId());
 
 		assertThat(record2.getId()).isNotEqualTo("2");
 		assertThat(record2.get(LEGACY_ID)).isEqualTo("2");
-		assertThat(record2.get(Schemas.TITLE)).isEqualTo("Record 2");
+		assertThat(record2.get(TITLE)).isEqualTo("Record 2");
 		assertThat(record2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record3.getId());
 
 		assertThat(record3.getId()).isNotEqualTo("3");
 		assertThat(record3.get(LEGACY_ID)).isEqualTo("3");
-		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
+		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
 		assertThat(record3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record42.getId());
 
 		assertThat(record42.getId()).isNotEqualTo("42");
 		assertThat(record42.get(LEGACY_ID)).isEqualTo("42");
-		assertThat(record42.get(Schemas.TITLE)).isEqualTo("Record 42");
+		assertThat(record42.get(TITLE)).isEqualTo("Record 42");
 		assertThat(record42.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo("previouslySavedRecordId");
 
 		assertThat(record43.getId()).isNotEqualTo("43");
 		assertThat(record43.get(LEGACY_ID)).isEqualTo("43");
-		assertThat(record43.get(Schemas.TITLE)).isEqualTo("Record 43");
+		assertThat(record43.get(TITLE)).isEqualTo("Record 43");
 		assertThat(record43.get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customFieldValue");
 		assertThat(record43.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isNull();
 		assertThat(record43.getSchemaCode()).isEqualTo("zeSchemaType_custom");
 
 		assertThat(record666.getId()).isNotEqualTo("666");
 		assertThat(record666.get(LEGACY_ID)).isEqualTo("666");
-		assertThat(record666.get(Schemas.TITLE)).isEqualTo("Ze record");
+		assertThat(record666.get(TITLE)).isEqualTo("Ze record");
 		assertThat(record666.get(anotherSchema.referenceFromAnotherSchemaToZeSchema())).isEqualTo(record1.getId());
 	}
 
@@ -1912,7 +1984,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	private BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user) {
-		BulkImportResults results = services.bulkImport(importDataProvider, bulkImportProgressionListener, user);
+		BulkImportParams params = new BulkImportParams();
+		params.setStopOnFirstError(false);
+		BulkImportResults results = services.bulkImport(importDataProvider, bulkImportProgressionListener, user, params);
 
 		zeSchemaTypeRecords.clear();
 		anotherSchemaTypeRecords.clear();

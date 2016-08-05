@@ -44,7 +44,7 @@ public class RecordsImportValidator {
 	public static final String INVALID_METADATA_CODE = "invalidMetadataCode";
 	public static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
 	public static final String LEGACY_ID_NOT_UNIQUE = "legacyIdNotUnique";
-	public static final String VALUE_NOT_UNIQUE = "valueNotUnique";
+	public static final String METADATA_NOT_UNIQUE = "metadataNotUnique";
 
 	public static final String REQUIRED_VALUE = "requiredValue";
 	public static final String INVALID_SINGLEVALUE = "invalidSinglevalue";
@@ -141,31 +141,41 @@ public class RecordsImportValidator {
 				if (!unresolved.isEmpty()) {
 					Map<String, Object> parameters = new HashMap<>();
 					parameters.put(uniqueValueMetadata, unresolved.toString());
-					parameters.put("schemaType",schemaType.getCode());
+					parameters.put("schemaType", schemaType.getCode());
 					error(UNRESOLVED_VALUE, parameters);
 				}
 			}
 	}
 
-
-	private Map<String,Object> asMap(String key,Object value) {
-		Map<String,Object> map = new HashMap<>();
-		map.put(key,value);
+	private Map<String, Object> asMap(String key, Object value) {
+		Map<String, Object> map = new HashMap<>();
+		map.put(key, value);
 		return map;
 	}
 
 	private void validateValueUnicityOfUniqueMetadata(List<String> uniqueMetadatas, ImportData importData) {
 		if (!resolverCache.isNewUniqueValue(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId())) {
 			error(LEGACY_ID_NOT_UNIQUE, asMap("legacyId", importData.getLegacyId()));
-		}
+		} else {
 
-		//		for (String uniqueMetadata : uniqueMetadatas) {
-		//			String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
-		//
-		//			if (!resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
-		//				error(VALUE_NOT_UNIQUE, asMap("value", uniqueValue));
-		//			}
-		//		}
+			for (String uniqueMetadata : uniqueMetadatas) {
+				String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
+
+				if (uniqueValue != null && !resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
+					Metadata metadata = type.getSchema(importData.getSchema()).getMetadata(uniqueMetadata);
+					Map<String, Object> parameters = new HashMap<>();
+					parameters.put("legacyId", importData.getLegacyId());
+					//parameters.put("legacyIdWithSameValue", "42");
+
+					parameters.put("metadataCode", metadata.getCode());
+					parameters.put("metadataLabel", metadata.getLabelsByLanguageCodes());
+					parameters.put("value", uniqueValue);
+
+					error(METADATA_NOT_UNIQUE, parameters);
+				}
+
+			}
+		}
 	}
 
 	private void markUniqueValuesAsInFile(List<String> uniqueMetadatas, ImportData importData) {
@@ -240,7 +250,7 @@ public class RecordsImportValidator {
 		MetadataSchemaType type = types.getSchemaType(schemaType);
 
 		if (type.getAllMetadatas().getMetadataWithLocalCode(resolver.metadata) == null) {
-			error(INVALID_RESOLVER_METADATA_CODE, importData, asMap("metadata",resolver.metadata));
+			error(INVALID_RESOLVER_METADATA_CODE, importData, asMap("metadata", resolver.metadata));
 		}
 
 		resolverCache.markUniqueValueAsRequired(schemaType, resolver.metadata, resolver.value);
