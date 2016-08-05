@@ -1131,9 +1131,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		tabParams.put("zeTab", "Mon onglet");
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
-		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
-		folderType.setDefaultSchema(defaultSchema);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabel("Ze schéma label");
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING");
 		defaultSchema.addMetadata(m1);
@@ -1144,15 +1143,20 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadata m3 = new ImportedMetadata().setCode("m3").setType("REFERENCE")
 				.setReferencedType(Category.SCHEMA_TYPE);
 
-		ImportedMetadataSchema customSchema = new ImportedMetadataSchema().setCode("custom").addMetadata(m2).addMetadata(m3);
-		folderType.addSchema(customSchema);
+		ImportedMetadataSchema customSchema1 = folderType.newSchema("custom1").setLabel("Ze custom schema label 1")
+				.addMetadata(m2).addMetadata(m3);
+		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2").setLabel("Ze custom schema label 2");
 		collectionSettings.addType(folderType);
 		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
 
-		MetadataSchemaType schemaType = metadataSchemasManager
-				.getSchemaTypes(zeCollection).getSchemaType("folder");
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(schemaType.getLabel(French)).isEqualTo("Ze Type label");
+
+		assertThat(schemaType.getDefaultSchema().getLabel(French)).isEqualTo("Ze schéma label");
+		assertThat(schemaType.getCustomSchema("custom1").getLabel(French)).isEqualTo("Ze custom schema label 1");
+		assertThat(schemaType.getCustomSchema("custom2").getLabel(French)).isEqualTo("Ze custom schema label 2");
 
 		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
 		assertThat(metadata1).isNotNull();
@@ -1160,21 +1164,31 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(metadata1.getType()).isEqualTo(MetadataValueType.STRING);
 		assertThat(metadata1.getInputMask()).isNullOrEmpty();
 
-		Metadata metadata1Custom = schemaType.getSchema("folder_custom").get("folder_custom_m1");
+		Metadata metadata1Custom = schemaType.getSchema("folder_custom1").get("folder_custom1_m1");
 		assertThat(metadata1Custom).isNotNull();
 
-		Metadata metadata2 = schemaType.getSchema("folder_custom").get("folder_custom_m2");
+		Metadata metadata2 = schemaType.getSchema("folder_custom1").get("folder_custom1_m2");
 		assertThat(metadata2).isNotNull();
 		assertThat(metadata2.getInputMask()).isEqualTo("9999-9999");
 
-		Metadata metadata3 = schemaType.getSchema("folder_custom").get("folder_custom_m3");
+		Metadata metadata3 = schemaType.getSchema("folder_custom1").get("folder_custom1_m3");
 		assertThat(metadata3.getType()).isEqualTo(MetadataValueType.REFERENCE);
 		assertThat(metadata3.getAllowedReferences().getAllowedSchemaType()).isEqualTo(Category.SCHEMA_TYPE);
+
+		folderType.setLabel("Ze new type label");
+		defaultSchema.setLabel("Ze new schéma label");
+		customSchema1.setLabel("Ze new custom schema label 1");
+		customSchema2.setLabel("Ze new custom schema label 2");
+		importSettings();
+		schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(schemaType.getLabel(French)).isEqualTo("Ze new type label");
+		assertThat(schemaType.getDefaultSchema().getLabel(French)).isEqualTo("Ze new schéma label");
+		assertThat(schemaType.getCustomSchema("custom1").getLabel(French)).isEqualTo("Ze new custom schema label 1");
+		assertThat(schemaType.getCustomSchema("custom2").getLabel(French)).isEqualTo("Ze new custom schema label 2");
 
 	}
 
 	@Test
-
 	public void whenImportingManyTypesValuesAreSet()
 			throws Exception {
 
@@ -2173,17 +2187,17 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		importSettings();
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(zeCollection);
-		assertThat(types.getMetadata("folder_default_m1").getLabel(Language.French)).isEqualTo("M1 label");
-		assertThat(types.getMetadata("folder_default_m2").getLabel(Language.French)).isEqualTo("M2 label");
-		assertThat(types.getMetadata("folder_default_m3").getLabel(Language.French)).isEqualTo("M3 label");
+		assertThat(types.getMetadata("folder_default_m1").getLabel(French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_default_m2").getLabel(French)).isEqualTo("M2 label");
+		assertThat(types.getMetadata("folder_default_m3").getLabel(French)).isEqualTo("M3 label");
 
-		assertThat(types.getMetadata("folder_custom1_m1").getLabel(Language.French)).isEqualTo("Custom M1 label");
-		assertThat(types.getMetadata("folder_custom1_m2").getLabel(Language.French)).isEqualTo("M2 label");
-		assertThat(types.getMetadata("folder_custom1_m3").getLabel(Language.French)).isEqualTo("M3 label");
+		assertThat(types.getMetadata("folder_custom1_m1").getLabel(French)).isEqualTo("Custom M1 label");
+		assertThat(types.getMetadata("folder_custom1_m2").getLabel(French)).isEqualTo("M2 label");
+		assertThat(types.getMetadata("folder_custom1_m3").getLabel(French)).isEqualTo("M3 label");
 
-		assertThat(types.getMetadata("folder_custom2_m1").getLabel(Language.French)).isEqualTo("M1 label");
-		assertThat(types.getMetadata("folder_custom2_m2").getLabel(Language.French)).isEqualTo("Custom M2 label");
-		assertThat(types.getMetadata("folder_custom2_m3").getLabel(Language.French)).isEqualTo("M3 label");
+		assertThat(types.getMetadata("folder_custom2_m1").getLabel(French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_custom2_m2").getLabel(French)).isEqualTo("Custom M2 label");
+		assertThat(types.getMetadata("folder_custom2_m3").getLabel(French)).isEqualTo("M3 label");
 
 		custom1M1.setLabel("");
 		custom1M2.setLabel("New custom label 1");
@@ -2193,17 +2207,17 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		importSettings();
 
 		types = metadataSchemasManager.getSchemaTypes(zeCollection);
-		assertThat(types.getMetadata("folder_default_m1").getLabel(Language.French)).isEqualTo("M1 label");
-		assertThat(types.getMetadata("folder_default_m2").getLabel(Language.French)).isEqualTo("M2 label");
-		assertThat(types.getMetadata("folder_default_m3").getLabel(Language.French)).isEqualTo("New m3 label");
+		assertThat(types.getMetadata("folder_default_m1").getLabel(French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_default_m2").getLabel(French)).isEqualTo("M2 label");
+		assertThat(types.getMetadata("folder_default_m3").getLabel(French)).isEqualTo("New m3 label");
 
-		assertThat(types.getMetadata("folder_custom1_m1").getLabel(Language.French)).isEqualTo("Custom M1 label");
-		assertThat(types.getMetadata("folder_custom1_m2").getLabel(Language.French)).isEqualTo("New custom label 1");
-		assertThat(types.getMetadata("folder_custom1_m3").getLabel(Language.French)).isEqualTo("New m3 label");
+		assertThat(types.getMetadata("folder_custom1_m1").getLabel(French)).isEqualTo("Custom M1 label");
+		assertThat(types.getMetadata("folder_custom1_m2").getLabel(French)).isEqualTo("New custom label 1");
+		assertThat(types.getMetadata("folder_custom1_m3").getLabel(French)).isEqualTo("New m3 label");
 
-		assertThat(types.getMetadata("folder_custom2_m1").getLabel(Language.French)).isEqualTo("M1 label");
-		assertThat(types.getMetadata("folder_custom2_m2").getLabel(Language.French)).isEqualTo("New custom label 2");
-		assertThat(types.getMetadata("folder_custom2_m3").getLabel(Language.French)).isEqualTo("New m3 label");
+		assertThat(types.getMetadata("folder_custom2_m1").getLabel(French)).isEqualTo("M1 label");
+		assertThat(types.getMetadata("folder_custom2_m2").getLabel(French)).isEqualTo("New custom label 2");
+		assertThat(types.getMetadata("folder_custom2_m3").getLabel(French)).isEqualTo("New m3 label");
 
 	}
 
@@ -2984,7 +2998,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		// read file1 to setting1
 		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument).read();
-		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
+		//		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
 		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
 
 		// write settings1 to file ==> file2

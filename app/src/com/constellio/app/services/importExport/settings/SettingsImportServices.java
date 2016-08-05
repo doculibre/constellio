@@ -131,6 +131,12 @@ public class SettingsImportServices {
 
 	}
 
+	private Map<Language, String> asLabelsMapOnlyContainingSystemLanguageLabel(String label) {
+		Map<Language, String> labels = new HashMap<Language, String>();
+		labels.put(Language.French, label);
+		return labels;
+	}
+
 	private void importCollectionTypes(final ImportedCollectionSettings settings,
 			String collection, final MetadataSchemaTypes schemaTypes) {
 
@@ -148,8 +154,16 @@ public class SettingsImportServices {
 					} else {
 						typeBuilder = types.getSchemaType(importedType.getCode());
 					}
+					if (importedType.getLabel() != null) {
+						typeBuilder.setLabels(asLabelsMapOnlyContainingSystemLanguageLabel(importedType.getLabel()));
+					}
 
 					MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
+					ImportedMetadataSchema importedDefaultSchema = importedType.getDefaultSchema();
+					if (importedType.getDefaultSchema() != null && importedType.getDefaultSchema().getLabel() != null) {
+						typeBuilder.getDefaultSchema().setLabels(asLabelsMapOnlyContainingSystemLanguageLabel(
+								importedType.getDefaultSchema().getLabel()));
+					}
 
 					importCustomSchemata(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
 
@@ -377,8 +391,14 @@ public class SettingsImportServices {
 			MetadataSchemaTypeBuilder typeBuilder, ImportedMetadataSchema importedMetadataSchema,
 			KeyListMap<String, String> newMetadatas) {
 
+		MetadataSchemaBuilder schemaBuilder;
 		if (!typeBuilder.hasSchema(importedMetadataSchema.getCode())) {
-			typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
+			schemaBuilder = typeBuilder.createCustomSchema(importedMetadataSchema.getCode(), new HashMap<String, String>());
+		} else {
+			schemaBuilder = typeBuilder.getCustomSchema(importedMetadataSchema.getCode());
+		}
+		if (importedMetadataSchema.getLabel() != null) {
+			schemaBuilder.setLabels(asLabelsMapOnlyContainingSystemLanguageLabel(importedMetadataSchema.getLabel()));
 		}
 	}
 
