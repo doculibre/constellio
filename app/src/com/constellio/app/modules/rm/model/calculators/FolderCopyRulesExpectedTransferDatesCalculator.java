@@ -43,13 +43,13 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 		if (input.actualTransferDate != null) {
 			return null;
 		} else {
-			LocalDate date = getAjustedDateUsedToCalculation(input, copyRule);
+			LocalDate date = getAdjustedDateUsedToCalculation(input, copyRule, parameters.get(configYearEndParam));
 			return calculateExpectedTransferDate(copyRule, date, input.numberOfYearWhenVariableDelayPeriod);
 		}
 	}
 
-	private LocalDate getAjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule) {
-		LocalDate activeDelayDate = input.getAjustedBaseDateFromActiveDelay(copyRule);
+	private LocalDate getAdjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule, String yearEnd) {
+		LocalDate activeDelayDate = input.getAdjustedBaseDateFromActiveDelay(copyRule, yearEnd);
 
 		if (activeDelayDate != null && input.decommissioningDate != null) {
 			return activeDelayDate;
@@ -74,11 +74,11 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 			this.numberOfYearWhenVariableDelayPeriod = parameters.get(configNumberOfYearWhenVariableDelayPeriodParam);
 		}
 
-		public LocalDate getAjustedBaseDateFromActiveDelay(CopyRetentionRule copy) {
+		public LocalDate getAdjustedBaseDateFromActiveDelay(CopyRetentionRule copy, String yearEnd) {
 			String metadata = copy.getActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes);
-			return date == null ? null : ajustToFinancialYear(date);
+			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
+			return date == null ? null : adjustToFinancialYear(date);
 		}
 	}
 }

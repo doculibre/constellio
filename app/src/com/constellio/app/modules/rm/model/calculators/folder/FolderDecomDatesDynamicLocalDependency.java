@@ -6,8 +6,11 @@ import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -32,17 +35,22 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 			Folder.EXPECTED_DEPOSIT_DATE,
 			Folder.EXPECTED_DESTRUCTION_DATE,
 			Folder.EXPECTED_TRANSFER_DATE
-
 	);
 
 	@Override
 	public boolean isDependentOf(Metadata metadata) {
-		if (metadata.getType() == MetadataValueType.DATE || metadata.getType() == MetadataValueType.DATE_TIME) {
+		if (metadata.getType() == MetadataValueType.DATE
+				|| metadata.getType() == MetadataValueType.DATE_TIME
+				|| metadata.getType() == MetadataValueType.NUMBER
+				|| isFolderTimeRangeMetadata(metadata)) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
-
 		} else {
 			return false;
 		}
+	}
+
+	private boolean isFolderTimeRangeMetadata(Metadata metadata) {
+		return metadata.getLocalCode().equals(Folder.TIME_RANGE) && metadata.getCode().startsWith(Folder.SCHEMA_TYPE + "_");
 	}
 
 	@Override
@@ -54,4 +62,11 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
 	}
+
+	/*@Deprecated
+	@Override
+	public LocalDate getDate(String metadata, DynamicDependencyValues values) {
+		return super.getDate(metadata, values);
+	}*/
+
 }
