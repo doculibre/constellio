@@ -383,6 +383,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
 	}
 
+	public MetadataSchemaType folderTypeSchemaType() {
+		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
+	}
+
 	//
 
 	//Hierarchical value list item

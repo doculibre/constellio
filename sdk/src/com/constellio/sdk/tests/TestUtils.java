@@ -404,7 +404,7 @@ public class TestUtils {
 		return new RecordWrapperAssert(recordWrapper);
 	}
 
-	public static RecordsAssert assertThatRecords(List<Record> actual) {
+	public static RecordsAssert assertThatRecords(List<?> actual) {
 		return new RecordsAssert(actual);
 	}
 
@@ -447,19 +447,25 @@ public class TestUtils {
 		}
 	}
 
-	public static class RecordsAssert extends ListAssert<Record> {
+	public static class RecordsAssert extends ListAssert<Object> {
 
-		protected RecordsAssert(List<Record> actual) {
-			super(actual);
+		protected RecordsAssert(List<?> actual) {
+			super((List<Object>) actual);
 		}
 
 		public ListAssert<Tuple> extractingMetadatas(Metadata... metadatas) {
 			List<Tuple> values = new ArrayList<>();
 
-			for (Record record : actual) {
+			for (Object record : actual) {
 				Object[] objects = new Object[metadatas.length];
 				for (int i = 0; i < metadatas.length; i++) {
-					objects[i] = record.get(metadatas[i]);
+					if (record instanceof Record) {
+						objects[i] = ((Record) record).get(metadatas[i]);
+					} else if (record instanceof RecordWrapper) {
+						objects[i] = ((RecordWrapper) record).get(metadatas[i]);
+					} else {
+						throw new RuntimeException("Unsupported object of class '" + record.getClass());
+					}
 				}
 				values.add(new Tuple(objects));
 			}
@@ -509,8 +515,8 @@ public class TestUtils {
 		return extractingSimpleCodeAndParameters(e.getErrors(), parameters);
 	}
 
-
-	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e, String... parameters) {
+	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e,
+			String... parameters) {
 		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
 	}
 

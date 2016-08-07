@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -196,6 +197,10 @@ public class Metadata implements DataStoreField {
 		} else {
 			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
 		}
+	}
+
+	public String getFrenchLabel() {
+		return getLabel(French);
 	}
 
 	public String getLabel(Language language) {
@@ -447,6 +452,8 @@ public class Metadata implements DataStoreField {
 		return localCode.equals(metadata.getLocalCode());
 	}
 
-	public boolean isDuplicable() { return duplicable; }
+	public boolean isDuplicable() {
+		return duplicable;
+	}
 
 }
