@@ -59,7 +59,7 @@ public class Folder extends RMObject {
 	public static final String EXPECTED_DESTRUCTION_DATE = "expectedDestructionDate";
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
-	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
+
 	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
@@ -87,11 +87,13 @@ public class Folder extends RMObject {
 	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	public static final String CALENDAR_YEAR = "calendarYear";
 
-
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
 	public static final String MANUAL_EXPECTED_DESTRIUCTION_DATE = "manualExpectedDesctructionDate";
 	public static final String MANUAL_ARCHIVISTIC_STATUS = "manualArchivisticStatus";
+
+	//TO DELETE
+	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -286,11 +288,7 @@ public class Folder extends RMObject {
 	public DisposalType getInactiveDisposalType() {
 		return get(INACTIVE_DISPOSAL_TYPE);
 	}
-
-	public List<String> getRetentionRuleAdministrativeUnits() {
-		return getList(RETENTION_RULE_ADMINISTRATIVE_UNITS);
-	}
-
+	
 	public String getRetentionRule() {
 		return get(RETENTION_RULE);
 	}
@@ -695,7 +693,6 @@ public class Folder extends RMObject {
 		set(MANUAL_ARCHIVISTIC_STATUS, status);
 		return this;
 	}
-
 
 }
 

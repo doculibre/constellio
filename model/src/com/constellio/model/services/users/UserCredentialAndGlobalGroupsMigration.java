@@ -88,6 +88,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
 			SchemasRecordsServices collectionSchemas = new SchemasRecordsServices(collection, modelLayerFactory);
+
 			if (collectionSchemas.userEmail().isDefaultRequirement()) {
 
 				schemasManager.modify(Collection.SYSTEM_COLLECTION, new MetadataSchemaTypesAlteration() {
