@@ -51,7 +51,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 	private LocalDate getAdjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule, String yearEnd) {
 		LocalDate activeDelayDate = input.getAdjustedBaseDateFromActiveDelay(copyRule, yearEnd);
 
-		if (activeDelayDate != null && input.decommissioningDate != null) {
+		if (activeDelayDate != null) {
 			return activeDelayDate;
 		} else {
 			return input.decommissioningDate;

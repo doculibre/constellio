@@ -25,6 +25,11 @@ public class ImportedSettings {
 		return this;
 	}
 
+	public ImportedSettings addConfig(String key, String value) {
+		configs.add(new ImportedConfig().setKey(key).setValue(value));
+		return this;
+	}
+
 	public List<ImportedCollectionSettings> getCollectionsSettings() {
 		return collectionsSettings;
 	}
@@ -38,7 +43,6 @@ public class ImportedSettings {
 		this.configs = configs;
 		return this;
 	}
-
 
 	public ImportedSettings setCollectionsSettings(List<ImportedCollectionSettings> collectionsSettings) {
 		this.collectionsSettings = collectionsSettings;
@@ -61,11 +65,11 @@ public class ImportedSettings {
 		return ToStringBuilder.reflectionToString(this);
 	}
 
-	public List<ImportedSequence> getSequences(){
+	public List<ImportedSequence> getSequences() {
 		return Collections.unmodifiableList(sequences);
 	}
 
-	public ImportedSettings setImportedSequences(List<ImportedSequence> sequences){
+	public ImportedSettings setImportedSequences(List<ImportedSequence> sequences) {
 		this.sequences = sequences;
 		return this;
 	}

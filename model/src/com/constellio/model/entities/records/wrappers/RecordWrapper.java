@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
@@ -65,6 +66,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 	public <T> T get(String localCode) {
 		ensureConnected();
+
+		if (localCode.contains("_")) {
+			localCode = StringUtils.substringAfterLast(localCode, "_");
+		}
+
 		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
 		Metadata metadata = types.getMetadata(code);
 		return wrappedRecord.get(metadata);

@@ -42,7 +42,7 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		this.expression = expression;
 	}
 
-	public JexlScript getJexlScript(){
+	public JexlScript getJexlScript() {
 		return jexlScript;
 	}
 
@@ -52,7 +52,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		JexlContext jc = prepareJexlContext(parameters);
 
 		try {
-			return jexlScript.execute(jc);
+			Object calculatedValue = jexlScript.execute(jc);
+			return "null".equals(calculatedValue) ? null : calculatedValue;
 
 		} catch (JexlException e) {
 			logJexlException(e);

@@ -613,7 +613,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	private void ensureUITest() {
-		if (getClass().getAnnotation(UiTest.class) == null) {
+		if (getClass().getAnnotation(UiTest.class) == null && !skipTestRule.isInDevelopmentTest()) {
 			throw new RuntimeException("The test class must have declared @UITest annotation");
 		}
 	}

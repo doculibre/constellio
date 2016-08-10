@@ -139,7 +139,9 @@ public class RecordAutomaticMetadataServices {
 		Object calculatedValue;
 		if (requiredValuesDefined) {
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
-			calculatedValue = calculator.calculate(new CalculatorParameters(values, record.getId(), record.getCollection()));
+			calculatedValue = calculator.calculate(
+					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
+							record.getCollection()));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
