@@ -181,7 +181,7 @@ public class RecordDeleteServices {
 
 	}
 
-	private boolean isPhysicallyDeletableNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
+	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -200,6 +200,18 @@ public class RecordDeleteServices {
 		}
 
 		boolean physicallyDeletable = hasPermissions && !referencesUnhandled;
+
+		Factory<Boolean> referenced = new Factory<Boolean>() {
+			@Override
+			public Boolean get() {
+				return !recordDao.getReferencedRecordsInHierarchy(record.getId()).isEmpty();
+			}
+		};
+
+		if (physicallyDeletable) {
+			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced);
+			physicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
+		}
 
 		if (physicallyDeletable) {
 			RecordPhysicalDeletionValidationEvent event = new RecordPhysicalDeletionValidationEvent(record, user);
