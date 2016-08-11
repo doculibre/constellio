@@ -10,6 +10,7 @@ import java.util.ResourceBundle;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class i18n {
 	public static Locale getLocale() {
 		try {
 			return ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		}catch(Throwable e){
+		} catch (Throwable e) {
 			//LOGGER.warn("error when trying to get session locale", e);
 		}
 		return locale;
@@ -110,16 +111,17 @@ public class i18n {
 			ResourceBundle messages = bundle.getBundle(getLocale());
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
+
 				if (args != null) {
 					for (String argName : args.keySet()) {
 						Object argValue = args.get(argName);
-						if(argValue instanceof String) {
-							message = message.replace("{" + argName + "}", (String)argValue);
+						if (argValue instanceof String) {
+							message = message.replace("{" + argName + "}", (String) argValue);
 						} else if (argValue instanceof Map) {
 							/*	TODO Manage Map value here:
 								- Must fetch the entry for the current language.
 							 */
-							Map<String,String> labelsMap = (Map<String,String>) argValue;
+							Map<String, String> labelsMap = (Map<String, String>) argValue;
 							String language = getLocale().getLanguage();
 							message = message.replace("{" + argName + "}", labelsMap.get(language));
 						}
@@ -129,7 +131,11 @@ public class i18n {
 		}
 
 		if (message == null) {
-			message = key;
+			if (args == null || args.isEmpty()) {
+				message = key;
+			} else {
+				message = key + " " + args.toString();
+			}
 		}
 
 		return message;
@@ -143,7 +149,6 @@ public class i18n {
 		}
 		return sb.toString();
 	}
-
 
 	public static List<String> asListOfMessages(ValidationErrors errors) {
 		List<String> messages = new ArrayList<>();
@@ -227,7 +232,8 @@ public class i18n {
 				return language;
 			}
 		}
-		throw new RuntimeException("Current locale"+ loc + " does not correspond to any language" + StringUtils.join(languages, ","));
+		throw new RuntimeException(
+				"Current locale" + loc + " does not correspond to any language" + StringUtils.join(languages, ","));
 	}
 
 }
