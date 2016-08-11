@@ -437,7 +437,7 @@ public class AppManagementService {
 		String serverUrl = SERVER_URL + "/changelog/";
 		String changelogURL;
 		try {
-			changelogURL = sendPost(serverUrl, getLicenseInfo().getSignature());
+			changelogURL = sendPost(serverUrl, getInfosToSend());
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}
@@ -450,7 +450,7 @@ public class AppManagementService {
 		String serverUrl = SERVER_URL + "/url/";
 		String warURL;
 		try {
-			warURL = sendPost(serverUrl, getLicenseInfo().getSignature());
+			warURL = sendPost(serverUrl, getInfosToSend());
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}
@@ -458,11 +458,16 @@ public class AppManagementService {
 		return warURL;
 	}
 
-	String sendPost(String url, String signature)
+	String getInfosToSend() {
+		String delimiter = "*";
+		return getLicenseInfo().getSignature() + delimiter + getCurrentInstalledVersionInfo().getVersion();
+	}
+
+	String sendPost(String url, String infoSent)
 			throws IOException {
 		StringBuilder response = new StringBuilder();
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, signature)));
+		BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)));
 		String inputLine;
 
 		while ((inputLine = in.readLine()) != null) {
@@ -473,7 +478,7 @@ public class AppManagementService {
 		return response.toString();
 	}
 
-	InputStream getInputForPost(String url, String signature)
+	InputStream getInputForPost(String url, String infoSent)
 			throws IOException {
 		URL obj = new URL(url);
 
@@ -482,7 +487,7 @@ public class AppManagementService {
 		con.setDoOutput(true);
 
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		wr.writeBytes(signature);
+		wr.writeBytes(infoSent);
 		wr.flush();
 		wr.close();
 
@@ -527,7 +532,7 @@ public class AppManagementService {
 		String serverUrl = SERVER_URL + "/version/";
 
 		try {
-			serverUrl = sendPost(serverUrl, getLicenseInfo().getSignature());
+			serverUrl = sendPost(serverUrl, getInfosToSend());
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}
