@@ -29,7 +29,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
-import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -2090,7 +2090,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.DISABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2122,7 +2122,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2154,7 +2154,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
