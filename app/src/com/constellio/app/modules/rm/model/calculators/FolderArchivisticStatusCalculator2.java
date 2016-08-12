@@ -6,7 +6,7 @@ import java.util.List;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -21,13 +21,13 @@ public class FolderArchivisticStatusCalculator2 implements MetadataValueCalculat
 	LocalDependency<LocalDate> depositDateParam = LocalDependency.toADate(Folder.ACTUAL_DEPOSIT_DATE);
 	LocalDependency<LocalDate> destructionDateParam = LocalDependency.toADate(Folder.ACTUAL_DESTRUCTION_DATE);
 	LocalDependency<FolderStatus> manualArchivisticStatus = LocalDependency.toAnEnum(Folder.MANUAL_ARCHIVISTIC_STATUS);
-	ConfigDependency<CalculatorWithManualMetadataChoice> manualMetadataChoiceConfigDependency
-			= RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA.dependency();
+	ConfigDependency<AllowModificationOfArchivisticStatusAndExpectedDatesChoice> manualMetadataChoiceConfigDependency
+			= RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES.dependency();
 
 	@Override
 	public FolderStatus calculate(CalculatorParameters parameters) {
-		CalculatorWithManualMetadataChoice manualMetadataChoice = parameters.get(manualMetadataChoiceConfigDependency);
-		if (manualMetadataChoice == null || manualMetadataChoice == CalculatorWithManualMetadataChoice.DISABLE) {
+		AllowModificationOfArchivisticStatusAndExpectedDatesChoice manualMetadataChoice = parameters.get(manualMetadataChoiceConfigDependency);
+		if (manualMetadataChoice == null || manualMetadataChoice == AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED) {
 			return calculateWithoutConsideringManualMetadata(parameters);
 		} else {
 			FolderStatus manualStatus = parameters.get(manualArchivisticStatus);

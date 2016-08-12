@@ -6,17 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
-import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
-import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMConfigs {
 
@@ -55,7 +50,7 @@ public class RMConfigs {
 			DOCUMENTS_TYPES_CHOICE,
 			WORKFLOWS_ENABLED,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
-			ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA;
+			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -211,9 +206,10 @@ public class RMConfigs {
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
-		add(ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA = decommissioning
-				.createEnum("archivisticCalculatorsWithManualMetadata", CalculatorWithManualMetadataChoice.class)
-				.withDefaultValue(CalculatorWithManualMetadataChoice.DISABLE)
+		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
+				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
+						AllowModificationOfArchivisticStatusAndExpectedDatesChoice.class)
+				.withDefaultValue(AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED)
 				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
 	}
 
@@ -225,6 +221,50 @@ public class RMConfigs {
 
 	public RMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
+	}
+
+	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice allowModificationOfArchivisticStatusAndExpectedDates() {
+		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
+	}
+
+	public boolean isCalculatedClosingDate() {
+		return manager.getValue(CALCULATED_CLOSING_DATE);
+	}
+
+	public DecommissioningDateBasedOn decommissioningDateBasedOn() {
+		return manager.getValue(DECOMMISSIONING_DATE_BASED_ON);
+	}
+
+	public int calculatedClosingDateNumberOfYearWhenFixedRule() {
+		return manager.getValue(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE);
+	}
+
+	public int calculatedClosingDateNumberOfYearWhenVariableRule() {
+		return manager.getValue(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE);
+	}
+
+	public int calculatedSemiActiveDateNumberOfYearWhenVariablePeriod() {
+		return manager.getValue(CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD);
+	}
+
+	public int calculatedInactiveDateNumberOfYearWhenVariablePeriod() {
+		return manager.getValue(CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD);
+	}
+
+	public String yearEnd() {
+		return manager.getValue(YEAR_END_DATE);
+	}
+
+	public int requiredDaysBeforeYearEndForNotAddingAYear() {
+		return manager.getValue(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR);
+	}
+
+	public boolean isEnforcedCategoryAndRuleRelationshipInFolder() {
+		return manager.getValue(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER);
+	}
+
+	public boolean isRulePrincipalCopyRequired() {
+		return manager.getValue(COPY_RULE_PRINCIPAL_REQUIRED);
 	}
 
 	public boolean areDocumentRetentionRulesEnabled() {

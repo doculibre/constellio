@@ -968,7 +968,7 @@ public class SettingsImportServices {
 	private Map<String, Object> toParametersMap(String key, Object value) {
 		Map<String, Object> parameters = new HashMap();
 		parameters.put(CONFIG, key);
-		parameters.put(VALUE, value);
+		parameters.put(VALUE, value == null ? "null" : value);
 		return parameters;
 	}
 }
