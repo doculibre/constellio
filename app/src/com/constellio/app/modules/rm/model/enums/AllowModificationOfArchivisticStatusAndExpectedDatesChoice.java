@@ -15,4 +15,8 @@ public enum AllowModificationOfArchivisticStatusAndExpectedDatesChoice implement
 	public String getCode() {
 		return code;
 	}
+
+	public boolean isAlwaysEnabledOrDuringImportOnly() {
+		return this == ENABLED || this == ENABLED_FOR_IMPORTED_RECORDS;
+	}
 }
