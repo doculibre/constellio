@@ -68,4 +68,8 @@ public class RecordsCaches {
 			cache.invalidateAll();
 		}
 	}
+
+	public void invalidate(String collection) {
+		collectionsCache.remove(collection);
+	}
 }

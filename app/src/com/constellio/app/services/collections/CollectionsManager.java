@@ -247,6 +247,11 @@ public class CollectionsManager implements StatefulService {
 		removeCollectionFromBigVault(collection);
 		removeCollectionFromVersionProperties(collection, configManager);
 		removeRemoveAllConfigsOfCollection(collection, configManager);
+		removeCollectionFromCache(collection);
+	}
+
+	private void removeCollectionFromCache(String collection) {
+		modelLayerFactory.getRecordsCaches().invalidate(collection);
 	}
 
 	private void removeRemoveAllConfigsOfCollection(final String collection, ConfigManager configManager) {

@@ -420,6 +420,19 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public void removeCollectionFromVersionProperties(final String collection, ConfigManager configManager) {
 		configManager.updateProperties("/version.properties", newRemoveCollectionPropertiesAlteration(collection));
+
+		configManager.updateXML(MODULES_CONFIG_PATH, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				Map<String, Element> moduleElements = parseModulesDocument(document);
+
+				for (Element element : moduleElements.values()) {
+					if (element.getAttribute("enabled_in_collection_" + collection) != null) {
+						element.removeAttribute("enabled_in_collection_" + collection);
+					}
+				}
+			}
+		});
 	}
 
 	PropertiesAlteration newRemoveCollectionPropertiesAlteration(final String collection) {
@@ -428,6 +441,9 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			public void alter(Map<String, String> properties) {
 				if (properties.containsKey(collection + "_version")) {
 					properties.remove(collection + "_version");
+				}
+				if (properties.containsKey(collection + "_completedMigrations")) {
+					properties.remove(collection + "_completedMigrations");
 				}
 			}
 		};

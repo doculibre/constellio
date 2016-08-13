@@ -459,7 +459,9 @@ public class UserServices {
 	}
 
 	private void sync(UserCredential user, String collection, Transaction transaction) {
-		User userInCollection = getUserInCollection(user.getUsername(), collection);
+		User userInCollection = null;
+		userInCollection = getUserInCollection(user.getUsername(), collection);
+
 		if (userInCollection == null) {
 			userInCollection = newUserInCollection(collection);
 		} else {

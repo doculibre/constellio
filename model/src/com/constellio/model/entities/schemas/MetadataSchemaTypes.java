@@ -232,12 +232,7 @@ public class MetadataSchemaTypes {
 	}
 
 	public boolean hasType(String schemaType) {
-		try {
-			getSchemaType(schemaType);
-			return true;
-		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
-			return false;
-		}
+		return schemaTypesMap.containsKey(schemaType);
 	}
 
 	public boolean hasSchema(String schemaCode) {

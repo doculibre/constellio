@@ -21,6 +21,7 @@ public class ConstellioFactories {
 
 	private static ConstellioFactories instance;
 
+	private File propertyFile;
 	private ConstellioFactoriesDecorator decorator;
 	private DataLayerConfiguration dataLayerConfiguration;
 	private ModelLayerConfiguration modelLayerConfiguration;
@@ -51,7 +52,6 @@ public class ConstellioFactories {
 		return getInstance(propertyFile, constellioFactoriesDecorator);
 	}
 
-
 	public static synchronized ConstellioFactories getInstance(File propertyFile, ConstellioFactoriesDecorator decorator) {
 		if (instance == null) {
 			instance = buildFor(propertyFile, decorator);
@@ -71,10 +71,18 @@ public class ConstellioFactories {
 			instance = null;
 		}
 	}
+//
+	//	public static void restart() {
+	//		File propertyFile = getInstance().propertyFile;
+	//		ConstellioFactoriesDecorator decorator = getInstance().decorator;
+	//		clear();
+	//		getInstance(propertyFile, decorator);
+	//	}
 
 	private static ConstellioFactories buildFor(File propertyFile, ConstellioFactoriesDecorator decorator) {
 		ConstellioFactories factories = new ConstellioFactories();
 
+		factories.propertyFile = propertyFile;
 		Map<String, String> configs = PropertyFileUtils.loadKeyValues(propertyFile);
 
 		factories.decorator = decorator;

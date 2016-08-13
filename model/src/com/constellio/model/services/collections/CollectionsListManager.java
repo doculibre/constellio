@@ -102,6 +102,11 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 				configManager.updateXML(CONFIG_FILE_PATH, removeCollectionDocumentAlteration(collection));
 			}
 		}
+		setCollections(readCollections());
+
+		for (CollectionsListManagerListener listener : listeners) {
+			listener.onCollectionDeleted(collection);
+		}
 	}
 
 	private DocumentAlteration newCollectionDocumentAlteration() {
