@@ -171,7 +171,7 @@ public class RecordValidationServices {
 			new ValueRequirementValidator(metadatas).validate(record, validationErrors);
 		}
 		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
-		if (transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
+		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
 			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
 		}
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
