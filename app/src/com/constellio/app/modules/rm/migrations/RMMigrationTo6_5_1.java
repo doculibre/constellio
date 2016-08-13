@@ -88,6 +88,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 						.asCalculated(FolderExpectedDestructionDateCalculator2.class);
 				folderSchemaBuilder.getMetadata(Folder.ARCHIVISTIC_STATUS).defineDataEntry()
 						.asCalculated(FolderArchivisticStatusCalculator2.class);
+
 			}
 		});
 
@@ -117,6 +118,8 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DEPOSIT_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_TRANSFER_DATE).setType(DATE).setEnabled(false);
+			folderDefaultSchema.get(Folder.RETENTION_RULE_ADMINISTRATIVE_UNITS).setEssential(false).setEnabled(false)
+					.defineDataEntry().asManual();
 		}
 	}
 

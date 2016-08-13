@@ -122,6 +122,7 @@ public class RecordImpl implements Record {
 		} else {
 			return setModifiedValue(metadata, convertedRecord);
 		}
+
 	}
 
 	@Override

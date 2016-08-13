@@ -33,6 +33,7 @@ import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticS
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -45,6 +46,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
@@ -54,8 +56,11 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.setups.Users;
 
 public class FolderAcceptanceTest extends ConstellioTest {
+
+	Users users = new Users();
 
 	LocalDate november4_2009 = new LocalDate(2009, 11, 4);
 	LocalDate november4_2010 = new LocalDate(2010, 11, 4);
@@ -116,7 +121,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -2170,6 +2175,37 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2061);
 		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2061);
 	}
+
+	@Test
+	public void givenRetentionRuleIsReferencingALogicallyDeletedAdministrativeUnitWhenCreatingAFolderWithThisRuleThenException()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		String id = transaction.add(rm.newAdministrativeUnit().setCode("zeUnit").setTitle("zeTitle")).getId();
+
+		RetentionRule rule = records.getRule1();
+		List<String> administrativeUnits = new ArrayList<>(rule.getAdministrativeUnits());
+		administrativeUnits.add(id);
+		rule.setAdministrativeUnits(administrativeUnits);
+
+		transaction.add(rule);
+		recordServices.execute(transaction);
+
+		AdministrativeUnit unit = rm.getAdministrativeUnit(id);
+		unit.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		recordServices.update(unit);
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setTitle("Ze title");
+		folder.setOpenDate(new LocalDate());
+		recordServices.add(folder);
+
+		System.out.println(folder.getCategory());
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {

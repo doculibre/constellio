@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -71,7 +73,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
-			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
+			Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadata(metadataCode);
 			formMetadataVOs
 					.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 		}
