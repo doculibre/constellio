@@ -10,6 +10,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -373,6 +374,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		MetadataBuilder stringReference = zeDefaultSchemaBuilder.create("stringRef").setType(REFERENCE)
 				.setMultivalue(multivalueReferences);
 		MetadataBuilder copiedStringMetadata = zeDefaultSchemaBuilder.create("copiedStringMeta").setType(STRING)
+				.setLabels(asMap(Language.French, "Une métadonnée copiée"))
 				.setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
 		MetadataBuilder otherSchemaStringMetadata = anOtherSchemaTypeBuilder.getDefaultSchema().create("stringMetadata")
 				.setType(STRING).setMultivalue(multivalue);

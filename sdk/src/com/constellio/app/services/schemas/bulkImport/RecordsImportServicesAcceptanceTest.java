@@ -37,6 +37,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -436,7 +437,8 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(content3.getCurrentVersion().getVersion()).isEqualTo("2.0");
 	}
 
-	private void importAndValidateWithModifications(ImportDataProvider modifiedDatas) {
+	private void importAndValidateWithModifications(ImportDataProvider modifiedDatas)
+			throws ValidationException {
 		importServices.bulkImport(modifiedDatas, progressionListener, admin);
 
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));

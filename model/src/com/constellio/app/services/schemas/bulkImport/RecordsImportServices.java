@@ -4,7 +4,6 @@ import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
 import static java.util.Arrays.asList;
 
 import java.io.InputStream;
@@ -30,6 +29,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -43,9 +43,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.BulkUploader;
 import com.constellio.model.services.contents.BulkUploaderRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
@@ -56,7 +58,6 @@ import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordCachesServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -108,13 +109,15 @@ public class RecordsImportServices implements ImportServices {
 	}
 
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
-			final BulkImportProgressionListener bulkImportProgressionListener, final User user) {
+			final BulkImportProgressionListener bulkImportProgressionListener, final User user)
+			throws RecordsImportServicesRuntimeException, ValidationException {
 		return bulkImport(importDataProvider, bulkImportProgressionListener, user, new ArrayList<String>());
 	}
 
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener, final User user,
-			final BulkImportParams params) {
+			final BulkImportParams params)
+			throws RecordsImportServicesRuntimeException, ValidationException {
 		return bulkImport(importDataProvider, bulkImportProgressionListener, user, new ArrayList<String>(), params);
 	}
 
@@ -122,14 +125,19 @@ public class RecordsImportServices implements ImportServices {
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user, List<String> collections)
-			throws RecordsImportServicesRuntimeException {
+			throws RecordsImportServicesRuntimeException, ValidationException {
 		return bulkImport(importDataProvider, bulkImportProgressionListener, user, collections, new BulkImportParams());
 	}
 
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user, List<String> collections, BulkImportParams params)
-			throws RecordsImportServicesRuntimeException {
+			throws RecordsImportServicesRuntimeException, ValidationException {
+
+		Language language = Language.withCode(user.getLoginLanguageCode());
+		if (language == null) {
+			language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
+		}
 
 		ProgressionHandler progressionHandler = new ProgressionHandler(bulkImportProgressionListener);
 		String collection = user.getCollection();
@@ -141,27 +149,29 @@ public class RecordsImportServices implements ImportServices {
 
 			ResolverCache resolverCache = new ResolverCache(modelLayerFactory.newRecordServices(),
 					modelLayerFactory.newSearchServices(), types, importDataProvider);
-			validate(importDataProvider, progressionHandler, types, resolverCache, extensions);
-			return run(importDataProvider, progressionHandler, user, types, resolverCache, extensions, params);
+			validate(importDataProvider, progressionHandler, user, types, resolverCache, extensions, language);
+			return run(importDataProvider, progressionHandler, user, types, resolverCache, extensions, params, language);
 		} finally {
 			importDataProvider.close();
 		}
 	}
 
-	void validate(ImportDataProvider importDataProvider, ProgressionHandler progressionHandler, MetadataSchemaTypes types,
-			ResolverCache resolverCache,
-			ModelLayerCollectionExtensions extensions) {
+	void validate(ImportDataProvider importDataProvider, ProgressionHandler progressionHandler, User user,
+			MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
+			Language language)
+			throws com.constellio.model.frameworks.validation.ValidationException {
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
 
 		for (String schemaType : importedSchemaTypes) {
-			new RecordsImportValidator(schemaType, progressionHandler, importDataProvider, types, resolverCache, extensions)
-					.validate();
+			new RecordsImportValidator(schemaType, progressionHandler, importDataProvider, types, resolverCache, extensions,
+					language).validate();
 		}
 	}
 
 	private BulkImportResults run(ImportDataProvider importDataProvider, ProgressionHandler progressionHandler,
 			User user, MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
-			BulkImportParams params) {
+			BulkImportParams params, Language language)
+			throws ValidationException {
 
 		BulkImportResults importResults = new BulkImportResults();
 		List<String> importedSchemaTypes = getImportedSchemaTypes(types, importDataProvider);
@@ -178,7 +188,7 @@ public class RecordsImportServices implements ImportServices {
 
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
-						progressionHandler, user, types, extensions, addUpdateCount, params, recordsBeforeImport);
+						progressionHandler, user, types, extensions, addUpdateCount, params, recordsBeforeImport, language);
 				if (skipped > 0 && skipped == previouslySkipped) {
 					Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
 					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType,
@@ -197,7 +207,8 @@ public class RecordsImportServices implements ImportServices {
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			ImportDataIterator importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
 			MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
-			BulkImportParams params, boolean recordsBeforeImport) {
+			BulkImportParams params, boolean recordsBeforeImport, Language language)
+			throws ValidationException {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
@@ -211,7 +222,8 @@ public class RecordsImportServices implements ImportServices {
 					transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);
 				}
 				skipped += importBatch(importResults, uniqueMetadatas, resolverCache, schemaType, user, batch, transaction,
-						types, progressionHandler, extensions, addUpdateCount, errors, params, importDataIterator.getOptions());
+						types, progressionHandler, extensions, addUpdateCount, errors, params, importDataIterator.getOptions(),
+						language);
 				recordServices.executeHandlingImpactsAsync(transaction);
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
@@ -223,16 +235,17 @@ public class RecordsImportServices implements ImportServices {
 		}
 
 		if (!errors.isEmpty()) {
-			throw new ValidationRuntimeException(errors);
+			throw new ValidationException(errors);
 		}
 
 		return skipped;
 	}
 
 	private int importBatch(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
-			String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
+			final String schemaType, User user, List<ImportData> batch, Transaction transaction, MetadataSchemaTypes types,
 			ProgressionHandler progressionHandler, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
-			ValidationErrors errors, BulkImportParams params, ImportDataOptions options) {
+			ValidationErrors errors, BulkImportParams params, ImportDataOptions options, Language language)
+			throws ValidationException {
 
 		BulkUploader bulkUploader = null;
 		List<Metadata> contentMetadatas = types.getAllContentMetadatas();
@@ -274,13 +287,28 @@ public class RecordsImportServices implements ImportServices {
 
 		int skipped = 0;
 
-		for (ImportData toImport : batch) {
+		for (final ImportData toImport : batch) {
+			final String schemaTypeLabel = types.getSchemaType(schemaType).getLabel(language);
 
-			ImportDataErrors importDataErrors = new ImportDataErrors(schemaType, errors, toImport);
-			extensions.callRecordImportValidate(schemaType, new ValidationParams(importDataErrors, toImport));
+			DecoratedValidationsErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
+				@Override
+				public void buildExtraParams(Map<String, Object> parameters) {
+					if (toImport.getValue("code") != null) {
+						parameters.put("prefix", schemaTypeLabel + " " + toImport.getValue("code") + " : ");
+					} else {
+						parameters.put("prefix", schemaTypeLabel + " " + toImport.getLegacyId() + " : ");
+					}
 
-			if (!errors.getValidationErrors().isEmpty() && params.isStopOnFirstError()) {
-				throw new ValidationRuntimeException(errors);
+					parameters.put("index", "" + (toImport.getIndex() + 1));
+					parameters.put("legacyId", toImport.getLegacyId());
+					parameters.put("schemaType", schemaType);
+				}
+			};
+
+			extensions.callRecordImportValidate(schemaType, new ValidationParams(decoratedValidationsErrors, toImport));
+
+			if (!decoratedValidationsErrors.getValidationErrors().isEmpty() && params.isStopOnFirstError()) {
+				throw new ValidationException(decoratedValidationsErrors);
 			}
 
 			String legacyId = toImport.getLegacyId();
@@ -299,17 +327,13 @@ public class RecordsImportServices implements ImportServices {
 					try {
 						recordServices.validateRecordInTransaction(record, transaction);
 
-					} catch (ValidationException e) {
+					} catch (RecordServicesException.ValidationException e) {
 						for (ValidationError error : e.getErrors().getValidationErrors()) {
-							Map<String, Object> parameters = new HashMap<>(error.getParameters());
-							parameters.put("index", "" + (toImport.getIndex() + 1));
-							parameters.put("legacyId", toImport.getLegacyId());
-							parameters.put("schemaType", schemaType);
-							errors.add(error, parameters);
+							decoratedValidationsErrors.add(error, error.getParameters());
 						}
 
 						if (params.isStopOnFirstError()) {
-							throw new ValidationRuntimeException(errors);
+							throw new ValidationException(decoratedValidationsErrors);
 						} else {
 							transaction.remove(record);
 						}
@@ -473,7 +497,8 @@ public class RecordsImportServices implements ImportServices {
 
 	}
 
-	List<String> getImportedSchemaTypes(MetadataSchemaTypes types, ImportDataProvider importDataProvider) {
+	List<String> getImportedSchemaTypes(MetadataSchemaTypes types, ImportDataProvider importDataProvider)
+			throws ValidationException {
 		List<String> importedSchemaTypes = new ArrayList<>();
 		List<String> availableSchemaTypes = importDataProvider.getAvailableSchemaTypes();
 
@@ -488,7 +513,8 @@ public class RecordsImportServices implements ImportServices {
 		return importedSchemaTypes;
 	}
 
-	private void validateAvailableSchemaTypes(MetadataSchemaTypes types, List<String> availableSchemaTypes) {
+	private void validateAvailableSchemaTypes(MetadataSchemaTypes types, List<String> availableSchemaTypes)
+			throws ValidationException {
 		ValidationErrors errors = new ValidationErrors();
 
 		for (String availableSchemaType : availableSchemaTypes) {
@@ -503,7 +529,7 @@ public class RecordsImportServices implements ImportServices {
 		}
 
 		if (!errors.getValidationErrors().isEmpty()) {
-			throw new ValidationRuntimeException(errors);
+			throw new ValidationException(errors);
 		}
 	}
 

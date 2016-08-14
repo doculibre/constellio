@@ -23,10 +23,16 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 
 	}
 
+	public void buildExtraParams(Map<String, Object> params) {
+	}
+
 	@Override
 	public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
 		hasDecoratedErrors = true;
 		parameters.putAll(extraParams);
+
+		buildExtraParams(parameters);
+
 		errors.add(validatorClass, code, parameters);
 	}
 

@@ -125,7 +125,12 @@ public class i18n {
 			ResourceBundle messages = bundle.getBundle(getLocale());
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
-
+				if (args.get("prefix") != null) {
+					message = args.get("prefix") + message;
+				}
+				if (args.get("suffix") != null) {
+					message = message + args.get("suffix");
+				}
 				if (args != null) {
 					for (String argName : args.keySet()) {
 						Object argValue = args.get(argName);
