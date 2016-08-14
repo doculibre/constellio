@@ -523,6 +523,16 @@ public class TestUtils {
 		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
 	}
 
+	public static List<String> extractingSimpleCode(ValidationErrors errors) {
+
+		List<String> codes = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			codes.add(StringUtils.substringAfterLast(error.getCode(), "."));
+		}
+
+		return codes;
+	}
+
 	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
 
 		List<Tuple> tuples = new ArrayList<>();
@@ -564,6 +574,22 @@ public class TestUtils {
 		i18n.setLocale(originalLocale);
 
 		return messages;
+	}
+
+	public static String frenchMessage(String key, Map<String, Object> args) {
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+		String value = $(key, args);
+		i18n.setLocale(originalLocale);
+		return value;
+	}
+
+	public static String englishMessage(String key, Map<String, Object> args) {
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.ENGLISH);
+		String value = $(key, args);
+		i18n.setLocale(originalLocale);
+		return value;
 	}
 
 	public static List<String> englishMessages(ValidationErrors errors) {
