@@ -38,18 +38,10 @@ public class RetentionRuleValidator implements RecordValidator {
 	public static final String INVALID_COPY_RETENTION_RULE_FIELD_REQUIRED = "required";
 	public static final String INVALID_COPY_RETENTION_RULE_FIELD_NULL_REQUIRED = "nullRequired";
 
-	//public static final String COPY_RETENTION_RULE_FIELD_AT_INDEX_REQUIRED = "copyRetentionRuleFieldAtIndexRequired";
-
 	public static final String DOCUMENT_COPY_RETENTION_RULE_FIELD_REQUIRED = "documentCopyRetentionRuleFieldRequired";
 	public static final String MISSING_DOCUMENT_TYPE_DISPOSAL = "missingDocumentTypeDisposal";
 	public static final String DOCUMENT_RULE_MUST_HAVE_ONLY_DOCUMENT_COPY_RULES = "documentRuleMustHaveOnlyDocumentCopyRules";
 
-	//public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_COPY_TYPE = "copyType";
-	//public static final String DOCUMENT_COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_DOCUMENT_TYPE = "documentType";
-	//public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_MEDIUM_TYPE = "mediumType";
-	//public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_ACTIVE_PERIOD = "activePeriod";
-	//public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_SEMIACTIVE_PERIOD = "semiActivePeriod";
-	//public static final String COPY_RETENTION_RULE_FIELD_REQUIRED_FIELD_DISPOSAL = "disposal";
 	//
 	public static final String PRINCIPAL_DEFAULT_COPY_RETENTION_RULE_IN_FOLDER_RULE = "principalDefaultCopyRetentionRuleInFolderRule";
 	public static final String SECONDARY_DEFAULT_COPY_RETENTION_RULE_IN_FOLDER_RULE = "secondaryDefaultCopyRetentionRuleInFolderRule";
@@ -60,7 +52,6 @@ public class RetentionRuleValidator implements RecordValidator {
 	public static final String DOCUMENT_TYPES_IN_DOCUMENT_RULE = "documentTypesInDocumentRule";
 
 	public static final String PRINCIPAL_COPY_WITHOUT_TYPE_REQUIRED = "principalCopyWithoutTypeRequired";
-	//	public static final String SECONDARY_COPY_CANNOT_HAVE_A_TYPE = "secondaryCopyCannotHaveAType";
 
 	//	public static final String PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES = "principalCopiesMustHaveDifferentContentTypes";
 	//	public static final String PRINCIPAL_COPIES_MUST_HAVE_DIFFERENT_CONTENT_TYPES_DUPLICATES = "duplicates";
