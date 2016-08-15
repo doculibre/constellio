@@ -860,15 +860,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					tuple("RecordsImportServices_invalidEnumValue", "1", "3", "F, S", "SECOND_VALUE", "withAnEnumMetadata")
 			);
 
-			//			assertThat(errors).containsOnly(
-			//					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-			//							asMap("availableChoices", "[F, S]", "index", "3", "legacyId", "5", "invalidValue", "[FS, F]",
-			//									"metadata", "withAnEnumMetadata"))
-			//					, newZeSchemaValidationError(INVALID_ENUM_VALUE,
-			//							asMap("availableChoices", "[F, S]", "index", "1", "legacyId", "3", "invalidValue",
-			//									"[S, SECOND_VALUE]", "metadata",
-			//									"withAnEnumMetadata"))
-			//			);
 			assertThat(frenchMessages(e)).containsOnly(
 					"zeSchemaType 3 : La valeur «SECOND_VALUE» de la métadonnée «withAnEnumMetadata» est invalide, seules les valeurs «F, S» sont acceptées",
 					"zeSchemaType 5 : La valeur «FS» de la métadonnée «withAnEnumMetadata» est invalide, seules les valeurs «F, S» sont acceptées"
