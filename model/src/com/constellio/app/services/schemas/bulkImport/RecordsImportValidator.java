@@ -170,11 +170,15 @@ public class RecordsImportValidator {
 						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata.getLocalCode()));
 				Collections.sort(unresolved);
 				if (!unresolved.isEmpty()) {
-					Map<String, Object> parameters = new HashMap<>();
-					parameters.put("metadata", uniqueValueMetadata.getLocalCode());
-					parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
-					parameters.put("unresolvedValues", StringUtils.join(unresolved, ", "));
-					errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+					for (String value : unresolved) {
+						Map<String, Object> parameters = new HashMap<>();
+						parameters.put("metadata", uniqueValueMetadata.getLocalCode());
+						parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
+						parameters.put("referencedSchemaType", schemaType.getCode());
+						parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
+						parameters.put("unresolvedValue", value);
+						errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+					}
 				}
 			}
 	}
@@ -258,7 +262,12 @@ public class RecordsImportValidator {
 					}
 
 				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
-					errors.add(RecordsImportServices.class, INVALID_METADATA_CODE, asMap("metadata", entry.getKey()));
+					Map<String, Object> parameters = new HashMap<>();
+					parameters.put("metadata", entry.getKey());
+					parameters.put("schema", metadataSchema.getCode());
+					parameters.put("schemaLabel", metadataSchema.getLabel(language));
+
+					errors.add(RecordsImportServices.class, INVALID_METADATA_CODE, parameters);
 				}
 			}
 		}
@@ -355,7 +364,7 @@ public class RecordsImportValidator {
 	private Map<String, Object> toEnumAvailableChoicesParam(Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		List<String> choices = EnumWithSmallCodeUtils.toSmallCodeList(metadata.getEnumClass());
-		parameters.put("availableChoices", StringUtils.join(choices, ", "));
+		parameters.put("acceptedValues", StringUtils.join(choices, ", "));
 		return parameters;
 	}
 
