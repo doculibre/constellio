@@ -115,31 +115,31 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void whenMigratingFromAPreviousSystemThenDoNotUseBase64Url()
-			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
+//	@Test
+	//	public void whenMigratingFromAPreviousSystemThenDoNotUseBase64Url()
+	//			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
+	//
+	//		givenSystemAtVersion5_1_2withTokens();
+	//
+	//		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+	//				.isEqualTo(BASE64);
+	//
+	//		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+	//				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
+	//	}
 
-		givenSystemAtVersion5_1_2withTokens();
-
-		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
-				.isEqualTo(BASE64);
-
-		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
-				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
-	}
-
-	@Test
-	public void whenStartingANewSystemThenUseBase64Url()
-			throws Exception {
-		prepareSystem(withZeCollection());
-
-		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
-				.isEqualTo(BASE64_URL_ENCODED);
-
-		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
-				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
-
-	}
+//	@Test
+	//	public void whenStartingANewSystemThenUseBase64Url()
+	//			throws Exception {
+	//		prepareSystem(withZeCollection());
+	//
+	//		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+	//				.isEqualTo(BASE64_URL_ENCODED);
+	//
+	//		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+	//				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS);
+	//
+	//	}
 
 	private void givenSystemAtVersion5_1_2withTokens() {
 		givenTransactionLogIsEnabled();
