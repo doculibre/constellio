@@ -620,16 +620,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel",
-					"referencedSchemaType", "referencedSchemaTypeLabel"))
+					"referencedSchemaType", "referencedSchemaTypeLabel", "prefix"))
 					.containsOnly(
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "legacyIdentifier",
-									"legacyIdentifier", "zeSchemaType", "Ze type label"),
+									"legacyIdentifier", "zeSchemaType", "Ze type label", "Ze type label : "),
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "666", "legacyIdentifier",
-									"legacyIdentifier", "zeSchemaType", "Ze type label")
+									"legacyIdentifier", "zeSchemaType", "Ze type label", "Ze type label : ")
 					);
 			assertThat(frenchMessages(e)).containsOnly(
-					"Aucun enregistrement de type «Ze type label» n’a la valeur «42» à la métadonnée «legacyIdentifier»",
-					"Aucun enregistrement de type «Ze type label» n’a la valeur «666» à la métadonnée «legacyIdentifier»");
+					"Ze type label : Aucun enregistrement de type «Ze type label» n’a la valeur «42» à la métadonnée «legacyIdentifier»",
+					"Ze type label : Aucun enregistrement de type «Ze type label» n’a la valeur «666» à la métadonnée «legacyIdentifier»");
 		}
 	}
 
@@ -653,17 +653,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel"))
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel",
+					"prefix"))
 					.containsOnly(
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "legacyIdentifier",
-									"legacyIdentifier"),
+									"legacyIdentifier", "Ze type de schéma : "),
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "666", "legacyIdentifier",
-									"legacyIdentifier")
+									"legacyIdentifier", "Ze type de schéma : ")
 					);
 
 			assertThat(frenchMessages(e)).containsOnly(
-					"Aucun enregistrement de type «Ze type de schéma» n’a la valeur «42» à la métadonnée «legacyIdentifier»",
-					"Aucun enregistrement de type «Ze type de schéma» n’a la valeur «666» à la métadonnée «legacyIdentifier»");
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «42» à la métadonnée «legacyIdentifier»",
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «666» à la métadonnée «legacyIdentifier»");
 		}
 	}
 
@@ -692,16 +693,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel"))
+			assertThat(
+					extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel", "prefix"))
 					.containsOnly(
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "stringMetadata",
-									"A toAString metadata"),
+									"A toAString metadata", "Ze type de schéma : "),
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "666", "stringMetadata",
-									"A toAString metadata")
+									"A toAString metadata", "Ze type de schéma : ")
 					);
 			assertThat(frenchMessages(e)).containsOnly(
-					"Aucun enregistrement de type «Ze type de schéma» n’a la valeur «42» à la métadonnée «A toAString metadata»",
-					"Aucun enregistrement de type «Ze type de schéma» n’a la valeur «666» à la métadonnée «A toAString metadata»");
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «42» à la métadonnée «A toAString metadata»",
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «666» à la métadonnée «A toAString metadata»");
 		}
 	}
 

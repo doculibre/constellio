@@ -177,6 +177,7 @@ public class RecordsImportValidator {
 						parameters.put("referencedSchemaType", schemaType.getCode());
 						parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
 						parameters.put("unresolvedValue", value);
+						parameters.put("prefix", schemaType.getLabel(language) + " : ");
 						errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 					}
 				}
