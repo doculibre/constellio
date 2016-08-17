@@ -104,11 +104,11 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 			if (component instanceof ReferenceDisplay) {
 				ReferenceDisplay referenceDisplay = (ReferenceDisplay) component;
 
-				if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					final String filename = StringUtils
-							.substringAfterLast(url, "/");
-					clickListener = prepareFileDownloader(url, title, id, collection, referenceDisplay, filename);
-				} else {
+				//if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
+				//	final String filename = StringUtils
+				//			.substringAfterLast(url, "/");
+				//	clickListener = prepareFileDownloader(url, title, id, collection, referenceDisplay, filename);
+				//} else {
 					ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 					ConnectorManager connectorManager = es.getConnectorManager();
 					for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
@@ -129,7 +129,7 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 							}
 						}
 					}
-				}
+				//}
 				referenceDisplay.addStyleName(SearchResultDisplay.TITLE_STYLE);
 				referenceDisplay.setEnabled(true);
 				if (clickListener == null) {

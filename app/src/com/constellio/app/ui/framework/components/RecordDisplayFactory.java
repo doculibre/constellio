@@ -35,7 +35,7 @@ public class RecordDisplayFactory implements Serializable {
 				.forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
 
 		if (searchResultDisplay == null) {
-			return new SearchResultDisplay(searchResultVO, componentFactory);
+			return new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory);
 		} else {
 			return searchResultDisplay;
 		}
