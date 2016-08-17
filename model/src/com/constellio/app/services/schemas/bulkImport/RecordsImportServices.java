@@ -8,6 +8,8 @@ import static java.util.Arrays.asList;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,10 +18,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
@@ -47,7 +50,6 @@ import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.BulkUploader;
 import com.constellio.model.services.contents.BulkUploaderRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
@@ -73,6 +75,8 @@ public class RecordsImportServices implements ImportServices {
 	private static final String IMPORT_URL_INPUTSTREAM_NAME = "RecordsImportServices-ImportURL";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsImportServices.class);
+
+	private static final String CYCLIC_DEPENDENCIES_ERROR = "cyclicDependencies";
 
 	private static final int DEFAULT_BATCH_SIZE = 100;
 
@@ -190,9 +194,11 @@ public class RecordsImportServices implements ImportServices {
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
 						progressionHandler, user, types, extensions, addUpdateCount, params, recordsBeforeImport, language);
 				if (skipped > 0 && skipped == previouslySkipped) {
+					ValidationErrors errors = new ValidationErrors();
 					Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
-					throw new RecordsImportServicesRuntimeException_CyclicDependency(schemaType,
-							new ArrayList<>(cyclicDependentIds));
+					addCyclicDependenciesValidationError(language, errors, types.getSchemaType(schemaType), cyclicDependentIds);
+					errors.throwIfNonEmpty();
+
 				}
 				if (skipped == 0) {
 					typeImportFinished = true;
@@ -202,6 +208,21 @@ public class RecordsImportServices implements ImportServices {
 		}
 		progressionHandler.onImportFinished();
 		return importResults;
+	}
+
+	private void addCyclicDependenciesValidationError(Language language, ValidationErrors errors,
+			MetadataSchemaType schemaType, Set<String> cyclicDependentIds) {
+
+		List<String> ids = new ArrayList<>(cyclicDependentIds);
+		Collections.sort(ids);
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("prefix", schemaType.getLabel(language) + " : ");
+
+		parameters.put("cyclicDependentIds", StringUtils.join(ids, ", "));
+		parameters.put("schemaType", schemaType.getCode());
+
+		errors.add(RecordsImportServices.class, CYCLIC_DEPENDENCIES_ERROR, parameters);
 	}
 
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,

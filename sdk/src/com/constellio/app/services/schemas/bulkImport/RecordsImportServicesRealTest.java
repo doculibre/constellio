@@ -1332,9 +1332,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency e) {
-			assertThat(e.getCyclicDependentIds()).containsOnly("1", "2", "3", "4");
-			fail("TODO Better message");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "cyclicDependentIds", "prefix")).containsOnly(
+					tuple("RecordsImportServices_cyclicDependencies", "1, 2, 3, 4", "Ze type de schéma : ")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma : Il y a une dépendance cyclique entre les enregistrements importés avec ids «1, 2, 3, 4»");
 		}
 	}
 
