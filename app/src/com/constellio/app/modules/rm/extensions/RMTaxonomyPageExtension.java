@@ -16,11 +16,14 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
+import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -68,6 +71,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		String conceptId = params.getRecord().getId();
 		if (params.isTaxonomy(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
 			types.add(getClassifiedFolderInAdministrativeUnits(conceptId, sessionContextProvider));
+			types.add(getClassifiedRetentionRuleWithAdministrativeUnit(conceptId, sessionContextProvider));
 
 		} else if (params.isTaxonomy(RMTaxonomies.CLASSIFICATION_PLAN)) {
 			types.add(getClassifiedFolderInCategory(conceptId, sessionContextProvider));
@@ -81,7 +85,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	public List<TaxonomyExtraField> getTaxonomyExtraFieldsFor(GetTaxonomyExtraFieldsParam params) {
 		List<TaxonomyExtraField> fields = new ArrayList<>();
 
-//		if (params.isTaxonomy(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
+		//		if (params.isTaxonomy(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
 		//			final List<String> retentionRules = getRetentionRules(params.getRecord().getId(), params.getSessionContextProvider());
 		//			fields.add(new TaxonomyExtraField() {
 		//				@Override
@@ -165,6 +169,34 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
 	}
 
+	private TaxonomyManagementClassifiedType getClassifiedRetentionRuleWithAdministrativeUnit(final String conceptId,
+			final SessionContextProvider sessionContextProvider) {
+		return new TaxonomyManagementClassifiedType() {
+			@Override
+			public MetadataSchemaTypeVO getSchemaType() {
+				return getRetentionRuleTypeVO(sessionContextProvider);
+			}
+
+			@Override
+			public RecordVODataProvider getDataProvider() {
+				Factory<LogicalSearchQuery> searchQueryFactory = newRulesWithAdministrativeUnitSearchQuery(
+						conceptId, sessionContextProvider);
+				return newRuleDataProvider(searchQueryFactory, sessionContextProvider);
+			}
+
+			@Override
+			public String getCountLabel() {
+				return $("TaxonomyManagementView.numberOfRetentionRules");
+			}
+
+			@Override
+			public String getTabLabel() {
+				return $("TaxonomyManagementView.tabs.retentionRules");
+			}
+		};
+
+	}
+
 	private TaxonomyManagementClassifiedType getClassifiedFolderInCategory(final String conceptId,
 			final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
@@ -192,6 +224,24 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		};
 	}
 
+	private RecordVODataProvider newRuleDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
+			SessionContextProvider sessionContextProvider) {
+
+		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
+		SessionContext sessionContext = sessionContextProvider.getSessionContext();
+
+		AppLayerFactory appLayerFactory = sessionContextProvider.getConstellioFactories().getAppLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+		MetadataSchemaVO rulesSchemaVO = schemaVOBuilder.build(rm.retentionRule.schema(), VIEW_MODE.TABLE, sessionContext);
+		return new RecordVODataProvider(rulesSchemaVO, voBuilder, sessionContextProvider) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return logicalSearchQueryFactory.get();
+			}
+		};
+	}
+
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
 			SessionContextProvider sessionContextProvider) {
 
@@ -206,6 +256,12 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 				return logicalSearchQueryFactory.get();
 			}
 		};
+	}
+
+	private MetadataSchemaTypeVO getRetentionRuleTypeVO(SessionContextProvider sessionContextProvider) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+		MetadataSchemaTypeToVOBuilder schemaTypeVOBuilder = new MetadataSchemaTypeToVOBuilder();
+		return schemaTypeVOBuilder.build(rm.retentionRule.schemaType());
 	}
 
 	private MetadataSchemaTypeVO getFolderTypeVO(SessionContextProvider sessionContextProvider) {
@@ -223,6 +279,21 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).isEqualTo(conceptId))
+						.sortAsc(Schemas.TITLE);
+			}
+		};
+	}
+
+	private Factory<LogicalSearchQuery> newRulesWithAdministrativeUnitSearchQuery(
+			final String conceptId, final SessionContextProvider sessionContextProvider) {
+		return new Factory<LogicalSearchQuery>() {
+
+			@Override
+			public LogicalSearchQuery get() {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+				return new LogicalSearchQuery()
+						.setCondition(from(rm.retentionRule.schemaType())
+								.where(rm.retentionRule.administrativeUnits()).isEqualTo(conceptId))
 						.sortAsc(Schemas.TITLE);
 			}
 		};

@@ -1,10 +1,12 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -29,32 +31,55 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 		assertMetadataDeleted("calendarYearEntered", documentSchema);
 		assertMetadataDeleted("calendarYear", documentSchema);
 		assertFolderRangeDatesCreatedCorrectly();
+
+		getModelLayerFactory().newReindexingServices().reindexCollections(RECALCULATE_AND_REWRITE);
+
+		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		folderSchema = types.getDefaultSchema(Folder.SCHEMA_TYPE);
+		assertMetadataDeleted("ruleAdminUnit", folderSchema);
 	}
 
 	@Test
 	public void givenPreviousSystemWithMetadataToDeleteHavingValuesWhenMigratingThenAllMetadataToDeleteAreDisabled()
 			throws Exception {
 		givenPreviousSystemWithMetadtaToDeleteHavingValues();
-		MetadataSchemaTypes types = getModelLayerFactory()
-				.getMetadataSchemasManager().getSchemaTypes(zeCollection);
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.add("q", "ruleAdminUnitId_ss:*");
+		params.add("rows", "1");
+		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isNotEqualTo(0);
+
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		MetadataSchema folderSchema = types.getDefaultSchema(Folder.SCHEMA_TYPE);
-		assertMetadataDisabled("calendarYearEntered", folderSchema);
-		assertMetadataDisabled("calendarYear", folderSchema);
 		MetadataSchema documentSchema = types.getDefaultSchema(Document.SCHEMA_TYPE);
-		assertMetadataDisabled("calendarYearEntered", documentSchema);
-		assertMetadataDisabled("calendarYear", documentSchema);
+		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", folderSchema);
+		assertMetadataDisabledAndMarkForDeletion("calendarYear", folderSchema);
+		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", documentSchema);
+		assertMetadataDisabledAndMarkForDeletion("calendarYear", documentSchema);
+		assertMetadataDisabledAndMarkForDeletion("ruleAdminUnit", folderSchema);
 		assertFolderRangeDatesCreatedCorrectly();
+		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isNotEqualTo(0);
+
+		getModelLayerFactory().newReindexingServices().reindexCollections(RECALCULATE_AND_REWRITE);
+
+		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		folderSchema = types.getDefaultSchema(Folder.SCHEMA_TYPE);
+		documentSchema = types.getDefaultSchema(Document.SCHEMA_TYPE);
+		assertMetadataDeleted("ruleAdminUnit", folderSchema);
+
+		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isEqualTo(0);
 	}
 
-	private void assertMetadataDisabled(String metadataLocalCode, MetadataSchema schema) {
+	private void assertMetadataDisabledAndMarkForDeletion(String metadataLocalCode, MetadataSchema schema) {
 		assertThat(schema.getMetadata(metadataLocalCode).isEnabled()).isFalse();
+		//assertThat(schema.getMetadata(metadataLocalCode).is()).isFalse();
 	}
 
 	private void assertMetadataDeleted(String metadataLocalCode, MetadataSchema schema) {
-		try{
+		try {
 			schema.getMetadata(metadataLocalCode);
-			fail("should be deleted" + metadataLocalCode);
-		}catch(MetadataSchemasRuntimeException.NoSuchMetadata e){
+			fail("should be deleted");
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 			//OK
 		}
 	}

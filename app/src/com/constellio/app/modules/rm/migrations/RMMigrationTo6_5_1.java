@@ -103,6 +103,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder folderDefaultSchema = types().getDefaultSchema(Folder.SCHEMA_TYPE);
+			folderDefaultSchema.get(Folder.RETENTION_RULE_ADMINISTRATIVE_UNITS).setMarkedForDeletion(true);
 			createArchivisticManualMetadata(folderDefaultSchema);
 			createFolderTimeRangeMetadata(folderDefaultSchema);
 		}
@@ -118,8 +119,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DEPOSIT_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_TRANSFER_DATE).setType(DATE).setEnabled(false);
-			folderDefaultSchema.get(Folder.RETENTION_RULE_ADMINISTRATIVE_UNITS).setEssential(false).setEnabled(false)
-					.defineDataEntry().asManual();
+
 		}
 	}
 
@@ -146,7 +146,8 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 							@Override
 							public void alter(MetadataSchemaTypesBuilder types) {
 								MetadataSchemaBuilder schemaBuilder = types.getDefaultSchema(schemaTypeCode);
-								schemaBuilder.deleteMetadataWithoutValidation(metadata);
+								MetadataBuilder metadataBuilder = schemaBuilder.getMetadata(metadata.getLocalCode());
+								schemaBuilder.deleteMetadataWithoutValidation(metadataBuilder);
 							}
 						}
 				);
@@ -189,6 +190,5 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 			}
 		}
 	}
-
 
 }

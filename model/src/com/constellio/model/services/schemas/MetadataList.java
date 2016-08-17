@@ -457,7 +457,6 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-
 	public MetadataList onlySequence() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -467,7 +466,6 @@ public class MetadataList implements List<Metadata> {
 		}
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
-
 
 	public MetadataList onlyNotSystemReserved() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
@@ -577,4 +575,13 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public List<Metadata> onlyMarkedForDeletion() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isMarkedForDeletion()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
 }
