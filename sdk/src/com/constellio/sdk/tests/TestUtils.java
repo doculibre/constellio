@@ -1,5 +1,6 @@
 package com.constellio.sdk.tests;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -29,6 +31,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -404,7 +407,7 @@ public class TestUtils {
 		return new RecordWrapperAssert(recordWrapper);
 	}
 
-	public static RecordsAssert assertThatRecords(List<Record> actual) {
+	public static RecordsAssert assertThatRecords(List<?> actual) {
 		return new RecordsAssert(actual);
 	}
 
@@ -447,19 +450,25 @@ public class TestUtils {
 		}
 	}
 
-	public static class RecordsAssert extends ListAssert<Record> {
+	public static class RecordsAssert extends ListAssert<Object> {
 
-		protected RecordsAssert(List<Record> actual) {
-			super(actual);
+		protected RecordsAssert(List<?> actual) {
+			super((List<Object>) actual);
 		}
 
 		public ListAssert<Tuple> extractingMetadatas(Metadata... metadatas) {
 			List<Tuple> values = new ArrayList<>();
 
-			for (Record record : actual) {
+			for (Object record : actual) {
 				Object[] objects = new Object[metadatas.length];
 				for (int i = 0; i < metadatas.length; i++) {
-					objects[i] = record.get(metadatas[i]);
+					if (record instanceof Record) {
+						objects[i] = ((Record) record).get(metadatas[i]);
+					} else if (record instanceof RecordWrapper) {
+						objects[i] = ((RecordWrapper) record).get(metadatas[i]);
+					} else {
+						throw new RuntimeException("Unsupported object of class '" + record.getClass());
+					}
 				}
 				values.add(new Tuple(objects));
 			}
@@ -509,6 +518,21 @@ public class TestUtils {
 		return extractingSimpleCodeAndParameters(e.getErrors(), parameters);
 	}
 
+	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e,
+			String... parameters) {
+		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<String> extractingSimpleCode(ValidationErrors errors) {
+
+		List<String> codes = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			codes.add(StringUtils.substringAfterLast(error.getCode(), "."));
+		}
+
+		return codes;
+	}
+
 	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
 
 		List<Tuple> tuples = new ArrayList<>();
@@ -521,5 +545,65 @@ public class TestUtils {
 		}
 
 		return tuples;
+	}
+
+	public static List<String> frenchMessages(ValidationRuntimeException e) {
+		return frenchMessages(e.getValidationErrors());
+	}
+
+	public static List<String> frenchMessages(ValidationException e) {
+		return frenchMessages(e.getErrors());
+
+	}
+
+	public static List<String> frenchMessages(com.constellio.model.frameworks.validation.ValidationException e) {
+		return frenchMessages(e.getValidationErrors());
+
+	}
+
+	public static List<String> frenchMessages(ValidationErrors errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
+	}
+
+	public static String frenchMessage(String key, Map<String, Object> args) {
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+		String value = $(key, args);
+		i18n.setLocale(originalLocale);
+		return value;
+	}
+
+	public static String englishMessage(String key, Map<String, Object> args) {
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.ENGLISH);
+		String value = $(key, args);
+		i18n.setLocale(originalLocale);
+		return value;
+	}
+
+	public static List<String> englishMessages(ValidationErrors errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.ENGLISH);
+
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
 	}
 }

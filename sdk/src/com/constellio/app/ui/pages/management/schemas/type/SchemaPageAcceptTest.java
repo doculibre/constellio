@@ -281,8 +281,8 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getFacetElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAdvancedSearchElement().isEnabled()).isTrue();
 		// TODO Investigate why searchable and sortable fields are disabled
-		//		assertThat(addEditSchemaMetadataPage.getSortableElement().isEnabled()).isTrue();
-		//		assertThat(addEditSchemaMetadataPage.getSearchableElement().isEnabled()).isTrue();
+		//		assertThat(addEditSchemaMetadataPage.getSortableElement().getEnabled()).isTrue();
+		//		assertThat(addEditSchemaMetadataPage.getSearchableElement().getEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getEnableElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getEnableElement().isChecked()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();

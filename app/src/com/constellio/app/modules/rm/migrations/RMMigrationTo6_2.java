@@ -111,21 +111,23 @@ public class RMMigrationTo6_2 implements MigrationScript {
 		private void updateDocumentSchema(MetadataSchemaBuilder documentSchemaType) {
 			documentSchemaType.createUndeletable(Document.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 
-			documentSchemaType.createUndeletable(Document.CALENDAR_YEAR_ENTERED).setType(MetadataValueType.STRING);
-
-			documentSchemaType.createUndeletable(Document.CALENDAR_YEAR).setType(MetadataValueType.DATE).defineDataEntry()
-					.asCalculated(DocumentCalendarYearCalculator.class);
 			documentSchemaType.get(Document.MAIN_COPY_RULE).defineDataEntry().asCalculated(DocumentMainCopyRuleCalculator2.class)
 					.setDefaultRequirement(true);
+			//TODO remove in new script
+			documentSchemaType.createUndeletable("calendarYearEntered").setType(MetadataValueType.STRING);
+
+			documentSchemaType.createUndeletable("calendarYear").setType(MetadataValueType.DATE).defineDataEntry()
+					.asCalculated(DocumentCalendarYearCalculator.class);
 		}
 
 		private void updateFolderSchema(MetadataSchemaBuilder folderSchemaType) {
 			folderSchemaType.createUndeletable(Folder.MAIN_COPY_RULE_ID_ENTERED).setType(MetadataValueType.STRING);
 			folderSchemaType.get(Folder.MAIN_COPY_RULE).defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
 
-			folderSchemaType.createUndeletable(Folder.CALENDAR_YEAR_ENTERED).setType(MetadataValueType.STRING);
+			//FIXME remove in another
+			folderSchemaType.createUndeletable("calendarYearEntered").setType(MetadataValueType.STRING);
 
-			folderSchemaType.createUndeletable(Folder.CALENDAR_YEAR).setType(MetadataValueType.DATE).defineDataEntry()
+			folderSchemaType.createUndeletable("calendarYear").setType(MetadataValueType.DATE).defineDataEntry()
 					.asCalculated(FolderCalendarYearCalculator.class);
 		}
 	}

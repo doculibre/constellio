@@ -130,7 +130,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			//				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 			//				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
 			//			}
-			//			if (!ignored && metadata.isEnabled()) {
+			//			if (!ignored && metadata.getEnabled()) {
 			metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
 			//			}
 		}

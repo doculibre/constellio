@@ -18,7 +18,9 @@ public class CalculatorUtils {
 		}
 	}
 
-	public static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
+
+	//FIXME make it private?
+	static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
 		if (date == null) {
 			return null;
 		}
@@ -63,7 +65,7 @@ public class CalculatorUtils {
 		return date.getDayOfMonth() == yearEndDay && date.getMonthOfYear() == yearEndMonth;
 	}
 
-	public static LocalDate calculateExpectedTransferDate(CopyRetentionRule copyRule, LocalDate ajustedDecommissioningDate,
+	public static LocalDate calculateExpectedTransferDate(CopyRetentionRule copyRule, LocalDate adjustedDecommissioningDate,
 			int defaultNumberOfYearWhenVariableDelay) {
 
 		int numberOfYearWhenVariableDelay = defaultNumberOfYearWhenVariableDelay;
@@ -71,7 +73,7 @@ public class CalculatorUtils {
 			numberOfYearWhenVariableDelay = copyRule.getOpenActiveRetentionPeriod();
 		}
 
-		if (ajustedDecommissioningDate == null) {
+		if (adjustedDecommissioningDate == null) {
 			return null;
 		}
 
@@ -79,10 +81,10 @@ public class CalculatorUtils {
 			if (numberOfYearWhenVariableDelay == -1) {
 				return null;
 			} else {
-				return ajustedDecommissioningDate.plusYears(numberOfYearWhenVariableDelay);
+				return adjustedDecommissioningDate.plusYears(numberOfYearWhenVariableDelay);
 			}
 		} else {
-			return ajustedDecommissioningDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
+			return adjustedDecommissioningDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
 		}
 
 	}

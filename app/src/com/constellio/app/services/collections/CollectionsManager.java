@@ -43,6 +43,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -82,6 +83,8 @@ public class CollectionsManager implements StatefulService {
 
 	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
 
+	private List<String> newDisabledCollections = new ArrayList<>();
+
 	public CollectionsManager(ModelLayerFactory modelLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
 			Delayed<MigrationServices> migrationServicesDelayed, SystemGlobalConfigsManager systemGlobalConfigsManager) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -102,6 +105,8 @@ public class CollectionsManager implements StatefulService {
 				.hasType(SolrUserCredential.SCHEMA_TYPE)) {
 			initializeSystemCollection();
 		}
+
+		disableCollectionsWithoutSchemas();
 
 		UserCredentialAndGlobalGroupsMigration migration = new UserCredentialAndGlobalGroupsMigration(modelLayerFactory);
 		if (migration.isMigrationRequired()) {
@@ -126,6 +131,22 @@ public class CollectionsManager implements StatefulService {
 		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 
+	}
+
+	private void disableCollectionsWithoutSchemas() {
+
+		for (String collection : collectionsListManager.getCollections()) {
+			try {
+				MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+				types.getSchemaType(User.SCHEMA_TYPE);
+
+			} catch (Exception e) {
+				collectionsListManager.remove(collection);
+				newDisabledCollections.add(collection);
+				LOGGER.warn("Collection '" + collection + "' has been disabled since it have no schemas "
+						+ "(probably a problem during the creation of the collection)");
+			}
+		}
 	}
 
 	private void createSystemCollection() {
@@ -247,6 +268,11 @@ public class CollectionsManager implements StatefulService {
 		removeCollectionFromBigVault(collection);
 		removeCollectionFromVersionProperties(collection, configManager);
 		removeRemoveAllConfigsOfCollection(collection, configManager);
+		removeCollectionFromCache(collection);
+	}
+
+	private void removeCollectionFromCache(String collection) {
+		modelLayerFactory.getRecordsCaches().invalidate(collection);
 	}
 
 	private void removeRemoveAllConfigsOfCollection(final String collection, ConfigManager configManager) {

@@ -173,7 +173,7 @@ public class UserCredentialPageAcceptTest extends ConstellioTest {
 	//
 	//		givenEditPageForIndex(8);
 	//
-	//		assertThat(addEditUserCredentialPage.getUsernameElement().isEnabled()).isFalse();
+	//		assertThat(addEditUserCredentialPage.getUsernameElement().getEnabled()).isFalse();
 	//		addEditUserCredentialPage.getFirstNameElement().setValue("zeEdouard1");
 	//		addEditUserCredentialPage.getLastNameElement().setValue("Lechat1");
 	//		addEditUserCredentialPage.getEmailElement().setValue("zeEdouard@constellio.ca");

@@ -12,6 +12,8 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassif
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -41,7 +43,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
-	
+
 	public static final String TAXONOMY_CODE = "taxonomyCode";
 	public static final String CONCEPT_ID = "conceptId";
 
@@ -49,7 +51,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	TaxonomyVO taxonomy;
 	String conceptId;
 	String taxonomyCode;
-	
+
 	private transient SequenceServices sequenceServices;
 
 	public TaxonomyManagementPresenter(TaxonomyManagementView view) {
@@ -248,8 +250,16 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void tabElementClicked(RecordVO recordVO) {
-		//TODO Refactoring
-		view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
+		//TODO BIG BIG Refactoring!
+
+		if (recordVO.getSchema().getCode().contains(Folder.SCHEMA_TYPE)) {
+			view.navigate().to(RMViews.class).displayFolder(recordVO.getId());
+		}
+
+		if (recordVO.getSchema().getCode().contains(RetentionRule.SCHEMA_TYPE)) {
+			view.navigate().to(RMViews.class).displayRetentionRule(recordVO.getId());
+		}
+
 	}
 
 	public List<TaxonomyManagementClassifiedType> getClassifiedTypes() {
@@ -294,5 +304,5 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	public boolean isSequenceTable(RecordVO recordVO) {
 		return !sequenceServices.getAvailableSequences(recordVO.getId()).isEmpty();
 	}
-	
+
 }

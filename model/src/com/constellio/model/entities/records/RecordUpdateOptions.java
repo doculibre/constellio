@@ -19,6 +19,8 @@ public class RecordUpdateOptions {
 
 	private boolean validationsEnabled = true;
 
+	private boolean unicityValidationsEnabled = true;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -97,6 +99,15 @@ public class RecordUpdateOptions {
 
 	public RecordUpdateOptions setValidationsEnabled(boolean validationsEnabled) {
 		this.validationsEnabled = validationsEnabled;
+		return this;
+	}
+
+	public boolean isUnicityValidationsEnabled() {
+		return unicityValidationsEnabled;
+	}
+
+	public RecordUpdateOptions setUnicityValidationsEnabled(boolean unicityValidationsEnabled) {
+		this.unicityValidationsEnabled = unicityValidationsEnabled;
 		return this;
 	}
 }

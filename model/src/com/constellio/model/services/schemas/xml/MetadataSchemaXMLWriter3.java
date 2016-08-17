@@ -245,6 +245,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isUniqueValue()) {
 			metadataElement.setAttribute("uniqueValue", writeBoolean(metadata.isUniqueValue()));
 		}
+		if (metadata.isMarkedForDeletion()) {
+			metadataElement.setAttribute("markedForDeletion", writeBoolean(metadata.isMarkedForDeletion()));
+		}
 		if (metadata.isUnmodifiable()) {
 			metadataElement.setAttribute("unmodifiable", writeBoolean(metadata.isUnmodifiable()));
 		}

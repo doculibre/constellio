@@ -92,7 +92,7 @@ public abstract class AbstractFolderCopyRulesExpectedDatesCalculator implements 
 			yearEnd = parameters.get(configYearEndParam);
 		}
 
-		LocalDate ajustToFinancialYear(LocalDate date) {
+		LocalDate adjustToFinancialYear(LocalDate date) {
 			return CalculatorUtils.toNextEndOfYearDateIfNotAlready(date, yearEnd, requiredDaysBeforeYearEnd);
 		}
 	}

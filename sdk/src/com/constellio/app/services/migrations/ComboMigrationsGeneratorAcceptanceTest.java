@@ -129,8 +129,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.build();
 
 		File dest = new File(
-				getFoldersLocator().getAppProject() + "/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
-//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
+				getFoldersLocator().getAppProject()
+						+ "/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
+		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -191,8 +192,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
-		File dest = new File(getFoldersLocator().getAppProject() + "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
-//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
+		File dest = new File(getFoldersLocator().getAppProject()
+				+ "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
+		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -251,8 +253,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
-		File dest = new File(getFoldersLocator().getAppProject() + "/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
-//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
+		File dest = new File(getFoldersLocator().getAppProject()
+				+ "/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
+		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -311,8 +314,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
-		File dest = new File(getFoldersLocator().getAppProject() + "/src/com/constellio/app/modules/robots/migrations/GeneratedTasksMigrationCombo.java");
-//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/robots/migrations/GeneratedRobotsMigrationCombo.java");
+		File dest = new File(getFoldersLocator().getAppProject()
+				+ "/src/com/constellio/app/modules/robots/migrations/GeneratedTasksMigrationCombo.java");
+		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/robots/migrations/GeneratedRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -371,8 +375,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
-		File dest = new File(getFoldersLocator().getAppProject() + "/src/com/constellio/app/modules/es/migrations/GeneratedTasksMigrationCombo.java");
-//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
+		File dest = new File(getFoldersLocator().getAppProject()
+				+ "/src/com/constellio/app/modules/es/migrations/GeneratedTasksMigrationCombo.java");
+		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -441,8 +446,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
 				.build();
 
-		File dest = new File(getFoldersLocator().getAppProject() + "/src/com/constellio/app/modules/complementary/migrations/GeneratedTasksMigrationCombo.java");
-//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedESRMRobotsMigrationCombo.java");
+		File dest = new File(getFoldersLocator().getAppProject()
+				+ "/src/com/constellio/app/modules/complementary/migrations/GeneratedTasksMigrationCombo.java");
+		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedESRMRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 

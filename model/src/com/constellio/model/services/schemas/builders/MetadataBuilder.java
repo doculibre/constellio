@@ -64,6 +64,7 @@ public class MetadataBuilder {
 	private boolean encrypted = false;
 	private boolean essentialInSummary = false;
 	private boolean multiLingual;
+	private boolean markedForDeletion = false;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
@@ -179,6 +180,7 @@ public class MetadataBuilder {
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.defaultValue = metadata.getDefaultValue();
 		builder.inputMask = metadata.getInputMask();
+		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.dataEntry = metadata.getDataEntry();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(builder.classProvider,
 				RecordMetadataValidator.class, metadata.getValidators());
@@ -218,6 +220,7 @@ public class MetadataBuilder {
 		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
+		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
@@ -452,6 +455,22 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public boolean isMarkedForDeletion() {
+		return inheritance == null ? markedForDeletion : inheritance.markedForDeletion;
+	}
+
+	public MetadataBuilder setMarkedForDeletion(boolean markedForDeletion) {
+		ensureCanModify("markedForDeletion");
+		if (markedForDeletion) {
+			setEssentialInSummary(false);
+			setEssential(false);
+			setDefaultRequirement(false);
+			setEnabled(false);
+		}
+		this.markedForDeletion = markedForDeletion;
+		return this;
+	}
+
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -675,7 +694,7 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary, multiLingual);
+				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
