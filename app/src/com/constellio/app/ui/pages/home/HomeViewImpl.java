@@ -317,8 +317,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	@Override
-	public void openAgentURL(String agentURL) {
-		Page.getCurrent().open(agentURL, null);
+	public void openURL(String url) {
+		Page.getCurrent().open(url, null);
 	}
 
 }
