@@ -72,8 +72,12 @@ public class RecordAutomaticMetadataServices {
 
 	void updateAutomaticMetadata(RecordImpl record, RecordProvider recordProvider, Metadata metadata,
 			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
-		if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
+		if (metadata.isMarkedForDeletion()) {
+			record.updateAutomaticValue(metadata, null);
+
+		} else if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
 			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation);
+
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
 		}
@@ -93,6 +97,7 @@ public class RecordAutomaticMetadataServices {
 		if (isReferenceModified || forcedReindexation || inTransaction) {
 			Metadata copiedMetadata = schemasManager.getSchemaTypes(record.getCollection())
 					.getMetadata(copiedDataEntry.getCopiedMetadata());
+
 			copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
 		}
 	}
@@ -375,6 +380,7 @@ public class RecordAutomaticMetadataServices {
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
 			Metadata referenceMetadata, Metadata copiedMetadata) {
+
 		if (referenceMetadata.isMultivalue()) {
 			List<String> referencedRecordIds = record.getList(referenceMetadata);
 			if (referencedRecordIds == null || referencedRecordIds.isEmpty()) {

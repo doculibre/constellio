@@ -113,7 +113,8 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(params);
 
 		List<TaxonomyManagementClassifiedType> classifiedTypes = presenter.getClassifiedTypes();
-		assertThat(classifiedTypes).extracting("countLabel").isEqualTo(asList("Nombre de dossiers"));
+		assertThat(classifiedTypes).extracting("countLabel").isEqualTo(asList("Nombre de dossiers",
+				"Nombre de règles de conservation"));
 		assertThat(classifiedTypes.get(0).getDataProvider().size()).isEqualTo(10);
 		assertThat(idsOf(classifiedTypes.get(0).getDataProvider())).containsExactly(
 				records.folder_B52, records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08,

@@ -84,7 +84,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual);
+				false, false, false, false, false, false, multiLingual, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -456,4 +456,7 @@ public class Metadata implements DataStoreField {
 		return duplicable;
 	}
 
+	public boolean isMarkedForDeletion() {
+		return inheritedMetadataBehaviors.isMarkedForDeletion();
+	}
 }

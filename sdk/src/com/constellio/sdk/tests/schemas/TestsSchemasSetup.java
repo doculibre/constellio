@@ -137,6 +137,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+
+	public static MetadataBuilderConfigurator whichIsMarkedForDeletion = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMarkedForDeletion(true);
+		}
+
+	};
 	public static MetadataBuilderConfigurator whichIsEnabled = new MetadataBuilderConfigurator() {
 
 		@Override

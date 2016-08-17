@@ -41,6 +41,7 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -237,7 +238,8 @@ public class MetadataDeletionService {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(collection);
 		MetadataSchemaBuilder schemaBuilder = typesBuilder
 				.getSchema(metadata.getSchemaCode());
-		schemaBuilder.deleteMetadataWithoutValidation(metadata);
+		MetadataBuilder metadataBuilder = schemaBuilder.getMetadata(metadata.getLocalCode());
+		schemaBuilder.deleteMetadataWithoutValidation(metadataBuilder);
 		//typesBuilder.deleteMetadataFromInheretedSchemas(metadata);
 		try {
 			schemasManager.saveUpdateSchemaTypes(typesBuilder);

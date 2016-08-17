@@ -4,6 +4,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypte
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDuplicable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForDeletion;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -29,7 +30,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	TestsSchemasSetup schemas = new TestsSchemasSetup();
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 
-    @Test
+	@Test
 	public void whenAddUpdateSchemasThenSaveEssentialFlag()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsEssential).withABooleanMetadata());
@@ -47,6 +48,26 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 
 		assertThat(zeSchema.stringMetadata().isEssential()).isFalse();
 		assertThat(zeSchema.booleanMetadata().isEssential()).isTrue();
+	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveMarkedForDeletionFlag()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsMarkedForDeletion).withABooleanMetadata());
+
+		assertThat(zeSchema.stringMetadata().isMarkedForDeletion()).isTrue();
+		assertThat(zeSchema.booleanMetadata().isMarkedForDeletion()).isFalse();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setMarkedForDeletion(false);
+				types.getSchema(zeSchema.code()).get(zeSchema.booleanMetadata().getLocalCode()).setMarkedForDeletion(true);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().isMarkedForDeletion()).isFalse();
+		assertThat(zeSchema.booleanMetadata().isMarkedForDeletion()).isTrue();
 	}
 
 	@Test
@@ -108,7 +129,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 
 		assertThat(zeSchema.stringMetadata().isDuplicable()).isFalse();
 		assertThat(zeSchema.booleanMetadata().isDuplicable()).isTrue();
-    }
+	}
 
 	@Before
 	public void setUp()
