@@ -125,6 +125,11 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		registerCollectionConfigAndLoad(collection);
 	}
 
+	@Override
+	public void onCollectionDeleted(String collection) {
+		cache.remove(collection);
+	}
+
 	public void createCollectionFile(final String collection, DocumentAlteration documentAlteration) {
 		String configPath = getConfigPath(collection);
 		configManager.createXMLDocumentIfInexistent(configPath, documentAlteration);

@@ -7,8 +7,8 @@ import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImpo
 import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.REQUIRED_VALUE;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
-import static com.constellio.sdk.tests.TestUtils.asMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.setAllowExtractingPrivateFields;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 
@@ -29,6 +29,7 @@ import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 
 public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
@@ -55,11 +56,10 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRetentionRuleThenInvalidIdValueOnDocumentType() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenDocumentTypes(documentTypes).code("documentPapier").addField("archivisticStatus", "C").build();
 
-		retentionRuleExtension.validate(new ValidationParams(importErrors, importData));
+		retentionRuleExtension.validate(new ValidationParams(validationErrors, importData));
 		List<ValidationError> errors = validationErrors.getValidationErrors();
 
 		assertThat(errors).containsOnly(newValidationError(INVALID_CODE_VALUE,
@@ -69,12 +69,11 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRetentionRuleThenInvalidCopyTypeOnCopyRetentionRule() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenCopyRetentionRule(copyRetentionRules).addField("copyType", "F'`,,,").addField("inactiveDisposalType", "S")
 				.addField("mediumType", "PA,FI");
 
-		retentionRuleExtension.prevalidate(new PrevalidationParams(importErrors, importData));
+		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
 		List<ValidationError> errors = validationErrors.getValidationErrors();
 
@@ -95,7 +94,6 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenALargeAmountOfScrapDataWhenValidateThenAFullStackOfError() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(2)).addField("copyType", "S")
 				.addField("inactiveDisposalType", "C")
@@ -118,7 +116,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		givenDocumentTypes(documentTypes).addField("archivisticStatus", "D");
 		givenDocumentTypes(documentTypes).code("emailDocumentType").code(String.valueOf(1)).addField("archivisticStatus", "T");
 
-		retentionRuleExtension.prevalidate(new PrevalidationParams(importErrors, importData));
+		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
 		List<ValidationError> errors = validationErrors.getValidationErrors();
 		List<ValidationError> expectedErrors = fullSetOfExpectedErrors();
@@ -129,7 +127,6 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEmptyMetadatasWhenPrevalidateThenInvalidStringValueError() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(1)).addField("copyType", "")
 				.addField("inactiveDisposalType", "")
@@ -138,7 +135,7 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
 		givenDocumentTypes(documentTypes).code("emailDocumentType").addField("archivisticStatus", "");
 
-		retentionRuleExtension.prevalidate(new PrevalidationParams(importErrors, importData));
+		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
 		List<ValidationError> expected = new ArrayList<>();
 
@@ -235,10 +232,10 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 	}
 
 	private ValidationError newValidationError(String code, Map<String, Object> parameters) {
-		parameters.put("index", "1");
-		parameters.put("legacyId", null);
-		parameters.put("schemaType", "retentionRule");
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+//		parameters.put("index", "1");
+		//		parameters.put("legacyId", null);
+		//		parameters.put("schemaType", "retentionRule");
+		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
 	private StructureMapBuilder givenCopyRetentionRule(List<Object> copyRetentionRule) {

@@ -39,7 +39,7 @@ public class MetadataBuilderRuntimeException extends RuntimeException {
 
 	public static class EssentialMetadataInSummaryCannotBeDisabled extends MetadataBuilderRuntimeException {
 		public EssentialMetadataInSummaryCannotBeDisabled(String metadata) {
-			super("Essential metadata in summary cannot be disabled");
+			super("Metadata '" + metadata + "' cannot be disabled, since it is essential in summary");
 		}
 	}
 

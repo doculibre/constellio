@@ -47,6 +47,15 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 	}
 
+	public RetentionRuleToVOBuilder(SessionContext sessionContext, AppLayerFactory appLayerFactory, MetadataSchema categories,
+			MetadataSchema subdivisions) {
+		this.categories = categories;
+		this.subdivisions = subdivisions;
+		this.sessionContext = sessionContext;
+		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+	}
+
 	@Override
 	public RetentionRuleVO build(Record record, VIEW_MODE viewMode, SessionContext sessionContext) {
 		this.sessionContext = sessionContext;

@@ -11,13 +11,14 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 
 public class DocumentCalendarYearCalculator implements MetadataValueCalculator<LocalDate> {
-	LocalDependency<String> calendarYearParam = LocalDependency.toAString(Document.CALENDAR_YEAR_ENTERED);
+	LocalDependency<String> calendarYearParam = LocalDependency.toAString(Schemas.LEGACY_ID.getLocalCode());
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
-		String calendarYearStr = parameters.get(calendarYearParam);
+		/*String calendarYearStr = parameters.get(calendarYearParam);
 
 		LocalDate localDate = null;
 		try {
@@ -26,7 +27,8 @@ public class DocumentCalendarYearCalculator implements MetadataValueCalculator<L
 		} catch (NumberFormatException e) {
 		}
 
-		return localDate;
+		return localDate;*/
+		return new LocalDate();
 	}
 
 	@Override

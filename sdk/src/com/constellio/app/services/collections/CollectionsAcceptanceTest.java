@@ -107,6 +107,30 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenDeletingAndRecreatingACollectionWithSameCodeThenOk()
+			throws Exception {
+
+		givenCollection(zeCollection).withConstellioRMModule().withConstellioESModule();
+		givenCollection("anotherCollection").withConstellioRMModule().withConstellioESModule();
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
+		userServices.addUserToCollection(userServices.getUser(admin), "anotherCollection");
+		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
+				.containsOnly("com.constellio.app.modules.tasks.TaskModule", "com.constellio.app.modules.es.ConstellioESModule",
+						"com.constellio.app.modules.rm.ConstellioRMModule");
+
+		collectionsManager.deleteCollection(zeCollection);
+		givenCollection(zeCollection).withConstellioRMModule().withRobotsModule();
+		assertThat(getAppLayerFactory().getModulesManager().getEnabledModules(zeCollection)).extracting("class.name")
+				.containsOnly("com.constellio.app.modules.tasks.TaskModule",
+						"com.constellio.app.modules.robots.ConstellioRobotsModule",
+						"com.constellio.app.modules.rm.ConstellioRMModule");
+
+		assertThat(userServices.getUser(admin).getCollections()).containsOnly("anotherCollection");
+		userServices.addUserToCollection(userServices.getUser(admin), zeCollection);
+	}
+
+	@Test
 	public void whenCreatingCollectionThenAsSpecifiedLanguages()
 			throws Exception {
 

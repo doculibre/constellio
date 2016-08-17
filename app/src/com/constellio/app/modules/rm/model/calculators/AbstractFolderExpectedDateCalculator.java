@@ -7,7 +7,7 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -24,13 +24,13 @@ public abstract class AbstractFolderExpectedDateCalculator implements MetadataVa
 	LocalDependency<CopyRetentionRule> mainCopyRuleParam = LocalDependency
 			.toAStructure(Folder.MAIN_COPY_RULE).whichIsRequired();
 
-	ConfigDependency<CalculatorWithManualMetadataChoice> manualMetadataChoiceConfigDependency
-			= RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA.dependency();
+	ConfigDependency<AllowModificationOfArchivisticStatusAndExpectedDatesChoice> manualMetadataChoiceConfigDependency
+			= RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES.dependency();
 
 	@Override
 	public LocalDate calculate(CalculatorParameters parameters) {
-		CalculatorWithManualMetadataChoice manualMetadataChoice = parameters.get(manualMetadataChoiceConfigDependency);
-		if (manualMetadataChoice == null || manualMetadataChoice == CalculatorWithManualMetadataChoice.DISABLE) {
+		AllowModificationOfArchivisticStatusAndExpectedDatesChoice manualMetadataChoice = parameters.get(manualMetadataChoiceConfigDependency);
+		if (manualMetadataChoice == null || manualMetadataChoice == AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED) {
 			return calculateWithoutConsideringManualMetadata(parameters);
 		} else {
 			LocalDate manualMetadata = parameters.get(getManualDateDependency());

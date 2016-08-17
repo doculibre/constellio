@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 public class ResolverCache {
 
 	private static final int MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS = 1000;
+
+	Map<String, Long> typesRecordsCount = new HashMap<>();
 
 	Map<String, Map<String, SchemaTypeUniqueMetadataMappingCache>> cache = new HashMap<>();
 
@@ -77,7 +80,12 @@ public class ResolverCache {
 	}
 
 	public boolean isRecordUpdate(String schemaType, String legacyId) {
-		return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).isRecordUpdate(legacyId);
+		if (!typesRecordsCount.containsKey(schemaType)) {
+			MetadataSchemaType type = types.getSchemaType(schemaType);
+			typesRecordsCount.put(schemaType, searchServices.getResultsCount(from(type).where(LEGACY_ID).isNotNull()));
+		}
+		return typesRecordsCount.get(schemaType) > 0 &&
+				getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).isRecordUpdate(legacyId);
 	}
 
 	public String resolve(String schemaType, String resolver) {
@@ -98,7 +106,7 @@ public class ResolverCache {
 				}
 				return id;
 			} else {
-				return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).idsMapping.get(resolver);
+				return getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).idsMapping.get(resolver);
 			}
 		}
 	}
@@ -112,17 +120,10 @@ public class ResolverCache {
 	}
 
 	public Set<String> getNotYetImportedLegacyIds(String schemaType) {
-		return getSchemaTypeCache(schemaType, Schemas.LEGACY_ID.getLocalCode()).recordsInFile;
+		return getSchemaTypeCache(schemaType, LEGACY_ID.getLocalCode()).recordsInFile;
 	}
 
 	public boolean isNewUniqueValue(String schemaType, String metadata, String legacyId) {
-		//		boolean newLegacyId = true;
-		//		for (Map<String, SchemaTypeUniqueMetadataMappingCache> typeUniqueValues : cache.values()) {
-		//			for (SchemaTypeUniqueMetadataMappingCache typeMappingCache : typeUniqueValues.values()) {
-		//				newLegacyId &= typeMappingCache.isNewLegacyId(legacyId);
-		//			}
-		//		}
-		//		return newLegacyId;
 		return getSchemaTypeCache(schemaType, metadata).isNewLegacyId(legacyId);
 	}
 
@@ -191,7 +192,7 @@ public class ResolverCache {
 			}
 			if (importDataSize <= MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS) {
 				MetadataSchemaType type = types.getSchemaType(schemaType);
-				return searchServices.hasResults(from(type).where(Schemas.LEGACY_ID).isEqualTo(legacyId));
+				return searchServices.hasResults(from(type).where(LEGACY_ID).isEqualTo(legacyId));
 
 			} else {
 				if (legacyIds == null) {
@@ -200,10 +201,10 @@ public class ResolverCache {
 					//List<String> ids = searchServices.searchRecordIds(from(type).where(Schemas.LEGACY_ID).isNotNull());
 					legacyIds = new HashSet<>();
 					Iterator<Record> iterators = searchServices.recordsIterator(new LogicalSearchQuery()
-							.setCondition(from(type).where(Schemas.LEGACY_ID).isNotNull())
-							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.LEGACY_ID)), 5000);
+							.setCondition(from(type).where(LEGACY_ID).isNotNull())
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(LEGACY_ID)), 5000);
 					while (iterators.hasNext()) {
-						String aLegacyId = iterators.next().get(Schemas.LEGACY_ID);
+						String aLegacyId = iterators.next().get(LEGACY_ID);
 						legacyIds.add(aLegacyId);
 					}
 				}

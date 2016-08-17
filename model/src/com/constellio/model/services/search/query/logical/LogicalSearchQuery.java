@@ -454,4 +454,8 @@ public class LogicalSearchQuery implements SearchQuery {
 			return access;
 		}
 	}
+
+	public static LogicalSearchQuery query(LogicalSearchCondition condition) {
+		return new LogicalSearchQuery(condition);
+	}
 }

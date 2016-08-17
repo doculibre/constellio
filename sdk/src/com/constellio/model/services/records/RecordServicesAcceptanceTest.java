@@ -857,7 +857,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
 			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
-					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
+					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
 			);
 		}
@@ -869,7 +869,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
 			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
-					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
+					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
 			);
 		}

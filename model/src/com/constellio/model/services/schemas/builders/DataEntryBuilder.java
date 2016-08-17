@@ -40,7 +40,9 @@ public class DataEntryBuilder {
 		String referenceMetadataCode = referenceMetadataBuilder.getCode();
 		String copiedMetadataCode = copiedMetadataBuilder.getCode();
 
-		for (String schemas : referenceMetadataBuilder.getAllowedReferencesBuider().getSchemas()) {
+		AllowedReferencesBuilder allowedReferencesBuider = referenceMetadataBuilder.getAllowedReferencesBuider();
+
+		for (String schemas : allowedReferencesBuider.getSchemas()) {
 			if (!schemas.endsWith("_default")) {
 				throw new CannotCopyUsingACustomMetadata(referenceMetadataCode, schemas);
 			}

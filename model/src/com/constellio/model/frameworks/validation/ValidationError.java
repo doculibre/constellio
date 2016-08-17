@@ -7,12 +7,24 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class ValidationError {
 
+	private final Class<?> validatorClass;
+	private final String errorCode;
 	private final String code;
 	private final Map<String, Object> parameters;
 
-	public ValidationError(String code, Map<String, Object> parameters) {
-		this.code = code;
+	public ValidationError(Class<?> validatorClass, String errorCode, Map<String, Object> parameters) {
+		this.validatorClass = validatorClass;
+		this.errorCode = errorCode;
+		this.code = validatorClass.getName() + "_" + errorCode;
 		this.parameters = parameters;
+	}
+
+	public Class<?> getValidatorClass() {
+		return validatorClass;
+	}
+
+	public String getValidatorErrorCode() {
+		return errorCode;
 	}
 
 	public String getCode() {

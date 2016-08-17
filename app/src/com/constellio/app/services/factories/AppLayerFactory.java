@@ -153,6 +153,13 @@ public class AppLayerFactory extends LayerFactory {
 
 	}
 
+	public void registerSystemWideManager(String module, String id, StatefulService manager) {
+		String key = module + "-" + id;
+		add(manager);
+		moduleManagers.put(key, manager);
+		manager.initialize();
+	}
+
 	public void registerManager(String collection, String module, String id, StatefulService manager) {
 		String key = collection + "-" + module + "-" + id;
 		add(manager);
@@ -162,6 +169,11 @@ public class AppLayerFactory extends LayerFactory {
 
 	public <T> T getRegisteredManager(String collection, String module, String id) {
 		String key = collection + "-" + module + "-" + id;
+		return (T) moduleManagers.get(key);
+	}
+
+	public <T> T getSystemWideRegisteredManager(String module, String id) {
+		String key = module + "-" + id;
 		return (T) moduleManagers.get(key);
 	}
 

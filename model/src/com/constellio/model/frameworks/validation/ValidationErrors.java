@@ -14,21 +14,21 @@ public class ValidationErrors {
 		validationErrors = new ArrayList<>();
 	}
 
-	public void add(Class<?> validatorClass, String code) {
+	public final void add(Class<?> validatorClass, String code) {
 		add(validatorClass, code, new HashMap<String, Object>());
 	}
 
+	public final void add(ValidationError e, Map<String, Object> parameters) {
+		add(e.getValidatorClass(), e.getValidatorErrorCode(), parameters);
+	}
+
 	public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
-		validationErrors.add(new ValidationError(validatorClass.getName() + "_" + code, parameters));
+		validationErrors.add(new ValidationError(validatorClass, code, parameters));
 	}
 
-	public void add(String code, Map<String, Object> parameters) {
-		validationErrors.add(new ValidationError(code, parameters));
-	}
-
-	public String toMultilineErrorsSummaryString() {
+	public final String toMultilineErrorsSummaryString() {
 		StringBuilder sb = new StringBuilder();
-		for (ValidationError validationError : validationErrors) {
+		for (ValidationError validationError : getValidationErrors()) {
 			if (!sb.toString().isEmpty()) {
 				sb.append("\n");
 			}
@@ -37,9 +37,9 @@ public class ValidationErrors {
 		return sb.toString();
 	}
 
-	public String toErrorsSummaryString() {
+	public final String toErrorsSummaryString() {
 		StringBuilder sb = new StringBuilder();
-		for (ValidationError validationError : validationErrors) {
+		for (ValidationError validationError : getValidationErrors()) {
 			if (sb.toString().length() < 1000) {
 				if (!sb.toString().isEmpty()) {
 					sb.append(", ");
@@ -54,11 +54,18 @@ public class ValidationErrors {
 		return Collections.unmodifiableList(validationErrors);
 	}
 
-	public boolean isEmpty() {
-		return validationErrors.isEmpty();
-	}
-
 	public void addAll(List<ValidationError> validationErrors) {
 		this.validationErrors.addAll(validationErrors);
+	}
+
+	public final boolean isEmpty() {
+		return getValidationErrors().isEmpty();
+	}
+
+	public final void throwIfNonEmpty()
+			throws ValidationException {
+		if (!isEmpty()) {
+			throw new ValidationException(this);
+		}
 	}
 }

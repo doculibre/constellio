@@ -318,6 +318,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setUniqueValue(readBooleanWithDefaultValue(uniqueStringValue, false));
 		}
 
+		String markedForDeletion = metadataElement.getAttributeValue("markedForDeletion");
+		if (inheriteGlobalMetadata && markedForDeletion == null) {
+			metadataBuilder.setMarkedForDeletion(globalMetadataInCollectionSchema.isMarkedForDeletion());
+		} else {
+			metadataBuilder.setMarkedForDeletion(readBooleanWithDefaultValue(markedForDeletion, false));
+		}
+
 		String childOfRelationshipStringValue = metadataElement.getAttributeValue("childOfRelationship");
 		if (inheriteGlobalMetadata && childOfRelationshipStringValue == null) {
 			metadataBuilder.setChildOfRelationship(globalMetadataInCollectionSchema.isChildOfRelationship());

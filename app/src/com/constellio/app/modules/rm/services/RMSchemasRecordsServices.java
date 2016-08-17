@@ -261,7 +261,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-
 	//Document type
 
 	public MetadataSchema documentTypeSchema() {
@@ -316,35 +315,35 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Folder
 
-    public MetadataSchema folderSchemaFor(String typeId) {
-        return typeId == null ? defaultFolderSchema() : folderSchemaFor(getFolderType(typeId));
-    }
+	public MetadataSchema folderSchemaFor(String typeId) {
+		return typeId == null ? defaultFolderSchema() : folderSchemaFor(getFolderType(typeId));
+	}
 
-    public Folder newFolderWithType(String typeId) {
-        Record record = create(folderSchemaFor(typeId));
-        return new Folder(record, getTypes()).setType(typeId);
-    }
+	public Folder newFolderWithType(String typeId) {
+		Record record = create(folderSchemaFor(typeId));
+		return new Folder(record, getTypes()).setType(typeId);
+	}
 
-    public MetadataSchema defaultFolderSchema() {
-        return getTypes().getSchema(Folder.DEFAULT_SCHEMA);
-    }
+	public MetadataSchema defaultFolderSchema() {
+		return getTypes().getSchema(Folder.DEFAULT_SCHEMA);
+	}
 
-    public MetadataSchemaType folderSchemaType() {
-        return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
-    }
+	public MetadataSchemaType folderSchemaType() {
+		return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
+	}
 
-    public MetadataSchema folderSchemaFor(FolderType type) {
-        return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
-    }
+	public MetadataSchema folderSchemaFor(FolderType type) {
+		return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
+	}
 
-    public Folder newFolderWithType(FolderType type) {
-        Record record = create(folderSchemaFor(type));
-        return new Folder(record, getTypes()).setType(type);
-    }
+	public Folder newFolderWithType(FolderType type) {
+		Record record = create(folderSchemaFor(type));
+		return new Folder(record, getTypes()).setType(type);
+	}
 
 	//
 
-    //Folder type
+	//Folder type
 
     /*
 
@@ -380,42 +379,44 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
         return new FolderType(create(defaultFolderTypeSchema(), id), getTypes());
     }*/
 
-    public MetadataSchema folderTypeSchema() {
-        return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
-    }
+	public MetadataSchema folderTypeSchema() {
+		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
+	}
 
-    //
+	public MetadataSchemaType folderTypeSchemaType() {
+		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
+	}
 
-    //Hierarchical value list item
+	//
 
-    public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
-        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-    }
+	//Hierarchical value list item
 
-    public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
-        List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
-        for (Record record : records) {
-            hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
-        }
-        return hierarchicalValueListItems;
-    }
+	public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
+		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+	}
 
-    public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
-        Record record = get(id);
-        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-    }
+	public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
+		List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
+		for (Record record : records) {
+			hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
+		}
+		return hierarchicalValueListItems;
+	}
 
-    public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
-        return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-    }
+	public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
+		Record record = get(id);
+		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+	}
 
-    public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
-        return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
-    }
+	public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
+		return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+	}
 
+	public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
+		return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
+	}
 
-
-    //Medium type
+	//Medium type
 
 	public MetadataSchema mediumTypeSchema() {
 		return getTypes().getSchema(MediumType.DEFAULT_SCHEMA);
@@ -518,7 +519,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-
 	public MetadataSchemaType cartSchemaType() {
 		return getTypes().getSchemaType(Cart.SCHEMA_TYPE);
 	}
@@ -585,8 +585,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Value list item
 
+	public ValueListItem getValueListItemByLegacyId(String valueListCode, String valueListItemCode) {
+		return wrapValueListItem(getByLegacyId(getTypes().getSchemaType(valueListCode), valueListItemCode));
+	}
+
 	public ValueListItem wrapValueListItem(Record record) {
-		return new ValueListItem(record, getTypes(), record.getSchemaCode());
+		return record == null ? null : new ValueListItem(record, getTypes(), record.getSchemaCode());
 	}
 
 	public List<ValueListItem> wrapValueListItems(List<Record> records) {

@@ -51,6 +51,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public EventPresenter(EventView view) {
 		super(view, Event.DEFAULT_SCHEMA);
+		recordServices().flush();
 	}
 
 	@Override
