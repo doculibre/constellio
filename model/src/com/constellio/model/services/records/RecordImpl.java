@@ -681,7 +681,7 @@ public class RecordImpl implements Record {
 					} else {
 
 						if (!LangUtils.areNullableEqual(currentValue, initialValue)) {
-							throw new RecordRuntimeException.CannotMerge();
+							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}
 				}
