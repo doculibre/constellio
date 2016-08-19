@@ -25,7 +25,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -116,7 +115,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		private void createArchivisticManualMetadata(MetadataSchemaBuilder folderDefaultSchema) {
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_ARCHIVISTIC_STATUS).setType(ENUM).defineAsEnum(FolderStatus.class)
 					.setEnabled(false);
-			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE).setType(DATE).setEnabled(false);
+			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_DEPOSIT_DATE).setType(DATE).setEnabled(false);
 			folderDefaultSchema.createUndeletable(Folder.MANUAL_EXPECTED_TRANSFER_DATE).setType(DATE).setEnabled(false);
 

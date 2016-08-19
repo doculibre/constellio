@@ -18,6 +18,12 @@ public class CalculatorUtils {
 		}
 	}
 
+	public static LocalDate toEndOfYear(int year, String yearEndStr) {
+		int indexOfSep = yearEndStr.indexOf("/");
+		int yearEndMonth = Integer.parseInt(yearEndStr.substring(0, indexOfSep));
+		int yearEndDay = Integer.parseInt(yearEndStr.substring(indexOfSep + 1));
+		return new LocalDate(year, yearEndMonth, yearEndDay);
+	}
 
 	//FIXME make it private?
 	static LocalDate toNextEndOfYearDate(LocalDate date, String yearEndStr, int requiredDaysBeforeYearEnd) {
@@ -25,11 +31,8 @@ public class CalculatorUtils {
 			return null;
 		}
 		LocalDate yearEndDate;
-		int indexOfSep = yearEndStr.indexOf("/");
-		int yearEndMonth = Integer.parseInt(yearEndStr.substring(0, indexOfSep));
-		int yearEndDay = Integer.parseInt(yearEndStr.substring(indexOfSep + 1));
 
-		yearEndDate = new LocalDate(date.getYear(), yearEndMonth, yearEndDay);
+		yearEndDate = toEndOfYear(date.getYear(), yearEndStr);
 
 		if (yearEndDate.isBefore(date)) {
 			yearEndDate = yearEndDate.plusYears(1);

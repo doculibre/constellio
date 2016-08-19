@@ -48,7 +48,7 @@ public class FolderClosingDateCalculator implements MetadataValueCalculator<Loca
 		for (CopyRetentionRule copy : copies) {
 			LocalDate copyClosingDate = calculateForCopy(copy, parameters);
 			LocalDate yearEndDate = CalculatorUtils.toNextEndOfYearDate(copyClosingDate, yearEnd, requiredDaysBeforeYearEnd);
-			if (smallestClosingDate == null || smallestClosingDate.isAfter(yearEndDate)) {
+			if (smallestClosingDate == null || (yearEndDate != null && smallestClosingDate.isAfter(yearEndDate))) {
 				smallestClosingDate = yearEndDate;
 			}
 		}
