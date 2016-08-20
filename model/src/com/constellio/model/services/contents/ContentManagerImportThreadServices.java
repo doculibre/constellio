@@ -69,16 +69,19 @@ public class ContentManagerImportThreadServices {
 		} else {
 
 			List<File> files = getFilesReadyToImport();
-			importFiles(files);
-			ioServices.deleteEmptyDirectoriesExceptThisOneIn(toImportFolder);
-			ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsEmptyFolder);
-			ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsUnparsableFolder);
-			ioServices.deleteEmptyDirectoriesExceptThisOneIn(tempFolder);
+			if (!files.isEmpty()) {
+				importFiles(files);
+
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(toImportFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsEmptyFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsUnparsableFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(tempFolder);
+			}
 		}
 	}
 
 	private void importFiles(List<File> files) {
-		System.out.println("importing files " + files + "");
+		LOGGER.info("importing files " + files + "");
 		BulkUploader uploader = new BulkUploader(modelLayerFactory);
 		uploader.setHandleDeletionOfUnreferencedHashes(false);
 

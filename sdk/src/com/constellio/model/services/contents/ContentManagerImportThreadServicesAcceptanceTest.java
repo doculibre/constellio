@@ -98,7 +98,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(toImport).exists();
 		assertThat(errorsEmpty).exists();
 		assertThat(errorsUnparsable).exists();
-		assertThat(indexProperties).exists();
+		assertThat(indexProperties).doesNotExist();
 
 	}
 
