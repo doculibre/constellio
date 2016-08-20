@@ -68,6 +68,8 @@ public class Metadata implements DataStoreField {
 
 	final boolean duplicable;
 
+	final String dataStoreCode;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
 	}
@@ -116,7 +118,20 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
 		this.duplicable = false;
+		this.dataStoreCode = computeDataStoreCode();
 
+	}
+
+	private String computeDataStoreCode() {
+		if (type == MetadataValueType.REFERENCE) {
+			if (isChildOfRelationship()) {
+				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
+			} else {
+				return dataStoreType == null ? localCode : (localCode + "Id_" + dataStoreType);
+			}
+		} else {
+			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
+		}
 	}
 
 	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
@@ -149,6 +164,7 @@ public class Metadata implements DataStoreField {
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
 		this.duplicable = duplicatbale;
+		this.dataStoreCode = computeDataStoreCode();
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
@@ -177,6 +193,7 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 		this.duplicable = duplicable;
+		this.dataStoreCode = computeDataStoreCode();
 	}
 
 	public String getCode() {
@@ -188,15 +205,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getDataStoreCode() {
-		if (type == MetadataValueType.REFERENCE) {
-			if (isChildOfRelationship()) {
-				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
-			} else {
-				return dataStoreType == null ? localCode : (localCode + "Id_" + dataStoreType);
-			}
-		} else {
-			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
-		}
+		return dataStoreCode;
 	}
 
 	public String getFrenchLabel() {
