@@ -33,7 +33,12 @@ public class MetadataCodeToStringConverter implements Converter<String, String> 
 			MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			Metadata metadata = types.getMetadata(value);
-			Language language = Language.withCode(locale.getLanguage());
+			Language language;
+			if (locale == null) {
+				language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
+			} else {
+				language = Language.withCode(locale.getLanguage());
+			}
 			label = metadata.getLabel(language);
 		} else {
 			label = "";
