@@ -90,7 +90,7 @@ public class Folder extends RMObject {
 
 	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
 	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
-	public static final String MANUAL_EXPECTED_DESTRIUCTION_DATE = "manualExpectedDesctructionDate";
+	public static final String MANUAL_EXPECTED_DESTRUCTION_DATE = "manualExpectedDesctructionDate";
 	public static final String MANUAL_ARCHIVISTIC_STATUS = "manualArchivisticStatus";
 
 	public static final String TIME_RANGE = "timerange";
@@ -673,11 +673,11 @@ public class Folder extends RMObject {
 	}
 
 	public LocalDate getManualExpectedDestructionDate() {
-		return get(MANUAL_EXPECTED_DESTRIUCTION_DATE);
+		return get(MANUAL_EXPECTED_DESTRUCTION_DATE);
 	}
 
 	public Folder setManualExpectedDestructionDate(LocalDate date) {
-		set(MANUAL_EXPECTED_DESTRIUCTION_DATE, date);
+		set(MANUAL_EXPECTED_DESTRUCTION_DATE, date);
 		return this;
 	}
 

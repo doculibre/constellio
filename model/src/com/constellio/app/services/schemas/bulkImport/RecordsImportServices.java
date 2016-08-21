@@ -188,25 +188,34 @@ public class RecordsImportServices implements ImportServices {
 			int previouslySkipped = 0;
 			AtomicInteger addUpdateCount = new AtomicInteger();
 			boolean typeImportFinished = false;
+			ValidationErrors errors = new ValidationErrors();
 			while (!typeImportFinished) {
 
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped = bulkImport(importResults, uniqueMetadatas, resolverCache, importDataIterator, schemaType,
-						progressionHandler, user, types, extensions, addUpdateCount, params, recordsBeforeImport, language);
+						progressionHandler, user, types, extensions, addUpdateCount, params, recordsBeforeImport, language,
+						errors);
 				if (skipped > 0 && skipped == previouslySkipped) {
-					ValidationErrors errors = new ValidationErrors();
-					Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
-					addCyclicDependenciesValidationError(language, errors, types.getSchemaType(schemaType), cyclicDependentIds);
-					errors.throwIfNonEmpty();
 
+					if (errors.isEmpty()) {
+						Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
+						addCyclicDependenciesValidationError(language, errors, types.getSchemaType(schemaType),
+								cyclicDependentIds);
+
+					}
+
+					errors.throwIfNonEmpty();
 				}
 				if (skipped == 0) {
 					typeImportFinished = true;
 				}
 				previouslySkipped = skipped;
 			}
+			errors.throwIfNonEmpty();
 		}
+
 		progressionHandler.onImportFinished();
+
 		return importResults;
 	}
 
@@ -228,12 +237,11 @@ public class RecordsImportServices implements ImportServices {
 	int bulkImport(BulkImportResults importResults, List<String> uniqueMetadatas, ResolverCache resolverCache,
 			ImportDataIterator importDataIterator, String schemaType, ProgressionHandler progressionHandler, User user,
 			MetadataSchemaTypes types, ModelLayerCollectionExtensions extensions, AtomicInteger addUpdateCount,
-			BulkImportParams params, boolean recordsBeforeImport, Language language)
+			BulkImportParams params, boolean recordsBeforeImport, Language language, ValidationErrors errors)
 			throws ValidationException {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
-		ValidationErrors errors = new ValidationErrors();
 		while (importDataBatches.hasNext()) {
 			try {
 				List<ImportData> batch = importDataBatches.next();
@@ -253,10 +261,6 @@ public class RecordsImportServices implements ImportServices {
 				throw new RuntimeException(e);
 			}
 
-		}
-
-		if (!errors.isEmpty()) {
-			throw new ValidationException(errors);
 		}
 
 		return skipped;

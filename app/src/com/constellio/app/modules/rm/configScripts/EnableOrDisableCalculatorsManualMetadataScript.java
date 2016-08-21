@@ -45,7 +45,7 @@ public class EnableOrDisableCalculatorsManualMetadataScript extends
 						defaultFolderSchema
 								.getMetadata(Folder.MANUAL_EXPECTED_DEPOSIT_DATE).setEnabled(disableManualMetadataInCalculators);
 						defaultFolderSchema
-								.getMetadata(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE).setEnabled(disableManualMetadataInCalculators);
+								.getMetadata(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE).setEnabled(disableManualMetadataInCalculators);
 						defaultFolderSchema
 								.getMetadata(Folder.MANUAL_EXPECTED_TRANSFER_DATE).setEnabled(disableManualMetadataInCalculators);
 					}
