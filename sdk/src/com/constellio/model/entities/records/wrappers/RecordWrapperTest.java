@@ -1,6 +1,7 @@
 package com.constellio.model.entities.records.wrappers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.RecordWrapperRuntimeException_CannotUseDisconnectedRecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -32,6 +34,8 @@ public class RecordWrapperTest extends ConstellioTest {
 
 	@Mock Metadata zeMetadata;
 
+	@Mock MetadataSchema folderSchema;
+
 	String type = "type";
 	String schema = "type_custom";
 
@@ -41,7 +45,12 @@ public class RecordWrapperTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		when(metadataSchemaTypes.getMetadata(zeMetadataCode)).thenReturn(zeMetadata);
+		when(metadataSchemaTypes.getMetadata("folder_default_zeMetadata")).thenReturn(zeMetadata);
+		when(metadataSchemaTypes.getSchema("folder_default")).thenReturn(folderSchema);
+		when(metadataSchemaTypes.getSchema(schema)).thenReturn(folderSchema);
+		when(folderSchema.get("zeMetadata")).thenReturn(zeMetadata);
+		when(folderSchema.getMetadata("zeMetadata")).thenReturn(zeMetadata);
+
 		when(wrappedRecord.getSchemaCode()).thenReturn(schema);
 		when(zeMetadata.getCode()).thenReturn(zeMetadataCode);
 		when(zeMetadata.getLocalCode()).thenReturn(zeMetadataLocalCode);
@@ -79,17 +88,6 @@ public class RecordWrapperTest extends ConstellioTest {
 			throws Exception {
 
 		new RecordWrapper(wrappedRecord, metadataSchemaTypes, "type_default");
-
-	}
-
-	@Test
-	public void whenGetPropertyThenGetMetadataAndCallRecordWithIt()
-			throws Exception {
-
-		when(metadataSchemaTypes.getMetadata("type_custom_zeMeta")).thenReturn(zeMetadata);
-		when(wrappedRecord.get(zeMetadata)).thenReturn("42");
-
-		assertThat(wrapper.get("zeMeta")).isEqualTo("42");
 
 	}
 
