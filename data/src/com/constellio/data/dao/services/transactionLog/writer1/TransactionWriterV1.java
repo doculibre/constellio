@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -168,19 +170,22 @@ public class TransactionWriterV1 {
 		stringBuilder.append("deletequery " + deletedByQuery + "\n");
 	}
 
+	private Pattern lineFeedPattern = Pattern.compile("\n", Pattern.LITERAL);
+	private Pattern zPattern = Pattern.compile("Z", Pattern.LITERAL);
+
 	private String correct(Object value) {
 		if (value == null || "null".equals(value)) {
 			return "";
 
 		} else if (value instanceof Date) {
 			LocalDateTime dateTime = new LocalDateTime(value);
-			return correctDate(dateTime).toString().replace("Z", "");
+			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-			return value.toString().replace("Z", "");
+			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else {
-			return value.toString().replace("\n", "__LINEBREAK__");
+			return lineFeedPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("__LINEBREAK__"));
 		}
 	}
 
