@@ -60,6 +60,11 @@ public class CmisCacheManager implements StatefulService, CollectionsListManager
 		addCollectionsToRepository(collection);
 	}
 
+	@Override
+	public void onCollectionDeleted(String collection) {
+		repositories.remove(collection);
+	}
+
 	private void addCollectionsToRepository() {
 		CollectionsListManager collectionsListManager = appLayerFactory.getModelLayerFactory().getCollectionsListManager();
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {

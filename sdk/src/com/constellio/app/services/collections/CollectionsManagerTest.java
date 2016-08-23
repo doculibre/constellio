@@ -40,6 +40,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
@@ -55,6 +56,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class CollectionsManagerTest extends ConstellioTest {
 
+	@Mock RecordsCaches caches;
 	@Mock ConstellioPluginManager pluginManager;
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock SearchBoostManager searchBoostManager;
@@ -182,17 +184,19 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(dataLayerFactory.newRecordDao()).thenReturn(recordDao);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 		when(modelLayerFactory.getUserCredentialsManager()).thenReturn(userCredentialsManager);
+		when(modelLayerFactory.getRecordsCaches()).thenReturn(caches);
 
 		collectionsManager.deleteCollection(zeCollection);
 
 		InOrder inOrder = inOrder(collectionsListManager, userCredentialsManager, configManager, transactionDTO, recordDao,
-				modulesManager, globalGroupsManager);
+				modulesManager, globalGroupsManager, caches);
 		inOrder.verify(userCredentialsManager).removeCollection(zeCollection);
 		inOrder.verify(globalGroupsManager).removeCollection(zeCollection);
 		inOrder.verify(collectionsListManager).remove(zeCollection);
 		inOrder.verify(transactionDTO).withDeletedByQueries(params);
 		inOrder.verify(recordDao).execute(transactionDTO);
 		inOrder.verify(modulesManager).removeCollectionFromVersionProperties(zeCollection, configManager);
+		inOrder.verify(caches).invalidate(zeCollection);
 
 	}
 

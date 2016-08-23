@@ -250,7 +250,7 @@ public class FormMetadataVO implements Serializable {
 		this.duplicable = duplicable;
 	}
 
-	/*public boolean isDuplicable() {
+	/*public boolean getDuplicable() {
 		return duplicable;
 	}
 

@@ -57,8 +57,6 @@ public class Document extends RMObject {
 	public static final String SAME_INACTIVE_FATE_AS_FOLDER = "sameInactiveFateAsFolder";
 	public static final String PUBLISHED = "published";
 	public static final String CREATED_BY_ROBOT = "createdByRobot";
-	public static final String CALENDAR_YEAR_ENTERED = Folder.CALENDAR_YEAR_ENTERED;
-	public static final String CALENDAR_YEAR = Folder.CALENDAR_YEAR;
 	public static final String VERSION = "version";
 
 	public Document(Record record,

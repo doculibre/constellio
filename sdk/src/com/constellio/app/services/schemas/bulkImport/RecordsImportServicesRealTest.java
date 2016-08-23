@@ -3,28 +3,23 @@ package com.constellio.app.services.schemas.bulkImport;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportServices.INVALID_SCHEMA_TYPE_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.AUTOMATIC_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_BOOLEAN_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_DATETIME_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_DATE_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_ENUM_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_MULTIVALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_RESOLVER_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_SCHEMA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_SINGLEVALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_STRING_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_NOT_UNIQUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_IDS;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_ID;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
@@ -50,6 +45,7 @@ import org.junit.Test;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -61,7 +57,6 @@ import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
@@ -70,11 +65,12 @@ import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
@@ -114,6 +110,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 	ModelLayerExtensions extensions;
 
+	RecordServices recordServices;
+
 	SearchServices searchServices;
 
 	BulkImportProgressionListener progressionListener = new LoggerBulkImportProgressionListener();
@@ -133,7 +131,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
 				String stringMetadataValue = ((String) stringMetadataObjectValue);
 				if (stringMetadataValue.contains("z")) {
-					params.getErrors().error("noZ", asMap("zevalue", stringMetadataValue));
+					params.getErrors().add(RecordsImportServices.class, "noZ", asMap("zevalue", stringMetadataValue));
 				}
 			}
 		}
@@ -144,7 +142,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
 				String stringMetadataValue = ((String) stringMetadataObjectValue);
 				if (stringMetadataValue.contains("toto")) {
-					params.getErrors().error("noToto", asMap("zevalue", stringMetadataValue));
+					params.getErrors().add(RecordsImportServices.class, "noToto", asMap("zevalue", stringMetadataValue));
 				}
 			}
 		}
@@ -155,7 +153,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					"structureMetadata");
 
 			if (structureFields != null && structureFields.containsKey("zeTitle")) {
-				buildParams.getRecord().set(Schemas.TITLE, structureFields.get("zeTitle"));
+				buildParams.getRecord().set(TITLE, structureFields.get("zeTitle"));
 			}
 		}
 	};
@@ -172,7 +170,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
 				String stringMetadataValue = ((String) stringMetadataObjectValue);
 				if (stringMetadataValue.contains("tata")) {
-					params.getErrors().error("noTata", asMap("zevalue", stringMetadataValue));
+					params.getErrors().add(RecordsImportServices.class, "noTata", asMap("zevalue", stringMetadataValue));
 				}
 			}
 		}
@@ -183,7 +181,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			if (stringMetadataObjectValue != null && stringMetadataObjectValue instanceof String) {
 				String stringMetadataValue = ((String) stringMetadataObjectValue);
 				if (stringMetadataValue.contains("y")) {
-					params.getErrors().error("noY", asMap("zevalue", stringMetadataValue));
+					params.getErrors().add(RecordsImportServices.class, "noY", asMap("zevalue", stringMetadataValue));
 				}
 			}
 		}
@@ -202,12 +200,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		@Override
 		public void prevalidate(PrevalidationParams params) {
-			params.getErrors().error("boom", asMap("zevalue", "boom boom"));
+			params.getErrors().add(RecordsImportServices.class, "boom", asMap("zevalue", "boom boom"));
 		}
 
 		@Override
 		public void validate(ValidationParams params) {
-			params.getErrors().error("boom", asMap("zevalue", "boom boom"));
+			params.getErrors().add(RecordsImportServices.class, "boom", asMap("zevalue", "boom boom"));
 		}
 
 		@Override
@@ -237,6 +235,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		extensions.forCollection(zeCollection).recordImportExtensions.add(firstImportBehavior);
 		extensions.forCollection(zeCollection).recordImportExtensions.add(secondImportBehavior);
 		extensions.forCollection(zeCollection).recordImportExtensions.add(otherTypeBehavior);
+		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 	}
 
@@ -273,7 +272,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 2");
+		assertThat(record.get(TITLE)).isEqualTo("new title 2");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
@@ -284,7 +283,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 3");
+		assertThat(record.get(TITLE)).isEqualTo("new title 3");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isFalse();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(anotherDate);
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(anotherDateTime);
@@ -300,7 +299,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("new title 3");
+		assertThat(record.get(TITLE)).isEqualTo("new title 3");
 		assertThat(record.get(zeSchema.booleanMetadata())).isNull();
 		assertThat(record.get(zeSchema.dateMetadata())).isNull();
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isNull();
@@ -335,7 +334,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat((Boolean) record.get(zeSchema.booleanMetadata())).isTrue();
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(aDate);
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(aDateTime);
@@ -371,7 +370,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
 		assertThat(record.get(zeSchema.dateTimeMetadata())).isEqualTo(asList(anotherDateTime, aDateTime));
@@ -407,7 +406,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -426,7 +425,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_custom");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -445,7 +444,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		record = recordWithLegacyId("1");
 		assertThat(record.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record.getSchemaCode()).isEqualTo("zeSchemaType_default");
 		assertThat(record.get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false));
 		assertThat(record.get(zeSchema.dateMetadata())).isEqualTo(asList(aDate, anotherDate));
@@ -509,7 +508,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
 			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
-			assertThat(record.get(Schemas.TITLE)).isEqualTo("Record " + i);
+			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be true")
 					.isTrue();
 		}
@@ -518,7 +517,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			Record record = recordWithLegacyId("" + i);
 			assertThat(record).describedAs("Record " + i + " should exist").isNotNull();
 			assertThat(record.get(LEGACY_ID)).isEqualTo("" + i);
-			assertThat(record.get(Schemas.TITLE)).isEqualTo("Record " + i);
+			assertThat(record.get(TITLE)).isEqualTo("Record " + i);
 			assertThat((Boolean) record.get(zeSchema.booleanMetadata())).describedAs("Record " + i + " should be false")
 					.isFalse();
 		}
@@ -560,11 +559,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
 					newValidationError(INVALID_SCHEMA_TYPE_CODE, asMap("schemaType", "chuckNorris")),
 					newValidationError(INVALID_SCHEMA_TYPE_CODE, asMap("schemaType", anotherSchema.typeCode() + "s")));
+			assertThat(frenchMessages(e)).containsOnly("Le type de schéma «chuckNorris» n’existe pas",
+					"Le type de schéma «anotherSchemaTypes» n’existe pas");
 		}
 	}
 
@@ -584,11 +585,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(REQUIRED_IDS, asMap("index", "2")),
-					newZeSchemaValidationError(REQUIRED_IDS, asMap("index", "4")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("RecordsImportServices_requiredId", "2", "Ze type de schéma : "),
+					tuple("RecordsImportServices_requiredId", "4", "Ze type de schéma : ")
+			);
+
+			assertThat(frenchMessages(e))
+					.containsOnly("Ze type de schéma : Aucun identifiant n’a été défini pour l’enregistrement à la position 2",
+							"Ze type de schéma : Aucun identifiant n’a été défini pour l’enregistrement à la position 4");
 		}
 	}
 
@@ -597,6 +602,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
+				.withTypeFrenchLabel("Ze type label")
 				.withAParentReferenceFromZeSchemaToZeSchema()
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
@@ -611,10 +617,19 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(UNRESOLVED_VALUE, asMap("legacyIdentifier", "[42, 666]")));
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel",
+					"referencedSchemaType", "referencedSchemaTypeLabel", "prefix"))
+					.containsOnly(
+							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "legacyIdentifier",
+									"legacyIdentifier", "zeSchemaType", "Ze type label", "Ze type label : "),
+							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "666", "legacyIdentifier",
+									"legacyIdentifier", "zeSchemaType", "Ze type label", "Ze type label : ")
+					);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type label : Aucun enregistrement de type «Ze type label» n’a la valeur «42» à la métadonnée «legacyIdentifier»",
+					"Ze type label : Aucun enregistrement de type «Ze type label» n’a la valeur «666» à la métadonnée «legacyIdentifier»");
 		}
 	}
 
@@ -637,10 +652,19 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(UNRESOLVED_VALUE, asMap("legacyIdentifier", "[42, 666]")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel",
+					"prefix"))
+					.containsOnly(
+							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "legacyIdentifier",
+									"legacyIdentifier", "Ze type de schéma : "),
+							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "666", "legacyIdentifier",
+									"legacyIdentifier", "Ze type de schéma : ")
+					);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «42» à la métadonnée «legacyIdentifier»",
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «666» à la métadonnée «legacyIdentifier»");
 		}
 	}
 
@@ -668,10 +692,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(UNRESOLVED_VALUE, asMap("stringMetadata", "[42, 666]")));
+		} catch (ValidationException e) {
+			assertThat(
+					extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel", "prefix"))
+					.containsOnly(
+							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "stringMetadata",
+									"A toAString metadata", "Ze type de schéma : "),
+							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "666", "stringMetadata",
+									"A toAString metadata", "Ze type de schéma : ")
+					);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «42» à la métadonnée «A toAString metadata»",
+					"Ze type de schéma : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «666» à la métadonnée «A toAString metadata»");
 		}
 	}
 
@@ -702,13 +734,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_RESOLVER_METADATA_CODE,
-							asMap("index", "3", "legacyId", "4", "metadata", "invalidMetadata")),
-					newZeSchemaValidationError(INVALID_RESOLVER_METADATA_CODE,
-							asMap("index", "4", "legacyId", "5", "metadata", "otherInvalidMetadata")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "resolverMetadata", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidResolverMetadataCode", "parentReferenceFromZeSchemaToZeSchema",
+							"invalidMetadata", "Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_invalidResolverMetadataCode", "parentReferenceFromZeSchemaToZeSchema",
+							"otherInvalidMetadata", "Ze type de schéma 5 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 4 : La métadonnée «parentReferenceFromZeSchemaToZeSchema» utilise une métadonnée «invalidMetadata» qui n’existe pas ou qui n’est pas acceptée pour obtenir un enregistrement référencé",
+					"Ze type de schéma 5 : La métadonnée «parentReferenceFromZeSchemaToZeSchema» utilise une métadonnée «otherInvalidMetadata» qui n’existe pas ou qui n’est pas acceptée pour obtenir un enregistrement référencé");
 		}
 	}
 
@@ -735,15 +771,31 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(REQUIRED_VALUE,
-							asMap("index", "2", "legacyId", "3", "metadatas", "[booleanMetadata]")),
-					newZeSchemaValidationError(REQUIRED_VALUE,
-							asMap("index", "3", "legacyId", "4", "metadatas", "[stringMetadata]")),
-					newZeSchemaValidationError(REQUIRED_VALUE,
-							asMap("index", "4", "legacyId", "5", "metadatas", "[booleanMetadata, stringMetadata]")));
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "metadataLabel", "prefix")).containsOnly(
+					tuple("RecordsImportServices_requiredValue", "booleanMetadata", "A boolean metadata",
+							"Ze type de schéma 3 : "),
+					tuple("RecordsImportServices_requiredValue", "stringMetadata", "A toAString metadata",
+							"Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_requiredValue", "booleanMetadata", "A boolean metadata",
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_requiredValue", "stringMetadata", "A toAString metadata",
+							"Ze type de schéma 5 : ")
+			);
+
+			//			assertThat(errors).containsOnly(
+			//					newZeSchemaValidationError(REQUIRED_VALUE,
+			//							asMap("index", "2", "legacyId", "3", "metadatas", "[booleanMetadata]")),
+			//					newZeSchemaValidationError(REQUIRED_VALUE,
+			//							asMap("index", "3", "legacyId", "4", "metadatas", "[stringMetadata]")),
+			//					newZeSchemaValidationError(REQUIRED_VALUE,
+			//							asMap("index", "4", "legacyId", "5", "metadatas", "[booleanMetadata, stringMetadata]")));
+			assertThat(frenchMessages(e)).containsOnly("Ze type de schéma 3 : La métadonnée «A boolean metadata» est requise.",
+					"Ze type de schéma 4 : La métadonnée «A toAString metadata» est requise.",
+					"Ze type de schéma 5 : La métadonnée «A boolean metadata» est requise.",
+					"Ze type de schéma 5 : La métadonnée «A toAString metadata» est requise.");
 		}
 	}
 
@@ -767,14 +819,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_BOOLEAN_VALUE,
-							asMap("index", "2", "legacyId", "5", "invalidValue", "Oui monsieur", "metadata",
-									"booleanMetadata")),
-					newZeSchemaValidationError(INVALID_BOOLEAN_VALUE,
-							asMap("index", "3", "legacyId", "6", "invalidValue", "Oh yes", "metadata", "booleanMetadata")));
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidBooleanValue", "A boolean metadata", "Oui monsieur",
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidBooleanValue", "A boolean metadata", "Oh yes", "Ze type de schéma 6 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : La valeur «Oui monsieur» définie à la métadonnée «A boolean metadata» n’est pas acceptée, seules les valeurs «true, false» sont acceptées",
+					"Ze type de schéma 6 : La valeur «Oh yes» définie à la métadonnée «A boolean metadata» n’est pas acceptée, seules les valeurs «true, false» sont acceptées");
 		}
 	}
 
@@ -797,15 +852,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("index", "1", "legacyId", "3", "invalidValue", "SECOND_VALUE", "metadata",
-									"withAnEnumMetadata", "availableChoices", "[F, S]")),
-					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("index", "3", "legacyId", "5", "invalidValue", "FS", "metadata", "withAnEnumMetadata",
-									"availableChoices", "[F, S]")));
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "acceptedValues", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidEnumValue", "withAnEnumMetadata", "SECOND_VALUE", "F, S",
+							"Ze type de schéma 3 : "),
+					tuple("RecordsImportServices_invalidEnumValue", "withAnEnumMetadata", "FS", "F, S", "Ze type de schéma 5 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 3 : La valeur «SECOND_VALUE» définie à la métadonnée «withAnEnumMetadata» n’est pas acceptée, seules les valeurs «F, S» sont acceptées",
+					"Ze type de schéma 5 : La valeur «FS» définie à la métadonnée «withAnEnumMetadata» n’est pas acceptée, seules les valeurs «F, S» sont acceptées");
 		}
 	}
 
@@ -828,16 +885,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("availableChoices", "[F, S]", "index", "3", "legacyId", "5", "invalidValue", "[FS, F]",
-									"metadata", "withAnEnumMetadata"))
-					, newZeSchemaValidationError(INVALID_ENUM_VALUE,
-							asMap("availableChoices", "[F, S]", "index", "1", "legacyId", "3", "invalidValue",
-									"[S, SECOND_VALUE]", "metadata",
-									"withAnEnumMetadata"))
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "legacyId", "acceptedValues", "value",
+					"metadataLabel")).containsOnly(
+					tuple("RecordsImportServices_invalidEnumValue", "3", "5", "F, S", "FS", "withAnEnumMetadata"),
+					tuple("RecordsImportServices_invalidEnumValue", "1", "3", "F, S", "SECOND_VALUE", "withAnEnumMetadata")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : La valeur «FS» définie à la métadonnée «withAnEnumMetadata» n’est pas acceptée, seules les valeurs «F, S» sont acceptées",
+					"Ze type de schéma 3 : La valeur «SECOND_VALUE» définie à la métadonnée «withAnEnumMetadata» n’est pas acceptée, seules les valeurs «F, S» sont acceptées"
 			);
 		}
 	}
@@ -858,11 +916,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
 					newZeSchemaValidationError(DISABLED_METADATA_CODE,
 							asMap("index", "2", "legacyId", "3", "metadata", "stringMetadata")));
+			assertThat(frenchMessages(e)).containsOnly("TODO");
 		}
 	}
 
@@ -882,11 +941,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
 					newZeSchemaValidationError(SYSTEM_RESERVED_METADATA_CODE,
 							asMap("index", "2", "legacyId", "3", "metadata", "stringMetadata")));
+			assertThat(frenchMessages(e)).containsOnly("TODO");
 		}
 	}
 
@@ -905,11 +965,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(AUTOMATIC_METADATA_CODE,
-							asMap("index", "2", "legacyId", "3", "metadata", "copiedStringMeta")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "metadata", "metadataLabel")).containsOnly(
+					tuple("RecordsImportServices_automaticMetadataCode", "zeSchemaType", "copiedStringMeta",
+							"Une métadonnée copiée")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 3 : La métadonnée «Une métadonnée copiée» est calculée automatiquement, elle ne peut pas être définie lors de l’importation");
 		}
 	}
 
@@ -934,15 +996,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_NUMBER_VALUE,
-							asMap("index", "2", "legacyId", "5", "invalidValue", "5L", "metadata", "numberMetadata")),
-					newZeSchemaValidationError(INVALID_NUMBER_VALUE,
-							asMap("index", "3", "legacyId", "6", "invalidValue", "5.0t", "metadata", "numberMetadata")),
-					newZeSchemaValidationError(INVALID_NUMBER_VALUE,
-							asMap("index", "4", "legacyId", "7", "invalidValue", "nan", "metadata", "numberMetadata")));
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidNumberValue", "A number metadata", "5L", "Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidNumberValue", "A number metadata", "5.0t", "Ze type de schéma 6 : "),
+					tuple("RecordsImportServices_invalidNumberValue", "A number metadata", "nan", "Ze type de schéma 7 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : La valeur «5L» définie à la métadonnée «A number metadata» n’est pas un nombre",
+					"Ze type de schéma 6 : La valeur «5.0t» définie à la métadonnée «A number metadata» n’est pas un nombre",
+					"Ze type de schéma 7 : La valeur «nan» définie à la métadonnée «A number metadata» n’est pas un nombre");
 		}
 	}
 
@@ -967,15 +1032,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_STRING_VALUE,
-							asMap("index", "2", "legacyId", "5", "metadata", "stringMetadata", "invalidValue",
-									aDate.toString())),
-					newZeSchemaValidationError(INVALID_STRING_VALUE,
-							asMap("index", "3", "legacyId", "6", "metadata", "stringMetadata", "invalidValue",
-									aDateTime.toString())));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidStringValue", "A toAString metadata", aDate.toString(),
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidStringValue", "A toAString metadata", aDateTime.toString(),
+							"Ze type de schéma 6 : ")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : La valeur «" + aDate.toString()
+							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
+					"Ze type de schéma 6 : La valeur «" + aDateTime.toString()
+							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères");
 		}
 	}
 
@@ -1000,15 +1068,22 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_STRING_VALUE,
-							asMap("index", "2", "legacyId", "5", "metadata", "stringMetadata", "invalidValue",
-									"[validValue, " + aDate.toString() + "]")),
-					newZeSchemaValidationError(INVALID_STRING_VALUE,
-							asMap("index", "3", "legacyId", "6", "metadata", "stringMetadata", "invalidValue",
-									"[" + aDate.toString() + ", " + aDateTime.toString() + "]")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidStringValue", "stringMetadata", aDate.toString(),
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidStringValue", "stringMetadata", aDate.toString(),
+							"Ze type de schéma 6 : "),
+					tuple("RecordsImportServices_invalidStringValue", "stringMetadata", aDateTime.toString(),
+							"Ze type de schéma 6 : ")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 6 : La valeur «" + aDateTime.toString()
+							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
+					"Ze type de schéma 6 : La valeur «" + aDate.toString()
+							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
+					"Ze type de schéma 5 : La valeur «" + aDate.toString()
+							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères");
 		}
 	}
 
@@ -1031,15 +1106,17 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_DATE_VALUE,
-							asMap("index", "2", "legacyId", "5", "invalidValue", aDateTime.toString(), "metadata",
-									"dateMetadata")),
-					newZeSchemaValidationError(INVALID_DATE_VALUE,
-							asMap("index", "3", "legacyId", "6", "invalidValue", "a text value", "metadata",
-									"dateMetadata")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidDateValue", "a date metadata", aDateTime.toString(),
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidDateValue", "a date metadata", "a text value", "Ze type de schéma 6 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : La valeur «" + aDateTime.toString()
+							+ "» définie à la métadonnée «a date metadata» n’est pas un date",
+					"Ze type de schéma 6 : La valeur «a text value» définie à la métadonnée «a date metadata» n’est pas un date");
 		}
 	}
 
@@ -1062,15 +1139,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_DATETIME_VALUE,
-							asMap("index", "1", "legacyId", "4", "invalidValue", aDate.toString(), "metadata",
-									"dateTimeMetadata")),
-					newZeSchemaValidationError(INVALID_DATETIME_VALUE,
-							asMap("index", "3", "legacyId", "6", "invalidValue", "a text value", "metadata",
-									"dateTimeMetadata")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidDatetimeValue", "a date time metadata", aDate.toString(),
+							"Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_invalidDatetimeValue", "a date time metadata", "a text value",
+							"Ze type de schéma 6 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 4 : La valeur «" + aDate.toString()
+							+ "» définie à la métadonnée «a date time metadata» n’est pas un date-heure",
+					"Ze type de schéma 6 : La valeur «a text value» définie à la métadonnée «a date time metadata» n’est pas un date-heure");
 		}
 	}
 
@@ -1093,13 +1173,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_MULTIVALUE,
-							asMap("index", "2", "legacyId", "5", "invalidValue", "aValue", "metadata", "stringMetadata")),
-					newZeSchemaValidationError(INVALID_MULTIVALUE,
-							asMap("index", "3", "legacyId", "6", "invalidValue", "anotherValue", "metadata", "stringMetadata")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidMultivalue", "A toAString metadata", "aValue", "Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidMultivalue", "A toAString metadata", "anotherValue",
+							"Ze type de schéma 6 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : Une valeur simple a été définie pour la métadonnée à valeurs multiples «A toAString metadata»",
+					"Ze type de schéma 6 : Une valeur simple a été définie pour la métadonnée à valeurs multiples «A toAString metadata»");
 		}
 	}
 
@@ -1124,14 +1207,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_SINGLEVALUE,
-							asMap("index", "1", "legacyId", "4", "invalidValue", "[aValue]", "metadata", "stringMetadata")),
-					newZeSchemaValidationError(INVALID_SINGLEVALUE,
-							asMap("index", "3", "legacyId", "6", "invalidValue", "[anotherValue, thirdValue]", "metadata",
-									"stringMetadata")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidSinglevalue", "stringMetadata", "[aValue]", "Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_invalidSinglevalue", "stringMetadata", "[anotherValue, thirdValue]",
+							"Ze type de schéma 6 : ")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 4 : Une liste de valeurs a été définie pour la métadonnée à valeur simple «A toAString metadata»",
+					"Ze type de schéma 6 : Une liste de valeurs a été définie pour la métadonnée à valeur simple «A toAString metadata»");
 		}
 	}
 
@@ -1140,6 +1224,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
+				.withSchemaFrenchLabel("Ze default schema label")
 				.withAParentReferenceFromZeSchemaToZeSchema()
 				.withAReferenceFromAnotherSchemaToZeSchema()
 				.withAStringMetadata());
@@ -1158,15 +1243,22 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_METADATA_CODE,
-							asMap("index", "2", "legacyId", "5", "metadata", "zeChuckNorrisMetadata")),
-					newZeSchemaValidationError(INVALID_METADATA_CODE,
-							asMap("index", "3", "legacyId", "6", "metadata", "anInexistentMetadata")),
-					newZeSchemaValidationError(INVALID_METADATA_CODE,
-							asMap("index", "3", "legacyId", "6", "metadata", "anotherInexistentMetadata")));
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "schema", "schemaLabel", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidMetadataCode", "zeChuckNorrisMetadata",
+							"zeSchemaType_default", "Ze default schema label", "Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_invalidMetadataCode", "anInexistentMetadata",
+							"zeSchemaType_default", "Ze default schema label", "Ze type de schéma 6 : "),
+					tuple("RecordsImportServices_invalidMetadataCode", "anotherInexistentMetadata",
+							"zeSchemaType_default", "Ze default schema label", "Ze type de schéma 6 : ")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 5 : La métadonnée «zeChuckNorrisMetadata» n’existe pas dans le schéma de métadonnées «zeSchemaType_default» (Ze default schema label)",
+					"Ze type de schéma 6 : La métadonnée «anotherInexistentMetadata» n’existe pas dans le schéma de métadonnées «zeSchemaType_default» (Ze default schema label)",
+					"Ze type de schéma 6 : La métadonnée «anInexistentMetadata» n’existe pas dans le schéma de métadonnées «zeSchemaType_default» (Ze default schema label)");
 		}
 	}
 
@@ -1198,13 +1290,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError(INVALID_SCHEMA_CODE,
-							asMap("index", "1", "legacyId", "4", "schema", "anInvalidSchema")),
-					newZeSchemaValidationError(INVALID_SCHEMA_CODE,
-							asMap("index", "5", "legacyId", "8", "schema", "anotherSchemaType_default")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "schema", "prefix")).containsOnly(
+					tuple("RecordsImportServices_invalidSchemaCode", "zeSchemaType", "anInvalidSchema", "Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_invalidSchemaCode", "zeSchemaType", "anotherSchemaType_default",
+							"Ze type de schéma 8 : ")
+			);
+
+			assertThat(frenchMessages(e))
+					.containsOnly("Ze type de schéma 4 : Le schéma de métadonnées «anInvalidSchema» est invalide",
+							"Ze type de schéma 8 : Le schéma de métadonnées «anotherSchemaType_default» est invalide");
 		}
 	}
 
@@ -1237,8 +1332,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (RecordsImportServicesRuntimeException.RecordsImportServicesRuntimeException_CyclicDependency e) {
-			assertThat(e.getCyclicDependentIds()).containsOnly("1", "2", "3", "4");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "cyclicDependentIds", "prefix")).containsOnly(
+					tuple("RecordsImportServices_cyclicDependencies", "1, 2, 3, 4", "Ze type de schéma : ")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma : Il y a une dépendance cyclique entre les enregistrements importés avec ids «1, 2, 3, 4»");
 		}
 	}
 
@@ -1251,7 +1350,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
@@ -1277,7 +1376,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		ProgressionHandler progressionHandler = new ProgressionHandler(new LoggerBulkImportProgressionListener());
 		ModelLayerCollectionExtensions extensions = getModelLayerFactory().getExtensions()
 				.forCollection(zeCollection);
-		services.validate(importDataProvider, progressionHandler, types, resolver, extensions);
+		services.validate(importDataProvider, progressionHandler, admin, types, resolver, extensions, Language.French);
 
 		assertThat(resolver.cache).hasSize(2).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode());
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping)
@@ -1316,9 +1415,82 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(newZeSchemaValidationError(LEGACY_ID_NOT_UNIQUE, asMap("legacyId", "42")));
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_legacyIdNotUnique", "42", "Ze type de schéma 42 : ")
+			);
+
+			//			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
+			//			assertThat(errors).containsOnly(newZeSchemaValidationError(LEGACY_ID_NOT_UNIQUE, asMap("legacyId", "42")));
+			assertThat(frenchMessages(e)).containsOnly("Ze type de schéma 42 : L’identifiant «42» n'est pas unique");
+		}
+
+	}
+
+	@Test
+	public void givenTwoImportedRecordHaveSameUniqueMetadataInSameSchemaTypeThenValidationException()
+			throws Exception {
+
+		defineSchemasManager()
+				.using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique).withAnotherSchemaStringMetadata());
+
+		anotherSchemaTypeRecords
+				.add(defaultSchemaData().setId("41").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField("stringMetadata", "42"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("45").addField("title", "Record 2").addField("stringMetadata", "v1"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "metadataLabel", "value", "prefix")).containsOnly(
+					tuple("RecordsImportServices_metadataNotUnique", "stringMetadata", "A toAString metadata", "v1",
+							"Ze type de schéma 43 : "),
+					tuple("RecordsImportServices_metadataNotUnique", "stringMetadata", "A toAString metadata", "v1",
+							"Ze type de schéma 45 : ")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 43 : La valeur «v1» de la métadonnée «A toAString metadata» n'est pas unique",
+					"Ze type de schéma 45 : La valeur «v1» de la métadonnée «A toAString metadata» n'est pas unique");
+
+		}
+
+	}
+
+	@Test
+	public void givenAnImportedRecordHaveSameUniqueMetadataThanOtherExistingRecordThenException()
+			throws Exception {
+
+		defineSchemasManager()
+				.using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique).withAnotherSchemaStringMetadata());
+
+		recordServices
+				.add(new TestRecord(anotherSchema).set(TITLE, "existing record Z").set(anotherSchema.stringMetadata(), "v3"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record A").set(zeSchema.stringMetadata(), "v1"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record B").set(zeSchema.stringMetadata(), "v2"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record C").set(zeSchema.stringMetadata(), "v4"));
+
+		anotherSchemaTypeRecords
+				.add(defaultSchemaData().setId("41").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField("stringMetadata", "v2"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField("stringMetadata", "v3"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataCode", "index", "legacyId", "value")).containsOnly(
+					tuple("MetadataUniqueValidator_nonUniqueMetadata", "zeSchemaType_default_stringMetadata", "1", "42", "v1"),
+					tuple("MetadataUniqueValidator_nonUniqueMetadata", "zeSchemaType_default_stringMetadata", "2", "43", "v2")
+			);
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 43 : La valeur «v2» à la métadonnée «A toAString metadata» est déjà utilisée pour un autre enregistrement",
+					"Ze type de schéma 42 : La valeur «v1» à la métadonnée «A toAString metadata» est déjà utilisée pour un autre enregistrement"
+			);
 		}
 
 	}
@@ -1518,14 +1690,19 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			assertThat(extractingSimpleCodeAndParameters(e, "index", "legacyId", "schemaType", "metadataCode", "metadataLabel",
 					"basedOnMetadatas")).containsOnly(
 					tuple("ValueRequirementValidator_requiredValueForMetadata", "2", "3", zeSchema.typeCode(),
 							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
+							"[numberMetadata, booleanMetadata]"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "3", "4", "zeSchemaType",
+							"zeSchemaType_default_stringMetadata", asMap("fr", "A toAString metadata"),
 							"[numberMetadata, booleanMetadata]")
 			);
-
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 3 : Métadonnée «A toAString metadata» requise",
+					"Ze type de schéma 4 : Métadonnée «A toAString metadata» requise");
 		}
 	}
 
@@ -1546,7 +1723,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		@Override
 		public String calculate(CalculatorParameters parameters) {
 			Double number = parameters.get(numberDependency);
-			return number == 42.0 ? "Bingo!" : null;
+			return new Double(42.0).equals(number) ? "Bingo!" : null;
 		}
 
 		@Override
@@ -1580,7 +1757,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "2"));
@@ -1616,7 +1793,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title"));
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
 				.addField("parentReferenceFromZeSchemaToZeSchema", "legacyIdentifier:2"));
@@ -1653,7 +1830,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAReferenceFromAnotherSchemaToZeSchema());
 
 		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
-				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(Schemas.TITLE, "title")
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
 				.set(zeSchema.stringMetadata(), "previouslySavedRecordCode"));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
@@ -1705,10 +1882,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
-			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError("noY", asMap("index", "2", "legacyId", "12", "zevalue", "Value with a y")));
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "zevalue", "legacyId", "index", "prefix")).containsOnly(
+					tuple("RecordsImportServices_noY", "Value with a y", "12", "2", "Ze type de schéma 12 : ")
+			);
+
 		}
 	}
 
@@ -1732,11 +1910,12 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
-		} catch (ValidationRuntimeException e) {
+		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(errors).containsOnly(
-					newZeSchemaValidationError("noTata", asMap("index", "2", "legacyId", "12", "zevalue", "Value with a tata")),
-					newZeSchemaValidationError("noToto", asMap("index", "3", "legacyId", "13", "zevalue", "Value with a toto")));
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "legacyId", "zevalue", "prefix")).containsOnly(
+					tuple("RecordsImportServices_noTata", "2", "12", "Value with a tata", "Ze type de schéma 12 : "),
+					tuple("RecordsImportServices_noToto", "3", "13", "Value with a toto", "Ze type de schéma 13 : ")
+			);
 		}
 	}
 
@@ -1764,13 +1943,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		services.bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("11");
-		assertThat(record1.get(Schemas.TITLE)).isEqualTo("pouet");
+		assertThat(record1.get(TITLE)).isEqualTo("pouet");
 
 		Record record2 = recordWithLegacyId("12");
-		assertThat(record2.get(Schemas.TITLE)).isEqualTo("Record 2");
+		assertThat(record2.get(TITLE)).isEqualTo("Record 2");
 
 		Record record3 = recordWithLegacyId("13");
-		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
+		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
 	}
 
 	public static class NoZMetadataValidator implements RecordMetadataValidator<String> {
@@ -1804,10 +1983,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin);
 
-			fail("ValidationRuntimeException expected");
-		} catch (ValidationRuntimeException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "index")).containsOnly(
-					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142")
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142", "Ze type de schéma record142 : ")
 			);
 		}
 
@@ -1836,13 +2015,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			services.bulkImport(importDataProvider, progressionListener, admin,
 					new BulkImportParams().setStopOnFirstError(false));
 
-			fail("ValidationRuntimeException expected");
-		} catch (ValidationRuntimeException e) {
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
 			e.printStackTrace();
-			assertThat(extractingSimpleCodeAndParameters(e, "index")).containsOnly(
-					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142"),
-					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "188"),
-					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "244")
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142", "Ze type de schéma record142 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "188", "Ze type de schéma record188 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "244", "Ze type de schéma record244 : ")
 			);
 		}
 
@@ -1860,34 +2039,34 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		assertThat(record1.getId()).isNotEqualTo("1");
 		assertThat(record1.get(LEGACY_ID)).isEqualTo("1");
-		assertThat(record1.get(Schemas.TITLE)).isEqualTo("Record 1");
+		assertThat(record1.get(TITLE)).isEqualTo("Record 1");
 		assertThat(record1.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record2.getId());
 
 		assertThat(record2.getId()).isNotEqualTo("2");
 		assertThat(record2.get(LEGACY_ID)).isEqualTo("2");
-		assertThat(record2.get(Schemas.TITLE)).isEqualTo("Record 2");
+		assertThat(record2.get(TITLE)).isEqualTo("Record 2");
 		assertThat(record2.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record3.getId());
 
 		assertThat(record3.getId()).isNotEqualTo("3");
 		assertThat(record3.get(LEGACY_ID)).isEqualTo("3");
-		assertThat(record3.get(Schemas.TITLE)).isEqualTo("Record 3");
+		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
 		assertThat(record3.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo(record42.getId());
 
 		assertThat(record42.getId()).isNotEqualTo("42");
 		assertThat(record42.get(LEGACY_ID)).isEqualTo("42");
-		assertThat(record42.get(Schemas.TITLE)).isEqualTo("Record 42");
+		assertThat(record42.get(TITLE)).isEqualTo("Record 42");
 		assertThat(record42.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isEqualTo("previouslySavedRecordId");
 
 		assertThat(record43.getId()).isNotEqualTo("43");
 		assertThat(record43.get(LEGACY_ID)).isEqualTo("43");
-		assertThat(record43.get(Schemas.TITLE)).isEqualTo("Record 43");
+		assertThat(record43.get(TITLE)).isEqualTo("Record 43");
 		assertThat(record43.get(zeCustomSchemaMetadatas.customStringMetadata())).isEqualTo("customFieldValue");
 		assertThat(record43.get(zeSchema.parentReferenceFromZeSchemaToZeSchema())).isNull();
 		assertThat(record43.getSchemaCode()).isEqualTo("zeSchemaType_custom");
 
 		assertThat(record666.getId()).isNotEqualTo("666");
 		assertThat(record666.get(LEGACY_ID)).isEqualTo("666");
-		assertThat(record666.get(Schemas.TITLE)).isEqualTo("Ze record");
+		assertThat(record666.get(TITLE)).isEqualTo("Ze record");
 		assertThat(record666.get(anotherSchema.referenceFromAnotherSchemaToZeSchema())).isEqualTo(record1.getId());
 	}
 
@@ -1902,17 +2081,20 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 	private ValidationError newZeSchemaValidationError(String code, Map<String, Object> parameters) {
 		parameters.put("schemaType", zeSchema.typeCode());
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
 	private ValidationError newValidationError(String code, Map<String, Object> parameters) {
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
+		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
 	private BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user) {
-		BulkImportResults results = services.bulkImport(importDataProvider, bulkImportProgressionListener, user);
+			final User user)
+			throws ValidationException {
+		BulkImportParams params = new BulkImportParams();
+		params.setStopOnFirstError(false);
+		BulkImportResults results = services.bulkImport(importDataProvider, bulkImportProgressionListener, user, params);
 
 		zeSchemaTypeRecords.clear();
 		anotherSchemaTypeRecords.clear();

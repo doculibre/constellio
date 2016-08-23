@@ -508,6 +508,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getFactoriesTestFeatures().getFoldersLocator();
 	}
 
+	protected File givenUnzipedResourceInFolder(String fileName) {
+		ensureNotUnitTest();
+		File file = getTestResourceFile(fileName);
+		return getCurrentTestSession().getFileSystemTestFeatures().givenUnzipedFileInTempFolder(file);
+	}
+
 	protected File newTempFileWithContent(String fileName, String content) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFileSystemTestFeatures().newTempFileWithContent(newTempFolder(), fileName, content);
@@ -613,7 +619,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	private void ensureUITest() {
-		if (getClass().getAnnotation(UiTest.class) == null) {
+		if (getClass().getAnnotation(UiTest.class) == null && !skipTestRule.isInDevelopmentTest()) {
 			throw new RuntimeException("The test class must have declared @UITest annotation");
 		}
 	}

@@ -631,7 +631,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private ValidationError error(final String code, final Map<String, Object> params) {
-		return new ValidationError(SchemasDisplayManager.class.getName() + "_" + code, params);
+		return new ValidationError(SchemasDisplayManager.class,code, params);
 	}
 
 	@Test

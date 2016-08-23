@@ -29,10 +29,11 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
-import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -45,6 +46,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
@@ -54,8 +56,11 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.setups.Users;
 
 public class FolderAcceptanceTest extends ConstellioTest {
+
+	Users users = new Users();
 
 	LocalDate november4_2009 = new LocalDate(2009, 11, 4);
 	LocalDate november4_2010 = new LocalDate(2010, 11, 4);
@@ -116,7 +121,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
 		);
 
 		assertThat(getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(zeCollection).getCode())
@@ -282,7 +287,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderWithoutTransferDispoalAndDestructionDatesThenActive()
+	public void givenFolderWithoutTransferDisposalAndDestructionDatesThenActive()
 			throws RecordServicesException {
 		Folder folder = saveAndLoad(folderWithSingleCopyRule(principal("888-0-D", PA))
 				.setOpenDate(november4_2009)
@@ -353,7 +358,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	@Test
 	//Tested on IntelliGID 4!
-	public void givenPrincipalFolderWithTwoMediumTypesAndYearEndInInsufficientPeriodThenHasValidCalculedDates()
+	public void givenPrincipalFolderWithTwoMediumTypesAndYearEndInInsufficientPeriodThenHasValidCalculatedDates()
 			throws Exception {
 
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
@@ -516,40 +521,9 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	}
 
-	public static class ZeCategoryCodeCalculator implements MetadataValueCalculator<String> {
-
-		ReferenceDependency<String> codeParam = ReferenceDependency.toAString(Folder.CATEGORY, Category.CODE);
-
-		@Override
-		public String calculate(CalculatorParameters parameters) {
-			String code = parameters.get(codeParam);
-			return "Ze ultimate " + code;
-		}
-
-		@Override
-		public String getDefaultValue() {
-			return null;
-		}
-
-		@Override
-		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
-		@Override
-		public boolean isMultiValue() {
-			return false;
-		}
-
-		@Override
-		public List<? extends Dependency> getDependencies() {
-			return TestUtils.asList(codeParam);
-		}
-	}
-
 	@Test
 	//Tested on IntelliGID 4!
-	public void givenPrincipalFolderWithTwoMediumTypesAndYearEndInSufficientPeriodThenHasValidCalculedDates()
+	public void givenPrincipalFolderWithTwoMediumTypesAndYearEndInSufficientPeriodThenHasValidCalculatedDates()
 			throws Exception {
 
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
@@ -588,7 +562,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 	@Test
 	//Tested on IntelliGID 4!
-	public void givenSemiActiveFoldersThenHasValidCalculedDates()
+	public void givenSemiActiveFoldersThenHasValidCalculatedDates()
 			throws Exception {
 
 		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
@@ -1432,6 +1406,168 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenRuleSemiActiveDateBasedOnTimeRangeAndActiveDateBasedOnNumberMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateA").setType(MetadataValueType.NUMBER);
+				//types.getSchema(Folder.DEFAULT_SCHEMA).create("dateB").setType(MetadataValueType.NUMBER);
+			}
+		});
+
+		//Scénario #3 : Délai “5-25-C”. Actif basée sur année financière, semi-actif laissé vide
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata("dateA")
+						.setSemiActiveDateMetadata(Folder.TIME_RANGE),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setMediumTypes(MD, PA);
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.set("dateA", 1990);
+		folder1.setOpenDate(january1(2000));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.set("dateA", 1990);
+		folder2.set(Folder.TIME_RANGE, "2000-1960");
+		folder2.setOpenDate(january1(2000));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.set("dateA", 1990);
+		folder3.set(Folder.TIME_RANGE, "2000-2020");
+		folder3.setOpenDate(january1(2000));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.set("dateA", 1990);
+		folder4.set(Folder.TIME_RANGE, "1900-1990");
+		folder4.setOpenDate(january1(2000));
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder1.getExpectedDepositDate()).isEqualTo(march31(2020));
+
+		assertThat(folder2.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder2.getExpectedDepositDate()).isEqualTo(march31(1995));
+
+		assertThat(folder3.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder3.getExpectedDepositDate()).isEqualTo(march31(2050));
+
+		assertThat(folder4.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2020));
+	}
+
+	@Test
+	public void givenRuleActiveDateBasedOnTimeRangeAndSemiActiveDateBasedOnNumberMetadataThenValidCalculatedDates()
+			throws Exception {
+
+		givenConfig(RMConfigs.DECOMMISSIONING_DATE_BASED_ON, CLOSE_DATE);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE, true);
+		givenConfig(RMConfigs.YEAR_END_DATE, "03/31");
+		givenConfig(RMConfigs.REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR, 60);
+		givenConfig(RMConfigs.CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE, 1);
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				//types.getSchema(Folder.DEFAULT_SCHEMA).create("dateA").setType(MetadataValueType.NUMBER);
+				types.getSchema(Folder.DEFAULT_SCHEMA).create("dateB").setType(MetadataValueType.NUMBER);
+			}
+		});
+
+		//Scénario #3 : Délai “5-25-C”. Actif basée sur année financière, semi-actif laissé vide
+
+		RetentionRule rule2 = rm.getRetentionRule(records.ruleId_2);
+		rule2.setCopyRetentionRules(asList(
+				copyBuilder.newPrincipal(asList(records.PA), "5-25-C").setActiveDateMetadata(Folder.TIME_RANGE)
+						.setSemiActiveDateMetadata("dateB"),
+				copyBuilder.newSecondary(asList(records.MD), "42-42-D")
+		));
+
+		recordServices.update(rule2);
+
+		Builder<Folder> folderBuilder = new Builder<Folder>() {
+			@Override
+			public Folder build() {
+				Folder folder = rm.newFolder();
+				folder.setAdministrativeUnitEntered(records.unitId_10a);
+				folder.setCategoryEntered(records.categoryId_X13);
+				folder.setTitle("Ze folder");
+				folder.setRetentionRuleEntered(records.ruleId_2);
+				folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+				folder.setMediumTypes(MD, PA);
+				return folder;
+			}
+		};
+
+		Folder folder1 = transaction.add(folderBuilder.build());
+		folder1.set(Folder.TIME_RANGE, "0000-1990");
+		folder1.setOpenDate(january1(2000));
+
+		Folder folder2 = transaction.add(folderBuilder.build());
+		folder2.set(Folder.TIME_RANGE, "1990-1990");
+		folder2.set("dateB", 1960);
+		folder2.setOpenDate(january1(2000));
+
+		Folder folder3 = transaction.add(folderBuilder.build());
+		folder3.set(Folder.TIME_RANGE, "1992-1990");
+		folder3.set("dateB", 2020);
+		folder3.setOpenDate(january1(2000));
+
+		Folder folder4 = transaction.add(folderBuilder.build());
+		folder4.set(Folder.TIME_RANGE, "1900-1990");
+		folder4.set("dateB", 1990);
+		folder4.setOpenDate(january1(2000));
+
+		recordServices.execute(transaction);
+
+		assertThat(folder1.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder1.getExpectedDepositDate()).isEqualTo(march31(2020));
+
+		assertThat(folder2.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder2.getExpectedDepositDate()).isEqualTo(march31(1995));
+
+		assertThat(folder3.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder3.getExpectedDepositDate()).isEqualTo(march31(2050));
+
+		assertThat(folder4.getCloseDate()).isEqualTo(march31(2001));
+		assertThat(folder4.getExpectedTransferDate()).isEqualTo(march31(1995));
+		assertThat(folder4.getExpectedDepositDate()).isEqualTo(march31(2020));
+	}
+
+	@Test
 	public void givenRuleBasedOnDifferentActiveAndSemiActiveIgnoringActiveMetadataThenValidCalculatedDates()
 			throws Exception {
 
@@ -1959,7 +2095,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.DISABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -1991,7 +2127,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2023,7 +2159,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		givenRuleWithResponsibleAdminUnitsFlagAndCopyRules(principal("888-5-T", PA), principal("888-5-D", MD),
 				secondary("999-0-D", PA));
 
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		Folder folder = saveAndLoad(principalFolderWithZeRule()
 				.setOpenDate(february2_2015)
 				.setMediumTypes(MD, PA)
@@ -2039,6 +2175,37 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2061);
 		assertThat(folder.getExpectedDepositDate()).isEqualTo(march31_2061);
 	}
+
+	@Test
+	public void givenRetentionRuleIsReferencingALogicallyDeletedAdministrativeUnitWhenCreatingAFolderWithThisRuleThenException()
+			throws Exception {
+
+		Transaction transaction = new Transaction();
+		String id = transaction.add(rm.newAdministrativeUnit().setCode("zeUnit").setTitle("zeTitle")).getId();
+
+		RetentionRule rule = records.getRule1();
+		List<String> administrativeUnits = new ArrayList<>(rule.getAdministrativeUnits());
+		administrativeUnits.add(id);
+		rule.setAdministrativeUnits(administrativeUnits);
+
+		transaction.add(rule);
+		recordServices.execute(transaction);
+
+		AdministrativeUnit unit = rm.getAdministrativeUnit(id);
+		unit.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		recordServices.update(unit);
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_10a);
+		folder.setCategoryEntered(records.categoryId_X13);
+		folder.setRetentionRuleEntered(records.ruleId_1);
+		folder.setTitle("Ze title");
+		folder.setOpenDate(new LocalDate());
+		recordServices.add(folder);
+
+		System.out.println(folder.getCategory());
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {
@@ -2166,4 +2333,36 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	private LocalDate march31(int year) {
 		return new LocalDate(year, 3, 31);
 	}
+
+	public static class ZeCategoryCodeCalculator implements MetadataValueCalculator<String> {
+
+		ReferenceDependency<String> codeParam = ReferenceDependency.toAString(Folder.CATEGORY, Category.CODE);
+
+		@Override
+		public String calculate(CalculatorParameters parameters) {
+			String code = parameters.get(codeParam);
+			return "Ze ultimate " + code;
+		}
+
+		@Override
+		public String getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public MetadataValueType getReturnType() {
+			return STRING;
+		}
+
+		@Override
+		public boolean isMultiValue() {
+			return false;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return TestUtils.asList(codeParam);
+		}
+	}
+
 }

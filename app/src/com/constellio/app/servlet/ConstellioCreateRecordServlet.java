@@ -18,7 +18,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.google.common.base.Joiner;
+
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -41,6 +44,7 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -49,192 +53,207 @@ import org.xml.sax.SAXException;
 
 public class ConstellioCreateRecordServlet extends HttpServlet {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioCreateRecordServlet.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioCreateRecordServlet.class);
 
-    private static final String SCHEMA_QUERY_PARAM_NAME = "schema";
+	private static final String SCHEMA_QUERY_PARAM_NAME = "schema";
 
-    private static final String MULTIVALUE_SEPARATOR = ",";
+	private static final String MULTIVALUE_SEPARATOR = ",";
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        LOGGER.info("Create record called!");
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		LOGGER.info("Create record called!");
 
-        createRecords(request, response);
-    }
+		createRecords(request, response);
+	}
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        LOGGER.info("Create records called!");
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		LOGGER.info("Create records called!");
 
-        createRecords(request, response);
-    }
+		createRecords(request, response);
+	}
 
-    private void createRecords(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        final PrintWriter responseWriter = response.getWriter();
+	private void createRecords(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		final PrintWriter responseWriter = response.getWriter();
 
-        final User user = new HttpServletRequestAuthenticator(modelLayerFactory()).authenticateSystemAdminInCollection(request);
-        if (user == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            responseWriter.append("Unauthorized access : Invalid collection/servicesKey/token");
-        } else {
-            responseWriter.append("<html>");
+		final User user = new HttpServletRequestAuthenticator(modelLayerFactory()).authenticateSystemAdminInCollection(request);
+		if (user == null) {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			responseWriter.append("Unauthorized access : Invalid collection/servicesKey/token");
+		} else {
+			responseWriter.append("<html>");
 
-            String collection = user.getCollection();
-            MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-            String schemaCode = request.getParameter(SCHEMA_QUERY_PARAM_NAME);
-            MetadataSchema metadataSchema = getMetadataSchema(schemaCode, metadataSchemaTypes, collection, responseWriter);
+			String collection = user.getCollection();
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+			String schemaCode = request.getParameter(SCHEMA_QUERY_PARAM_NAME);
+			MetadataSchema metadataSchema = getMetadataSchema(schemaCode, metadataSchemaTypes, collection, responseWriter);
 
-            if (metadataSchema != null) {
-                if (HttpMethod.GET.equalsIgnoreCase(request.getMethod())) {
-                    createRecordFromGetRequest(metadataSchema, metadataSchemaTypes, request, responseWriter);
-                } else if (HttpMethod.POST.equalsIgnoreCase(request.getMethod())) {
-                    createRecordsFromPostRequest(metadataSchema, metadataSchemaTypes, request, response, responseWriter);
-                } else {
-                    response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-                }
-            }
+			if (metadataSchema != null) {
+				if (HttpMethod.GET.equalsIgnoreCase(request.getMethod())) {
+					createRecordFromGetRequest(metadataSchema, metadataSchemaTypes, request, responseWriter);
+				} else if (HttpMethod.POST.equalsIgnoreCase(request.getMethod())) {
+					createRecordsFromPostRequest(metadataSchema, metadataSchemaTypes, request, response, responseWriter);
+				} else {
+					response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+				}
+			}
 
-            responseWriter.append("</html>");
-        }
-    }
+			responseWriter.append("</html>");
+		}
+	}
 
-    private void createRecordFromGetRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes, HttpServletRequest request, PrintWriter responseWriter) {
-        RecordServices recordServices = modelLayerFactory().newRecordServices();
+	private void createRecordFromGetRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes,
+			HttpServletRequest request, PrintWriter responseWriter) {
+		RecordServices recordServices = modelLayerFactory().newRecordServices();
 
-        Record record = recordServices.newRecordWithSchema(metadataSchema);
+		Record record = recordServices.newRecordWithSchema(metadataSchema);
 
-        for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
-            String metadataValue = request.getParameter(metadata.getLocalCode());
-            setRecordMetadata(record, metadata, metadataValue, metadataSchemaTypes);
-        }
+		for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
+			String metadataValue = request.getParameter(metadata.getLocalCode());
+			setRecordMetadata(record, metadata, metadataValue, metadataSchemaTypes);
+		}
 
-        try {
-            recordServices.add(record);
-        } catch (RecordServicesException.ValidationException e) {
-            responseWriter.append($(e.getErrors()));
-        } catch (RecordServicesException e) {
-            responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
-        }
+		boolean error = false;
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			responseWriter.append($(e.getErrors()));
+			error = true;
 
-        responseWriter.append(record.getId());
-    }
+		} catch (ValidationRuntimeException e) {
+			responseWriter.append($(e.getValidationErrors()));
+			error = true;
 
-    private void createRecordsFromPostRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes, HttpServletRequest request, HttpServletResponse response, PrintWriter responseWriter)
-            throws IOException {
-        if (MediaType.APPLICATION_XML.equalsIgnoreCase(request.getContentType())) {
-            Transaction transaction = new Transaction();
-            RecordServices recordServices = modelLayerFactory().newRecordServices();
+		} catch (RecordServicesException e) {
+			responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
+			error = true;
+		}
 
-            Document domDocument;
-            try {
-                domDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(request.getInputStream());
-            } catch (ParserConfigurationException | SAXException e) {
-                responseWriter.append(e.getMessage());
-                return;
-            }
+		if (!error) {
+			responseWriter.append(record.getId());
+		}
+	}
 
-            NodeList recordsNodeList = domDocument.getDocumentElement().getChildNodes();
-            for (int i = 0, recordsCount = recordsNodeList.getLength(); i < recordsCount; i++) {
-                Record record = recordServices.newRecordWithSchema(metadataSchema);
+	private void createRecordsFromPostRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes,
+			HttpServletRequest request, HttpServletResponse response, PrintWriter responseWriter)
+			throws IOException {
+		if (MediaType.APPLICATION_XML.equalsIgnoreCase(request.getContentType())) {
+			Transaction transaction = new Transaction();
+			RecordServices recordServices = modelLayerFactory().newRecordServices();
 
-                NamedNodeMap recordNamedNodeMap = recordsNodeList.item(i).getAttributes();
-                for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
-                    Node recordMetadataValue = recordNamedNodeMap.getNamedItem(metadata.getLocalCode());
-                    if (recordMetadataValue != null) {
-                        setRecordMetadata(record, metadata, recordMetadataValue.getNodeValue(), metadataSchemaTypes);
-                    }
-                }
+			Document domDocument;
+			try {
+				domDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(request.getInputStream());
+			} catch (ParserConfigurationException | SAXException e) {
+				responseWriter.append(e.getMessage());
+				return;
+			}
 
-                transaction.add(record);
-            }
+			NodeList recordsNodeList = domDocument.getDocumentElement().getChildNodes();
+			for (int i = 0, recordsCount = recordsNodeList.getLength(); i < recordsCount; i++) {
+				Record record = recordServices.newRecordWithSchema(metadataSchema);
 
-            try {
-                recordServices.execute(transaction);
-            } catch (RecordServicesException.ValidationException e) {
-                responseWriter.append($(e.getErrors()));
-            } catch (RecordServicesException e) {
-                responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
-            }
+				NamedNodeMap recordNamedNodeMap = recordsNodeList.item(i).getAttributes();
+				for (Metadata metadata : metadataSchema.getMetadatas().onlyManuals()) {
+					Node recordMetadataValue = recordNamedNodeMap.getNamedItem(metadata.getLocalCode());
+					if (recordMetadataValue != null) {
+						setRecordMetadata(record, metadata, recordMetadataValue.getNodeValue(), metadataSchemaTypes);
+					}
+				}
 
-            responseWriter.append(Joiner.on(StringUtils.SPACE).join(transaction.getRecordIds()));
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-        }
-    }
+				transaction.add(record);
+			}
 
-    private MetadataSchema getMetadataSchema(String schemaCode, MetadataSchemaTypes types,
-                                             String collection, PrintWriter responseWriter) {
-        MetadataSchema schema = null;
-        if (StringUtils.isNotBlank(collection) && types != null) {
-            try {
-                schema = types.getSchema(schemaCode);
-            } catch (Exception e) {
-                responseWriter.append($("ConstellioCreateRecordServlet.InvalidSchema", schemaCode));
-            }
-        } else {
-            responseWriter.append($("ConstellioCreateRecordServlet.InvalidCollection", collection));
-        }
-        return schema;
-    }
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException.ValidationException e) {
+				responseWriter.append($(e.getErrors()));
+			} catch (RecordServicesException e) {
+				responseWriter.append($("ConstellioCreateRecordServlet.RecordServicesException", e.getMessage()));
+			}
 
-    private ModelLayerFactory modelLayerFactory() {
-        return ConstellioFactories.getInstance().getModelLayerFactory();
-    }
+			responseWriter.append(Joiner.on(StringUtils.SPACE).join(transaction.getRecordIds()));
+		} else {
+			response.setStatus(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+		}
+	}
 
-    private void setRecordMetadata(Record record, Metadata metadata, String metadataValue, MetadataSchemaTypes metadataSchemaTypes) {
-        if (StringUtils.isNotBlank(metadataValue)) {
-            if (metadata.isMultivalue()) {
-                List<String> values = new ArrayList<>(Arrays.asList(metadataValue.split(MULTIVALUE_SEPARATOR)));
-                record.set(metadata, values);
-            } else {
-                switch (metadata.getType()) {
-                    case DATE:
-                        record.set(metadata, LocalDate.parse(metadataValue));
-                        break;
-                    case DATE_TIME:
-                        record.set(metadata, LocalDateTime.parse(metadataValue));
-                        break;
-                    case STRING:
-                    case TEXT:
-                        record.set(metadata, metadataValue);
-                    case INTEGER:
-                        break;
-                    case NUMBER:
-                        break;
-                    case BOOLEAN:
-                        break;
-                    case REFERENCE:
-                        String schemaTypeCode = metadata.getAllowedReferences().getAllowedSchemaType();
+	private MetadataSchema getMetadataSchema(String schemaCode, MetadataSchemaTypes types,
+			String collection, PrintWriter responseWriter) {
+		MetadataSchema schema = null;
+		if (StringUtils.isNotBlank(collection) && types != null) {
+			try {
+				schema = types.getSchema(schemaCode);
+			} catch (Exception e) {
+				responseWriter.append($("ConstellioCreateRecordServlet.InvalidSchema", schemaCode));
+			}
+		} else {
+			responseWriter.append($("ConstellioCreateRecordServlet.InvalidCollection", collection));
+		}
+		return schema;
+	}
 
-                        MetadataSchemaType metadataSchemaType = metadataSchemaTypes.getSchemaType(schemaTypeCode);
-                        Metadata whereMetadata;
-                        if (schemaTypeCode.equals(User.SCHEMA_TYPE)) {
-                            whereMetadata = metadataSchemaType.getDefaultSchema().getMetadata(User.USERNAME);
-                        } else {
-                            whereMetadata = Schemas.CODE;
-                        }
-                        LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(metadataSchemaType).where(whereMetadata).isEqualTo(metadataValue);
-                        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER));
-                        List<String> foundRecordIds = modelLayerFactory().newSearchServices().searchRecordIds(logicalSearchQuery);
+	private ModelLayerFactory modelLayerFactory() {
+		return ConstellioFactories.getInstance().getModelLayerFactory();
+	}
 
-                        if (foundRecordIds.isEmpty()) {
-                            record.set(metadata, metadataValue);
-                        } else {
-                            record.set(metadata, foundRecordIds.get(0));
-                        }
-                        break;
-                    case CONTENT:
-                        break;
-                    case STRUCTURE:
-                        break;
-                    case ENUM:
-                        break;
-                }
-            }
-        }
-    }
+	private void setRecordMetadata(Record record, Metadata metadata, String metadataValue,
+			MetadataSchemaTypes metadataSchemaTypes) {
+		if (StringUtils.isNotBlank(metadataValue)) {
+			if (metadata.isMultivalue()) {
+				List<String> values = new ArrayList<>(Arrays.asList(metadataValue.split(MULTIVALUE_SEPARATOR)));
+				record.set(metadata, values);
+			} else {
+				switch (metadata.getType()) {
+				case DATE:
+					record.set(metadata, LocalDate.parse(metadataValue));
+					break;
+				case DATE_TIME:
+					record.set(metadata, LocalDateTime.parse(metadataValue));
+					break;
+				case STRING:
+				case TEXT:
+					record.set(metadata, metadataValue);
+				case INTEGER:
+					break;
+				case NUMBER:
+					break;
+				case BOOLEAN:
+					break;
+				case REFERENCE:
+					String schemaTypeCode = metadata.getAllowedReferences().getAllowedSchemaType();
+
+					MetadataSchemaType metadataSchemaType = metadataSchemaTypes.getSchemaType(schemaTypeCode);
+					Metadata whereMetadata;
+					if (schemaTypeCode.equals(User.SCHEMA_TYPE)) {
+						whereMetadata = metadataSchemaType.getDefaultSchema().getMetadata(User.USERNAME);
+					} else {
+						whereMetadata = Schemas.CODE;
+					}
+					LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(metadataSchemaType)
+							.where(whereMetadata).isEqualTo(metadataValue);
+					LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition)
+							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER));
+					List<String> foundRecordIds = modelLayerFactory().newSearchServices().searchRecordIds(logicalSearchQuery);
+
+					if (foundRecordIds.isEmpty()) {
+						record.set(metadata, metadataValue);
+					} else {
+						record.set(metadata, foundRecordIds.get(0));
+					}
+					break;
+				case CONTENT:
+					break;
+				case STRUCTURE:
+					break;
+				case ENUM:
+					break;
+				}
+			}
+		}
+	}
 
 }

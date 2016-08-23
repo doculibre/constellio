@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -67,6 +68,8 @@ public class Metadata implements DataStoreField {
 
 	final boolean duplicable;
 
+	final String dataStoreCode;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
 	}
@@ -83,7 +86,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual);
+				false, false, false, false, false, false, multiLingual, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -115,7 +118,20 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
 		this.duplicable = false;
+		this.dataStoreCode = computeDataStoreCode();
 
+	}
+
+	private String computeDataStoreCode() {
+		if (type == MetadataValueType.REFERENCE) {
+			if (isChildOfRelationship()) {
+				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
+			} else {
+				return dataStoreType == null ? localCode : (localCode + "Id_" + dataStoreType);
+			}
+		} else {
+			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
+		}
 	}
 
 	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
@@ -148,6 +164,7 @@ public class Metadata implements DataStoreField {
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
 		this.duplicable = duplicatbale;
+		this.dataStoreCode = computeDataStoreCode();
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
@@ -176,6 +193,7 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 		this.duplicable = duplicable;
+		this.dataStoreCode = computeDataStoreCode();
 	}
 
 	public String getCode() {
@@ -187,15 +205,11 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getDataStoreCode() {
-		if (type == MetadataValueType.REFERENCE) {
-			if (isChildOfRelationship()) {
-				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
-			} else {
-				return dataStoreType == null ? localCode : (localCode + "Id_" + dataStoreType);
-			}
-		} else {
-			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
-		}
+		return dataStoreCode;
+	}
+
+	public String getFrenchLabel() {
+		return getLabel(French);
 	}
 
 	public String getLabel(Language language) {
@@ -447,6 +461,11 @@ public class Metadata implements DataStoreField {
 		return localCode.equals(metadata.getLocalCode());
 	}
 
-	public boolean isDuplicable() { return duplicable; }
+	public boolean isDuplicable() {
+		return duplicable;
+	}
 
+	public boolean isMarkedForDeletion() {
+		return inheritedMetadataBehaviors.isMarkedForDeletion();
+	}
 }

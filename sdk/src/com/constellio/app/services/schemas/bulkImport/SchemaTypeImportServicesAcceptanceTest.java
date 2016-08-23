@@ -138,7 +138,8 @@ public class SchemaTypeImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(calculator.getDependencies()).isEqualTo(expectedCalculator.getDependencies());
 		assertThat(calculator.isMultiValue()).isEqualTo(expectedCalculator.isMultiValue());
 		assertThat(calculator.calculate(null)).isEqualTo(expectedCalculator.calculate(null));
-		CalculatorParameters params = new CalculatorParameters(new HashMap<Dependency, Object>(), "zeRecordId", zeCollection);
+		CalculatorParameters params = new CalculatorParameters(new HashMap<Dependency, Object>(), "zeRecordId", null,
+				zeCollection);
 		assertThat(calculator.calculate(params)).isEqualTo(expectedCalculator.calculate(params));
 
 		SchemaDisplayConfig schemaDisplayConfigPapier = schemasDisplayManager.getSchema(zeCollection, "document_papier");

@@ -1,6 +1,10 @@
 package com.constellio.model.services.records.reindexing;
 
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -32,7 +36,13 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BulkRecordTransactionHandler;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
+import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.utils.RecordDTOIterator;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -86,6 +96,51 @@ public class ReindexingServices {
 			logManager.regroupAndMoveInVault();
 			logManager.deleteLastTLOGBackup();
 		}
+
+		RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
+		recordDao.expungeDeletes();
+
+		deleteMetadatasMarkedForDeletion();
+	}
+
+	private void deleteMetadatasMarkedForDeletion() {
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			if (hasMetadataMarkedForDeletion(types)) {
+				modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
+					@Override
+					public void alter(MetadataSchemaTypesBuilder types) {
+						for (MetadataSchemaTypeBuilder schemaType : types.getTypes()) {
+
+							for (MetadataSchemaBuilder schema : schemaType.getAllSchemas()) {
+
+								List<MetadataBuilder> metadatasToDelete = new ArrayList<MetadataBuilder>();
+								for (MetadataBuilder metadata : schema.getMetadatas()) {
+									if (metadata.isMarkedForDeletion() && metadata.getInheritance() == null) {
+										metadatasToDelete.add(metadata);
+									}
+								}
+								for (MetadataBuilder metadata : metadatasToDelete) {
+									schemaType.getDefaultSchema().deleteMetadataWithoutValidation(metadata);
+								}
+							}
+						}
+					}
+				});
+
+			}
+		}
+	}
+
+	private boolean hasMetadataMarkedForDeletion(MetadataSchemaTypes types) {
+
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			if (!type.getAllMetadatas().onlyMarkedForDeletion().isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void reindexCollection(String collection, ReindexationMode reindexationMode) {
@@ -166,6 +221,7 @@ public class ReindexingServices {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaType type = types.getSchemaType(typeCode);
 		List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(typeCode);
+		List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
 		Set<String> ids = new HashSet<>();
 
 		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll()));
@@ -175,6 +231,11 @@ public class ReindexingServices {
 			Iterator<Record> records = searchServices.recordsIterator(new LogicalSearchQuery(from(type).returnAll()), 1000);
 			while (records.hasNext()) {
 				Record record = records.next();
+				for (Metadata metadata : metadatasMarkedForDeletion) {
+					if (metadata.getDataEntry().getType() == MANUAL || metadata.getDataEntry().getType() == SEQUENCE) {
+						record.set(metadata, null);
+					}
+				}
 				if (metadatas.isEmpty() || (!ids.contains(record.getId()) && !idsInCurrentBatch.contains(record.getId()))) {
 					if (metadatas.isEmpty()) {
 						current++;

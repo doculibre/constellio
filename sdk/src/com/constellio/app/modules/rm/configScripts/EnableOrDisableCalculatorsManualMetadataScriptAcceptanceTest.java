@@ -5,9 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.model.enums.CalculatorWithManualMetadataChoice;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.schemas.Metadata;
@@ -31,40 +30,40 @@ public class EnableOrDisableCalculatorsManualMetadataScriptAcceptanceTest extend
 	@Test
 	public void whenEnablingCalculatorWithManualMetadataDuringImportThenFolderManualArchivisticMetadataAreEnabled()
 			throws Exception {
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA,
-				CalculatorWithManualMetadataChoice.ENABLE_DURING_IMPORT);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED_FOR_IMPORTED_RECORDS);
 		assertThatArchivisticManualMetadataAreEnabled();
 	}
 
 	@Test
 	public void whenEnablingCalculatorWithManualMetadataThenFolderManualArchivisticMetadataAreEnabled()
 			throws Exception {
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.ENABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED);
 		assertThatArchivisticManualMetadataAreEnabled();
 	}
 
 	@Test
 	public void whenDisablingCalculatorWithManualMetadataThenFolderManualArchivisticMetadataAreDisabled()
 			throws Exception {
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.DISABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
 		assertThatArchivisticManualMetadataAreDisabled();
 	}
 
 	@Test
 	public void givenCalculatorWithManualMetadataChoiceIsEnabledWhenDisablingItThenFolderManualArchivisticMetadataAreDisabled()
 			throws Exception {
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA,
-				CalculatorWithManualMetadataChoice.ENABLE_DURING_IMPORT);
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.DISABLE);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED_FOR_IMPORTED_RECORDS);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
 		assertThatArchivisticManualMetadataAreDisabled();
 	}
 
 	@Test
 	public void givenCalculatorWithManualMetadataChoiceIsDisabledWhenEnablingItThenFolderManualArchivisticMetadataAreEnabled()
 			throws Exception {
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA, CalculatorWithManualMetadataChoice.DISABLE);
-		givenConfig(RMConfigs.ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA,
-				CalculatorWithManualMetadataChoice.ENABLE_DURING_IMPORT);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES, AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
+		givenConfig(RMConfigs.ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+				AllowModificationOfArchivisticStatusAndExpectedDatesChoice.ENABLED_FOR_IMPORTED_RECORDS);
 		assertThatArchivisticManualMetadataAreEnabled();
 
 	}
@@ -88,7 +87,7 @@ public class EnableOrDisableCalculatorsManualMetadataScriptAcceptanceTest extend
 		Metadata manualExpectedDepositDate = folderDefaultSchema.getMetadata(Folder.MANUAL_EXPECTED_DEPOSIT_DATE);
 		assertThat(manualExpectedDepositDate.isEnabled()).isEqualTo(enabled);
 
-		Metadata manualExpectedDestructionDate = folderDefaultSchema.getMetadata(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE);
+		Metadata manualExpectedDestructionDate = folderDefaultSchema.getMetadata(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE);
 		assertThat(manualExpectedDestructionDate.isEnabled()).isEqualTo(enabled);
 
 		Metadata manualArchivisticStatus = folderDefaultSchema.getMetadata(Folder.MANUAL_ARCHIVISTIC_STATUS);

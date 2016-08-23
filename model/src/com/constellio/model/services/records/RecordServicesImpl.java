@@ -447,25 +447,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
-			//				if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
-			//					updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
-			//				}
-			//				if (validations) {
-			//					validationServices.validateManualMetadatas(record, recordProvider, transaction);
-			//				}
-			//				try {
-			//					automaticMetadataServices
-			//							.updateAutomaticMetadatas((RecordImpl) record, recordProvider, reindexation);
-			//				} catch (RuntimeException e) {
-			//					throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
-			//				}
-			//				if (validations) {
-			//					validationServices.validateCyclicReferences(record, recordProvider, transaction);
-			//					validationServices.validateAutomaticMetadatas(record, recordProvider, transaction);
-			//					validationServices.validateSchemaUsingCustomSchemaValidator(record, recordProvider, transaction);
-			//				}
-			//			}
-
 		}
 
 		for (Record record : transaction.getRecords()) {

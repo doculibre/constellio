@@ -10,6 +10,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -133,6 +134,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 			builder.setEssential(true);
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichIsMarkedForDeletion = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMarkedForDeletion(true);
 		}
 
 	};
@@ -373,6 +383,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		MetadataBuilder stringReference = zeDefaultSchemaBuilder.create("stringRef").setType(REFERENCE)
 				.setMultivalue(multivalueReferences);
 		MetadataBuilder copiedStringMetadata = zeDefaultSchemaBuilder.create("copiedStringMeta").setType(STRING)
+				.setLabels(asMap(Language.French, "Une métadonnée copiée"))
 				.setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
 		MetadataBuilder otherSchemaStringMetadata = anOtherSchemaTypeBuilder.getDefaultSchema().create("stringMetadata")
 				.setType(STRING).setMultivalue(multivalue);
@@ -538,7 +549,6 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-
 	public TestsSchemasSetup withAThirdStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("thirdStringMetadata").setType(STRING)
@@ -636,7 +646,8 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	@Override
 	public void setUp() {
-		zeSchemaTypeBuilder = typesBuilder.createNewSchemaType(ZE_SCHEMA_TYPE_CODE).setSecurity(security);
+		zeSchemaTypeBuilder = typesBuilder.createNewSchemaType(ZE_SCHEMA_TYPE_CODE).setSecurity(security).setLabels(
+				asMap(Language.French, "Ze type de schéma", Language.English, "Ze schema type"));
 		anOtherSchemaTypeBuilder = typesBuilder.createNewSchemaType(ANOTHER_SCHEMA_TYPE_CODE).setSecurity(security);
 		aThirdSchemaTypeBuilder = typesBuilder.createNewSchemaType(A_THIRD_SCHEMA_TYPE_CODE).setSecurity(security);
 		zeDefaultSchemaBuilder = zeSchemaTypeBuilder.getDefaultSchema();
@@ -711,6 +722,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	public TestsSchemasSetup withSchemaFrenchLabel(String label) {
 		zeDefaultSchemaBuilder.addLabel(Language.French, label);
+		return this;
+	}
+
+	public TestsSchemasSetup withTypeFrenchLabel(String label) {
+		zeSchemaTypeBuilder.addLabel(Language.French, label);
 		return this;
 	}
 

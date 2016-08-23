@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.Octets;
 import com.constellio.sdk.tests.annotations.PreserveState;
 
@@ -267,5 +268,16 @@ public class FileSystemTestFeatures {
 	public File newTempFileInNewTempFolder(String fileName) {
 		File aFile = new File(newTempFolder(), fileName);
 		return newFileWithContent(aFile);
+	}
+
+	public File givenUnzipedFileInTempFolder(File zipFile) {
+		File tempFolder = newTempFolder();
+		try {
+			getZipServices().unzip(zipFile, tempFolder);
+		} catch (ZipServiceException e) {
+			throw new RuntimeException(e);
+		}
+
+		return tempFolder;
 	}
 }

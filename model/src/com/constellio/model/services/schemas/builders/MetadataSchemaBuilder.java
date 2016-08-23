@@ -586,7 +586,7 @@ public class MetadataSchemaBuilder {
 		createUndeletable("code").setEssential(true).setDefaultRequirement(true).setType(STRING).setUniqueValue(true);
 	}
 
-	public void deleteMetadataWithoutValidation(Metadata metadataToDelete) {
+	public void deleteMetadataWithoutValidation(MetadataBuilder metadataToDelete) {
 		try {
 			MetadataBuilder metadataBuilder = getMetadata(metadataToDelete.getLocalCode());
 			metadatas.remove(metadataBuilder);

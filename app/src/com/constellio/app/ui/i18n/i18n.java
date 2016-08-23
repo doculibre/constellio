@@ -2,20 +2,35 @@ package com.constellio.app.ui.i18n;
 
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+
+import org.apache.commons.jexl3.JexlBuilder;
+import org.apache.commons.jexl3.JexlContext;
+import org.apache.commons.jexl3.JexlEngine;
+import org.apache.commons.jexl3.JexlException;
+import org.apache.commons.jexl3.JexlScript;
+import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
@@ -32,12 +47,10 @@ public class i18n {
 	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
 
 	public static Locale getLocale() {
-		if (locale == null) {
-			try {
-				locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-			} catch(Throwable e){
-				//LOGGER.warn("error when trying to get session locale", e);
-			}
+		try {
+			return ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+		} catch (Throwable e) {
+			//LOGGER.warn("error when trying to get session locale", e);
 		}
 		return locale;
 	}
@@ -112,30 +125,136 @@ public class i18n {
 			ResourceBundle messages = bundle.getBundle(getLocale());
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
+				if (args.get("prefix") != null) {
+					message = args.get("prefix") + message;
+				}
+				if (args.get("suffix") != null) {
+					message = message + args.get("suffix");
+				}
 				if (args != null) {
 					for (String argName : args.keySet()) {
 						Object argValue = args.get(argName);
-						if(argValue instanceof String) {
-							message = message.replace("{" + argName + "}", (String)argValue);
+						if (argValue instanceof String) {
+							message = message.replace("{" + argName + "}", (String) argValue);
 						} else if (argValue instanceof Map) {
 							/*	TODO Manage Map value here:
 								- Must fetch the entry for the current language.
 							 */
-							Map<String,String> labelsMap = (Map<String,String>) argValue;
+							Map<String, String> labelsMap = (Map<String, String>) argValue;
 							String language = getLocale().getLanguage();
 							message = message.replace("{" + argName + "}", labelsMap.get(language));
+						} else {
+							message = message.replace("{" + argName + "}", "");
 						}
 					}
 				}
 			}
 		}
 
+		if (message != null && message.toLowerCase().startsWith("jexl:")) {
+			try {
+				message = callJexlScript(message.substring(5), args);
+			} catch (Exception e) {
+				LOGGER.warn("Script failure '" + message.substring(5) + "'", e);
+				message = null;
+			}
+		}
+
 		if (message == null) {
-			message = key;
+			if (args == null || args.isEmpty()) {
+				message = key;
+			} else {
+				message = key + " " + args.toString();
+			}
 		}
 
 		return message;
 
+	}
+
+	private static String callJexlScript(String expression, Map<String, Object> args)
+			throws Exception {
+
+		JexlEngine jexl = new JexlBuilder().create();
+		JexlScript jexlScript = jexl.createScript(expression);
+
+		JexlContext jc = prepareJexlContext(args);
+
+		Object calculatedValue = jexlScript.execute(jc);
+		return "null".equals(calculatedValue) ? null : (String) calculatedValue;
+
+	}
+
+	private static JexlContext prepareJexlContext(Map<String, Object> args) {
+		JexlContext jc = new MapContext();
+
+		for (Map.Entry<String, Object> entry : args.entrySet()) {
+			jc.set(entry.getKey(), entry.getValue());
+		}
+
+		jc.set("i18n", new Map<String, String>() {
+			@Override
+			public int size() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean isEmpty() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean containsKey(Object key) {
+				return get(key) != null;
+			}
+
+			@Override
+			public boolean containsValue(Object value) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public String get(Object key) {
+				return $((String) key);
+			}
+
+			@Override
+			public String put(String key, String value) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public String remove(Object key) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void putAll(Map m) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void clear() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Set<String> keySet() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Collection<String> values() {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Set<Entry<String, String>> entrySet() {
+				throw new UnsupportedOperationException();
+			}
+		});
+
+		return jc;
 	}
 
 	public static String $(ValidationErrors errors) {
@@ -144,6 +263,22 @@ public class i18n {
 			sb.append(" - " + $(error) + "<br/>");
 		}
 		return sb.toString();
+	}
+
+	public static List<String> asListOfMessages(ValidationErrors errors) {
+		List<String> messages = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+		return messages;
+	}
+
+	public static List<String> asListOfMessages(ValidationErrors errors, Object... params) {
+		List<String> messages = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error.getCode(), params));
+		}
+		return messages;
 	}
 
 	public static String $(ValidationError error) {
@@ -212,6 +347,8 @@ public class i18n {
 				return language;
 			}
 		}
-		throw new RuntimeException("Current locale"+ loc + " does not correspond to any language" + StringUtils.join(languages, ","));
+		throw new RuntimeException(
+				"Current locale" + loc + " does not correspond to any language" + StringUtils.join(languages, ","));
 	}
+
 }

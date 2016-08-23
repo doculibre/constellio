@@ -13,6 +13,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
 import com.gargoylesoftware.htmlunit.*;
+
 import org.joda.time.LocalDate;
 import org.jsoup.Jsoup;
 import org.junit.After;
@@ -61,7 +62,7 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 		retentionRule = records.getRule1();
 		administrativeUnit = records.getUnit10a();
 
-        validArgumentsForFolderCreation = makeFolderCreationArgumentsMap("Squatre");
+		validArgumentsForFolderCreation = makeFolderCreationArgumentsMap("Squatre");
 
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -132,7 +133,8 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
 		}
 
-		String recordId = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET, validArgumentsForFolderCreation);
+		String recordId = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET,
+				validArgumentsForFolderCreation);
 		assertThat(recordId).isNotEmpty();
 	}
 
@@ -140,7 +142,8 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 	public void givenWebServiceIsEnabledAndValidArgumentsWhenExcuteThenCreateFolder()
 			throws Exception {
 
-		String recordId = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET, validArgumentsForFolderCreation);
+		String recordId = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET,
+				validArgumentsForFolderCreation);
 
 		Folder folder = rmSchemasRecordsServices.getFolder(recordId);
 		assertThat(folder.getTitle()).isEqualTo("Squatre");
@@ -156,73 +159,77 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 	public void givenWebServiceIsEnabledAndGoodAuthenticationAndMissingRequiredFieldsThenGoodResponse()
 			throws Exception {
 
-        Map<String, Object> missingArgumentsForFolderCreation = new HashMap<String, Object>() {
-            {
-                put("createdBy", bobGratton);
-                put("createdOn", nowLocalDate);
+		Map<String, Object> missingArgumentsForFolderCreation = new HashMap<String, Object>() {
+			{
+				put("createdBy", bobGratton);
+				put("createdOn", nowLocalDate);
 
-            }
-        };
+			}
+		};
 
-		String message = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET, missingArgumentsForFolderCreation);
+		String message = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.GET,
+				missingArgumentsForFolderCreation);
 
-		assertThat(message).contains("Métadonnée Date d'ouverture requise", "Métadonnée Titre requise");
+		assertThat(message).contains("Métadonnée «Date d'ouverture» requise", "Métadonnée «Titre» requise");
 	}
 
-    @Test
-    public void givenWebServiceIsEnabledAndValidArgumentsWhenExecuteThenCreateFolders()
-            throws Exception {
+	@Test
+	public void givenWebServiceIsEnabledAndValidArgumentsWhenExecuteThenCreateFolders()
+			throws Exception {
 
-        String resultText = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.POST, makeFolderCreationArgumentsMap("Squatre0"), makeFolderCreationArgumentsMap("Squatre1"), makeFolderCreationArgumentsMap("Squatre2"));
+		String resultText = callCreateFolders(bobServiceKey, bobToken, zeCollection, HttpMethod.POST,
+				makeFolderCreationArgumentsMap("Squatre0"), makeFolderCreationArgumentsMap("Squatre1"),
+				makeFolderCreationArgumentsMap("Squatre2"));
 
-        String[] recordsId = resultText.split(" ");
-        assertThat(recordsId).hasSize(3);
+		String[] recordsId = resultText.split(" ");
+		assertThat(recordsId).hasSize(3);
 
-        for (int i = 0; i < 3; i++) {
-            Folder folder = rmSchemasRecordsServices.getFolder(recordsId[i]);
-            assertThat(folder.getTitle()).isEqualTo("Squatre" + i);
-            assertThat(folder.getCategoryEntered()).isEqualTo(category.getId());
-            assertThat(folder.getRetentionRuleEntered()).isEqualTo(retentionRule.getId());
-            assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(administrativeUnit.getId());
-            assertThat(folder.getCreatedBy()).isEqualTo(userServices.getUserInCollection(bobGratton, zeCollection).getId());
-            assertThat(folder.getCreatedOn().toLocalDate()).isEqualTo(nowLocalDate);
-            assertThat(folder.getOpenDate()).isEqualTo(nowLocalDate);
-        }
-    }
+		for (int i = 0; i < 3; i++) {
+			Folder folder = rmSchemasRecordsServices.getFolder(recordsId[i]);
+			assertThat(folder.getTitle()).isEqualTo("Squatre" + i);
+			assertThat(folder.getCategoryEntered()).isEqualTo(category.getId());
+			assertThat(folder.getRetentionRuleEntered()).isEqualTo(retentionRule.getId());
+			assertThat(folder.getAdministrativeUnitEntered()).isEqualTo(administrativeUnit.getId());
+			assertThat(folder.getCreatedBy()).isEqualTo(userServices.getUserInCollection(bobGratton, zeCollection).getId());
+			assertThat(folder.getCreatedOn().toLocalDate()).isEqualTo(nowLocalDate);
+			assertThat(folder.getOpenDate()).isEqualTo(nowLocalDate);
+		}
+	}
 
-    private Map<String, Object> makeFolderCreationArgumentsMap(final String title) {
-        return new HashMap<String, Object>() {
-            {
-                put("title", title);
-                put("categoryEntered", category.getCode());
-                put("retentionRuleEntered", retentionRule.getCode());
-                put("administrativeUnitEntered", administrativeUnit.getCode());
-                put("createdBy", bobGratton);
-                put("createdOn", nowLocalDate);
-                put("openingDate", nowLocalDate);
-            }
-        };
-    }
+	private Map<String, Object> makeFolderCreationArgumentsMap(final String title) {
+		return new HashMap<String, Object>() {
+			{
+				put("title", title);
+				put("categoryEntered", category.getCode());
+				put("retentionRuleEntered", retentionRule.getCode());
+				put("administrativeUnitEntered", administrativeUnit.getCode());
+				put("createdBy", bobGratton);
+				put("createdOn", nowLocalDate);
+				put("openingDate", nowLocalDate);
+			}
+		};
+	}
 
-	private String callCreateFolders(String serviceKey, String token, String collection, HttpMethod httpMethod, Map<String, Object> ... otherParamsArray)
-            throws IOException, InterruptedException {
-        StringBuilder url = new StringBuilder("http://localhost:7070/constellio/createRecord?schema=folder_default");
-        StringBuilder body = new StringBuilder("<Folders>");
-        for (Map<String, Object> otherParams : otherParamsArray) {
-            if (HttpMethod.GET.equals(httpMethod)) {
-                for (Map.Entry<String, Object> element : otherParams.entrySet()) {
-                    url.append("&").append(element.getKey()).append("=").append(element.getValue());
-                }
-                break;
-            } else if (HttpMethod.POST.equals(httpMethod)) {
-                body.append("<Folder");
-                for (Map.Entry<String, Object> entry : otherParams.entrySet()) {
-                    body.append(" ").append(entry.getKey()).append("='").append(entry.getValue()).append("'");
-                }
-                body.append("/>");
-            }
-        }
-        body.append("</Folders>");
+	private String callCreateFolders(String serviceKey, String token, String collection, HttpMethod httpMethod,
+			Map<String, Object>... otherParamsArray)
+			throws IOException, InterruptedException {
+		StringBuilder url = new StringBuilder("http://localhost:7070/constellio/createRecord?schema=folder_default");
+		StringBuilder body = new StringBuilder("<Folders>");
+		for (Map<String, Object> otherParams : otherParamsArray) {
+			if (HttpMethod.GET.equals(httpMethod)) {
+				for (Map.Entry<String, Object> element : otherParams.entrySet()) {
+					url.append("&").append(element.getKey()).append("=").append(element.getValue());
+				}
+				break;
+			} else if (HttpMethod.POST.equals(httpMethod)) {
+				body.append("<Folder");
+				for (Map.Entry<String, Object> entry : otherParams.entrySet()) {
+					body.append(" ").append(entry.getKey()).append("='").append(entry.getValue()).append("'");
+				}
+				body.append("/>");
+			}
+		}
+		body.append("</Folders>");
 
 		System.out.println(url);
 
@@ -238,10 +245,10 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 		if (token != null) {
 			webRequest.setAdditionalHeader("token", token);
 		}
-        if (HttpMethod.POST.equals(httpMethod)) {
-            webRequest.setAdditionalHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
-            webRequest.setRequestBody(body.toString());
-        }
+		if (HttpMethod.POST.equals(httpMethod)) {
+			webRequest.setAdditionalHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
+			webRequest.setRequestBody(body.toString());
+		}
 		Page page = webClient.getPage(webRequest);
 		String html = page.getWebResponse().getContentAsString();
 		return Jsoup.parse(html).text();
