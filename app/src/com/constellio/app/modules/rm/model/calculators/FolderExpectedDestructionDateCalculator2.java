@@ -16,7 +16,7 @@ public class FolderExpectedDestructionDateCalculator2
 			.toADate(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).whichIsMultivalue();
 
 	LocalDependency<LocalDate> manualExpectedDestructionDate = LocalDependency
-			.toADate(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE);
+			.toADate(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE);
 
 	@Override
 	LocalDependency<List<LocalDate>> getDatesDependency() {

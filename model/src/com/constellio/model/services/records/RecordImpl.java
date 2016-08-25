@@ -552,9 +552,8 @@ public class RecordImpl implements Record {
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
-			String metadataCode = schemaCode + "_" + localCode;
 			try {
-				modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
+				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
 				Record originalRecord = getCopyOfOriginalRecord();
 				try {
@@ -681,7 +680,7 @@ public class RecordImpl implements Record {
 					} else {
 
 						if (!LangUtils.areNullableEqual(currentValue, initialValue)) {
-							throw new RecordRuntimeException.CannotMerge();
+							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}
 				}

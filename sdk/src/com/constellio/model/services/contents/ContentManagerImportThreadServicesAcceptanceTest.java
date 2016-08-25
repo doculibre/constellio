@@ -57,16 +57,17 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 
 	File folder1, folder2;
 
-	@Before
-	public void setUp()
+	public void setUp(final boolean deleteUnusedContent)
 			throws Exception {
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
+
 		contentImportFile = newTempFolder();
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
 			public void alter(ModelLayerConfiguration configuration) {
 				when(configuration.getContentImportThreadFolder()).thenReturn(contentImportFile);
+				when(configuration.isDeleteUnusedContentEnabled()).thenReturn(deleteUnusedContent);
 			}
 		});
 
@@ -90,13 +91,14 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void whenCalledTheFirstTimeThenCreateFolders()
 			throws Exception {
 
+		setUp(false);
 		contentManager.uploadFilesInImportFolder();
 
 		assertThat(contentImportFile).exists();
 		assertThat(toImport).exists();
 		assertThat(errorsEmpty).exists();
 		assertThat(errorsUnparsable).exists();
-		assertThat(indexProperties).exists();
+		assertThat(indexProperties).doesNotExist();
 
 	}
 
@@ -104,6 +106,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenContentImportFolderConfiguredThenImportFileUnmodifiedFor10Seconds()
 			throws Exception {
 
+		setUp(false);
 		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
 				htmlWithBody("Chuck Norris"));
 		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"),
@@ -148,9 +151,34 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	}
 
 	@Test
+	public void givenContentDeleteThreadIsNotDisabledThenRefuseToImport()
+			throws Exception {
+
+		setUp(true);
+		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
+				htmlWithBody("Chuck Norris"));
+		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"),
+				htmlWithBody("Dakota l'Indien"));
+		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
+				htmlWithBody("Edouard Lechat"));
+		ContentVersionDataSummary data4 = addTextFileToImportAndReturnHash(new File(folder2, "file.html"),
+				htmlWithBody("Darth Vador"));
+		assertThat(allFilesRecursivelyIn(contentImportFile)).hasSize(4);
+
+		LocalDateTime momentWhereFilesWereAdded = LocalDateTime.now();
+
+		givenTimeIs(momentWhereFilesWereAdded.plusSeconds(11));
+		contentManager.uploadFilesInImportFolder();
+		assertThat(allFilesRecursivelyIn(toImport)).hasSize(4);
+		assertNoContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash(), data4.getHash());
+		assertThat(contentManager.getImportedFilesMap()).isEmpty();
+	}
+
+	@Test
 	public void whenImportingContentsThenImportedByBatch()
 			throws Exception {
 
+		setUp(false);
 		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
 				htmlWithBody("Chuck Norris"));
 		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"),
@@ -216,6 +244,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenEmptyFileThenNotImportedAndMovedInErrors()
 			throws Exception {
 
+		setUp(false);
 		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
 				htmlWithBody("Chuck Norris"));
 		ContentVersionDataSummary data2 = addTextFileToImportAndReturnHash(new File(toImport, "file2.html"), "");
@@ -245,6 +274,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenUnparsableFileThenImportedAndMovedInErrors()
 			throws Exception {
 
+		setUp(false);
 		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
 				htmlWithBody("Chuck Norris"));
 		ContentVersionDataSummary data2 = addFileToImportAndReturnHash(new File(toImport, "file2.pdf"),
@@ -279,6 +309,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenUnparsableFileBecauseTooBigThenImportedAndMovedInErrors()
 			throws Exception {
 
+		setUp(false);
 		getModelLayerFactory().getSystemConfigurationsManager()
 				.setValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS, 1);
 
@@ -316,6 +347,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenBigFilesAreCopiedInImportFolderThenAllEntriesImported()
 			throws Exception {
 
+		setUp(false);
 		addFileToImportAndReturnHash(new File(toImport, "bigFile.bigf"), "file1.bigf", null);
 		addFileToImportAndReturnHash(new File(folder1, "bigFile.bigf"), "file1.bigf", null);
 		addFileToImportAndReturnHash(new File(folder1, "bigFile2.bigf"), "file2.bigf", null);
@@ -348,6 +380,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenBigFilesAreCopiedInImportFolderThenAreImportedInBatch()
 			throws Exception {
 
+		setUp(false);
 		addFileToImportAndReturnHash(new File(toImport, "bigFile.bigf"), "file1.bigf", null);
 		addFileToImportAndReturnHash(new File(folder1, "bigFile.bigf"), "file1.bigf", null);
 		addFileToImportAndReturnHash(new File(folder1, "bigFile2.bigf"), "file2.bigf", null);
@@ -394,6 +427,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	public void givenBigFilesContainingBlankAndUnparsableEntriesThenHandledSameAsNormalFiles()
 			throws Exception {
 
+		setUp(false);
 		addFileToImportAndReturnHash(new File(toImport, "fileWithErrors.bigf"), "fileWithErrors.bigf", null);
 
 		givenTimeIs(LocalDateTime.now().plusSeconds(11));
