@@ -21,6 +21,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -87,7 +88,9 @@ public class ConstellioMenuPresenter implements Serializable {
 				modelLayerFactory.newRecordServices().update(newUser
 						.setLastLogin(TimeProvider.getLocalDateTime())
 						.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
-				sessionContext.setCurrentLocale(getSessionLanguage(newUser));
+				Locale userLanguage = getSessionLanguage(newUser);
+				sessionContext.setCurrentLocale(userLanguage);
+				i18n.setLocale(userLanguage);
 
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
@@ -200,9 +203,10 @@ public class ConstellioMenuPresenter implements Serializable {
 		return photosServices.hasPhoto(currentUser.getUsername());
 	}
 
-	public String getCollectionCaption(String collectionName) {
-		String collectionTitle = constellioFactories.getAppLayerFactory().getCollectionsManager().getCollection(collectionName)
-				.getTitle();
+	public String getCollectionCaption(String collectionCode) {
+		Collection collection = constellioFactories.getAppLayerFactory().getCollectionsManager().getCollection(collectionCode); 
+		String collectionTitle = collection.getTitle();
+		String collectionName = collection.getName();
 		return StringUtils.isNotBlank(collectionTitle) ? collectionTitle : collectionName;
 	}
 
@@ -214,8 +218,11 @@ public class ConstellioMenuPresenter implements Serializable {
 	public void languageSelected(String languageText, String collection) {
 		List<String> allLanguagesCodes = getCollectionLanguagesOrderedByCode(collection);
 		for(String code : allLanguagesCodes)
-			if($("Language." + code).equals(languageText))
-				ConstellioUI.getCurrentSessionContext().setCurrentLocale(new Locale(code));
+			if ($("Language." + code).equals(languageText)) {
+				Locale locale = new Locale(code);
+				i18n.setLocale(locale);
+				ConstellioUI.getCurrentSessionContext().setCurrentLocale(locale);
+			}	
 	}
 
 	public List<String> getCollectionLanguages(String collection) {
