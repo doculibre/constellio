@@ -125,6 +125,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return containerRecordTypes;
 	}
 
+	public ContainerRecordType getContainerRecordTypeWithLegacyId(String id) {
+		return new ContainerRecordType(getByLegacyId(ContainerRecordType.SCHEMA_TYPE, id), getTypes());
+	}
+
 	public ContainerRecordType getContainerRecordType(String id) {
 		return new ContainerRecordType(get(id), getTypes());
 	}

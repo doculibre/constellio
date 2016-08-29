@@ -12,6 +12,8 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 
 	private boolean hasDecoratedErrors;
 
+	private boolean hasDecoratedWarnings;
+
 	public DecoratedValidationsErrors(ValidationErrors errors, Map<String, String> extraParams) {
 		this.extraParams = extraParams;
 		this.errors = errors;
@@ -40,6 +42,10 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 		return hasDecoratedErrors;
 	}
 
+	public boolean hasDecoratedErrorsOrWarnings() {
+		return hasDecoratedErrors || hasDecoratedWarnings;
+	}
+
 	public DecoratedValidationsErrors withParam(String key, String value) {
 		this.extraParams.put(key, value);
 		return this;
@@ -50,6 +56,26 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 	}
 
 	public void addAll(List<ValidationError> validationErrors) {
+		throw new UnsupportedOperationException("Method unsupported");
+	}
+
+	@Override
+	public void addWarning(Class<?> validatorClass, String code, Map<String, Object> parameters) {
+		hasDecoratedWarnings = true;
+		parameters.putAll(extraParams);
+
+		buildExtraParams(parameters);
+
+		errors.addWarning(validatorClass, code, parameters);
+	}
+
+	@Override
+	public List<ValidationError> getValidationWarnings() {
+		return errors.getValidationWarnings();
+	}
+
+	@Override
+	public void addAllWarnings(List<ValidationError> validationWarnings) {
 		throw new UnsupportedOperationException("Method unsupported");
 	}
 }

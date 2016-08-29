@@ -125,7 +125,9 @@ public class ContentManager implements StatefulService {
 
 			@Override
 			public void run() {
-				deleteUnreferencedContents();
+				if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+					deleteUnreferencedContents();
+				}
 				convertPendingContentForPreview();
 			}
 		};

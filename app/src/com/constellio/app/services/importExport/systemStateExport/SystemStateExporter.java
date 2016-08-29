@@ -169,10 +169,14 @@ public class SystemStateExporter {
 						return !pathname.getAbsolutePath().contains(tlogsBckFolder.getAbsolutePath());
 					}
 
-					String name = pathname.getName().contains("_") ? pathname.getName().split("_")[0] : pathname.getName();
+					String name;
+					if (pathname.getName().contains("_") && pathname.getName().split("_").length > 0) {
+						name = pathname.getName().split("_")[0];
+					} else {
+						name = pathname.getName();
+					}
 
 					for (String hash : exportedHashes) {
-
 						if (hash.contains(name)) {
 							return true;
 						}

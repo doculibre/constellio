@@ -14,16 +14,20 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileIterator;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ContentManagerImportThreadServices {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManagerImportThreadServices.class);
 	private static final String READ_FILE_INPUTSTREAM = "ContentManagerImportThreadServices-ReadFileInputStream";
 	private static final String BIGFILE_EXTRACT_TEMP_FOLDER = "ContentManagerImportThreadServices-BigFileExtractTempFolder";
 
@@ -37,6 +41,7 @@ public class ContentManagerImportThreadServices {
 	private File tempFolder;
 	private IOServices ioServices;
 	private int batchSize;
+	private boolean deleteUnusedContentEnabled;
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, 10000);
@@ -48,6 +53,7 @@ public class ContentManagerImportThreadServices {
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.contentImportFolder = modelLayerFactory.getConfiguration().getContentImportThreadFolder();
+		this.deleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
 		this.tempFolder = new File(contentImportFolder, "temp");
 		this.toImportFolder = new File(contentImportFolder, "toImport");
 		this.errorsEmptyFolder = new File(contentImportFolder, "errors-empty");
@@ -56,18 +62,26 @@ public class ContentManagerImportThreadServices {
 	}
 
 	public void importFiles() {
-		createFolders();
 
-		List<File> files = getFilesReadyToImport();
-		importFiles(files);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(toImportFolder);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsEmptyFolder);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsUnparsableFolder);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(tempFolder);
+		createFolders();
+		if (deleteUnusedContentEnabled) {
+			LOGGER.warn("Content import thread requires that configuration 'content.delete.unused.enabled' is set to false");
+		} else {
+
+			List<File> files = getFilesReadyToImport();
+			if (!files.isEmpty()) {
+				importFiles(files);
+
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(toImportFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsEmptyFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsUnparsableFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(tempFolder);
+			}
+		}
 	}
 
 	private void importFiles(List<File> files) {
-		System.out.println("importing files " + files + "");
+		LOGGER.info("importing files " + files + "");
 		BulkUploader uploader = new BulkUploader(modelLayerFactory);
 		uploader.setHandleDeletionOfUnreferencedHashes(false);
 
@@ -250,6 +264,9 @@ public class ContentManagerImportThreadServices {
 	}
 
 	public Map<String, ContentVersionDataSummary> readFileNameSHA1Index() {
+		if (!indexProperties.exists()) {
+			return Collections.emptyMap();
+		}
 		Map<String, ContentVersionDataSummary> map = new HashMap<>();
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(indexProperties).entrySet()) {
 			map.put(entry.getKey(), toContentVersionDataSummary(entry.getValue()));

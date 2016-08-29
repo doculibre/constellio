@@ -125,6 +125,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 	}
 
 	private LocalDate dateFromString(String metadata, String dateAsString, String yearEnd) {
+
 		if (dateAsString.length() != 9) {
 			throw new RuntimeException("Invalid range date format " + dateAsString + " for metadata " + metadata);
 		}
