@@ -15,6 +15,8 @@ public class SystemConfiguration {
 
 	String code;
 
+	String propertyKey;
+
 	Object defaultValue;
 
 	boolean rebootRequired;
@@ -37,6 +39,7 @@ public class SystemConfiguration {
 		this.hidden = hidden;
 		this.rebootRequired = rebootRequired;
 		this.hiddenValue = hiddenValue;
+		this.propertyKey = configGroupCode + "_" + code;
 	}
 
 	public SystemConfigurationType getType() {
@@ -126,6 +129,10 @@ public class SystemConfiguration {
 
 	public boolean isRebootRequired() {
 		return rebootRequired;
+	}
+
+	public String getPropertyKey() {
+		return propertyKey;
 	}
 }
 

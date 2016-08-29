@@ -87,7 +87,7 @@ public class EnableOrDisableCalculatorsManualMetadataScriptAcceptanceTest extend
 		Metadata manualExpectedDepositDate = folderDefaultSchema.getMetadata(Folder.MANUAL_EXPECTED_DEPOSIT_DATE);
 		assertThat(manualExpectedDepositDate.isEnabled()).isEqualTo(enabled);
 
-		Metadata manualExpectedDestructionDate = folderDefaultSchema.getMetadata(Folder.MANUAL_EXPECTED_DESTRIUCTION_DATE);
+		Metadata manualExpectedDestructionDate = folderDefaultSchema.getMetadata(Folder.MANUAL_EXPECTED_DESTRUCTION_DATE);
 		assertThat(manualExpectedDestructionDate.isEnabled()).isEqualTo(enabled);
 
 		Metadata manualArchivisticStatus = folderDefaultSchema.getMetadata(Folder.MANUAL_ARCHIVISTIC_STATUS);

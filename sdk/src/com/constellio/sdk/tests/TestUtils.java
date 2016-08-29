@@ -533,6 +533,20 @@ public class TestUtils {
 		return codes;
 	}
 
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
+
+		List<Tuple> tuples = new ArrayList<>();
+		for (ValidationError error : errors.getValidationWarnings()) {
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
+			for (String parameter : parameters) {
+				tuple.addData(error.getParameters().get(parameter));
+			}
+			tuples.add(tuple);
+		}
+
+		return tuples;
+	}
+
 	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
 
 		List<Tuple> tuples = new ArrayList<>();
@@ -568,6 +582,10 @@ public class TestUtils {
 		i18n.setLocale(Locale.FRENCH);
 
 		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+
+		for (ValidationError error : errors.getValidationWarnings()) {
 			messages.add($(error));
 		}
 

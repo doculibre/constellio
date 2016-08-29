@@ -99,6 +99,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
+	public boolean isDeleteUnusedContentEnabled() {
+		return getBoolean("content.delete.unused.enabled", true);
+	}
+
+	@Override
 	public File getContentImportThreadFolder() {
 		return getFile("content.import.thread.folder", null);
 	}
