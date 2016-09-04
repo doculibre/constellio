@@ -15,6 +15,7 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 
 	public BaseEventCategoryPresenter(BaseEventCategoryView view) {
 		super(view);
+		recordServices().flush();
 	}
 
 	public void displayEvent(Integer itemId, EventCategory eventCategory) {
