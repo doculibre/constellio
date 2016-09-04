@@ -22,6 +22,13 @@ public class ContentImportVersion {
 		this.lastModification = lastModification;
 	}
 
+	public ContentImportVersion(String url, String fileName, boolean major, LocalDateTime lastModification) {
+		this.url = url;
+		this.fileName = fileName;
+		this.major = major;
+		this.lastModification = lastModification;
+	}
+
 	public String getUrl() {
 		return url;
 	}
