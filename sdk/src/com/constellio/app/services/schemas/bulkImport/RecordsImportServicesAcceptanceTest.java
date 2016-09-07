@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -616,8 +617,9 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	private File buildZipWith(String... files)
 			throws Exception {
 
-		File zipFile = new File(newTempFolder(), Arrays.toString(files) + "testdata.zip");
 		File tempFolder = newTempFolder();
+		File zipFile = new File(newTempFolder(), StringUtils.replace(StringUtils.join(files, "_"), ":", "-") + "testdata.zip");
+
 
 		for (String file : files) {
 			String filenameInTempFolder = file;
