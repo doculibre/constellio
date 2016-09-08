@@ -5,10 +5,8 @@ import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -314,7 +312,7 @@ public class HashingServiceTest extends ConstellioTest {
 	public void givenStreamFactoryWhenGetHashFromStreamAndIOExceptionThenHashingServiceExceptionThrown()
 			throws Exception {
 		final StreamFactory<InputStream> readerFactory = Mockito.mock(StreamFactory.class, "IOExceptionReader");
-		when(readerFactory.create(SDK_STREAM)).thenThrow(new IOException());
+		doThrow(new IOException()).when(readerFactory).create(any(String.class));
 
 		md5HashingService.getHashFromStream(readerFactory);
 	}
@@ -332,7 +330,7 @@ public class HashingServiceTest extends ConstellioTest {
 			}
 		};
 
-		when(md5HashingService.doHash(stringContent.getBytes())).thenThrow(new RuntimeException());
+		doThrow(new RuntimeException()).when(md5HashingService).encodeDigest(any(byte[].class));
 
 		try {
 			md5HashingService.getHashFromStream(readerFactory);
