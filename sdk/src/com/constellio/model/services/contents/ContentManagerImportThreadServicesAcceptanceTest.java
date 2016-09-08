@@ -262,7 +262,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
 				entry("file.html", data1),
-				entry("folder1" + File.separator + "file.html", data3)
+				entry("folder1/file.html", data3)
 		);
 
 		assertThat(errorsEmpty.list()).containsOnly("file2.html", "folder1");
@@ -361,15 +361,15 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 
 		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
-				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
-				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1" + File.separator + "bigFile2.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1" + File.separator + "bigFile2.bigf" + File.separator + "ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
+				entry("folder1" + File.separator + "bigFile2.bigf" + File.separator + "ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
 		);
 
 		assertThat(errorsEmpty.list()).isEmpty();
@@ -394,12 +394,12 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertContentAndParsedContentWithHash(pdf1Hash, docx1Hash, docx2Hash);
 		assertNoContentAndParsedContentWithHash(pdf3Hash, pdf2Hash);
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data)
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data)
 		);
 
 		//Call #2
@@ -407,15 +407,15 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		services.importFiles();
 		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("folder1/bigFile.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
-				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
-				entry("folder1/bigFile2.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("folder1" + File.separator + "bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("folder1" + File.separator + "bigFile2.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("folder1" + File.separator + "bigFile2.bigf" + File.separator + "ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
+				entry("folder1" + File.separator + "bigFile2.bigf" + File.separator + "ContentManagementAcceptTest-pdf3.pdf", pdf3Data)
 		);
 
 		assertThat(toImport.list()).isEmpty();
@@ -439,12 +439,12 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 
 		assertThat(toImport.list()).isEmpty();
 		assertThat(contentManager.getImportedFilesMap()).containsOnly(
-				entry("fileWithErrors.bigf/ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
-				entry("fileWithErrors.bigf/ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
-				entry("fileWithErrors.bigf/ContentManagementAcceptTest-pdf3.pdf", pdf3Data),
-				entry("fileWithErrors.bigf/ContentManagementAcceptTest-docx1.docx", docx1Data),
-				entry("fileWithErrors.bigf/ContentManagementAcceptTest-docx2.docx", docx2Data),
-				entry("fileWithErrors.bigf/ContentManagerAcceptanceTest-passwordProtected.pdf", passwordProtectedPdfData)
+				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
+				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
+				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-pdf3.pdf", pdf3Data),
+				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
+				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
+				entry("fileWithErrors.bigf" + File.separator + "ContentManagerAcceptanceTest-passwordProtected.pdf", passwordProtectedPdfData)
 		);
 
 		assertThat(contentManager.getContentInputStream(passwordProtectedPDFHash, SDK_STREAM))
