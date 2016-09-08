@@ -70,7 +70,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
-		enableComplementaryModules();
 	}
 
 	public void enableComplementaryModules() {
