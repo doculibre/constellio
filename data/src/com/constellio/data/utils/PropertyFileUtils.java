@@ -27,8 +27,8 @@ public class PropertyFileUtils {
 	public static void writeMap(File indexProperties, Map<String, String> map) {
 		Properties properties = new Properties();
 		properties.putAll(map);
-		try {
-			properties.store(new FileWriter(indexProperties), null);
+		try (FileWriter fw = new FileWriter(indexProperties)){
+			properties.store(fw, null);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
