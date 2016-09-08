@@ -16,6 +16,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
@@ -672,13 +673,17 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
+						;
+
 						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
-									importedValueList.getTitle(), schemaTypeCodeMode);
+									importedValueList.getTitle(),
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
 						} else {
 							builder.createHierarchicalValueListItemSchema(code,
-									importedValueList.getTitle(), schemaTypeCodeMode);
+									importedValueList.getTitle(),
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
 						}
 
 					} else {
