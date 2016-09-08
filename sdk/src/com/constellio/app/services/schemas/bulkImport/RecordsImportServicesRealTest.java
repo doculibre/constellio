@@ -1,18 +1,9 @@
 package com.constellio.app.services.schemas.bulkImport;
 
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportServices.INVALID_SCHEMA_TYPE_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.AUTOMATIC_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_DATETIME_VALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_MULTIVALUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_RESOLVER_METADATA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_SCHEMA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_STRING_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_NOT_UNIQUE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_ID;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -25,17 +16,23 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static java.io.File.separator;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -45,12 +42,18 @@ import org.junit.Test;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
+import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
@@ -66,6 +69,7 @@ import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.ContentImport;
@@ -78,6 +82,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
@@ -217,6 +222,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(ModelLayerConfiguration configuration) {
+				when(configuration.getContentImportThreadFolder()).thenReturn(newTempFolder());
+				doReturn(false).when(configuration).isDeleteUnusedContentEnabled();
+			}
+		});
+
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
 				withZeCollection().withAllTestUsers()
@@ -1517,7 +1531,20 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
 						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
 
-		BulkImportResults results = bulkImport(importDataProvider, progressionListener, admin);
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "url")).containsOnly(
+					tuple("RecordsImportServices_contentNotFound", testResource1),
+					tuple("RecordsImportServices_contentNotFound", testResource3)
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 1 : Le contenu à l'URL «" + testResource1 + "» ne peut pas être obtenu",
+					"Ze type de schéma 3 : Le contenu à l'URL «http://www.perdu.com/edouardLechat.pdf» ne peut pas être obtenu"
+			);
+		}
 
 		Record record1 = recordWithLegacyId("1");
 		Record record2 = recordWithLegacyId("2");
@@ -1546,7 +1573,128 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		assertThat(contentManager.getParsedContent(testResource2Hash).getParsedContent()).contains("Gestion des documents");
 
-		assertThat(results.getInvalidIds()).containsOnly(testResource1, testResource3);
+	}
+
+	@Test
+	public void whenImportingRecordsWithInvalidContentPreimportedContentsThenImportWithValidationErrors()
+			throws Exception {
+
+		File toImport = new File(getModelLayerFactory().getConfiguration().getContentImportThreadFolder(), "toImport");
+
+		System.out.println(toImport.getAbsolutePath());
+
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		FileUtils.copyFile(getTestResourceFile("resource1.docx"), new File(toImport, "file1.docx"));
+		FileUtils.copyFile(getTestResourceFile("resource2.pdf"), new File(toImport, "file2.pdf"));
+		FileUtils.copyFile(getTestResourceFile("resource4.docx"), new File(toImport, "folder" + separator + "file3.docx"));
+		FileUtils.copyFile(getTestResourceFile("resource5.pdf"), new File(toImport, "file4.pdf"));
+		FileUtils.copyFile(getTestResourceFile("resource5.pdf"), new File(toImport, "file5.pdf"));
+
+		String file1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
+		String file2Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
+		String file3Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
+		String file4Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
+		String file5Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
+
+		givenTimeIs(TimeProvider.getLocalDateTime().plusSeconds(60));
+		contentManager.uploadFilesInImportFolder();
+		LocalDateTime now = TimeProvider.getLocalDateTime();
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAContentMetadata()
+				.withAContentListMetadata());
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("contentMetadata", new ContentImport("imported://file1.docx", "File 1.docx", true, now)));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("contentListMetadata", asList(
+						new ContentImport("imported://file2.pdf", "File 2a.pdf", true, now),
+						new ContentImport("imported://file5.pdf", "File 2b.pdf", true, now))));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("contentMetadata", new ContentImport("imported://inexistentFile.pdf", "File 3.pdf", true, now)));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
+				.addField("contentMetadata", new ContentImport("imported://folder/file3.docx", "File 4.docx", true, now)));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
+				.addField("contentMetadata", new ContentImport("imported://folder\\file3.docx", "File 5.docx", true, now)));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("6").addField("title", "Record 6")
+				.addField("contentMetadata", new ContentImport("imported://otherFolder/file3.docx", "File 6.docx", true, now)));
+
+		ContentImport contentImport7 = new ContentImport("imported://file2.pdf", "File 7a.pdf", true, now);
+		contentImport7.getVersions().add(new ContentImportVersion("imported://file4.pdf", "File 7b.pdf", false, now));
+		contentImport7.getVersions().add(new ContentImportVersion("imported://file5.pdf", "File 7c.pdf", false, now));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("7").addField("title", "Record 7")
+				.addField("contentMetadata", contentImport7));
+
+		ContentImport contentImport8 = new ContentImport("imported://file2.pdf", "File 7a.pdf", true, now);
+		contentImport8.getVersions().add(new ContentImportVersion("imported://fileZ.pdf", "File 7b.pdf", false, now));
+		contentImport8.getVersions().add(new ContentImportVersion("imported://file5.pdf", "File 7c.pdf", false, now));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("8").addField("title", "Record 8")
+				.addField("contentMetadata", contentImport8));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "prefix", "fileName", "filePath")).containsOnly(
+					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 3 : ", "File 3.pdf",
+							"inexistentFile.pdf"),
+					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 6 : ", "File 6.docx",
+							"otherFolder/file3.docx"),
+					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 8 : ", "File 7a.pdf", "fileZ.pdf")
+			);
+
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 6 : Aucun contenu pré-importé «otherFolder/file3.docx»",
+					"Ze type de schéma 8 : Aucun contenu pré-importé «fileZ.pdf»",
+					"Ze type de schéma 3 : Aucun contenu pré-importé «inexistentFile.pdf»"
+			);
+		}
+
+		Record record1 = recordWithLegacyId("1");
+		Record record2 = recordWithLegacyId("2");
+		Record record4 = recordWithLegacyId("4");
+		Record record5 = recordWithLegacyId("5");
+		Record record7 = recordWithLegacyId("7");
+
+		assertThat(record1.<Content>get(zeSchema.contentMetadata()).getCurrentVersion())
+				.has(hashFilenameVersion(file1Hash, "File 1.docx", "1.0"));
+		assertThat(record1.getList(zeSchema.contentListMetadata())).isEmpty();
+
+		assertThat(record2.get(zeSchema.contentMetadata())).isNull();
+		List<Content> record2ContentList = record2.get(zeSchema.contentListMetadata());
+		assertThat(record2ContentList.get(0).getCurrentVersion()).has(hashFilenameVersion(file2Hash, "File 2a.pdf", "1.0"));
+		assertThat(record2ContentList.get(1).getCurrentVersion()).has(hashFilenameVersion(file5Hash, "File 2b.pdf", "1.0"));
+
+		assertThat(record4.<Content>get(zeSchema.contentMetadata()).getCurrentVersion())
+				.has(hashFilenameVersion(file3Hash, "File 4.docx", "1.0"));
+		assertThat(record4.getList(zeSchema.contentListMetadata())).isEmpty();
+
+		assertThat(record5.<Content>get(zeSchema.contentMetadata()).getCurrentVersion())
+				.has(hashFilenameVersion(file3Hash, "File 5.docx", "1.0"));
+		assertThat(record5.getList(zeSchema.contentListMetadata())).isEmpty();
+
+		Content record7Content = record7.get(zeSchema.contentMetadata());
+		assertThat(record7Content.getVersions().get(0)).has(hashFilenameVersion(file2Hash, "File 7a.pdf", "1.0"));
+		assertThat(record7Content.getVersions().get(1)).has(hashFilenameVersion(file4Hash, "File 7b.pdf", "1.1"));
+		assertThat(record7Content.getVersions().get(2)).has(hashFilenameVersion(file5Hash, "File 7c.pdf", "1.2"));
+
+	}
+
+	private Condition<? super Object> hashFilenameVersion(final String hash, final String fileName, final String version) {
+		return new Condition<Object>() {
+			@Override
+			public boolean matches(Object value) {
+				ContentVersion contentVersion = (ContentVersion) value;
+				assertThat(contentVersion.getHash()).describedAs("hash").isEqualTo(hash);
+				assertThat(contentVersion.getFilename()).describedAs("fileName").isEqualTo(fileName);
+				assertThat(contentVersion.getVersion()).describedAs("version").isEqualTo(version);
+				return true;
+			}
+		};
 	}
 
 	@Test
@@ -1582,7 +1730,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
 						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
 
-		BulkImportResults results = bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		Record record1 = recordWithLegacyId("1");
 		Record record2 = recordWithLegacyId("2");
@@ -1640,8 +1788,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(contentManager.getParsedContent(testResource5Hash).getParsedContent())
 				.contains("CONSTELLIO");
 
-		assertThat(results.getInvalidIds()).isEmpty();
-
 		//Reimport the records changing the order of versions of record #1
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
@@ -1654,7 +1800,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						new ContentImport(testResource2, "Ze ultimate document.pdf", false, null, null),
 						new ContentImport(testResource3, "Ze book.txt", true, null, null))));
 
-		results = bulkImport(importDataProvider, progressionListener, admin);
+		bulkImport(importDataProvider, progressionListener, admin);
 
 		record1 = recordWithLegacyId("1");
 
@@ -2088,19 +2234,23 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return new ValidationError(RecordsImportServices.class, code, parameters);
 	}
 
-	private BulkImportResults bulkImport(ImportDataProvider importDataProvider,
-			final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user)
+	private void bulkImport(ImportDataProvider importDataProvider,
+			final BulkImportProgressionListener bulkImportProgressionListener, final User user)
 			throws ValidationException {
-		BulkImportParams params = new BulkImportParams();
+		bulkImport(importDataProvider, bulkImportProgressionListener, user, new BulkImportParams());
+	}
+
+	private void bulkImport(ImportDataProvider importDataProvider,
+			final BulkImportProgressionListener bulkImportProgressionListener,
+			final User user, BulkImportParams params)
+			throws ValidationException {
 		params.setStopOnFirstError(false);
-		BulkImportResults results = services.bulkImport(importDataProvider, bulkImportProgressionListener, user, params);
+		services.bulkImport(importDataProvider, bulkImportProgressionListener, user, params);
 
 		zeSchemaTypeRecords.clear();
 		anotherSchemaTypeRecords.clear();
 		thirdSchemaTypeRecords.clear();
 
-		return results;
 	}
 
 	private Map<String, Object> asMap(String key1, String value1) {

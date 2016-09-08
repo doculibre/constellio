@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -223,6 +225,58 @@ public class LangUtils {
 
 		}
 
+	}
+
+	public static StringReplacer replacingLiteral(String target, String replacement) {
+		return new StringReplacer().replacingLiteral(target, replacement);
+	}
+
+	public static StringReplacer replacingRegex(String regex, String replacement) {
+		return new StringReplacer().replacingRegex(regex, replacement);
+	}
+
+	public static class StringReplacer {
+
+		List<StringReplacement> stringReplacements = new ArrayList<>();
+
+		public StringReplacer replacingRegex(String regex, String replacement) {
+			Pattern pattern = Pattern.compile(regex);
+			stringReplacements.add(new StringReplacement(pattern, replacement));
+			return this;
+		}
+
+		public StringReplacer replacingLiteral(String target, String replacement) {
+			if (!target.equals(replacement)) {
+				Pattern pattern = Pattern.compile(target.toString(), Pattern.LITERAL);
+				stringReplacements.add(new StringReplacement(pattern, replacement));
+			}
+			return this;
+		}
+
+		public String replaceOn(String value) {
+
+			String output = value;
+			for (StringReplacement stringReplacement : stringReplacements) {
+				output = stringReplacement.replace(output);
+			}
+
+			return output;
+		}
+	}
+
+	public static class StringReplacement {
+
+		Pattern pattern;
+		CharSequence replacement;
+
+		public StringReplacement(Pattern pattern, CharSequence replacement) {
+			this.pattern = pattern;
+			this.replacement = replacement;
+		}
+
+		String replace(String value) {
+			return pattern.matcher(value).replaceAll(Matcher.quoteReplacement(replacement.toString()));
+		}
 	}
 
 	public static class ListComparisonResults<T> {

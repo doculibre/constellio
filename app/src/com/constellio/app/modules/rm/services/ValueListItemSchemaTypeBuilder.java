@@ -31,13 +31,13 @@ public class ValueListItemSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, Map<Language, String> labels,
-			ValueListItemSchemaTypeCodeMode codeMode) {
+			ValueListItemSchemaTypeBuilderOptions options) {
 		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaType(code);
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 
-		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(true).setDefaultRequirement(true);
+		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique).setDefaultRequirement(true);
 
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
@@ -48,10 +48,10 @@ public class ValueListItemSchemaTypeBuilder {
 		}
 
 		codeMetadata.setSchemaAutocomplete(true);
-		if (codeMode == ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE) {
+		if (options.codeMode == ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE) {
 			codeMetadata.setUniqueValue(true).setDefaultRequirement(true);
 
-		} else if (codeMode == ValueListItemSchemaTypeCodeMode.DISABLED) {
+		} else if (options.codeMode == ValueListItemSchemaTypeCodeMode.DISABLED) {
 			codeMetadata.setEnabled(false);
 		}
 
@@ -73,7 +73,7 @@ public class ValueListItemSchemaTypeBuilder {
 	}
 
 	public MetadataSchemaTypeBuilder createValueListItemSchema(String code, String label,
-			ValueListItemSchemaTypeCodeMode codeMode) {
+			ValueListItemSchemaTypeBuilderOptions options) {
 
 		Map<Language, String> labels = new HashMap<>();
 		for (Language language : metadataSchemaTypesBuilder.getLanguages()) {
@@ -83,13 +83,13 @@ public class ValueListItemSchemaTypeBuilder {
 				labels.put(language, label);
 			}
 		}
-		return createValueListItemSchema(code, labels, codeMode);
+		return createValueListItemSchema(code, labels, options);
 	}
 
 	public MetadataSchemaTypeBuilder createHierarchicalValueListItemSchema(String code, String label,
-			ValueListItemSchemaTypeCodeMode codeMode) {
+			ValueListItemSchemaTypeBuilderOptions options) {
 		List<Language> languages = metadataSchemaTypesBuilder.getLanguages();
-		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, codeMode);
+		MetadataSchemaTypeBuilder typeBuilder = createValueListItemSchema(code, label, options);
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema();
 		MetadataBuilder parentMetadata = defaultSchemaBuilder.create(HierarchicalValueListItem.PARENT)
 				.defineChildOfRelationshipToType(typeBuilder)
@@ -100,6 +100,36 @@ public class ValueListItemSchemaTypeBuilder {
 		}
 
 		return typeBuilder;
+	}
+
+	public static class ValueListItemSchemaTypeBuilderOptions {
+		ValueListItemSchemaTypeCodeMode codeMode;
+		boolean titleUnique = true;
+
+		private ValueListItemSchemaTypeBuilderOptions(ValueListItemSchemaTypeCodeMode codeMode) {
+			this.codeMode = codeMode;
+		}
+
+		public static ValueListItemSchemaTypeBuilderOptions codeMetadataRequiredAndUnique() {
+			return new ValueListItemSchemaTypeBuilderOptions(ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE);
+		}
+
+		public static ValueListItemSchemaTypeBuilderOptions codeMetadataDisabled() {
+			return new ValueListItemSchemaTypeBuilderOptions(ValueListItemSchemaTypeCodeMode.DISABLED);
+		}
+
+		public static ValueListItemSchemaTypeBuilderOptions codeMetadataFacultative() {
+			return new ValueListItemSchemaTypeBuilderOptions(ValueListItemSchemaTypeCodeMode.FACULTATIVE);
+		}
+
+		public static ValueListItemSchemaTypeBuilderOptions codeMode(ValueListItemSchemaTypeCodeMode codeMode) {
+			return new ValueListItemSchemaTypeBuilderOptions(codeMode);
+		}
+
+		public ValueListItemSchemaTypeBuilderOptions titleUnique(boolean titleUnique) {
+			this.titleUnique = titleUnique;
+			return this;
+		}
 	}
 
 }

@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.model.calculators.folder.FolderRetentionPer
 import com.constellio.app.modules.rm.model.calculators.folder.FolderRetentionPeriodCodeCalculator.FolderSemiActiveRetentionPeriodCodeCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
@@ -158,7 +159,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 					.setType(MetadataValueType.NUMBER);
 
 			ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
-			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, (String) null, REQUIRED_AND_UNIQUE);
+			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, (String) null,
+					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
 
 			typesBuilder.getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA)
 					.get(VariableRetentionPeriod.CODE).setUnmodifiable(true).addValidator(IntegerStringValidator.class);

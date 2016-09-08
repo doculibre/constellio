@@ -11,6 +11,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -70,7 +71,7 @@ public class ValueListServices {
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
-		builder.createValueListItemSchema(code, title, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE);
+		builder.createValueListItemSchema(code, title, ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
@@ -96,7 +97,8 @@ public class ValueListServices {
 		String typeCode = "taxo" + code + "Type";
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typeBuilder);
 
-		builder.createHierarchicalValueListItemSchema(typeCode, title, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE);
+		builder.createHierarchicalValueListItemSchema(typeCode, title,
+				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false));
 
 		return Taxonomy.createPublic("taxo" + code, title, collection, Arrays.asList(typeCode));
 	}
@@ -196,7 +198,8 @@ public class ValueListServices {
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 		ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(types);
 
-		builder.createHierarchicalValueListItemSchema(code, title, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE);
+		builder.createHierarchicalValueListItemSchema(code, title,
+				ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
 
 		try {
 			return schemasManager.saveUpdateSchemaTypes(types).getSchemaType(code);
