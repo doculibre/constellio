@@ -505,7 +505,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 
         ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
-        Map<String, String> tabParams = new HashMap<>();
+        Map<String, String> tabParams = new TreeMap<>();
         tabParams.put("default", "Métadonnées");
         tabParams.put("zeTab", "Mon onglet");
 
@@ -561,10 +561,10 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(tabsElement).isNotNull();
         assertThat(tabsElement.getChildren()).hasSize(2);
         List<Element> tabsChildren = tabsElement.getChildren();
-        assertThat(tabsChildren.get(0).getAttributeValue(CODE)).isEqualTo("zeTab");
-        assertThat(tabsChildren.get(0).getAttributeValue(VALUE)).isEqualTo("Mon onglet");
-        assertThat(tabsChildren.get(1).getAttributeValue(CODE)).isEqualTo("default");
-        assertThat(tabsChildren.get(1).getAttributeValue(VALUE)).isEqualTo("Métadonnées");
+        assertThat(tabsChildren.get(0).getAttributeValue(CODE)).isEqualTo("default");
+        assertThat(tabsChildren.get(0).getAttributeValue(VALUE)).isEqualTo("Métadonnées");
+        assertThat(tabsChildren.get(1).getAttributeValue(CODE)).isEqualTo("zeTab");
+        assertThat(tabsChildren.get(1).getAttributeValue(VALUE)).isEqualTo("Mon onglet");
 
         // default-schema
         Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
@@ -703,7 +703,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
                 .setTitle("taxo1Titre2");
         zeCollectionSettings.addTaxonomy(taxonomy2);
 
-        Map<String, String> tabParams = new HashMap<>();
+        Map<String, String> tabParams = new TreeMap<>();
         tabParams.put("default", "Métadonnées");
         tabParams.put("zeTab", "Mon onglet");
 
@@ -785,10 +785,10 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
         assertThat(tabsElement).isNotNull();
         assertThat(tabsElement.getChildren()).hasSize(2);
         List<Element> tabsChildren = tabsElement.getChildren();
-        assertThat(tabsChildren.get(0).getAttributeValue(CODE)).isEqualTo("zeTab");
-        assertThat(tabsChildren.get(0).getAttributeValue(VALUE)).isEqualTo("Mon onglet");
-        assertThat(tabsChildren.get(1).getAttributeValue(CODE)).isEqualTo("default");
-        assertThat(tabsChildren.get(1).getAttributeValue(VALUE)).isEqualTo("Métadonnées");
+        assertThat(tabsChildren.get(0).getAttributeValue(CODE)).isEqualTo("default");
+        assertThat(tabsChildren.get(0).getAttributeValue(VALUE)).isEqualTo("Métadonnées");
+        assertThat(tabsChildren.get(1).getAttributeValue(CODE)).isEqualTo("zeTab");
+        assertThat(tabsChildren.get(1).getAttributeValue(VALUE)).isEqualTo("Mon onglet");
 
         // default-schema
         Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
