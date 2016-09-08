@@ -1,9 +1,7 @@
 package com.constellio.data.utils.hashing;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
+import java.io.*;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -14,12 +12,12 @@ import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.EncodingService;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.Factory;
+import org.apache.commons.io.output.NullOutputStream;
 
 public class HashingService {
 
 	private HashingEncoding hashingEncoding;
 	private String algorithm;
-	private ThreadLocal<MessageDigest> messageDigests = new ThreadLocal<>();
 
 	public HashingService(String algorithm, EncodingService encodingService, HashingEncoding hashingEncoding) {
 		this.hashingEncoding = hashingEncoding;
@@ -52,21 +50,18 @@ public class HashingService {
 
 	public String getHashFromStream(final InputStream stream)
 			throws HashingServiceException {
-		return getHashFromBytes(new Factory<byte[]>() {
 
-			@Override
-			public byte[] get() {
-				try {
-					return IOUtils.toByteArray(stream);
+		try {
+			MessageDigest messageDigest = this.getDigest();
+			DigestInputStream dis = new DigestInputStream(stream, messageDigest);
+			IOUtils.copy(dis, new NullOutputStream());
 
-				} catch (IOException e) {
-					throw new HashingServiceRuntimeException.CannotGetHashFromStream(e);
-
-				}
-
-			}
-
-		});
+			return this.encodeDigest(messageDigest.digest());
+		} catch (IOException e) {
+			throw new HashingServiceException.CannotReadContent(e);
+		} catch (RuntimeException e) {
+			throw new HashingServiceException.CannotHashContent(e);
+		}
 	}
 
 	public String getHashFromReader(final StreamFactory<Reader> readerFactory)
@@ -95,23 +90,19 @@ public class HashingService {
 			public byte[] get() {
 				try {
 					return IOUtils.toByteArray(reader);
-
 				} catch (IOException e) {
 					throw new HashingServiceRuntimeException.CannotGetHashFromReader(e);
-
 				}
-
 			}
-
 		});
 	}
 
 	public String getHashFromFile(File file)
 			throws HashingServiceException {
-		try {
-			return getHashFromBytes(FileUtils.readFileToByteArray(file));
+		try (FileInputStream fis = new FileInputStream(file)) {
+			return getHashFromStream(fis);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new HashingServiceRuntimeException.CannotGetHashFromStream(e);
 		}
 	}
 
@@ -149,20 +140,21 @@ public class HashingService {
 	}
 
 	String doHash(byte[] bytes) {
-
-		MessageDigest messageDigest = messageDigests.get();
-		if (messageDigest == null) {
-
-			try {
-				messageDigest = MessageDigest.getInstance(algorithm);
-			} catch (NoSuchAlgorithmException e) {
-				throw new HashingServiceRuntimeException.NoSuchAlgorithm(algorithm, e);
-			}
-			messageDigests.set(messageDigest);
-		}
-
+		MessageDigest messageDigest = getDigest();
 		byte[] digestBytes = messageDigest.digest(bytes);
 
+		return encodeDigest(digestBytes);
+	}
+
+	private MessageDigest getDigest() {
+		try {
+			return MessageDigest.getInstance(algorithm);
+		} catch (NoSuchAlgorithmException e) {
+			throw new HashingServiceRuntimeException.NoSuchAlgorithm(algorithm, e);
+		}
+	}
+
+	String encodeDigest(byte[] digestBytes) {
 		String encoded;
 		if (hashingEncoding == HashingEncoding.BASE64_URL_ENCODED) {
 			encoded = new EncodingService().encodeToBase64UrlEncoded(digestBytes);
@@ -176,5 +168,4 @@ public class HashingService {
 
 		return encoded;
 	}
-
 }
