@@ -529,6 +529,13 @@ public class FoldersLocator {
 		return new File(getConfFolder(), "license.xml");
 	}
 
+	public File getWorkFolder() {
+		//		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+		//			return new File()
+		//		}
+		return null;
+	}
+
 	/*
 	public File getBuildDataFile() {
 		return new File(getConstellioWebappFolder(), "data.txt");
