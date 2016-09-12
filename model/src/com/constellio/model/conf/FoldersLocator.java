@@ -530,10 +530,19 @@ public class FoldersLocator {
 	}
 
 	public File getWorkFolder() {
-		//		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
-		//			return new File()
-		//		}
-		return null;
+		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			File workFolder = new File(getSDKProject(), "work");
+			workFolder.mkdirs();
+			return workFolder;
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			File workFolder = new File(getWrapperInstallationFolder(), "work");
+			workFolder.mkdirs();
+			return workFolder;
+
+		} else {
+			throw new UnsupportedOperationException("Unsupported on tomcat");
+		}
 	}
 
 	/*

@@ -106,7 +106,7 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		uploadConstellioWar = new File(temp, "constellio.war");
 		resourcesReports = new File(constellio, "resources" + File.separator + "reports");
 		buildData = new File(constellio, "data.txt");
-		workFolder = new File(constellio, "work");
+		workFolder = new File(sdk, "work");
 		vaadin = new File(appProjectWebContent, "VAADIN");
 		themes = new File(vaadin, "themes");
 		themesConstellio = new File(themes, "constellio");
@@ -139,7 +139,6 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 		themesConstellioImages.mkdirs();
 		modelBuildClassesMainComConstellioModelConf.mkdirs();
 		modelBinComConstellioModelConf.mkdirs();
-		workFolder.mkdirs();
 	}
 
 	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder,
@@ -305,6 +304,12 @@ public class FoldersLocatorGivenGitContextRealTest extends ConstellioTest {
 	@Test
 	public void whenGetSettingsThenObtainCorrectFolder() {
 		assertThatFile(foldersLocator.getDefaultSettingsFolder()).isEqualTo(settings);
+	}
+
+	@Test
+	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
+		assertThatFile(foldersLocator.getWorkFolder()).isEqualTo(workFolder);
+		assertThat(workFolder).exists();
 	}
 
 	/*
