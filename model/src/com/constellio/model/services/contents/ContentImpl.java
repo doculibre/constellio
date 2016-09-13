@@ -135,7 +135,11 @@ public class ContentImpl implements Content {
 			throw new ContentImplRuntimeException_InvalidArgument("new version");
 		}
 
-		if (newVersion.getHash() == null || newVersion.getMimetype() == null) {
+		if (newVersion.getHash() == null) {
+			throw new ContentImplRuntimeException_InvalidArgument("new version");
+		}
+
+		if (newVersion.getMimetype() == null) {
 			throw new ContentImplRuntimeException_InvalidArgument("new version");
 		}
 

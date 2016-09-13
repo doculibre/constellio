@@ -69,6 +69,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String IMPORT_RECORDS_ICON = "images/icons/config/import.png";
 	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
 	public static final String IMPORT_SCHEMA_TYPES_ICON = "images/icons/config/import-metadata.png";
+	public static final String IMPORT_SETTINGS = "importSettings";
+	public static final String IMPORT_SETTINGS_ICON = "images/icons/config/import-settings.png";
 	public static final String TRASH_BIN = "trashBin";
 	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
 	public static final String SEARCH_BOOST_BY_METADATA = "searchBoostByMetadata";
@@ -176,6 +178,18 @@ public class CoreNavigationConfiguration implements Serializable {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to().importGroups();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
+			}
+		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_SETTINGS, IMPORT_SETTINGS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().importSettings();
 			}
 
 			@Override

@@ -23,6 +23,7 @@ import com.constellio.app.ui.pages.imports.ImportGroupsFileViewImpl;
 import com.constellio.app.ui.pages.imports.ImportSchemaTypesFileViewImpl;
 import com.constellio.app.ui.pages.imports.ImportUsersFileViewImpl;
 import com.constellio.app.ui.pages.imports.authorization.ImportAuthorizationsFileViewImpl;
+import com.constellio.app.ui.pages.imports.settings.ImportSettingsViewImpl;
 import com.constellio.app.ui.pages.management.AdminViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
@@ -139,6 +140,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String IMPORT_AUTHORIZATIONS = "importAuthorizations";
 	public static final String IMPORT_GROUPS = "importGroups";
 	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
+	public static final String IMPORT_SETTINGS = "importSettings";
 	public static final String EXPORTER = "export";
 	public static final String REPORT_DISPLAY_FORM = "reportDisplayForm";
 	public static final String LIST_SAVED_SEARCHES = "listSavedSearches";
@@ -228,6 +230,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_SCHEMA_TYPES, ImportSchemaTypesFileViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_AUTHORIZATIONS, ImportAuthorizationsFileViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(IMPORT_GROUPS, ImportGroupsFileViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(IMPORT_SETTINGS, ImportSettingsViewImpl.class));
 
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_MANAGEMENT, CollectionManagementViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_ADD_EDIT, AddEditCollectionViewImpl.class));
