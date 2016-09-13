@@ -260,6 +260,9 @@ public class ContentManager implements StatefulService {
 			if (parse) {
 				ParsedContent parsedContent = getPreviouslyParsedContentOrParseFromStream(hash, closeableInputStreamFactory);
 				mimeType = parsedContent.getMimeType();
+				if (mimeType == null) {
+					mimeType = detectMimetype(closeableInputStreamFactory, fileName);
+				}
 			} else {
 				mimeType = detectMimetype(closeableInputStreamFactory, fileName);
 			}

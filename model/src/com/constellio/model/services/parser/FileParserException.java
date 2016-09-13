@@ -17,8 +17,8 @@ public abstract class FileParserException extends Exception {
 
 		private String detectedMimetype;
 
-		public FileParserException_CannotParse(Exception e, String detectedMimetype) {
-			super("Cannot parse file", e);
+		public FileParserException_CannotParse(Throwable t, String detectedMimetype) {
+			super("Cannot parse file", t);
 			this.detectedMimetype = detectedMimetype;
 		}
 
