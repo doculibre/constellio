@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -22,11 +24,16 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import javax.xml.stream.XMLOutputFactory;
+
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -377,6 +384,12 @@ public class TestUtils {
 		};
 	}
 
+	public static void printDocument(Document document) {
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		System.out.println(xmlOutput.outputString(document));
+	}
+
 	public static class MapBuilder<K, V> {
 
 		Map<K, V> map = new HashMap<>();
@@ -405,6 +418,10 @@ public class TestUtils {
 
 	public static RecordWrapperAssert assertThatRecord(RecordWrapper recordWrapper) {
 		return new RecordWrapperAssert(recordWrapper);
+	}
+
+	public static RecordsAssert assertThatRecords(RecordWrapper... actual) {
+		return assertThatRecords(asList(actual));
 	}
 
 	public static RecordsAssert assertThatRecords(List<?> actual) {

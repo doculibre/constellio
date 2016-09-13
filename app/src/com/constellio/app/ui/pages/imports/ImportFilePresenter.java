@@ -94,7 +94,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 					view.showErrorMessage("Only xml, zip or xls formats are accepted");
 				}
 
-				if(importDataProvider != null){
+				if (importDataProvider != null){
 					BulkImportResults errors = importServices.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections());
 					for(ImportError error :errors.getImportErrors()){
 						view.showErrorMessage(format(error));

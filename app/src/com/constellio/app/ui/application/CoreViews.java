@@ -369,6 +369,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.IMPORT_SCHEMA_TYPES);
 	}
 
+	public void importSettings() {
+		navigator.navigateTo(NavigatorConfigurationService.IMPORT_SETTINGS);
+	}
+
 	public void exporter() {
 		navigator.navigateTo(NavigatorConfigurationService.EXPORTER);
 	}

@@ -25,10 +25,11 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
-	private File exampleExcelFile;
+	
+	private File exampleFile;
 	protected ImportFilePresenterInterface presenter;
 	protected VerticalLayout mainLayout;
-	private Link exampleExcelFileLink;
+	private Link exampleFileLink;
 	private BaseUploadField uploadField;
 	private Button uploadButton;
 	private ProgressBar progressBar;
@@ -50,10 +51,8 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		//exampleExcelFileLink = new DownloadLink(new FileResource(exampleExcelFile), $("ImportFileView.exampleExcelFile"));
-
 		uploadField = new BaseUploadField();
-		uploadField.setCaption($("ImportFileView.excelFile"));
+		uploadField.setCaption(getUploadFieldCaption());
 
 		uploadButton = new BaseButton($("ImportFileView.startImport")) {
 			@Override
@@ -84,6 +83,10 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 
 		return mainLayout;
 	}
+	
+	protected String getUploadFieldCaption() {
+		return $("ImportFileView.excelFile");
+	}
 
 	@Override
 	protected String getTitle() {
@@ -101,8 +104,8 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 	}
 
 	@Override
-	public void setExampleFile(File exampleExcelFile) {
-		this.exampleExcelFile = exampleExcelFile;
+	public void setExampleFile(File exampleFile) {
+		this.exampleFile = exampleFile;
 	}
 
 	@Override

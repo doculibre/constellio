@@ -1,10 +1,15 @@
 package com.constellio.data.dao.services.factories;
 
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
@@ -19,6 +24,8 @@ public class LayerFactoryTest extends ConstellioTest {
 	LayerFactory bottomLayerFactory;
 
 	@Mock StatefulService layerService1, layerService2, layerService3, bottomLayerService;
+
+	@Mock StatefulService layerService1a, layerService1b, layerService2a;
 
 	@Before
 	public void setUp()
@@ -43,6 +50,43 @@ public class LayerFactoryTest extends ConstellioTest {
 		inOrder.verify(bottomLayerService).initialize();
 		inOrder.verify(layerService1).initialize();
 		inOrder.verify(layerService2).initialize();
+		inOrder.verify(layerService3).initialize();
+	}
+
+	@Test
+	public void givenALayerServiceIsAddingOtherLayerServicesDuringInitializeThenInitializedInCorrectOrder()
+			throws Exception {
+
+		doAnswer(new Answer() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				layerFactory.add(layerService1a);
+				layerFactory.add(layerService1b);
+				return null;
+			}
+		}).when(layerService1).initialize();
+
+		doAnswer(new Answer() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				layerFactory.add(layerService2a);
+				return null;
+			}
+		}).when(layerService2).initialize();
+
+		layerFactory.initialize();
+
+		InOrder inOrder = Mockito
+				.inOrder(layerService1, layerService1a, layerService1b, layerService2, layerService2a, layerService3,
+						bottomLayerService);
+		inOrder.verify(bottomLayerService).initialize();
+		inOrder.verify(layerService1).initialize();
+		inOrder.verify(layerService1a).initialize();
+		inOrder.verify(layerService1b).initialize();
+		inOrder.verify(layerService2).initialize();
+		inOrder.verify(layerService2a).initialize();
 		inOrder.verify(layerService3).initialize();
 	}
 
