@@ -1,0 +1,17 @@
+    <config key="calculatedCloseDate" value="false" />
+    <config key="documentRetentionRules" value="true" />
+    <config key="enforceCategoryAndRuleRelationshipInFolder" value="false" />
+    <config key="calculatedCloseDate" value="false" />
+    <config key="calculatedCloseDateNumberOfYearWhenFixedRule" value="2015" />
+    <config key="closeDateRequiredDaysBeforeYearEnd" value="15" />
+    <config key="yearEndDate" value="02/28" />
+    <config key="decommissioningDateBasedOn" value="OPEN_DATE" />
+    <config key="calculatedCloseDate" value="false" />
+    <config key="documentRetentionRules" value="true" />
+    <config key="enforceCategoryAndRuleRelationshipInFolder" value="false" />
+    <config key="calculatedCloseDate" value="false" />
+    <config key="calculatedCloseDateNumberOfYearWhenFixedRule" value="2015" />
+    <config key="closeDateRequiredDaysBeforeYearEnd" value="15" />
+    <config key="yearEndDate" value="02/28" /> 
+    <config key="decommissioningDateBasedOn" value="OPEN_DATE" />
+<settings>

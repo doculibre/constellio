@@ -12,6 +12,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,8 @@ import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +54,6 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.sequence.SequencesManager;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -69,7 +71,6 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
@@ -126,7 +127,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.setDefaultSchema(defaultSchema);
 
 		ImportedDataEntry importedDataEntry =
-				ImportedDataEntry.asCopied("category").withCopiedMetadata("title");
+				ImportedDataEntry.asCopied("category", "title");
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
 				.setDataEntry(importedDataEntry);
 
@@ -224,7 +225,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
-
 		MetadataSchemaType schemaType = metadataSchemasManager
 				.getSchemaTypes(zeCollection).getSchemaType("folder");
 
@@ -2199,7 +2199,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(types.getMetadata("folder_custom2_m2").getLabel(French)).isEqualTo("Custom M2 label");
 		assertThat(types.getMetadata("folder_custom2_m3").getLabel(French)).isEqualTo("M3 label");
 
-		custom1M1.setLabel("");
+		custom1M1.setLabel(null);
 		custom1M2.setLabel("New custom label 1");
 		custom2M2.setLabel("New custom label 2");
 		defaultM3.setLabel("New m3 label");
@@ -3024,6 +3024,24 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	private void importSettings()
 			throws com.constellio.model.frameworks.validation.ValidationException {
 		try {
+			// write settings1 to file ==> file2
+			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
+			//
+			//			XMLOutputter xmlOutput = new XMLOutputter();
+			//
+			//			// display nice nice
+			//			xmlOutput.setFormat(Format.getPrettyFormat());
+			//			try {
+			//				xmlOutput.output(writtenSettings, new FileWriter("/Users/francisbaril/Downloads/test.xml"));
+			//			} catch (IOException e) {
+			//				throw new RuntimeException(e);
+			//			}
+
+			// read file2 to setting2
+			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings).read();
+			assertThat(settings2.toString()).isEqualTo(settings.toString());
+			assertThat(settings2).isEqualToComparingFieldByField(settings);
+
 			services.importSettings(settings);
 		} catch (ValidationException e) {
 			runTwice = false;

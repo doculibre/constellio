@@ -125,10 +125,13 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 		schemasElement.addContent(schemaElement);
 
-		addSchemaMetadata(customSchema, schemaElement);
+		writeSchema(customSchema, schemaElement);
 	}
 
-	private void addSchemaMetadata(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+	private void writeSchema(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+		if (metadataSchema.getLabel() != null) {
+			schemaElement.setAttribute("label", metadataSchema.getLabel());
+		}
 		for (ImportedMetadata importedMetadata : metadataSchema.getAllMetadata()) {
 			addMetadatum(schemaElement, importedMetadata);
 		}
@@ -141,7 +144,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 			ImportedMetadataSchema defaultSchema = importedType.getDefaultSchema();
 
-			addSchemaMetadata(defaultSchema, defaultSchemaElem);
+			writeSchema(defaultSchema, defaultSchemaElem);
 		}
 	}
 
@@ -167,13 +170,19 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		metadataElem.setAttribute(CODE, importedMetadata.getCode());
 
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
-			metadataElem.setAttribute("title", importedMetadata.getLabel());
+			metadataElem.setAttribute(TITLE, importedMetadata.getLabel());
 		}
 
-		metadataElem.setAttribute(TYPE, importedMetadata.getType());
+		if (importedMetadata.getType() != null) {
+			metadataElem.setAttribute(TYPE, importedMetadata.getType());
+		}
 
 		if (importedMetadata.getDuplicable() != null) {
 			metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
+		}
+
+		if (importedMetadata.getReferencedType() != null) {
+			metadataElem.setAttribute(REFERENCED_TYPE, importedMetadata.getReferencedType() + "");
 		}
 
 		if (importedMetadata.getEnabled() != null) {
@@ -261,7 +270,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInResultIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn()));
+			metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn(), ","));
 		}
 
 		if (importedMetadata.getVisibleInSearchResult() != null) {
@@ -273,7 +282,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInTablesIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn()));
+			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn(), ","));
 		}
 
 		if (importedMetadata.getDataEntry() != null) {
@@ -335,7 +344,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addTaxonomy(Element taxonomiesElem, ImportedTaxonomy importedTaxonomy) {
 		Element listElem = new Element(TAXONOMY);
 		listElem.setAttribute(CODE, importedTaxonomy.getCode());
-		listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
+		if (importedTaxonomy.getTitle() != null) {
+			listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
+		}
 		if (importedTaxonomy.getVisibleOnHomePage() != null) {
 			listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
 		}

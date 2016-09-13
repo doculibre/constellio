@@ -119,9 +119,9 @@ public class SettingsExportServices {
 	private List<ImportedMetadataSchema> getImportedTypeCustomSchemata(String collection, SchemasDisplayManager displayManager,
 			MetadataSchemaType type, SchemaDisplayConfig schemaDisplayConfig) {
 		List<ImportedMetadataSchema> list = new ArrayList<>();
-		for(MetadataSchema customSchema : type.getAllSchemas()){
+		for (MetadataSchema customSchema : type.getAllSchemas()) {
 			ImportedMetadataSchema importedSchema = new ImportedMetadataSchema().setCode(customSchema.getCode());
-			if(StringUtils.isNotBlank(customSchema.getLabel(Language.French))){
+			if (StringUtils.isNotBlank(customSchema.getLabel(Language.French))) {
 				importedSchema.setLabel(customSchema.getLabel(Language.French));
 			}
 
@@ -141,7 +141,8 @@ public class SettingsExportServices {
 
 		ImportedMetadataSchema importedDefaultMetadataSchema = new ImportedMetadataSchema().setCode("default");
 		MetadataList metadata = defaultSchema.getMetadatas();
-		List<ImportedMetadata> importedMetadata = getImportedMetadataFromList(collection, displayManager, schemaDisplayConfig, metadata);
+		List<ImportedMetadata> importedMetadata = getImportedMetadataFromList(collection, displayManager, schemaDisplayConfig,
+				metadata);
 		importedDefaultMetadataSchema.setAllMetadatas(importedMetadata);
 
 		return importedDefaultMetadataSchema;
@@ -223,19 +224,19 @@ public class SettingsExportServices {
 		switch (dataEntry.getType()) {
 		case CALCULATED:
 			if (((CalculatedDataEntry) dataEntry).getCalculator() instanceof JEXLMetadataValueCalculator) {
-			importedDataEntry =
-					ImportedDataEntry
-							.asJEXLScript(((JEXLMetadataValueCalculator) dataEntry).getJexlScript().getSourceText());
-		} else{
-			importedDataEntry =
-					ImportedDataEntry
-							.asCalculated(((CalculatedDataEntry) dataEntry).getCalculator().getClass().getName());
-		}
-		break;
+				importedDataEntry =
+						ImportedDataEntry
+								.asJEXLScript(((JEXLMetadataValueCalculator) dataEntry).getJexlScript().getSourceText());
+			} else {
+				importedDataEntry =
+						ImportedDataEntry
+								.asCalculated(((CalculatedDataEntry) dataEntry).getCalculator().getClass().getName());
+			}
+			break;
 
 		case COPIED:
-			importedDataEntry.asCopied(((CopiedDataEntry) dataEntry).getReferenceMetadata())
-					.withCopiedMetadata((((CopiedDataEntry) dataEntry).getCopiedMetadata()));
+			importedDataEntry.asCopied(((CopiedDataEntry) dataEntry).getReferenceMetadata(),
+					(((CopiedDataEntry) dataEntry).getCopiedMetadata()));
 			break;
 
 		case SEQUENCE:
