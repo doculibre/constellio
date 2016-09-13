@@ -79,4 +79,10 @@ public class ImportedSettings {
 		sequences.add(importedSequence);
 		return this;
 	}
+
+	public ImportedCollectionSettings newCollectionSettings(String code) {
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(code);
+		collectionsSettings.add(collectionSettings);
+		return collectionSettings;
+	}
 }

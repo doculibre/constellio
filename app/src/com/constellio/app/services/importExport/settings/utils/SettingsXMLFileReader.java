@@ -320,7 +320,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				break;
 
 			case "jexl":
-				dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getAttributeValue("pattern"));
+				dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getText());
 				break;
 
 			case "sequence":

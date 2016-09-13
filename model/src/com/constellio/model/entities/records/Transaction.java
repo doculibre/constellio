@@ -41,6 +41,11 @@ public class Transaction {
 		this.id = id;
 	}
 
+	public Transaction(RecordWrapper... records) {
+		this();
+		addAll(records);
+	}
+
 	public Transaction(Record... records) {
 		this(Arrays.asList(records));
 	}
