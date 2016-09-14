@@ -385,7 +385,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 
 		Element dataEntry = metadata1Elem.getChildren("data-entry").get(0);
 		assertThat(dataEntry.getAttributeValue("type")).isEqualTo("jexl");
-		assertThat(dataEntry.getAttributeValue("pattern")).isEqualTo(pattern);
+		assertThat(dataEntry.getText()).isEqualTo(pattern);
 
 		String outputFilePath = "settings-types-output.xml";
 		File outputFile = new File(outputFilePath);

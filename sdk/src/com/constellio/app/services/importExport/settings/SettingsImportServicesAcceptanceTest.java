@@ -1112,13 +1112,30 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedType importedType = new ImportedType().setCode(CODE_FOLDER_SCHEMA_TYPE).setLabel("Dossier")
 				.setTabs(toListOfTabs(tabParams))
 				.setDefaultSchema(importedMetadataSchema)
-				.addSchema(new ImportedMetadataSchema().setCode(CODE_SCHEMA_1)
-						.addMetadata(m3).setCode(null));
+				.addSchema(new ImportedMetadataSchema().setCode(CODE_SCHEMA_1).addMetadata(m3).setCode(null));
 		settings.addCollectionSettings(new ImportedCollectionSettings()
 				.setCode(zeCollection).addType(importedType));
 
 		assertThatErrorsWhileImportingSettingsExtracting()
 				.contains(tuple("SettingsImportServices_invalidSchemaCode"));
+
+	}
+
+	@Test
+	public void whenImportingTypeWithTwoCustomSchemaWithSameCodeThenErrorRaised()
+			throws Exception {
+
+		Map<String, String> tabParams = getTabsMap();
+
+		ImportedType importedType = new ImportedType().setCode(CODE_FOLDER_SCHEMA_TYPE).setLabel("Dossier")
+				.setTabs(toListOfTabs(tabParams))
+				.addSchema(new ImportedMetadataSchema().setCode(CODE_SCHEMA_1))
+				.addSchema(new ImportedMetadataSchema().setCode(CODE_SCHEMA_1));
+		settings.addCollectionSettings(new ImportedCollectionSettings()
+				.setCode(zeCollection).addType(importedType));
+
+		assertThatErrorsWhileImportingSettingsExtracting("value")
+				.contains(tuple("SettingsImportServices_duplicateSchemaCode", "USRschema1"));
 
 	}
 
@@ -2181,7 +2198,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2");
 		ImportedMetadata custom2M2 = customSchema2.newMetadata("m2").setLabel("Custom M2 label");
 
-		collectionSettings.addType(folderType.addSchema(customSchema1).addSchema(customSchema2));
+		collectionSettings.addType(folderType);
 		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
@@ -2238,7 +2255,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2");
 		ImportedMetadata custom2M1 = customSchema2.newMetadata("m1");
 
-		collectionSettings.addType(folderType.addSchema(customSchema1).addSchema(customSchema2));
+		collectionSettings.addType(folderType);
 		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
@@ -2295,7 +2312,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedMetadataSchema customSchema2 = folderType.newSchema("custom2");
 		ImportedMetadata custom2M1 = customSchema2.newMetadata("m1");
 
-		collectionSettings.addType(folderType.addSchema(customSchema1).addSchema(customSchema2));
+		collectionSettings.addType(folderType);
 		settings.addCollectionSettings(collectionSettings);
 
 		importSettings();
@@ -3026,18 +3043,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		try {
 			// write settings1 to file ==> file2
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
-			//
-			//			XMLOutputter xmlOutput = new XMLOutputter();
-			//
-			//			// display nice nice
-			//			xmlOutput.setFormat(Format.getPrettyFormat());
-			//			try {
-			//				xmlOutput.output(writtenSettings, new FileWriter("/Users/francisbaril/Downloads/test.xml"));
-			//			} catch (IOException e) {
-			//				throw new RuntimeException(e);
-			//			}
 
-			// read file2 to setting2
 			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings).read();
 			assertThat(settings2.toString()).isEqualTo(settings.toString());
 			assertThat(settings2).isEqualToComparingFieldByField(settings);

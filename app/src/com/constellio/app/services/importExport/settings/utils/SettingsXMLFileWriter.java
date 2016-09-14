@@ -312,7 +312,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 			case "jexl":
 				if (StringUtils.isNotBlank(dataEntry.getPattern())) {
-					dataEntryElem.setAttribute("pattern", dataEntry.getPattern());
+					dataEntryElem.setText(dataEntry.getPattern());
 				}
 				break;
 
