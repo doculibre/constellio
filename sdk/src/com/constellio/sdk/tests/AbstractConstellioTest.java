@@ -384,9 +384,15 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return resourcesDir;
 	}
 
-	protected File getTestResourceFile(String partialName) {
+	protected File getTestResourceFile(String partialName){
+		return getTestResourceFile(null, partialName);
+	}
+
+	protected File getTestResourceFile(Class clazz, String partialName) {
 		ensureNotUnitTest();
-		String completeName = getClass().getCanonicalName().replace(".", File.separator) + "-" + partialName;
+		String completeName= (clazz ==null)?
+				getClass().getCanonicalName().replace(".", File.separator) + "-" + partialName:
+				clazz.getCanonicalName().replace(".", File.separator) + "-" + partialName;
 		File resourcesDir = getResourcesDir();
 		File file = new File(resourcesDir, completeName);
 
@@ -442,6 +448,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 						return new ByteArrayInputStream(bytes);
 					}
 				});
+	}
+
+	protected File getUnzippedResourceFile(Class clazz, String partialName) {
+		File zipFile = getTestResourceFile(clazz, partialName);
+		return unzipInTempFolder(zipFile);
 	}
 
 	protected File getUnzippedResourceFile(String partialName) {
