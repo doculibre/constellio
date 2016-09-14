@@ -529,6 +529,22 @@ public class FoldersLocator {
 		return new File(getConfFolder(), "license.xml");
 	}
 
+	public File getWorkFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			File workFolder = new File(getSDKProject(), "work");
+			workFolder.mkdirs();
+			return workFolder;
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			File workFolder = new File(getWrapperInstallationFolder(), "work");
+			workFolder.mkdirs();
+			return workFolder;
+
+		} else {
+			throw new UnsupportedOperationException("Unsupported on tomcat");
+		}
+	}
+
 	/*
 	public File getBuildDataFile() {
 		return new File(getConstellioWebappFolder(), "data.txt");

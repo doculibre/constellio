@@ -18,7 +18,7 @@ public class ImportedType {
 	private String code;
 	private String label;
 	private List<ImportedTab> tabs = new ArrayList<>();
-	private ImportedMetadataSchema defaultSchema;
+	private ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
 	private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
 
 	public String getCode() {
@@ -73,6 +73,7 @@ public class ImportedType {
 	}
 
 	public ImportedMetadataSchema getDefaultSchema() {
+
 		return defaultSchema;
 	}
 
