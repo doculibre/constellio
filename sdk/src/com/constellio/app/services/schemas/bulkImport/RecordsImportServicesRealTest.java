@@ -1,6 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServices.INVALID_SCHEMA_TYPE_CODE;
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
@@ -72,6 +73,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordServices;
@@ -576,8 +578,10 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
 			assertThat(errors).containsOnly(
-					newValidationError(INVALID_SCHEMA_TYPE_CODE, asMap("schemaType", "chuckNorris")),
-					newValidationError(INVALID_SCHEMA_TYPE_CODE, asMap("schemaType", anotherSchema.typeCode() + "s")));
+					newValidationError(RecordsImportServicesExecutor.INVALID_SCHEMA_TYPE_CODE,
+							asMap("schemaType", "chuckNorris")),
+					newValidationError(RecordsImportServicesExecutor.INVALID_SCHEMA_TYPE_CODE,
+							asMap("schemaType", anotherSchema.typeCode() + "s")));
 			assertThat(frenchMessages(e)).containsOnly("Le type de schéma «chuckNorris» n’existe pas",
 					"Le type de schéma «anotherSchemaTypes» n’existe pas");
 		}
@@ -1387,10 +1391,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		ResolverCache resolver = new ResolverCache(getModelLayerFactory().newRecordServices(),
 				getModelLayerFactory().newSearchServices(), types, importDataProvider);
 
-		ProgressionHandler progressionHandler = new ProgressionHandler(new LoggerBulkImportProgressionListener());
 		ModelLayerCollectionExtensions extensions = getModelLayerFactory().getExtensions()
 				.forCollection(zeCollection);
-		services.validate(importDataProvider, progressionHandler, admin, types, resolver, extensions, Language.French);
+
+		RecordsImportServicesExecutor executor = services
+				.newExecutor(importDataProvider, new LoggerBulkImportProgressionListener(), admin, asList(types.getCollection()),
+						new BulkImportParams());
+		executor.initialize();
+		executor.resolverCache = resolver;
+		executor.validate();
 
 		assertThat(resolver.cache).hasSize(2).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode());
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping)
@@ -2159,7 +2168,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
-					new BulkImportParams().setStopOnFirstError(false));
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE_FOR_RECORD_OF_SAME_TYPE));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
@@ -2244,7 +2253,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user, BulkImportParams params)
 			throws ValidationException {
-		params.setStopOnFirstError(false);
+		params.setImportErrorsBehavior(CONTINUE_FOR_RECORD_OF_SAME_TYPE);
 		services.bulkImport(importDataProvider, bulkImportProgressionListener, user, params);
 
 		zeSchemaTypeRecords.clear();

@@ -1,7 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServices.ALL_BOOLEAN_NO;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServices.ALL_BOOLEAN_YES;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_NO;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
