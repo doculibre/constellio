@@ -29,11 +29,11 @@ public class LayerFactory {
 	}
 
 	public <T extends StatefulService> T add(T statefulService) {
-		if (initializing) {
-			throw new IllegalStateException("Cannot add stateful service during initialization");
-		}
 		T decoratedService = statefullServiceDecorator.decorate(statefulService);
 		statefulServices.add(decoratedService);
+		if (initializing || initialized) {
+			statefulService.initialize();
+		}
 		return decoratedService;
 	}
 
@@ -63,7 +63,6 @@ public class LayerFactory {
 			bottomLayerFactory.close(closeBottomLayers);
 		}
 	}
-
 
 	protected void ensureNotYetInitialized() {
 		if (initialized) {
