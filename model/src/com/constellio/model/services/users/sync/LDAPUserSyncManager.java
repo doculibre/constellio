@@ -170,11 +170,15 @@ public class LDAPUserSyncManager implements StatefulService {
 		for (LDAPUser ldapUser : ldapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
 				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-				try {
-					userServices.addUpdateUserCredential(userCredential);
-					updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
-				} catch (Throwable e) {
-					LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
+				if (userCredential.getUsername() == null) {
+					LOGGER.error("Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + userCredential.getUsername());
+				} else {
+					try {
+						userServices.addUpdateUserCredential(userCredential);
+						updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
+					} catch (Throwable e) {
+						LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
+					}
 				}
 			}
 		}

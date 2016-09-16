@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.entities.MetadataVO;
@@ -26,7 +27,10 @@ public class SearchResultDisplay extends VerticalLayout {
 	public static final String METADATA_STYLE = "search-result-metadata";
 	public static final String SEPARATOR = " ... ";
 
-	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
+	private AppLayerFactory appLayerFactory;
+
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 		init(searchResultVO, componentFactory);
 	}
 
@@ -89,5 +93,9 @@ public class SearchResultDisplay extends VerticalLayout {
 			layout.addComponent(item);
 		}
 		return layout;
+	}
+
+	protected AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
 	}
 }
