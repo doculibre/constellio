@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
@@ -144,8 +145,9 @@ public class RecordsImportServicesExecutor {
 
 		try {
 			initialize();
-			validate();
-			return run();
+			ValidationErrors errors = new ValidationErrors();
+			validate(errors);
+			return run(errors);
 		} finally {
 			importDataProvider.close();
 		}
@@ -166,11 +168,10 @@ public class RecordsImportServicesExecutor {
 		return this;
 	}
 
-	private BulkImportResults run()
+	private BulkImportResults run(ValidationErrors errors)
 			throws ValidationException {
 
 		importedFilesMap = contentManager.getImportedFilesMap();
-		ValidationErrors errors = new ValidationErrors();
 		for (String schemaType : getImportedSchemaTypes()) {
 
 			TypeImportContext context = new TypeImportContext();
@@ -301,7 +302,9 @@ public class RecordsImportServicesExecutor {
 			String legacyId = toImport.getLegacyId();
 			try {
 
-				importRecord(typeImportContext, typeBatchImportContext, toImport, decoratedValidationsErrors);
+				if (!this.skippedRecordsImport.isSkipped(typeImportContext.schemaType, legacyId)) {
+					importRecord(typeImportContext, typeBatchImportContext, toImport, decoratedValidationsErrors);
+				}
 
 			} catch (PostponedRecordException e) {
 				progressionHandler.onRecordImportPostponed(legacyId);
@@ -613,12 +616,16 @@ public class RecordsImportServicesExecutor {
 		}
 	}
 
-	void validate()
+	void validate(ValidationErrors errors)
 			throws com.constellio.model.frameworks.validation.ValidationException {
 		List<String> importedSchemaTypes = getImportedSchemaTypes();
 		for (String schemaType : importedSchemaTypes) {
 			new RecordsImportValidator(schemaType, progressionHandler, importDataProvider, types, resolverCache, extensions,
-					language, skippedRecordsImport).validate();
+					language, skippedRecordsImport).validate(errors);
+
+			if (params.getImportValidationErrorsBehavior() == ImportValidationErrorsBehavior.STOP_IMPORT) {
+				errors.throwIfNonEmpty();
+			}
 		}
 	}
 

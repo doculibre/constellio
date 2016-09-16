@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -89,12 +90,12 @@ public class RecordsImportValidator {
 		this.skippedRecordsImport = skippedRecordsImport;
 	}
 
-	public void validate()
+	public void validate(ValidationErrors errors)
 			throws ValidationException {
 
 		Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
 
-		ValidationErrors errors = new DecoratedValidationsErrors(new ValidationErrors()) {
+		ValidationErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
 			@Override
 			public void buildExtraParams(Map<String, Object> parameters) {
 				if (!parameters.containsKey("schemaType")) {
@@ -103,12 +104,15 @@ public class RecordsImportValidator {
 			}
 		};
 
-		validate(importDataIterator, errors);
+		AtomicBoolean fatalError = new AtomicBoolean();
+		validate(importDataIterator, decoratedValidationsErrors, fatalError);
 
-		errors.throwIfNonEmpty();
+		if (fatalError.get()) {
+			errors.throwIfNonEmpty();
+		}
 	}
 
-	private void validate(Iterator<ImportData> importDataIterator, ValidationErrors errors) {
+	private void validate(Iterator<ImportData> importDataIterator, ValidationErrors errors, AtomicBoolean fatalError) {
 		progressionHandler.beforeValidationOfSchema(schemaType);
 		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
@@ -117,6 +121,7 @@ public class RecordsImportValidator {
 			final ImportData importData = importDataIterator.next();
 			numberOfRecords++;
 			if (importData.getLegacyId() == null) {
+				fatalError.set(true);
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put("prefix", type.getLabel(language) + " : ");
 				parameters.put("index", "" + (importData.getIndex() + 1));
@@ -157,6 +162,10 @@ public class RecordsImportValidator {
 
 				String schemaTypeLabel = types.getSchemaType(schemaType).getLabel(language);
 				extensions.callRecordImportPrevalidate(schemaType, new PrevalidationParams(decoratedErrors, importData));
+
+				if (decoratedErrors.hasDecoratedErrors()) {
+					this.skippedRecordsImport.markAsSkippedBecauseOfFailure(schemaType, importData.getLegacyId());
+				}
 			}
 
 		}

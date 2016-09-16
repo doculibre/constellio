@@ -43,6 +43,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
@@ -1403,7 +1404,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						new BulkImportParams());
 		executor.initialize();
 		executor.resolverCache = resolver;
-		executor.validate();
+		executor.validate(new ValidationErrors());
 
 		assertThat(resolver.cache).hasSize(2).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode());
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping)
@@ -2312,7 +2313,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
-					new BulkImportParams().setImportErrorsBehavior(CONTINUE));
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE)
+							.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
