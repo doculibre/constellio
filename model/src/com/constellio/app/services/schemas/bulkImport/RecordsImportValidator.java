@@ -73,10 +73,11 @@ public class RecordsImportValidator {
 	ModelLayerCollectionExtensions extensions;
 	ProgressionHandler progressionHandler;
 	Language language;
+	SkippedRecordsImport skippedRecordsImport;
 
-	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler,
-			ImportDataProvider importDataProvider, MetadataSchemaTypes types,
-			ResolverCache resolverCache, ModelLayerCollectionExtensions extensions, Language language) {
+	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler, ImportDataProvider importDataProvider,
+			MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
+			Language language, SkippedRecordsImport skippedRecordsImport) {
 		this.schemaType = schemaType;
 		this.importDataProvider = importDataProvider;
 		this.extensions = extensions;
@@ -85,6 +86,7 @@ public class RecordsImportValidator {
 		this.resolverCache = resolverCache;
 		this.progressionHandler = progressionHandler;
 		this.language = language;
+		this.skippedRecordsImport = skippedRecordsImport;
 	}
 
 	public void validate()

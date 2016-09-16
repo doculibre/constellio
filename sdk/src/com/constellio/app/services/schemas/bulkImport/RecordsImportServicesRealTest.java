@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE;
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
@@ -10,6 +11,7 @@ import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
@@ -1542,9 +1544,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
+			fail("Exception expected");
+
 		} catch (ValidationException e) {
 
-			assertThat(extractingSimpleCodeAndParameters(e, "url")).containsOnly(
+			assertThat(extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), "url")).containsOnly(
 					tuple("RecordsImportServices_contentNotFound", testResource1),
 					tuple("RecordsImportServices_contentNotFound", testResource3)
 			);
@@ -2149,7 +2153,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenImportingWithContinueErrorModeThenContinue()
+	public void whenImportingWithContinueRecordsOfSameTypeErrorModeThenContinue()
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
@@ -2158,12 +2162,20 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
 								.add(NoZMetadataValidator.class);
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 					}
 				}));
 
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
 					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+		}
+
+		for (int i = 1; i <= 300; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + i));
 		}
 
 		try {
@@ -2181,6 +2193,55 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		}
 
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(0);
+	}
+
+	@Test
+	public void whenImportingWithContinueErrorModeThenContinue()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
+								.add(NoZMetadataValidator.class);
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+					}
+				}));
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+		}
+
+		for (int i = 1; i <= 300; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + i));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin,
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE));
+
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			e.printStackTrace();
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142", "Ze type de schéma record142 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "188", "Ze type de schéma record188 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "244", "Ze type de schéma record244 : "),
+
+					tuple("RecordsImportServices_skipBecauseDependenceFailed", "142", "Autre type de schéma record142 : "),
+					tuple("RecordsImportServices_skipBecauseDependenceFailed", "188", "Autre type de schéma record188 : "),
+					tuple("RecordsImportServices_skipBecauseDependenceFailed", "244", "Autre type de schéma record244 : ")
+			);
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
 	}
 
 	private void validateCorrectlyImported() {
