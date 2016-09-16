@@ -550,6 +550,16 @@ public class TestUtils {
 		return codes;
 	}
 
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationException e, String... parameters) {
+		return extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationRuntimeException e, String... parameters) {
+		return extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
 	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
 
 		List<Tuple> tuples = new ArrayList<>();
@@ -590,6 +600,21 @@ public class TestUtils {
 	public static List<String> frenchMessages(com.constellio.model.frameworks.validation.ValidationException e) {
 		return frenchMessages(e.getValidationErrors());
 
+	}
+
+	public static List<String> frenchMessages(List<ValidationError> errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+
+		for (ValidationError error : errors) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
 	}
 
 	public static List<String> frenchMessages(ValidationErrors errors) {
