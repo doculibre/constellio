@@ -17,6 +17,10 @@ public class ContentImport {
 		versions.add(new ContentImportVersion(url, fileName, major, comment, lastModification));
 	}
 
+	public ContentImport(String url, String fileName, boolean major, LocalDateTime lastModification) {
+		versions.add(new ContentImportVersion(url, fileName, major, lastModification));
+	}
+
 	public String getUrl() {
 		return versions.get(0).getUrl();
 	}

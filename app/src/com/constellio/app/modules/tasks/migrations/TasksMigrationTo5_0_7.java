@@ -32,6 +32,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -247,7 +248,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		private MetadataSchemaTypeBuilder createTaskStatusType() {
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 					.createValueListItemSchema(TaskStatus.SCHEMA_TYPE, "Statut",
-							ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE)
+							ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
@@ -278,7 +279,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			String label = migrationResourcesProvider.getDefaultLanguageString("init.ddvTaskType");
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(typesBuilder)
 					.createValueListItemSchema(
-							TaskType.SCHEMA_TYPE, label, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE)
+							TaskType.SCHEMA_TYPE, label, ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 			schema.create(TaskType.LINKED_SCHEMA).setType(STRING);

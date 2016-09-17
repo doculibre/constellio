@@ -1,13 +1,14 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
@@ -52,7 +54,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class SettingsImportServices {
@@ -80,6 +81,7 @@ public class SettingsImportServices {
 	static final String EMPTY_TAB_CODE = "emptyTabCode";
 	static final String NULL_DEFAULT_SCHEMA = "nullDefaultSchema";
 	static final String INVALID_SCHEMA_CODE = "invalidSchemaCode";
+	static final String DUPLICATE_SCHEMA_CODE = "duplicateSchemaCode";
 	static final String SEQUENCE_VALUE_NOT_NUMERICAL = "sequenceValueNotNumerical";
 	static final String SEQUENCE_ID_NOT_NUMERICAL = "sequenceIdNotNumerical";
 	static final String SEQUENCE_ID_NULL_OR_EMPTY = "sequenceIdNullOrEmpty";
@@ -282,7 +284,12 @@ public class SettingsImportServices {
 			String code = schema + "_" + entry.getKey();
 			if (Boolean.TRUE == entry.getValue()) {
 				if (!modifiedMetadatas.contains(code)) {
-					modifiedMetadatas.add(code);
+					int indexComment = modifiedMetadatas.indexOf(schema + "_comments");
+					if (indexComment == -1) {
+						modifiedMetadatas.add(code);
+					} else {
+						modifiedMetadatas.add(indexComment - 1, code);
+					}
 				}
 
 			} else if (Boolean.FALSE == entry.getValue()) {
@@ -672,13 +679,17 @@ public class SettingsImportServices {
 
 						ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(schemaTypesBuilder);
 
+						;
+
 						if (importedValueList.getHierarchical() == null || !importedValueList.getHierarchical()) {
 
 							builder.createValueListItemSchema(code,
-									importedValueList.getTitle(), schemaTypeCodeMode);
+									importedValueList.getTitle(),
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
 						} else {
 							builder.createHierarchicalValueListItemSchema(code,
-									importedValueList.getTitle(), schemaTypeCodeMode);
+									importedValueList.getTitle(),
+									ValueListItemSchemaTypeBuilderOptions.codeMode(schemaTypeCodeMode));
 						}
 
 					} else {
@@ -792,8 +803,20 @@ public class SettingsImportServices {
 			if (StringUtils.isBlank(schema.getCode())) {
 				Map<String, Object> parameters = new HashMap();
 				parameters.put(CONFIG, CODE);
-				parameters.put(VALUE, schema.getCode());
 				errors.add(SettingsImportServices.class, INVALID_SCHEMA_CODE, parameters);
+			}
+		}
+
+		Set<String> codes = new HashSet<>();
+		for (ImportedMetadataSchema schema : customSchema) {
+			if (schema.getCode() != null) {
+				if (codes.contains(schema.getCode())) {
+					Map<String, Object> parameters = new HashMap();
+					parameters.put(CONFIG, CODE);
+					parameters.put(VALUE, schema.getCode());
+					errors.add(SettingsImportServices.class, DUPLICATE_SCHEMA_CODE, parameters);
+				}
+				codes.add(schema.getCode());
 			}
 		}
 	}

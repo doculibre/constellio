@@ -27,7 +27,6 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.tika.Tika;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
-import org.apache.tika.exception.TikaException;
 import org.apache.tika.fork.ForkParser;
 import org.apache.tika.metadata.Message;
 import org.apache.tika.metadata.Metadata;
@@ -37,7 +36,6 @@ import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
-import org.xml.sax.SAXException;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
@@ -130,10 +128,10 @@ public class FileParser {
 				}
 				parser.parse(inputStream, handler, metadata);
 			}
-		} catch (IOException | SAXException | TikaException e) {
-			if (!e.getClass().getSimpleName().equals("WriteLimitReachedException")) {
+		} catch (Throwable t) {
+			if (!t.getClass().getSimpleName().equals("WriteLimitReachedException")) {
 				String detectedMimetype = metadata.get(Metadata.CONTENT_TYPE);
-				throw new FileParserException_CannotParse(e, detectedMimetype);
+				throw new FileParserException_CannotParse(t, detectedMimetype);
 			}
 
 		} finally {
