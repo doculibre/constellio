@@ -16,6 +16,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,9 +273,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	String getBorrowMessageState(Folder folder) {
 		String borrowedMessage;
 		if (folder.getBorrowed() != null && folder.getBorrowed()) {
-			String userTitle = rmSchemasRecordsServices.getUser(folder.getBorrowUserEntered()).getTitle();
-			LocalDate date = folder.getBorrowDate().toLocalDate();
-			borrowedMessage = $("DisplayFolderview.borrowedFolder", userTitle, date);
+			String borrowUserEntered = folder.getBorrowUserEntered();
+			if (borrowUserEntered != null) {
+				String userTitle = rmSchemasRecordsServices.getUser(borrowUserEntered).getTitle();
+				LocalDateTime borrowDateTime = folder.getBorrowDate();
+				LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
+				borrowedMessage = $("DisplayFolderview.borrowedFolder", userTitle, borrowDate);
+			} else {
+				borrowedMessage = $("DisplayFolderview.borrowedByNullUserFolder");
+			}
 		} else {
 			borrowedMessage = null;
 		}
@@ -629,7 +636,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId, BorrowingType borrowingType,
 			LocalDate returnDate) {
 		boolean borrowed;
-		String errorMessage = validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
+		String errorMessage = borrowingServices.validateBorrowingInfos(userId, borrowingDate, previewReturnDate, borrowingType, returnDate);
 		if (errorMessage != null) {
 			view.showErrorMessage($(errorMessage));
 			borrowed = false;
@@ -655,11 +662,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public boolean returnFolder(LocalDate returnDate) {
-		return returnFolder(returnDate, folderVO.getBorrowDate().toLocalDate());
+		LocalDateTime borrowDateTime = folderVO.getBorrowDate();
+		LocalDate borrowDate = borrowDateTime != null ? borrowDateTime.toLocalDate() : null;
+		return returnFolder(returnDate, borrowDate);
 	}
 
 	protected boolean returnFolder(LocalDate returnDate, LocalDate borrowingDate) {
-		String errorMessage = validateReturnDate(returnDate, borrowingDate);
+		String errorMessage = borrowingServices.validateReturnDate(returnDate, borrowingDate);
 		if (errorMessage != null) {
 			view.showErrorMessage($(errorMessage));
 			return false;
@@ -748,51 +757,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		}
 		return previewReturnDate;
-	}
-
-	private String validateBorrowingInfos(String userId, LocalDate borrowingDate, LocalDate previewReturnDate,
-			BorrowingType borrowingType, LocalDate returnDate) {
-		String errorMessage = null;
-		if (borrowingDate == null) {
-			borrowingDate = TimeProvider.getLocalDate();
-		} else {
-			if (borrowingDate.isAfter(TimeProvider.getLocalDate())) {
-				errorMessage = "DisplayFolderView.invalidBorrowingDate";
-			}
-		}
-		if (borrowingType == null) {
-			errorMessage = "DisplayFolderView.invalidBorrowingType";
-			return errorMessage;
-		}
-		if (StringUtils.isBlank(userId) || userId == null) {
-			errorMessage = "DisplayFolderView.invalidBorrower";
-			return errorMessage;
-		}
-		if (previewReturnDate != null) {
-			if (previewReturnDate.isBefore(borrowingDate)) {
-				errorMessage = "DisplayFolderView.invalidPreviewReturnDate";
-				return errorMessage;
-			}
-		} else {
-			errorMessage = "DisplayFolderView.invalidPreviewReturnDate";
-			return errorMessage;
-		}
-		if (returnDate != null) {
-			return validateReturnDate(returnDate, borrowingDate);
-		}
-		return errorMessage;
-	}
-
-	private String validateReturnDate(LocalDate returnDate, LocalDate borrowingDate) {
-		String errorMessage = null;
-		if (returnDate == null) {
-			errorMessage = "DisplayFolderView.invalidReturnDate";
-		} else {
-			if (returnDate.isAfter(TimeProvider.getLocalDate()) || returnDate.isBefore(borrowingDate)) {
-				errorMessage = "DisplayFolderView.invalidReturnDate";
-			}
-		}
-		return errorMessage;
 	}
 
 	public boolean canModifyDocument(RecordVO record) {

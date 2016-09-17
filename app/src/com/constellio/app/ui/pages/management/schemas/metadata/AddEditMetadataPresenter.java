@@ -175,7 +175,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		if (reindexRequired) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
-			view.showMessage("AddEditMetadataView.reindexRequired");
+			view.showMessage($("AddEditMetadataView.reindexRequired"));
 		}
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);

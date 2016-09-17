@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -18,6 +19,8 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
@@ -68,6 +71,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
     boolean isDuplicateStructureAction;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	private transient BorrowingServices borrowingServices;
 
 	public AddEditFolderPresenter(AddEditFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -82,6 +86,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private void initTransientObjects() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
+		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 	}
 
 	@Override
@@ -203,18 +208,31 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	public void saveButtonClicked() {
-		Folder record = rmSchemas().wrapFolder(toRecord(folderVO));
-		if (!canSaveFolder(record, getCurrentUser())) {
+		Folder folder = rmSchemas().wrapFolder(toRecord(folderVO));
+		if (!canSaveFolder(folder, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
 			return;
+		} else if (Boolean.TRUE.equals(folder.getBorrowed())) {
+			String borrowingUserId = folder.getBorrowUser();
+			LocalDateTime borrowingDateTime = folder.getBorrowDate();
+			LocalDate borrowingDate = borrowingDateTime != null ? borrowingDateTime.toLocalDate() : null;
+			LocalDate previewReturnDate = folder.getBorrowPreviewReturnDate();
+			BorrowingType borrowingType = folder.getBorrowType();
+			LocalDateTime returnDateTime = folder.getBorrowReturnDate();
+			LocalDate returnDate = returnDateTime != null ? returnDateTime.toLocalDate() : null;
+			String borrowingErrorMessage = borrowingServices.validateBorrowingInfos(borrowingUserId, borrowingDate, previewReturnDate, borrowingType, returnDate);
+			if (borrowingErrorMessage != null) {
+				view.showErrorMessage($(borrowingErrorMessage));
+				return;
+			}
 		}
 		LocalDateTime time = TimeProvider.getLocalDateTime();
 		if (isAddView()) {
-			record.setFormCreatedBy(getCurrentUser()).setFormCreatedOn(time);
+			folder.setFormCreatedBy(getCurrentUser()).setFormCreatedOn(time);
 		}
-		record.setFormModifiedBy(getCurrentUser()).setFormModifiedOn(time);
-		addOrUpdate(record.getWrappedRecord());
-		view.navigate().to(RMViews.class).displayFolder(record.getId());
+		folder.setFormModifiedBy(getCurrentUser()).setFormModifiedOn(time);
+		addOrUpdate(folder.getWrappedRecord());
+		view.navigate().to(RMViews.class).displayFolder(folder.getId());
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {

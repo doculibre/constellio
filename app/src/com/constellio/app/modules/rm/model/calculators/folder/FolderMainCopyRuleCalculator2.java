@@ -50,7 +50,8 @@ public class FolderMainCopyRuleCalculator2 implements MetadataValueCalculator<Co
 				} else if (input.expectedDepositDates.size() > i) {
 					dateAtIndex = input.expectedDepositDates.get(i);
 				}
-				if (mainCopyRule == null || (dateAtIndex != null && dateAtIndex.isBefore(smallestDate))) {
+				if (mainCopyRule == null || (dateAtIndex != null && (smallestDate == null || dateAtIndex
+						.isBefore(smallestDate)))) {
 					smallestDate = dateAtIndex;
 					mainCopyRule = input.copyRules.get(i);
 				}
