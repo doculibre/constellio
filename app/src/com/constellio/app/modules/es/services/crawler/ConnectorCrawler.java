@@ -3,12 +3,7 @@ package com.constellio.app.modules.es.services.crawler;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -82,33 +77,53 @@ public class ConnectorCrawler {
 		initializeStartAndStopConnectors(connectorInstances);
 
 		boolean executedJobs = false;
-		for (CrawledConnector crawledConnector : crawledConnectors) {
 
-			ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
-			if (instance.isCurrentlyRunning()) {
-				LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + "' ****");
-				List<ConnectorJob> jobs = crawledConnector.connector.getJobs();
+        Map<CrawledConnector, List<ConnectorJob>> connectorJobsMap = new HashMap<>();
+        List<ConnectorJob> allJobs = new ArrayList<>();
 
-				if (!jobs.isEmpty()) {
-					try {
-						jobCrawler.crawl(jobs);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					executedJobs = true;
-					crawledConnector.connector.afterJobs(jobs);
+        for (CrawledConnector crawledConnector : crawledConnectors) {
+
+            ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+            if (instance.isCurrentlyRunning()) {
+                List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
+                LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size() + " job(s) " + "' **** ");
+
+				if (!connectorJobs.isEmpty()) {
+					connectorJobsMap.put(crawledConnector, connectorJobs);
+					allJobs.addAll(connectorJobs);
 				} else {
 					try {
 						recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
 					} catch (RecordServicesException e) {
 						LOGGER.warn("last traversal date not updated", e);
 					}
-					waitSinceNoJobs();
 				}
-			}
+            }
+        }
 
-		}
-		eventObserver.flush();
+        if (!allJobs.isEmpty()) {
+            try {
+                jobCrawler.crawl(allJobs);
+            } catch (Exception e) {
+                LOGGER.error("Error while executing connector jobs", e);
+            }
+            executedJobs = true;
+
+            for (CrawledConnector crawledConnector : crawledConnectors) {
+                try {
+                    ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+                    crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
+
+                } catch (Exception e) {
+                    LOGGER.warn("Error after connector jobs execution", e);
+                }
+            }
+
+            eventObserver.flush();
+        } else {
+            waitSinceNoJobs();
+        }
+
 
 		if (crawledConnectors.isEmpty()) {
 			waitSinceNoJobs();
@@ -207,7 +222,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es, ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+														   ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new SimpleConnectorJobCrawler(), logger, eventObserver);
 	}
 
@@ -216,7 +231,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+														 ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new MultithreadConnectorJobCrawler(), logger, eventObserver);
 	}
 
