@@ -114,17 +114,17 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 
 		connectorManager.save(connector2.setEnabled(true));
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector2-initialize",
 				"connector2-start",
 				"connector2-getJobs",
 				"connector2-execute-job1",
 				"connector2-execute-job2",
-				"connector2-afterJobs"));
+				"connector2-afterJobs");
 
 		connectorManager.save(connector1.setEnabled(true));
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector1-initialize",
 				"connector1-start",
 				"connector1-getJobs",
@@ -134,8 +134,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-getJobs",
 				"connector2-execute-job3",
 				"connector2-execute-job4",
-				"connector2-afterJobs"));
-
+				"connector2-afterJobs");
 	}
 
 	@Test
@@ -148,7 +147,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 		connector2 = connectorManager.createConnector(newEnabledTestConnectorWithCode("connector2"));
 
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector1-initialize",
 				"connector1-start",
 				"connector2-initialize",
@@ -160,17 +159,17 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-getJobs",
 				"connector2-execute-job1",
 				"connector2-execute-job2",
-				"connector2-afterJobs"));
+				"connector2-afterJobs");
 
 		connectorManager.save(connector2.setEnabled(false));
 
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector2-stop",
 				"connector1-getJobs",
 				"connector1-execute-job3",
 				"connector1-execute-job4",
-				"connector1-afterJobs"));
+				"connector1-afterJobs");
 
 		connectorManager.save(connector1.setEnabled(false));
 
@@ -227,7 +226,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 		connector1 = connectorManager.createConnector(newEnabledTestConnectorWithCode("connector1"));
 		connector2 = connectorManager.createConnector(newEnabledTestConnectorWithCode("connector2"));
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector1-initialize",
 				"connector1-start",
 				"connector2-initialize",
@@ -239,10 +238,10 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-getJobs",
 				"connector2-execute-job1",
 				"connector2-execute-job2",
-				"connector2-afterJobs"));
+				"connector2-afterJobs");
 
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector1-getJobs",
 				"connector1-execute-job3",
 				"connector1-execute-job4",
@@ -250,7 +249,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-getJobs",
 				"connector2-execute-job3",
 				"connector2-execute-job4",
-				"connector2-afterJobs"));
+				"connector2-afterJobs");
 
 	}
 
@@ -262,7 +261,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 		connector1 = connectorManager.createConnector(newEnabledTestConnectorWithCode("connector1"));
 		connector2 = connectorManager.createConnector(newEnabledTestConnectorWithCode("connector2"));
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector1-initialize",
 				"connector1-start",
 				"connector2-initialize",
@@ -274,12 +273,12 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-getJobs",
 				"connector2-execute-job1",
 				"connector2-execute-job2",
-				"connector2-afterJobs"));
+				"connector2-afterJobs");
 
 		connectorManager.restartConnectorTraversal(connector2.getId());
 
 		crawl();
-		assertThat(connectorEvents).isEqualTo(asList(
+		assertThat(connectorEvents).containsOnly(
 				"connector2-stop",
 				"connector2-initialize",
 				"connector2-start",
@@ -290,8 +289,7 @@ public class ConnectorCrawlerAcceptTest extends ConstellioTest {
 				"connector2-getJobs",
 				"connector2-execute-job1",
 				"connector2-execute-job2",
-				"connector2-afterJobs"));
-
+				"connector2-afterJobs");
 	}
 
 	@Test
