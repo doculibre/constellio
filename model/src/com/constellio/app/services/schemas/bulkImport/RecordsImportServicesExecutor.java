@@ -283,6 +283,7 @@ public class RecordsImportServicesExecutor {
 		preuploadContents(typeBatchImportContext);
 
 		int skipped = 0;
+		int errorsCount = 0;
 		List<ImportData> batch = typeBatchImportContext.batch;
 		for (int i = 0; i < batch.size(); i++) {
 			final ImportData toImport = batch.get(i);
@@ -314,12 +315,20 @@ public class RecordsImportServicesExecutor {
 				skipped++;
 			}
 
-			if (i % 1000 == 0) {
-				LOGGER.info("Splitter cache object count : " + SchemaUtils.underscoreSplitCache.size());
-				LOGGER.info("Record cache object count : " + modelLayerFactory.getRecordsCaches().getCacheObjectsCount());
-				LOGGER.info("Import cache object count : " + resolverCache.getCacheTotalSize());
+			if (decoratedValidationsErrors.hasDecoratedErrors()) {
+				errorsCount++;
 			}
+
 		}
+
+		//		LOGGER.info("Splitter cache object count : " + SchemaUtils.underscoreSplitCache.size());
+		//		LOGGER.info("Record cache object count : " + modelLayerFactory.getRecordsCaches().getCacheObjectsCount());
+		//		LOGGER.info("Import cache object count : " + resolverCache.getCacheTotalSize());
+
+		String firstId = batch.get(0).getLegacyId();
+		String lastId = batch.get(batch.size() - 1).getLegacyId();
+
+		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
 
 		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());
 		return skipped;
@@ -335,7 +344,6 @@ public class RecordsImportServicesExecutor {
 			extensions.callRecordImportValidate(typeImportContext.schemaType, new ValidationParams(errors, toImport));
 
 			String title = (String) toImport.getFields().get("title");
-			progressionHandler.onRecordImport(typeImportContext.addUpdateCount.get(), legacyId, title);
 
 			try {
 				Record record = buildRecord(typeImportContext, typeBatchImportContext, toImport, errors);
