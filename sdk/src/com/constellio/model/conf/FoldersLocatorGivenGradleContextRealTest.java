@@ -246,7 +246,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 
 	@Test
 	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
-		assertThat(foldersLocator.getWorkFolder()).isEqualTo(workFolder);
+		assertThat(foldersLocator.getWorkFolder().getAbsolutePath()).isEqualTo(workFolder.getAbsolutePath());
 		assertThat(workFolder).exists();
 	}
 

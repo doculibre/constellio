@@ -39,6 +39,8 @@ public class MetadataSchema {
 
 	private final Map<String, Metadata> indexByLocalCode;
 
+	private final Map<String, Metadata> indexByCode;
+
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
 	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
@@ -56,6 +58,7 @@ public class MetadataSchema {
 		this.schemaValidators = schemaValidators;
 		this.calculatedInfos = calculatedInfos;
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
+		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 	}
 
 	public String getLocalCode() {
@@ -102,11 +105,22 @@ public class MetadataSchema {
 
 	public Metadata getMetadata(String metadataCode) {
 
-		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
+		if (metadataCode.endsWith("PId")) {
+			metadataCode = metadataCode.substring(0, metadataCode.length() - 3);
+		}
 
-		Metadata metadata = indexByLocalCode.get(localCode);
+		if (metadataCode.endsWith("Id")) {
+			metadataCode = metadataCode.substring(0, metadataCode.length() - 2);
+		}
+
+		Metadata metadata = indexByLocalCode.get(metadataCode);
+
 		if (metadata == null) {
-			throw new MetadataSchemasRuntimeException.NoSuchMetadata(localCode);
+			metadata = indexByCode.get(metadataCode);
+		}
+
+		if (metadata == null) {
+			throw new MetadataSchemasRuntimeException.NoSuchMetadata(metadataCode);
 		} else {
 			return metadata;
 		}

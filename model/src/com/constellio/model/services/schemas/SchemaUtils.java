@@ -198,6 +198,20 @@ public class SchemaUtils {
 		return index;
 	}
 
+	public Map<String, Metadata> buildIndexByCode(List<Metadata> metadatas) {
+		Map<String, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getCode(), metadata);
+			if (metadata.isGlobal()) {
+				index.put("global_default_" + metadata.getLocalCode(), metadata);
+			}
+			if (metadata.getInheritance() != null) {
+				index.put(metadata.getInheritanceCode(), metadata);
+			}
+		}
+		return index;
+	}
+
 	public Map<String, Metadata> buildIndexByLocalCode(List<Metadata> metadatas) {
 		Map<String, Metadata> index = new HashMap<>();
 		for (Metadata metadata : metadatas) {
@@ -275,8 +289,7 @@ public class SchemaUtils {
 	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
 			DynamicLocalDependency dependency) {
 		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
-				&& !Schemas.isGlobalMetadata(otherMetadata.getLocalCode())
-				&& dependency.isDependentOf(otherMetadata);
+				&& !otherMetadata.isGlobal() && dependency.isDependentOf(otherMetadata);
 	}
 
 	public static String getMetadataLocalCodeWithoutPrefix(Metadata metadata) {
