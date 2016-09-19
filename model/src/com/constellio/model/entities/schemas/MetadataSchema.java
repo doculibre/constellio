@@ -37,7 +37,7 @@ public class MetadataSchema {
 
 	private final Set<RecordValidator> schemaValidators;
 
-	private final Map<String, Metadata> indexByAtomicCode;
+	private final Map<String, Metadata> indexByLocalCode;
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
@@ -55,7 +55,7 @@ public class MetadataSchema {
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
 		this.calculatedInfos = calculatedInfos;
-		this.indexByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
+		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 	}
 
 	public String getLocalCode() {
@@ -93,7 +93,7 @@ public class MetadataSchema {
 	public boolean hasMetadataWithCode(String metadataCode) {
 		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
 
-		return indexByAtomicCode.get(localCode) != null;
+		return indexByLocalCode.get(localCode) != null;
 	}
 
 	public Metadata get(String metadataCode) {
@@ -104,7 +104,7 @@ public class MetadataSchema {
 
 		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
 
-		Metadata metadata = indexByAtomicCode.get(localCode);
+		Metadata metadata = indexByLocalCode.get(localCode);
 		if (metadata == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchMetadata(localCode);
 		} else {
@@ -159,8 +159,8 @@ public class MetadataSchema {
 		return metadatas.onlyNonParentReferences();
 	}
 
-	public Map<String, Metadata> getIndexByAtomicCode() {
-		return indexByAtomicCode;
+	public Map<String, Metadata> getIndexByLocalCode() {
+		return indexByLocalCode;
 	}
 
 	public boolean isInTransactionLog() {

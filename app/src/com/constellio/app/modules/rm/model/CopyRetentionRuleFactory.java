@@ -8,12 +8,18 @@ import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class CopyRetentionRuleFactory implements StructureFactory {
+
+	private static StringReplacer replacer = LangUtils.replacingLiteral("::", ":~null~:");
+	private static StringReplacer replacerEncodingColon = LangUtils.replacingLiteral(":", "~~~");
+	private static StringReplacer replacerDecodingColon = LangUtils.replacingLiteral("~~~", ":");
 
 	private static final String NULL = "~null~";
 	public static final String VERSION_2 = "version2";
@@ -22,16 +28,17 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 
 	@Override
 	public ModifiableStructure build(String string) {
-		StringTokenizer stringTokenizer = new StringTokenizer(string.replace("::", ":~null~:"), ":");
+		String stringWithNullReplaced = replacer.replaceOn(string);
+		StringTokenizer stringTokenizer = new StringTokenizer(stringWithNullReplaced, ":");
 		String versionOrCode = readString(stringTokenizer);
 		if (isVersion2(versionOrCode)) {
 			return getModifiableStructureV2(stringTokenizer);
 		} else if (isVersion3(versionOrCode)) {
 			return getModifiableStructureV3(stringTokenizer);
-		} else if(isVersion4(versionOrCode)) {
+		} else if (isVersion4(versionOrCode)) {
 			return getModifiableStructureV4(stringTokenizer);
 		}
-		stringTokenizer = new StringTokenizer(string.replace("::", ":~null~:"), ":");
+		stringTokenizer = new StringTokenizer(stringWithNullReplaced, ":");
 		return getModifiableStructureV1(stringTokenizer);
 		//		String newString = toString(copyRetentionRuleFactory);
 		//return build(newString);
@@ -262,7 +269,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		if (NULL.equals(value)) {
 			return null;
 		} else {
-			return value.replace("~~~", ":");
+			return replacerDecodingColon.replaceOn(value);
 		}
 	}
 
@@ -273,7 +280,7 @@ public class CopyRetentionRuleFactory implements StructureFactory {
 		if (value == null) {
 			stringBuilder.append(NULL);
 		} else {
-			stringBuilder.append(value.replace(":", "~~~"));
+			stringBuilder.append(replacerEncodingColon.replaceOn(value));
 		}
 	}
 

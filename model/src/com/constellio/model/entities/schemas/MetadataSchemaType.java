@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +31,7 @@ public class MetadataSchemaType {
 
 	private final MetadataSchema defaultSchema;
 
+	private final Map<String, MetadataSchema> customSchemasByCode;
 	private final List<MetadataSchema> customSchemas;
 
 	private final Map<String, Metadata> metadatasByAtomicCode;
@@ -39,7 +41,6 @@ public class MetadataSchemaType {
 	private final boolean inTransactionLog;
 
 	private final Boolean undeletable;
-	private Collection<? extends Metadata> allMetadatas;
 
 	public MetadataSchemaType(String code, String collection, Map<Language, String> labels, List<MetadataSchema> customSchemas,
 			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog) {
@@ -54,6 +55,15 @@ public class MetadataSchemaType {
 		this.inTransactionLog = inTransactionLog;
 		this.metadatasByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildMetadataByLocalCodeIndex(
 				customSchemas, defaultSchema));
+		this.customSchemasByCode = buildCustomSchemasMap(customSchemas);
+	}
+
+	private Map<String, MetadataSchema> buildCustomSchemasMap(List<MetadataSchema> customSchemas) {
+		Map<String, MetadataSchema> schemaMap = new HashMap<>();
+		for (MetadataSchema schema : customSchemas) {
+			schemaMap.put(schema.getCode(), schema);
+		}
+		return Collections.unmodifiableMap(schemaMap);
 	}
 
 	public String getCollection() {

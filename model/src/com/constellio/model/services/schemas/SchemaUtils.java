@@ -34,7 +34,7 @@ public class SchemaUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaUtils.class);
 
-	private static Map<String, String[]> underscoreSplitCache = new HashMap<>();
+	public static Map<String, String[]> underscoreSplitCache = new HashMap<>();
 
 	public static String[] underscoreSplitWithCache(String text) {
 		String[] cached = underscoreSplitCache.get(text);
@@ -192,9 +192,9 @@ public class SchemaUtils {
 		//TODO Test that default schema metadata are returned instead of an inheritance in a custom schema
 		Map<String, Metadata> index = new HashMap<>();
 		for (MetadataSchema customSchema : customSchemas) {
-			index.putAll(customSchema.getIndexByAtomicCode());
+			index.putAll(customSchema.getIndexByLocalCode());
 		}
-		index.putAll(defaultSchema.getIndexByAtomicCode());
+		index.putAll(defaultSchema.getIndexByLocalCode());
 		return index;
 	}
 

@@ -66,6 +66,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
@@ -282,7 +283,9 @@ public class RecordsImportServicesExecutor {
 		preuploadContents(typeBatchImportContext);
 
 		int skipped = 0;
-		for (final ImportData toImport : typeBatchImportContext.batch) {
+		List<ImportData> batch = typeBatchImportContext.batch;
+		for (int i = 0; i < batch.size(); i++) {
+			final ImportData toImport = batch.get(i);
 			final String schemaTypeLabel = types.getSchemaType(typeImportContext.schemaType).getLabel(language);
 
 			DecoratedValidationsErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
@@ -311,7 +314,11 @@ public class RecordsImportServicesExecutor {
 				skipped++;
 			}
 
-			LOGGER.info("Cache size : " + resolverCache.getCacheTotalSize());
+			if (i % 1000 == 0) {
+				LOGGER.info("Splitter cache object count : " + SchemaUtils.underscoreSplitCache.size());
+				LOGGER.info("Record cache object count : " + modelLayerFactory.getRecordsCaches().getCacheObjectsCount());
+				LOGGER.info("Import cache object count : " + resolverCache.getCacheTotalSize());
+			}
 		}
 
 		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());

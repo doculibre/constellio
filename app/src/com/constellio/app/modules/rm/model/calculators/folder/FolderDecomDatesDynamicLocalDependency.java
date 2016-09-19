@@ -55,12 +55,12 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return obj != null && obj instanceof FolderDecomDatesDynamicLocalDependency;
 	}
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return FolderDecomDatesDynamicLocalDependency.class.hashCode();
 	}
 
 	/*@Deprecated
