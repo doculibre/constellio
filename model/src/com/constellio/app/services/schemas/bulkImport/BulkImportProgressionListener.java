@@ -12,6 +12,8 @@ public interface BulkImportProgressionListener extends Serializable {
 
 	public void updateCurrentStepName(String stepName);
 
+	void onRecordValidation(int addUpdateCount, String legacyId);
+
 	void onRecordImport(int addUpdateCount, String legacyId, String title);
 
 	void onRecordImportPostponed(String legacyId);

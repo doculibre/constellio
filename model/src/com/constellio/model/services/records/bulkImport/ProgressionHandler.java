@@ -22,6 +22,10 @@ public class ProgressionHandler {
 
 	}
 
+	public void validatingRecord(int validatedRecords, String legacyId) {
+		listener.onRecordValidation(validatedRecords, legacyId);
+	}
+
 	public void afterValidationOfSchema(String schema, int recordCount) {
 		counts.put(schema, recordCount);
 		totalCount += recordCount;
