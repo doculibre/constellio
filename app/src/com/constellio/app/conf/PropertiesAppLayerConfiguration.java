@@ -33,6 +33,11 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 					new File(""));
 		}
 
+		@Override
+		public void writeProperty(String key, String value) {
+			configs.put(key, value);
+		}
+
 		public void setSetupProperties(File value) {
 			setFile("setupProperties.file", value);
 		}
@@ -48,6 +53,7 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 		public void setFastMigrationsEnabled(boolean value) {
 			setBoolean("fastMigrations.enabled", value);
 		}
+
 	}
 
 	public static PropertiesAppLayerConfiguration newVolatileConfiguration(PropertiesAppLayerConfiguration config) {

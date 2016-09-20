@@ -94,7 +94,7 @@ public class DataLayerFactoryRealTest extends ConstellioTest {
 
 		XMLSecondTransactionLogManager transactionLog = (XMLSecondTransactionLogManager) ((BigVaultRecordDao) factory
 				.newRecordDao()).getSecondTransactionLogManager();
-		assertThat(transactionLog.getFolder()).isEqualTo(secondTransactionLogBaseFolder);
+		assertThat(transactionLog.getFolder().getAbsolutePath()).isEqualTo(secondTransactionLogBaseFolder.getAbsolutePath());
 		assertThat(((BigVaultRecordDao) factory.newEventsDao()).getSecondTransactionLogManager()).isNull();
 		assertThat(((BigVaultRecordDao) factory.newNotificationsDao()).getSecondTransactionLogManager()).isNull();
 	}

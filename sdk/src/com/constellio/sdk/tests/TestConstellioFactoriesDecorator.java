@@ -103,6 +103,7 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		InMemoryAppLayerConfiguration inMemoryAppLayerConfiguration = new InMemoryAppLayerConfiguration(
 				(PropertiesAppLayerConfiguration) appLayerConfiguration);
 
+
 		inMemoryAppLayerConfiguration.setSetupProperties(setupProperties);
 		inMemoryAppLayerConfiguration.setPluginsFolder(pluginsFolder);
 		inMemoryAppLayerConfiguration.setPluginsManagementOnStartupFile(pluginsToMoveOnStartup);
