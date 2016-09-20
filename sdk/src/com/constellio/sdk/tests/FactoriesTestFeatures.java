@@ -3,7 +3,6 @@ package com.constellio.sdk.tests;
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +42,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -278,14 +277,14 @@ public class FactoriesTestFeatures {
 			if (fakeEncryptionServices) {
 				modelLayerConfigurationAlterations.add(new ModelLayerConfigurationAlteration() {
 					@Override
-					public void alter(ModelLayerConfiguration configuration) {
+					public void alter(InMemoryModelLayerConfiguration configuration) {
 						Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 							@Override
 							public EncryptionServices get() {
 								return new FakeEncryptionServices();
 							}
 						};
-						when(configuration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
+						configuration.setEncryptionServicesFactory(encryptionServicesFactory);
 					}
 				});
 			}

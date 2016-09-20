@@ -1,7 +1,6 @@
 package com.constellio.data.dao.services.factories;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
 
 import java.io.File;
 
@@ -10,6 +9,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
@@ -67,8 +67,8 @@ public class DataLayerFactoryRealTest extends ConstellioTest {
 	public void givenSecondTransactionLogDisabledThenDisabledInEachCollection() {
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				doReturn(false).when(configuration).isSecondTransactionLogEnabled();
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondTransactionLogEnabled(false);
 			}
 		});
 
@@ -84,9 +84,9 @@ public class DataLayerFactoryRealTest extends ConstellioTest {
 		final File secondTransactionLogBaseFolder = newTempFolder();
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				doReturn(true).when(configuration).isSecondTransactionLogEnabled();
-				doReturn(secondTransactionLogBaseFolder).when(configuration).getSecondTransactionLogBaseFolder();
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondTransactionLogEnabled(true);
+				configuration.setSecondTransactionLogBaseFolder(secondTransactionLogBaseFolder);
 			}
 		});
 

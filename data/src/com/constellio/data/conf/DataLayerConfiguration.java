@@ -62,8 +62,6 @@ public interface DataLayerConfiguration {
 
 	SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter();
 
-	void setSecondTransactionLogFolderEnabled(boolean enable);
-
 	void setWriteZZRecords(boolean enable);
 
 	boolean isLocalHttpSolrServer();

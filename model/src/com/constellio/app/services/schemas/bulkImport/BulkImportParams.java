@@ -6,7 +6,7 @@ public class BulkImportParams {
 
 	ImportValidationErrorsBehavior importValidationErrorsBehavior = ImportValidationErrorsBehavior.STOP_IMPORT;
 
-	int batchSize = 100;
+	int batchSize = 500;
 
 	public int getBatchSize() {
 		return batchSize;

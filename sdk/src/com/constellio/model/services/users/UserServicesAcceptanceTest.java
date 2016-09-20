@@ -6,7 +6,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
@@ -28,6 +27,7 @@ import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -93,11 +93,12 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		withSpiedServices(ModelLayerConfiguration.class);
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
+			public void alter(InMemoryModelLayerConfiguration configuration) {
 				org.joda.time.Duration fourSeconds = org.joda.time.Duration.standardSeconds(4);
 				org.joda.time.Duration oneSecond = org.joda.time.Duration.standardSeconds(1);
-				doReturn(fourSeconds).when(configuration).getTokenDuration();
-				doReturn(oneSecond).when(configuration).getTokenRemovalThreadDelayBetweenChecks();
+
+				configuration.setTokenDuration(fourSeconds);
+				configuration.setTokenRemovalThreadDelayBetweenChecks(oneSecond);
 			}
 		});
 	}
@@ -194,7 +195,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThatUserIsOnlyInCollections(user, collection1);
 
 	}
-
 
 	@Test
 	public void givenExistingUserWhenUpdatingWithCollectionsThenAdded()
@@ -603,7 +603,6 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		fail("Expected exception not thrown");
 	}
-
 
 	@Test
 	public void givenTwoUsersWithSameEmailThenOk()

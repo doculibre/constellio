@@ -4,7 +4,6 @@ import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +15,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
 import com.constellio.data.utils.hashing.HashingServiceException;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -64,9 +63,9 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				when(configuration.getContentImportThreadFolder()).thenReturn(contentImportFile);
-				when(configuration.isDeleteUnusedContentEnabled()).thenReturn(deleteUnusedContent);
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setContentImportThreadFolder(contentImportFile);
+				configuration.setDeleteUnusedContentEnabled(deleteUnusedContent);
 			}
 		});
 
