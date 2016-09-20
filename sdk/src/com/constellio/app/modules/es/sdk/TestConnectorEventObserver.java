@@ -118,4 +118,9 @@ public class TestConnectorEventObserver implements ConnectorEventObserver {
 		events.clear();
 		return newEvents;
 	}
+
+	@Override
+	public void cleanup() {
+		nestedObserver.cleanup();
+	}
 }

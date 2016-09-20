@@ -73,60 +73,64 @@ public class ConnectorCrawler {
 
 	boolean crawlAllConnectors() {
 
-		List<ConnectorInstance> connectorInstances = getConnectorInstances();
-		initializeStartAndStopConnectors(connectorInstances);
-
 		boolean executedJobs = false;
 
-        Map<CrawledConnector, List<ConnectorJob>> connectorJobsMap = new HashMap<>();
-        List<ConnectorJob> allJobs = new ArrayList<>();
+		try {
+			List<ConnectorInstance> connectorInstances = getConnectorInstances();
+			initializeStartAndStopConnectors(connectorInstances);
 
-        for (CrawledConnector crawledConnector : crawledConnectors) {
+			Map<CrawledConnector, List<ConnectorJob>> connectorJobsMap = new HashMap<>();
+			List<ConnectorJob> allJobs = new ArrayList<>();
 
-            ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
-            if (instance.isCurrentlyRunning()) {
-                List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
-                LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size() + " job(s) " + "' **** ");
+			for (CrawledConnector crawledConnector : crawledConnectors) {
 
-				if (!connectorJobs.isEmpty()) {
-					connectorJobsMap.put(crawledConnector, connectorJobs);
-					allJobs.addAll(connectorJobs);
-				} else {
-					try {
-						recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
-					} catch (RecordServicesException e) {
-						LOGGER.warn("last traversal date not updated", e);
+				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+				if (instance.isCurrentlyRunning()) {
+					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
+					LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size() + " job(s) " + "' **** ");
+
+					if (!connectorJobs.isEmpty()) {
+						connectorJobsMap.put(crawledConnector, connectorJobs);
+						allJobs.addAll(connectorJobs);
+					} else {
+						try {
+							recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
+						} catch (RecordServicesException e) {
+							LOGGER.warn("last traversal date not updated", e);
+						}
 					}
 				}
-            }
-        }
+			}
 
-        if (!allJobs.isEmpty()) {
-            try {
-                jobCrawler.crawl(allJobs);
-            } catch (Exception e) {
-                LOGGER.error("Error while executing connector jobs", e);
-            }
-            executedJobs = true;
+			if (!allJobs.isEmpty()) {
+				try {
+					jobCrawler.crawl(allJobs);
+				} catch (Exception e) {
+					LOGGER.error("Error while executing connector jobs", e);
+				}
+				executedJobs = true;
 
-            for (CrawledConnector crawledConnector : crawledConnectors) {
-                try {
-                    ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
-                    crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
+				for (CrawledConnector crawledConnector : crawledConnectors) {
+					try {
+						ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
 
-                } catch (Exception e) {
-                    LOGGER.warn("Error after connector jobs execution", e);
-                }
-            }
+					} catch (Exception e) {
+						LOGGER.warn("Error after connector jobs execution", e);
+					}
+				}
 
-            eventObserver.flush();
-        } else {
-            waitSinceNoJobs();
-        }
+				eventObserver.flush();
+			} else {
+				waitSinceNoJobs();
+			}
 
 
-		if (crawledConnectors.isEmpty()) {
-			waitSinceNoJobs();
+			if (crawledConnectors.isEmpty()) {
+				waitSinceNoJobs();
+			}
+		} finally {
+			eventObserver.cleanup();
 		}
 
 		return executedJobs;
