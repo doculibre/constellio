@@ -247,7 +247,11 @@ public class FactoriesTestFeatures {
 						});
 					}
 
-					return spy(appLayerFactory);
+					if (spiedClasses.isEmpty()) {
+						return appLayerFactory;
+					} else {
+						return spy(appLayerFactory);
+					}
 				}
 
 				@Override
