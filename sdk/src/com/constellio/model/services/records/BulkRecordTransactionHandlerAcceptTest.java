@@ -175,6 +175,42 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenARecordServiceRuntimeExceptionOccurWhenResetExceptionThenHandlerRecovers()
+			throws Exception {
+
+		doAnswer(workUntilExceptionTriggered()).doAnswer(triggerException(new RecordServicesRuntimeException("")))
+				.when(recordServices).execute(any(Transaction.class));
+
+		handler = new BulkRecordTransactionHandler(recordServices, "BulkRecordTransactionHandlerAcceptTest-test", options);
+
+		handler.append(asList(aRecord), asList(aReferencedRecord));
+		handler.append(asList(theRecordThrowingAnException), asList(anotherReferencedRecord, aThirdReferencedRecord));
+
+		triggerAnExceptionInAThread();
+		Thread.sleep(100);
+
+		try {
+			handler.closeAndJoin();
+			fail("Exception expected");
+		} catch (BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction e) {
+			//OK
+		}
+
+		try {
+			handler.append(asList(theNextRecord));
+			fail("Exception expected");
+		} catch (BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction e) {
+			//OK
+		}
+
+		handler.resetException();
+
+		handler.append(asList(theNextRecord));
+
+		handler.closeAndJoin();
+	}
+
 	private void triggerAnExceptionInAThread() {
 		exceptionTriggered.set(true);
 	}

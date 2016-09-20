@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public class BulkRecordTransactionHandler {
 
 	Map<String, Record> currentReferencedRecords = new HashMap<>();
 
-	Exception exception;
+	volatile Exception exception;
 
 	String resourceName;
 
@@ -115,6 +116,10 @@ public class BulkRecordTransactionHandler {
 		}
 	}
 
+	public void resetException() {
+		this.exception = null;
+	}
+
 	public void closeAndJoin() {
 		try {
 			ensureNoExceptions();
@@ -155,7 +160,7 @@ public class BulkRecordTransactionHandler {
 				@Override
 				public void execute() {
 					try {
-						while (exception == null) {
+						while (true) {
 							try {
 
 								BulkRecordTransactionHandlerTask task = tasks.poll(0, TimeUnit.SECONDS);

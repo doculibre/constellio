@@ -244,4 +244,9 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		es.getRecordServices().flush();
 		saveNewDeclaredFields();
 	}
+
+	@Override
+	public void cleanup() {
+		handler.resetException();
+	}
 }
