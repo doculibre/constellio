@@ -14,8 +14,11 @@ public class FoldersLocator {
 
 	private static String currentClassPath;
 
+	private File defaultTempFolder;
+
 	public FoldersLocator() {
 	}
+
 
 	public File getJavaRootFolder() {
 		String fullPath = getCurrentClassPath();

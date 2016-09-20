@@ -103,7 +103,6 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 		InMemoryAppLayerConfiguration inMemoryAppLayerConfiguration = new InMemoryAppLayerConfiguration(
 				(PropertiesAppLayerConfiguration) appLayerConfiguration);
 
-
 		inMemoryAppLayerConfiguration.setSetupProperties(setupProperties);
 		inMemoryAppLayerConfiguration.setPluginsFolder(pluginsFolder);
 		inMemoryAppLayerConfiguration.setPluginsManagementOnStartupFile(pluginsToMoveOnStartup);
@@ -121,21 +120,26 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 	@Override
 	public AppLayerFactory decorateAppServicesFactory(AppLayerFactory appLayerFactory) {
-		AppLayerFactory spiedAppLayerFactory = spy(appLayerFactory);
 
 		if (mockPluginManager) {
+			appLayerFactory = spy(appLayerFactory);
 			ConstellioPluginManager pluginManager = mock(ConstellioPluginManager.class, "pluginManager");
-			when(spiedAppLayerFactory.getPluginManager()).thenReturn(pluginManager);
+			doReturn(pluginManager).when(appLayerFactory).getPluginManager();
 		}
+		return appLayerFactory;
 
-		return spiedAppLayerFactory;
 	}
 
 	@Override
 	public FoldersLocator decorateFoldersLocator(FoldersLocator foldersLocator) {
-		FoldersLocator spiedFoldersLocator = spy(foldersLocator);
-		doReturn(appTempFolder).when(spiedFoldersLocator).getDefaultTempFolder();
-		return spiedFoldersLocator;
+
+		return new FoldersLocator() {
+			@Override
+			public File getDefaultTempFolder() {
+				return appTempFolder;
+			}
+		};
+
 	}
 
 	public TestConstellioFactoriesDecorator setSetupProperties(File setupProperties) {
