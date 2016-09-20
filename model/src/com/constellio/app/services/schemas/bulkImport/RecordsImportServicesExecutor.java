@@ -310,6 +310,8 @@ public class RecordsImportServicesExecutor {
 				progressionHandler.onRecordImportPostponed(legacyId);
 				skipped++;
 			}
+
+			LOGGER.info("Cache size : " + resolverCache.getCacheTotalSize());
 		}
 
 		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());

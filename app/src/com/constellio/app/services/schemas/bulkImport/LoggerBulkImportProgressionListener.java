@@ -49,10 +49,21 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 	}
 
 	@Override
+	public void onRecordValidation(int addUpdateCount, String legacyId) {
+		String progression = currentStepName + " [" + (addUpdateCount + 1) + "/" + currentStepTotal + "] - ";
+
+		LOGGER.info(progression + legacyId);
+	}
+
+	@Override
 	public void onRecordImport(int addUpdateCount, String legacyId, String title) {
 		String progression = currentStepName + " [" + (addUpdateCount + 1) + "/" + currentStepTotal + "] - ";
 
-		LOGGER.info(progression + "Importing '" + legacyId + "-" + title + "'");
+		if (title != null) {
+			LOGGER.info(progression + legacyId + " (" + title + ")");
+		} else {
+			LOGGER.info(progression + legacyId);
+		}
 	}
 
 	@Override

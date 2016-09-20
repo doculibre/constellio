@@ -117,8 +117,8 @@ public class RecordsImportValidator {
 		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
 		while (importDataIterator.hasNext()) {
-
 			final ImportData importData = importDataIterator.next();
+			progressionHandler.validatingRecord(numberOfRecords, importData.getLegacyId());
 			numberOfRecords++;
 			if (importData.getLegacyId() == null) {
 				fatalError.set(true);
