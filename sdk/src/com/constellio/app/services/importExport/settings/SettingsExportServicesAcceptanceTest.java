@@ -114,7 +114,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo(metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaTypes().size());
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
@@ -153,7 +153,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
@@ -196,7 +196,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
@@ -234,7 +234,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
@@ -274,7 +274,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
