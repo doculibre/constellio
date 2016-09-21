@@ -69,6 +69,9 @@ public class Metadata implements DataStoreField {
 	final boolean duplicable;
 
 	final String dataStoreCode;
+	final String inheritanceCode;
+
+	final boolean global;
 
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
@@ -119,7 +122,18 @@ public class Metadata implements DataStoreField {
 		this.populateConfigs = new MetadataPopulateConfigs();
 		this.duplicable = false;
 		this.dataStoreCode = computeDataStoreCode();
+		this.inheritanceCode = computeInheritanceCode();
+		this.global = computeIsGlobal();
 
+	}
+
+	public final String computeInheritanceCode() {
+		if (getInheritance() == null) {
+			return getCode();
+		} else {
+			String[] parts = SchemaUtils.underscoreSplitWithCache(getCode());
+			return parts[0] + "_default_" + parts[2];
+		}
 	}
 
 	private String computeDataStoreCode() {
@@ -132,6 +146,10 @@ public class Metadata implements DataStoreField {
 		} else {
 			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
 		}
+	}
+
+	public final boolean computeIsGlobal() {
+		return Schemas.isGlobalMetadata(getLocalCode());
 	}
 
 	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
@@ -165,6 +183,8 @@ public class Metadata implements DataStoreField {
 		this.encryptionServicesFactory = encryptionServices;
 		this.duplicable = duplicatbale;
 		this.dataStoreCode = computeDataStoreCode();
+		this.inheritanceCode = computeInheritanceCode();
+		this.global = computeIsGlobal();
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
@@ -194,6 +214,8 @@ public class Metadata implements DataStoreField {
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 		this.duplicable = duplicable;
 		this.dataStoreCode = computeDataStoreCode();
+		this.inheritanceCode = computeInheritanceCode();
+		this.global = computeIsGlobal();
 	}
 
 	public String getCode() {
@@ -467,5 +489,13 @@ public class Metadata implements DataStoreField {
 
 	public boolean isMarkedForDeletion() {
 		return inheritedMetadataBehaviors.isMarkedForDeletion();
+	}
+
+	public String getInheritanceCode() {
+		return inheritanceCode;
+	}
+
+	public boolean isGlobal() {
+		return global;
 	}
 }

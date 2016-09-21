@@ -7,15 +7,18 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Days;
+import org.joda.time.Duration;
 
 import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
 import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue;
 
 public abstract class PropertiesConfiguration {
 
-	private File propertyFile;
+	protected File propertyFile;
 
-	private Map<String, String> configs;
+	protected Map<String, String> configs;
 
 	protected PropertiesConfiguration(Map<String, String> configs, File propertyFile) {
 		this.configs = configs;
@@ -50,7 +53,14 @@ public abstract class PropertiesConfiguration {
 
 	protected void setString(String key, String value) {
 		writeProperty(key, value);
-		configs.put(key, value);
+	}
+
+	protected void setInt(String key, int value) {
+		writeProperty(key, "" + value);
+	}
+
+	protected void setFile(String key, File value) {
+		writeProperty(key, value == null ? "" : value.getAbsolutePath());
 	}
 
 	public void writeProperty(String key, String value) {
@@ -74,6 +84,7 @@ public abstract class PropertiesConfiguration {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		configs.put(key, value);
 	}
 
 	protected Boolean getBoolean(String key, boolean defaultValue) {
@@ -122,4 +133,47 @@ public abstract class PropertiesConfiguration {
 	protected int getRequiredInt(String key) {
 		return Integer.parseInt(getRequiredString(key));
 	}
+
+	protected int getInt(String key, int defaultValue) {
+		try {
+			return Integer.parseInt(getRequiredString(key));
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	protected Duration getDuration(String key, Duration defaultDuration) {
+		String durationString = getString(key, null);
+
+		if (durationString == null) {
+			return defaultDuration;
+		} else {
+			if (durationString.toUpperCase().endsWith("S")) {
+				return Duration.standardSeconds(Long.valueOf(StringUtils.substringBefore(durationString.toUpperCase(), "S")));
+
+			} else if (durationString.toUpperCase().endsWith("M")) {
+				return Duration.standardMinutes(Long.valueOf(StringUtils.substringBefore(durationString.toUpperCase(), "M")));
+
+			} else if (durationString.toUpperCase().endsWith("H")) {
+				return Duration.standardHours(Long.valueOf(StringUtils.substringBefore(durationString.toUpperCase(), "H")));
+
+			} else if (durationString.toUpperCase().endsWith("D")) {
+				return Duration.standardDays(Long.valueOf(StringUtils.substringBefore(durationString.toUpperCase(), "D")));
+
+			}
+		}
+
+		return null;
+	}
+
+	protected void setDuration(String key, Duration value) {
+		String stringValue;
+		if (value == null) {
+			stringValue = null;
+		} else {
+			stringValue = value.getStandardSeconds() + "s";
+		}
+		setString(key, stringValue);
+	}
+
 }

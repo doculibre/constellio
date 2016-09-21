@@ -1,7 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,8 +22,8 @@ import org.junit.Test;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.DigitSeparatorMode;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -124,7 +123,7 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		configure(new DataLayerConfigurationAlteration() {
 
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
+			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setHashingEncoding(null);
 				configuration.setContentDaoFileSystemDigitsSeparatorMode(null);
 			}

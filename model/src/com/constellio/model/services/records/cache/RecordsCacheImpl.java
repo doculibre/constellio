@@ -324,6 +324,32 @@ public class RecordsCacheImpl implements RecordsCache {
 		return cachedTypes.containsKey(typeCode);
 	}
 
+	@Override
+	public int getCacheObjectsCount() {
+		int cacheTotalSize = 0;
+
+		cacheTotalSize += cacheById.size();
+
+		for (RecordByMetadataCache aRecordByMetadataCache : recordByMetadataCache.values()) {
+			cacheTotalSize += 1;
+			cacheTotalSize += aRecordByMetadataCache.getCacheObjectsCount();
+		}
+
+		for (VolatileCache aVolatileCache : volatileCaches.values()) {
+			cacheTotalSize += 1 + aVolatileCache.holders.size();
+		}
+
+		for (PermanentCache aPermanentCache : permanentCaches.values()) {
+			cacheTotalSize += 1 + aPermanentCache.getCacheObjectsCount();
+		}
+
+		for (CacheConfig aCacheConfig : cachedTypes.values()) {
+			cacheTotalSize += 1 + aCacheConfig.getIndexes().size();
+		}
+
+		return cacheTotalSize;
+	}
+
 	static class VolatileCache {
 
 		int maxSize;
@@ -392,6 +418,15 @@ public class RecordsCacheImpl implements RecordsCache {
 			queryResults.clear();
 		}
 
+		public int getCacheObjectsCount() {
+			int size = holders.size();
+
+			for (List<String> aQueryResults : queryResults.values()) {
+				size += 1 + aQueryResults.size();
+			}
+
+			return size;
+		}
 	}
 
 	static class RecordByMetadataCache {
@@ -444,6 +479,15 @@ public class RecordsCacheImpl implements RecordsCache {
 					map.get(supportedMetadata.getLocalCode()).remove(value);
 				}
 			}
+		}
+
+		public int getCacheObjectsCount() {
+			int cacheSize = map.size() + supportedMetadatas.size();
+			for (Map<String, RecordHolder> aMap : map.values()) {
+				cacheSize += aMap.size();
+			}
+
+			return cacheSize;
 		}
 	}
 

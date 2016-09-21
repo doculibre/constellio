@@ -2,8 +2,6 @@ package com.constellio.sdk.tests;
 
 import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
 import static com.constellio.data.conf.HashingEncoding.BASE32;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -14,13 +12,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.conf.AppLayerConfiguration;
+import com.constellio.app.conf.PropertiesAppLayerConfiguration;
+import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactoriesDecorator;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 
@@ -47,82 +50,96 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 
 	@Override
 	public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
-		PropertiesDataLayerConfiguration spiedDataLayerConfiguration = spy(
-				(PropertiesDataLayerConfiguration) dataLayerConfiguration);
-		doNothing().when(spiedDataLayerConfiguration).writeProperty(anyString(), anyString());
-		doReturn(configManagerFolder).when(spiedDataLayerConfiguration).getSettingsFileSystemBaseFolder();
-		doReturn(appTempFolder).when(spiedDataLayerConfiguration).getTempFolder();
-		doReturn(contentFolder).when(spiedDataLayerConfiguration).getContentDaoFileSystemFolder();
-		doReturn(backgroundThreadsEnabled).when(spiedDataLayerConfiguration).isBackgroundThreadsEnabled();
-		doReturn(checkRollback).when(spiedDataLayerConfiguration).isInRollbackTestMode();
-		doReturn(transactionLogWorkFolder).when(spiedDataLayerConfiguration).getSecondTransactionLogBaseFolder();
 
-		spiedDataLayerConfiguration.setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
-		spiedDataLayerConfiguration.setHashingEncoding(BASE32);
+		InMemoryDataLayerConfiguration inMemoryDataLayerConfiguration = new InMemoryDataLayerConfiguration(
+				(PropertiesDataLayerConfiguration) dataLayerConfiguration);
+
+		inMemoryDataLayerConfiguration.setSettingsFileSystemBaseFolder(configManagerFolder);
+		inMemoryDataLayerConfiguration.setTempFolder(appTempFolder);
+		inMemoryDataLayerConfiguration.setContentDaoFileSystemFolder(contentFolder);
+		inMemoryDataLayerConfiguration.setBackgroundThreadsEnabled(backgroundThreadsEnabled);
+		inMemoryDataLayerConfiguration.setInRollbackTestMode(checkRollback);
+		inMemoryDataLayerConfiguration.setSecondTransactionLogBaseFolder(transactionLogWorkFolder);
+		inMemoryDataLayerConfiguration.setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
+		inMemoryDataLayerConfiguration.setHashingEncoding(BASE32);
 
 		if (transactionLogWorkFolder != null) {
-			doReturn(true).when(spiedDataLayerConfiguration).isSecondTransactionLogEnabled();
+			inMemoryDataLayerConfiguration.setSecondTransactionLogEnabled(true);
 		}
 
 		for (DataLayerConfigurationAlteration alteration : dataLayerConfigurationAlterations) {
-			alteration.alter(spiedDataLayerConfiguration);
+			alteration.alter(inMemoryDataLayerConfiguration);
 		}
 
-		return spiedDataLayerConfiguration;
+		return inMemoryDataLayerConfiguration;
 	}
 
 	@Override
 	public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
 		File key = new File(configManagerFolder, "key.txt");
-		ModelLayerConfiguration spiedModelLayerConfiguration = spy(modelLayerConfiguration);
-		doReturn(key).when(spiedModelLayerConfiguration).getConstellioEncryptionFile();
-		doReturn(importationFolder).when(spiedModelLayerConfiguration).getImportationFolder();
+
+		InMemoryModelLayerConfiguration volatileModelLayerConfiguration = new InMemoryModelLayerConfiguration(
+				(PropertiesModelLayerConfiguration) modelLayerConfiguration);
+
+		volatileModelLayerConfiguration.setConstellioEncryptionFile(key);
+		volatileModelLayerConfiguration.setImportationFolder(importationFolder);
+
 		if (systemLanguage != null) {
-			doReturn(systemLanguage).when(spiedModelLayerConfiguration).getMainDataLanguage();
+			volatileModelLayerConfiguration.setMainDataLanguage(systemLanguage);
 		} else {
-			doReturn("fr").when(spiedModelLayerConfiguration).getMainDataLanguage();
+			volatileModelLayerConfiguration.setMainDataLanguage("fr");
 		}
 
 		for (ModelLayerConfigurationAlteration alteration : modelLayerConfigurationAlterations) {
-			alteration.alter(spiedModelLayerConfiguration);
+			alteration.alter(volatileModelLayerConfiguration);
 		}
 
-		return spiedModelLayerConfiguration;
+		return volatileModelLayerConfiguration;
 	}
 
 	@Override
 	public AppLayerConfiguration decorateAppLayerConfiguration(AppLayerConfiguration appLayerConfiguration) {
 
-		AppLayerConfiguration spiedAppLayerConfiguration = spy(appLayerConfiguration);
+		InMemoryAppLayerConfiguration inMemoryAppLayerConfiguration = new InMemoryAppLayerConfiguration(
+				(PropertiesAppLayerConfiguration) appLayerConfiguration);
 
-		doReturn(setupProperties).when(spiedAppLayerConfiguration).getSetupProperties();
-		doReturn(pluginsFolder).when(spiedAppLayerConfiguration).getPluginsFolder();
-		doReturn(pluginsToMoveOnStartup).when(spiedAppLayerConfiguration).getPluginsManagementOnStartupFile();
+		inMemoryAppLayerConfiguration.setSetupProperties(setupProperties);
+		inMemoryAppLayerConfiguration.setPluginsFolder(pluginsFolder);
+		inMemoryAppLayerConfiguration.setPluginsManagementOnStartupFile(pluginsToMoveOnStartup);
+		//
+		//		doReturn(setupProperties).when(spiedAppLayerConfiguration).getSetupProperties();
+		//		doReturn(pluginsFolder).when(spiedAppLayerConfiguration).getPluginsFolder();
+		//		doReturn(pluginsToMoveOnStartup).when(spiedAppLayerConfiguration).getPluginsManagementOnStartupFile();
 
 		for (AppLayerConfigurationAlteration alteration : appLayerConfigurationAlterations) {
-			alteration.alter(spiedAppLayerConfiguration);
+			alteration.alter(inMemoryAppLayerConfiguration);
 		}
 
-		return spiedAppLayerConfiguration;
+		return inMemoryAppLayerConfiguration;
 	}
 
 	@Override
 	public AppLayerFactory decorateAppServicesFactory(AppLayerFactory appLayerFactory) {
-		AppLayerFactory spiedAppLayerFactory = spy(appLayerFactory);
 
 		if (mockPluginManager) {
+			appLayerFactory = spy(appLayerFactory);
 			ConstellioPluginManager pluginManager = mock(ConstellioPluginManager.class, "pluginManager");
-			when(spiedAppLayerFactory.getPluginManager()).thenReturn(pluginManager);
+			doReturn(pluginManager).when(appLayerFactory).getPluginManager();
 		}
+		return appLayerFactory;
 
-		return spiedAppLayerFactory;
 	}
 
 	@Override
 	public FoldersLocator decorateFoldersLocator(FoldersLocator foldersLocator) {
-		FoldersLocator spiedFoldersLocator = spy(foldersLocator);
-		doReturn(appTempFolder).when(spiedFoldersLocator).getDefaultTempFolder();
-		return spiedFoldersLocator;
+
+		return new FoldersLocator() {
+			@Override
+			public File getDefaultTempFolder() {
+				return appTempFolder;
+			}
+		};
+
 	}
 
 	public TestConstellioFactoriesDecorator setSetupProperties(File setupProperties) {

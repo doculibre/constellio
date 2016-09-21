@@ -1,11 +1,16 @@
 package com.constellio.model.services.records.bulkImport;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
 
 public class ProgressionHandler {
+
+	int currentBatchErrors;
+	List<String> currentBatch = new ArrayList<>();
 
 	int totalProgression;
 	int stepProgression;
@@ -22,14 +27,35 @@ public class ProgressionHandler {
 
 	}
 
-	public void validatingRecord(int validatedRecords, String legacyId) {
-		listener.onRecordValidation(validatedRecords, legacyId);
+	public void afterRecordValidation(String legacyId, boolean hasErrors) {
+		stepProgression++;
+		currentBatch.add(legacyId);
+		if (hasErrors) {
+			currentBatchErrors++;
+		}
+
+		if (currentBatch.size() >= 1000) {
+			logValidationBatch();
+		}
 	}
 
 	public void afterValidationOfSchema(String schema, int recordCount) {
+		logValidationBatch();
+
 		counts.put(schema, recordCount);
 		totalCount += recordCount;
 		listener.updateTotal(totalCount);
+		currentBatch.clear();
+	}
+
+	private void logValidationBatch() {
+		if (!currentBatch.isEmpty()) {
+			String firstId = currentBatch.get(0);
+			String lastId = currentBatch.get(currentBatch.size() - 1);
+			listener.afterRecordValidations(firstId, lastId, stepProgression, currentBatch.size(), currentBatchErrors);
+			currentBatch.clear();
+			currentBatchErrors = 0;
+		}
 	}
 
 	public void beforeImportOf(String schema) {
@@ -52,7 +78,7 @@ public class ProgressionHandler {
 		listener.onRecordImportPostponed(legacyId);
 	}
 
-	public void onRecordImport(int addUpdateCount, String legacyId, String title) {
-		listener.onRecordImport(addUpdateCount, legacyId, title);
+	public void afterRecordImports(String fromLegacyId, String toLegacyId, int batchQty, int errorsCount) {
+		listener.afterRecordImports(fromLegacyId, toLegacyId, stepProgression, batchQty, errorsCount);
 	}
 }

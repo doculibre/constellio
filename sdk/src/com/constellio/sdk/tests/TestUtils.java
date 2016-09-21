@@ -36,6 +36,8 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.i18n.i18n;
@@ -302,9 +304,25 @@ public class TestUtils {
 
 	public static Metadata mockMetadata(String code) {
 		String localCode = code.split("_")[2];
-		Metadata metadata = mock(Metadata.class, code);
+		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getLocalCode()).thenReturn(localCode);
+
+		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation)
+					throws Throwable {
+				return metadata.computeInheritanceCode();
+			}
+		});
+
+		when(metadata.isGlobal()).thenAnswer(new Answer<Boolean>() {
+			@Override
+			public Boolean answer(InvocationOnMock invocation)
+					throws Throwable {
+				return metadata.computeIsGlobal();
+			}
+		});
 		return metadata;
 	}
 

@@ -95,7 +95,7 @@ public class RecordsImportValidator {
 
 		Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(schemaType);
 
-		ValidationErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
+		DecoratedValidationsErrors decoratedValidationsErrors = new DecoratedValidationsErrors(errors) {
 			@Override
 			public void buildExtraParams(Map<String, Object> parameters) {
 				if (!parameters.containsKey("schemaType")) {
@@ -112,13 +112,15 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void validate(Iterator<ImportData> importDataIterator, ValidationErrors errors, AtomicBoolean fatalError) {
+	private void validate(Iterator<ImportData> importDataIterator, DecoratedValidationsErrors errors, AtomicBoolean fatalError) {
 		progressionHandler.beforeValidationOfSchema(schemaType);
 		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
 		while (importDataIterator.hasNext()) {
+
 			final ImportData importData = importDataIterator.next();
-			progressionHandler.validatingRecord(numberOfRecords, importData.getLegacyId());
+
+			boolean hasErrors;
 			numberOfRecords++;
 			if (importData.getLegacyId() == null) {
 				fatalError.set(true);
@@ -127,6 +129,7 @@ public class RecordsImportValidator {
 				parameters.put("index", "" + (importData.getIndex() + 1));
 
 				errors.add(RecordsImportServices.class, REQUIRED_ID, parameters);
+				hasErrors = true;
 			} else {
 				DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
 					@Override
@@ -166,8 +169,9 @@ public class RecordsImportValidator {
 				if (decoratedErrors.hasDecoratedErrors()) {
 					this.skippedRecordsImport.markAsSkippedBecauseOfFailure(schemaType, importData.getLegacyId());
 				}
+				hasErrors = decoratedErrors.hasDecoratedErrors();
 			}
-
+			progressionHandler.afterRecordValidation(importData.getLegacyId(), hasErrors);
 		}
 
 		validateAllReferencesResolved(errors);

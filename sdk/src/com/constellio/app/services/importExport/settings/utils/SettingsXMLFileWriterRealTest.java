@@ -21,7 +21,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils implements SettingsXMLFileConstants {
+public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUtils implements SettingsXMLFileConstants {
 
 	private SettingsXMLFileWriter writer;
 
@@ -269,7 +269,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 		assertThat(dataEntry.getAttributeValue("calculator")).isEqualTo(qualifiedName);
 
 		String outputFilePath = "settings-types-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
@@ -327,7 +327,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 		assertThat(dataEntry.getAttributeValue("copiedMetadata")).isEqualTo("title");
 
 		String outputFilePath = "settings-types-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
@@ -388,7 +388,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 		assertThat(dataEntry.getText()).isEqualTo(pattern);
 
 		String outputFilePath = "settings-types-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
@@ -493,7 +493,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 		assertThat(metadata2Elem.getAttributeValue(INPUT_MASK)).isEqualTo("9999-9999");
 
 		String outputFilePath = "settings-types-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
@@ -646,7 +646,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 		assertThat(metadata3Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
 		String outputFilePath = "settings-types-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
@@ -871,7 +871,7 @@ public class SettingsXMLFileWriterTest extends SettingsImportServicesTestUtils i
 		assertThat(metadata3Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
 
 		String outputFilePath = "settings-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);

@@ -52,6 +52,10 @@ public class BulkUploader {
 		uploadAsync(key, streamFactory, true, null);
 	}
 
+	public void uploadAsync(final String key, final StreamFactory<InputStream> streamFactory, String fileName) {
+		uploadAsync(key, streamFactory, true, fileName);
+	}
+
 	public void uploadAsyncWithoutParsing(final String key, final StreamFactory<InputStream> streamFactory, String fileName) {
 		uploadAsync(key, streamFactory, false, fileName);
 	}
