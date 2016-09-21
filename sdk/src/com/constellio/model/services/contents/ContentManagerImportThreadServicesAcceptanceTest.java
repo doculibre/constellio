@@ -27,7 +27,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	private String pdfMimetype = "application/pdf";
 	private String tikaOOXMLMimetype = "application/x-tika-ooxml";
 	private String docxMimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
+	private String pptxMimetype = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
 	private String pdf2Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 	private String pdf3Hash = "2O9RyZlxNUL3asxk2yGDT6VIlbs=";
@@ -314,11 +314,11 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		ContentVersionDataSummary data1 = addTextFileToImportAndReturnHash(new File(toImport, "file.html"),
 				htmlWithBody("Chuck Norris"));
 		ContentVersionDataSummary data2 = addFileToImportAndReturnHash(new File(toImport, "file2.pptx"),
-				"testFileWithLargePictureOfEdouard.pptx", tikaOOXMLMimetype);
+				"testFileWithLargePictureOfEdouard.pptx", pptxMimetype);
 		ContentVersionDataSummary data3 = addTextFileToImportAndReturnHash(new File(folder1, "file.html"),
 				htmlWithBody("Edouard Lechat"));
 		ContentVersionDataSummary data4 = addFileToImportAndReturnHash(new File(folder1, "file3.pptx"),
-				"testFileWithLargePictureOfEdouard.pptx", tikaOOXMLMimetype);
+				"testFileWithLargePictureOfEdouard.pptx", pptxMimetype);
 
 		givenTimeIs(LocalDateTime.now().plusSeconds(11));
 		contentManager.uploadFilesInImportFolder();
