@@ -60,7 +60,7 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 		}
 
 		progression += batchQty + " records [" + fromLegacyId + " - " + toLegacyId
-				+ "] - Total of " + batchQty + " records validated";
+				+ "] - Total of " + totalValidated + " records validated";
 
 		LOGGER.info(progression);
 	}

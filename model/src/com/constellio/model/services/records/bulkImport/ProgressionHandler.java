@@ -34,7 +34,7 @@ public class ProgressionHandler {
 			currentBatchErrors++;
 		}
 
-		if (currentBatch.size() > 1000) {
+		if (currentBatch.size() >= 1000) {
 			logValidationBatch();
 		}
 	}
