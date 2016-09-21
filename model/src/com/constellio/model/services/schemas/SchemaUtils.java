@@ -202,7 +202,7 @@ public class SchemaUtils {
 		Map<String, Metadata> index = new HashMap<>();
 		for (Metadata metadata : metadatas) {
 			index.put(metadata.getCode(), metadata);
-			if (metadata.isGlobal()) {
+			if (metadata.isGlobal() || "code".equals(metadata.getLocalCode())) {
 				index.put("global_default_" + metadata.getLocalCode(), metadata);
 			}
 			if (metadata.getInheritance() != null) {
