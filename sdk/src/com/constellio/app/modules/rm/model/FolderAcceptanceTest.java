@@ -96,6 +96,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	LocalDate march31_2061 = new LocalDate(2061, 3, 31);
 	LocalDate march31_2065 = new LocalDate(2065, 3, 31);
 	LocalDate march31_2066 = new LocalDate(2066, 3, 31);
+	LocalDate march31_2075 = new LocalDate(2075, 3, 31);
 
 	RMSchemasRecordsServices rm;
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -749,8 +750,8 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getMainCopyRule()).isEqualTo(secondary("999-0-D", PA));
 		assertThat(folder.getActiveRetentionCode()).isEqualTo("999");
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
-		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly(march31_2065);
-		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2065);
+		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly((LocalDate) null);
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2075);
 		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));
 
 		assertThat(folder.getExpectedTransferDate()).isEqualTo(march31_2065);
@@ -1965,7 +1966,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder1.getExpectedTransferDate()).isEqualTo(march31(1998));
 		assertThat(folder1.getExpectedDestructionDate()).isEqualTo(march31(1986 + 75));
 
-		assertThat(folder2.getExpectedTransferDate()).isEqualTo(march31(1997 + 75));
+		assertThat(folder2.getExpectedTransferDate()).isNull();
 		assertThat(folder2.getExpectedDestructionDate()).isEqualTo(march31(1997 + 75));
 
 		assertThat(folder3.getExpectedTransferDate()).isEqualTo(march31(2002));
@@ -2204,6 +2205,16 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		recordServices.add(folder);
 
 		System.out.println(folder.getCategory());
+	}
+	
+	@Test
+	public void givenRetentionRuleWithoutSemiActivePeriodWhenCreatingAFolderWithThisRuleThenExpectedTransferDateIsNull() 
+			throws Exception {
+		Folder folder = saveAndLoad(folderWithSingleCopyRule(principal("888-0-D", PA))
+				.setOpenDate(november4_2009)
+				.setCloseDateEntered(december12_2009));
+
+		assertThat(folder.getExpectedTransferDate()).isNull();
 	}
 
 	// -------------------------------------------------------------------------

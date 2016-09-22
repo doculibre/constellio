@@ -157,6 +157,17 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		assertThat(calculateFor(1, copy("3-888-T"))).isEqualTo(new LocalDate(2005, 4, 5));
 	}
 
+	@Test
+	public void givenNullExpectedTransferDateWhenCalculatingThenReturnNotNullDate()
+			throws Exception {
+		inactiveConfigNumberOfYearWhenVariableDelay = 7;
+		archivisticStatus = FolderStatus.SEMI_ACTIVE;
+		decommissioningDate = new LocalDate(1998, 4, 5);
+		copyRulesExpectedTransferDate = asList(null, null);
+
+		assertThat(calculateFor(1, copy("3-0-D"))).isEqualTo(new LocalDate(2001, 4, 5));
+	}
+
 	private CopyRetentionRule copy(String delays) {
 		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}

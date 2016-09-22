@@ -142,6 +142,15 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		assertThat(calculateFor(4, copy("888-5-C"))).isEqualTo(new LocalDate(2012, 1, 15));
 	}
 
+	@Test
+	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingExpectedTransferDateThenReturnNull()
+			throws Exception {
+
+		decommissioningDate = new LocalDate(2012, 1, 15);
+		
+		assertThat(calculateFor(4, copy("888-0-C"))).isNull();
+	}
+
 	private CopyRetentionRule copy(String delays) {
 		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
