@@ -387,11 +387,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getTestResourceFile(null, partialName);
 	}
 
-	protected File getTestResourceFile(Class clazz, String partialName) {
-		ensureNotUnitTest();
-		String completeName = (clazz == null) ?
-				getClass().getCanonicalName().replace(".", File.separator) + "-" + partialName :
-				clazz.getCanonicalName().replace(".", File.separator) + "-" + partialName;
+	public static File getTestResourceFileWithoutCheckingIfUnitTest(Class clazz, String partialName) {
+		String completeName = clazz.getCanonicalName().replace(".", File.separator) + "-" + partialName;
 		File resourcesDir = getResourcesDir();
 		File file = new File(resourcesDir, completeName);
 
@@ -399,6 +396,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException("No such file '" + file.getAbsolutePath() + "'");
 		}
 		return file;
+	}
+
+	protected File getTestResourceFile(Class clazz, String partialName) {
+		ensureNotUnitTest();
+		return getTestResourceFileWithoutCheckingIfUnitTest(clazz == null ? getClass() : clazz, partialName);
 	}
 
 	protected StreamFactory<InputStream> getTestResourceInputStreamFactory(final String partialName) {
