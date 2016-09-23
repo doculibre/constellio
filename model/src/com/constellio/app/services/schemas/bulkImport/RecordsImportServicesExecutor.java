@@ -174,7 +174,7 @@ public class RecordsImportServicesExecutor {
 
 		importedFilesMap = new HashMap<>();
 		for (Map.Entry<String, ContentVersionDataSummary> entry : contentManager.getImportedFilesMap().entrySet()) {
-			importedFilesMap.put(entry.getKey().replace("_", ""), entry.getValue());
+			importedFilesMap.put(entry.getKey(), entry.getValue());
 		}
 		for (String schemaType : getImportedSchemaTypes()) {
 
@@ -515,7 +515,7 @@ public class RecordsImportServicesExecutor {
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
 					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
 							version.getUrl().substring("imported://".length()));
-					contentVersionDataSummary = importedFilesMap.get(importedFilePath.replace("_", ""));
+					contentVersionDataSummary = importedFilesMap.get(importedFilePath);
 
 					if (contentVersionDataSummary == null) {
 						Map<String, Object> parameters = new HashMap<>();
