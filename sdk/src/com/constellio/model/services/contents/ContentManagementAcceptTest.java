@@ -32,7 +32,7 @@ import org.mockito.stubbing.Answer;
 
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
@@ -105,17 +105,15 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		withSpiedServices(ContentManager.class);
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				Mockito.when(configuration.getDelayBeforeDeletingUnreferencedContents()).thenReturn(
-						org.joda.time.Duration.standardMinutes(42));
-
-				Mockito.when(configuration.getUnreferencedContentsThreadDelayBetweenChecks()).thenReturn(
-						org.joda.time.Duration.standardHours(10));
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setDelayBeforeDeletingUnreferencedContents(org.joda.time.Duration.standardMinutes(42));
+				configuration.setUnreferencedContentsThreadDelayBetweenChecks(org.joda.time.Duration.standardHours(10));
 			}
 		});
 		customSystemPreparation(new CustomSystemPreparation() {
@@ -1204,6 +1202,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		givenTimeIs(shishOClock);
+
+		assertThat(getModelLayerFactory().getConfiguration().getDelayBeforeDeletingUnreferencedContents()).isEqualTo(
+				org.joda.time.Duration.standardMinutes(42)
+		);
+
+		assertThat(getModelLayerFactory().getConfiguration().getUnreferencedContentsThreadDelayBetweenChecks()).isEqualTo(
+				org.joda.time.Duration.standardHours(10)
+		);
 
 		uploadPdf1InputStream();
 		uploadPdf2InputStream();

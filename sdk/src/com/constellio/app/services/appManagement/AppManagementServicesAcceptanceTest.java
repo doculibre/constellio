@@ -59,7 +59,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 			throws IOException {
 
 		webappsFolder = newTempFolder();
-		File currentConstellioFolder = new File(webappsFolder, "webapp-5.0.5");
+		final File currentConstellioFolder = new File(webappsFolder, "webapp-5.0.5");
 		currentConstellioFolder.mkdirs();
 		commandFile = new File(newTempFolder(), "cmd");
 		uploadWarFile = new File(newTempFolder(), "upload.war");
@@ -69,12 +69,33 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 
 		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
 		ConstellioEIMConfigs eim = mock(ConstellioEIMConfigs.class);
-		foldersLocator = getModelLayerFactory().getFoldersLocator();
-		doReturn(currentConstellioFolder).when(foldersLocator).getConstellioWebappFolder();
-		doReturn(commandFile).when(foldersLocator).getWrapperCommandFile();
-		doReturn(wrapperConf).when(foldersLocator).getWrapperConf();
-		doReturn(uploadWarFile).when(foldersLocator).getUploadConstellioWarFile();
-		doReturn(pluginsFolder).when(foldersLocator).getPluginsJarsFolder();
+		foldersLocator = new FoldersLocator() {
+
+			@Override
+			public File getConstellioWebappFolder() {
+				return currentConstellioFolder;
+			}
+
+			@Override
+			public File getWrapperCommandFile() {
+				return commandFile;
+			}
+
+			@Override
+			public File getWrapperConf() {
+				return wrapperConf;
+			}
+
+			@Override
+			public File getUploadConstellioWarFile() {
+				return uploadWarFile;
+			}
+
+			@Override
+			public File getPluginsJarsFolder() {
+				return pluginsFolder;
+			}
+		};
 		doReturn(true).when(eim).isCleanDuringInstall();
 		appManagementService = spy(new AppManagementService(getIOLayerFactory(), foldersLocator, systemGlobalConfigsManager,
 				eim, pluginManager, getAppLayerFactory().newUpgradeAppRecoveryService()));

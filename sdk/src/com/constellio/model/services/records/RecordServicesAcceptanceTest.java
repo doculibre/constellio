@@ -23,7 +23,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.security.Key;
@@ -48,7 +47,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -108,7 +107,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
+			public void alter(InMemoryModelLayerConfiguration configuration) {
 
 				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
 
@@ -123,7 +122,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 					}
 				};
 
-				when(configuration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
+				configuration.setEncryptionServicesFactory(encryptionServicesFactory);
 			}
 		});
 

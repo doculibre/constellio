@@ -23,8 +23,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.language.bm.Lang;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
@@ -42,17 +39,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
-import com.constellio.data.conf.HashingEncoding;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -75,14 +67,11 @@ import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -232,9 +221,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				when(configuration.getContentImportThreadFolder()).thenReturn(newTempFolder());
-				doReturn(false).when(configuration).isDeleteUnusedContentEnabled();
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setContentImportThreadFolder(newTempFolder());
+				configuration.setDeleteUnusedContentEnabled(false);
 			}
 		});
 
@@ -1603,7 +1592,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		FileUtils.copyFile(getTestResourceFile("resource1.docx"), new File(toImport, "file1.docx"));
 		FileUtils.copyFile(getTestResourceFile("resource2.pdf"), new File(toImport, "file2.pdf"));
 		FileUtils.copyFile(getTestResourceFile("resource4.docx"), new File(toImport, "folder" + separator + "file3.docx"));
-		FileUtils.copyFile(getTestResourceFile("resource5.pdf"), new File(toImport, "file4.pdf"));
+		FileUtils.copyFile(getTestResourceFile("resource5.pdf"), new File(toImport, "file_4.pdf"));
 		FileUtils.copyFile(getTestResourceFile("resource5.pdf"), new File(toImport, "file5.pdf"));
 
 		String file1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
@@ -1621,7 +1610,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAContentListMetadata());
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
-				.addField("contentMetadata", new ContentImport("imported://file1.docx", "File 1.docx", true, now)));
+				.addField("contentMetadata", new ContentImport("imported://file__1.docx", "File 1.docx", true, now)));
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
 				.addField("contentListMetadata", asList(
@@ -2152,7 +2141,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			);
 		}
 
-		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(100);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(0);
 	}
 
 	@Test

@@ -54,7 +54,7 @@ public class MetadataList implements List<Metadata> {
 	@Override
 	public boolean contains(Object o) {
 		if (o instanceof Metadata) {
-			String code = codeOf((Metadata) o);
+			String code = ((Metadata) o).getInheritanceCode();
 			return codeIndex.containsKey(code);
 		} else {
 			return false;
@@ -383,13 +383,13 @@ public class MetadataList implements List<Metadata> {
 
 	private void addToIndex(Metadata metadata) {
 		localCodeIndex.put(metadata.getLocalCode(), metadata);
-		codeIndex.put(codeOf(metadata), metadata);
+		codeIndex.put(metadata.getInheritanceCode(), metadata);
 		datastoreCodeIndex.put(metadata.getDataStoreCode(), metadata);
 	}
 
 	private void removeFromIndex(Metadata metadata) {
 		localCodeIndex.remove(metadata.getLocalCode());
-		codeIndex.remove(codeOf(metadata));
+		codeIndex.remove(metadata.getInheritanceCode());
 		datastoreCodeIndex.remove(metadata.getDataStoreCode());
 	}
 
@@ -402,7 +402,7 @@ public class MetadataList implements List<Metadata> {
 	private void setIndexes(int index, Metadata element) {
 		removeFromIndex(nestedList.get(index));
 		localCodeIndex.put(element.getLocalCode(), element);
-		codeIndex.put(codeOf(element), element);
+		codeIndex.put(element.getInheritanceCode(), element);
 		datastoreCodeIndex.put(element.getDataStoreCode(), element);
 	}
 
@@ -519,7 +519,7 @@ public class MetadataList implements List<Metadata> {
 	public MetadataList onlyNotGlobals() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
-			if (!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+			if (!metadata.isGlobal()) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -549,16 +549,6 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>(nestedList);
 		Collections.sort(filteredMetadatasList, comparator);
 		return new MetadataList(filteredMetadatasList).unModifiable();
-	}
-
-	private String codeOf(Metadata metadata) {
-		String code = metadata.getCode();
-		if (metadata.getInheritance() == null) {
-			return metadata.getCode();
-		} else {
-			String[] parts = SchemaUtils.underscoreSplitWithCache(code);
-			return parts[0] + "_default_" + parts[2];
-		}
 	}
 
 	public boolean containsMetadataWithLocalCode(String localCode) {

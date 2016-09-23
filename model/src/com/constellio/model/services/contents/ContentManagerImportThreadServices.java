@@ -14,6 +14,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class ContentManagerImportThreadServices {
 			} else {
 				String key = toKey(file);
 				if (file.length() > 0) {
-					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
 					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
@@ -110,7 +111,7 @@ public class ContentManagerImportThreadServices {
 			for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
 				String key = toBigFileKey(extractedBigFileFolder, file);
 				if (file.length() > 0) {
-					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
 					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));

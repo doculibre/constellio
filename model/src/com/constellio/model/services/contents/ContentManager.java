@@ -481,10 +481,7 @@ public class ContentManager implements StatefulService {
 		deleteUnreferencedContents(RecordsFlushing.NOW());
 	}
 
-	AtomicInteger counter = new AtomicInteger();
-
 	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {
-		LOGGER.info("deleteUnreferencedContents " + counter.incrementAndGet());
 		List<RecordDTO> potentiallyDeletableContentMarkers;
 
 		while (!(potentiallyDeletableContentMarkers = getNextPotentiallyUnreferencedContentMarkers()).isEmpty()) {

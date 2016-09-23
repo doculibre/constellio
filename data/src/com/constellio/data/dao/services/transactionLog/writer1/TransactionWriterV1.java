@@ -139,15 +139,19 @@ public class TransactionWriterV1 {
 	}
 
 	private Collection<Object> removeEmptyStrings(Collection collection) {
-		List<Object> values = new ArrayList<>();
+		if (collection.contains("")) {
+			List<Object> values = new ArrayList<>();
 
-		for (Object item : collection) {
-			if (!"".equals(item)) {
-				values.add(item);
+			for (Object item : collection) {
+				if (!"".equals(item)) {
+					values.add(item);
+				}
 			}
-		}
 
-		return values;
+			return values;
+		} else {
+			return collection;
+		}
 	}
 
 	private void appendValue(StringBuilder stringBuilder, String fieldLogName, Object item) {

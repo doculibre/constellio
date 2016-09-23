@@ -46,6 +46,16 @@ public class ResolverCache {
 		this.importDataProvider = importDataProvider;
 	}
 
+	public int getCacheTotalSize() {
+		int nbElements = 0;
+		for (Map.Entry<String, Map<String, SchemaTypeUniqueMetadataMappingCache>> element : cache.entrySet()) {
+			for (SchemaTypeUniqueMetadataMappingCache cache : element.getValue().values()) {
+				nbElements += cache.getItemsCount();
+			}
+		}
+		return nbElements;
+	}
+
 	public SchemaTypeUniqueMetadataMappingCache getSchemaTypeCache(String schemaType, String metadata) {
 		if (!cache.containsKey(schemaType)) {
 			cache.put(schemaType, new HashMap<String, SchemaTypeUniqueMetadataMappingCache>());
@@ -211,6 +221,27 @@ public class ResolverCache {
 
 				return legacyIds.contains(legacyId);
 			}
+		}
+
+		public int getItemsCount() {
+			int size = 0;
+			if (idsMapping != null) {
+				size += idsMapping.size();
+			}
+			if (searchMapping != null) {
+				size += searchMapping.size();
+			}
+			if (recordsInFile != null) {
+				size += recordsInFile.size();
+			}
+			if (unresolvedLegacyIds != null) {
+				size += unresolvedLegacyIds.size();
+			}
+			if (legacyIds != null) {
+				size += legacyIds.size();
+			}
+
+			return size;
 		}
 	}
 
