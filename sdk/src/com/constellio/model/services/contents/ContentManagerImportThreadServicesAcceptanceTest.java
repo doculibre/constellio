@@ -8,12 +8,15 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
@@ -138,7 +141,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(contentManager.getParsedContent(data4.getHash()).getParsedContent()).isEqualTo("Darth Vador");
 
 		assertThat(indexProperties).exists();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("file2.html", data2),
 				entry("folder1/file.html", data3),
@@ -194,7 +197,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		services.importFiles();
 		assertContentAndParsedContentWithHash(data1.getHash());
 		assertNoContentAndParsedContentWithHash(data2.getHash(), data3.getHash(), data4.getHash());
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1)
 		);
 
@@ -202,7 +205,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		services.importFiles();
 		assertContentAndParsedContentWithHash(data1.getHash(), data2.getHash());
 		assertNoContentAndParsedContentWithHash(data3.getHash(), data4.getHash());
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("file2.html", data2)
 		);
@@ -211,7 +214,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		services.importFiles();
 		assertContentAndParsedContentWithHash(data1.getHash(), data2.getHash(), data3.getHash());
 		assertNoContentAndParsedContentWithHash(data4.getHash());
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("file2.html", data2),
 				entry("folder1/file.html", data3)
@@ -226,7 +229,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(contentManager.getParsedContent(data4.getHash()).getParsedContent()).isEqualTo("Darth Vador");
 
 		assertThat(indexProperties).exists();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("file2.html", data2),
 				entry("folder1/file.html", data3),
@@ -258,7 +261,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertNoContentAndParsedContentWithHash(data2.getHash());
 
 		assertThat(toImport.list()).isEmpty();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("folder1/file.html", data3)
 		);
@@ -289,7 +292,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertContentAndParsedContentWithHash(data1.getHash(), data3.getHash());
 
 		assertThat(toImport.list()).isEmpty();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("file2.pdf", data2),
 				entry("folder1/file.html", data3),
@@ -327,7 +330,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertContentAndParsedContentWithHash(data1.getHash(), data3.getHash());
 
 		assertThat(toImport.list()).isEmpty();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("file.html", data1),
 				entry("file2.pptx", data2),
 				entry("folder1/file.html", data3),
@@ -358,7 +361,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
 
 		assertThat(toImport.list()).isEmpty();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
@@ -380,6 +383,16 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(errorsUnparsable.list()).isEmpty();
 	}
 
+	private Map<String, ContentVersionDataSummary> factorize(Map<String, Factory<ContentVersionDataSummary>> importedFilesMap) {
+		Map<String, ContentVersionDataSummary> map = new HashMap<>();
+
+		for (Map.Entry<String, Factory<ContentVersionDataSummary>> mapEntry : importedFilesMap.entrySet()) {
+			map.put(mapEntry.getKey(), mapEntry.getValue().get());
+		}
+
+		return map;
+	}
+
 	@Test
 	public void givenBigFilesAreCopiedInImportFolderThenAreImportedInBatch()
 			throws Exception {
@@ -397,7 +410,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		services.importFiles();
 		assertContentAndParsedContentWithHash(pdf1Hash, docx1Hash, docx2Hash);
 		assertNoContentAndParsedContentWithHash(pdf3Hash, pdf2Hash);
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
@@ -413,7 +426,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		System.out.println("Step #2");
 		services.importFiles();
 		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx1.docx", docx1Data),
 				entry("bigFile.bigf" + File.separator + "ContentManagementAcceptTest-docx2.docx", docx2Data),
@@ -451,7 +464,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertContentAndParsedContentWithHash(pdf1Hash, pdf2Hash, pdf3Hash, docx1Hash, docx2Hash);
 
 		assertThat(toImport.list()).isEmpty();
-		assertThat(contentManager.getImportedFilesMap()).containsOnly(
+		assertThat(factorize(contentManager.getImportedFilesMap())).containsOnly(
 				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-pdf1.pdf", pdf1Data),
 				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-pdf2.pdf", pdf2Data),
 				entry("fileWithErrors.bigf" + File.separator + "ContentManagementAcceptTest-pdf3.pdf", pdf3Data),

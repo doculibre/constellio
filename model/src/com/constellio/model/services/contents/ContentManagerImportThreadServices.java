@@ -14,16 +14,15 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileIterator;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ContentManagerImportThreadServices {
@@ -264,21 +263,59 @@ public class ContentManagerImportThreadServices {
 		errorsUnparsableFolder.mkdirs();
 	}
 
-	public Map<String, ContentVersionDataSummary> readFileNameSHA1Index() {
+	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {
 		if (!indexProperties.exists()) {
 			return Collections.emptyMap();
 		}
-		Map<String, ContentVersionDataSummary> map = new HashMap<>();
+		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(indexProperties).entrySet()) {
-			map.put(entry.getKey(), toContentVersionDataSummary(entry.getValue()));
+			final String value = entry.getValue();
+			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
+				@Override
+				public ContentVersionDataSummary get() {
+					return toContentVersionDataSummary(value);
+				}
+			});
 		}
 		return map;
 	}
 
-	private ContentVersionDataSummary toContentVersionDataSummary(String value) {
+	private static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
+		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
+		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(file).entrySet()) {
+			final String value = entry.getValue();
+			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
+				@Override
+				public ContentVersionDataSummary get() {
+					return toContentVersionDataSummary(value);
+				}
+			});
+		}
+		return map;
+	}
+
+	private static ContentVersionDataSummary toContentVersionDataSummary(String value) {
 		String[] parts = value.split(":");
 		String mimetype = "null".equals(parts[2]) ? null : parts[2];
 		return new ContentVersionDataSummary(parts[0], mimetype, Integer.valueOf(parts[1]));
 	}
 
+	public static void main(String argv[]) {
+		Map<String, Factory<ContentVersionDataSummary>> map = buildSHA1Map(
+				new File("/Users/francisbaril/À traiter/Téléchargements du 16-09-17/sha1-index.properties"));
+
+		List<String> keys = new ArrayList<>(map.keySet());
+		List<ContentVersionDataSummary> values = new ArrayList<>();
+		for (int i = 0; i < keys.size(); i++) {
+			//ContentVersionDataSummary data = map.get(keys.get(i)).get();
+			//values.add(data);
+			//System.out.println(i + " " + data.getHash());
+		}
+		try {
+			Thread.sleep(100000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
 }
