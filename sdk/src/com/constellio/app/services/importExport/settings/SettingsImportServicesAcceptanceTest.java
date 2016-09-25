@@ -37,7 +37,9 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
@@ -71,6 +73,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
@@ -109,6 +112,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	SystemConfigurationsManager systemConfigurationsManager;
 	MetadataSchemasManager metadataSchemasManager;
 	SchemasDisplayManager schemasDisplayManager;
+	LabelTemplateManager labelTemplateManager;
 	boolean runTwice;
 	SettingsImportServices services;
 	ImportedSettings settings = new ImportedSettings();
@@ -116,7 +120,28 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	ImportedCollectionSettings anotherCollectionSettings;
 
 	@Test
+	public void whenImportingLabelTemplatesThenCorrectlyImported()
+			throws ValidationException {
 
+		settings.addImportedLabelTemplate(getTestResourceContent("template1.xml"));
+		importSettings();
+
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name").containsOnly("Ze template #1");
+
+		settings = new ImportedSettings();
+		settings.addImportedLabelTemplate(getTestResourceContent("template1b.xml"));
+		settings.addImportedLabelTemplate(getTestResourceContent("template2.xml"));
+		importSettings();
+		assertThat(labelTemplateManager.listTemplates(Folder.SCHEMA_TYPE)).extracting("name")
+				.containsOnly("Ze template #1b", "Ze template #2");
+
+		assertThat(new LabelTemplateManager(getDataLayerFactory().getConfigManager()).listTemplates(Folder.SCHEMA_TYPE))
+				.extracting("name").containsOnly("Ze template #1b", "Ze template #2");
+
+		runTwice = false;
+	}
+
+	@Test
 	public void whenImportingMetadataWithCopiedDataEntryTypeThenOK()
 			throws ValidationException {
 
@@ -3045,7 +3070,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
 
 			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings).read();
-			assertThat(settings2.toString()).isEqualTo(settings.toString());
+			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);
 
 			services.importSettings(settings);
@@ -3057,6 +3082,19 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			runTwice = false;
 			throw e;
 		}
+	}
+
+	private String trimLines(String lines) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (String line : lines.split("\n")) {
+			if (stringBuilder.length() > 0) {
+				stringBuilder.append("\n");
+			}
+			stringBuilder.append(line.trim());
+		}
+
+		return stringBuilder.toString();
 	}
 
 	private ListAssert<String> assertThatErrorsContainsLocalizedMessagesWhileImportingSettings(String... params) {
@@ -3097,6 +3135,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		labelTemplateManager = getAppLayerFactory().getLabelTemplateManager();
 		runTwice = true;
 	}
 

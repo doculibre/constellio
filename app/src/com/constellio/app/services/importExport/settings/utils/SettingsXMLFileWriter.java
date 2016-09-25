@@ -1,12 +1,27 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import com.constellio.app.services.importExport.settings.model.*;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
-import java.util.List;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 
 public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
@@ -25,6 +40,8 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 	public Document writeSettings(ImportedSettings importedSettings) {
 
+		addLabelTemplates(importedSettings.getImportedLabelTemplates());
+
 		addGlobalConfigs(importedSettings.getConfigs());
 
 		addSequences(importedSettings.getSequences());
@@ -33,6 +50,28 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 		return document;
 
+	}
+
+	private void addLabelTemplates(List<ImportedLabelTemplate> importedLabelTemplates) {
+		if (!importedLabelTemplates.isEmpty()) {
+			Element labelTemplatesElement = new Element(LABEL_TEMPLATES);
+			settingsElement.addContent(labelTemplatesElement);
+			SAXBuilder builder = new SAXBuilder();
+
+			for (ImportedLabelTemplate labelTemplate : importedLabelTemplates) {
+				try {
+					Document document = builder.build(new StringReader(labelTemplate.getXml()));
+					Element element = document.getRootElement();
+					element.detach();
+					labelTemplatesElement.addContent(element);
+
+				} catch (JDOMException | IOException e) {
+					throw new RuntimeException(e);
+				}
+
+			}
+
+		}
 	}
 
 	public void addSequences(List<ImportedSequence> sequences) {

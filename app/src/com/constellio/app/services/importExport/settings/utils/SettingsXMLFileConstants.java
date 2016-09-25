@@ -28,6 +28,8 @@ public interface SettingsXMLFileConstants {
 	String SEQUENCES = "sequences";
 	String SEQUENCE = "sequence";
 
+	String LABEL_TEMPLATES = "labelTemplate";
+
 	String DEFAULT_SCHEMA = "default-schema";
 	String METADATA = "metadata";
 	String LABEL = "label";

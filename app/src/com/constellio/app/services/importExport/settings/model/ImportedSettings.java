@@ -11,14 +11,31 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class ImportedSettings {
 
+	List<ImportedLabelTemplate> importedLabelTemplates = new ArrayList<>();
+
 	List<ImportedConfig> configs = new ArrayList<>();
 
 	List<ImportedSequence> sequences = new ArrayList<>();
 
 	List<ImportedCollectionSettings> collectionsSettings = new ArrayList<>();
 
+	public List<ImportedLabelTemplate> getImportedLabelTemplates() {
+		return importedLabelTemplates;
+	}
+
+	public ImportedSettings addImportedLabelTemplate(String xml) {
+		importedLabelTemplates.add(new ImportedLabelTemplate(xml));
+		return this;
+	}
+
 	public List<ImportedConfig> getConfigs() {
 		return configs;
+	}
+
+	public ImportedSettings setImportedLabelTemplates(
+			List<ImportedLabelTemplate> importedLabelTemplates) {
+		this.importedLabelTemplates = importedLabelTemplates;
+		return this;
 	}
 
 	public ImportedSettings addConfig(ImportedConfig config) {

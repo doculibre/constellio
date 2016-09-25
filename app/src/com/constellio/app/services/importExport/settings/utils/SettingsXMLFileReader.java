@@ -5,7 +5,14 @@ import com.constellio.app.services.importExport.settings.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.DOMOutputter;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
@@ -27,11 +34,24 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		Element rootNode = document.getRootElement();
 
 		ImportedSettings importedSettings = new ImportedSettings()
+				.setImportedLabelTemplates(readLabelTemplates(rootNode.getChild(LABEL_TEMPLATES)))
 				.setConfigs(readConfigs(rootNode.getChild(CONFIGS)))
 				.setImportedSequences(readSequences(rootNode.getChild(SEQUENCES)))
 				.setCollectionsSettings(readCollectionSettings(rootNode.getChildren(COLLECTION_SETTINGS)));
 
 		return importedSettings;
+	}
+
+	private List<ImportedLabelTemplate> readLabelTemplates(Element importedLabelTemplatesElement) {
+		List<ImportedLabelTemplate> templates = new ArrayList<>();
+		if (importedLabelTemplatesElement != null) {
+			for (Element element : importedLabelTemplatesElement.getChildren()) {
+				XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
+				String xml = xmlOutput.outputString(element).replace(" />", "/>");
+				templates.add(new ImportedLabelTemplate(xml));
+			}
+		}
+		return templates;
 	}
 
 	private List<ImportedSequence> readSequences(Element sequencesElement) {

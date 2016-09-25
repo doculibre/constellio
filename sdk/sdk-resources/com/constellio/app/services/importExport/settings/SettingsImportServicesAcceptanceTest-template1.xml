@@ -1,0 +1,36 @@
+<labelTemplate>
+    <key>folderTemplate1</key>
+    <name>Ze template #1</name>
+    <schemaType>folder</schemaType>
+    <layout>AVERY_5159</layout>
+    <columns>2</columns>
+    <lines>7</lines>
+    <field>
+        <metadataCode>folder_default_title</metadataCode>
+        <referenceMetadataCode/>
+        <x>1</x>
+        <y>2</y>
+        <width>6</width>
+        <height>5</height>
+        <fontName>Courier</fontName>
+        <fontSize>10</fontSize>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+        <prefix/>
+        <suffix/>
+    </field>
+    <field>
+        <metadataCode>folder_default_administrativeUnitId</metadataCode>
+        <referenceMetadataCode>administrativeUnit_default_code</referenceMetadataCode>
+        <x>5</x>
+        <y>5</y>
+        <width>6</width>
+        <height>5</height>
+        <fontName>Courier</fontName>
+        <fontSize>10</fontSize>
+        <maxLength>10</maxLength>
+        <horizontalAlignment>RIGHT</horizontalAlignment>
+        <verticalAlignment>TOP</verticalAlignment>
+    </field>
+</labelTemplate>
