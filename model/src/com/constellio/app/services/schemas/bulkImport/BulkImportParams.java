@@ -8,6 +8,17 @@ public class BulkImportParams {
 
 	int batchSize = 500;
 
+	int threads = 1;
+
+	public int getThreads() {
+		return threads;
+	}
+
+	public BulkImportParams setThreads(int threads) {
+		this.threads = threads;
+		return this;
+	}
+
 	public int getBatchSize() {
 		return batchSize;
 	}

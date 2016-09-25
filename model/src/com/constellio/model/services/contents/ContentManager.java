@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -280,7 +281,10 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
+	int contentVersionSummary = 0;
+
 	public ContentVersionDataSummary getContentVersionSummary(String hash) {
+		System.out.println((++contentVersionSummary) + "getContentVersionSummary(" + hash + ")");
 		ParsedContent parsedContent = getParsedContentParsingIfNotYetDone(hash);
 		return new ContentVersionDataSummary(hash, parsedContent.getMimeType(), parsedContent.getLength());
 	}
@@ -528,7 +532,6 @@ public class ContentManager implements StatefulService {
 	}
 
 	public ParsedContent getParsedContent(String hash) {
-
 		String parsedContent = null;
 
 		InputStream inputStream = null;

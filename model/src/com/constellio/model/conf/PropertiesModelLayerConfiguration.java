@@ -84,6 +84,7 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		public void setDelayBeforeDeletingUnreferencedContents(Duration duration) {
 			setDuration("unreferencedContentsThread.delayBeforeDeleting", duration);
 		}
+
 	}
 
 	@Override

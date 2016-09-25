@@ -56,7 +56,7 @@ public class ResolverCache {
 		return nbElements;
 	}
 
-	public SchemaTypeUniqueMetadataMappingCache getSchemaTypeCache(String schemaType, String metadata) {
+	synchronized SchemaTypeUniqueMetadataMappingCache getSchemaTypeCache(String schemaType, String metadata) {
 		if (!cache.containsKey(schemaType)) {
 			cache.put(schemaType, new HashMap<String, SchemaTypeUniqueMetadataMappingCache>());
 		}
@@ -89,7 +89,7 @@ public class ResolverCache {
 		return !getSchemaTypeCache(schemaType, metadata).recordsInFile.contains(legacyId);
 	}
 
-	public boolean isRecordUpdate(String schemaType, String legacyId) {
+	public synchronized boolean isRecordUpdate(String schemaType, String legacyId) {
 		if (!typesRecordsCount.containsKey(schemaType)) {
 			MetadataSchemaType type = types.getSchemaType(schemaType);
 			typesRecordsCount.put(schemaType, searchServices.getResultsCount(from(type).where(LEGACY_ID).isNotNull()));
@@ -160,23 +160,23 @@ public class ResolverCache {
 			this.metadata = metadata;
 		}
 
-		public void mapIds(String legacyId, String id) {
+		public synchronized void mapIds(String legacyId, String id) {
 			idsMapping.put(legacyId, id);
 			recordsInFile.remove(legacyId);
 			unresolvedLegacyIds.remove(legacyId);
 		}
 
-		public void mapSearch(String search, String id) {
+		public synchronized void mapSearch(String search, String id) {
 			searchMapping.put(search, id);
 		}
 
-		public void markLegacyIdAsRequired(String legacyId) {
+		public synchronized void markLegacyIdAsRequired(String legacyId) {
 			if (!idsMapping.containsKey(legacyId) && !recordsInFile.contains(legacyId)) {
 				unresolvedLegacyIds.add(legacyId);
 			}
 		}
 
-		public List<String> getUnresolvableLegacyIds() {
+		public synchronized List<String> getUnresolvableLegacyIds() {
 			for (String requiredLegacyId : new ArrayList<>(unresolvedLegacyIds)) {
 				String id = resolve(schemaType, metadata + ":" + requiredLegacyId);
 				if (id != null) {
@@ -186,16 +186,16 @@ public class ResolverCache {
 			return new ArrayList<>(unresolvedLegacyIds);
 		}
 
-		public void markAsRecordInFile(String legacyId) {
+		public synchronized void markAsRecordInFile(String legacyId) {
 			recordsInFile.add(legacyId);
 			unresolvedLegacyIds.remove(legacyId);
 		}
 
-		public boolean isNewLegacyId(String legacyId) {
+		public synchronized boolean isNewLegacyId(String legacyId) {
 			return !idsMapping.containsKey(legacyId) && !recordsInFile.contains(legacyId);
 		}
 
-		public boolean isRecordUpdate(String legacyId) {
+		public synchronized boolean isRecordUpdate(String legacyId) {
 
 			if (importDataSize == -1) {
 				importDataSize = importDataProvider.size(schemaType);

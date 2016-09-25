@@ -9,6 +9,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class OpenedResourcesWatcher {
 
+	public static boolean logStackTraces = false;
+
 	public static String openingStackHeader = "Where the resource was opened";
 
 	static Map<String, String> openedResourcesOpeningStack = new HashMap<String, String>();
@@ -20,8 +22,12 @@ public class OpenedResourcesWatcher {
 	}
 
 	public static String getOpeningStackTraceOf(String resource) {
-		String stack = openedResourcesOpeningStack.get(resource);
-		return openingStackHeader + " - " + stack;
+		if (logStackTraces) {
+			String stack = openedResourcesOpeningStack.get(resource);
+			return openingStackHeader + " - " + stack;
+		} else {
+			return openingStackHeader;
+		}
 	}
 
 	public static synchronized <T> T onOpen(T resource) {
@@ -30,19 +36,25 @@ public class OpenedResourcesWatcher {
 		}
 		openedResources.put(resource.toString(), resource);
 
-		String stackTrace = ExceptionUtils.getStackTrace(new RuntimeException());
-		openedResourcesOpeningStack.put(resource.toString(), stackTrace);
+		if (logStackTraces) {
+			String stackTrace = ExceptionUtils.getStackTrace(new RuntimeException());
+			openedResourcesOpeningStack.put(resource.toString(), stackTrace);
+		}
 		return resource;
 	}
 
 	public static synchronized void onClose(Object resource) {
 		String key = resource.toString();
 		openedResources.remove(key);
-		openedResourcesOpeningStack.remove(key);
+		if (logStackTraces) {
+			openedResourcesOpeningStack.remove(key);
+		}
 	}
 
 	public static void clear() {
 		openedResources.clear();
-		openedResourcesOpeningStack.clear();
+		if (logStackTraces) {
+			openedResourcesOpeningStack.clear();
+		}
 	}
 }
