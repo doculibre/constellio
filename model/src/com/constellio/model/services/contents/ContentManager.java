@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
@@ -42,6 +41,7 @@ import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.hashing.HashingService;
@@ -70,6 +70,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.utils.Lazy;
 
 public class ContentManager implements StatefulService {
 
@@ -403,7 +404,7 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	public Map<String, ContentVersionDataSummary> getImportedFilesMap() {
+	public Map<String, Factory<ContentVersionDataSummary>> getImportedFilesMap() {
 		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
 	}
 

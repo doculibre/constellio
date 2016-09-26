@@ -35,6 +35,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
@@ -66,7 +67,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
@@ -101,7 +101,7 @@ public class RecordsImportServicesExecutor {
 	private MetadataSchemaTypes types;
 	private Language language;
 	private BulkImportResults importResults;
-	private Map<String, ContentVersionDataSummary> importedFilesMap;
+	private Map<String, Factory<ContentVersionDataSummary>> importedFilesMap;
 	private SkippedRecordsImport skippedRecordsImport;
 	ResolverCache resolverCache;
 
@@ -173,8 +173,8 @@ public class RecordsImportServicesExecutor {
 			throws ValidationException {
 
 		importedFilesMap = new HashMap<>();
-		for (Map.Entry<String, ContentVersionDataSummary> entry : contentManager.getImportedFilesMap().entrySet()) {
-			importedFilesMap.put(entry.getKey().replace("_", ""), entry.getValue());
+		for (Map.Entry<String, Factory<ContentVersionDataSummary>> entry : contentManager.getImportedFilesMap().entrySet()) {
+			importedFilesMap.put(entry.getKey(), entry.getValue());
 		}
 		for (String schemaType : getImportedSchemaTypes()) {
 
@@ -515,7 +515,7 @@ public class RecordsImportServicesExecutor {
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
 					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
 							version.getUrl().substring("imported://".length()));
-					contentVersionDataSummary = importedFilesMap.get(importedFilePath.replace("_", ""));
+					contentVersionDataSummary = importedFilesMap.get(importedFilePath).get();
 
 					if (contentVersionDataSummary == null) {
 						Map<String, Object> parameters = new HashMap<>();
