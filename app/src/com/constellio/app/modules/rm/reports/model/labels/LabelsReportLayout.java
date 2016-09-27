@@ -47,6 +47,11 @@ public enum LabelsReportLayout {
 		return numberOfColumns;
 	}
 
+	public int getNumberOfLabelsPerPage() {
+		return numberOfColumns * numberOfRows;
+	}
+
+
 	public int getNumberOfRows() {
 		return numberOfRows;
 	}

@@ -3,6 +3,9 @@ package com.constellio.app.services.importExport.settings;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,10 +15,14 @@ import java.util.Set;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -23,6 +30,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata.ListType;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
@@ -36,6 +44,7 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -109,6 +118,8 @@ public class SettingsImportServices {
 	private void run(ImportedSettings settings)
 			throws ValidationException {
 
+		importLabelTemplates(settings);
+
 		importGlobalConfigurations(settings);
 
 		importSequences(settings);
@@ -117,6 +128,20 @@ public class SettingsImportServices {
 
 			importCollectionConfigurations(collectionSettings);
 		}
+	}
+
+	private void importLabelTemplates(ImportedSettings settings) {
+		LabelTemplateManager labelTemplateManager = appLayerFactory.getLabelTemplateManager();
+		for (ImportedLabelTemplate template : settings.getImportedLabelTemplates()) {
+			try {
+				Document document = new SAXBuilder().build(new StringReader(template.getXml()));
+				labelTemplateManager.addUpdateLabelTemplate(document);
+
+			} catch (JDOMException | IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 	}
 
 	private void importCollectionConfigurations(final ImportedCollectionSettings collectionSettings) {

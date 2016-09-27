@@ -2,7 +2,10 @@ package com.constellio.model.services.records.extractions;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
@@ -23,11 +26,11 @@ import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-
 
 public class RecordPopulateServices {
 
@@ -50,8 +53,12 @@ public class RecordPopulateServices {
 	}
 
 	public void populate(Record record) {
-
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager);
+		populate(record, parsedContentProvider);
+	}
+
+	public void populate(Record record, ParsedContentProvider parsedContentProvider) {
+
 		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 		List<Metadata> contentMetadatas = schema.getMetadatas().onlyWithType(CONTENT).sortedUsing(new ContentsComparator());
@@ -203,7 +210,6 @@ public class RecordPopulateServices {
 							break;
 						}
 
-
 					}
 				}
 				return value;
@@ -212,7 +218,7 @@ public class RecordPopulateServices {
 		}
 
 		private Object populateUsingMetatdataPopulator(Record record) {
-			for (MetadataPopulator metadataPopulator: metadata.getPopulateConfigs().getMetadataPopulators()){
+			for (MetadataPopulator metadataPopulator : metadata.getPopulateConfigs().getMetadataPopulators()) {
 				metadataPopulator.init(contentManager, schema, metadata.isMultivalue());
 				Object value = metadataPopulator.getPopulationValue(record);
 				if (value != null)
@@ -396,7 +402,9 @@ public class RecordPopulateServices {
 
 			String fileName = content.getCurrentVersion().getFilename();
 
-			return fileName == null ? new ArrayList<String>() : Collections.singletonList(content.getCurrentVersion().getFilename());
+			return fileName == null ?
+					new ArrayList<String>() :
+					Collections.singletonList(content.getCurrentVersion().getFilename());
 
 		}
 
@@ -488,24 +496,4 @@ public class RecordPopulateServices {
 		}
 	}
 
-	private static class ParsedContentProvider {
-
-		Map<String, ParsedContent> cache = new HashMap<>();
-
-		ContentManager contentManager;
-
-		private ParsedContentProvider(ContentManager contentManager) {
-			this.contentManager = contentManager;
-		}
-
-		public ParsedContent getParsedContentParsingIfNotYetDone(String hash) {
-			ParsedContent parsedContent = cache.get(hash);
-			if (parsedContent == null) {
-				parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash);
-				cache.put(hash, parsedContent);
-			}
-
-			return parsedContent;
-		}
-	}
 }

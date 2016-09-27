@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.model.conf.FoldersLocator;
@@ -44,6 +45,7 @@ public class ConstellioTestSession {
 		session = new ConstellioTestSession();
 		i18n.setLocale(Locale.FRENCH);
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
+		OpenedResourcesWatcher.logStackTraces = true;
 		session.sdkProperties = sdkProperties;
 		session.skipTestsRule = skipTestsRule;
 		session.toggleTestFeature = new ToggleTestFeature(session.sdkProperties);

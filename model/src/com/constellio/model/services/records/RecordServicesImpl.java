@@ -68,6 +68,7 @@ import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
+import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
@@ -378,8 +379,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
 		List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
+		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
+				transaction.getParsedContentCache());
 		for (Record record : records) {
-			recordPopulateServices.populate(record);
+			recordPopulateServices.populate(record, parsedContentProvider);
 
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
@@ -654,8 +657,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
 		List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,
+				transaction.getParsedContentCache());
 		fieldsPopulators.add(new SearchFieldsPopulator(
-				types, transaction.getRecordUpdateOptions().isFullRewrite(), contentManager, collectionLanguages));
+				types, transaction.getRecordUpdateOptions().isFullRewrite(), parsedContentProvider, collectionLanguages));
 		fieldsPopulators.add(new AutocompleteFieldPopulator());
 		fieldsPopulators.add(new SortFieldsPopulator(types, transaction.getRecordUpdateOptions().isFullRewrite()));
 

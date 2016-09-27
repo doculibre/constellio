@@ -280,7 +280,7 @@ public class ContentManagerImportThreadServices {
 		return map;
 	}
 
-	private static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
+	public static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
 		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(file).entrySet()) {
 			final String value = entry.getValue();
@@ -300,22 +300,4 @@ public class ContentManagerImportThreadServices {
 		return new ContentVersionDataSummary(parts[0], mimetype, Integer.valueOf(parts[1]));
 	}
 
-	public static void main(String argv[]) {
-		Map<String, Factory<ContentVersionDataSummary>> map = buildSHA1Map(
-				new File("/Users/francisbaril/À traiter/Téléchargements du 16-09-17/sha1-index.properties"));
-
-		List<String> keys = new ArrayList<>(map.keySet());
-		List<ContentVersionDataSummary> values = new ArrayList<>();
-		for (int i = 0; i < keys.size(); i++) {
-			//ContentVersionDataSummary data = map.get(keys.get(i)).get();
-			//values.add(data);
-			//System.out.println(i + " " + data.getHash());
-		}
-		try {
-			Thread.sleep(100000);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-
-	}
 }

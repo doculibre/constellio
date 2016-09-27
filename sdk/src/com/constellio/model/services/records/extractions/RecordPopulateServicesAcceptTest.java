@@ -8,6 +8,7 @@ import com.constellio.app.modules.robots.model.actions.RunExtractorsActionExecut
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
+import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.entities.records.Content;
@@ -35,8 +36,10 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapter;
 import com.constellio.sdk.tests.setups.Users;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,7 @@ import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITL
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
@@ -997,17 +1001,20 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		assertThatRecord(record).hasMetadataValue(ultimateDocumentSchema.get("aCustomMetadata"), "Client4");
 		assertThatRecord(record).hasMetadataValue(ultimateDocumentSchema.get(Document.TYPE), "type1");
 		assertThatRecord(record).hasMetadataValue(ultimateDocumentSchema.get("typeName"), "Ze ultimate document type");
-
+		verify(contentManager).getParsedContent(mappedToACustomSchema.getHash());
 	}
 
 	@Test
-	public void givenAMetadataPopulatorConfiguredWithRegexWhenAddUpdateRecordThenUpdateValues() throws RecordServicesException {
+	public void givenAMetadataPopulatorConfiguredWithRegexWhenAddUpdateRecordThenUpdateValues()
+			throws RecordServicesException {
 		defineSchemasManager().using(schemas.with(fourMetadatas()
 				.withStringMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator(),
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION)
+								.convertToMetatdataPopulator(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator()
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION)
+								.convertToMetatdataPopulator()
 				)
 				.withTextMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1015,9 +1022,11 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				)
 				.withStringsMeta(
 						populatedByRegex("Édouard").onMetadata("requiredContent")
-								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator(),
+								.settingValue("Édouard Lechat").settingType(RegexConfigType.SUBSTITUTION)
+								.convertToMetatdataPopulator(),
 						populatedByRegex("Gandalf").onMetadata("requiredContent")
-								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION).convertToMetatdataPopulator()
+								.settingValue("Gandalf Leblanc").settingType(RegexConfigType.SUBSTITUTION)
+								.convertToMetatdataPopulator()
 				)
 				.withTextsMeta(
 						populatedByRegex("(A-[0-9]+)").onMetadata("title").settingValue(
@@ -1028,7 +1037,8 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		Record record = new TestRecord(zeSchemas)
 				.set(Schemas.TITLE, "Ze A-39!")
 				.set(zeSchemas.requiredContent(), createContent(documentWithStylesAndProperties1));
-		MetadataList populated = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode()).getMetadatas().onlyPopulated();
+		MetadataList populated = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(record.getCollection())
+				.getSchema(record.getSchemaCode()).getMetadatas().onlyPopulated();
 		assertThat(populated).isNotEmpty();
 		services.populate(record);
 
@@ -1239,6 +1249,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		withSpiedServices(ContentManager.class);
 		prepareSystem(withZeCollection().withConstellioRMModule().withRobotsModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 				.withAllTest(users));
@@ -1274,7 +1285,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				.upload(getTestResourceInputStream("DocumentWithStylesAndNoProperties.docx"));
 		withoutStylesAndProperties = contentManager.upload(getTestResourceInputStream("withoutStylesAndProperties.docx"));
 		mappedToACustomSchema = contentManager.upload(getTestResourceInputStream("DocumentMappedToACustomSchema.docx"));
-
+		Mockito.reset(contentManager);
 	}
 
 	private MetadataBuilderConfigurator defaultValue(final Object value) {
@@ -1389,7 +1400,6 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		}
 	}
 
-
 	public static class OngoingRegexConfig {
 		String regex;
 		String metadata;
@@ -1419,7 +1429,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			return this;
 		}
 
-		public OngoingRegexConfig settingType(RegexConfigType regexConfigType){
+		public OngoingRegexConfig settingType(RegexConfigType regexConfigType) {
 			this.type = regexConfigType;
 			return this;
 		}
@@ -1440,7 +1450,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 			};
 		}
 
-		public MetadataBuilderConfigurator convertToMetatdataPopulator(){
+		public MetadataBuilderConfigurator convertToMetatdataPopulator() {
 			final RegexConfig config = new RegexConfig(metadata, Pattern.compile(regex), value, type);
 			final DefaultMetadataPopulator metadataPopulator = new DefaultMetadataPopulator(
 					new RegexExtractor(config.getRegex().pattern(), config.getRegexConfigType() == RegexConfigType.TRANSFORMATION,
@@ -1453,7 +1463,6 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 				}
 			};
 		}
-
 
 	}
 

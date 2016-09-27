@@ -4,6 +4,7 @@ import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.Im
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
+import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LangUtils.StringReplacer;
+import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -191,7 +194,12 @@ public class RecordsImportServicesExecutor {
 			while (!typeImportFinished) {
 
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
-				int skipped = bulkImport(context, importDataIterator, errors);
+				int skipped;
+				if (params.getThreads() == 1) {
+					skipped = bulkImport(context, importDataIterator, errors);
+				} else {
+					skipped = bulkImportInParallel(context, importDataIterator, errors);
+				}
 				if (skipped > 0 && skipped == previouslySkipped) {
 
 					if (errors.isEmpty()) {
@@ -257,14 +265,8 @@ public class RecordsImportServicesExecutor {
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, params.getBatchSize());
 		while (importDataBatches.hasNext()) {
 			try {
-				TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext();
-				typeBatchImportContext.batch = importDataBatches.next();
-				typeBatchImportContext.transaction = new Transaction();
-				typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
-				typeBatchImportContext.options = importDataIterator.getOptions();
-				if (!typeImportContext.recordsBeforeImport) {
-					typeBatchImportContext.transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);
-				}
+				TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext,
+						importDataIterator.getOptions(), importDataBatches.next());
 				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 			} catch (RecordServicesException e) {
@@ -277,6 +279,52 @@ public class RecordsImportServicesExecutor {
 		}
 
 		return skipped;
+	}
+
+	private TypeBatchImportContext newTypeBatchImportContext(TypeImportContext typeImportContext,
+			ImportDataOptions options, List<ImportData> batch) {
+		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext();
+		typeBatchImportContext.batch = batch;
+		typeBatchImportContext.transaction = new Transaction();
+		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
+		typeBatchImportContext.options = options;
+		if (!typeImportContext.recordsBeforeImport) {
+			typeBatchImportContext.transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);
+		}
+		return typeBatchImportContext;
+	}
+
+	int bulkImportInParallel(final TypeImportContext typeImportContext, ImportDataIterator importDataIterator,
+			final ValidationErrors errors)
+			throws ValidationException {
+
+		final AtomicInteger skipped = new AtomicInteger();
+
+		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, params.getBatchSize());
+		final ImportDataOptions options = importDataIterator.getOptions();
+		try {
+			iterateOverRunningTaskInParallel(importDataBatches, params.threads, new IteratorElementTask<List<ImportData>>() {
+				@Override
+				public void executeTask(List<ImportData> value)
+						throws Exception {
+					TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext, options, value);
+					skipped.addAndGet(importBatch(typeImportContext, typeBatchImportContext, errors));
+					recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
+
+				}
+			});
+		} catch (ValidationException e) {
+			throw e;
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		while (importDataIterator.hasNext()) {
+			importDataIterator.next();
+		}
+
+		return skipped.get();
 	}
 
 	private int importBatch(final TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
@@ -515,14 +563,16 @@ public class RecordsImportServicesExecutor {
 				if (version.getUrl().toLowerCase().startsWith("imported://")) {
 					String importedFilePath = IMPORTED_FILEPATH_CLEANER.replaceOn(
 							version.getUrl().substring("imported://".length()));
-					contentVersionDataSummary = importedFilesMap.get(importedFilePath).get();
+					Factory<ContentVersionDataSummary> factory = importedFilesMap.get(importedFilePath);
 
-					if (contentVersionDataSummary == null) {
+					if (factory == null) {
 						Map<String, Object> parameters = new HashMap<>();
 						parameters.put("fileName", contentImport.getFileName());
 						parameters.put("filePath", importedFilePath);
 						errors.add(RecordsImportServices.class, CONTENT_NOT_IMPORTED_ERROR, parameters);
 						return null;
+					} else {
+						contentVersionDataSummary = factory.get();
 					}
 
 				} else {
