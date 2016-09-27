@@ -1,5 +1,6 @@
 package com.constellio.model.utils;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -98,6 +99,25 @@ public class MaskUtils {
 			return new MaskFormatter(mask);
 		} catch (ParseException e) {
 			throw new MaskUtilsException.MaskUtilsException_InvalidMask(mask);
+		}
+	}
+
+	static Pattern onlyNumbers = Pattern.compile("[9-9]+");
+
+	public static String format(String inputMask, String value) {
+		if (inputMask == null) {
+			return value;
+		} else {
+			if (value == null) {
+				return null;
+			} else {
+				if (onlyNumbers.matcher(inputMask).matches()) {
+					String concat = "000000000000000" + value;
+					return concat.substring(concat.length() - inputMask.length());
+				} else {
+					return value;
+				}
+			}
 		}
 	}
 }

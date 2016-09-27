@@ -10,6 +10,7 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
@@ -77,6 +78,7 @@ import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAcceptanceTest extends ConstellioTest {
@@ -334,6 +336,55 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("2");
 		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F2.00");
+
+	}
+
+	@Test()
+	public void givenSchemaWithFixedSequenceMetadataWithPatternWhenAddingValidRecordThenSetNewSequenceValue()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAFixedSequence(whichHasInputMask("99999")));
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
+						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+
+			}
+		});
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isNull();
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isNull();
+
+		record.set(Schemas.TITLE, "Ze title");
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("00001");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F00001.00");
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		record.set(Schemas.TITLE, "Ze title");
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("00002");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F00002.00");
 
 	}
 

@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.utils.MaskUtils.format;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,6 +99,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
+import com.constellio.model.utils.MaskUtils;
 
 public class RecordServicesImpl extends BaseRecordServices {
 
@@ -412,8 +414,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 							if (dataEntry.getFixedSequenceCode() != null) {
 								if (record.get(metadata) == null) {
 									String sequenceCode = dataEntry.getFixedSequenceCode();
-									record.set(metadata,
-											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							} else {
 								Metadata metadataProvidingSequenceCode = schema
@@ -421,8 +423,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 								if (record.isModified(metadataProvidingSequenceCode)) {
 									String sequenceCode = record.get(metadataProvidingSequenceCode);
-									record.set(metadata,
-											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							}
 
