@@ -272,8 +272,9 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -330,8 +331,9 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -391,8 +393,9 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -496,8 +499,9 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -649,8 +653,9 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -874,8 +879,9 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
