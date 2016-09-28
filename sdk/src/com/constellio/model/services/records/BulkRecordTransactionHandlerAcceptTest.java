@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -77,7 +78,7 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenARecordServiceRuntimeExceptionOccurWhileExecutingTheSecondTransactionThenCloseThreadsAndThrowException()
+	public void givenARecordServiceRuntimeExceptionOccurWhileExecutingTheSecondTransactionThenContinueAndThrowException()
 			throws Exception {
 
 		ArgumentCaptor<Transaction> transactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
@@ -92,7 +93,6 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		handler.append(asList(theNextRecord));
 
 		triggerAnExceptionInAThread();
-		Thread.sleep(100);
 
 		try {
 			handler.closeAndJoin();
@@ -101,16 +101,19 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 			//OK
 		}
 
-		verify(recordServices, times(2)).execute(transactionArgumentCaptor.capture());
+		verify(recordServices, times(3)).execute(transactionArgumentCaptor.capture());
 
 		Transaction transactionWithARecord = null;
+		Transaction transactionWithExceptionRecord = null;
 		Transaction transactionWithTheNextRecord = null;
 
 		for (Transaction capturedTransaction : transactionArgumentCaptor.getAllValues()) {
 			if (capturedTransaction.getRecords().contains(aRecord)) {
 				transactionWithARecord = capturedTransaction;
-			} else {
+			} else if (capturedTransaction.getRecords().contains(theNextRecord)) {
 				transactionWithTheNextRecord = capturedTransaction;
+			} else {
+				transactionWithExceptionRecord = capturedTransaction;
 			}
 		}
 
@@ -119,10 +122,14 @@ public class BulkRecordTransactionHandlerAcceptTest extends ConstellioTest {
 		assertThat(transactionWithARecord.getRecordUpdateOptions().getRecordsFlushing())
 				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
 
-		assertThat(transactionWithTheNextRecord.getRecords()).containsOnly(theRecordThrowingAnException);
-		assertThat(transactionWithTheNextRecord.getReferencedRecords()).hasSize(2).containsValue(anotherReferencedRecord)
+		assertThat(transactionWithTheNextRecord.getRecords()).containsOnly(theNextRecord);
+		assertThat(transactionWithARecord.getRecordUpdateOptions().getRecordsFlushing())
+				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
+
+		assertThat(transactionWithExceptionRecord.getRecords()).contains(theRecordThrowingAnException);
+		assertThat(transactionWithExceptionRecord.getReferencedRecords()).hasSize(2).containsValue(anotherReferencedRecord)
 				.containsValue(aThirdReferencedRecord);
-		assertThat(transactionWithTheNextRecord.getRecordUpdateOptions().getRecordsFlushing())
+		assertThat(transactionWithExceptionRecord.getRecordUpdateOptions().getRecordsFlushing())
 				.isEqualTo(RecordsFlushing.WITHIN_MINUTES(5));
 
 	}
