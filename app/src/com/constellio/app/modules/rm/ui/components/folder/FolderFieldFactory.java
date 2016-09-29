@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.ui.components.RMMetadataFieldFactory;
+import com.constellio.app.modules.rm.ui.components.RMRecordFieldFactory;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateFieldImpl;
@@ -44,9 +44,10 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderTypeField
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderTypeFieldOptionGroupImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionFieldImpl;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.ui.Field;
 
-public class FolderFieldFactory extends RMMetadataFieldFactory {
+public class FolderFieldFactory extends RMRecordFieldFactory {
 	private final String collection;
 	private final List<CopyRetentionRule> rules;
 
@@ -56,12 +57,12 @@ public class FolderFieldFactory extends RMMetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
 		Field<?> field;
-		String[] taxonomyCodes = metadata.getTaxonomyCodes();
-		MetadataInputType inputType = metadata.getMetadataInputType();
+		String[] taxonomyCodes = metadataVO.getTaxonomyCodes();
+		MetadataInputType inputType = metadataVO.getMetadataInputType();
 
-		switch (metadata.getLocalCode()) {
+		switch (metadataVO.getLocalCode()) {
 		case TYPE:
 			if (MetadataInputType.LOOKUP.equals(inputType)) {
 				field = new FolderTypeFieldLookupImpl();
@@ -120,11 +121,11 @@ public class FolderFieldFactory extends RMMetadataFieldFactory {
 			field = new FolderCopyRuleFieldImpl(rules);
 			break;
 		default:
-			field = super.build(metadata);
+			field = super.build(recordVO, metadataVO);
 		}
 
 		if (field instanceof CustomFolderField) {
-			postBuild(field, metadata);
+			postBuild(field, recordVO, metadataVO);
 		}
 
 		return field;

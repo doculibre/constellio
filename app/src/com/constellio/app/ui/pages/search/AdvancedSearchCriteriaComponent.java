@@ -13,6 +13,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
@@ -424,7 +425,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField value = new TextField();
 			value.setWidth("100px");
 			value.setNullRepresentation("");
-			value.setConverter(new StringToDoubleConverter());
+			value.setConverter(new BaseStringToDoubleConverter());
 			value.setConvertedValue(criterion.getValue());
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -437,7 +438,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField endValue = new TextField();
 			endValue.setWidth("100px");
 			endValue.setNullRepresentation("");
-			endValue.setConverter(new StringToDoubleConverter());
+			endValue.setConverter(new BaseStringToDoubleConverter());
 			endValue.setConvertedValue(criterion.getValue());
 			endValue.addValueChangeListener(new ValueChangeListener() {
 				@Override
