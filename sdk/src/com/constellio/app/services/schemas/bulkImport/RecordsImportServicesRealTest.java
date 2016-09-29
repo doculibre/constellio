@@ -16,6 +16,7 @@ import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.io.File.separator;
@@ -2399,6 +2400,97 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(thirdSchema.type()).returnAll()))).isEqualTo(297);
+	}
+
+	@Test
+	public void whenImportingWithMultipleThreadsThenContinueOnErrors()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
+								.add(NoZMetadataValidator.class);
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+
+						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+
+						Map<Language, String> labels = new HashMap<Language, String>();
+						labels.put(Language.French, "Autre type de schéma");
+						schemaTypes.getSchemaType("anotherSchemaType").setLabels(labels);
+
+						labels = new HashMap<Language, String>();
+						labels.put(Language.French, "Troisième type de schéma");
+						schemaTypes.getSchemaType("aThirdSchemaType").setLabels(labels);
+					}
+				}));
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+		}
+
+		for (int i = 1; i <= 302; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+		}
+
+		for (int i = 1; i <= 303; i++) {
+			thirdSchemaTypeRecords.add(defaultSchemaData().setId("thirdSchemaRecord" + i)
+					.addField("refToAnotherSchema", "anotherSchemaRecord" + (i > 302 ? 301 : i)));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin,
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE).setThreads(3));
+
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			e.printStackTrace();
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142", "Ze type de schéma record142 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "188", "Ze type de schéma record188 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "244", "Ze type de schéma record244 : ")
+			);
+
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "prefix", "impacts")).containsOnly(
+					tuple("SkippedRecordsImport_skipBecauseDependenceFailed", "Autre type de schéma : ", "5"),
+					tuple("SkippedRecordsImport_skipBecauseDependenceFailed", "Troisième type de schéma : ", "6")
+			);
+
+			assertThat(frenchMessages(e.getValidationErrors().getValidationWarnings())).containsOnly(
+					"Troisième type de schéma : 6 enregistrements n'ont pu être importés à cause d'erreurs avec d'autres enregistrements",
+					"Autre type de schéma : 5 enregistrements n'ont pu être importés à cause d'erreurs avec d'autres enregistrements"
+			);
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(thirdSchema.type()).returnAll()))).isEqualTo(297);
+	}
+
+	@Test
+	public void givenAnImportDataHasALogicallyDeletedReferenceThenImported()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema().withAReferenceMetadata(whichIsReferencing("anotherSchemaType")));
+
+		Record logicallyDeletedRecord = new TestRecord(anotherSchema).set(TITLE, "Logically deleted record").set(LEGACY_ID, "1");
+
+		recordServices.add(logicallyDeletedRecord);
+		recordServices.logicallyDelete(logicallyDeletedRecord, User.GOD);
+		String logicallyDeletedRecordId = logicallyDeletedRecord.getId();
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2").addField(zeSchema.referenceMetadata().getCode(), "1"));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+		Record importedRecord = recordWithLegacyId("2");
+		String referencedRecordId = importedRecord.get(zeSchema.referenceMetadata());
+		assertThat(referencedRecordId).isEqualTo(logicallyDeletedRecordId);
 	}
 
 	private void validateCorrectlyImported() {
