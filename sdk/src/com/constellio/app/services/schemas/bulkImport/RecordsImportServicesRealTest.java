@@ -2145,6 +2145,50 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenImportingWithRemoveInvalidFacultativeMetadatasModeWhenInvalidValuesThenContinueImportAndReturnWarnings()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").defineValidators()
+								.add(NoZMetadataValidator.class);
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+					}
+				}));
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "problem" : "value"));
+		}
+
+		for (int i = 1; i <= 300; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + i));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin,
+					new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true));
+
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).isEmpty();
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "142", "Ze type de schéma record142 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "188", "Ze type de schéma record188 : "),
+					tuple("RecordsImportServicesRealTest$NoZMetadataValidator_noP", "244", "Ze type de schéma record244 : ")
+			);
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(300);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(0);
+	}
+
+	@Test
 	public void whenImportingWithContinueRecordsOfSameTypeErrorModeThenContinue()
 			throws Exception {
 
@@ -2328,6 +2372,63 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(thirdSchema.type()).returnAll()))).isEqualTo(297);
+	}
+
+	@Test
+	public void givenPrevalidationErrorsWhenImportingWithWarningForInvalidFacultativeMetadatasModeThenContinue()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").setInputMask("999 999 999");
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+
+						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+
+						Map<Language, String> labels = new HashMap<Language, String>();
+						labels.put(Language.French, "Autre type de schéma");
+						schemaTypes.getSchemaType("anotherSchemaType").setLabels(labels);
+
+						labels = new HashMap<Language, String>();
+						labels.put(Language.French, "Troisième type de schéma");
+						schemaTypes.getSchemaType("aThirdSchemaType").setLabels(labels);
+					}
+				}));
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
+		}
+
+		for (int i = 1; i <= 302; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin,
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE)
+							.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS));
+
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).isEmpty();
+
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "prefix", "impacts")).containsOnly(
+					tuple("RecordsImportServices_requiredValue", "244", "Ze type de schéma record244 : "),
+					tuple("RecordsImportServices_requiredValue", "142", "Ze type de schéma record142 : "),
+					tuple("RecordsImportServices_requiredValue", "188", "Ze type de schéma record188 : ")
+			);
+
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(300);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(300);
 	}
 
 	@Test

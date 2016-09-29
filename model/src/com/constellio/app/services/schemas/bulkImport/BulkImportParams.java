@@ -2,6 +2,8 @@ package com.constellio.app.services.schemas.bulkImport;
 
 public class BulkImportParams {
 
+	boolean warningsForInvalidFacultativeMetadatas = false;
+
 	ImportErrorsBehavior importErrorsBehavior = ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 
 	ImportValidationErrorsBehavior importValidationErrorsBehavior = ImportValidationErrorsBehavior.STOP_IMPORT;
@@ -25,6 +27,15 @@ public class BulkImportParams {
 
 	public BulkImportParams setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
+		return this;
+	}
+
+	public boolean isWarningsForInvalidFacultativeMetadatas() {
+		return warningsForInvalidFacultativeMetadatas;
+	}
+
+	public BulkImportParams setWarningsForInvalidFacultativeMetadatas(boolean warningsForInvalidFacultativeMetadatas) {
+		this.warningsForInvalidFacultativeMetadatas = warningsForInvalidFacultativeMetadatas;
 		return this;
 	}
 
