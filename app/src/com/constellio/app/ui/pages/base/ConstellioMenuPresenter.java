@@ -21,7 +21,6 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -201,13 +200,6 @@ public class ConstellioMenuPresenter implements Serializable {
 		UserVO currentUser = constellioMenu.getSessionContext().getCurrentUser();
 		UserPhotosServices photosServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserPhotosServices();
 		return photosServices.hasPhoto(currentUser.getUsername());
-	}
-
-	public String getCollectionCaption(String collectionCode) {
-		Collection collection = constellioFactories.getAppLayerFactory().getCollectionsManager().getCollection(collectionCode); 
-		String collectionTitle = collection.getTitle();
-		String collectionName = collection.getName();
-		return StringUtils.isNotBlank(collectionTitle) ? collectionTitle : collectionName;
 	}
 
 	private List<String> getCollectionLanguagesOrderedByCode(String collection) {
