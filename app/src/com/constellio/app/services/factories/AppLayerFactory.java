@@ -157,14 +157,12 @@ public class AppLayerFactory extends LayerFactory {
 		String key = module + "-" + id;
 		add(manager);
 		moduleManagers.put(key, manager);
-		manager.initialize();
 	}
 
 	public void registerManager(String collection, String module, String id, StatefulService manager) {
 		String key = collection + "-" + module + "-" + id;
 		add(manager);
 		moduleManagers.put(key, manager);
-		manager.initialize();
 	}
 
 	public <T> T getRegisteredManager(String collection, String module, String id) {
@@ -260,8 +258,10 @@ public class AppLayerFactory extends LayerFactory {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 
-		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
+		LOGGER.info("initializeCollectionsAndGetInvalidModules");
 
+		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
+		getModulesManager().enableComplementaryModules();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
 			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 			systemGlobalConfigsManager.setMarkedForReindexing(false);

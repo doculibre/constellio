@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.services.borrowingServices;
 
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -61,12 +62,11 @@ public class BorrowingServices {
 		Record folderRecord = recordServices.getDocumentById(folderId);
 		Folder folder = rm.wrapFolder(folderRecord);
 		validateCanReturnFolder(currentUser, folder);
-		User borrower = rm.getUser(folder.getBorrowUserEntered());
 		BorrowingType borrowingType = folder.getBorrowType();
 		setReturnedMetadatasToFolder(folder);
 		recordServices.update(folder);
 		if (borrowingType == BorrowingType.BORROW) {
-			loggingServices.returnRecord(folderRecord, borrower, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+			loggingServices.returnRecord(folderRecord, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
 		}
 	}
 
@@ -117,4 +117,48 @@ public class BorrowingServices {
 		folder.setBorrowUserEntered(null);
 		folder.setBorrowType(null);
 	}
+
+	public String validateBorrowingInfos(String userId, LocalDate borrowingDate, LocalDate previewReturnDate,
+			BorrowingType borrowingType, LocalDate returnDate) {
+		String errorMessage = null;
+		if (borrowingDate == null) {
+			borrowingDate = TimeProvider.getLocalDate();
+		} else {
+			if (borrowingDate.isAfter(TimeProvider.getLocalDate())) {
+				errorMessage = "BorrowingServices.invalidBorrowingDate";
+			}
+		}
+		if (borrowingType == null) {
+			errorMessage = "BorrowingServices.invalidBorrowingType";
+			return errorMessage;
+		}
+		if (StringUtils.isBlank(userId) || userId == null) {
+			errorMessage = "BorrowingServices.invalidBorrower";
+			return errorMessage;
+		}
+		if (previewReturnDate != null) {
+			if (previewReturnDate.isBefore(borrowingDate)) {
+				errorMessage = "BorrowingServices.invalidPreviewReturnDate";
+				return errorMessage;
+			}
+		} else {
+			errorMessage = "BorrowingServices.invalidPreviewReturnDate";
+			return errorMessage;
+		}
+		if (returnDate != null) {
+			return validateReturnDate(returnDate, borrowingDate);
+		}
+		return errorMessage;
+	}
+
+	public String validateReturnDate(LocalDate returnDate, LocalDate borrowingDate) {
+		String errorMessage = null;
+		if (returnDate == null) {
+			errorMessage = "BorrowingServices.invalidReturnDate";
+		} else if (borrowingDate != null && (returnDate.isAfter(TimeProvider.getLocalDate()) || returnDate.isBefore(borrowingDate))) {
+			errorMessage = "BorrowingServices.invalidReturnDate";
+		}
+		return errorMessage;
+	}
+	
 }

@@ -7,6 +7,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -22,13 +24,20 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import javax.xml.stream.XMLOutputFactory;
+
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.i18n.i18n;
@@ -295,9 +304,25 @@ public class TestUtils {
 
 	public static Metadata mockMetadata(String code) {
 		String localCode = code.split("_")[2];
-		Metadata metadata = mock(Metadata.class, code);
+		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getLocalCode()).thenReturn(localCode);
+
+		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation)
+					throws Throwable {
+				return metadata.computeInheritanceCode();
+			}
+		});
+
+		when(metadata.isGlobal()).thenAnswer(new Answer<Boolean>() {
+			@Override
+			public Boolean answer(InvocationOnMock invocation)
+					throws Throwable {
+				return metadata.computeIsGlobal();
+			}
+		});
 		return metadata;
 	}
 
@@ -377,6 +402,12 @@ public class TestUtils {
 		};
 	}
 
+	public static void printDocument(Document document) {
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		System.out.println(xmlOutput.outputString(document));
+	}
+
 	public static class MapBuilder<K, V> {
 
 		Map<K, V> map = new HashMap<>();
@@ -405,6 +436,10 @@ public class TestUtils {
 
 	public static RecordWrapperAssert assertThatRecord(RecordWrapper recordWrapper) {
 		return new RecordWrapperAssert(recordWrapper);
+	}
+
+	public static RecordsAssert assertThatRecords(RecordWrapper... actual) {
+		return assertThatRecords(asList(actual));
 	}
 
 	public static RecordsAssert assertThatRecords(List<?> actual) {
@@ -533,6 +568,16 @@ public class TestUtils {
 		return codes;
 	}
 
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationException e, String... parameters) {
+		return extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationRuntimeException e, String... parameters) {
+		return extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
 	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
 
 		List<Tuple> tuples = new ArrayList<>();
@@ -573,6 +618,21 @@ public class TestUtils {
 	public static List<String> frenchMessages(com.constellio.model.frameworks.validation.ValidationException e) {
 		return frenchMessages(e.getValidationErrors());
 
+	}
+
+	public static List<String> frenchMessages(List<ValidationError> errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+
+		for (ValidationError error : errors) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
 	}
 
 	public static List<String> frenchMessages(ValidationErrors errors) {

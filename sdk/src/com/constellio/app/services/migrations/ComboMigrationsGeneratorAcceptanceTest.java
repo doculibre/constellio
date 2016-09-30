@@ -21,6 +21,7 @@ import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
 import com.constellio.app.conf.AppLayerConfiguration;
+import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -35,8 +36,8 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -89,15 +90,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
 				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 
@@ -141,15 +142,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
 				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 
@@ -204,15 +205,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
 				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 
@@ -265,15 +266,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
 				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 
@@ -326,15 +327,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
 				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 
@@ -387,15 +388,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
 				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
 			}
 		});
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 

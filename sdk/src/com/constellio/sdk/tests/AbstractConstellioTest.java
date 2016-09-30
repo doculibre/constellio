@@ -6,7 +6,6 @@ import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameCont
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -63,8 +62,8 @@ import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
 import com.constellio.app.ui.tools.vaadin.TestEnterViewListener;
 import com.constellio.app.ui.tools.vaadin.TestInitUIListener;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
-import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.io.IOServicesFactory;
@@ -385,8 +384,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected File getTestResourceFile(String partialName) {
-		ensureNotUnitTest();
-		String completeName = getClass().getCanonicalName().replace(".", File.separator) + "-" + partialName;
+		return getTestResourceFile(null, partialName);
+	}
+
+	public static File getTestResourceFileWithoutCheckingIfUnitTest(Class clazz, String partialName) {
+		String completeName = clazz.getCanonicalName().replace(".", File.separator) + "-" + partialName;
 		File resourcesDir = getResourcesDir();
 		File file = new File(resourcesDir, completeName);
 
@@ -394,6 +396,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException("No such file '" + file.getAbsolutePath() + "'");
 		}
 		return file;
+	}
+
+	protected File getTestResourceFile(Class clazz, String partialName) {
+		ensureNotUnitTest();
+		return getTestResourceFileWithoutCheckingIfUnitTest(clazz == null ? getClass() : clazz, partialName);
 	}
 
 	protected StreamFactory<InputStream> getTestResourceInputStreamFactory(final String partialName) {
@@ -442,6 +449,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 						return new ByteArrayInputStream(bytes);
 					}
 				});
+	}
+
+	protected File getUnzippedResourceFile(Class clazz, String partialName) {
+		File zipFile = getTestResourceFile(clazz, partialName);
+		return unzipInTempFolder(zipFile);
 	}
 
 	protected File getUnzippedResourceFile(String partialName) {
@@ -957,12 +969,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName("tLog");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
+			public void alter(InMemoryDataLayerConfiguration configuration) {
 
-				doReturn(true).when(configuration).isSecondTransactionLogEnabled();
-				doReturn(logTempFolder).when(configuration).getSecondTransactionLogBaseFolder();
+				configuration.setSecondTransactionLogEnabled(true);
+				configuration.setSecondTransactionLogBaseFolder(logTempFolder);
+
 				if (filter != null) {
-					doReturn(filter).when(configuration).getSecondTransactionLogReplayFilter();
+					configuration.setSecondTransactionLogReplayFilter(filter);
 				}
 			}
 		});
@@ -1346,7 +1359,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected void givenHashingEncodingIs(final HashingEncoding encoding) {
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
+			public void alter(InMemoryDataLayerConfiguration configuration) {
 				configuration.setHashingEncoding(encoding);
 			}
 		});

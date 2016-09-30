@@ -28,6 +28,8 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -180,6 +182,13 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		@Override
 		protected Component buildWindowContent() {
 			startPosition = new ComboBox($("LabelsButton.startPosition"));
+			if (labelTemplates.size() > 0) {
+				int size = labelTemplates.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
+				startPosition.clear();
+				for (int i = 1; i <= size; i++) {
+					startPosition.addItem(i);
+				}
+			}
 			for (int i = 1; i <= 10; i++) {
 				startPosition.addItem(i);
 			}
@@ -191,6 +200,20 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
 			}
 			labelConfiguration.setNullSelectionAllowed(false);
+			labelConfiguration.setImmediate(true);
+			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty();
+					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
+					startPosition.clear();
+					startPosition.removeAllItems();
+					for (int i = 1; i <= size; i++) {
+
+						startPosition.addItem(i);
+					}
+				}
+			});
 
 			copies = new TextField($("LabelsButton.numberOfCopies"));
 			copies.setConverter(Integer.class);

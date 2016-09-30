@@ -114,13 +114,14 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo(metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaTypes().size());
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -153,13 +154,14 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -196,13 +198,14 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -234,13 +237,14 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -274,13 +278,14 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		String outputFilePath = "settings-export-output.xml";
-		File outputFile = new File(outputFilePath);
+		File outputFile = new File(newTempFolder(), outputFilePath);
 
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}

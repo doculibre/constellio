@@ -22,7 +22,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	static File constellio, constellioApp, constellioData, constellioModel, webinf, conf, buildLibs, constellioProperties,
 			constellioSetupProperties, deploy, cmdTxt, uploadConstellioWar, temp, importation, custom, settings, sdk,
 			languageProfiles, dict, appProjectWebContent, bpmns, anotherTemp, smtpMail, i18n, resourcesReports,
-			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt;
+			buildData, vaadin, themes, themesConstellio, themesConstellioImages, crypt, workFolder;
 	FoldersLocator foldersLocator;
 	private static String classpath;
 
@@ -64,6 +64,7 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 		themes = new File(vaadin, "themes");
 		themesConstellio = new File(themes, "constellio");
 		themesConstellioImages = new File(themesConstellio, "images");
+		workFolder = new File(sdk, "work");
 		crypt = new File(settings, "key.txt");
 
 		constellio.mkdir();
@@ -241,6 +242,12 @@ public class FoldersLocatorGivenGradleContextRealTest extends ConstellioTestWith
 	public void whenConstellioThemesImagesThenObtainCorrectFolder() {
 		assertThat(foldersLocator.getConstellioThemeImages().getAbsolutePath())
 				.isEqualTo(themesConstellioImages.getAbsolutePath());
+	}
+
+	@Test
+	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
+		assertThat(foldersLocator.getWorkFolder().getAbsolutePath()).isEqualTo(workFolder.getAbsolutePath());
+		assertThat(workFolder).exists();
 	}
 
 	private Condition<? super File> samePath(final File expectedPath) {

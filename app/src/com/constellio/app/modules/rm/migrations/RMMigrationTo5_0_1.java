@@ -71,6 +71,7 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.model.validators.RetentionRuleValidator;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -659,7 +660,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupMediumTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(MediumType.SCHEMA_TYPE, "Type de support", ValueListItemSchemaTypeCodeMode.DISABLED)
+				.createValueListItemSchema(MediumType.SCHEMA_TYPE, "Type de support", ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(MediumType.ANALOGICAL).setType(BOOLEAN).setDefaultRequirement(true);
@@ -670,7 +671,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	private MetadataSchemaTypeBuilder setupDocumentTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(DocumentType.SCHEMA_TYPE, "Type de document",
-						ValueListItemSchemaTypeCodeMode.DISABLED)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(DocumentType.LINKED_SCHEMA).setType(STRING);
@@ -680,7 +681,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupFolderTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(FolderType.SCHEMA_TYPE, "Type de dossier", ValueListItemSchemaTypeCodeMode.DISABLED)
+				.createValueListItemSchema(FolderType.SCHEMA_TYPE, "Type de dossier", ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(FolderType.LINKED_SCHEMA).setType(STRING);
@@ -691,7 +692,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	private MetadataSchemaTypeBuilder setupContainerTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(ContainerRecordType.SCHEMA_TYPE, "Type de contenant",
-						ValueListItemSchemaTypeCodeMode.DISABLED)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(ContainerRecordType.LINKED_SCHEMA).setType(STRING);
@@ -702,7 +703,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(StorageSpaceType.SCHEMA_TYPE, "Type d'emplacement",
-						ValueListItemSchemaTypeCodeMode.DISABLED)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(StorageSpaceType.LINKED_SCHEMA).setType(STRING);

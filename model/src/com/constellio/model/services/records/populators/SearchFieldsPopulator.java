@@ -19,6 +19,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.records.FieldsPopulator;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
@@ -27,15 +28,15 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	//LanguageDetectionManager languageDectionServices;
 
-	ContentManager contentManager;
+	ParsedContentProvider parsedContentProvider;
 
 	List<String> collectionLanguages;
 
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-			ContentManager contentManager, List<String> collectionLanguages) {
+			ParsedContentProvider parsedContentProvider, List<String> collectionLanguages) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
-		this.contentManager = contentManager;
+		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
 	}
 
@@ -78,7 +79,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	private void addFilenameAndParsedContent(ContentVersion currentVersion, KeyListMap<String, Object> keyListMap, String code) {
 		try {
-			ParsedContent parsedContent = contentManager.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
+			ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
 
 			String contentLanguage = null;
 			if (collectionLanguages.size() == 1) {
@@ -178,7 +179,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		for (Content value : values) {
 			ContentVersion currentVersion = value.getCurrentVersion();
 			try {
-				ParsedContent parsedContent = contentManager.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
+				ParsedContent parsedContent = parsedContentProvider.getParsedContentParsingIfNotYetDone(currentVersion.getHash());
 
 				String contentLanguage = null;
 				if (collectionLanguages.size() == 1) {

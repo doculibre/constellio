@@ -50,7 +50,6 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 	public Object calculate(CalculatorParameters parameters) {
 
 		JexlContext jc = prepareJexlContext(parameters);
-
 		try {
 			Object calculatedValue = jexlScript.execute(jc);
 			return "null".equals(calculatedValue) ? null : calculatedValue;
@@ -85,7 +84,6 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	private JexlContext prepareJexlContext(CalculatorParameters parameters) {
 		JexlContext jc = new MapContext();
-
 		for (Dependency dependency : dependencies) {
 			if (dependency instanceof LocalDependency) {
 				LocalDependency<?> localDependency = (LocalDependency<?>) dependency;
@@ -196,6 +194,11 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 				break;
 			}
 		}
+
+		if (metadata == null) {
+			throw new IllegalArgumentException("No such metadata with code " + variable.get(0));
+		}
+
 		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
 				metadata.getType());
 	}

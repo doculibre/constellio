@@ -34,6 +34,7 @@ build/
 tmp/
 sdk/data/
 /bin
+/sdk/work
 /temp-test
 /sdk/snapshots
 /sdk/turboCache

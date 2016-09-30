@@ -7,8 +7,11 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class ImportedSettings {
+
+	List<ImportedLabelTemplate> importedLabelTemplates = new ArrayList<>();
 
 	List<ImportedConfig> configs = new ArrayList<>();
 
@@ -16,8 +19,23 @@ public class ImportedSettings {
 
 	List<ImportedCollectionSettings> collectionsSettings = new ArrayList<>();
 
+	public List<ImportedLabelTemplate> getImportedLabelTemplates() {
+		return importedLabelTemplates;
+	}
+
+	public ImportedSettings addImportedLabelTemplate(String xml) {
+		importedLabelTemplates.add(new ImportedLabelTemplate(xml));
+		return this;
+	}
+
 	public List<ImportedConfig> getConfigs() {
 		return configs;
+	}
+
+	public ImportedSettings setImportedLabelTemplates(
+			List<ImportedLabelTemplate> importedLabelTemplates) {
+		this.importedLabelTemplates = importedLabelTemplates;
+		return this;
 	}
 
 	public ImportedSettings addConfig(ImportedConfig config) {
@@ -62,7 +80,7 @@ public class ImportedSettings {
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
 	public List<ImportedSequence> getSequences() {
@@ -77,5 +95,11 @@ public class ImportedSettings {
 	public ImportedSettings addSequence(ImportedSequence importedSequence) {
 		sequences.add(importedSequence);
 		return this;
+	}
+
+	public ImportedCollectionSettings newCollectionSettings(String code) {
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(code);
+		collectionsSettings.add(collectionSettings);
+		return collectionSettings;
 	}
 }

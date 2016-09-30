@@ -670,7 +670,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		assertThat(connectorDocuments).extracting("URL", "fetched").containsOnly(
 				tuple(WEBSITE + "index.html", true),
 				tuple(WEBSITE + "girafe.png", true),
-				tuple(WEBSITE + "girafe_corrupt.png", true)
+				tuple(WEBSITE + "girafe_corrupt.png", true),
+				tuple(WEBSITE + "empty.html", true)
 		);
 	}
 
@@ -1163,7 +1164,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPngAndIOExceptionThenConnectorStopsFetching()
+	public void givenInvalidAndEmptyContentThenStopsFetching()
 			throws Exception {
 		givenTestWebsiteInState5();
 		givenDataSet1Connector();

@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileIterator;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ContentManagerImportThreadServices {
@@ -97,7 +97,7 @@ public class ContentManagerImportThreadServices {
 			} else {
 				String key = toKey(file);
 				if (file.length() > 0) {
-					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
 					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
@@ -110,7 +110,7 @@ public class ContentManagerImportThreadServices {
 			for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
 				String key = toBigFileKey(extractedBigFileFolder, file);
 				if (file.length() > 0) {
-					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
 					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
@@ -263,18 +263,38 @@ public class ContentManagerImportThreadServices {
 		errorsUnparsableFolder.mkdirs();
 	}
 
-	public Map<String, ContentVersionDataSummary> readFileNameSHA1Index() {
+	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {
 		if (!indexProperties.exists()) {
 			return Collections.emptyMap();
 		}
-		Map<String, ContentVersionDataSummary> map = new HashMap<>();
+		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(indexProperties).entrySet()) {
-			map.put(entry.getKey(), toContentVersionDataSummary(entry.getValue()));
+			final String value = entry.getValue();
+			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
+				@Override
+				public ContentVersionDataSummary get() {
+					return toContentVersionDataSummary(value);
+				}
+			});
 		}
 		return map;
 	}
 
-	private ContentVersionDataSummary toContentVersionDataSummary(String value) {
+	public static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
+		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
+		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(file).entrySet()) {
+			final String value = entry.getValue();
+			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
+				@Override
+				public ContentVersionDataSummary get() {
+					return toContentVersionDataSummary(value);
+				}
+			});
+		}
+		return map;
+	}
+
+	private static ContentVersionDataSummary toContentVersionDataSummary(String value) {
 		String[] parts = value.split(":");
 		String mimetype = "null".equals(parts[2]) ? null : parts[2];
 		return new ContentVersionDataSummary(parts[0], mimetype, Integer.valueOf(parts[1]));

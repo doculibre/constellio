@@ -158,12 +158,14 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 									.getCode()));
 					window.center();
 					window.setWidth("50%");
-					window.setHeight("50%");
+					VerticalLayout vLayout = new VerticalLayout();
+					vLayout.setHeightUndefined();
 					TextArea textArea = new TextArea();
 					textArea.setSizeFull();
 					String stackTrace = constellioPluginInfo.getStackTrace() != null ? constellioPluginInfo.getStackTrace() : "";
 					textArea.setValue(stackTrace);
-					window.setContent(textArea);
+					vLayout.addComponent(textArea);
+					window.setContent(vLayout);
 					UI.getCurrent().addWindow(window);
 				}
 			}
