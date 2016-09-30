@@ -185,7 +185,7 @@ public class SolrSequencesManager implements SequencesManager {
 		QueryResponse response = null;
 		try {
 			response = client.query(q);
-		} catch (SolrServerException e) {
+		} catch (IOException | SolrServerException e) {
 			throw new RuntimeException(e);
 		}
 		return (SolrDocument) response.getResponse().get("doc");

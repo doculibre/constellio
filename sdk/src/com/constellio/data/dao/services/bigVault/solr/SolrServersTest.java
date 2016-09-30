@@ -16,6 +16,8 @@ import com.constellio.data.dao.services.solr.SolrServers;
 import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.sdk.tests.ConstellioTest;
 
+import java.io.IOException;
+
 public class SolrServersTest extends ConstellioTest {
 
 	@Mock DataLayerExtensions extensions;
@@ -62,11 +64,11 @@ public class SolrServersTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenClosingThenClearSolrFactory() {
+	public void whenClosingThenClearSolrFactory() throws IOException {
 		solrServers.getSolrServer(aCore);
 		solrServers.getSolrServer(anOtherCore);
-		verify(aCoreFirstSolrServerInstance, never()).shutdown();
-		verify(anotherCoreFirstSolrServerInstance, never()).shutdown();
+		verify(aCoreFirstSolrServerInstance, never()).close();
+		verify(anotherCoreFirstSolrServerInstance, never()).close();
 
 		solrServers.close();
 

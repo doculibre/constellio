@@ -5,6 +5,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.sis.io.IO;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
@@ -387,12 +389,12 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	}
 
 	private void assertThatNoFileNamesCanBeFound()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		assertThatOnlyFoundFilenamesAre();
 	}
 
 	private void assertThatOnlyFoundFilenamesAre(SearchableQuoteWord... filenames)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		List<SearchableQuoteWord> expectedFilenamesFound = asList(filenames);
 		for (SearchableQuoteWord aSearchableQuoteWord : allFilenames) {
 			String word = aSearchableQuoteWord.word;
@@ -406,12 +408,12 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	}
 
 	private void assertThatNoQuotesWordsCanBeFound()
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		assertThatOnlyFoundFilenamesAre();
 	}
 
 	private void assertThatOnlyFoundQuoteWordsAre(SearchableQuoteWord... words)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		List<SearchableQuoteWord> expectedFoundWords = asList(words);
 		for (SearchableQuoteWord aSearchableQuoteWord : allWords) {
 			String word = aSearchableQuoteWord.word;
@@ -447,7 +449,7 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	}
 
 	private List<String> resultsIdsOf(SolrParams params)
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		List<String> ids = new ArrayList<>();
 		for (SolrDocument document : solrServer.query(params).getResults()) {
 			ids.add((String) document.getFieldValue("id"));
