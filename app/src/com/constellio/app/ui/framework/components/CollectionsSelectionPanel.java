@@ -1,13 +1,22 @@
 package com.constellio.app.ui.framework.components;
 
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
+
 public class CollectionsSelectionPanel extends Panel {
+	
     List<CheckBox> collectionCheckBoxes = new ArrayList<>();
+    
+    private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
+    
     public CollectionsSelectionPanel(String title, List<String> collections) {
         this(title, collections, new ArrayList<String>());
     }
@@ -28,6 +37,7 @@ public class CollectionsSelectionPanel extends Panel {
         if(selectedCollections.contains(collection)){
             checkBox.setValue(true);
         }
+        checkBox.setCaption(collectionCodeToLabelConverter.getCollectionCaption(collection));
         collectionCheckBoxes.add(checkBox);
         layout.addComponent(checkBox);
     }
