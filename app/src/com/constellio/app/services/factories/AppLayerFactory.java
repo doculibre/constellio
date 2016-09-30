@@ -157,14 +157,12 @@ public class AppLayerFactory extends LayerFactory {
 		String key = module + "-" + id;
 		add(manager);
 		moduleManagers.put(key, manager);
-		manager.initialize();
 	}
 
 	public void registerManager(String collection, String module, String id, StatefulService manager) {
 		String key = collection + "-" + module + "-" + id;
 		add(manager);
 		moduleManagers.put(key, manager);
-		manager.initialize();
 	}
 
 	public <T> T getRegisteredManager(String collection, String module, String id) {

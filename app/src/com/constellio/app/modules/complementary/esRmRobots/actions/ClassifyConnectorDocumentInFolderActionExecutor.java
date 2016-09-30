@@ -61,10 +61,13 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 		for (Record record : records) {
 			ConnectorDocument connectorDocument = es.wrapConnectorDocument(record);
 			try {
-				String classifiedDocumentId = classifyServices.classifyDocument(connectorDocument, params.getInFolder(),
-						params.getDocumentType(), params.getMajorVersions(), true, versions);
 
-				if (params.getActionAfterClassification() == EXCLUDE_DOCUMENTS && isNotBlank(classifiedDocumentId)) {
+				boolean excludeDocumentFromConnector = params.getActionAfterClassification() == EXCLUDE_DOCUMENTS;
+
+				String classifiedDocumentId = classifyServices.classifyDocument(connectorDocument, params.getInFolder(),
+						params.getDocumentType(), params.getMajorVersions(), excludeDocumentFromConnector, versions);
+
+				if (excludeDocumentFromConnector && isNotBlank(classifiedDocumentId)) {
 					List<String> newUrlsToExclude = Arrays.asList(connectorDocument.getURL());
 					connectorServices(appLayerFactory, connectorDocument)
 							.addExcludedUrlsTo(newUrlsToExclude, es.getConnectorInstance(connectorDocument.getConnector()));

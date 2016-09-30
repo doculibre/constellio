@@ -30,12 +30,12 @@ public class ImportSettingsViewImpl extends ImportFileViewImpl implements Import
 
 	@Override
 	protected String getTitle() {
-		return $("ImportConfigsView.viewTitle");
+		return $("ImportSettingsView.viewTitle");
 	}
 
 	@Override
 	protected String getUploadFieldCaption() {
-		return $("ImportConfigsView.configFile");
+		return $("ImportSettingsView.configFile");
 	}
 	
 }
