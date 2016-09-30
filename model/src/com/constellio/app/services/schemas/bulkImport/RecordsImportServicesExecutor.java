@@ -287,6 +287,7 @@ public class RecordsImportServicesExecutor {
 		typeBatchImportContext.batch = batch;
 		typeBatchImportContext.transaction = new Transaction();
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
+		typeBatchImportContext.transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		typeBatchImportContext.options = options;
 		if (!typeImportContext.recordsBeforeImport) {
 			typeBatchImportContext.transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);

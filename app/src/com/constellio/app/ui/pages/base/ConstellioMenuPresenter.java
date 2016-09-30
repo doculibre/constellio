@@ -87,7 +87,9 @@ public class ConstellioMenuPresenter implements Serializable {
 				modelLayerFactory.newRecordServices().update(newUser
 						.setLastLogin(TimeProvider.getLocalDateTime())
 						.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
-				sessionContext.setCurrentLocale(getSessionLanguage(newUser));
+				Locale userLanguage = getSessionLanguage(newUser);
+				sessionContext.setCurrentLocale(userLanguage);
+				i18n.setLocale(userLanguage);
 
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
@@ -200,12 +202,6 @@ public class ConstellioMenuPresenter implements Serializable {
 		return photosServices.hasPhoto(currentUser.getUsername());
 	}
 
-	public String getCollectionCaption(String collectionName) {
-		String collectionTitle = constellioFactories.getAppLayerFactory().getCollectionsManager().getCollection(collectionName)
-				.getTitle();
-		return StringUtils.isNotBlank(collectionTitle) ? collectionTitle : collectionName;
-	}
-
 	private List<String> getCollectionLanguagesOrderedByCode(String collection) {
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		return appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
@@ -214,8 +210,11 @@ public class ConstellioMenuPresenter implements Serializable {
 	public void languageSelected(String languageText, String collection) {
 		List<String> allLanguagesCodes = getCollectionLanguagesOrderedByCode(collection);
 		for(String code : allLanguagesCodes)
-			if($("Language." + code).equals(languageText))
-				ConstellioUI.getCurrentSessionContext().setCurrentLocale(new Locale(code));
+			if ($("Language." + code).equals(languageText)) {
+				Locale locale = new Locale(code);
+				i18n.setLocale(locale);
+				ConstellioUI.getCurrentSessionContext().setCurrentLocale(locale);
+			}	
 	}
 
 	public List<String> getCollectionLanguages(String collection) {

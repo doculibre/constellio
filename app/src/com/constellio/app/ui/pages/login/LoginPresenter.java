@@ -39,7 +39,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.server.VaadinSession;
 
 public class LoginPresenter extends BasePresenter<LoginView> {
 
@@ -54,7 +53,9 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		String mainDataLanguage = appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage();
 		if (mainDataLanguage != null) {
-			view.getSessionContext().setCurrentLocale(Language.withCode(mainDataLanguage).getLocale());
+			Locale mainDataLocale = Language.withCode(mainDataLanguage).getLocale();
+			i18n.setLocale(mainDataLocale);
+			view.getSessionContext().setCurrentLocale(mainDataLocale);
 		}
 	}
 
@@ -130,13 +131,15 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					}
 
 					modelLayerFactory.newLoggingServices().login(userInLastCollection);
+					Locale userLocale = getSessionLanguage(userInLastCollection);
 					SessionContext sessionContext = view.getSessionContext();
 					UserVO currentUser = voBuilder
 							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
 					sessionContext.setForcedSignOut(false);
-					sessionContext.setCurrentLocale(getSessionLanguage(userInLastCollection));
+					i18n.setLocale(userLocale);
+					sessionContext.setCurrentLocale(userLocale);
 
 					view.updateUIContent();
 					String currentState = view.navigateTo().getState();

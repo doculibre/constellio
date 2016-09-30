@@ -128,7 +128,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 		table.setColumnHeader("inputCaption", $("AddEditSchemaMetadataView.inputCaption"));
 		table.setColumnHeader("requiredCaption", $("AddEditSchemaMetadataView.requiredCaption"));
 		table.setColumnHeader("buttons", "");
-		table.setColumnWidth("buttons", 60);
+		table.setColumnWidth("buttons", 80);
 
 		return table;
 	}

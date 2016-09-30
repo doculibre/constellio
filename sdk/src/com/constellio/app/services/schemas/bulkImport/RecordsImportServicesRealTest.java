@@ -16,6 +16,7 @@ import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.io.File.separator;
@@ -2500,6 +2501,26 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(thirdSchema.type()).returnAll()))).isEqualTo(297);
+	}
+
+	@Test
+	public void givenAnImportDataHasALogicallyDeletedReferenceThenImported()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema().withAReferenceMetadata(whichIsReferencing("anotherSchemaType")));
+
+		Record logicallyDeletedRecord = new TestRecord(anotherSchema).set(TITLE, "Logically deleted record").set(LEGACY_ID, "1");
+
+		recordServices.add(logicallyDeletedRecord);
+		recordServices.logicallyDelete(logicallyDeletedRecord, User.GOD);
+		String logicallyDeletedRecordId = logicallyDeletedRecord.getId();
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2").addField(zeSchema.referenceMetadata().getCode(), "1"));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+		Record importedRecord = recordWithLegacyId("2");
+		String referencedRecordId = importedRecord.get(zeSchema.referenceMetadata());
+		assertThat(referencedRecordId).isEqualTo(logicallyDeletedRecordId);
 	}
 
 	private void validateCorrectlyImported() {

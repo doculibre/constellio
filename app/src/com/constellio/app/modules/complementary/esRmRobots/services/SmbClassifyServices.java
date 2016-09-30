@@ -104,7 +104,13 @@ public class SmbClassifyServices {
 		ConnectorUtilsServices<?> connectorUtilsServices = connectorServicesFactory
 				.forConnectorDocumentNonStatic(appLayerFactory, connectorDocument);
 		try {
-			Document document = rmSchemasRecordsServices.newDocumentWithType(documentTypeId);
+			Document document = rmSchemasRecordsServices.getDocumentByLegacyId(connectorDocument.getUrl());
+
+			if (document == null) {
+				document = rmSchemasRecordsServices.newDocumentWithType(documentTypeId);
+				document.setLegacyId(connectorDocument.getUrl());
+			}
+			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);

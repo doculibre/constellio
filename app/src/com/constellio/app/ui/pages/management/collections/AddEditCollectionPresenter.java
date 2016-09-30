@@ -22,7 +22,6 @@ import com.constellio.app.ui.pages.management.collections.AddEditCollectionPrese
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeUnAvailable;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_MustSelectAtLeastOneModule;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;

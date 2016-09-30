@@ -119,8 +119,9 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -158,8 +159,9 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -201,8 +203,9 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -239,8 +242,9 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
@@ -279,8 +283,9 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		Document document = new SettingsXMLFileWriter().writeSettings(settings);
 
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
-		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
-		xmlOutputter.output(document, fileOutputStream);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
 
 		System.out.println("File Saved!");
 	}
