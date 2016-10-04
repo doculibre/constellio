@@ -133,7 +133,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			String[] mediumTypes = value.split(",");
 			for (String code : mediumTypes) {
 				if (mediumTypeResolver.getMediumTypeByCode(code) == null) {
-					errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap(MEDIUM_TYPES, code));
+					errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap("value", code));
 				}
 			}
 			index++;
