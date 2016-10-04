@@ -21,6 +21,8 @@ public class RecordUpdateOptions {
 
 	private boolean unicityValidationsEnabled = true;
 
+	private boolean skipMaskedMetadataValidations = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -32,6 +34,15 @@ public class RecordUpdateOptions {
 		this.updateModificationInfos = copy.updateModificationInfos;
 		this.fullRewrite = copy.fullRewrite;
 		this.validationsEnabled = copy.validationsEnabled;
+	}
+
+	public boolean isSkipMaskedMetadataValidations() {
+		return skipMaskedMetadataValidations;
+	}
+
+	public RecordUpdateOptions setSkipMaskedMetadataValidations(boolean skipMaskedMetadataValidations) {
+		this.skipMaskedMetadataValidations = skipMaskedMetadataValidations;
+		return this;
 	}
 
 	public RecordUpdateOptions forceReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {

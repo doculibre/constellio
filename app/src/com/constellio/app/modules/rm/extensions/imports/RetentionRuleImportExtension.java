@@ -136,8 +136,13 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 					copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase() :
 					"";
 			if (value.isEmpty() || !(isDisposalTypeValid(value))) {
-				errors.add(RecordsImportServices.class, INVALID_ENUM_VALUE,
-						asMap(INACTIVE_DISPOSAL_TYPE, value, COPY_RETENTION_RULE_INDEX, index));
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("metadataLabel", INACTIVE_DISPOSAL_TYPE);
+				parameters.put("metadata", INACTIVE_DISPOSAL_TYPE);
+				parameters.put("value", value);
+				parameters.put(COPY_RETENTION_RULE_INDEX, index);
+				parameters.put("acceptedValues", "C, D, T");
+				errors.add(RecordsImportServices.class, INVALID_ENUM_VALUE, parameters);
 			}
 		}
 

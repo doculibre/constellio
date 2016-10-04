@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.model.entities.Language;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,23 +35,31 @@ public class MaskedMetadataValidator implements Validator<Record> {
 		for (Metadata metadata : metadatas) {
 			if (StringUtils.isNotBlank(metadata.getInputMask())) {
 				Object value = record.get(metadata);
-				if (value != null && value instanceof String) {
-					String strValue = (String) value;
-					if (!MaskUtils.isValid(metadata.getInputMask(), strValue)) {
-						LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
-						addValidationErrors(validationErrors, (String) value, metadata);
-					}
-				}
+				validateMetadata(validationErrors, metadata, value);
 			}
 		}
 	}
 
-	private void addValidationErrors(ValidationErrors validationErrors, String value, Metadata metadata) {
+	public void validateMetadata(ValidationErrors validationErrors, Metadata metadata, Object value) {
+		validate(validationErrors, metadata, value);
+	}
+
+	public static void validate(ValidationErrors validationErrors, Metadata metadata, Object value) {
+		if (value != null && value instanceof String) {
+			String strValue = (String) value;
+			if (!MaskUtils.isValid(metadata.getInputMask(), strValue)) {
+				LOGGER.info("Failed to format value '" + strValue + "' using mask '" + metadata.getInputMask() + "'");
+				addValidationErrors(validationErrors, (String) value, metadata);
+			}
+		}
+	}
+
+	private static void addValidationErrors(ValidationErrors validationErrors, String value, Metadata metadata) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
 		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
 		parameters.put(MASK, metadata.getInputMask());
 		parameters.put(VALUE, value);
-		validationErrors.add(getClass(), VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK, parameters);
+		validationErrors.add(MaskedMetadataValidator.class, VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK, parameters);
 	}
 }
