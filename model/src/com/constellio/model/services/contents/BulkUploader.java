@@ -77,6 +77,7 @@ public class BulkUploader {
 					writeToMap(key, summary);
 
 				} catch (ContentManagerRuntimeException_CannotReadParsedContent e) {
+					//The file is probably being written by an other thread. The exception is logged and will be thrown if it's not the case.
 					writeToMap(key, e);
 
 				} catch (Throwable e) {
