@@ -4,10 +4,12 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.ParsedContent;
@@ -54,4 +56,14 @@ public class ParsedContentConverterTest {
 
 	}
 
+	@Test
+	public void testName()
+			throws Exception {
+
+		ParsedContentConverter converter = new ParsedContentConverter();
+		String fileContent = FileUtils
+				.readFileToString(new File("/Users/francisbaril/Downloads/ItkJDOX9psOLF864j37UobYfRLQ=__parsed"));
+		converter.convertToParsedContent(fileContent);
+
+	}
 }
