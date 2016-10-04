@@ -71,7 +71,6 @@ public class ScriptExemple {
 				transaction.setSkippingRequiredValuesValidation(true);
 				transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
-
 				for (Folder folder : folders) {
 
 					//TODO Do the modification on a record
