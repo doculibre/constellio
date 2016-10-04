@@ -21,7 +21,7 @@ public class StartConstellioWithoutCollectionsAcceptTest extends ConstellioTest 
 		givenTransactionLogIsEnabled();
 		
 		ModelLayerConfiguration config = getModelLayerFactory().getConfiguration();
-		doCallRealMethod().when(config).getMainDataLanguage();
+//		doCallRealMethod().when(config).getMainDataLanguage();
 
 		newWebDriver();
 
