@@ -1,5 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE;
+
 public class BulkImportParams {
 
 	boolean warningsForInvalidFacultativeMetadatas = false;
@@ -63,5 +65,14 @@ public class BulkImportParams {
 		STOP_ON_FIRST_ERROR,
 		CONTINUE_FOR_RECORD_OF_SAME_TYPE,
 		CONTINUE
+	}
+
+	public static BulkImportParams IMPORT_AS_MUCH_AS_POSSIBLE() {
+		return new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true).setImportErrorsBehavior(CONTINUE)
+				.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS);
+	}
+
+	public static BulkImportParams STRICT() {
+		return new BulkImportParams();
 	}
 }

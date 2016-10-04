@@ -732,7 +732,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices());
 	}
 
-	ConfigProvider newConfigProvider() {
+	public ConfigProvider newConfigProvider() {
 		return new ConfigProvider() {
 
 			@Override

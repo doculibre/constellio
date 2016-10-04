@@ -6,6 +6,8 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -24,6 +26,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +38,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Condition;
@@ -39,6 +47,9 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
@@ -65,6 +76,7 @@ import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -72,10 +84,16 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.ContentImport;
 import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesImpl;
+import com.constellio.model.services.records.RecordValidationServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -632,7 +650,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			fail("An exception was expected");
 		} catch (ValidationException e) {
 			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
-			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel",
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "value", "metadata", "metadataLabel",
 					"referencedSchemaType", "referencedSchemaTypeLabel", "prefix"))
 					.containsOnly(
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "legacyIdentifier",
@@ -666,7 +684,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel",
+			assertThat(extractingSimpleCodeAndParameters(e, "schemaType", "value", "metadata", "metadataLabel",
 					"prefix"))
 					.containsOnly(
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "legacyIdentifier",
@@ -707,7 +725,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			fail("An exception was expected");
 		} catch (ValidationException e) {
 			assertThat(
-					extractingSimpleCodeAndParameters(e, "schemaType", "unresolvedValue", "metadata", "metadataLabel", "prefix"))
+					extractingSimpleCodeAndParameters(e, "schemaType", "value", "metadata", "metadataLabel", "prefix"))
 					.containsOnly(
 							tuple("RecordsImportServices_unresolvedValue", "zeSchemaType", "42", "stringMetadata",
 									"A toAString metadata", "Ze type de schéma : "),
@@ -1399,13 +1417,16 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(resolver.cache).hasSize(2).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode());
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping)
 				.hasSize(1).containsEntry("previouslySavedRecordLegacyId", "previouslySavedRecordId");
-		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds).isEmpty();
+		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds.getNestedMap())
+				.isEmpty();
 
 		assertThat(resolver.getSchemaTypeCache(anotherSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping).isEmpty();
-		assertThat(resolver.getSchemaTypeCache(anotherSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds).isEmpty();
+		assertThat(resolver.getSchemaTypeCache(anotherSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds.getNestedMap())
+				.isEmpty();
 
 		assertThat(resolver.getSchemaTypeCache(thirdSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping).isEmpty();
-		assertThat(resolver.getSchemaTypeCache(thirdSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds).isEmpty();
+		assertThat(resolver.getSchemaTypeCache(thirdSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds.getNestedMap())
+				.isEmpty();
 	}
 
 	@Test
@@ -1972,6 +1993,146 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenWarningsForInvalidFacultativeMetadatasWhenImportingRecordsWithInvalidReferencesThenWarningFor()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadataInCustomSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaTypeBuilder anotherSchemaTypeDefault = schemaTypes.getSchemaType("anotherSchemaType");
+						anotherSchemaTypeDefault.getDefaultSchema().create("code").setType(STRING)
+								.setDefaultRequirement(true).setUniqueValue(true);
+
+						MetadataSchemaBuilder zeSchemaTypeDefault = schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema();
+						zeSchemaTypeDefault.create("requiredReference").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true);
+						zeSchemaTypeDefault.create("facultativeReference").defineReferencesTo(anotherSchemaTypeDefault);
+
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByFacultativeCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByRequiredCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
+
+						zeSchemaTypeDefault.create("facultativeCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByFacultativeCalculatedMetadata");
+						zeSchemaTypeDefault.create("requiredCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByRequiredCalculatedMetadata");
+
+					}
+				}));
+
+		recordServices.add(new TestRecord(anotherSchema).set(CODE, "ze code").set(TITLE, "Ze title").set(LEGACY_ID, "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
+				.addField("requiredReference", "43")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2")
+				.addField("requiredReference", "42")
+				.addField("facultativeReference", "43")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3")
+				.addField("requiredReference", "42")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "43")
+				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4")
+				.addField("requiredReference", "42")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "42")
+				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE());
+			fail("Validation exception expected");
+		} catch (ValidationException e) {
+			e.printStackTrace();
+			assertThat(extractingSimpleCodeAndParameters(e, "legacyId", "metadataCode")).containsOnly(
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "1", "zeSchemaType_default_requiredReference"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "3",
+							"zeSchemaType_default_requiredCalculatedMetadata")
+			);
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "legacyId", "metadata", "value")).containsOnly(
+					tuple("RecordsImportServices_unresolvedValue", "1", "legacyIdentifier", "43"),
+					tuple("RecordsImportServices_unresolvedValue", "2", "legacyIdentifier", "43"),
+					tuple("RecordsImportServices_unresolvedValue", "3", "legacyIdentifier", "43"),
+					tuple("RecordsImportServices_unresolvedValue", "4", "legacyIdentifier", "43")
+			);
+		}
+
+		assertThat(idsOfAllRecordsWithLegacyId());
+
+	}
+
+	@Test
+	public void whenImportingRecordsWithInvalidReferencesThenErrors()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadataInCustomSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						MetadataSchemaTypeBuilder anotherSchemaTypeDefault = schemaTypes.getSchemaType("anotherSchemaType");
+						anotherSchemaTypeDefault.getDefaultSchema().create("code").setType(STRING)
+								.setDefaultRequirement(true).setUniqueValue(true);
+
+						MetadataSchemaBuilder zeSchemaTypeDefault = schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema();
+						zeSchemaTypeDefault.create("requiredReference").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true);
+						zeSchemaTypeDefault.create("facultativeReference").defineReferencesTo(anotherSchemaTypeDefault);
+
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByFacultativeCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
+						zeSchemaTypeDefault.create("facultativeReferenceUsedByRequiredCalculatedMetadata")
+								.defineReferencesTo(anotherSchemaTypeDefault);
+
+						zeSchemaTypeDefault.create("facultativeCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByFacultativeCalculatedMetadata");
+						zeSchemaTypeDefault.create("requiredCalculatedMetadata").defineReferencesTo(anotherSchemaTypeDefault)
+								.setDefaultRequirement(true)
+								.defineDataEntry().asJexlScript("facultativeReferenceUsedByRequiredCalculatedMetadata");
+
+					}
+				}));
+
+		recordServices.add(new TestRecord(anotherSchema).set(CODE, "ze code").set(TITLE, "Ze title").set(LEGACY_ID, "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("requiredReference", "43"));
+		zeSchemaTypeRecords
+				.add(defaultSchemaData().setId("2").addField("requiredReference", "42").addField("facultativeReference", "43"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("requiredReference", "42")
+				.addField("facultativeReferenceUsedByRequiredCalculatedMetadata", "43"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("requiredReference", "42")
+				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE()
+					.setWarningsForInvalidFacultativeMetadatas(false));
+			fail("Validation exception expected");
+		} catch (ValidationException e) {
+			e.printStackTrace();
+			assertThat(extractingSimpleCodeAndParameters(e, "legacyId", "metadata", "value")).containsOnly(
+					tuple("RecordsImportServices_unresolvedValue", "1", "legacyIdentifier", "43"),
+					tuple("RecordsImportServices_unresolvedValue", "2", "legacyIdentifier", "43"),
+					tuple("RecordsImportServices_unresolvedValue", "3", "legacyIdentifier", "43"),
+					tuple("RecordsImportServices_unresolvedValue", "4", "legacyIdentifier", "43")
+			);
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "legacyId", "metadata")).isEmpty();
+		}
+
+		assertThat(idsOfAllRecordsWithLegacyId());
+
+	}
+
+	private List<String> idsOfAllRecordsWithLegacyId() {
+		return null;
+	}
+
+	@Test
 	public void whenImportingUsingUniqueMetadataResolversThenImportedCorrectly()
 			throws Exception {
 
@@ -2172,8 +2333,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		}
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin,
-					new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true));
+			services.bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE());
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
@@ -2186,7 +2346,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		}
 
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(300);
-		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(0);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(300);
 	}
 
 	@Test
@@ -2401,6 +2561,69 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					}
 				}));
 
+		AtomicInteger maskValidationCount = mockRecordServicesForCountingMaskValidations();
+
+		for (int i = 1; i <= 300; i++) {
+			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
+					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
+		}
+
+		for (int i = 1; i <= 302; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + (i > 300 ? 142 : i)));
+		}
+
+		try {
+			services.bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE());
+
+			fail("ValidationException expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).isEmpty();
+
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "value", "prefix")).containsOnly(
+					tuple("MaskedMetadataValidator_valueIncompatibleWithSpecifiedMask", "12  456 789",
+							"Ze type de schéma record244 : "),
+					tuple("MaskedMetadataValidator_valueIncompatibleWithSpecifiedMask", "12  456 789",
+							"Ze type de schéma record142 : "),
+					tuple("MaskedMetadataValidator_valueIncompatibleWithSpecifiedMask", "12  456 789",
+							"Ze type de schéma record188 : ")
+			);
+
+		}
+
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(300);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(302);
+		assertThat(maskValidationCount.get()).isEqualTo(300);
+	}
+
+	@Test
+	public void givenPrevalidationErrorsWhenImportingWithoutWarningForInvalidFacultativeMetadatasModeThenErrors()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata").setInputMask("999 999 999");
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+
+						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
+
+						Map<Language, String> labels = new HashMap<Language, String>();
+						labels.put(Language.French, "Autre type de schéma");
+						schemaTypes.getSchemaType("anotherSchemaType").setLabels(labels);
+
+						labels = new HashMap<Language, String>();
+						labels.put(Language.French, "Troisième type de schéma");
+						schemaTypes.getSchemaType("aThirdSchemaType").setLabels(labels);
+					}
+				}));
+
+		AtomicInteger maskValidationCount = mockRecordServicesForCountingMaskValidations();
+
 		for (int i = 1; i <= 300; i++) {
 			zeSchemaTypeRecords.add(defaultSchemaData().setId("record" + i)
 					.addField("stringMetadata", (i == 142 || i == 188 || i == 244) ? "12  456 789" : "123 456 789"));
@@ -2413,23 +2636,83 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
-					new BulkImportParams().setImportErrorsBehavior(CONTINUE)
-							.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS));
+					BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE().setWarningsForInvalidFacultativeMetadatas(false));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "index", "prefix")).isEmpty();
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "index", "prefix")).containsOnly(
+					tuple("SkippedRecordsImport_skipBecauseDependenceFailed", null, "Autre type de schéma : ")
+			);
 
-			assertThat(extractingWarningsSimpleCodeAndParameters(e, "prefix", "impacts")).containsOnly(
-					tuple("RecordsImportServices_requiredValue", "244", "Ze type de schéma record244 : "),
-					tuple("RecordsImportServices_requiredValue", "142", "Ze type de schéma record142 : "),
-					tuple("RecordsImportServices_requiredValue", "188", "Ze type de schéma record188 : ")
+			assertThat(extractingSimpleCodeAndParameters(e, "value", "prefix")).containsOnly(
+					tuple("MaskedMetadataValidator_valueIncompatibleWithSpecifiedMask", "12  456 789",
+							"Ze type de schéma record244 : "),
+					tuple("MaskedMetadataValidator_valueIncompatibleWithSpecifiedMask", "12  456 789",
+							"Ze type de schéma record142 : "),
+					tuple("MaskedMetadataValidator_valueIncompatibleWithSpecifiedMask", "12  456 789",
+							"Ze type de schéma record188 : ")
 			);
 
 		}
 
-		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(300);
-		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(300);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
+		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
+		assertThat(maskValidationCount.get()).isEqualTo(300);
+	}
+
+	private AtomicInteger mockRecordServicesForCountingMaskValidations()
+			throws ValidationException {
+		final AtomicInteger maskValidatorCount = new AtomicInteger();
+		RecordServicesImpl spiedRecordServices = spy(getModelLayerFactory().newCachelessRecordServices());
+		doAnswer(new Answer() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				RecordValidationServices recordValidationServicesServices = spy(
+						(RecordValidationServices) invocation.callRealMethod());
+				doAnswer(new Answer() {
+					@Override
+					public Object answer(InvocationOnMock invocation)
+							throws Throwable {
+						final MaskedMetadataValidator maskedMetadataValidator = spy(
+								(MaskedMetadataValidator) invocation.callRealMethod());
+						doAnswer(new Answer() {
+							@Override
+							public Object answer(InvocationOnMock invocation)
+									throws Throwable {
+								maskValidatorCount.incrementAndGet();
+								return invocation.callRealMethod();
+							}
+						}).when(maskedMetadataValidator)
+								.validateMetadata(any(ValidationErrors.class), any(Metadata.class), anyObject());
+						return maskedMetadataValidator;
+					}
+				}).when(recordValidationServicesServices).newMaskedMetadataValidator(any(List.class));
+				return recordValidationServicesServices;
+			}
+		}).when(spiedRecordServices).newRecordValidationServices(any(RecordProvider.class));
+		services.recordServices = spiedRecordServices;
+		services = spy(services);
+		doAnswer(new Answer() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				RecordsImportServicesExecutor executor = spy((RecordsImportServicesExecutor) invocation.callRealMethod());
+				doAnswer(new Answer() {
+					@Override
+					public Object answer(InvocationOnMock invocation)
+							throws Throwable {
+						maskValidatorCount.incrementAndGet();
+						return invocation.callRealMethod();
+					}
+				}).when(executor).validateMask(any(Metadata.class), anyObject(), any(DecoratedValidationsErrors.class));
+
+				return executor;
+			}
+		}).when(services)
+				.newExecutor(any(ImportDataProvider.class), any(BulkImportProgressionListener.class), any(User.class),
+						any(List.class), any(BulkImportParams.class));
+		return maskValidatorCount;
 	}
 
 	@Test
@@ -2515,7 +2798,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		recordServices.logicallyDelete(logicallyDeletedRecord, User.GOD);
 		String logicallyDeletedRecordId = logicallyDeletedRecord.getId();
 
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2").addField(zeSchema.referenceMetadata().getCode(), "1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField(zeSchema.referenceMetadata().getCode(), "1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record importedRecord = recordWithLegacyId("2");

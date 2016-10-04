@@ -28,7 +28,7 @@ public class RecordsImportServices implements ImportServices {
 
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemasManager schemasManager;
-	private RecordServices recordServices;
+	RecordServices recordServices;
 	private ContentManager contentManager;
 	private IOServices ioServices;
 	private SearchServices searchServices;
@@ -71,7 +71,7 @@ public class RecordsImportServices implements ImportServices {
 			BulkImportParams params)
 			throws ValidationException {
 		URLResolver urlResolver = new DefaultURLResolver(modelLayerFactory.getIOServicesFactory().newIOServices());
-		return new RecordsImportServicesExecutor(modelLayerFactory, urlResolver, importDataProvider,
+		return new RecordsImportServicesExecutor(modelLayerFactory, recordServices, urlResolver, importDataProvider,
 				bulkImportProgressionListener, user, collections, params);
 	}
 
