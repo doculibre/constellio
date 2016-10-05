@@ -175,8 +175,15 @@ public class RecordValidationServices {
 			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
 		}
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
-		new MaskedMetadataValidator(metadatas).validate(record, validationErrors);
+		if (transaction.getRecordUpdateOptions() == null || !transaction.getRecordUpdateOptions()
+				.isSkipMaskedMetadataValidations()) {
+			newMaskedMetadataValidator(metadatas).validate(record, validationErrors);
+		}
 		return validationErrors;
+	}
+
+	public MaskedMetadataValidator newMaskedMetadataValidator(List<Metadata> metadatas) {
+		return new MaskedMetadataValidator(metadatas);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

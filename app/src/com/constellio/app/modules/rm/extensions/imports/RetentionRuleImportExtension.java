@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_ENUM_VALUE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static org.apache.commons.lang3.StringUtils.join;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -7,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,35 +28,34 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
-import com.constellio.app.services.schemas.bulkImport.ImportDataErrors;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.WrappedRecordMustBeNotNull;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
 public class RetentionRuleImportExtension extends RecordImportExtension {
 
-	public static final String INVALID_STRING_VALUE = "invalidStringValue";
-	public static final String INVALID_NUMBER_VALUE = "invalidNumberValue";
-	public static final String INVALID_CODE_VALUE = "invalidCodeValue";
-	public static final String INVALID_DATE_VALUE = "invalidDateValue";
-	public static final String INVALID_ENUM_VALUE = "invalidEnumValue";
-	public static final String MISSING_METADATA = "missingMetadata";
-	public static final String REQUIRED_VALUE = "requiredValue";
+	public static final String INVALID_MEDIUM_TYPE_CODE = "invalidMediumType";
+	public static final String INVALID_DOCUMENT_TYPE_CODE = "invalidDocumentType";
+	public static final String INVALID_COPYRULE_ENUM_FIELD = "invalidCopyRuleEnumField";
+	public static final String INVALID_COPYRULE_NUMBER_FIELD = "invalidCopyRuleNumberField";
+	public static final String INVALID_DOCUMENT_TYPE_ENUM_FIELD = "invalidDocumentTypeEnumField";
+	public static final String REQUIRED_COPYRULE_FIELD = "requiredCopyRuleField";
+	public static final String REQUIRED_DOCUMENT_TYPE_FIELD = "requiredDocumentTypeField";
 
 	public static final String SEMI_ACTIVE_RETENTION_PERIOD_COMMENT = "semiActiveRetentionComment";
 	public static final String ACTIVE_RETENTION_PERIOD_COMMENT = "activeRetentionComment";
 	public static final String SEMI_ACTIVE_RETENTION_PERIOD = "semiActiveRetentionPeriod";
 	public static final String INACTIVE_DISPOSAL_COMMENT = "inactiveDisposalComment";
-	public static final String COPY_RETENTION_RULE_INDEX = "copyRetentionRuleIndex";
 	public static final String ACTIVE_RETENTION_PERIOD = "activeRetentionPeriod";
 	public static final String INACTIVE_DISPOSAL_TYPE = "inactiveDisposalType";
 	public static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
-	public static final String DOCUMENT_TYPE_INDEX = "documentTypeIndex";
 	public static final String ARCHIVISTIC_STATUS = "archivisticStatus";
 	public static final String MEDIUM_TYPES = "mediumTypes";
 	public static final String COPY_TYPE = "copyType";
@@ -61,6 +67,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String TYPE_ID = "typeId";
 	public static final String RULES_TYPE_DOCUMENTS = "documentRules";
 	public static final String RULES_TYPE_FOLDER = "folderRules";
+	public static final String TITLE = "title";
+	public static final String DESCRIPTION = "description";
 
 	private final RMSchemasRecordsServices rm;
 
@@ -79,18 +87,29 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		List<Map<String, String>> copyRetentionRules = params.getImportRecord().getList(RetentionRule.COPY_RETENTION_RULES);
 		boolean copyRetentionRulePrincipalAndNotSortExist = false;
 		for (Map<String, String> copyRetentionRule : copyRetentionRules) {
-			copyRetentionRulePrincipalAndNotSortExist |= prevalidateCopyRetentionRule(copyRetentionRule, params.getErrors(),
-					String.valueOf(index));
+			final String strIndex = String.valueOf(index);
+			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
+			copyRetentionRulePrincipalAndNotSortExist |= prevalidateCopyRetentionRule(copyRetentionRule, errors);
 			index++;
 		}
 
 		index = 0;
 		List<Map<String, String>> documentTypes = params.getImportRecord().getList(RetentionRule.DOCUMENT_TYPES_DETAILS);
 		for (Map<String, String> documentType : documentTypes) {
-			prevalidateDocumentType(documentType, params.getErrors(), String.valueOf(index),
-					copyRetentionRulePrincipalAndNotSortExist);
+			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
+			prevalidateDocumentType(documentType, errors, copyRetentionRulePrincipalAndNotSortExist);
 			index++;
 		}
+	}
+
+	ValidationErrors decorateForIndex(ValidationErrors errors, int index) {
+		final String strIndex = String.valueOf(index);
+		return new DecoratedValidationsErrors(errors) {
+			@Override
+			public void buildExtraParams(Map<String, Object> params) {
+				params.put("index", strIndex);
+			}
+		};
 	}
 
 	@Override
@@ -102,68 +121,57 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 
 		List<Map<String, String>> documentTypes = params.getImportRecord().getList(RetentionRule.DOCUMENT_TYPES_DETAILS);
 		for (Map<String, String> documentType : documentTypes) {
-			validateDocumentType(documentTypeResolver, documentType, params.getErrors(), String.valueOf(index));
+			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
+			validateDocumentType(documentTypeResolver, documentType, errors);
 			index++;
 		}
 
 		List<Map<String, String>> copyRetentionRules = params.getImportRecord().getList(RetentionRule.COPY_RETENTION_RULES);
 
+		index = 0;
 		for (Map<String, String> copyRetentionRule : copyRetentionRules) {
+			ValidationErrors errors = decorateForIndex(params.getErrors(), index);
 			String value = (String) copyRetentionRule.get(MEDIUM_TYPES);
 			String[] mediumTypes = value.split(",");
 			for (String code : mediumTypes) {
 				if (mediumTypeResolver.getMediumTypeByCode(code) == null) {
-					params.getErrors().add(RecordsImportServices.class, INVALID_CODE_VALUE,
-							asMap(MEDIUM_TYPES, code, COPY_RETENTION_RULE_INDEX, "" + index));
+					errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap("value", code));
 				}
 			}
+			index++;
 		}
 	}
 
-	private boolean prevalidateCopyRetentionRule(Map<String, String> copyRetentionRule, ValidationErrors errors, String index) {
+	private boolean prevalidateCopyRetentionRule(Map<String, String> copyRetentionRule, ValidationErrors errors) {
 		boolean copyRetentionRulePrincipalAndNotSortExist = false;
-		//		if (copyRetentionRule.containsKey(CODE)) {
-		//			String value = copyRetentionRule.get(CODE);
-		//			if (value.isEmpty()) {
-		//				errors.error(INVALID_STRING_VALUE, copyRetentionRule);
-		//			}
-		//		} else {
-		//			errors.error(MISSING_METADATA, asMap("value", CODE, COPY_RETENTION_RULE_INDEX, index));
-		//		}
 
 		if (copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE)) {
 			String value = copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE) != null ?
-					copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase() :
-					"";
+					copyRetentionRule.get(INACTIVE_DISPOSAL_TYPE).toUpperCase() : "";
 			if (value.isEmpty() || !(isDisposalTypeValid(value))) {
-				errors.add(RecordsImportServices.class, INVALID_ENUM_VALUE,
-						asMap(INACTIVE_DISPOSAL_TYPE, value, COPY_RETENTION_RULE_INDEX, index));
+				addInvalidCopyRuleEnumValueError(errors, value, INACTIVE_DISPOSAL_TYPE, DisposalType.class);
 			}
 		}
 
 		if (copyRetentionRule.containsKey(COPY_TYPE)) {
 			String value = copyRetentionRule.get(COPY_TYPE) != null ? copyRetentionRule.get(COPY_TYPE).toUpperCase() : "";
 			if (value.isEmpty() || (!value.equals("P") && !value.equals("S"))) {
-				errors.add(RecordsImportServices.class, INVALID_ENUM_VALUE,
-						asMap(MEDIUM_TYPES, value, COPY_RETENTION_RULE_INDEX, index));
+				addInvalidCopyRuleEnumValueError(errors, value, COPY_TYPE, CopyType.class);
 			} else if (value.equals("P") && copyRetentionRule.containsKey(INACTIVE_DISPOSAL_TYPE) && !copyRetentionRule
 					.get(INACTIVE_DISPOSAL_TYPE).equals("T")) {
 				copyRetentionRulePrincipalAndNotSortExist = true;
 			}
 		} else {
-			errors.add(RecordsImportServices.class, MISSING_METADATA,
-					asMap("value", COPY_TYPE, COPY_RETENTION_RULE_INDEX, index));
+			addRequiredCopyRuleValueError(errors, COPY_TYPE);
 		}
 
 		if (copyRetentionRule.containsKey(MEDIUM_TYPES)) {
 			String value = copyRetentionRule.get(MEDIUM_TYPES);
 			if (value.isEmpty()) {
-				errors.add(RecordsImportServices.class, INVALID_CODE_VALUE,
-						asMap(MEDIUM_TYPES, "empty", COPY_RETENTION_RULE_INDEX, index));
+				addRequiredCopyRuleValueError(errors, MEDIUM_TYPES);
 			}
 		} else {
-			errors.add(RecordsImportServices.class, MISSING_METADATA,
-					asMap("value", MEDIUM_TYPES, COPY_RETENTION_RULE_INDEX, index));
+			addRequiredCopyRuleValueError(errors, MEDIUM_TYPES);
 		}
 
 		if (copyRetentionRule.containsKey(ACTIVE_RETENTION_PERIOD)) {
@@ -174,64 +182,93 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 				for (String parameterKey : copyRetentionRule.keySet()) {
 					convertedRetentionRule.put(parameterKey, copyRetentionRule.get(parameterKey));
 				}
-				errors.add(RecordsImportServices.class, REQUIRED_VALUE, convertedRetentionRule);
+				addRequiredCopyRuleValueError(errors, ACTIVE_RETENTION_PERIOD);
 			} else if (!value.startsWith("var:")) {
 				try {
 					int convertedValue = Integer.valueOf(value);
 					if (convertedValue < 0) {
-						errors.add(RecordsImportServices.class, INVALID_NUMBER_VALUE,
-								asMap("value", value, COPY_RETENTION_RULE_INDEX, index));
+						addInvalidCopyRuleNumberValueError(errors, value, ACTIVE_RETENTION_PERIOD);
 					}
 				} catch (NullPointerException | NumberFormatException np) {
-					errors.add(RecordsImportServices.class, INVALID_NUMBER_VALUE,
-							asMap("value", value, COPY_RETENTION_RULE_INDEX, index));
+					addInvalidCopyRuleNumberValueError(errors, value, ACTIVE_RETENTION_PERIOD);
 				}
 			}
 		} else {
-			errors.add(RecordsImportServices.class, MISSING_METADATA,
-					asMap("value", ACTIVE_RETENTION_PERIOD, COPY_RETENTION_RULE_INDEX, index));
+			addRequiredCopyRuleValueError(errors, ACTIVE_RETENTION_PERIOD);
 		}
 
 		if (copyRetentionRule.containsKey(SEMI_ACTIVE_RETENTION_PERIOD)) {
 			if (copyRetentionRule.get(SEMI_ACTIVE_RETENTION_PERIOD) == null) {
-				errors.add(RecordsImportServices.class, INVALID_NUMBER_VALUE,
-						asMap("value", "null", COPY_RETENTION_RULE_INDEX, index));
+				errors.add(RecordsImportServices.class, INVALID_NUMBER_VALUE, asMap("value", "null"));
 			}
 		} else {
-			errors.add(RecordsImportServices.class, MISSING_METADATA,
-					asMap("value", SEMI_ACTIVE_RETENTION_PERIOD, COPY_RETENTION_RULE_INDEX, index));
+			addRequiredCopyRuleValueError(errors, SEMI_ACTIVE_RETENTION_PERIOD);
 		}
 
 		return copyRetentionRulePrincipalAndNotSortExist;
 	}
 
-	private void prevalidateDocumentType(Map<String, String> documentType, ValidationErrors errors, String index,
+	private void addRequiredCopyRuleValueError(ValidationErrors errors, String field) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("field", field);
+		errors.add(RetentionRuleImportExtension.class, REQUIRED_COPYRULE_FIELD, parameters);
+	}
+
+	private void addRequiredDocumentTypeValueError(ValidationErrors errors, String field) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("field", field);
+		errors.add(RetentionRuleImportExtension.class, REQUIRED_DOCUMENT_TYPE_FIELD, parameters);
+	}
+
+	private void addInvalidCopyRuleNumberValueError(ValidationErrors errors, String value, String field) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("field", field);
+		parameters.put("value", value);
+		errors.add(RetentionRuleImportExtension.class, INVALID_COPYRULE_NUMBER_FIELD, parameters);
+	}
+
+	private void addInvalidCopyRuleEnumValueError(ValidationErrors errors, String value, String field,
+			Class<? extends Enum<?>> enumClass) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("field", field);
+		parameters.put("value", value);
+		parameters.put("acceptedValues", join(EnumWithSmallCodeUtils.toSmallCodeList(enumClass), ", "));
+		errors.add(RetentionRuleImportExtension.class, INVALID_COPYRULE_ENUM_FIELD, parameters);
+	}
+
+	private void addInvalidDocumentTypeEnumValueError(ValidationErrors errors, String value, String field,
+			Class<? extends Enum<?>> enumClass) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("field", field);
+		parameters.put("value", value);
+		parameters.put("acceptedValues", join(EnumWithSmallCodeUtils.toSmallCodeList(enumClass), ", "));
+		errors.add(RetentionRuleImportExtension.class, INVALID_DOCUMENT_TYPE_ENUM_FIELD, parameters);
+	}
+
+	private void prevalidateDocumentType(Map<String, String> documentType, ValidationErrors errors,
 			boolean copyRetentionRulePrincipalAndNotSortExist) {
 
 		if (!copyRetentionRulePrincipalAndNotSortExist) {
 			if (documentType.containsKey(ARCHIVISTIC_STATUS)) {
 				String value = documentType.get(ARCHIVISTIC_STATUS).toUpperCase();
 				if (value.isEmpty() || !(isDisposalTypeValid(value))) {
-					errors.add(RecordsImportServices.class, INVALID_ENUM_VALUE,
-							asMap(ARCHIVISTIC_STATUS, value, DOCUMENT_TYPE_INDEX, index));
+					addInvalidDocumentTypeEnumValueError(errors, value, ARCHIVISTIC_STATUS, FolderStatus.class);
 				}
 			} else {
-				errors.add(RecordsImportServices.class, MISSING_METADATA,
-						asMap("value", ARCHIVISTIC_STATUS, DOCUMENT_TYPE_INDEX, index));
+				addRequiredCopyRuleValueError(errors, ARCHIVISTIC_STATUS);
 			}
 		}
 
 		if (!documentType.containsKey(CODE)) {
-			errors.add(RecordsImportServices.class, MISSING_METADATA, asMap("value", CODE, DOCUMENT_TYPE_INDEX, index));
+			addRequiredCopyRuleValueError(errors, CODE);
 		}
 	}
 
-	private void validateDocumentType(DocumentTypeResolver resolver, Map<String, String> documentType, ValidationErrors errors,
-			String index) {
+	private void validateDocumentType(DocumentTypeResolver resolver, Map<String, String> documentType, ValidationErrors errors) {
 
 		String value = documentType.get(CODE);
 		if (value.isEmpty()) {
-			errors.add(RecordsImportServices.class, INVALID_CODE_VALUE, asMap("value", "empty", DOCUMENT_TYPE_INDEX, index));
+			addRequiredCopyRuleValueError(errors, CODE);
 		} else {
 			String documentTypeId = null;
 			try {
@@ -239,7 +276,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			} catch (WrappedRecordMustBeNotNull | NullPointerException re) {
 			}
 			if (documentTypeId == null) {
-				errors.add(RecordsImportServices.class, INVALID_CODE_VALUE, asMap(CODE, value, DOCUMENT_TYPE_INDEX, index));
+				errors.add(RetentionRuleImportExtension.class, INVALID_DOCUMENT_TYPE_CODE, asMap("value", value));
 			}
 		}
 	}
@@ -321,6 +358,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		copyRetentionRule.setCode(mapCopyRetentionRule.get(CODE));
+		copyRetentionRule.setTitle(mapCopyRetentionRule.get(TITLE));
+		copyRetentionRule.setDescription(mapCopyRetentionRule.get(DESCRIPTION));
 
 		CopyType copyType = (mapCopyRetentionRule.get(COPY_TYPE).toUpperCase()).equals("P") ?
 				CopyType.PRINCIPAL :

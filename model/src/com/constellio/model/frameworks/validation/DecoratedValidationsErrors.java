@@ -56,7 +56,9 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 	}
 
 	public void addAll(List<ValidationError> validationErrors) {
-		throw new UnsupportedOperationException("Method unsupported");
+		for (ValidationError error : validationErrors) {
+			add(error.getValidatorClass(), error.getValidatorErrorCode(), error.getParameters());
+		}
 	}
 
 	@Override
@@ -76,6 +78,8 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 
 	@Override
 	public void addAllWarnings(List<ValidationError> validationWarnings) {
-		throw new UnsupportedOperationException("Method unsupported");
+		for (ValidationError error : validationWarnings) {
+			addWarning(error.getValidatorClass(), error.getValidatorErrorCode(), error.getParameters());
+		}
 	}
 }

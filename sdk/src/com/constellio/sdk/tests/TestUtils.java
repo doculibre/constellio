@@ -598,6 +598,7 @@ public class TestUtils {
 		for (ValidationError error : errors.getValidationErrors()) {
 			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
 			for (String parameter : parameters) {
+
 				tuple.addData(error.getParameters().get(parameter));
 			}
 			tuples.add(tuple);

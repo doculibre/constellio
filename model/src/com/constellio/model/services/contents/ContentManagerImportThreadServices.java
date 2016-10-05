@@ -122,41 +122,43 @@ public class ContentManagerImportThreadServices {
 
 		Map<String, ContentVersionDataSummary> newEntriesInIndex = new HashMap<>();
 
-		for (File extractedBigFileFolder : extractedBigFileFolders) {
-			for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
-				String key = toBigFileKey(extractedBigFileFolder, file);
+		try {
+			for (File extractedBigFileFolder : extractedBigFileFolders) {
+				for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
+					String key = toBigFileKey(extractedBigFileFolder, file);
 
-				ContentVersionDataSummary dataSummary = uploader.get(key);
-				newEntriesInIndex.put(key, dataSummary);
-
-				if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
-					ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
-				} else {
-					ioServices.deleteQuietly(file);
-				}
-
-				//uploader.uploadAsync(toKey(file), ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
-			}
-		}
-
-		for (File file : files) {
-			if (!file.getName().endsWith(".bigf")) {
-				String key = toKey(file);
-				if (!emptyFileKeys.contains(key)) {
 					ContentVersionDataSummary dataSummary = uploader.get(key);
 					newEntriesInIndex.put(key, dataSummary);
+
 					if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
 						ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
 					} else {
 						ioServices.deleteQuietly(file);
 					}
-				}
-			} else {
-				ioServices.deleteQuietly(file);
-			}
-		}
 
-		writeNewEntriesInIndex(newEntriesInIndex);
+					//uploader.uploadAsync(toKey(file), ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+				}
+			}
+
+			for (File file : files) {
+				if (!file.getName().endsWith(".bigf")) {
+					String key = toKey(file);
+					if (!emptyFileKeys.contains(key)) {
+						ContentVersionDataSummary dataSummary = uploader.get(key);
+						newEntriesInIndex.put(key, dataSummary);
+						if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
+							ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+						} else {
+							ioServices.deleteQuietly(file);
+						}
+					}
+				} else {
+					ioServices.deleteQuietly(file);
+				}
+			}
+		} finally {
+			writeNewEntriesInIndex(newEntriesInIndex);
+		}
 
 	}
 
