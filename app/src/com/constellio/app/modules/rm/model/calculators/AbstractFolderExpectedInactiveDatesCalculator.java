@@ -48,7 +48,6 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 	@Override
 	protected LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters) {
-
 		CalculatorInput input = new CalculatorInput(parameters);
 
 		if (input.archivisticStatus.isInactive()) {
@@ -77,6 +76,8 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
+			} else if (expectedTransferDate == null && input.inactiveNumberOfYearWhenVariableDelayPeriod != -1) {
+				baseTransferDate = input.decommissioningDate;
 			} else {
 				baseTransferDate = expectedTransferDate;
 			}

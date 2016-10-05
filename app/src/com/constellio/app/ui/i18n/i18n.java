@@ -49,6 +49,11 @@ public class i18n {
 
 	public static void setLocale(Locale locale) {
 		i18n.locale = locale;
+		try {
+			ConstellioUI.getCurrentSessionContext().setCurrentLocale(locale);
+		} catch (Throwable e) {
+			//LOGGER.warn("error when trying to set session locale", e);
+		}
 	}
 
 	public static String $(String key) {
