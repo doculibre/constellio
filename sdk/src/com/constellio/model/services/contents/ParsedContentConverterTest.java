@@ -55,15 +55,4 @@ public class ParsedContentConverterTest {
 		assertThat(parsedContentAsString2).isEqualTo(parsedContentAsString);
 
 	}
-
-	@Test
-	public void testName()
-			throws Exception {
-
-		ParsedContentConverter converter = new ParsedContentConverter();
-		String fileContent = FileUtils
-				.readFileToString(new File("/Users/francisbaril/Downloads/ItkJDOX9psOLF864j37UobYfRLQ=__parsed"));
-		converter.convertToParsedContent(fileContent);
-
-	}
 }
