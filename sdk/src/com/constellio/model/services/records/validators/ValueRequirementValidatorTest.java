@@ -64,6 +64,10 @@ public class ValueRequirementValidatorTest extends ConstellioTest {
 		when(requiredMetadata1.isEnabled()).thenReturn(true);
 		when(requiredMetadata2.isEnabled()).thenReturn(true);
 
+		when(optionalMetadata.getLocalCode()).thenReturn("localCode1");
+		when(requiredMetadata1.getLocalCode()).thenReturn("localCode2");
+		when(requiredMetadata2.getLocalCode()).thenReturn("localCode3");
+
 		when(optionalMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 		when(requiredMetadata1.getDataEntry()).thenReturn(new ManualDataEntry());
 		when(requiredMetadata2.getDataEntry()).thenReturn(new ManualDataEntry());
