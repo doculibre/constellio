@@ -30,7 +30,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -780,6 +778,85 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenPermisiveModeWhenImportRecordWithMissingValuesThenOnlyWarningsForUSR()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAStringMetadata(whichIsMultivalue, whichHasDefaultRequirement)
+				.withABooleanMetadata(whichHasDefaultRequirement)
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema().create("USRuserMetadata")
+								.setType(STRING).setDefaultRequirement(true);
+					}
+				}));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
+				.addField("title", "Record 1")
+				.addField("stringMetadata", asList("42"))
+				.addField("booleanMetadata", "true"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2")
+				.addField("title", "Record 2")
+				.addField("stringMetadata", asList("42"))
+				.addField("USRuserMetadata", "value 1")
+				.addField("booleanMetadata", "true"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3")
+				.addField("title", "Record 3")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", asList("42")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4")
+				.addField("title", "Record 4")
+				.addField("booleanMetadata", "true"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5")
+				.addField("title", "Record 5")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", new ArrayList<>()));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE());
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+			List<ValidationError> errors = e.getValidationErrors().getValidationErrors();
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadata", "metadataLabel", "prefix")).containsOnly(
+					tuple("RecordsImportServices_requiredValue", "booleanMetadata", "A boolean metadata",
+							"Ze type de schéma 3 : "),
+					tuple("RecordsImportServices_requiredValue", "stringMetadata", "A toAString metadata",
+							"Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_requiredValue", "booleanMetadata", "A boolean metadata",
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_requiredValue", "stringMetadata", "A toAString metadata",
+							"Ze type de schéma 5 : ")
+			);
+
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "metadata", "metadataLabel", "prefix")).containsOnly(
+					tuple("RecordsImportServices_requiredValue", "USRuserMetadata", "USRuserMetadata", "Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_requiredValue", "USRuserMetadata", "USRuserMetadata", "Ze type de schéma 1 : ")
+			);
+
+			assertThat(frenchMessages(e.getValidationErrors().getValidationErrors())).containsOnly(
+					"Ze type de schéma 3 : La métadonnée «A boolean metadata» est requise.",
+					"Ze type de schéma 4 : La métadonnée «A toAString metadata» est requise.",
+					"Ze type de schéma 5 : La métadonnée «A boolean metadata» est requise.",
+					"Ze type de schéma 5 : La métadonnée «A toAString metadata» est requise.");
+
+			assertThat(frenchMessages(e.getValidationErrors().getValidationWarnings())).containsOnly(
+					"Ze type de schéma 4 : La métadonnée «USRuserMetadata» est requise.",
+					"Ze type de schéma 1 : La métadonnée «USRuserMetadata» est requise.");
+		}
+
+		Record record = recordWithLegacyId("1");
+		assertThat(record).isNotNull();
+	}
+
+	@Test
 	public void givenAnImportedRecordHasMissingValuesToFieldsThatAreAlwaysEnabledThenValidationError()
 			throws Exception {
 
@@ -787,16 +864,38 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.withAParentReferenceFromZeSchemaToZeSchema()
 				.withAReferenceFromAnotherSchemaToZeSchema()
 				.withAStringMetadata(whichIsMultivalue, whichHasDefaultRequirement)
-				.withABooleanMetadata(whichHasDefaultRequirement));
+				.withABooleanMetadata(whichHasDefaultRequirement)
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType("zeSchemaType").getDefaultSchema().create("USRuserMetadata")
+								.setType(STRING).setDefaultRequirement(true);
+					}
+				}));
 
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1")
+				.addField("title", "Record 1")
 				.addField("stringMetadata", asList("42"))
 				.addField("booleanMetadata", "true"));
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
-				.addField("stringMetadata", asList("42")));
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2")
+				.addField("title", "Record 2")
+				.addField("stringMetadata", asList("42"))
+				.addField("USRuserMetadata", "value 1")
 				.addField("booleanMetadata", "true"));
-		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3")
+				.addField("title", "Record 3")
+				.addField("USRuserMetadata", "value 1")
+				.addField("stringMetadata", asList("42")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4")
+				.addField("title", "Record 4")
+				.addField("booleanMetadata", "true"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5")
+				.addField("title", "Record 5")
+				.addField("USRuserMetadata", "value 1")
 				.addField("stringMetadata", new ArrayList<>()));
 
 		try {
@@ -813,20 +912,18 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					tuple("RecordsImportServices_requiredValue", "booleanMetadata", "A boolean metadata",
 							"Ze type de schéma 5 : "),
 					tuple("RecordsImportServices_requiredValue", "stringMetadata", "A toAString metadata",
-							"Ze type de schéma 5 : ")
+							"Ze type de schéma 5 : "),
+					tuple("RecordsImportServices_requiredValue", "USRuserMetadata", "USRuserMetadata", "Ze type de schéma 4 : "),
+					tuple("RecordsImportServices_requiredValue", "USRuserMetadata", "USRuserMetadata", "Ze type de schéma 1 : ")
 			);
 
-			//			assertThat(errors).containsOnly(
-			//					newZeSchemaValidationError(REQUIRED_VALUE,
-			//							asMap("index", "2", "legacyId", "3", "metadatas", "[booleanMetadata]")),
-			//					newZeSchemaValidationError(REQUIRED_VALUE,
-			//							asMap("index", "3", "legacyId", "4", "metadatas", "[stringMetadata]")),
-			//					newZeSchemaValidationError(REQUIRED_VALUE,
-			//							asMap("index", "4", "legacyId", "5", "metadatas", "[booleanMetadata, stringMetadata]")));
-			assertThat(frenchMessages(e)).containsOnly("Ze type de schéma 3 : La métadonnée «A boolean metadata» est requise.",
+			assertThat(frenchMessages(e)).containsOnly(
+					"Ze type de schéma 3 : La métadonnée «A boolean metadata» est requise.",
 					"Ze type de schéma 4 : La métadonnée «A toAString metadata» est requise.",
 					"Ze type de schéma 5 : La métadonnée «A boolean metadata» est requise.",
-					"Ze type de schéma 5 : La métadonnée «A toAString metadata» est requise.");
+					"Ze type de schéma 5 : La métadonnée «A toAString metadata» est requise.",
+					"Ze type de schéma 4 : La métadonnée «USRuserMetadata» est requise.",
+					"Ze type de schéma 1 : La métadonnée «USRuserMetadata» est requise.");
 		}
 	}
 
@@ -2046,7 +2143,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
 
 		try {
-			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE());
+			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE());
 			fail("Validation exception expected");
 		} catch (ValidationException e) {
 			e.printStackTrace();
@@ -2110,7 +2207,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				.addField("facultativeReferenceUsedByFacultativeCalculatedMetadata", "43"));
 
 		try {
-			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE()
+			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE()
 					.setWarningsForInvalidFacultativeMetadatas(false));
 			fail("Validation exception expected");
 		} catch (ValidationException e) {
@@ -2119,7 +2216,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					tuple("RecordsImportServices_unresolvedValue", "1", "legacyIdentifier", "43"),
 					tuple("RecordsImportServices_unresolvedValue", "2", "legacyIdentifier", "43"),
 					tuple("RecordsImportServices_unresolvedValue", "3", "legacyIdentifier", "43"),
-					tuple("RecordsImportServices_unresolvedValue", "4", "legacyIdentifier", "43")
+					tuple("RecordsImportServices_unresolvedValue", "4", "legacyIdentifier", "43"),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "3", null, null),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "2", null, null),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "1", null, null),
+					tuple("ValueRequirementValidator_requiredValueForMetadata", "4", null, null)
 			);
 			assertThat(extractingWarningsSimpleCodeAndParameters(e, "legacyId", "metadata")).isEmpty();
 		}
@@ -2333,7 +2434,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		}
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE());
+			services.bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE());
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
@@ -2574,7 +2675,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		}
 
 		try {
-			services.bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE());
+			services.bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE());
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
@@ -2636,7 +2737,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
-					BulkImportParams.IMPORT_AS_MUCH_AS_POSSIBLE().setWarningsForInvalidFacultativeMetadatas(false));
+					BulkImportParams.PERMISSIVE().setWarningsForInvalidFacultativeMetadatas(false));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {

@@ -195,6 +195,7 @@ public class RecordsImportServicesExecutor {
 		}
 		for (String schemaType : getImportedSchemaTypes()) {
 
+			DecoratedValidationsErrors typeImportErrors = new DecoratedValidationsErrors(errors);
 			TypeImportContext context = new TypeImportContext();
 			context.schemaType = schemaType;
 			context.recordsBeforeImport = searchServices.hasResults(from(types.getSchemaType(schemaType)).returnAll());
@@ -210,19 +211,20 @@ public class RecordsImportServicesExecutor {
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped;
 				if (params.getThreads() == 1) {
-					skipped = bulkImport(context, importDataIterator, errors);
+					skipped = bulkImport(context, importDataIterator, typeImportErrors);
 				} else {
-					skipped = bulkImportInParallel(context, importDataIterator, errors);
+					skipped = bulkImportInParallel(context, importDataIterator, typeImportErrors);
 				}
 				if (skipped > 0 && skipped == previouslySkipped) {
 
-					if (errors.isEmpty()) {
+					if (!typeImportErrors.hasDecoratedErrors()) {
 						Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
-						addCyclicDependenciesValidationError(errors, types.getSchemaType(schemaType), cyclicDependentIds);
+						addCyclicDependenciesValidationError(typeImportErrors, types.getSchemaType(schemaType),
+								cyclicDependentIds);
 
 					}
 
-					throwIfNonEmpty(errors);
+					throwIfNonEmpty(typeImportErrors);
 				}
 				if (skipped == 0) {
 					typeImportFinished = true;
@@ -231,7 +233,9 @@ public class RecordsImportServicesExecutor {
 			}
 			if (params.importErrorsBehavior == STOP_ON_FIRST_ERROR
 					|| params.importErrorsBehavior == CONTINUE_FOR_RECORD_OF_SAME_TYPE) {
-				throwIfNonEmpty(errors);
+				if (typeImportErrors.hasDecoratedErrors()) {
+					throwIfNonEmpty(typeImportErrors);
+				}
 			}
 		}
 
@@ -303,6 +307,8 @@ public class RecordsImportServicesExecutor {
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
 		typeBatchImportContext.transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipMaskedMetadataValidations(true);
+		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(
+				params.isWarningsForRequiredUSRMetadatasWithoutValue());
 		typeBatchImportContext.options = options;
 		if (!typeImportContext.recordsBeforeImport) {
 			typeBatchImportContext.transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);

@@ -23,6 +23,8 @@ public class RecordUpdateOptions {
 
 	private boolean skipMaskedMetadataValidations = false;
 
+	private boolean skipUSRMetadatasRequirementValidations = false;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -34,6 +36,15 @@ public class RecordUpdateOptions {
 		this.updateModificationInfos = copy.updateModificationInfos;
 		this.fullRewrite = copy.fullRewrite;
 		this.validationsEnabled = copy.validationsEnabled;
+	}
+
+	public boolean isSkipUSRMetadatasRequirementValidations() {
+		return skipUSRMetadatasRequirementValidations;
+	}
+
+	public RecordUpdateOptions setSkipUSRMetadatasRequirementValidations(boolean skipUSRMetadatasRequirementValidations) {
+		this.skipUSRMetadatasRequirementValidations = skipUSRMetadatasRequirementValidations;
+		return this;
 	}
 
 	public boolean isSkipMaskedMetadataValidations() {

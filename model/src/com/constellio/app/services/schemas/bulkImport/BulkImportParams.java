@@ -6,6 +6,8 @@ public class BulkImportParams {
 
 	boolean warningsForInvalidFacultativeMetadatas = false;
 
+	boolean warningsForRequiredUSRMetadatasWithoutValue = false;
+
 	ImportErrorsBehavior importErrorsBehavior = ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 
 	ImportValidationErrorsBehavior importValidationErrorsBehavior = ImportValidationErrorsBehavior.STOP_IMPORT;
@@ -13,6 +15,15 @@ public class BulkImportParams {
 	int batchSize = 500;
 
 	int threads = 1;
+
+	public boolean isWarningsForRequiredUSRMetadatasWithoutValue() {
+		return warningsForRequiredUSRMetadatasWithoutValue;
+	}
+
+	public BulkImportParams setWarningsForRequiredUSRMetadatasWithoutValue(boolean warningsForRequiredUSRMetadatasWithoutValue) {
+		this.warningsForRequiredUSRMetadatasWithoutValue = warningsForRequiredUSRMetadatasWithoutValue;
+		return this;
+	}
 
 	public int getThreads() {
 		return threads;
@@ -67,9 +78,10 @@ public class BulkImportParams {
 		CONTINUE
 	}
 
-	public static BulkImportParams IMPORT_AS_MUCH_AS_POSSIBLE() {
+	public static BulkImportParams PERMISSIVE() {
 		return new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true).setImportErrorsBehavior(CONTINUE)
-				.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS);
+				.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS)
+				.setWarningsForRequiredUSRMetadatasWithoutValue(true);
 	}
 
 	public static BulkImportParams STRICT() {
