@@ -67,6 +67,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String TYPE_ID = "typeId";
 	public static final String RULES_TYPE_DOCUMENTS = "documentRules";
 	public static final String RULES_TYPE_FOLDER = "folderRules";
+	public static final String TITLE = "title";
+	public static final String DESCRIPTION = "description";
 
 	private final RMSchemasRecordsServices rm;
 
@@ -356,6 +358,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		copyRetentionRule.setCode(mapCopyRetentionRule.get(CODE));
+		copyRetentionRule.setTitle(mapCopyRetentionRule.get(TITLE));
+		copyRetentionRule.setDescription(mapCopyRetentionRule.get(DESCRIPTION));
 
 		CopyType copyType = (mapCopyRetentionRule.get(COPY_TYPE).toUpperCase()).equals("P") ?
 				CopyType.PRINCIPAL :
