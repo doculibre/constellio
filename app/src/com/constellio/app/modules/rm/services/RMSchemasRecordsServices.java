@@ -22,6 +22,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -824,6 +825,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 						String partFileName = bodyPart.getFileName();
 						Object partContent = bodyPart.getContent();
 						if (partContent instanceof InputStream) {
+							partFileName = MimeUtility.decodeText(partFileName);
 							InputStream inputAttachment = (InputStream) partContent;
 							attachments.put(partFileName, inputAttachment);
 							mimeTypes.put(partFileName, bodyPart.getContentType());
