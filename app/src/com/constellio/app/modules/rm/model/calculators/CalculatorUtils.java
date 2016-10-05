@@ -80,7 +80,9 @@ public class CalculatorUtils {
 			return null;
 		}
 
-		if (copyRule.getActiveRetentionPeriod().isVariablePeriod()) {
+		if (copyRule.getSemiActiveRetentionPeriod().isZero()) {
+			return null;
+		} else if (copyRule.getActiveRetentionPeriod().isVariablePeriod()) {
 			if (numberOfYearWhenVariableDelay == -1) {
 				return null;
 			} else {
@@ -102,6 +104,12 @@ public class CalculatorUtils {
 				return null;
 			} else {
 				return baseTransferDate.plusYears(numberOfYearWhenVariableDelayPeriod);
+			}
+		} else if (copyRule.getSemiActiveRetentionPeriod().isZero()) {
+			if (copyRule.getActiveRetentionPeriod().isVariablePeriod()) {
+				return baseTransferDate.plusYears(numberOfYearWhenVariableDelayPeriod);
+			} else {
+				return baseTransferDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
 			}
 		} else {
 			return baseTransferDate.plusYears(copyRule.getSemiActiveRetentionPeriod().getFixedPeriod());

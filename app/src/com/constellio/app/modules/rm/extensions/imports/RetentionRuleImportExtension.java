@@ -67,6 +67,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 	public static final String TYPE_ID = "typeId";
 	public static final String RULES_TYPE_DOCUMENTS = "documentRules";
 	public static final String RULES_TYPE_FOLDER = "folderRules";
+	public static final String TITLE = "title";
+	public static final String DESCRIPTION = "description";
 
 	private final RMSchemasRecordsServices rm;
 
@@ -133,7 +135,7 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 			String[] mediumTypes = value.split(",");
 			for (String code : mediumTypes) {
 				if (mediumTypeResolver.getMediumTypeByCode(code) == null) {
-					errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap(MEDIUM_TYPES, code));
+					errors.add(RetentionRuleImportExtension.class, INVALID_MEDIUM_TYPE_CODE, asMap("value", code));
 				}
 			}
 			index++;
@@ -356,6 +358,8 @@ public class RetentionRuleImportExtension extends RecordImportExtension {
 		}
 
 		copyRetentionRule.setCode(mapCopyRetentionRule.get(CODE));
+		copyRetentionRule.setTitle(mapCopyRetentionRule.get(TITLE));
+		copyRetentionRule.setDescription(mapCopyRetentionRule.get(DESCRIPTION));
 
 		CopyType copyType = (mapCopyRetentionRule.get(COPY_TYPE).toUpperCase()).equals("P") ?
 				CopyType.PRINCIPAL :
