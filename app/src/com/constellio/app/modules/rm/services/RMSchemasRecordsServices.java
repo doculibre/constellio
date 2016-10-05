@@ -22,6 +22,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -35,14 +36,12 @@ import org.apache.poi.hsmf.datatypes.MAPIProperty;
 import org.apache.poi.hsmf.datatypes.StringChunk;
 import org.apache.poi.hsmf.parsers.POIFSChunkParser;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -59,7 +58,6 @@ import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
@@ -827,6 +825,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 						String partFileName = bodyPart.getFileName();
 						Object partContent = bodyPart.getContent();
 						if (partContent instanceof InputStream) {
+							partFileName = MimeUtility.decodeText(partFileName);
 							InputStream inputAttachment = (InputStream) partContent;
 							attachments.put(partFileName, inputAttachment);
 							mimeTypes.put(partFileName, bodyPart.getContentType());
