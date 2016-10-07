@@ -52,6 +52,11 @@ public class ImportedSettings {
 		return collectionsSettings;
 	}
 
+	public ImportedSettings add(ImportedCollectionSettings collectionSettings) {
+		collectionsSettings.add(collectionSettings);
+		return this;
+	}
+
 	public ImportedSettings addCollectionSettings(ImportedCollectionSettings collectionSettings) {
 		collectionsSettings.add(collectionSettings);
 		return this;

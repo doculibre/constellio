@@ -293,7 +293,9 @@ public class SettingsImportServices {
 				allTabs.put(tab, labels);
 			}
 		}
-
+		if (importedMetadata.getAdvanceSearchable() != null) {
+			displayConfig = displayConfig.withVisibleInAdvancedSearchStatus(importedMetadata.getAdvanceSearchable());
+		}
 		transactionBuilder.addReplacing(displayConfig);
 	}
 

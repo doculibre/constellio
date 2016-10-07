@@ -260,7 +260,11 @@ public class RecordsImportValidator {
 			Object fieldValue = importData.getFields().get(requiredMetadata.getLocalCode());
 
 			if (fieldValue == null || (fieldValue instanceof List && ((List) fieldValue).isEmpty())) {
-				errors.add(RecordsImportServices.class, REQUIRED_VALUE, toMetadataParameters(requiredMetadata));
+				if (requiredMetadata.getLocalCode().startsWith("USR") && params.isWarningsForRequiredUSRMetadatasWithoutValue()) {
+					errors.addWarning(RecordsImportServices.class, REQUIRED_VALUE, toMetadataParameters(requiredMetadata));
+				} else {
+					errors.add(RecordsImportServices.class, REQUIRED_VALUE, toMetadataParameters(requiredMetadata));
+				}
 			}
 		}
 
