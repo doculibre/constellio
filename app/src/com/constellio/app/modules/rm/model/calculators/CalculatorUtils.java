@@ -95,24 +95,24 @@ public class CalculatorUtils {
 	}
 
 	public static LocalDate calculateExpectedInactiveDate(CopyRetentionRule copyRule,
-			LocalDate baseTransferDate, int numberOfYearWhenVariableDelayPeriod) {
+			LocalDate baseDate, int numberOfYearWhenVariableDelayPeriod) {
 
-		if (baseTransferDate == null) {
+		if (baseDate == null) {
 			return null;
 		} else if (copyRule.getSemiActiveRetentionPeriod().isVariablePeriod()) {
 			if (numberOfYearWhenVariableDelayPeriod == -1) {
 				return null;
 			} else {
-				return baseTransferDate.plusYears(numberOfYearWhenVariableDelayPeriod);
+				return baseDate.plusYears(numberOfYearWhenVariableDelayPeriod);
 			}
 		} else if (copyRule.getSemiActiveRetentionPeriod().isZero()) {
 			if (copyRule.getActiveRetentionPeriod().isVariablePeriod()) {
-				return baseTransferDate.plusYears(numberOfYearWhenVariableDelayPeriod);
+				return baseDate.plusYears(numberOfYearWhenVariableDelayPeriod);
 			} else {
-				return baseTransferDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
+				return baseDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
 			}
 		} else {
-			return baseTransferDate.plusYears(copyRule.getSemiActiveRetentionPeriod().getFixedPeriod());
+			return baseDate.plusYears(copyRule.getSemiActiveRetentionPeriod().getFixedPeriod());
 		}
 
 	}
