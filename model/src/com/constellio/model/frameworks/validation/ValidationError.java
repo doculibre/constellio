@@ -108,4 +108,7 @@ public class ValidationError {
 		return sb.toString();
 	}
 
+	public Object getParameter(String key) {
+		return parameters.get(key);
+	}
 }
