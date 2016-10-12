@@ -143,10 +143,10 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.categoryId_X100)
 				.has(recordsInOrder(records.categoryId_X110, records.categoryId_X120, records.folder_A16, records.folder_A17,
-						records.folder_A18, records.folder_B06))
+						records.folder_A18, records.folder_B06, records.folder_B32))
 				.has(recordsWithChildren(records.categoryId_X110, records.categoryId_X120, records.folder_A16,
-						records.folder_B06))
-				.has(numFoundAndListSize(6));
+						records.folder_B06, records.folder_B32))
+				.has(numFoundAndListSize(7));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB(), records.folder_A16)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
@@ -169,9 +169,9 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(numFoundAndListSize(1));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
-				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"))
-				.has(numFoundAndListSize(7));
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(numFoundAndListSize(9));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_Z)
 				.has(recordsInOrder(records.categoryId_Z100))
@@ -215,29 +215,29 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(listSize(1)).has(numFound(2));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100)
-				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"))
-				.has(listSize(7)).has(numFound(7));
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(listSize(9)).has(numFound(9));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 10)
-				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
-				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"))
-				.has(listSize(7)).has(numFound(7));
+				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06", "C32", "B32"))
+				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06", "C32", "B32"))
+				.has(listSize(9)).has(numFound(9));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 7)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16", "A17", "A18", "C06", "B06"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16", "C06", "B06"))
-				.has(listSize(7)).has(numFound(7));
+				.has(listSize(7)).has(numFound(9));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 0, 3)
 				.has(recordsInOrder("categoryId_X110", "categoryId_X120", "A16"))
 				.has(recordsWithChildren("categoryId_X110", "categoryId_X120", "A16"))
-				.has(listSize(3)).has(numFound(7));
+				.has(listSize(3)).has(numFound(9));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.categoryId_X100, 1, 4)
 				.has(recordsInOrder("categoryId_X120", "A16", "A17", "A18"))
 				.has(recordsWithChildren("categoryId_X120", "A16"))
-				.has(listSize(4)).has(numFound(7));
+				.has(listSize(4)).has(numFound(9));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(records.getAdmin(), records.folder_A16, 0, 5)
 				.has(recordsInOrder(document1InA16, document2InA16, document3InA16, subFolderId))
