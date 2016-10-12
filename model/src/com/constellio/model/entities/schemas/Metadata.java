@@ -425,6 +425,16 @@ public class Metadata implements DataStoreField {
 		return false;
 	}
 
+	public boolean isSameLocalCodeIn(String... metadatasLocalCodes) {
+		for (String metadataLocalCode : metadatasLocalCodes) {
+			if (localCode.equals(metadataLocalCode)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public String getSchemaCode() {
 		return new SchemaUtils().getSchemaCode(this);
 	}

@@ -11,6 +11,14 @@ public class ValidationErrors {
 	private final List<ValidationError> validationErrors = new ArrayList<>();
 	private final List<ValidationError> validationWarnings = new ArrayList<>();
 
+	public ValidationErrors() {
+	}
+
+	public ValidationErrors(ValidationErrors copy) {
+		this.validationErrors.addAll(new ArrayList<>(copy.getValidationErrors()));
+		this.validationWarnings.addAll(new ArrayList<>(copy.getValidationWarnings()));
+	}
+
 	public final void add(Class<?> validatorClass, String code) {
 		add(validatorClass, code, new HashMap<String, Object>());
 	}
