@@ -97,6 +97,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -1722,6 +1723,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		givenTimeIs(TimeProvider.getLocalDateTime().plusSeconds(60));
 		contentManager.uploadFilesInImportFolder();
+
+		deletingContentWithFilename(file1Hash);
+
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 
 		defineSchemasManager().using(schemas.andCustomSchema()
@@ -1763,18 +1767,20 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
 		} catch (ValidationException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "prefix", "fileName", "filePath")).containsOnly(
+			assertThat(extractingSimpleCodeAndParameters(e, "prefix", "fileName", "filePath", "hash")).containsOnly(
 					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 3 : ", "File 3.pdf",
-							"inexistentFile.pdf"),
+							"inexistentFile.pdf", null),
 					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 6 : ", "File 6.docx",
-							"otherFolder/file3.docx"),
-					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 8 : ", "File 7a.pdf", "fileZ.pdf")
+							"otherFolder/file3.docx", null),
+					tuple("RecordsImportServices_contentNotImported", "Ze type de schéma 8 : ", "File 7a.pdf", "fileZ.pdf", null),
+					tuple("RecordsImportServices_hashNotFoundInVault", "Ze type de schéma 1 : ", null, null, file1Hash)
 			);
 
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 6 : Aucun contenu pré-importé «otherFolder/file3.docx»",
 					"Ze type de schéma 8 : Aucun contenu pré-importé «fileZ.pdf»",
-					"Ze type de schéma 3 : Aucun contenu pré-importé «inexistentFile.pdf»"
+					"Ze type de schéma 3 : Aucun contenu pré-importé «inexistentFile.pdf»",
+					"Ze type de schéma 1 : Le contenu «Fss7pKBafi8ok5KaOwEpmNdeGCE=» n'existe pas dans la voûte"
 			);
 		}
 
@@ -1784,9 +1790,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		Record record5 = recordWithLegacyId("5");
 		Record record7 = recordWithLegacyId("7");
 
-		assertThat(record1.<Content>get(zeSchema.contentMetadata()).getCurrentVersion())
-				.has(hashFilenameVersion(file1Hash, "File 1.docx", "1.0"));
-		assertThat(record1.getList(zeSchema.contentListMetadata())).isEmpty();
+		assertThat(record1).isNull();
 
 		assertThat(record2.get(zeSchema.contentMetadata())).isNull();
 		List<Content> record2ContentList = record2.get(zeSchema.contentListMetadata());
@@ -1805,6 +1809,13 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(record7Content.getVersions().get(0)).has(hashFilenameVersion(file2Hash, "File 7a.pdf", "1.0"));
 		assertThat(record7Content.getVersions().get(1)).has(hashFilenameVersion(file4Hash, "File 7b.pdf", "1.1"));
 		assertThat(record7Content.getVersions().get(2)).has(hashFilenameVersion(file5Hash, "File 7c.pdf", "1.2"));
+
+	}
+
+	private void deletingContentWithFilename(String hash) {
+
+		getDataLayerFactory().getContentsDao().delete(TestUtils.asList(hash));
+		getDataLayerFactory().getContentsDao().delete(TestUtils.asList(hash + "__parsed"));
 
 	}
 
