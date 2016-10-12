@@ -9,7 +9,7 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 	
-	private boolean systemCheckStarted = false;
+	private boolean buttonsDisabled = false;
 
 	public SystemCheckPresenter(SystemCheckView view) {
 		super(view);
@@ -31,8 +31,8 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 	
 	void viewAssembled() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
-		systemCheckStarted = systemCheckManager.isSystemCheckResultsRunning();
-		view.setSystemCheckRunning(systemCheckStarted);
+		buttonsDisabled = systemCheckManager.isSystemCheckResultsRunning();
+		view.setSystemCheckRunning(buttonsDisabled);
 		if (systemCheckManager.getLastSystemCheckResults() != null) {
 			String reportContent = new SystemCheckReportBuilder(systemCheckManager).build();
 			view.setReportContent(reportContent);
@@ -43,27 +43,24 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(false);
 		view.setSystemCheckRunning(true);
-		systemCheckStarted = true;
+		buttonsDisabled = true;
 	}
 	
 	void startSystemCheckAndRepairButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(true);
 		view.setSystemCheckRunning(true);
-		systemCheckStarted = true;
+		buttonsDisabled = true;
 	}
 	
 	void viewRefreshed() {
-		if (systemCheckStarted) {
-			System.out.println("test");
-			SystemCheckManager systemCheckManager = getSystemCheckManager();
-			boolean systemCheckRunning = systemCheckManager.isSystemCheckResultsRunning();
-			if (!systemCheckRunning) {
-				String reportContent = new SystemCheckReportBuilder(systemCheckManager).build();
-				view.setReportContent(reportContent);
-				view.setSystemCheckRunning(false);
-				systemCheckRunning = false;
-			}
+		SystemCheckManager systemCheckManager = getSystemCheckManager();
+		boolean systemCheckRunning = systemCheckManager.isSystemCheckResultsRunning();
+		if (buttonsDisabled != systemCheckRunning) {
+			String reportContent = new SystemCheckReportBuilder(systemCheckManager).build();
+			view.setReportContent(reportContent);
+			view.setSystemCheckRunning(false);
+			buttonsDisabled = false;
 		}
 	}
 	
