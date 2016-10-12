@@ -20,7 +20,7 @@ public class CoreMigrationTo_6_4_1 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
-		if(collection.equals(Collection.SYSTEM_COLLECTION)){
+		if (collection.equals(Collection.SYSTEM_COLLECTION)) {
 			new CoreSchemaAlterationFor6_4_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		}
 	}
@@ -38,13 +38,12 @@ public class CoreMigrationTo_6_4_1 implements MigrationScript {
 		}
 
 		private void nonUniqueEmailMetadata(MetadataSchemaTypesBuilder typesBuilder) {
-			try{
+			try {
 				MetadataSchemaBuilder userCredential = typesBuilder
 						.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
 				userCredential.getMetadata(SolrUserCredential.EMAIL).setUniqueValue(false);
-			}catch(MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e){
+			} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
 				//OK
-				System.out.println(collection);
 			}
 
 		}
