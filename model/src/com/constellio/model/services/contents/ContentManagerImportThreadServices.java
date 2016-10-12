@@ -14,16 +14,20 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BigFileEntry;
 import com.constellio.data.utils.BigFileIterator;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ContentManagerImportThreadServices {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ContentManagerImportThreadServices.class);
 	private static final String READ_FILE_INPUTSTREAM = "ContentManagerImportThreadServices-ReadFileInputStream";
 	private static final String BIGFILE_EXTRACT_TEMP_FOLDER = "ContentManagerImportThreadServices-BigFileExtractTempFolder";
 
@@ -37,6 +41,7 @@ public class ContentManagerImportThreadServices {
 	private File tempFolder;
 	private IOServices ioServices;
 	private int batchSize;
+	private boolean deleteUnusedContentEnabled;
 
 	public ContentManagerImportThreadServices(ModelLayerFactory modelLayerFactory) {
 		this(modelLayerFactory, 10000);
@@ -48,6 +53,7 @@ public class ContentManagerImportThreadServices {
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.contentImportFolder = modelLayerFactory.getConfiguration().getContentImportThreadFolder();
+		this.deleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
 		this.tempFolder = new File(contentImportFolder, "temp");
 		this.toImportFolder = new File(contentImportFolder, "toImport");
 		this.errorsEmptyFolder = new File(contentImportFolder, "errors-empty");
@@ -56,18 +62,26 @@ public class ContentManagerImportThreadServices {
 	}
 
 	public void importFiles() {
-		createFolders();
 
-		List<File> files = getFilesReadyToImport();
-		importFiles(files);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(toImportFolder);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsEmptyFolder);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsUnparsableFolder);
-		ioServices.deleteEmptyDirectoriesExceptThisOneIn(tempFolder);
+		createFolders();
+		if (deleteUnusedContentEnabled) {
+			LOGGER.warn("Content import thread requires that configuration 'content.delete.unused.enabled' is set to false");
+		} else {
+
+			List<File> files = getFilesReadyToImport();
+			if (!files.isEmpty()) {
+				importFiles(files);
+
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(toImportFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsEmptyFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(errorsUnparsableFolder);
+				ioServices.deleteEmptyDirectoriesExceptThisOneIn(tempFolder);
+			}
+		}
 	}
 
 	private void importFiles(List<File> files) {
-		System.out.println("importing files " + files + "");
+		LOGGER.info("importing files " + files + "");
 		BulkUploader uploader = new BulkUploader(modelLayerFactory);
 		uploader.setHandleDeletionOfUnreferencedHashes(false);
 
@@ -83,7 +97,7 @@ public class ContentManagerImportThreadServices {
 			} else {
 				String key = toKey(file);
 				if (file.length() > 0) {
-					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
 					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
@@ -96,7 +110,7 @@ public class ContentManagerImportThreadServices {
 			for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
 				String key = toBigFileKey(extractedBigFileFolder, file);
 				if (file.length() > 0) {
-					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
 					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
@@ -108,41 +122,43 @@ public class ContentManagerImportThreadServices {
 
 		Map<String, ContentVersionDataSummary> newEntriesInIndex = new HashMap<>();
 
-		for (File extractedBigFileFolder : extractedBigFileFolders) {
-			for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
-				String key = toBigFileKey(extractedBigFileFolder, file);
+		try {
+			for (File extractedBigFileFolder : extractedBigFileFolders) {
+				for (File file : allFilesRecursivelyIn(extractedBigFileFolder)) {
+					String key = toBigFileKey(extractedBigFileFolder, file);
 
-				ContentVersionDataSummary dataSummary = uploader.get(key);
-				newEntriesInIndex.put(key, dataSummary);
-
-				if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
-					ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
-				} else {
-					ioServices.deleteQuietly(file);
-				}
-
-				//uploader.uploadAsync(toKey(file), ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
-			}
-		}
-
-		for (File file : files) {
-			if (!file.getName().endsWith(".bigf")) {
-				String key = toKey(file);
-				if (!emptyFileKeys.contains(key)) {
 					ContentVersionDataSummary dataSummary = uploader.get(key);
 					newEntriesInIndex.put(key, dataSummary);
+
 					if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
 						ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
 					} else {
 						ioServices.deleteQuietly(file);
 					}
-				}
-			} else {
-				ioServices.deleteQuietly(file);
-			}
-		}
 
-		writeNewEntriesInIndex(newEntriesInIndex);
+					//uploader.uploadAsync(toKey(file), ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM));
+				}
+			}
+
+			for (File file : files) {
+				if (!file.getName().endsWith(".bigf")) {
+					String key = toKey(file);
+					if (!emptyFileKeys.contains(key)) {
+						ContentVersionDataSummary dataSummary = uploader.get(key);
+						newEntriesInIndex.put(key, dataSummary);
+						if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
+							ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+						} else {
+							ioServices.deleteQuietly(file);
+						}
+					}
+				} else {
+					ioServices.deleteQuietly(file);
+				}
+			}
+		} finally {
+			writeNewEntriesInIndex(newEntriesInIndex);
+		}
 
 	}
 
@@ -249,15 +265,38 @@ public class ContentManagerImportThreadServices {
 		errorsUnparsableFolder.mkdirs();
 	}
 
-	public Map<String, ContentVersionDataSummary> readFileNameSHA1Index() {
-		Map<String, ContentVersionDataSummary> map = new HashMap<>();
+	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {
+		if (!indexProperties.exists()) {
+			return Collections.emptyMap();
+		}
+		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
 		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(indexProperties).entrySet()) {
-			map.put(entry.getKey(), toContentVersionDataSummary(entry.getValue()));
+			final String value = entry.getValue();
+			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
+				@Override
+				public ContentVersionDataSummary get() {
+					return toContentVersionDataSummary(value);
+				}
+			});
 		}
 		return map;
 	}
 
-	private ContentVersionDataSummary toContentVersionDataSummary(String value) {
+	public static Map<String, Factory<ContentVersionDataSummary>> buildSHA1Map(File file) {
+		Map<String, Factory<ContentVersionDataSummary>> map = new HashMap<>();
+		for (Map.Entry<String, String> entry : PropertyFileUtils.loadKeyValues(file).entrySet()) {
+			final String value = entry.getValue();
+			map.put(entry.getKey(), new Factory<ContentVersionDataSummary>() {
+				@Override
+				public ContentVersionDataSummary get() {
+					return toContentVersionDataSummary(value);
+				}
+			});
+		}
+		return map;
+	}
+
+	private static ContentVersionDataSummary toContentVersionDataSummary(String value) {
 		String[] parts = value.split(":");
 		String mimetype = "null".equals(parts[2]) ? null : parts[2];
 		return new ContentVersionDataSummary(parts[0], mimetype, Integer.valueOf(parts[1]));

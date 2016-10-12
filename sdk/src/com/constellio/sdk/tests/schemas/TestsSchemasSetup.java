@@ -782,8 +782,10 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
-	public TestsSchemasSetup withAFixedSequence() {
-		zeDefaultSchemaBuilder.create("fixedSequenceMetadata").defineDataEntry().asFixedSequence("zeSequence");
+	public TestsSchemasSetup withAFixedSequence(MetadataBuilderConfigurator... builderConfigurators) {
+		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("fixedSequenceMetadata").defineDataEntry()
+				.asFixedSequence("zeSequence");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
 

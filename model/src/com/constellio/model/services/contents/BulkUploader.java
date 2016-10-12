@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class BulkUploader {
@@ -52,6 +53,10 @@ public class BulkUploader {
 		uploadAsync(key, streamFactory, true, null);
 	}
 
+	public void uploadAsync(final String key, final StreamFactory<InputStream> streamFactory, String fileName) {
+		uploadAsync(key, streamFactory, true, fileName);
+	}
+
 	public void uploadAsyncWithoutParsing(final String key, final StreamFactory<InputStream> streamFactory, String fileName) {
 		uploadAsync(key, streamFactory, false, fileName);
 	}
@@ -70,6 +75,10 @@ public class BulkUploader {
 					ContentVersionDataSummary summary = contentManager
 							.upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
 					writeToMap(key, summary);
+
+				} catch (ContentManagerRuntimeException_CannotReadParsedContent e) {
+					//The file is probably being written by an other thread. The exception is logged and will be thrown if it's not the case.
+					writeToMap(key, e);
 
 				} catch (Throwable e) {
 					new RuntimeException("Failed to upload " + key, e).printStackTrace();
@@ -95,7 +104,7 @@ public class BulkUploader {
 	}
 
 	public ContentVersionDataSummary get(String key) {
-		if (exceptionsMap.containsKey(key) || !summariesMap.containsKey(key)) {
+		if (!summariesMap.containsKey(key)) {
 			throw new BulkUploaderRuntimeException(key, exceptionsMap.get(key));
 		}
 		return summariesMap.get(key);

@@ -88,16 +88,20 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 				transferDate = input.expectedTransferDate;
 			}
 
-			LocalDate baseDateFromSemiActiveDelay = input.getAdjustedBaseDateFromSemiActiveDelay(parameters.get(yearEndParam));
-
-			if (!input.copy.isIgnoreActivePeriod()) {
-				baseDateFromSemiActiveDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
-						baseDateFromSemiActiveDelay, input.numberOfYearWhenSemiActiveVariableDelay);
+			LocalDate baseDate;
+			if (input.copy.getSemiActiveRetentionPeriod().isZero()) {
+				baseDate = getBaseAjustedDate(input);
+				baseDate = input.calculateInactiveBasedOn(baseDate);
+				return max(transferDate, baseDate);
+			} else {
+				LocalDate baseDateFromDelay = input.getAdjustedBaseDateFromSemiActiveDelay(parameters.get(yearEndParam));
+				if (!input.copy.isIgnoreActivePeriod()) {
+					baseDateFromDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
+							baseDateFromDelay, input.numberOfYearWhenSemiActiveVariableDelay);
+				}
+				baseDate = max(transferDate, baseDateFromDelay);
+				return input.calculateInactiveBasedOn(baseDate);
 			}
-
-			LocalDate baseDate = max(transferDate, baseDateFromSemiActiveDelay);
-
-			return input.calculateInactiveBasedOn(baseDate);
 		}
 	}
 
@@ -181,10 +185,6 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 
 		LocalDate calculateInactiveBasedOn(LocalDate baseDate) {
 			return CalculatorUtils.calculateExpectedInactiveDate(copy, baseDate, numberOfYearWhenInactiveVariableDelay);
-		}
-
-		LocalDate calculateSemiActiveBasedOn(LocalDate baseDate) {
-			return CalculatorUtils.calculateExpectedTransferDate(copy, baseDate, numberOfYearWhenSemiActiveVariableDelay);
 		}
 
 		LocalDate adjustToFinancialYear(LocalDate date) {

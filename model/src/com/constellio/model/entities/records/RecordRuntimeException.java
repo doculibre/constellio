@@ -35,8 +35,10 @@ public class RecordRuntimeException extends RuntimeException {
 
 	public static class CannotMerge extends RecordRuntimeException {
 
-		public CannotMerge() {
-			super("Cannot merge");
+		public CannotMerge(String schema, String id, String metadataCode, Object newValue, Object value) {
+			super("Record of schema '" + schema + "' with id '" + id + "' cannot merge metadata '" + metadataCode
+					+ "' because it was modified to '" + newValue
+					+ "' at the same time it was modified to '" + value + "'");
 		}
 
 	}

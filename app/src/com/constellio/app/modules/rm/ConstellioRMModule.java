@@ -84,6 +84,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
 
+	public static final int DEFAULT_VOLATILE_FOLDER_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE = 100;
+
 	@Override
 	public String getName() {
 		return NAME;
@@ -128,7 +131,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_3(),
 				new RMMigrationTo6_4(),
 				new RMMigrationTo6_5(),
-				new RMMigrationTo6_5_1()
+				new RMMigrationTo6_5_1(),
+				new RMMigrationTo6_5_7()
 		);
 	}
 
@@ -223,7 +227,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.cmisExtensions.add(new RMCmisExtension(collection, appLayerFactory));
 		extensions.recordAppExtensions.add(new RMRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension());
-		extensions.searchPageExtensions.add(new RMSearchPageExtension());
+		extensions.searchPageExtensions.add(new RMSearchPageExtension(appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
 		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions());
@@ -267,8 +271,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), 10000));
-		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), 100));
+		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDER_CACHE_SIZE));
+		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
 	}
 
 	@Override

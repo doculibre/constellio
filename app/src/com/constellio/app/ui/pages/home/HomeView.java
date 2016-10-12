@@ -8,6 +8,6 @@ public interface HomeView extends BaseView, RecordsManagementViewGroup {
 	String ACTION_MENU = "home.actionMenu";
 	String TABS = "home.tabs";
 
-	void openAgentURL(String agentURL);
+	void openURL(String url);
 	
 }

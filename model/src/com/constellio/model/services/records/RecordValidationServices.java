@@ -168,15 +168,23 @@ public class RecordValidationServices {
 		}
 		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
-			new ValueRequirementValidator(metadatas).validate(record, validationErrors);
+			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();
+			new ValueRequirementValidator(metadatas, skipUSRMetadatas).validate(record, validationErrors);
 		}
 		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
 		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
 			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
 		}
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
-		new MaskedMetadataValidator(metadatas).validate(record, validationErrors);
+		if (transaction.getRecordUpdateOptions() == null || !transaction.getRecordUpdateOptions()
+				.isSkipMaskedMetadataValidations()) {
+			newMaskedMetadataValidator(metadatas).validate(record, validationErrors);
+		}
 		return validationErrors;
+	}
+
+	public MaskedMetadataValidator newMaskedMetadataValidator(List<Metadata> metadatas) {
+		return new MaskedMetadataValidator(metadatas);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

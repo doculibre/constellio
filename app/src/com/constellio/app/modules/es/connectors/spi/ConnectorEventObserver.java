@@ -31,4 +31,5 @@ public interface ConnectorEventObserver {
 
 	public void flush();
 
+	public void cleanup();
 }

@@ -484,21 +484,21 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_A13())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(planifiedTransferDate(2003, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2003, 10, 31));
 
 		assertThat(records.getFolder_A14())
 				.has(openDate(2000, 11, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(planifiedTransferDate(2003, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2003, 10, 31));
 
 		assertThat(records.getFolder_A15())
 				.has(openDate(2000, 11, 5))
 				.has(closeDate(2002, 10, 31))
-				.has(planifiedTransferDate(2004, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2004, 10, 31));
 
@@ -631,9 +631,9 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				.has(mediaType(ELECTRONIC))
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(actualTransferDate(2005, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2005, 10, 31))
+				.has(planifiedDestructionDate(2003, 10, 31))
 				.has(container("bac12"));
 
 		assertThat(records.getFolder_A46())
@@ -641,9 +641,9 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				.has(mediaType(ANALOG))
 				.has(openDate(2000, 11, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(actualTransferDate(2005, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2005, 10, 31))
+				.has(planifiedDestructionDate(2003, 10, 31))
 				.has(container("bac12"));
 
 		assertThat(records.getFolder_A47())
@@ -651,9 +651,9 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				.has(mediaType(UNKNOWN))
 				.has(openDate(2000, 11, 5))
 				.has(closeDate(2002, 10, 31))
-				.has(actualTransferDate(2006, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2006, 10, 31))
+				.has(planifiedDestructionDate(2004, 10, 31))
 				.has(container("bac12"));
 
 		assertThat(records.getFolder_A48())
@@ -901,7 +901,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_B05())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(planifiedTransferDate(2003, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2003, 10, 31));
 
@@ -909,7 +909,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
 				.has(copyType(CopyType.SECONDARY))
-				.has(planifiedTransferDate(2002, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2002, 10, 31));
 
@@ -945,17 +945,17 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_B31())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(actualTransferDate(2005, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2005, 10, 31))
+				.has(planifiedDestructionDate(2003, 10, 31))
 				.has(container("bac09"));
 
 		assertThat(records.getFolder_B32())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(actualTransferDate(2004, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2004, 10, 31))
+				.has(planifiedDestructionDate(2002, 10, 31))
 				.has(container("bac08"));
 
 		assertThat(records.getFolder_B33())
@@ -1050,14 +1050,14 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_C05())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(planifiedTransferDate(2003, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2003, 10, 31));
 
 		assertThat(records.getFolder_C06())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(planifiedTransferDate(2002, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
 				.has(planifiedDestructionDate(2002, 10, 31));
 
@@ -1093,17 +1093,17 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		assertThat(records.getFolder_C31())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(actualTransferDate(2005, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2005, 10, 31))
+				.has(planifiedDestructionDate(2003, 10, 31))
 				.has(container("bac07"));
 
 		assertThat(records.getFolder_C32())
 				.has(openDate(2000, 10, 4))
 				.has(closeDate(2001, 10, 31))
-				.has(actualTransferDate(2004, 10, 31))
+				.has(noPlanifiedTransferDate())
 				.has(noPlanifiedDepositDate())
-				.has(planifiedDestructionDate(2004, 10, 31))
+				.has(planifiedDestructionDate(2002, 10, 31))
 				.has(container("bac07"));
 
 		assertThat(records.getFolder_C33())

@@ -9,7 +9,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -31,7 +30,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
@@ -103,11 +102,11 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				doReturn(true).when(configuration).isSecondTransactionLogEnabled();
-				doReturn(logBaseFolder).when(configuration).getSecondTransactionLogBaseFolder();
-				doReturn(Duration.standardSeconds(5)).when(configuration).getSecondTransactionLogMergeFrequency();
-				doReturn(3).when(configuration).getSecondTransactionLogBackupCount();
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondTransactionLogEnabled(true);
+				configuration.setSecondTransactionLogBaseFolder(logBaseFolder);
+				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
+				configuration.setSecondTransactionLogBackupCount(3);
 			}
 		});
 

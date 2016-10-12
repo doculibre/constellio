@@ -43,4 +43,6 @@ public interface RecordsCache {
 	boolean isConfigured(MetadataSchemaType type);
 
 	boolean isConfigured(String typeCode);
+
+	int getCacheObjectsCount();
 }

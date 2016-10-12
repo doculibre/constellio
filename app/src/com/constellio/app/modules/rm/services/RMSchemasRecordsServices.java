@@ -22,10 +22,12 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.apache.poi.hsmf.datatypes.ByteChunk;
 import org.apache.poi.hsmf.datatypes.Chunk;
 import org.apache.poi.hsmf.datatypes.ChunkGroup;
@@ -72,6 +74,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
+	
+	private static final Logger LOGGER = Logger.getLogger(RMSchemasRecordsServices.class);
 
 	public static final String EMAIL_MIME_TYPES = "mimeTypes";
 	public static final String EMAIL_ATTACHMENTS = "attachments";
@@ -123,6 +127,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 			containerRecordTypes.add(wrapContainerRecordType(record));
 		}
 		return containerRecordTypes;
+	}
+
+	public ContainerRecordType getContainerRecordTypeWithLegacyId(String id) {
+		return new ContainerRecordType(getByLegacyId(ContainerRecordType.SCHEMA_TYPE, id), getTypes());
 	}
 
 	public ContainerRecordType getContainerRecordType(String id) {
@@ -812,14 +820,19 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				MimeMultipart mimeMultipart = (MimeMultipart) messageContent;
 				int partCount = mimeMultipart.getCount();
 				for (int i = 0; i < partCount; i++) {
-					BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-					String partFileName = bodyPart.getFileName();
-					Object partContent = bodyPart.getContent();
-					if (partContent instanceof InputStream) {
-						InputStream inputAttachment = (InputStream) partContent;
-						attachments.put(partFileName, inputAttachment);
-						mimeTypes.put(partFileName, bodyPart.getContentType());
-						attachmentFileNames.add(partFileName);
+					try {
+						BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+						String partFileName = bodyPart.getFileName();
+						Object partContent = bodyPart.getContent();
+						if (partContent instanceof InputStream) {
+							partFileName = MimeUtility.decodeText(partFileName);
+							InputStream inputAttachment = (InputStream) partContent;
+							attachments.put(partFileName, inputAttachment);
+							mimeTypes.put(partFileName, bodyPart.getContentType());
+							attachmentFileNames.add(partFileName);
+						}
+					} catch (Throwable t) {
+						LOGGER.warn("Error while parsing message content", t);
 					}
 				}
 			}

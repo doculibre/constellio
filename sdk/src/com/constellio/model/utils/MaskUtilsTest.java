@@ -33,26 +33,35 @@ public class MaskUtilsTest {
 
 	}
 
-//	@Test
-//	public void whenFormatCompatibleValueThenFormatted()
-//			throws Exception {
-//
-//		assertThat(MaskUtils.format("###-###-####", "1236664242")).isEqualTo("123-666-4242");
-//		assertThat(MaskUtils.format("(###) ###-####", "1236664242")).isEqualTo("(123) 666-4242");
-//		assertThat(MaskUtils.format("(###) ###-#### p'####", "1236664242777")).isEqualTo("(123) 666-4242 p#777");
-//
-//	}
-//
-//	@Test
-//	public void whenFormatAFormattedValueThenReturnSameValue()
-//			throws Exception {
-//
-//		assertThat(MaskUtils.format("###-###-####", "123-666-4242")).isEqualTo("123-666-4242");
-//		assertThat(MaskUtils.format("(###) ###-####", "(123) 666-4242")).isEqualTo("(123) 666-4242");
-//		assertThat(MaskUtils.format("(###) ###-#### p'####", "(123) 666-4242 p#777")).isEqualTo("(123) 666-4242 p#777");
-//	}
+	@Test
+	public void whenFormattingStringToDecimalThenOk()
+			throws Exception {
 
-//	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
+		assertThat(MaskUtils.format("99999", "1")).isEqualTo("00001");
+		assertThat(MaskUtils.format("99999", "42")).isEqualTo("00042");
+
+	}
+
+	//	@Test
+	//	public void whenFormatCompatibleValueThenFormatted()
+	//			throws Exception {
+	//
+	//		assertThat(MaskUtils.format("###-###-####", "1236664242")).isEqualTo("123-666-4242");
+	//		assertThat(MaskUtils.format("(###) ###-####", "1236664242")).isEqualTo("(123) 666-4242");
+	//		assertThat(MaskUtils.format("(###) ###-#### p'####", "1236664242777")).isEqualTo("(123) 666-4242 p#777");
+	//
+	//	}
+	//
+	//	@Test
+	//	public void whenFormatAFormattedValueThenReturnSameValue()
+	//			throws Exception {
+	//
+	//		assertThat(MaskUtils.format("###-###-####", "123-666-4242")).isEqualTo("123-666-4242");
+	//		assertThat(MaskUtils.format("(###) ###-####", "(123) 666-4242")).isEqualTo("(123) 666-4242");
+	//		assertThat(MaskUtils.format("(###) ###-#### p'####", "(123) 666-4242 p#777")).isEqualTo("(123) 666-4242 p#777");
+	//	}
+
+	//	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
 	//	public void whenFormatValueWithMissingCharactersThenException()
 	//			throws Exception {
 	//
@@ -63,7 +72,7 @@ public class MaskUtilsTest {
 	//
 	//	}
 
-//	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
+	//	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
 	//	public void whenFormatValueWithInvalidCharactersThenException()
 	//			throws Exception {
 	//

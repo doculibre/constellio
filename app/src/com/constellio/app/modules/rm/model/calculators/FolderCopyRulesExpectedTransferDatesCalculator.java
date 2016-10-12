@@ -10,6 +10,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -24,6 +25,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 
 	LocalDependency<LocalDate> decommissioningDateParam = LocalDependency.toADate(Folder.DECOMMISSIONING_DATE);
 	LocalDependency<LocalDate> actualTransferDateParam = LocalDependency.toADate(Folder.ACTUAL_TRANSFER_DATE);
+	LocalDependency<FolderStatus> statusParam = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);
 	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
 
 	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriodParam =
@@ -32,7 +34,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
 		return Arrays.asList(decommissioningDateParam, actualTransferDateParam, datesAndDateTimesParam,
-				configNumberOfYearWhenVariableDelayPeriodParam);
+				configNumberOfYearWhenVariableDelayPeriodParam, statusParam);
 	}
 
 	@Override
@@ -40,7 +42,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 
 		CalculatorInput input = new CalculatorInput(parameters);
 
-		if (input.actualTransferDate != null) {
+		if (input.actualTransferDate != null || FolderStatus.ACTIVE != parameters.get(statusParam)) {
 			return null;
 		} else {
 			LocalDate date = getAdjustedDateUsedToCalculation(input, copyRule, parameters.get(configYearEndParam));

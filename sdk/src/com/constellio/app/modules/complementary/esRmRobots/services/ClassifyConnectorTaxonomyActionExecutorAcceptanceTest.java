@@ -1082,11 +1082,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		waitForBatchProcess();
 
 		Folder folderA = getFolderByLegacyId(folderATaxoURL);
+		assertThat(folderA.getRetentionRule()).isEqualTo(records.ruleId_1);
 
 		Folder folderAA = getFolderByLegacyId(folderAATaxoURL);
 		assertThat(folderAA.getParentFolder()).isEqualTo(folderA.getId());
 		assertThat(folderAA.getTitle()).isEqualTo("AA");
-		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderAA.getCategory()).isEqualTo(records.categoryId_X);
 
@@ -1095,11 +1096,12 @@ public class ClassifyConnectorTaxonomyActionExecutorAcceptanceTest extends Const
 		assertThat(folderAAA.getTitle()).isEqualTo("Le dossier AAA");
 		assertThat(folderAAA.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAAA.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
+		assertThat(folderAAA.getCategory()).isEqualTo(records.categoryId_X);
 
 		Folder folderAAB = getFolderByLegacyId(folderAABTaxoURL);
 		assertThat(folderAAB.getParentFolder()).isEqualTo(folderAA.getId());
 		assertThat(folderAAB.getTitle()).isEqualTo("AAB");
-		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_3);
+		assertThat(folderAAB.getRetentionRule()).isEqualTo(records.ruleId_1);
 		assertThat(folderAAB.getCopyStatus()).isEqualTo(CopyType.PRINCIPAL);
 		assertThat(folderAAB.getCategory()).isEqualTo(records.categoryId_X);
 

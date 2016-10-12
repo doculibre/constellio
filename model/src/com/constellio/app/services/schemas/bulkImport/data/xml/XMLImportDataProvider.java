@@ -21,6 +21,8 @@ public class XMLImportDataProvider implements ImportDataProvider {
 
 	private IOServicesFactory ioServicesFactory;
 
+	private boolean deleteOnClose = true;
+
 	private File xmlFile;
 
 	private File zipFile;
@@ -51,6 +53,7 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	public static XMLImportDataProvider forFolderOfXml(ModelLayerFactory modelLayerFactory, File folder) {
 		XMLImportDataProvider instance = new XMLImportDataProvider();
 		instance.tempFolder = folder;
+		instance.deleteOnClose = false;
 		instance.ioServicesFactory = modelLayerFactory.getIOServicesFactory();
 		return instance;
 	}
@@ -63,6 +66,7 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		XMLImportDataProvider instance = new XMLImportDataProvider();
 		instance.xmlFile = xmlFile;
 		instance.fileName = fileName;
+		instance.deleteOnClose = false;
 		instance.ioServicesFactory = modelLayerFactory.getIOServicesFactory();
 		return instance;
 	}
@@ -82,7 +86,9 @@ public class XMLImportDataProvider implements ImportDataProvider {
 
 	@Override
 	public void close() {
-		ioServicesFactory.newIOServices().deleteQuietly(tempFolder);
+		if (deleteOnClose) {
+			ioServicesFactory.newIOServices().deleteQuietly(tempFolder);
+		}
 	}
 
 	@Override

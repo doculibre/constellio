@@ -167,7 +167,7 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A44, records.folder_A45, records.folder_A46, records.folder_A47));
+		cart.setFolders(asList(records.folder_A54, records.folder_A55, records.folder_A56, records.folder_C34));
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
 		cartPresenter.forParams(cart.getId());

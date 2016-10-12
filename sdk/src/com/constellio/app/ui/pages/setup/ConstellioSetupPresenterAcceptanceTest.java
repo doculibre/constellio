@@ -30,7 +30,8 @@ public class ConstellioSetupPresenterAcceptanceTest extends ConstellioTest {
 		ConstellioFactories constellioFactories = getConstellioFactories();
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
 		ConstellioSetupPresenter presenter = new ConstellioSetupPresenter(view);
-		presenter.saveRequested("fr", Arrays.asList("fr", "en"), Arrays.asList("rm"), null, "zeColl", "supertimor");
+		presenter.languageButtonClicked("fr");
+		presenter.saveRequested(Arrays.asList("fr", "en"), Arrays.asList("rm"), null, "zeColl", "supertimor", true);
 		CollectionsManager collectionsManager = getAppLayerFactory().getCollectionsManager();
 		Collection zeCollectionRecord = collectionsManager.getCollection("zeColl");
 		assertThat(zeCollectionRecord.getCode()).isEqualTo("zeColl");

@@ -72,4 +72,14 @@ public class RecordsCaches {
 	public void invalidate(String collection) {
 		collectionsCache.remove(collection);
 	}
+
+	public int getCacheObjectsCount() {
+		int cacheTotalSize = 0;
+
+		for (RecordsCache cache : collectionsCache.values()) {
+			cacheTotalSize += cache.getCacheObjectsCount();
+		}
+
+		return cacheTotalSize;
+	}
 }

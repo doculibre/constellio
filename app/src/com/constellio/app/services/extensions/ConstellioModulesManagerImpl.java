@@ -70,7 +70,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
-		enableComplementaryModules();
 	}
 
 	public void enableComplementaryModules() {
@@ -353,14 +352,15 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public boolean startModule(String collection, Module module) {
 
-		if (!startedModulesInAnyCollections.contains(module.getId())) {
-			if (module instanceof InstallableSystemModule) {
-				((InstallableSystemModule) module).start(appLayerFactory);
-			}
-			startedModulesInAnyCollections.add(module.getId());
-		}
-
 		try {
+
+			if (!startedModulesInAnyCollections.contains(module.getId())) {
+				if (module instanceof InstallableSystemModule) {
+					((InstallableSystemModule) module).start(appLayerFactory);
+				}
+				startedModulesInAnyCollections.add(module.getId());
+			}
+
 			((InstallableModule) module).start(collection, appLayerFactory);
 		} catch (Throwable e) {
 			if (isPluginModule(module)) {

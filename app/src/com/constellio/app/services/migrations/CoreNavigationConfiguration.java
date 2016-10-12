@@ -69,6 +69,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String IMPORT_RECORDS_ICON = "images/icons/config/import.png";
 	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
 	public static final String IMPORT_SCHEMA_TYPES_ICON = "images/icons/config/import-metadata.png";
+	public static final String IMPORT_SETTINGS = "importSettings";
+	public static final String IMPORT_SETTINGS_ICON = "images/icons/config/import-settings.png";
 	public static final String TRASH_BIN = "trashBin";
 	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
 	public static final String SEARCH_BOOST_BY_METADATA = "searchBoostByMetadata";
@@ -79,6 +81,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
 	public static final String TRASH = "trash";
+
+	public static final String SYSTEM_CHECK = "systemCheck";
+	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureSystemAdmin(config);
@@ -184,6 +189,18 @@ public class CoreNavigationConfiguration implements Serializable {
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_SETTINGS, IMPORT_SETTINGS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().importSettings();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
+			}
+		});
 		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(EXPORT, EXPORT_ICONS) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -207,6 +224,17 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_UPDATES));
+			}
+		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(SYSTEM_CHECK, SYSTEM_CHECK_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().systemCheck();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(modelLayerFactory.newUserServices().getUser(user.getUsername()).isSystemAdmin());
 			}
 		});
 	}

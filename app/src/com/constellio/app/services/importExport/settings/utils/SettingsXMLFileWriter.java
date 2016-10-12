@@ -1,12 +1,27 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import com.constellio.app.services.importExport.settings.model.*;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
 
-import java.util.List;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 
 public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
@@ -25,6 +40,8 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 	public Document writeSettings(ImportedSettings importedSettings) {
 
+		addLabelTemplates(importedSettings.getImportedLabelTemplates());
+
 		addGlobalConfigs(importedSettings.getConfigs());
 
 		addSequences(importedSettings.getSequences());
@@ -33,6 +50,28 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 		return document;
 
+	}
+
+	private void addLabelTemplates(List<ImportedLabelTemplate> importedLabelTemplates) {
+		if (!importedLabelTemplates.isEmpty()) {
+			Element labelTemplatesElement = new Element(LABEL_TEMPLATES);
+			settingsElement.addContent(labelTemplatesElement);
+			SAXBuilder builder = new SAXBuilder();
+
+			for (ImportedLabelTemplate labelTemplate : importedLabelTemplates) {
+				try {
+					Document document = builder.build(new StringReader(labelTemplate.getXml()));
+					Element element = document.getRootElement();
+					element.detach();
+					labelTemplatesElement.addContent(element);
+
+				} catch (JDOMException | IOException e) {
+					throw new RuntimeException(e);
+				}
+
+			}
+
+		}
 	}
 
 	public void addSequences(List<ImportedSequence> sequences) {
@@ -125,10 +164,13 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 		schemasElement.addContent(schemaElement);
 
-		addSchemaMetadata(customSchema, schemaElement);
+		writeSchema(customSchema, schemaElement);
 	}
 
-	private void addSchemaMetadata(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+	private void writeSchema(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+		if (metadataSchema.getLabel() != null) {
+			schemaElement.setAttribute("label", metadataSchema.getLabel());
+		}
 		for (ImportedMetadata importedMetadata : metadataSchema.getAllMetadata()) {
 			addMetadatum(schemaElement, importedMetadata);
 		}
@@ -141,7 +183,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 			ImportedMetadataSchema defaultSchema = importedType.getDefaultSchema();
 
-			addSchemaMetadata(defaultSchema, defaultSchemaElem);
+			writeSchema(defaultSchema, defaultSchemaElem);
 		}
 	}
 
@@ -167,13 +209,19 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		metadataElem.setAttribute(CODE, importedMetadata.getCode());
 
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
-			metadataElem.setAttribute("title", importedMetadata.getLabel());
+			metadataElem.setAttribute(TITLE, importedMetadata.getLabel());
 		}
 
-		metadataElem.setAttribute(TYPE, importedMetadata.getType());
+		if (importedMetadata.getType() != null) {
+			metadataElem.setAttribute(TYPE, importedMetadata.getType());
+		}
 
 		if (importedMetadata.getDuplicable() != null) {
 			metadataElem.setAttribute(DUPLICABLE, importedMetadata.getDuplicable() + "");
+		}
+
+		if (importedMetadata.getReferencedType() != null) {
+			metadataElem.setAttribute(REFERENCED_TYPE, importedMetadata.getReferencedType() + "");
 		}
 
 		if (importedMetadata.getEnabled() != null) {
@@ -261,7 +309,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInResultIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn()));
+			metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn(), ","));
 		}
 
 		if (importedMetadata.getVisibleInSearchResult() != null) {
@@ -273,7 +321,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInTablesIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn()));
+			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn(), ","));
 		}
 
 		if (importedMetadata.getDataEntry() != null) {
@@ -303,7 +351,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
 			case "jexl":
 				if (StringUtils.isNotBlank(dataEntry.getPattern())) {
-					dataEntryElem.setAttribute("pattern", dataEntry.getPattern());
+					dataEntryElem.setText(dataEntry.getPattern());
 				}
 				break;
 
@@ -335,7 +383,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addTaxonomy(Element taxonomiesElem, ImportedTaxonomy importedTaxonomy) {
 		Element listElem = new Element(TAXONOMY);
 		listElem.setAttribute(CODE, importedTaxonomy.getCode());
-		listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
+		if (importedTaxonomy.getTitle() != null) {
+			listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
+		}
 		if (importedTaxonomy.getVisibleOnHomePage() != null) {
 			listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
 		}

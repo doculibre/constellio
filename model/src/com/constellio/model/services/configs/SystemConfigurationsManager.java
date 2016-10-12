@@ -101,7 +101,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 	}
 
 	public void signalDefaultValueModification(final SystemConfiguration config, final Object previousDefaultValue) {
-		String propertyKey = getPropertyKey(config);
+		String propertyKey = config.getPropertyKey();
 		Object currentValue = toObject(config, configValues.getProperties().get(propertyKey));
 		if (currentValue == null) {
 			reindex(config, config.getDefaultValue(), previousDefaultValue);
@@ -221,9 +221,9 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 			@Override
 			public void alter(Map<String, String> properties) {
 				if (LangUtils.isEqual(newValue, config.getDefaultValue())) {
-					properties.remove(getPropertyKey(config));
+					properties.remove(config.getPropertyKey());
 				} else {
-					properties.put(getPropertyKey(config), SystemConfigurationsManager.this.toString(config, newValue));
+					properties.put(config.getPropertyKey(), SystemConfigurationsManager.this.toString(config, newValue));
 				}
 			}
 		};
@@ -286,7 +286,7 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		configManager.updateProperties(CONFIG_FILE_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
-				properties.remove(getPropertyKey(config));
+				properties.remove(config.getPropertyKey());
 			}
 		});
 
@@ -328,12 +328,8 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
 
-	private String getPropertyKey(SystemConfiguration config) {
-		return config.getConfigGroupCode() + "_" + config.getCode();
-	}
-
 	public <T> T getValue(SystemConfiguration config) {
-		String propertyKey = getPropertyKey(config);
+		String propertyKey = config.getPropertyKey();
 
 		if (config.getType() == SystemConfigurationType.BINARY) {
 			BinaryConfiguration binaryConfiguration = configManager.getBinary("/systemConfigs/" + config.getCode());

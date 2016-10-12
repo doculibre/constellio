@@ -30,7 +30,9 @@ public class MultithreadConnectorJobCrawler implements ConnectorJobCrawler {
 		Collection<Future<?>> futures = new LinkedList<Future<?>>();
 
 		for (ConnectorJob job : jobs) {
-			futures.add(executor.submit(job));
+			if (job != null) {
+				futures.add(executor.submit(job));
+			}
 		}
 
 		for (Future<?> future : futures) {

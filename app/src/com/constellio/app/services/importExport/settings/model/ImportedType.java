@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.constellio.model.entities.schemas.MetadataSchema;
 
@@ -17,7 +18,7 @@ public class ImportedType {
 	private String code;
 	private String label;
 	private List<ImportedTab> tabs = new ArrayList<>();
-	private ImportedMetadataSchema defaultSchema;
+	private ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
 	private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
 
 	public String getCode() {
@@ -72,6 +73,7 @@ public class ImportedType {
 	}
 
 	public ImportedMetadataSchema getDefaultSchema() {
+
 		return defaultSchema;
 	}
 
@@ -102,7 +104,7 @@ public class ImportedType {
 
 	@Override
 	public String toString() {
-		return ToStringBuilder.reflectionToString(this);
+		return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
 	}
 
 	public ImportedMetadataSchema getSchemaNotNull(String code) {
@@ -129,5 +131,14 @@ public class ImportedType {
 		ImportedMetadataSchema schema = new ImportedMetadataSchema().setCode("default");
 		this.defaultSchema = schema;
 		return defaultSchema;
+	}
+
+	public List<ImportedMetadata> getAllMetadata() {
+		List<ImportedMetadata> importedMetadatas = new ArrayList<>();
+		importedMetadatas.addAll(defaultSchema.getAllMetadata());
+		for (ImportedMetadataSchema customSchema : customSchemata) {
+			importedMetadatas.addAll(customSchema.getAllMetadata());
+		}
+		return importedMetadatas;
 	}
 }

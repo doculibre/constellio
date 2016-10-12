@@ -1,12 +1,11 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Mockito.doReturn;
-
 import java.io.File;
 import java.util.Map;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
@@ -52,9 +51,9 @@ public class AfterTestValidationsTestFeature {
 		if (isValidatingSecondTransactionLog() || isValidatingRollbackLog()) {
 			this.factoriesTestFeatures.configure(new DataLayerConfigurationAlteration() {
 				@Override
-				public void alter(DataLayerConfiguration configuration) {
-					doReturn(true).when(configuration).isSecondTransactionLogEnabled();
-					doReturn(logTempFolder).when(configuration).getSecondTransactionLogBaseFolder();
+				public void alter(InMemoryDataLayerConfiguration configuration) {
+					configuration.setSecondTransactionLogEnabled(true);
+					configuration.setSecondTransactionLogBaseFolder(logTempFolder);
 				}
 			});
 

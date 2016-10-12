@@ -5,7 +5,14 @@ import com.constellio.app.services.importExport.settings.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.DOMOutputter;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
@@ -27,11 +34,24 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		Element rootNode = document.getRootElement();
 
 		ImportedSettings importedSettings = new ImportedSettings()
+				.setImportedLabelTemplates(readLabelTemplates(rootNode.getChild(LABEL_TEMPLATES)))
 				.setConfigs(readConfigs(rootNode.getChild(CONFIGS)))
 				.setImportedSequences(readSequences(rootNode.getChild(SEQUENCES)))
 				.setCollectionsSettings(readCollectionSettings(rootNode.getChildren(COLLECTION_SETTINGS)));
 
 		return importedSettings;
+	}
+
+	private List<ImportedLabelTemplate> readLabelTemplates(Element importedLabelTemplatesElement) {
+		List<ImportedLabelTemplate> templates = new ArrayList<>();
+		if (importedLabelTemplatesElement != null) {
+			for (Element element : importedLabelTemplatesElement.getChildren()) {
+				XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
+				String xml = xmlOutput.outputString(element).replace(" />", "/>");
+				templates.add(new ImportedLabelTemplate(xml));
+			}
+		}
+		return templates;
 	}
 
 	private List<ImportedSequence> readSequences(Element sequencesElement) {
@@ -88,6 +108,9 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			if (schemaElement.getAttribute("code") != null) {
 				importedMetadataSchema.setCode(schemaElement.getAttributeValue("code"));
 			}
+			if (schemaElement.getAttribute("label") != null) {
+				importedMetadataSchema.setLabel(schemaElement.getAttributeValue("label"));
+			}
 
 			importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
 			schemata.add(importedMetadataSchema);
@@ -95,8 +118,14 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return schemata;
 	}
 
-	private ImportedMetadataSchema readDefaultSchema(Element element) {
-		return new ImportedMetadataSchema().setCode("default").setAllMetadatas(readMetadata(element.getChildren(METADATA)));
+	private ImportedMetadataSchema readDefaultSchema(Element schemaElement) {
+		ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema().setCode("default");
+
+		if (schemaElement.getAttribute("label") != null) {
+			importedMetadataSchema.setLabel(schemaElement.getAttributeValue("label"));
+		}
+		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
+		return importedMetadataSchema;
 	}
 
 	private List<ImportedMetadata> readMetadata(List<Element> elements) {
@@ -114,7 +143,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		importedMetadata.setLabel(element.getAttributeValue(TITLE));
 
 		importedMetadata.setType(element.getAttributeValue(TYPE));
-
+		importedMetadata.setDataEntry(readDataEntry(element));
 		if (element.getAttribute(SEARCHABLE) != null) {
 			importedMetadata.setSearchable(Boolean.parseBoolean(element.getAttributeValue(SEARCHABLE)));
 		}
@@ -157,6 +186,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		if (element.getAttribute(DUPLICABLE) != null) {
 			importedMetadata.setDuplicable(Boolean.parseBoolean(element.getAttributeValue(DUPLICABLE)));
+		}
+
+		if (element.getAttribute(REFERENCED_TYPE) != null) {
+			importedMetadata.setReferencedType(element.getAttributeValue(REFERENCED_TYPE));
 		}
 
 		if (element.getAttribute(ENABLED) != null) {
@@ -287,6 +320,45 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			importedValueLists.add(readValueList(element));
 		}
 		return importedValueLists;
+	}
+
+	private ImportedDataEntry readDataEntry(Element metadataElement) {
+		Element dataEntryElem = metadataElement.getChild("data-entry");
+
+		ImportedDataEntry dataEntry = null;
+
+		if (dataEntryElem != null && dataEntryElem.getAttributeValue("type") != null) {
+			switch (dataEntryElem.getAttributeValue("type")) {
+			case "calculated":
+				dataEntry = ImportedDataEntry.asCalculated(dataEntryElem.getAttributeValue("calculator"));
+				break;
+
+			case "copied":
+				dataEntry = ImportedDataEntry.asCopied(
+						dataEntryElem.getAttributeValue("referenceMetadata"),
+						dataEntryElem.getAttributeValue("copiedMetadata"));
+				break;
+
+			case "jexl":
+				dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getText());
+				break;
+
+			case "sequence":
+				String fixedSequenceCode = dataEntryElem.getAttributeValue("fixedSequenceCode");
+				String metadataProvidingSequenceCode = dataEntryElem.getAttributeValue("metadataProvidingSequenceCode");
+				if (fixedSequenceCode != null) {
+					dataEntry = ImportedDataEntry.asFixedSequence(fixedSequenceCode);
+				} else {
+					dataEntry = ImportedDataEntry.asMetadataProvidingSequence(metadataProvidingSequenceCode);
+				}
+
+				break;
+
+			default:
+				break;
+			}
+		}
+		return dataEntry;
 	}
 
 	private ImportedValueList readValueList(Element element) {

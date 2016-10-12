@@ -8,10 +8,15 @@ import java.util.Map;
 
 public class ValidationErrors {
 
-	private final List<ValidationError> validationErrors;
+	private final List<ValidationError> validationErrors = new ArrayList<>();
+	private final List<ValidationError> validationWarnings = new ArrayList<>();
 
 	public ValidationErrors() {
-		validationErrors = new ArrayList<>();
+	}
+
+	public ValidationErrors(ValidationErrors copy) {
+		this.validationErrors.addAll(new ArrayList<>(copy.getValidationErrors()));
+		this.validationWarnings.addAll(new ArrayList<>(copy.getValidationWarnings()));
 	}
 
 	public final void add(Class<?> validatorClass, String code) {
@@ -26,19 +31,43 @@ public class ValidationErrors {
 		validationErrors.add(new ValidationError(validatorClass, code, parameters));
 	}
 
+	public final void addWarning(Class<?> validatorClass, String code) {
+		addWarning(validatorClass, code, new HashMap<String, Object>());
+	}
+
+	public final void addWarning(ValidationError e, Map<String, Object> parameters) {
+		addWarning(e.getValidatorClass(), e.getValidatorErrorCode(), parameters);
+	}
+
+	public void addWarning(Class<?> validatorClass, String code, Map<String, Object> parameters) {
+		validationWarnings.add(new ValidationError(validatorClass, code, parameters));
+	}
+
 	public final String toMultilineErrorsSummaryString() {
 		StringBuilder sb = new StringBuilder();
+
+		sb.append("Validation errors :\n");
 		for (ValidationError validationError : getValidationErrors()) {
 			if (!sb.toString().isEmpty()) {
 				sb.append("\n");
 			}
 			sb.append(validationError.toMultilineErrorSummaryString());
 		}
+
+		sb.append("\nValidation warnings :\n");
+		for (ValidationError validationError : getValidationWarnings()) {
+			if (!sb.toString().isEmpty()) {
+				sb.append("\n");
+			}
+			sb.append(validationError.toMultilineErrorSummaryString());
+		}
+
 		return sb.toString();
 	}
 
 	public final String toErrorsSummaryString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append("Validation errors :\n");
 		for (ValidationError validationError : getValidationErrors()) {
 			if (sb.toString().length() < 1000) {
 				if (!sb.toString().isEmpty()) {
@@ -47,7 +76,26 @@ public class ValidationErrors {
 				sb.append(validationError.toErrorSummaryString());
 			}
 		}
+
+		sb.append("\nValidation warnings :\n");
+		for (ValidationError validationError : getValidationWarnings()) {
+			if (sb.toString().length() < 1000) {
+				if (!sb.toString().isEmpty()) {
+					sb.append(", ");
+				}
+				sb.append(validationError.toErrorSummaryString());
+			}
+		}
+
 		return sb.toString();
+	}
+
+	public List<ValidationError> getValidationWarnings() {
+		return Collections.unmodifiableList(validationWarnings);
+	}
+
+	public void addAllWarnings(List<ValidationError> validationWarnings) {
+		this.validationWarnings.addAll(validationWarnings);
 	}
 
 	public List<ValidationError> getValidationErrors() {
@@ -65,6 +113,17 @@ public class ValidationErrors {
 	public final void throwIfNonEmpty()
 			throws ValidationException {
 		if (!isEmpty()) {
+			throw new ValidationException(this);
+		}
+	}
+
+	public final boolean isEmptyErrorAndWarnings() {
+		return getValidationErrors().isEmpty() && getValidationWarnings().isEmpty();
+	}
+
+	public final void throwIfNonEmptyErrorOrWarnings()
+			throws ValidationException {
+		if (!isEmptyErrorAndWarnings()) {
 			throw new ValidationException(this);
 		}
 	}

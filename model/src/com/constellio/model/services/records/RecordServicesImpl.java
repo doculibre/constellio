@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.utils.MaskUtils.format;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,6 +69,7 @@ import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
+import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
@@ -97,6 +99,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
+import com.constellio.model.utils.MaskUtils;
 
 public class RecordServicesImpl extends BaseRecordServices {
 
@@ -378,8 +381,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
 		List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
+		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
+				transaction.getParsedContentCache());
 		for (Record record : records) {
-			recordPopulateServices.populate(record);
+			recordPopulateServices.populate(record, parsedContentProvider);
 
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
@@ -409,8 +414,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 							if (dataEntry.getFixedSequenceCode() != null) {
 								if (record.get(metadata) == null) {
 									String sequenceCode = dataEntry.getFixedSequenceCode();
-									record.set(metadata,
-											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							} else {
 								Metadata metadataProvidingSequenceCode = schema
@@ -418,8 +423,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 								if (record.isModified(metadataProvidingSequenceCode)) {
 									String sequenceCode = record.get(metadataProvidingSequenceCode);
-									record.set(metadata,
-											sequenceCode == null ? null : ("" + sequencesManager.next(sequenceCode)));
+									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							}
 
@@ -654,8 +659,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
 		List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 		MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,
+				transaction.getParsedContentCache());
 		fieldsPopulators.add(new SearchFieldsPopulator(
-				types, transaction.getRecordUpdateOptions().isFullRewrite(), contentManager, collectionLanguages));
+				types, transaction.getRecordUpdateOptions().isFullRewrite(), parsedContentProvider, collectionLanguages));
 		fieldsPopulators.add(new AutocompleteFieldPopulator());
 		fieldsPopulators.add(new SortFieldsPopulator(types, transaction.getRecordUpdateOptions().isFullRewrite()));
 
@@ -725,7 +732,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices());
 	}
 
-	ConfigProvider newConfigProvider() {
+	public ConfigProvider newConfigProvider() {
 		return new ConfigProvider() {
 
 			@Override

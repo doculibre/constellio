@@ -49,6 +49,15 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class ConnectorSmb extends Connector {
 
+	static {
+		System.setProperty("jcifs.smb.client.soTimeout","150000");
+		System.setProperty("jcifs.smb.client.responseTimeout","120000");
+		System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
+		System.setProperty("jcifs.smb.client.listSize","1200");
+		System.setProperty("jcifs.smb.client.listCount","15");
+		System.setProperty("jcifs.smb.client.dfs.strictView","true");
+	}
+
 	static final String START_OF_TRAVERSAL = "Start of traversal";
 	static final String RESUME_OF_TRAVERSAL = "Resume of traversal";
 	static final String END_OF_TRAVERSAL = "End of traversal";

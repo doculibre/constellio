@@ -33,12 +33,18 @@ public class Transaction {
 
 	private User user;
 	private String collection;
+	private Map<String, ParsedContent> parsedContentCache = new HashMap<>();
 
 	public Transaction() {
 	}
 
 	public Transaction(String id) {
 		this.id = id;
+	}
+
+	public Transaction(RecordWrapper... records) {
+		this();
+		addAll(records);
 	}
 
 	public Transaction(Record... records) {
@@ -317,5 +323,9 @@ public class Transaction {
 			}
 		}
 		return null;
+	}
+
+	public Map<String, ParsedContent> getParsedContentCache() {
+		return parsedContentCache;
 	}
 }

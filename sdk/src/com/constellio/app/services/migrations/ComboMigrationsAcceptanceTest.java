@@ -19,8 +19,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.constellio.app.conf.AppLayerConfiguration;
-import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.data.conf.IdGeneratorType;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -213,16 +214,16 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 		System.out.println("\n\n---------- 1 ----------");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
+				configuration.setUniqueKeyToBeCreated("123-456-789");
 			}
 		});
 
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(true);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(true);
 			}
 		});
 
@@ -247,16 +248,16 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				when(configuration.getSecondaryIdGeneratorType()).thenReturn(IdGeneratorType.SEQUENTIAL);
-				when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
+				configuration.setUniqueKeyToBeCreated("123-456-789");
 			}
 		});
 
 		configure(new AppLayerConfigurationAlteration() {
 			@Override
-			public void alter(AppLayerConfiguration configuration) {
-				when(configuration.isFastMigrationsEnabled()).thenReturn(false);
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
 			}
 		});
 

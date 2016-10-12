@@ -196,7 +196,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("folder_default_retentionRule", "1 (Rule #1)", "2 (Rule #2)"),
 				tuple("folder_default_mainCopyRule", "42-5-C", "2-0-D"),
 				tuple("folder_default_copyStatus", "Principal", "Secondaire"),
-				tuple("folder_default_expectedTransferDate", "2002-10-31", "2003-10-31"),
+				tuple("folder_default_expectedTransferDate", "2002-10-31", null),
 				tuple("folder_default_expectedDestructionDate", null, "2003-10-31"),
 				tuple("folder_default_expectedDepositDate", "2007-10-31", null)
 		);
@@ -518,44 +518,43 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		User admin = users.adminIn(zeCollection);
 		User alice = users.aliceIn(zeCollection);
 
-		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("A47", "A84", "A04", "C02"))).isTrue();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("A42", "A84", "A04", "C02"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("A47", "A48", "A04", "A84", "A85").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("A42", "A48", "A04", "A84", "A85").givingReadWriteAccess(), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isTrue();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("C02"))).isFalse();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42", "A84"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("A47", "A84").giving(role1), admin);
+		authServices.add(authorizationForUsers(alice).on("A42", "A84").giving(role1), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A04"))).isTrue();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A48"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42", "A48"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("A47", "A84").giving(role2), admin);
+		authServices.add(authorizationForUsers(alice).on("A42", "A84").giving(role2), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A48"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A85"))).isFalse();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A47", "A84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A42", "A84"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("A84", "A85"))).isFalse();
-
 	}
 
 	@Test
@@ -564,10 +563,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Transaction transaction = new Transaction();
 		transaction.add(rm.newDocumentWithId("dA04")).setFolder("A04").setTitle("dA04");
-		transaction.add(rm.newDocumentWithId("dA47")).setFolder("A47").setTitle("dA04");
-		transaction.add(rm.newDocumentWithId("dA48")).setFolder("A48").setTitle("dA04");
-		transaction.add(rm.newDocumentWithId("dA84")).setFolder("A84").setTitle("dA04");
-		transaction.add(rm.newDocumentWithId("dA85")).setFolder("A85").setTitle("dA04");
+		transaction.add(rm.newDocumentWithId("dA42")).setFolder("A42").setTitle("dA42");
+		transaction.add(rm.newDocumentWithId("dA48")).setFolder("A48").setTitle("dA48");
+		transaction.add(rm.newDocumentWithId("dA84")).setFolder("A84").setTitle("dA84");
+		transaction.add(rm.newDocumentWithId("dA85")).setFolder("A85").setTitle("dA85");
 		transaction.add(rm.newDocumentWithId("dC02")).setFolder("C02").setTitle("dC02");
 
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -582,42 +581,42 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		User admin = users.adminIn(zeCollection);
 		User alice = users.aliceIn(zeCollection);
 
-		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("dA47", "dA84", "dA04", "dC02"))).isTrue();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(admin, asList("dA42", "dA84", "dA04", "dC02"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("dA47", "dA48", "dA04", "dA84", "dA85").givingReadWriteAccess(), admin);
+		authServices.add(authorizationForUsers(alice).on("dA42", "dA48", "dA04", "dA84", "dA85").givingReadWriteAccess(), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isTrue();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dC02"))).isFalse();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA84"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42", "dA84"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("dA47", "dA84").giving(role1), admin);
+		authServices.add(authorizationForUsers(alice).on("dA42", "dA84").giving(role1), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA04"))).isTrue();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA48"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA48"))).isFalse();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42", "dA48"))).isFalse();
 
-		authServices.add(authorizationForUsers(alice).on("dA47", "dA84").giving(role2), admin);
+		authServices.add(authorizationForUsers(alice).on("dA42", "dA84").giving(role2), admin);
 		waitForBatchProcess();
 		alice = users.aliceIn(zeCollection);
 
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA48"))).isFalse();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA85"))).isFalse();
-		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA47", "dA84"))).isTrue();
+		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA42", "dA84"))).isTrue();
 		assertThat(presenterService.hasWriteAccessOnAllRecords(alice, asList("dA84", "dA85"))).isFalse();
 
 	}
