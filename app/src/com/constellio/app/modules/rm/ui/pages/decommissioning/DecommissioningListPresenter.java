@@ -437,4 +437,14 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return null;
 		}
 	}
+	
+	public String getDeleteConfirmMessage() {
+		String deleteConfirmMessage;
+		if (decommissioningList().isApproved()) {
+			deleteConfirmMessage = $("DecommissioningListView.deleteApprovedList");
+		} else {
+			deleteConfirmMessage = $("DecommissioningListView.deleteList");
+		}
+		return deleteConfirmMessage;
+	}
 }
