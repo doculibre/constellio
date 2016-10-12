@@ -37,7 +37,7 @@ public class CoreMigrationTo_6_5_14 implements MigrationScript {
 			throws Exception {
 		SystemConfigurationsManager systemConfigurationsManager = appLayerFactory.getModelLayerFactory()
 				.getSystemConfigurationsManager();
-		systemConfigurationsManager.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 180);
+		systemConfigurationsManager.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
 	}
 
 }
