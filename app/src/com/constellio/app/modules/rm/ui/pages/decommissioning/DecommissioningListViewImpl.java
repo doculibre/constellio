@@ -25,6 +25,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -55,15 +56,15 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private BeanItemContainer<ContainerVO> containerVOs;
 
 	private Component validationComponent;
-	private Table validations;
+	private BaseTable validations;
 	private Component foldersToValidateComponent;
-	private Table foldersToValidate;
+	private BaseTable foldersToValidate;
 	private Component packageableFolderComponent;
-	private Table packageableFolders;
+	private BaseTable packageableFolders;
 	private Component processableFolderComponent;
-	private Table processableFolders;
+	private BaseTable processableFolders;
 	private Component excludedFolderComponent;
-	private Table excludedFolders;
+	private BaseTable excludedFolders;
 
 	private Button process;
 	private Button validationRequest;
@@ -110,11 +111,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			foldersToValidateComponent = buildFoldersToValidateComponent(foldersToValidate);
 			foldersToValidateComponent.setVisible(!foldersToValidate.isEmpty());
 
-			packageableFolders = new Table();
+			packageableFolders = new BaseTable("DecommissioningListView.packageableFolders");
 			packageableFolderComponent = new VerticalLayout(packageableFolders);
 			packageableFolderComponent.setVisible(false);
 
-			processableFolders = new Table();
+			processableFolders = new BaseTable("DecommissioningListView.processableFolders");
 			processableFolderComponent = new VerticalLayout(processableFolders);
 			processableFolderComponent.setVisible(false);
 		} else {
@@ -126,7 +127,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			processableFolderComponent = buildProcessableFolderComponent(processableFolders);
 			processableFolderComponent.setVisible(!processableFolders.isEmpty());
 
-			foldersToValidate = new Table();
+			foldersToValidate = new BaseTable("DecommissioningListView.foldersToValidate");
 			foldersToValidateComponent = new VerticalLayout(foldersToValidate);
 			foldersToValidateComponent.setVisible(false);
 		}
@@ -226,6 +227,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				presenter.deleteButtonClicked();
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return presenter.getDeleteConfirmMessage();
 			}
 		};
 		button.setEnabled(presenter.isDeletable());
@@ -356,10 +362,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return layout;
 	}
 
-	private Table buildValidationTable(List<DecomListValidation> requests) {
+	private BaseTable buildValidationTable(List<DecomListValidation> requests) {
 		BeanItemContainer<DecomListValidation> container = new BeanItemContainer<>(DecomListValidation.class, requests);
 
-		Table table = new Table($("DecommissioningListView.validations", container.size()), container);
+		BaseTable table = new BaseTable("DecommissioningListView.validationTable", $("DecommissioningListView.validations", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
@@ -465,9 +471,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return layout;
 	}
 
-	private Table buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
+	private BaseTable buildFolderTable(List<FolderDetailVO> folders, boolean containerizable) {
 		BeanItemContainer<FolderDetailVO> container = new BeanItemContainer<>(FolderDetailVO.class, folders);
-		Table table = new Table($("DecommissioningListView.folderDetails", container.size()), container);
+		BaseTable table = new BaseTable("DecommissioningListView.folderTable", $("DecommissioningListView.folderDetails", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 
