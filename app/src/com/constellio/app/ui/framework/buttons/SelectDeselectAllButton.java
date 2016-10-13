@@ -27,6 +27,11 @@ public abstract class SelectDeselectAllButton extends BaseButton {
 
 	public void setSelectAllMode(boolean selectAllMode) {
 		this.selectAllMode = selectAllMode;
+		if (selectAllMode) {
+			setCaption(selectAllCaption);
+		} else {
+			setCaption(deselectAllCaption);
+		}
 	}
 
 	@Override
