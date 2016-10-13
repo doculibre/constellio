@@ -42,6 +42,15 @@ public class MaskUtilsTest {
 
 	}
 
+	@Test
+	public void whenNoMaskThenValid()
+			throws Exception {
+
+		assertThat(MaskUtils.isValid("", "zeString")).isTrue();
+		assertThat(MaskUtils.isValid(null, "zeOtherString")).isTrue();
+
+	}
+
 	//	@Test
 	//	public void whenFormatCompatibleValueThenFormatted()
 	//			throws Exception {
