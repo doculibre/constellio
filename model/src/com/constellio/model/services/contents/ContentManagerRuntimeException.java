@@ -48,12 +48,21 @@ public class ContentManagerRuntimeException extends RuntimeException {
 	}
 
 	public static class ContentManagerRuntimeException_NoSuchContent extends ContentManagerRuntimeException {
+
+		String id;
+
 		public ContentManagerRuntimeException_NoSuchContent(String id) {
 			super("No such content for id '" + id + "'");
+			this.id = id;
 		}
 
 		public ContentManagerRuntimeException_NoSuchContent(String id, Throwable cause) {
 			super("No such content for id '" + id + "'", cause);
+			this.id = id;
+		}
+
+		public String getId() {
+			return id;
 		}
 	}
 

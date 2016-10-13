@@ -57,7 +57,6 @@ public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWi
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		System.out.println("Robots Module Starting");
 		registerManagers(collection, appLayerFactory);
 		RobotSchemaRecordServices robotSchemas = new RobotSchemaRecordServices(collection, appLayerFactory);
 		RobotsManager robotsManager = robotSchemas.getRobotsManager();
