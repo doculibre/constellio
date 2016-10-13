@@ -32,7 +32,7 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
 		QueuedSolrClient client = QueuedSolrClient.createAndStart(solrClient, 100, 5);
 
-		for (int i = 1; i <= 100000; i++) {
+		for (int i = 1; i <= 10000; i++) {
 			System.out.println("Adding - " + i);
 			SolrInputDocument solrInputDocument = new SolrInputDocument();
 			solrInputDocument.setField("id", "doc" + i);
@@ -41,7 +41,7 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 			client.addAsync(solrInputDocument);
 		}
 
-		for (int i = 1; i <= 100000; i++) {
+		for (int i = 1; i <= 10000; i++) {
 			System.out.println("Updating - " + i);
 			SolrInputDocument solrInputDocument = new SolrInputDocument();
 			solrInputDocument.setField("id", "doc" + i);
@@ -58,7 +58,7 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 
 		client.close();
 
-		for (int i = 1; i <= 100000; i++) {
+		for (int i = 1; i <= 10000; i++) {
 			System.out.println("Validating - " + i);
 			SolrDocument solrDocument = solrClient.query(byId("doc" + i)).getResults().get(0);
 			assertThat(solrDocument.getFieldValue("count_d")).isEqualTo(2.0);
