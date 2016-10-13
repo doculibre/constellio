@@ -180,6 +180,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 						RecordVO entity = dataProvider.getRecordVO((int) itemId);
 						presenter.deleteButtonClicked(entity);
 					}
+
+					@Override
+					protected String getConfirmDialogMessage() {
+						RecordVO entity = dataProvider.getRecordVO((int) itemId);
+						return presenter.getDeleteConfirmMessage(entity);
+					}
 				};
 			}
 		});

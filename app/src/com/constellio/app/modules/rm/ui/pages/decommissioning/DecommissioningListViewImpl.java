@@ -39,7 +39,6 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -191,7 +190,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		addFolderToComponent(folderVO, packageableFolders, packageableFolderComponent);
 	}
 
-	private void removeFolderFromComponent(FolderDetailVO folder, Table table, Component component) {
+	private void removeFolderFromComponent(FolderDetailVO folder, BaseTable table, Component component) {
 		if (table.containsId(folder)) {
 			table.removeItem(folder);
 			table.setCaption($("DecommissioningListView.folderDetails", table.size()));
@@ -200,7 +199,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		}
 	}
 
-	private void addFolderToComponent(FolderDetailVO folder, Table table, Component component) {
+	private void addFolderToComponent(FolderDetailVO folder, BaseTable table, Component component) {
 		if (!table.containsId(folder)) {
 			table.addItem(folder);
 			table.setCaption($("DecommissioningListView.folderDetails", table.size()));
@@ -489,7 +488,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		Label header = new Label($("DecommissioningListView.containers"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
-		Table containers = buildContainerTable(containerDetails);
+		BaseTable containers = buildContainerTable(containerDetails);
 
 		VerticalLayout layout = new VerticalLayout(header, containers);
 		layout.setSpacing(true);
@@ -497,11 +496,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return layout;
 	}
 
-	private Table buildContainerTable(List<DecomListContainerDetail> containers) {
+	private BaseTable buildContainerTable(List<DecomListContainerDetail> containers) {
 		BeanItemContainer<DecomListContainerDetail> container = new BeanItemContainer<>(
 				DecomListContainerDetail.class, containers);
 
-		Table table = new Table($("DecommissioningListView.containerDetails", container.size()), container);
+		BaseTable table = new BaseTable("DecommissioningListView.containerDetails", $("DecommissioningListView.containerDetails", container.size()), container);
 		table.setPageLength(container.size());
 		table.setWidth("100%");
 

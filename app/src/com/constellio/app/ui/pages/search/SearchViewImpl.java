@@ -65,6 +65,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	private VerticalLayout resultsArea;
 	private VerticalLayout facetsArea;
 	private SearchResultTable results;
+	private SelectDeselectAllButton selectDeselectAllButton;
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -211,7 +212,10 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
-				presenter.saveTemporarySearch(true);
+				presenter.saveTemporarySearch(false);
+				if (selectDeselectAllButton != null) {
+					selectDeselectAllButton.setSelectAllMode(true);
+				}
 			}
 		});
 		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
@@ -402,7 +406,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	}
 
 	protected Button buildSelectAllButton() {
-		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton() {
+		selectDeselectAllButton = new SelectDeselectAllButton() {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
