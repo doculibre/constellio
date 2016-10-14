@@ -38,7 +38,7 @@ public class TaskList {
 		int totalTasksCountValue = totalTasksCount.get();
 		if (totalTasksCountValue > 5) {
 			String progression = "Tasks progression : " + finishedTasksCount.get() + "/" + totalTasksCountValue;
-			System.out.println(progression);
+			LOGGER.info(progression);
 		}
 	}
 }

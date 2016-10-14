@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -64,6 +63,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.BulkUploader;
 import com.constellio.model.services.contents.BulkUploaderRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImport;
@@ -88,6 +88,7 @@ public class RecordsImportServicesExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsImportServices.class);
 	private static final String CYCLIC_DEPENDENCIES_ERROR = "cyclicDependencies";
 	private static final String CONTENT_NOT_FOUND_ERROR = "contentNotFound";
+	private static final String HASH_NOT_FOUND_IN_VAULT = "hashNotFoundInVault";
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
 
 	private ModelLayerFactory modelLayerFactory;
@@ -427,6 +428,10 @@ public class RecordsImportServicesExecutor {
 				try {
 					recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
 
+				} catch (ContentManagerRuntimeException_NoSuchContent e) {
+					Map<String, Object> params = new HashMap<>();
+					params.put("hash", e.getId());
+					errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
 				} catch (RecordServicesException.ValidationException e) {
 					for (ValidationError error : e.getErrors().getValidationErrors()) {
 						errors.add(error, error.getParameters());

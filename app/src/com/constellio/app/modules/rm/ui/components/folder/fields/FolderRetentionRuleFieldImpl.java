@@ -76,7 +76,6 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	@Override
 	public void setValue(String newFieldValue)
 			throws ReadOnlyException, ConversionException {
-		System.out.println("Setting value to: " + newFieldValue);
 		value = newFieldValue;
 		super.setValue(newFieldValue);
 		table.refreshRowCache();

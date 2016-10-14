@@ -284,7 +284,6 @@ public class ContentManager implements StatefulService {
 	int contentVersionSummary = 0;
 
 	public ContentVersionDataSummary getContentVersionSummary(String hash) {
-		System.out.println((++contentVersionSummary) + "getContentVersionSummary(" + hash + ")");
 		ParsedContent parsedContent = getParsedContentParsingIfNotYetDone(hash);
 		return new ContentVersionDataSummary(hash, parsedContent.getMimeType(), parsedContent.getLength());
 	}
