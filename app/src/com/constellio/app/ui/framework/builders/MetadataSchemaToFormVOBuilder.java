@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
@@ -13,12 +14,20 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 @SuppressWarnings("serial")
 public class MetadataSchemaToFormVOBuilder implements Serializable {
 
-	public FormMetadataSchemaVO build(MetadataSchema schema, SessionContext sessionContext) {
+	public FormMetadataSchemaVO build(MetadataSchema schema, SessionContext sessionContext, SchemaTypeDisplayConfig schemaTypeDisplayConfig) {
 		String code = schema.getCode();
 		String collection = schema.getCollection();
 		Map<String, String> labels = configureLabels(schema.getLabels());
 
+		if (schemaTypeDisplayConfig != null) {
+			boolean advancedSearch = schemaTypeDisplayConfig.isAdvancedSearch();
+			return new FormMetadataSchemaVO(code, collection, labels, advancedSearch);
+		}
 		return new FormMetadataSchemaVO(code, collection, labels);
+	}
+
+	public FormMetadataSchemaVO build(MetadataSchema schema, SessionContext sessionContext) {
+		return build(schema, sessionContext, null);
 	}
 
 	private Map<String, String> configureLabels(Map<Language, String> labels) {
@@ -28,14 +37,4 @@ public class MetadataSchemaToFormVOBuilder implements Serializable {
 		}
 		return newLabels;
 	}
-
-	@Deprecated
-	public FormMetadataSchemaVO build(MetadataSchema schema) {
-		String code = schema.getCode();
-		String collection = schema.getCollection();
-		Map<String, String> labels = configureLabels(schema.getLabels());
-
-		return new FormMetadataSchemaVO(code, collection, labels);
-	}
-
 }

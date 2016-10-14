@@ -20,7 +20,7 @@ import com.constellio.model.services.parser.FileParserException;
 import jcifs.smb.SmbFile;
 
 public class SmbFileDTOSimpleBuilder {
-	private static final long MAX_FILE_SIZE_IN_BYTES = 1024 * 1024 * 1024;
+	private static final long MAX_FILE_SIZE_IN_BYTES = 10 * 1024 * 1024 * 1024;
 	private static final String ERROR_TOO_BIG = "File exceeds maximum size (in bytes): " + MAX_FILE_SIZE_IN_BYTES;
 
 	private final ConnectorLogger logger;

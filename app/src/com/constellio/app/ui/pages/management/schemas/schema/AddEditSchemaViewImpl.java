@@ -13,6 +13,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
@@ -25,6 +26,8 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 	private BaseTextField localCodeField;
 	@PropertyId("labels")
 	private MultilingualTextField labelsField;
+	@PropertyId("advancedSearch")
+	private CheckBox advancedSearch;
 
 	public AddEditSchemaViewImpl() {
 		this.presenter = new AddEditSchemaPresenter(this);
@@ -63,7 +66,9 @@ public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchema
 		labelsField.addStyleName("labels");
 		labelsField.setRequired(true);
 
-		return new BaseForm<FormMetadataSchemaVO>(schemaVO, this, localCodeField, labelsField) {
+		advancedSearch = new CheckBox($("AddEditSchemaView.advancedSearch"));
+
+		return new BaseForm<FormMetadataSchemaVO>(schemaVO, this, localCodeField, labelsField, advancedSearch) {
 			@Override
 			protected void saveButtonClick(FormMetadataSchemaVO schemaVO)
 					throws ValidationException {

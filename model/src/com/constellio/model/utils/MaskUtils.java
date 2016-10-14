@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.text.MaskFormatter;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.model.utils.MaskUtilsException.MaskUtilsException_InvalidValue;
 
 public class MaskUtils {
@@ -65,7 +67,10 @@ public class MaskUtils {
 
 	public static void validate(String mask, String formattedValue)
 			throws MaskUtilsException {
-
+		if (StringUtils.isBlank(mask)) {
+			return;
+		}
+		
 		Pattern pattern = buildRegex(mask);
 		Matcher matcher = pattern.matcher(formattedValue);
 
