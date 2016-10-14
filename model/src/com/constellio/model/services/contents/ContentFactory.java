@@ -179,7 +179,7 @@ public class ContentFactory implements StructureFactory {
 		stringBuilder.append(contentInfo.getCheckoutUserId() == null ? "false" : "true");
 		stringBuilder.append(":");
 		stringBuilder.append(toString(current, null, null, null));
-		stringBuilder.append(toString(contentInfo.getCurrentCheckedOutVersion(), lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype));
+		stringBuilder.append(toString(contentInfo.getCurrentCheckedOutVersion(), null, null, null));
 		stringBuilder.append(":");
 		if (contentInfo.isEmptyVersion()) {
 			stringBuilder.append("_EMPTY_VERSION_::");
@@ -210,10 +210,10 @@ public class ContentFactory implements StructureFactory {
 		if (filename.equals(lastKnownFilename)) {
 			filename = "";
 		}
-		if (modifiedBy.equals(lastKnownModifiedBy)) {
+		if (modifiedBy != null && modifiedBy.equals(lastKnownModifiedBy)) {
 			modifiedBy = "";
 		}
-		if (mimetype.equals(lastKnownMimetype)) {
+		if (mimetype != null && mimetype.equals(lastKnownMimetype)) {
 			mimetype = "";
 		}
 
