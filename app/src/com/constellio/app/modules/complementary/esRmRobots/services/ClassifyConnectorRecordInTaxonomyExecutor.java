@@ -435,6 +435,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 		builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
 		return builder.toString();
+//
+		//		if (fullPath.endsWith("/")) {
+		//			fullPath = fullPath.substring(0, fullPath.length() - 1);
+		//		}
+		//
+		//		return org.apache.commons.lang3.StringUtils.substringBeforeLast(fullPath, "/");
 	}
 
 	private MetadataSchema adjustFolderSchema(Folder rmFolder, Map<String, String> folderEntry) {

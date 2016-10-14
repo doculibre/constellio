@@ -850,7 +850,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
-		System.out.println("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);

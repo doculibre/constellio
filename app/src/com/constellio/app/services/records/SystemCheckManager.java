@@ -99,11 +99,16 @@ public class SystemCheckManager implements StatefulService {
 						try {
 							Transaction transaction = new Transaction();
 							record.markAsModified(Schemas.TITLE);
+							transaction.getRecordUpdateOptions().setFullRewrite(true);
 							transaction.getRecordUpdateOptions().setUpdateModificationInfos(false);
 							transaction.add(record);
 
-							recordServices.execute(transaction);
-							lastSystemCheckResults.recordsRepaired++;
+							if (transaction.getModifiedRecords().size() >= 1) {
+
+								recordServices.execute(transaction);
+
+								lastSystemCheckResults.recordsRepaired++;
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
