@@ -4,6 +4,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.metadata.AppSchemasServices;
@@ -55,14 +57,18 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		MetadataSchema schema;
 
 		SessionContext sessionContext = view.getSessionContext();
+		String schemaTypeCode = params.get("schemaTypeCode");
 		if (editMode) {
 			schema = types.getSchema(schemaCode);
 		} else {
-			String schemaTypeCode = params.get("schemaTypeCode");
 			schema = types.getSchema(schemaTypeCode + "_default");
 		}
 		initialSchemaCode = schema.getCode();
-		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, sessionContext);
+
+		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypeDisplayConfig schemaTypeDisplayConfig = metadataSchemasDisplayManager.getType(collection, schemaTypeCode);
+
+		FormMetadataSchemaVO schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, sessionContext, schemaTypeDisplayConfig);
 		setSchemaVO(schemaVO);
 	}
 
@@ -76,7 +82,9 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 		MetadataSchemaTypesBuilder types = schemasManager.modify(collection);
 
 		boolean modifyExistingSchemaCode;
-		
+
+		String schemaTypeCode = parameters.get("schemaTypeCode");
+
 		String code;
 		if (isCodeEditable()) {
 			String localCode = schemaVO.getLocalCode();
@@ -89,7 +97,6 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 				modifyExistingSchemaCode = false;
 				view.showErrorMessage($("AddEditSchemaView.schemaCodeContainsSpace"));
 			} else {
-				String schemaTypeCode = parameters.get("schemaTypeCode");
 				if (isEditMode()) {
 					code = schemaTypeCode + "_" + localCode;
 					modifyExistingSchemaCode = !code.equals(initialSchemaCode);
@@ -123,6 +130,13 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 			
 			String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
 			view.navigate().to().listSchema(params);
+		}
+
+		if (schemaVO.getAdvancedSearch() != null) {
+			boolean advancedSearch = schemaVO.getAdvancedSearch();
+			SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+			SchemaTypeDisplayConfig schemaTypeDisplayConfig = metadataSchemasDisplayManager.getType(collection, schemaTypeCode).withAdvancedSearchStatus(advancedSearch);
+			metadataSchemasDisplayManager.saveType(schemaTypeDisplayConfig);
 		}
 	}
 
