@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
@@ -159,6 +160,8 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String EDIT_METADATA_EXTRACTOR = "editMetadataExtractor";
 
 	public static final String TAXONOMY_SEARCH = "taxonomySearch";
+	
+	public static final String SYSTEM_CHECK = "systemCheck";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -251,6 +254,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
 
+		viewProviders.add(new ClassBasedViewProvider(SYSTEM_CHECK, SystemCheckViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

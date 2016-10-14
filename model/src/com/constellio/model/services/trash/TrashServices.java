@@ -28,6 +28,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class TrashServices {
@@ -141,7 +142,8 @@ public class TrashServices {
 	}
 
 	public LogicalSearchQuery getTrashRecordsQueryForCollectionDeletedBeforeDate(String collection, LocalDateTime deleteDate) {
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(getTrashSchemaTypes(collection))
+				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
 				.andWhere(Schemas.LOGICALLY_DELETED_ON).isLessOrEqualThan(deleteDate);
 		return new LogicalSearchQuery(condition).sortDesc(Schemas.LOGICALLY_DELETED_ON);
 	}
@@ -173,8 +175,8 @@ public class TrashServices {
 	public static class RecordsIdsAndTitles {
 		final Set<String> recordsIds;
 		final Set<String> recordsTitles;
-		public RecordsIdsAndTitles(Set<String> recordsIds,
-				Set<String> recordsTitles) {
+
+		public RecordsIdsAndTitles(Set<String> recordsIds, Set<String> recordsTitles) {
 			this.recordsIds = recordsIds;
 			this.recordsTitles = recordsTitles;
 		}
