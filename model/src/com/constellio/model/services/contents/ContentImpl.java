@@ -160,6 +160,9 @@ public class ContentImpl implements Content {
 				}
 			}
 			Double.valueOf(version);
+			if (version.indexOf(".") == -1) {
+				version += ".0";
+			}
 			return version;
 		} catch (NumberFormatException e) {
 			throw new ContentImplRuntimeException_InvalidArgument("version");
