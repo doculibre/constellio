@@ -526,6 +526,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getFileSystemTestFeatures().givenUnzipedFileInTempFolder(file);
 	}
 
+
+	protected File givenUnzipedResourceInFolder(Class<? extends AbstractConstellioTest> clazz, String fileName) {
+		ensureNotUnitTest();
+		File file = getTestResourceFile(clazz, fileName);
+		return getCurrentTestSession().getFileSystemTestFeatures().givenUnzipedFileInTempFolder(file);
+	}
+
 	protected File newTempFileWithContent(String fileName, String content) {
 		ensureNotUnitTest();
 		return getCurrentTestSession().getFileSystemTestFeatures().newTempFileWithContent(newTempFolder(), fileName, content);
