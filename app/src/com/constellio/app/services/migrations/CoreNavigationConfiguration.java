@@ -82,6 +82,9 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String HOME = "home";
 	public static final String TRASH = "trash";
 
+	public static final String SYSTEM_CHECK = "systemCheck";
+	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
+
 	public void configureNavigation(NavigationConfig config) {
 		configureSystemAdmin(config);
 		configureCollectionAdmin(config);
@@ -221,6 +224,17 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_UPDATES));
+			}
+		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(SYSTEM_CHECK, SYSTEM_CHECK_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().systemCheck();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				return visibleIf(modelLayerFactory.newUserServices().getUser(user.getUsername()).isSystemAdmin());
 			}
 		});
 	}

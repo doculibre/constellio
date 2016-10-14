@@ -141,7 +141,7 @@ public class IOServices {
 		try {
 			return streamsServices.newBufferedFileInputStream(file, uniqueIdWith(name));
 		} catch (FileNotFoundException e) {
-			throw new ImpossibleRuntimeException(e);
+			throw new ImpossibleRuntimeException("File does not exist: " + file.getAbsolutePath(), e);
 		}
 	}
 

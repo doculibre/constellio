@@ -175,6 +175,7 @@ public class PageEvent extends PdfPageEventHelper {
 		titleCell.setVerticalAlignment(Element.ALIGN_BOTTOM);
 		titleCell.setBorder(Rectangle.BOTTOM);
 		titleCell.setPaddingBottom(5f);
+		titleCell.setColspan(2);
 		table.addCell(titleCell);
 	}
 

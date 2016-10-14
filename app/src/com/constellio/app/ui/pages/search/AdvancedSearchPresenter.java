@@ -405,7 +405,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setPageLength(selectedPageLength);
 		try {
 			recordServices().update(search);
-			if(refreshPage) {
+			if (refreshPage) {
 				view.navigate().to().advancedSearchReplay(search.getId());
 			}
 		} catch (RecordServicesException e) {

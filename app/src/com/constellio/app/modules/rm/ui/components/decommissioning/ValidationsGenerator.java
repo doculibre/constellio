@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.BooleanLabel;
 import com.constellio.app.ui.framework.components.LocalDateLabel;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
@@ -27,7 +28,7 @@ public class ValidationsGenerator implements ColumnGenerator {
 		this.presenter = presenter;
 	}
 
-	public Table attachTo(Table table) {
+	public BaseTable attachTo(BaseTable table) {
 		table.addGeneratedColumn(VALIDATOR, this);
 		table.setColumnHeader(VALIDATOR, $("DecomValidatorsTable.username"));
 		table.setColumnExpandRatio(VALIDATOR, 1);
