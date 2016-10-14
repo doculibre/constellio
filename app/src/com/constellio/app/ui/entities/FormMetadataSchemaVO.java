@@ -10,37 +10,25 @@ import com.constellio.model.services.schemas.SchemaUtils;
 @SuppressWarnings("serial")
 public class FormMetadataSchemaVO implements Serializable {
 
-	String code;
+	String code = "";;
 
-	String localCode;
+	String localCode = "";;
 
-	String collection;
+	String collection = "";;
 
-	Map<String, String> labels;
+	Map<String, String> labels = new HashMap<>();
 
 	String currentLanguageCode;
 
-	@Deprecated
-	public FormMetadataSchemaVO() {
-		super();
-		this.localCode = "";
-		this.code = "";
-		this.collection = "";
-		this.labels = new HashMap<>();
-	}
+	/* Schema type properties */
+	Boolean advancedSearch = null;
+
 
 	public FormMetadataSchemaVO(SessionContext sessionContext) {
-		super();
-		this.localCode = "";
-		this.code = "";
-		this.collection = "";
-		this.labels = new HashMap<>();
 		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 	}
 
 	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels) {
-		super();
-
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[1];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
@@ -50,6 +38,11 @@ public class FormMetadataSchemaVO implements Serializable {
 		this.code = code;
 		this.collection = collection;
 		this.labels = new HashMap<>(labels);
+	}
+
+	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels, Boolean advancedSearch) {
+		this(code, collection, labels);
+		this.advancedSearch = advancedSearch;
 	}
 
 	public String getCode() {
@@ -87,6 +80,10 @@ public class FormMetadataSchemaVO implements Serializable {
 	public void setCollection(String collection) {
 		this.collection = collection;
 	}
+
+	public Boolean getAdvancedSearch() { return advancedSearch; }
+
+	public void setAdvancedSearch(Boolean advancedSearch) {	this.advancedSearch = advancedSearch; }
 
 	@Override
 	public int hashCode() {
