@@ -375,6 +375,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					String recordIdForEmailSchema = rmSchemasRecordsServices.getRecordIdForEmailSchema();
 					if (!recordIdForEmailSchema.equals(recordIdForDocumentType)) {
 						documentTypeField.setFieldValue(recordIdForEmailSchema);
+						contentVersionVO.setMajorVersion(true);
 						contentField.setVisible(false);
 						documentTypeField.setVisible(false);
 						reloadFormAfterDocumentTypeChange();
