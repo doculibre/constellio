@@ -23,4 +23,4 @@ skip.indevelopment=true
 
 
 tests.whitelist=
-tests.blacklist=
+tests.blacklist=com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactoryAcceptanceTest,com.constellio.model.services.search.SearchServiceAcceptanceTest,com.constellio.model.services.emails.EmailServicesAcceptanceTest,com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImplAcceptanceTest
