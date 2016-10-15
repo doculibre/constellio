@@ -263,7 +263,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		when(smbFile.isFile()).thenReturn(true);
 		when(smbFile.isDirectory()).thenReturn(false);
 		when(smbFile.getName()).thenReturn(SmbTestParams.EXISTING_FILE);
-		when(smbFile.length()).thenReturn(2000_000_000L);
+		when(smbFile.length()).thenReturn(20_000_000_000L);
 		when(smbFile.getInputStream()).thenReturn(new ByteArrayInputStream(SmbTestParams.EXISTING_FILE_CONTENT.getBytes()));
 		when(smbFile.getLastModified()).thenReturn(123456L);
 
@@ -283,7 +283,7 @@ public class SmbFileDTOSimpleBuilderAcceptanceTest extends ConstellioTest {
 		assertThat(smbFileDTO.isDirectory()).isFalse();
 		assertThat(smbFileDTO.getExtension()).isEqualTo(SmbTestParams.EXISTING_FILE_EXT);
 		assertThat(smbFileDTO.getName()).isEqualTo(SmbTestParams.EXISTING_FILE);
-		assertThat(smbFileDTO.getLength()).isEqualTo(2000_000_000L);
+		assertThat(smbFileDTO.getLength()).isEqualTo(20_000_000_000L);
 		assertThat(smbFileDTO.getParsedContent()).isEmpty();
 		assertThat(smbFileDTO.getLanguage()).isEmpty();
 		assertThat(smbFileDTO.getErrorMessage()).contains("exceeds maximum size");
