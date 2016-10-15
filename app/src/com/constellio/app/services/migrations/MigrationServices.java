@@ -177,7 +177,7 @@ public class MigrationServices {
 				!(migrations = filterRunnedMigration(collection,
 						getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
 
-			System.out.println("Migrating collection " + collection + " : " + migrations);
+			LOGGER.info("Migrating collection " + collection + " : " + migrations);
 			for (Migration migration : migrations) {
 				if (toVersion == null || VersionsComparator
 						.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {

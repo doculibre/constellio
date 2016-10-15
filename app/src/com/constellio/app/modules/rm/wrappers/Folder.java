@@ -690,5 +690,8 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public String getTimeRange() {
+		return get(TIME_RANGE);
+	}
 }
 
