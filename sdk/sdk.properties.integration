@@ -15,12 +15,12 @@ dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.slowtests=false
-skip.uitests=true
+skip.uitests=false
 skip.drivertests=false
 skip.loadtests=true
 skip.internettests=false
 skip.indevelopment=true
 
 
-tests.whitelist=
+tests.whitelist=com.constellio.app.modules.robots.services.RobotsManagerAcceptTest
 tests.blacklist=com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactoryAcceptanceTest,com.constellio.model.services.search.SearchServiceAcceptanceTest,com.constellio.model.services.emails.EmailServicesAcceptanceTest,com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImplAcceptanceTest
