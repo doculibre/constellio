@@ -39,6 +39,7 @@ public class MigrationResourcesProvider {
 		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, version);
 		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, version);
 
+
 	}
 
 	public String get(String key) {

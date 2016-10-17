@@ -151,7 +151,6 @@ public class AppSchemasServices {
 				@Override
 				public void doActionOnBatch(List<Record> records)
 						throws Exception {
-					System.out.println(records);
 					Transaction transaction = new Transaction();
 					transaction.getRecordUpdateOptions().setValidationsEnabled(false);
 
