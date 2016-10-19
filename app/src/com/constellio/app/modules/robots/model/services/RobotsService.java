@@ -17,6 +17,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RobotsService {
@@ -81,7 +82,7 @@ public class RobotsService {
 			recordServices.logicallyDelete(robotLog.getWrappedRecord(), User.GOD);
 			recordServices.physicallyDelete(robotLog.getWrappedRecord(), User.GOD);
 		}
-		
+
 		for (Robot child : getChildRobots(robot.getId())) {
 			deleteRobotHierarchy(child);
 		}
@@ -94,15 +95,26 @@ public class RobotsService {
 	}
 
 	public List<Robot> getRootRobots() {
-		return robots.searchRobots(where(robots.robot.parent()).isNull());
+		LogicalSearchQuery searchQuery = new LogicalSearchQuery(from(robots.robot.schemaType())
+				.where(robots.robot.parent()).isNull());
+		searchQuery.sortAsc(Schemas.CODE);
+		return robots.searchRobots(searchQuery);
 	}
 
 	public List<Robot> getAutoExecutingRootRobots() {
-		return robots.searchRobots(where(robots.robot.parent()).isNull().andWhere(robots.robot.autoExecute()).isTrue());
+
+		LogicalSearchQuery searchQuery = new LogicalSearchQuery(from(robots.robot.schemaType())
+				.where(robots.robot.parent()).isNull().andWhere(robots.robot.autoExecute()).isTrue());
+		searchQuery.sortAsc(Schemas.CODE);
+		return robots.searchRobots(searchQuery);
+
 	}
 
 	public List<Robot> getChildRobots(String robotId) {
-		return robots.searchRobots(where(robots.robot.parent()).isEqualTo(robotId));
+		LogicalSearchQuery searchQuery = new LogicalSearchQuery(from(robots.robot.schemaType())
+				.where(robots.robot.parent()).isEqualTo(robotId));
+		searchQuery.sortAsc(Schemas.CODE);
+		return robots.searchRobots(searchQuery);
 	}
 
 	private List<String> getRobotLogIds(String robotId) {

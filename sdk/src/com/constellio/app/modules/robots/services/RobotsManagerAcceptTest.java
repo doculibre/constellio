@@ -284,6 +284,31 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 				dryRunRobotAction(record6, robot110, robotSchemas)
 		));
 
+		assertThat(manager.dryRun(robot100)).extracting("recordId", "robotCode").isEqualTo(asList(
+				tuple("record5", "111"),
+				tuple("record6", "112"),
+				tuple("record4", "110"),
+				tuple("record5", "110"),
+				tuple("record6", "110"),
+
+				tuple("record8", "121"),
+				tuple("record9", "122"),
+				tuple("record7", "120"),
+				tuple("record8", "120"),
+				tuple("record9", "120"),
+
+				tuple("record1", "100"),
+				tuple("record2", "100"),
+				tuple("record3", "100"),
+				tuple("record4", "100"),
+				tuple("record5", "100"),
+				tuple("record6", "100"),
+				tuple("record7", "100"),
+				tuple("record8", "100"),
+				tuple("record9", "100")
+
+		));
+
 		assertThat(manager.dryRun(robot100)).isEqualTo(asList(
 				dryRunRobotAction(record5, robot111, robotSchemas),
 				dryRunRobotAction(record6, robot112, robotSchemas),

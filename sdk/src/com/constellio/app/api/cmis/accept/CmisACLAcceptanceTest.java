@@ -3,6 +3,7 @@ package com.constellio.app.api.cmis.accept;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -11,8 +12,10 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -63,8 +66,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 
 	List<String> R = asList("cmis:read");
 	List<String> RW = asList("cmis:read", "cmis:write");
-	List<String> constellio_R = asList(READ);
-	List<String> constellio_RW = asList(READ, WRITE);
+	Set<String> constellio_R = asSet(READ);
+	Set<String> constellio_RW = asSet(READ, WRITE);
 
 	//	Session cmisSession;
 	Session session;
@@ -433,9 +436,9 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 				.onlyUserWithWritePermissionAre(admin, bobGratton, edouard, gandalf);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
-				tuple(constellio_R, asList(heroesId), asList(zeCollectionRecords.folder2.getId())),
-				tuple(constellio_RW, asList(bobId, gandalfId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asSet(edouardId), asSet(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_R, asSet(heroesId), asSet(zeCollectionRecords.folder2.getId())),
+				tuple(constellio_RW, asSet(bobId, gandalfId), asSet(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
@@ -450,8 +453,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 				.onlyUserWithWritePermissionAre(admin, bobGratton, edouard, gandalf, dakota, robin, charles);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
-				tuple(constellio_RW, asList(bobId, gandalfId, heroesId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asSet(edouardId), asSet(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_RW, asSet(bobId, gandalfId, heroesId), asSet(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
@@ -461,8 +464,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		cmisFolder2.removeAcl(asList(ace("heroes", RW), ace(bobGratton, RW)), REPOSITORYDETERMINED);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(edouardId), asList(zeCollectionRecords.taxo2_station2_1.getId())),
-				tuple(constellio_RW, asList(gandalfId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asSet(edouardId), asSet(zeCollectionRecords.taxo2_station2_1.getId())),
+				tuple(constellio_RW, asSet(gandalfId), asSet(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
@@ -473,7 +476,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 						ace(dakota, RW)));
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(gandalfId, dakotaId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asSet(gandalfId, dakotaId), asSet(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
@@ -486,7 +489,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 				.applyAcl(asList(ace(aliceWonderland, RW), ace(charles, RW)), asList(ace(gandalf, RW)), REPOSITORYDETERMINED);
 
 		assertThatRecordAuthorizations(zeCollectionRecords.folder2).containsOnly(
-				tuple(constellio_RW, asList(charlesId, dakotaId, aliceId), asList(zeCollectionRecords.folder2.getId()))
+				tuple(constellio_RW, asSet(charlesId, dakotaId, aliceId), asSet(zeCollectionRecords.folder2.getId()))
 		);
 
 		assertThatAcesOf(zeCollectionRecords.folder2).containsOnly(
@@ -501,8 +504,16 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 	private ListAssert<Tuple> assertThatRecordAuthorizations(Record record) {
 		recordServices.refresh(record);
 
-		return assertThat(authorizationsServices.getRecordAuthorizations(record))
-				.extracting("detail.roles", "grantedToPrincipals", "grantedOnRecords");
+		List<Tuple> tuples = new ArrayList<>();
+		for (Authorization authorization : authorizationsServices.getRecordAuthorizations(record)) {
+			Tuple tuple = new Tuple();
+			tuple.addData(new HashSet<>(authorization.getDetail().getRoles()));
+			tuple.addData(new HashSet<>(authorization.getGrantedToPrincipals()));
+			tuple.addData(new HashSet<>(authorization.getGrantedOnRecords()));
+			tuples.add(tuple);
+		}
+
+		return assertThat(tuples);
 	}
 
 	private Ace ace(String principal, List<String> permissions) {

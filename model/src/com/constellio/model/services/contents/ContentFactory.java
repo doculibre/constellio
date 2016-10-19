@@ -101,7 +101,12 @@ public class ContentFactory implements StructureFactory {
 
 		String checkedOutBy = toNullableString(nextLine);
 		LocalDateTime checkedOutDateTime = toDateTime(iterator.next());
-		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator, version);
+		
+		String lastKnownFilename = current != null ? current.getFilename() : null;
+		String lastKnownModifiedBy = current != null ? current.getModifiedBy() : null;
+		String lastKnownMimetype = current != null ? current.getMimetype() : null;
+		
+		Lazy<List<ContentVersion>> lazyLoadedHistory = newLazyLoadedHistory(iterator, version, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype);
 
 		return new ContentImpl(id, current, lazyLoadedHistory, currentCheckedOut, checkedOutDateTime, checkedOutBy, emptyVersion);
 	}
@@ -123,14 +128,22 @@ public class ContentFactory implements StructureFactory {
 		iterator.next();
 	}
 
-	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator, final int version) {
+	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator, final int version, final String lastKnownFilename, final String lastKnownModifiedBy, final String lastKnownMimetype) {
+		
 		return new Lazy<List<ContentVersion>>() {
 			@Override
 			protected List<ContentVersion> load() {
 				List<ContentVersion> versions = new ArrayList<>();
 
+				String currentLastKnownFilename = lastKnownFilename;
+				String currentLastKnownModifiedBy = lastKnownModifiedBy;
+				String currentLastKnownMimetype = lastKnownMimetype;
 				while (iterator.hasNext()) {
-					versions.add(toContentVersion(iterator.next(), version));
+					ContentVersion contentVersion = toContentVersion(iterator.next(), version, currentLastKnownFilename, currentLastKnownModifiedBy, currentLastKnownMimetype);
+					currentLastKnownFilename = contentVersion.getFilename();
+					currentLastKnownModifiedBy = contentVersion.getModifiedBy();
+					currentLastKnownMimetype = contentVersion.getMimetype();
+					versions.add(contentVersion);
 				}
 
 				return versions;
@@ -153,14 +166,20 @@ public class ContentFactory implements StructureFactory {
 		StringBuilder stringBuilder = new StringBuilder("v2:");
 
 		ContentImpl contentInfo = (ContentImpl) value;
+		ContentVersion current = contentInfo.getCurrentVersion();
+
+		String lastKnownFilename = current.getFilename();
+		String lastKnownModifiedBy = current.getModifiedBy();
+		String lastKnownMimetype = current.getMimetype();
+		
 		stringBuilder.append(contentInfo.getId());
 		stringBuilder.append("::cf=");
-		stringBuilder.append(contentInfo.getCurrentVersion().getFilename());
+		stringBuilder.append(current.getFilename());
 		stringBuilder.append("::co=");
 		stringBuilder.append(contentInfo.getCheckoutUserId() == null ? "false" : "true");
 		stringBuilder.append(":");
-		stringBuilder.append(toString(contentInfo.getCurrentVersion()));
-		stringBuilder.append(toString(contentInfo.getCurrentCheckedOutVersion()));
+		stringBuilder.append(toString(current, null, null, null));
+		stringBuilder.append(toString(contentInfo.getCurrentCheckedOutVersion(), null, null, null));
 		stringBuilder.append(":");
 		if (contentInfo.isEmptyVersion()) {
 			stringBuilder.append("_EMPTY_VERSION_::");
@@ -171,28 +190,44 @@ public class ContentFactory implements StructureFactory {
 		stringBuilder.append(toString(contentInfo.getCheckoutDateTime()));
 		stringBuilder.append(":");
 		for (ContentVersion historyVersion : contentInfo.getHistoryVersions()) {
-			stringBuilder.append(toString(historyVersion));
+			stringBuilder.append(toString(historyVersion, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype));
+			lastKnownFilename = historyVersion.getFilename();
+			lastKnownModifiedBy = historyVersion.getModifiedBy();
+			lastKnownMimetype = historyVersion.getMimetype();
 		}
 		stringBuilder.append(":");
 		return stringBuilder.toString();
 	}
 
-	private String toString(ContentVersion contentVersion) {
+	private String toString(ContentVersion contentVersion, String lastKnownFilename, String lastKnownModifiedBy, String lastKnownMimetype) {
 		if (contentVersion == null) {
 			return ":" + NULL_STRING + ":";
+		}
+		
+		String filename = contentVersion.getFilename();
+		String modifiedBy = contentVersion.getModifiedBy();
+		String mimetype = contentVersion.getMimetype();
+		if (filename.equals(lastKnownFilename)) {
+			filename = "";
+		}
+		if (modifiedBy != null && modifiedBy.equals(lastKnownModifiedBy)) {
+			modifiedBy = "";
+		}
+		if (mimetype != null && mimetype.equals(lastKnownMimetype)) {
+			mimetype = "";
 		}
 
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(":f=");
-		stringBuilder.append(contentVersion.getFilename());
+		stringBuilder.append(filename);
 		stringBuilder.append(":h=");
 		stringBuilder.append(contentVersion.getHash());
 		stringBuilder.append(":l=");
 		stringBuilder.append(contentVersion.getLength());
 		stringBuilder.append(":m=");
-		stringBuilder.append(contentVersion.getMimetype());
+		stringBuilder.append(mimetype);
 		stringBuilder.append(":u=");
-		stringBuilder.append(contentVersion.getModifiedBy());
+		stringBuilder.append(modifiedBy);
 		stringBuilder.append(":t=");
 		stringBuilder.append(toString(contentVersion.getLastModificationDateTime()));
 		stringBuilder.append(":v=");
@@ -204,8 +239,12 @@ public class ContentFactory implements StructureFactory {
 	}
 
 	private ContentVersion toContentVersion(String string, int version) {
+		return toContentVersion(string, version, null, null, null);
+	}
+	
+	private ContentVersion toContentVersion(String string, int version, String lastKnownFilename, String lastKnownModifiedBy, String lastKnownMimetype) {
 		if (version == 2) {
-			return toContentVersion2(string);
+			return toContentVersion2(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype);
 		} else {
 			return toContentVersion1(string);
 		}
@@ -230,7 +269,7 @@ public class ContentFactory implements StructureFactory {
 		return new ContentVersion(contentVersionDataSummary, filename, version, modifiedBy, toDateTime(modifiedDateTime), null);
 	}
 
-	private ContentVersion toContentVersion2(String string) {
+	private ContentVersion toContentVersion2(String string, String lastKnownFilename, String lastKnownModifiedBy, String lastKnownMimetype) {
 		if (string.equals(NULL_STRING)) {
 			return null;
 		}
@@ -244,6 +283,16 @@ public class ContentFactory implements StructureFactory {
 		String modifiedDateTime = afterEqual(tokenizer.nextToken());
 		String version = afterEqual(tokenizer.nextToken());
 		String comment = readComment(afterEqual(tokenizer.nextToken()));
+		
+		if (StringUtils.isBlank(filename)) {
+			filename = lastKnownFilename;
+		}
+		if (StringUtils.isBlank(modifiedBy)) {
+			modifiedBy = lastKnownModifiedBy;
+		}
+		if (StringUtils.isBlank(mimetype)) {
+			mimetype = lastKnownMimetype;
+		}
 
 		long length = Long.valueOf(lengthStr);
 		ContentVersionDataSummary contentVersionDataSummary = new ContentVersionDataSummary(hash, mimetype, length);
