@@ -2,8 +2,11 @@ package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import com.constellio.app.api.extensions.taxonomies.QueryAndResponseInfoParam;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -30,6 +33,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	transient Integer size = null;
 	//transient Map<Integer, SearchResultVO> cache;
 	protected transient ModelLayerFactory modelLayerFactory;
+	protected transient AppLayerFactory appLayerFactory;
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	private transient SessionContext sessionContext;
 
@@ -37,21 +41,22 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 
-	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
 			SessionContext sessionContext) {
 		this.voBuilder = voBuilder;
-		init(modelLayerFactory, sessionContext);
+		init(appLayerFactory, sessionContext);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
-		init(ConstellioFactories.getInstance().getModelLayerFactory(), ConstellioUI.getCurrentSessionContext());
+		init(ConstellioFactories.getInstance().getAppLayerFactory(), ConstellioUI.getCurrentSessionContext());
 	}
 
-	void init(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
+	void init(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		query = getQuery();
 		serializeRecords = !query.getReturnedMetadatas().isFullyLoaded();
 	}
@@ -108,6 +113,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
 		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
+		notifyExtensionsForExecutedQuery(query, response, sessionContext);
 		List<Record> records = response.getRecords();
 		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
 			RecordVO recordVO = voBuilder.build(records.get(startIndex + i), VIEW_MODE.SEARCH, sessionContext);
@@ -115,6 +121,13 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 			results.add(searchResultVO);
 		}
 		return results;
+	}
+
+	private void notifyExtensionsForExecutedQuery(LogicalSearchQuery query, SPEQueryResponse response, SessionContext sessionContext) {
+		QueryAndResponseInfoParam param = new QueryAndResponseInfoParam().setQuery(query).setSpeQueryResponse(response)
+				.setUserID(sessionContext.getCurrentUser().toString()).setQueryDate(new Date());
+
+		appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection()).writeQueryAndResponseInfoToCSV(param);
 	}
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {

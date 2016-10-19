@@ -218,7 +218,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public SearchResultVODataProvider getSearchResults() {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory,
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
