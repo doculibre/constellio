@@ -1,5 +1,7 @@
 package com.constellio.app.services.importExport.settings.utils;
 
+import static org.apache.commons.lang3.StringUtils.join;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
@@ -171,6 +173,18 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		if (metadataSchema.getLabel() != null) {
 			schemaElement.setAttribute("label", metadataSchema.getLabel());
 		}
+		if (metadataSchema.getTableMetadatas() != null && !metadataSchema.getFormMetadatas().isEmpty()) {
+			schemaElement.setAttribute("formMetadatas", join(metadataSchema.getFormMetadatas(), ","));
+		}
+		if (metadataSchema.getDisplayMetadatas() != null && !metadataSchema.getDisplayMetadatas().isEmpty()) {
+			schemaElement.setAttribute("displayMetadatas", join(metadataSchema.getDisplayMetadatas(), ","));
+		}
+		if (metadataSchema.getSearchMetadatas() != null && !metadataSchema.getSearchMetadatas().isEmpty()) {
+			schemaElement.setAttribute("searchMetadatas", join(metadataSchema.getSearchMetadatas(), ","));
+		}
+		if (metadataSchema.getTableMetadatas() != null && !metadataSchema.getTableMetadatas().isEmpty()) {
+			schemaElement.setAttribute("tableMetadatas", join(metadataSchema.getTableMetadatas(), ","));
+		}
 		for (ImportedMetadata importedMetadata : metadataSchema.getAllMetadata()) {
 			addMetadatum(schemaElement, importedMetadata);
 		}
@@ -229,7 +243,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getEnabledIn().isEmpty()) {
-			metadataElem.setAttribute(ENABLED_IN, StringUtils.join(importedMetadata.getEnabledIn(), ","));
+			metadataElem.setAttribute(ENABLED_IN, join(importedMetadata.getEnabledIn(), ","));
 		}
 
 		if (StringUtils.isNotBlank(importedMetadata.getInputMask())) {
@@ -285,7 +299,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getRequiredIn().isEmpty()) {
-			metadataElem.setAttribute(REQUIRED_IN, StringUtils.join(importedMetadata.getRequiredIn(), ","));
+			metadataElem.setAttribute(REQUIRED_IN, join(importedMetadata.getRequiredIn(), ","));
 		}
 
 		if (StringUtils.isNotBlank(importedMetadata.getTab())) {
@@ -297,7 +311,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInDisplayIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_DISPLAY_IN, StringUtils.join(importedMetadata.getVisibleInDisplayIn(), ","));
+			metadataElem.setAttribute(VISIBLE_IN_DISPLAY_IN, join(importedMetadata.getVisibleInDisplayIn(), ","));
 		}
 
 		if (importedMetadata.getVisibleInForm() != null) {
@@ -305,11 +319,11 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInFormIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_FORM_IN, StringUtils.join(importedMetadata.getVisibleInFormIn(), ","));
+			metadataElem.setAttribute(VISIBLE_IN_FORM_IN, join(importedMetadata.getVisibleInFormIn(), ","));
 		}
 
 		if (!importedMetadata.getVisibleInResultIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, StringUtils.join(importedMetadata.getVisibleInResultIn(), ","));
+			metadataElem.setAttribute(VISIBLE_IN_RESULT_IN, join(importedMetadata.getVisibleInResultIn(), ","));
 		}
 
 		if (importedMetadata.getVisibleInSearchResult() != null) {
@@ -321,7 +335,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		}
 
 		if (!importedMetadata.getVisibleInTablesIn().isEmpty()) {
-			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, StringUtils.join(importedMetadata.getVisibleInTablesIn(), ","));
+			metadataElem.setAttribute(VISIBLE_IN_TABLES_IN, join(importedMetadata.getVisibleInTablesIn(), ","));
 		}
 
 		if (importedMetadata.getDataEntry() != null) {
@@ -389,9 +403,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		if (importedTaxonomy.getVisibleOnHomePage() != null) {
 			listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
 		}
-		listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(importedTaxonomy.getClassifiedTypes(), ','));
-		listElem.setAttribute(GROUPS, StringUtils.join(importedTaxonomy.getGroupIds(), ','));
-		listElem.setAttribute(USERS, StringUtils.join(importedTaxonomy.getUserIds(), ','));
+		listElem.setAttribute(CLASSIFIED_TYPES, join(importedTaxonomy.getClassifiedTypes(), ','));
+		listElem.setAttribute(GROUPS, join(importedTaxonomy.getGroupIds(), ','));
+		listElem.setAttribute(USERS, join(importedTaxonomy.getUserIds(), ','));
 
 		taxonomiesElem.addContent(listElem);
 	}
@@ -410,7 +424,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		listElem.setAttribute(TITLE, valueList.getTitle());
 
 		if (!valueList.getClassifiedTypes().isEmpty()) {
-			listElem.setAttribute(CLASSIFIED_TYPES, StringUtils.join(valueList.getClassifiedTypes(), ','));
+			listElem.setAttribute(CLASSIFIED_TYPES, join(valueList.getClassifiedTypes(), ','));
 		}
 
 		if (StringUtils.isNotBlank(valueList.getCodeMode())) {
