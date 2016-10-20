@@ -113,7 +113,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, true);
 		List<SearchResultVO> results = new ArrayList<>(numberOfItems);
 		SPEQueryResponse response = searchServices.query(query, DEFAULT_PAGE_SIZE);
-		notifyExtensionsForExecutedQuery(query, response, sessionContext);
+		onQuery(query, response);
 		List<Record> records = response.getRecords();
 		for (int i = 0; i < Math.min(numberOfItems, records.size()); i++) {
 			RecordVO recordVO = voBuilder.build(records.get(startIndex + i), VIEW_MODE.SEARCH, sessionContext);
@@ -123,11 +123,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		return results;
 	}
 
-	private void notifyExtensionsForExecutedQuery(LogicalSearchQuery query, SPEQueryResponse response, SessionContext sessionContext) {
-		QueryAndResponseInfoParam param = new QueryAndResponseInfoParam().setQuery(query).setSpeQueryResponse(response)
-				.setUserID(sessionContext.getCurrentUser().toString()).setQueryDate(new Date());
-
-		appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection()).writeQueryAndResponseInfoToCSV(param);
+	protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
 	}
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {

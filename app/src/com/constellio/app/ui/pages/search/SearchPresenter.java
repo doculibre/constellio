@@ -6,14 +6,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import com.constellio.app.api.extensions.taxonomies.QueryAndResponseInfoParam;
+import com.constellio.data.utils.TimeProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,6 +229,25 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 				Metadata metadata = getMetadata(sortCriterion);
 				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+			}
+
+			@Override
+			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
+				SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)), types())
+						.setUser(getCurrentUser().getId())
+						.setSortField(sortCriterion)
+						.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+						.setSelectedFacets(facetSelections.getNestedMap())
+						.setTemporary(false);
+
+				search = prepareSavedSearch(search);
+
+
+				QueryAndResponseInfoParam param = new QueryAndResponseInfoParam().setQuery(query)
+						.setSpeQueryResponse(response).setSavedSearch(search)
+						.setQueryDateTime(TimeProvider.getLocalDateTime());
+
+				appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection()).writeQueryAndResponseInfoToCSV(param);
 			}
 		};
 	}
@@ -457,6 +473,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 				.setSelectedFacets(facetSelections.getNestedMap())
 				.setTemporary(false);
+
 		try {
 			recordServices().add(prepareSavedSearch(search));
 		} catch (RecordServicesException e) {

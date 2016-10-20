@@ -1,7 +1,9 @@
 package com.constellio.app.api.extensions.taxonomies;
 
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
 
 import java.util.Date;
 import java.util.List;
@@ -15,11 +17,9 @@ public class QueryAndResponseInfoParam {
 
     public LogicalSearchQuery query;
 
-    public Date queryDate;
+    public SavedSearch savedSearch;
 
-    public String userID;
-
-    public List<String> searchTerms;
+    public LocalDateTime queryDateTime;
 
     public SPEQueryResponse getSpeQueryResponse() {
         return speQueryResponse;
@@ -39,30 +39,21 @@ public class QueryAndResponseInfoParam {
         return this;
     }
 
-    public Date getQueryDate() {
-        return queryDate;
+    public LocalDateTime getQueryDateTime() {
+        return queryDateTime;
     }
 
-    public QueryAndResponseInfoParam setQueryDate(Date queryDate) {
-        this.queryDate = queryDate;
+    public QueryAndResponseInfoParam setQueryDateTime(LocalDateTime queryDateTime) {
+        this.queryDateTime = queryDateTime;
         return this;
     }
 
-    public String getUserID() {
-        return userID;
+    public SavedSearch getSavedSearch() {
+        return savedSearch;
     }
 
-    public QueryAndResponseInfoParam setUserID(String userID) {
-        this.userID = userID;
-        return this;
-    }
-
-    public List<String> getSearchTerms() {
-        return searchTerms;
-    }
-
-    public QueryAndResponseInfoParam setSearchTerms(List<String> searchTerms) {
-        this.searchTerms = searchTerms;
+    public QueryAndResponseInfoParam setSavedSearch(SavedSearch savedSearch) {
+        this.savedSearch = savedSearch;
         return this;
     }
 }
