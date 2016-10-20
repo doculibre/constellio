@@ -1,5 +1,6 @@
 package com.constellio.app.api.extensions.taxonomies;
 
+import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -10,6 +11,7 @@ import org.omg.CORBA.Object;
 import javax.persistence.Tuple;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
@@ -26,6 +28,8 @@ public class QueryAndResponseInfoParam {
     public SavedSearch savedSearch;
 
     public LocalDateTime queryDateTime;
+
+    public String language;
 
     public SPEQueryResponse getSpeQueryResponse() {
         return speQueryResponse;
@@ -79,21 +83,20 @@ public class QueryAndResponseInfoParam {
         return speQueryResponse.getQtime();
     }
 
-    public String getFrenchSolrQuery() {
-        return  query.getCondition().getSolrQuery(new SolrQueryBuilderParams(true, "fr"));
-    }
-
-    public String getEnglishSolrQuery() {
-        return  query.getCondition().getSolrQuery(new SolrQueryBuilderParams(true, "en"));
-    }
-
-    public String getSolrQuery(String language) {
+    public String getSolrQuery() {
         return  query.getCondition().getSolrQuery(new SolrQueryBuilderParams(true, language));
     }
 
-    public Map<String, Object> getCriteria() {
-        Map criteria = new HashMap<>();
-//        criteria.put(savedSearch)
-        return null;
+    public List<Criterion> getCriterionList() {
+        return savedSearch.getAdvancedSearch();
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public QueryAndResponseInfoParam setLanguage(String language) {
+        this.language = language;
+        return this;
     }
 }
