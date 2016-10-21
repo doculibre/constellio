@@ -2,6 +2,7 @@ package com.constellio.app.api.extensions.taxonomies;
 
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
@@ -30,6 +31,8 @@ public class QueryAndResponseInfoParam {
     public LocalDateTime queryDateTime;
 
     public String language;
+
+    public String userCode;
 
     public SPEQueryResponse getSpeQueryResponse() {
         return speQueryResponse;
@@ -71,6 +74,15 @@ public class QueryAndResponseInfoParam {
         return savedSearch.getUser();
     }
 
+    public String getUserCode() {
+        return userCode;
+    }
+
+    public QueryAndResponseInfoParam setUserCode(String userCode) {
+        this.userCode = userCode;
+        return this;
+    }
+
     public String getCollection() {
         return savedSearch.getCollection();
     }
@@ -89,6 +101,30 @@ public class QueryAndResponseInfoParam {
 
     public List<Criterion> getCriterionList() {
         return savedSearch.getAdvancedSearch();
+    }
+
+    public String getCriterionListAsString() {
+        List<Criterion> criterionList = getCriterionList();
+        StringBuilder sb = new StringBuilder();
+        for(Criterion criterion: criterionList) {
+            sb.append(convertCriterionToString(criterion));
+        }
+        return sb.toString();
+    }
+
+    private String convertCriterionToString(Criterion criterion) {
+        StringBuilder sb = new StringBuilder();
+        if(criterion.isLeftParens()) {
+            sb.append("(");
+        }
+        sb.append(new SchemaUtils().getLocalCodeFromMetadataCode(criterion.getMetadataCode()));
+        sb.append(" " + criterion.getSearchOperator().toString() + " ");
+        sb.append(criterion.getValue());
+        if(criterion.isRightParens()) {
+            sb.append(")");
+        }
+        sb.append(" " + criterion.getBooleanOperator().toString() + " ");
+        return  sb.toString();
     }
 
     public String getLanguage() {

@@ -246,6 +246,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				QueryAndResponseInfoParam param = new QueryAndResponseInfoParam().setQuery(query)
 						.setSpeQueryResponse(response).setSavedSearch(search)
 						.setQueryDateTime(TimeProvider.getLocalDateTime())
+						.setUserCode(view.getSessionContext().getCurrentUser().getUsername())
 						.setLanguage(view.getSessionContext().getCurrentLocale().getLanguage());
 
 				appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
