@@ -50,6 +50,7 @@ public class LabelsReportPresenter {
 		this.startPosition = startPosition;
 
 		LabelsReportModel labelsReportModel = new LabelsReportModel();
+		labelsReportModel.setPrintBorders(labelTemplate.isPrintBorders());
 		labelsReportModel.setLayout(labelTemplate.getLabelsReportLayout());
 		labelsReportModel.setColumnsNumber(labelTemplate.getColumns());
 		labelsReportModel.setRowsNumber(labelTemplate.getLines());
@@ -98,11 +99,11 @@ public class LabelsReportPresenter {
 			//width exactly one pixel
 
 			double height = fieldInfo.getHeight();
-//			double width = fieldInfo.getWidth();
-			
+			//			double width = fieldInfo.getWidth();
+
 			bean.setHeight(height);
 			bean.setFontSize(1.0d);
-//			bean.setWideFactor(3);
+			//			bean.setWideFactor(3);
 			bean.doQuietZone(false);
 
 			//Open output file
@@ -137,7 +138,7 @@ public class LabelsReportPresenter {
 				labelsReportField.width = width;
 
 				int height = fieldInfo.getHeight();
-				if(height != 0){
+				if (height != 0) {
 					labelsReportField.height = height;
 				}
 			} else {

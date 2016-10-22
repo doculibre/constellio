@@ -2,8 +2,8 @@ package com.constellio.app.services.importExport.settings;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -44,7 +44,6 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.KeyListMap;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -198,14 +197,81 @@ public class SettingsImportServices {
 							newMetadatas);
 
 					importCustomSchemataMetadatas(types, importedType.getCustomSchemata(), typeBuilder, newMetadatas);
+
 				}
 
 			}
+
 		});
 
 		MetadataSchemaTypes newSchemaTypes = schemasManager.getSchemaTypes(schemaTypes.getCollection());
 		updateSettingsMetadata(settings, newSchemaTypes, newMetadatas);
 
+	}
+
+	private void applySchemasLists(SchemaTypesDisplayTransactionBuilder transactionBuilder,
+			ImportedMetadataSchema importedSchema, MetadataSchema schema) {
+		SchemaDisplayConfig schemaDisplayConfig = transactionBuilder.updateSchemaDisplayConfig(schema);
+
+		if (!importedSchema.getFormMetadatas().isEmpty()) {
+			List<String> codes = toCodesAddingEssentials(importedSchema.getFormMetadatas(), schema);
+			schemaDisplayConfig = schemaDisplayConfig.withFormMetadataCodes(codes);
+		}
+
+		if (!importedSchema.getDisplayMetadatas().isEmpty()) {
+			List<String> codes = toCodes(importedSchema.getDisplayMetadatas(), schema);
+			schemaDisplayConfig = schemaDisplayConfig.withDisplayMetadataCodes(codes);
+		}
+
+		if (!importedSchema.getSearchMetadatas().isEmpty()) {
+			List<String> codes = toCodes(importedSchema.getSearchMetadatas(), schema);
+			schemaDisplayConfig = schemaDisplayConfig.withSearchResultsMetadataCodes(codes);
+		}
+
+		if (!importedSchema.getTableMetadatas().isEmpty()) {
+			List<String> codes = toCodes(importedSchema.getTableMetadatas(), schema);
+			schemaDisplayConfig = schemaDisplayConfig.withTableMetadataCodes(codes);
+		}
+
+		transactionBuilder.addReplacing(schemaDisplayConfig);
+	}
+
+	private List<String> toCodes(List<String> localCodes, MetadataSchema schema) {
+		List<String> codes = new ArrayList<>();
+
+		for (String localCode : localCodes) {
+			if (localCode.contains("_")) {
+				codes.add(schema.getCode() + "_" + substringAfterLast(localCode, "_"));
+			} else {
+				codes.add(schema.getCode() + "_" + localCode);
+			}
+		}
+
+		return codes;
+	}
+
+	private List<String> toCodesAddingEssentials(List<String> localCodes, MetadataSchema schema) {
+		List<String> codes = new ArrayList<>();
+
+		List<String> requiredEssentialMetadatas = new ArrayList<>();
+		List<String> facultativeEssentialMetadatas = new ArrayList<>();
+		List<String> specifiedLocalCodes = toCodes(localCodes, schema);
+
+		for (Metadata metadata : schema.getMetadatas().onlyEssentialMetadatasAndCodeTitle().onlyNonSystemReserved()
+				.onlyManuals()) {
+			if (!specifiedLocalCodes.contains(metadata.getCode())) {
+				if (metadata.isDefaultRequirement()) {
+					requiredEssentialMetadatas.add(metadata.getCode());
+				} else {
+					facultativeEssentialMetadatas.add(metadata.getCode());
+				}
+			}
+		}
+
+		codes.addAll(specifiedLocalCodes);
+		codes.addAll(requiredEssentialMetadatas);
+		codes.addAll(facultativeEssentialMetadatas);
+		return codes;
 	}
 
 	private void updateSettingsMetadata(ImportedCollectionSettings settings, MetadataSchemaTypes schemaTypes,
@@ -218,6 +284,14 @@ public class SettingsImportServices {
 		for (ImportedType importedType : settings.getTypes()) {
 			setupTypeDisplayConfig(transactionBuilder, importedType, schemaTypes.getSchemaType(importedType.getCode()),
 					newMetadatas);
+		}
+
+		for (ImportedType importedType : settings.getTypes()) {
+			MetadataSchemaType schemaType = schemaTypes.getSchemaType(importedType.getCode());
+			applySchemasLists(transactionBuilder, importedType.getDefaultSchema(), schemaType.getDefaultSchema());
+			for (ImportedMetadataSchema customSchema : importedType.getCustomSchemata()) {
+				applySchemasLists(transactionBuilder, customSchema, schemaType.getCustomSchema(customSchema.getCode()));
+			}
 		}
 
 		displayManager.execute(transactionBuilder.build());

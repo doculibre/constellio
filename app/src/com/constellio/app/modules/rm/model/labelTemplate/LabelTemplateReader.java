@@ -20,6 +20,7 @@ public class LabelTemplateReader {
 	private static final String COLUMNS = "columns";
 	private static final String LINES = "lines";
 	private static final String FIELD = "field";
+	private static final String PRINT_BORDERS = "printBorders";
 
 	private static final String METADATA_CODE_FIELD = "metadataCode";
 	private static final String REFERENCE_METADATA_CODE_FIELD = "referenceMetadataCode";
@@ -67,6 +68,7 @@ public class LabelTemplateReader {
 		LabelsReportLayout layout = LabelsReportLayout.valueOf(labelTemplateElement.getChildText(LAYOUT));
 		int columns = Integer.valueOf(labelTemplateElement.getChildText(COLUMNS));
 		int lines = Integer.valueOf(labelTemplateElement.getChildText(LINES));
+		boolean printBorders = "true".equals(labelTemplateElement.getChildText(PRINT_BORDERS));
 
 		List<LabelTemplateField> labelTemplateFields = new ArrayList<>();
 		for (Element fieldElement : labelTemplateElement.getChildren(FIELD)) {
@@ -117,7 +119,7 @@ public class LabelTemplateReader {
 			labelTemplateField.setDisplayEnumTitle(displayEnumTitle);
 			labelTemplateFields.add(labelTemplateField);
 		}
-		labelTemplate = new LabelTemplate(key, name, layout, schemaType, columns, lines, labelTemplateFields);
+		labelTemplate = new LabelTemplate(key, name, layout, schemaType, columns, lines, labelTemplateFields, printBorders);
 		return labelTemplate;
 	}
 

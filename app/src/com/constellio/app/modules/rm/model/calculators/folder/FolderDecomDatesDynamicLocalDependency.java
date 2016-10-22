@@ -42,15 +42,15 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 		if (metadata.getType() == MetadataValueType.DATE
 				|| metadata.getType() == MetadataValueType.DATE_TIME
 				|| metadata.getType() == MetadataValueType.NUMBER
-				|| isFolderTimeRangeMetadata(metadata)) {
+				|| isTimeRangeMetadata(metadata)) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
 		} else {
 			return false;
 		}
 	}
 
-	private boolean isFolderTimeRangeMetadata(Metadata metadata) {
-		return metadata.getLocalCode().equals(Folder.TIME_RANGE) && metadata.getCode().startsWith(Folder.SCHEMA_TYPE + "_");
+	private boolean isTimeRangeMetadata(Metadata metadata) {
+		return "9999-9999".equals(metadata.getInputMask());
 	}
 
 	@Override
