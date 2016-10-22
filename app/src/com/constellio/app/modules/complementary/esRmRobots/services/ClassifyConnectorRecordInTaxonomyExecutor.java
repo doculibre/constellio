@@ -433,9 +433,20 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		StringBuilder builder = new StringBuilder(fullPath);
 		int lastSlash = fullPath.lastIndexOf(pathPart + "/");
 
-		builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
-		return builder.toString();
-//
+		if (lastSlash == -1) {
+			int indexOfSlash = fullPath.indexOf("/");
+			int indexOfBackslash = fullPath.indexOf("\\");
+			if (indexOfSlash > indexOfBackslash) {
+				return fullPath.substring(indexOfSlash);
+			} else {
+				return fullPath.substring(indexOfBackslash);
+			}
+
+		} else {
+			builder.replace(lastSlash, lastSlash + pathPart.length() + 1, "");
+			return builder.toString();
+		}
+		//
 		//		if (fullPath.endsWith("/")) {
 		//			fullPath = fullPath.substring(0, fullPath.length() - 1);
 		//		}

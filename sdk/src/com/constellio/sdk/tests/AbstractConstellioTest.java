@@ -36,6 +36,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -525,7 +526,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		File file = getTestResourceFile(fileName);
 		return getCurrentTestSession().getFileSystemTestFeatures().givenUnzipedFileInTempFolder(file);
 	}
-
 
 	protected File givenUnzipedResourceInFolder(Class<? extends AbstractConstellioTest> clazz, String fileName) {
 		ensureNotUnitTest();
@@ -1370,5 +1370,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				configuration.setHashingEncoding(encoding);
 			}
 		});
+	}
+
+	protected void assumeNotSolrCloud() {
+		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
 	}
 }
