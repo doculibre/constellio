@@ -74,5 +74,8 @@ benckmarks/
 app/ivy.xml
 app/ivysettings.xml
 
+app/WebContent/VAADIN/themes/constellio/jquery/addons.scss
+app/WebContent/VAADIN/themes/constellio/inputmask/addons.scss
+
 Supprimerait app/WebContent/WEB-INF/lib/
 Supprimerait sdk/ConfigurationRoot/
