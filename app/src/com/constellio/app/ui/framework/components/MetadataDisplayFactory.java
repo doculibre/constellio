@@ -157,7 +157,8 @@ public class MetadataDisplayFactory implements Serializable {
 				if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
 					displayComponent = null;
 				} else {
-					displayComponent = new Label(displayValue.toString());
+					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+					displayComponent = new Label(stringValue, ContentMode.HTML);
 				}
 				break;
 			case TEXT:
