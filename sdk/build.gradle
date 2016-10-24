@@ -121,3 +121,13 @@ configurations {
 artifacts {
     testArtifacts jarTest
 }
+
+sonarqube {
+    properties {
+        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
+        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
+        property "sonar.projectName", "constellio"
+        property "sonar.projectKey", "constellio"
+        property "sonar.sources", "src/"
+    }
+}

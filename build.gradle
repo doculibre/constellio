@@ -187,12 +187,7 @@ sonarqube {
         property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
         property "sonar.jdbc.username", "sonar"
         property "sonar.jdbc.password", "6BKWMnLtrSNH"
-        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
         property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
-        property "sonar.projectName", "intelligid-dev"
-        property "sonar.projectKey", "intelligid-dev"
-        property "sonar.sources", "src/main/java"
         property "sonar.skipPackageDesign", "true"
     }
 }
