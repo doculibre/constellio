@@ -297,7 +297,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	public SearchResultVODataProvider getSearchResults(final List<Criterion> searchCriteria) {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory,
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {

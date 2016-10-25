@@ -83,6 +83,11 @@ public class FileService {
 		FileUtils.writeStringToFile(file, data, true);
 	}
 
+	public synchronized void appendFileContent(File file, String data, String encoding)
+			throws IOException {
+		FileUtils.writeStringToFile(file, data, encoding, true);
+	}
+
 	public void ensureWritePermissions(File file)
 			throws IOException {
 		if (!(file.canRead() && file.canWrite())) {
