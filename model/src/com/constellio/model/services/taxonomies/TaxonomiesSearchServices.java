@@ -16,6 +16,7 @@ import java.util.List;
 
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -386,7 +387,7 @@ public class TaxonomiesSearchServices {
 		if (principalTaxonomy.getSchemaTypes().contains(selectedType.getCode())) {
 			//selecting a record of the principal taxonomy
 
-			if (user == User.GOD || user.hasCollectionAccess(options.getRequiredAccess())) {
+			if (user == User.GOD || user.hasCollectionAccess(options.getRequiredAccess()) || user.has(CorePermissions.MANAGE_SECURITY).globally()) {
 				//No security, the whole tree is visible
 				response = getLinkableConceptsForSelectionOfATaxonomyConcept(user, usingTaxonomy, selectedType, inRecord,
 						options);
