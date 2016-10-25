@@ -53,7 +53,7 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 				public void run() {
 					SequencesManager sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
 					List<Long> ids = new ArrayList<Long>();
-					for (int j = 0; j < 1000; j++) {
+					for (int j = 0; j < 200; j++) {
 						try {
 							ids.add(sequencesManager.next("zeSequence"));
 							total.incrementAndGet();
@@ -69,15 +69,15 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 
 		threads.startAll();
 
-		while (total.get() < 95000) {
-			System.out.println(total.get());
-			Thread.sleep(500);
+		while (total.get() < 18000) {
+			System.out.println(total.get() + "/20000");
+			Thread.sleep(2000);
 		}
 
 		threads.joinAll();
 
-		assertThat(concurrentList.size()).isEqualTo(100000);
-		assertThat(concurrentSet.size()).isEqualTo(100000);
+		assertThat(concurrentList.size()).isEqualTo(20000);
+		assertThat(concurrentSet.size()).isEqualTo(20000);
 	}
 
 	@Test
