@@ -26,7 +26,9 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> {
@@ -49,7 +51,15 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 
 	public MetadataVODataProvider getDataProvider() {
 		String schemaCode = getSchemaCode();
-		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode);
+		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+			@Override
+			protected boolean isAccepted(Metadata metadata) {
+				return !metadata.isSystemReserved() || metadata.isLocalCode(Schemas.IDENTIFIER.getLocalCode()) ||
+						metadata.isLocalCode(Schemas.CREATED_BY.getLocalCode())	||
+						metadata.isLocalCode(Schemas.MODIFIED_BY.getLocalCode()) ||
+						metadata.isLocalCode(Schemas.MODIFIED_ON.getLocalCode());
+			}
+		};
 	}
 
 	public FormMetadataSchemaVO getSchemaVO() {
