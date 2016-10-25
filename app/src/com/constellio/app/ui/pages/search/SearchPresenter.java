@@ -231,26 +231,31 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 			}
 
+			boolean hasExtensionsBeenNotified = false;
+
 			@Override
 			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
-				SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)), types())
-						.setUser(getCurrentUser().getId())
-						.setSortField(sortCriterion)
-						.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
-						.setSelectedFacets(facetSelections.getNestedMap())
-						.setTemporary(false);
+				if(!hasExtensionsBeenNotified) {
+					hasExtensionsBeenNotified = true;
+					SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)), types())
+							.setUser(getCurrentUser().getId())
+							.setSortField(sortCriterion)
+							.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+							.setSelectedFacets(facetSelections.getNestedMap())
+							.setTemporary(false);
 
-				search = prepareSavedSearch(search);
+					search = prepareSavedSearch(search);
 
 
-				QueryAndResponseInfoParam param = new QueryAndResponseInfoParam().setQuery(query)
-						.setSpeQueryResponse(response).setSavedSearch(search)
-						.setQueryDateTime(TimeProvider.getLocalDateTime())
-						.setUserCode(view.getSessionContext().getCurrentUser().getUsername())
-						.setLanguage(view.getSessionContext().getCurrentLocale().getLanguage());
+					QueryAndResponseInfoParam param = new QueryAndResponseInfoParam().setQuery(query)
+							.setSpeQueryResponse(response).setSavedSearch(search)
+							.setQueryDateTime(TimeProvider.getLocalDateTime())
+							.setUserCode(view.getSessionContext().getCurrentUser().getUsername())
+							.setLanguage(view.getSessionContext().getCurrentLocale().getLanguage());
 
-				appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
-						.writeQueryAndResponseInfoToCSV(param);
+					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
+							.writeQueryAndResponseInfoToCSV(param);
+				}
 			}
 		};
 	}
