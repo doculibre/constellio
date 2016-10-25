@@ -127,7 +127,9 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 		iterator = newIterator();
 		for (int i = 0; i < qty; i++) {
-			System.out.println("Validating content #" + i);
+			if (i % 250 == 0) {
+				System.out.println("Validating content #" + i);
+			}
 			String key = "upload" + i;
 			final byte[] bytes = iterator.next().getBytes();
 

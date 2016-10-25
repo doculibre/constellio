@@ -378,7 +378,9 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 					int arrayIndex;
 
 					while ((arrayIndex = index.incrementAndGet()) < nbRecordsToAdd) {
-						System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd);
+						if (arrayIndex + 1 % 100 == 0) {
+							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd);
+						}
 						Record record = new TestRecord(zeSchema);
 
 						record.set(zeSchema.stringMetadata(), recordTextValues.get(arrayIndex));
