@@ -299,9 +299,9 @@ public class AppLayerCollectionExtensions {
 		return recordFieldFactory;
 	}
 
-	public void writeQueryAndResponseInfoToCSV(QueryAndResponseInfoParam params) {
+	public void notifyNewUserSearch(UserSearchEvent event) {
 		for (SearchPageExtension extension : searchPageExtensions) {
-			extension.writeQueryAndResponseInfoToCSV(params);
+			extension.notifyNewUserSearch(event);
 		}
 	}
 

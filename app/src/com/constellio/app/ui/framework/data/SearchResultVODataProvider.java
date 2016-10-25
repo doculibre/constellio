@@ -2,10 +2,8 @@ package com.constellio.app.ui.framework.data;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import com.constellio.app.api.extensions.taxonomies.QueryAndResponseInfoParam;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
