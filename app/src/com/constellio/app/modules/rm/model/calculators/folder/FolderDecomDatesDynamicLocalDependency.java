@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.model.calculators.folder;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 
 import java.util.List;
@@ -39,17 +43,20 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 
 	@Override
 	public boolean isDependentOf(Metadata metadata) {
-		if (metadata.getType() == MetadataValueType.DATE
-				|| metadata.getType() == MetadataValueType.DATE_TIME
-				|| metadata.getType() == MetadataValueType.NUMBER
+		return isMetadataUsableByCopyRetentionRules(metadata);
+	}
+
+	public static boolean isMetadataUsableByCopyRetentionRules(Metadata metadata) {
+		if (metadata.getType() == DATE || metadata.getType() == DATE_TIME || metadata.getType() == NUMBER
 				|| isTimeRangeMetadata(metadata)) {
 			return !excludedMetadatas.contains(metadata.getLocalCode());
+
 		} else {
 			return false;
 		}
 	}
 
-	private boolean isTimeRangeMetadata(Metadata metadata) {
+	private static boolean isTimeRangeMetadata(Metadata metadata) {
 		return "9999-9999".equals(metadata.getInputMask());
 	}
 
