@@ -1,5 +1,6 @@
 package com.constellio.app.servlet;
 
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -79,22 +80,18 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 
 		Element schema = document.getRootElement().getChildren("schema").get(0);
 		assertThat(schema.getAttributes()).extracting("name", "value").contains(
-				tuple("language", "fr"), tuple("code", "folder_default"),
-				tuple("collection", "zeCollection"), tuple("search-field", "search_txt_fr")
+				expectedFolderDefaultSchemaMetadatas()
 		);
 
 		List<Element> metadatas = schema.getChildren("metadata");
 		Element keywordMetadata = find("keywords", metadatas);
 		assertThat(keywordMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "keywords"), tuple("title", "Mots-clés"), tuple("type", "STRING"),
-				tuple("multivalue", "true"), tuple("solr-field", "keywords_ss"),
-				tuple("solr-analyzed-field", "keywords_txt_fr")
+				expectedKeywordMetadatas()
 		);
 
 		Element typeMetadata = find("type", metadatas);
 		assertThat(typeMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "type"), tuple("title", "Type"), tuple("type", "REFERENCE"),
-				tuple("multivalue", "false"), tuple("solr-field", "typeId_s")
+				expectedTypeMetadatas()
 		);
 	}
 
@@ -109,28 +106,22 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 		Element schemaWithLabelDocument = find("document_default", schemas);
 		Element schemaWithLabelCourriel = find("document_email", schemas);
 		assertThat(schemaWithLabelDocument.getAttributes()).extracting("name", "value").contains(
-				tuple("language", "fr"), tuple("code", "document_default"),
-				tuple("collection", "zeCollection"), tuple("search-field", "search_txt_fr")
+				expectedDocumentDefaultSchemaMetadatas()
 		);
 		assertThat(schemaWithLabelCourriel.getAttributes()).extracting("name", "value").contains(
-				tuple("language", "fr"), tuple("code", "document_email"),
-				tuple("collection", "zeCollection"), tuple("search-field", "search_txt_fr")
+				expectedDocumentEmailSchemaMetadatas()
 		);
 
 		List<Element> documentMetadatas = schemaWithLabelDocument.getChildren("metadata");
 		Element documentKeywordMetadata = find("keywords", documentMetadatas);
 		assertThat(documentKeywordMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "keywords"), tuple("title", "Mots-clés"), tuple("type", "STRING"),
-				tuple("multivalue", "true"), tuple("solr-field", "keywords_ss"),
-				tuple("solr-analyzed-field", "keywords_txt_fr")
+				expectedKeywordMetadatas()
 		);
 
 		List<Element> courrielMetadatas = schemaWithLabelCourriel.getChildren("metadata");
 		Element courrielKeywordMetadata = find("keywords", courrielMetadatas);
 		assertThat(courrielKeywordMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "keywords"), tuple("title", "Mots-clés"), tuple("type", "STRING"),
-				tuple("multivalue", "true"), tuple("solr-field", "keywords_ss"),
-				tuple("solr-analyzed-field", "keywords_txt_fr")
+				expectedKeywordMetadatas()
 		);
 	}
 
@@ -144,15 +135,13 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 		Element schema = document.getRootElement().getChildren("schema").get(0);
 
 		assertThat(schema.getAttributes()).extracting("name", "value").contains(
-				tuple("language", "fr"), tuple("code", "ddvDocumentType_default"),
-				tuple("collection", "zeCollection"), tuple("search-field", "search_txt_fr")
+				expectedDdvDocumentMetadatas()
 		);
 
 		List<Element> metadatas = schema.getChildren("metadata");
 		Element allauthorizationsMetadata = find("allauthorizations", metadatas);
 		assertThat(allauthorizationsMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "allauthorizations"), tuple("title", "Toutes les autorisations"), tuple("type", "STRING"),
-				tuple("multivalue", "true"), tuple("solr-field", "allauthorizations_ss")
+				expectedAllauthorizationsMetadatas()
 		);
 	}
 
@@ -168,26 +157,22 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 		Element schemaWithLabelContainer = find("ddvContainerRecordType_default", schemas);
 
 		assertThat(schemaWithLabelDocument.getAttributes()).extracting("name", "value").contains(
-				tuple("language", "fr"), tuple("code", "ddvDocumentType_default"),
-				tuple("collection", "zeCollection"), tuple("search-field", "search_txt_fr")
+				expectedDdvDocumentMetadatas()
 		);
 		assertThat(schemaWithLabelContainer.getAttributes()).extracting("name", "value").contains(
-				tuple("language", "fr"), tuple("code", "ddvContainerRecordType_default"),
-				tuple("collection", "zeCollection"), tuple("search-field", "search_txt_fr")
+				expectedDdvContainerMetadatas()
 		);
 
 		List<Element> documentMetadatas = schemaWithLabelDocument.getChildren("metadata");
 		Element documentAllAuthorizationsMetadata = find("allauthorizations", documentMetadatas);
 		assertThat(documentAllAuthorizationsMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "allauthorizations"), tuple("title", "Toutes les autorisations"), tuple("type", "STRING"),
-				tuple("multivalue", "true"), tuple("solr-field", "allauthorizations_ss")
+				expectedAllauthorizationsMetadatas()
 		);
 
 		List<Element> containerMetadatas = schemaWithLabelContainer.getChildren("metadata");
 		Element containerAllAuthorizationsMetadata = find("allauthorizations", containerMetadatas);
 		assertThat(containerAllAuthorizationsMetadata.getAttributes()).extracting("name", "value").contains(
-				tuple("code", "allauthorizations"), tuple("title", "Toutes les autorisations"), tuple("type", "STRING"),
-				tuple("multivalue", "true"), tuple("solr-field", "allauthorizations_ss")
+				expectedAllauthorizationsMetadatas()
 		);
 	}
 
