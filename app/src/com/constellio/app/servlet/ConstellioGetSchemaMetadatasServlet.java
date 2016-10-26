@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.jdom2.Document;
@@ -21,6 +22,8 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import static com.constellio.data.utils.AccentApostropheCleaner.cleanAll;
 
 public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 
@@ -99,14 +102,19 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 
 		if(type.equals("ddv")) {
 			for(MetadataSchemaType schemaType: modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
+				System.out.println(schemaType.getCode());
 				if(schemaType.getCode().contains("ddv")) {
 					schemaList.addAll(schemaType.getAllSchemas());
 				}
 			}
 		}
 		else {
-			schemaList = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
-					.getSchemaType(type).getAllSchemas();
+			for(MetadataSchemaType schemaType: modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
+				System.out.println(schemaType.getCode());
+				if(cleanAll(schemaType.getCode()).equals(cleanAll(type))) {
+					schemaList.addAll(schemaType.getAllSchemas());
+				}
+			}
 		}
 
 		if(label == null) {
@@ -116,7 +124,7 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 		}
 		else {
 			for(MetadataSchema schema: schemaList) {
-				if(schema.getLabel(Language.withCode(language)).equals(label)) {
+				if(cleanAll(schema.getLabel(Language.withCode(language))).equals(cleanAll(label))) {
 					rootElement.addContent(buildElementFromSchema(schema, language));
 					break;
 				}
