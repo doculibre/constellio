@@ -1,11 +1,16 @@
 package com.constellio.app.api.cmis.requests.acl;
 
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.entities.security.CustomizedAuthorizationsBehavior.DETACH;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
@@ -135,9 +140,9 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 					}
 
 					for (String permission : ace.getPermissions()) {
-						if (!"cmis:read".equals(permission) && !"cmis:write".equals(permission)) {
+						if (!CMIS_READ.equals(permission) && !CMIS_WRITE.equals(permission) && !CMIS_DELETE.equals(permission)) {
 							throw new RuntimeException("An ace has unsupported permission '" + permission
-									+ "', only cmis:read/cmis:write are allowed");
+									+ "', only cmis:read/cmis:write/cmis:delete are allowed");
 						}
 					}
 
@@ -163,7 +168,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	}
 
 	private void removeAuthorizations(User user, List<Ace> acesToRemove) {
-		List<String> authorizationsPotentiallyEmpty = new ArrayList<>();
+		Set<String> authorizationsPotentiallyEmpty = new HashSet<>();
 		for (Ace ace : acesToRemove) {
 			List<String> permissions = toConstellioPermissions(ace.getPermissions());
 			Record principal = getPrincipalRecord(ace.getPrincipalId());
@@ -306,12 +311,16 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	private List<String> toConstellioPermissions(List<String> permissions) {
 		List<String> constellioPermissions = new ArrayList<>();
 
-		if (permissions.contains("cmis:read")) {
+		if (permissions.contains(CMIS_READ)) {
 			constellioPermissions.add(Role.READ);
 		}
 
-		if (permissions.contains("cmis:write")) {
+		if (permissions.contains(CMIS_WRITE)) {
 			constellioPermissions.add(Role.WRITE);
+		}
+
+		if (permissions.contains(CMIS_DELETE)) {
+			constellioPermissions.add(Role.DELETE);
 		}
 
 		return constellioPermissions;
