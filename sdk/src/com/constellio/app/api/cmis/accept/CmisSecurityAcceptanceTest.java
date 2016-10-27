@@ -28,6 +28,7 @@ import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.Fail;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
@@ -45,6 +46,7 @@ import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.OBJECTO
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.impl.CollectionsHelper.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.setRemoveAssertJRelatedElementsFromStackTrace;
 
 /**
  * Created by Constelio on 2016-10-26.
@@ -157,41 +159,36 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
         cmisFolder1_doc1.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
         cmisFolder2.addAcl(asList(ace(bobGratton, RW)), REPOSITORYDETERMINED);
 
-        CmisObject root = session.getObjectByPath("/");
-        List<CmisObject> descendants = getDescendants(root);
+        List<CmisObject> descendants = getDescendants("/");
         assertThat(descendants).hasSize(35);
 
         session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-        root = session.getObjectByPath("/");
-        descendants = getDescendants(root);
+        descendants = getDescendants("/");
         assertThat(descendants).hasSize(35);
 
         session = newCMISSessionAsUserInZeCollection(dakota);
-        root = session.getObjectByPath("/");
-        descendants = getDescendants(root);
+        descendants = getDescendants("/");
         assertThat(descendants).hasSize(35);
 
         session = newCMISSessionAsUserInZeCollection(bobGratton);
         try {
             session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1");
-            assertThat(false).isTrue();
+            Fail.fail("Bob has access to zetaxo2_station2_1 but should not");
         } catch(Exception e) {
 
         }
         session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1");
-        root = session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2");
-        descendants = getDescendants(root);
+        descendants = getDescendants("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2");
         assertThat(descendants).hasSize(4);
 
         session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
         session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1");
         try {
             session.getObjectByPath("/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2");
-            assertThat(false).isTrue();
+            Fail.fail("Charles has access to folder2 but should not");
         } catch(Exception e) {
 
         }
-        assertThat(descendants).hasSize(1);
     }
 
     @Test
@@ -441,6 +438,11 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
         }
 
         return children;
+    }
+
+    private List<CmisObject> getDescendants (String parentPath) {
+        CmisObject parent = session.getObjectByPath(parentPath);
+        return getDescendants(parent);
     }
 
     private List<CmisObject> getDescendants (CmisObject parent) {
