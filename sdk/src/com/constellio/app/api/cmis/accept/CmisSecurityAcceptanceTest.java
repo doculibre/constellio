@@ -1,5 +1,6 @@
 package com.constellio.app.api.cmis.accept;
 
+import com.constellio.app.api.cmis.rm.RMCmisExemplesMain;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -25,8 +26,11 @@ import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.Fail;
 import org.joda.time.LocalDate;
@@ -37,6 +41,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
+import java.math.BigInteger;
 import java.util.*;
 
 import static com.constellio.model.entities.security.Role.READ;
@@ -44,6 +50,7 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.OBJECTONLY;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
+import static org.apache.chemistry.opencmis.commons.enums.VersioningState.MAJOR;
 import static org.apache.chemistry.opencmis.commons.impl.CollectionsHelper.isNullOrEmpty;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.setRemoveAssertJRelatedElementsFromStackTrace;
@@ -192,36 +199,36 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void whenCreatingInFolderThenOnlyWorksWithParentWriteAuthorization()
+    public void whenCreatingFolderInFolderThenOnlyWorksWithParentWriteAuthorization()
             throws RecordServicesException {
         String parentId = "folder2";
-        
+
         session = newCMISSessionAsUserInZeCollection(admin);
         Folder parent = cmisFolder(zeCollectionRecords.folder2);
         parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
-        
-        Record createdRecord = createNewRecordWithTestProperties(parentId);
+
+        Record createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(dakota);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(bobGratton);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNull();
     }
 
     @Test
-    public void whenCreatingInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
+    public void whenCreatingFolderInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
             throws RecordServicesException {
         String parentId = "zetaxo2_unit1";
         
@@ -229,28 +236,86 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
         Folder parent = cmisFolder(zeCollectionRecords.taxo2_unit1);
         parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
 
-        Record createdRecord = createNewRecordWithTestProperties(parentId);
+        Record createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(dakota);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(bobGratton);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
-        createdRecord = createNewRecordWithTestProperties(parentId);
+        createdRecord = createNewFolderWithTestProperties(parentId);
         assertThat(createdRecord).isNull();
     }
 
     @Test
-    public void whenEditingInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
+    public void whenCreatingDocumentInFolderThenOnlyWorksWithParentWriteAuthorization()
+            throws Exception {
+        String parentId = "folder2";
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.folder2);
+        parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+        Record createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNull();
+    }
+
+    @Test
+    public void whenCreatingDocumentInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
+            throws Exception {
+        String parentId = "zetaxo2_unit1";
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.taxo2_unit1);
+        parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+        Record createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        createdRecord = createNewDocumentWithTestProperties(parentId);
+        assertThat(createdRecord).isNull();
+    }
+
+    @Test
+    public void whenEditingFolderInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
             throws RecordServicesException {
         String path = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2";
 
@@ -279,7 +344,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void whenEditingInFolderThenOnlyWorksWithParentWriteAuthorization()
+    public void whenEditingFolderInFolderThenOnlyWorksWithParentWriteAuthorization()
             throws RecordServicesException {
         String path = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2";
 
@@ -308,7 +373,125 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void whenMovingInFolderThenOnlyWorksWithParentWriteAuthorization()
+    public void whenEditingDocumentInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
+            throws RecordServicesException {
+        String path = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2/folder2_2/folder2_2_doc1";
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.folder2_2);
+        parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+        CmisObject object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+    }
+
+    @Test
+    public void whenEditingDocumentInFolderThenOnlyWorksWithParentWriteAuthorization()
+            throws RecordServicesException {
+        String path = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/zetaxo2_station2_1/folder2/folder2_2/folder2_2_doc1";
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.folder2);
+        parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+        CmisObject object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        object = session.getObjectByPath(path);
+        updateDocumentWithTestProperties(asList(object), "document_default");
+    }
+
+    @Test
+    public void whenMovingFolderInFolderThenOnlyWorksWithParentWriteAuthorization()
+            throws RecordServicesException {
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder newParent = cmisFolder(zeCollectionRecords.folder1);
+        newParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+        Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
+        movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+        Folder oldParent = cmisFolder(zeCollectionRecords.folder2);
+        oldParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+        Record record = zeCollectionRecords.folder2_2;
+        String newParentID = zeCollectionRecords.folder1.getId();
+
+        assertThat(canBeMovedTo(record, newParentID)).isTrue();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        assertThat(canBeMovedTo(record, newParentID)).isFalse();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        assertThat(canBeMovedTo(record, newParentID)).isTrue();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        assertThat(canBeMovedTo(record, newParentID)).isTrue();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        assertThat(canBeMovedTo(record, newParentID)).isFalse();
+    }
+
+    @Test
+    public void whenMovingFolderInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
+            throws RecordServicesException {
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder oldParent = cmisFolder(zeCollectionRecords.folder2);
+        oldParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+        Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
+        movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+        Folder newParent = cmisFolder(zeCollectionRecords.taxo2_unit1);
+        newParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+        Record record = zeCollectionRecords.folder2_2;
+        String newParentID = zeCollectionRecords.taxo2_unit1.getId();
+
+        assertThat(canBeMovedTo(record, newParentID)).isTrue();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        assertThat(canBeMovedTo(record, newParentID)).isFalse();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        assertThat(canBeMovedTo(record, newParentID)).isTrue();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        assertThat(canBeMovedTo(record, newParentID)).isTrue();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        assertThat(canBeMovedTo(record, newParentID)).isFalse();
+    }
+
+    @Test
+    public void whenMovingDocumentInFolderThenOnlyWorksWithParentWriteAuthorization()
             throws RecordServicesException {
 
         session = newCMISSessionAsUserInZeCollection(admin);
@@ -338,7 +521,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void whenMovingInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
+    public void whenMovingDocumentInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
             throws RecordServicesException {
 
         session = newCMISSessionAsUserInZeCollection(admin);
@@ -368,7 +551,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void whenDeletingInFolderThenOnlyWorksWithParentDeleteAuthorization()
+    public void whenDeletingFolderInFolderThenOnlyWorksWithParentDeleteAuthorization()
             throws RecordServicesException {
 
         session = newCMISSessionAsUserInZeCollection(admin);
@@ -378,28 +561,28 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
         String parentID = parent.getId();
 
         
-        Record deletedRecord = createAndDeleteNewRecord(parentID);
+        Record deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(dakota);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(bobGratton);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNotNull();
     }
 
     @Test
-    public void whenDeletingInAdministrativeUnitThenOnlyWorksWithParentDeleteAuthorization()
+    public void whenDeletingFolderInAdministrativeUnitThenOnlyWorksWithParentDeleteAuthorization()
             throws RecordServicesException {
 
         session = newCMISSessionAsUserInZeCollection(admin);
@@ -408,23 +591,114 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
         String parentID = parent.getId();
 
-        Record deletedRecord = createAndDeleteNewRecord(parentID);
+        Record deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNotNull();
 
         session = newCMISSessionAsUserInZeCollection(dakota);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(bobGratton);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
         assertThat(deletedRecord).isNull();
 
         session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
-        deletedRecord = createAndDeleteNewRecord(parentID);
+        deletedRecord = createAndDeleteNewFolder(parentID);
+        assertThat(deletedRecord).isNotNull();
+    }
+
+    @Test
+    public void whenDeletingDocumentInFolderThenOnlyWorksWithParentDeleteAuthorization()
+            throws Exception {
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.folder1);
+        parent.addAcl(asList(ace(bobGratton, RWD), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+
+        String parentID = parent.getId();
+
+
+        Record deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNotNull();
+    }
+
+    @Test
+    public void whenDeletingDocumentInAdministrativeUnitThenOnlyWorksWithParentDeleteAuthorization()
+            throws Exception {
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.taxo2_unit1);
+        parent.addAcl(asList(ace(bobGratton, RWD), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+
+        String parentID = parent.getId();
+
+        Record deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNotNull();
+    }
+
+    @Test
+    public void whenCheckingInThenOnlyWorksIfBorrower()
+            throws Exception {
+
+        session = newCMISSessionAsUserInZeCollection(admin);
+        Folder parent = cmisFolder(zeCollectionRecords.taxo2_unit1);
+        parent.addAcl(asList(ace(bobGratton, RWD), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+
+        String parentID = parent.getId();
+
+        Record deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNotNull();
+
+        session = newCMISSessionAsUserInZeCollection(dakota);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(bobGratton);
+        deletedRecord = createAndDeleteNewDocument(parentID);
+        assertThat(deletedRecord).isNull();
+
+        session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+        deletedRecord = createAndDeleteNewDocument(parentID);
         assertThat(deletedRecord).isNotNull();
     }
 
@@ -488,12 +762,44 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
         return session.createFolder(newFolderProperties, parentFolderId).getId();
     }
 
-    private Record createNewRecordWithTestProperties(String parentId) {
+    private Record createNewFolderWithTestProperties(String parentId) {
         return recordServices.getDocumentById(createNewFolderWithTestProperties(parentId, "folder_default"));
     }
 
-    private Record createAndDeleteNewRecord(String parentId) {
+    private Record createNewDocumentWithTestProperties(String parent)
+            throws Exception {
+        String title = "A tiff file";
+        String mimeType = "image/tiff";
+        File documentFile = new File("C:\\dev-constellio\\constellio\\sdk\\sdk-resources\\com\\constellio\\app\\api\\cmis\\accept\\CmisSecurityAcceptanceTest-test.pdf");
+
+        return recordServices.getDocumentById(addDocumentToFolder(documentFile, title, mimeType, parent));
+    }
+
+    private String addDocumentToFolder(File documentFile, String title, String mimeType, String savedInFolder)
+            throws Exception {
+
+        ObjectId savedInFolderObjectId = new ObjectIdImpl(savedInFolder);
+
+        //
+        //-- Create a document (considered as a Folder by CMIS)
+        Map<String, Object> documentProperties = new HashMap<>();
+        documentProperties.put(PropertyIds.OBJECT_TYPE_ID, "document_default");
+        documentProperties.put("title", title);
+        ObjectId newDocumentId = session.createFolder(documentProperties, savedInFolderObjectId);
+
+        return newDocumentId.getId();
+    }
+
+    private Record createAndDeleteNewFolder(String parentId) {
         String id = createNewFolderWithTestProperties(parentId, "folder_default");
+        ObjectId objectId = new ObjectIdImpl(id);
+        session.delete(objectId);
+        return recordServices.getDocumentById(id);
+    }
+
+    private Record createAndDeleteNewDocument(String parentId)
+            throws Exception {
+        String id = createNewDocumentWithTestProperties(parentId).getId();
         ObjectId objectId = new ObjectIdImpl(id);
         session.delete(objectId);
         return recordServices.getDocumentById(id);
@@ -505,6 +811,17 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
         newFolderProperties.put("title", "testFolder");
         newFolderProperties.put("numberMeta", 42.666);
         session.bulkUpdateProperties(objectList, newFolderProperties, null, null);
+    }
+
+    private void updateDocumentWithTestProperties(List<CmisObject> objectList, String objectType) {
+        Map<String, Object> contentProperties = new HashMap<>();
+        contentProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+        ContentStream contentStream = new ContentStreamImpl(
+                "My document.pdf",
+                BigInteger.valueOf(getTestResourceFile("test.pdf").length()),
+                "application/pdf",
+                getTestResourceInputStream("test.pdf"));
+        session.bulkUpdateProperties(objectList, contentProperties, null, null);
     }
 
     private void moveObject(Record record, String parentTargetId) {
