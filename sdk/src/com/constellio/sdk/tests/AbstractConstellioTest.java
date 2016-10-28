@@ -1398,6 +1398,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		userServices.addUpdateUserCredential(userServices.getUser(username).withServiceKey(username + "-key"));
 		String token = userServices.generateToken(username, Duration.standardHours(72));
-		return newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
+		System.out.println("Logging as " + username + "-key / " + token);
+		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
+		if (session == null) {
+			throw new RuntimeException("Failed to initialize cmis session");
+		}
+		return session;
 	}
 }

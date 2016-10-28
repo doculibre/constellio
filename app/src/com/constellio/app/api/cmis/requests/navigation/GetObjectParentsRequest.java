@@ -68,6 +68,11 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 		if (objectId.startsWith("content_")) {
 			ObjectData objectData = getObjectDataDocument(types);
 			return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(objectData));
+
+//		} else if (objectId.startsWith("taxo_")) {
+			//				ObjectData objectData = get(types);
+			//				return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(objectData));
+
 		} else {
 			ObjectData objectData = getObjectDataFolder(types, recordServices, user);
 			return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(objectData));
@@ -108,6 +113,16 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 		}
 
 	}
+
+//	private ObjectData collectionObjectData() {
+	//		Record collection = appLayerFactory.getCollectionsManager().getCollection(repository.getCollection())
+	//				.getWrappedRecord();
+	//		return recordObjectData(collection);
+	//	}
+	//
+	//	private ObjectData recordObjectData(Record record) {
+	//		return newObjectDataBuilder().build(context, record, filter, includeAllowableActions, includeACL, objectInfos);
+	//	}
 
 	@Override
 	protected Logger getLogger() {
