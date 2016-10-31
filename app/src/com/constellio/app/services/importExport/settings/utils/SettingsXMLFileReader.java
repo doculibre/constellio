@@ -1,5 +1,8 @@
 package com.constellio.app.services.importExport.settings.utils;
 
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.join;
+
 import com.constellio.app.services.importExport.settings.model.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -108,11 +111,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			if (schemaElement.getAttribute("code") != null) {
 				importedMetadataSchema.setCode(schemaElement.getAttributeValue("code"));
 			}
-			if (schemaElement.getAttribute("label") != null) {
-				importedMetadataSchema.setLabel(schemaElement.getAttributeValue("label"));
-			}
-
-			importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
+			readSchema(schemaElement, importedMetadataSchema);
 			schemata.add(importedMetadataSchema);
 		}
 		return schemata;
@@ -121,11 +120,28 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	private ImportedMetadataSchema readDefaultSchema(Element schemaElement) {
 		ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema().setCode("default");
 
+		readSchema(schemaElement, importedMetadataSchema);
+		return importedMetadataSchema;
+	}
+
+	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema) {
 		if (schemaElement.getAttribute("label") != null) {
 			importedMetadataSchema.setLabel(schemaElement.getAttributeValue("label"));
 		}
+		importedMetadataSchema.setFormMetadatas(toList(schemaElement.getAttributeValue("formMetadatas")));
+		importedMetadataSchema.setDisplayMetadatas(toList(schemaElement.getAttributeValue("displayMetadatas")));
+		importedMetadataSchema.setSearchMetadatas(toList(schemaElement.getAttributeValue("searchMetadatas")));
+		importedMetadataSchema.setTableMetadatas(toList(schemaElement.getAttributeValue("tableMetadatas")));
+
 		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
-		return importedMetadataSchema;
+	}
+
+	private List<String> toList(String listOfItems) {
+		if (listOfItems == null || listOfItems.isEmpty()) {
+			return new ArrayList<>();
+		} else {
+			return asList(listOfItems.split(","));
+		}
 	}
 
 	private List<ImportedMetadata> readMetadata(List<Element> elements) {
@@ -309,7 +325,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private List<String> toListOfString(String stringValue) {
 		if (StringUtils.isNotBlank(stringValue)) {
-			return Arrays.asList(StringUtils.split(stringValue, ","));
+			return asList(StringUtils.split(stringValue, ","));
 		}
 		return new ArrayList<>();
 	}
@@ -386,7 +402,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	private List<String> getValueListClassifiedTypes(String stringValue) {
 		List<String> classifiedTypes = new ArrayList<>();
 		if (StringUtils.isNotBlank(stringValue)) {
-			classifiedTypes.addAll(Arrays.asList(StringUtils.split(stringValue, ',')));
+			classifiedTypes.addAll(asList(StringUtils.split(stringValue, ',')));
 		}
 		return classifiedTypes;
 	}

@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +91,7 @@ public class RecordsImportServicesExecutor {
 	private static final String CONTENT_NOT_FOUND_ERROR = "contentNotFound";
 	private static final String HASH_NOT_FOUND_IN_VAULT = "hashNotFoundInVault";
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
+	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemasManager schemasManager;
@@ -436,6 +438,14 @@ public class RecordsImportServicesExecutor {
 					for (ValidationError error : e.getErrors().getValidationErrors()) {
 						errors.add(error, error.getParameters());
 					}
+
+				} catch (Throwable t) {
+					String stack = ExceptionUtils.getStackTrace(t);
+					Map<String, Object> params = new HashMap<>();
+					params.put("message", t.getMessage());
+					params.put("stacktrace", stack);
+					errors.add(RecordsImportServices.class, RECORD_PREPARATION_ERROR, params);
+
 				}
 
 				if (errors.hasDecoratedErrors()) {

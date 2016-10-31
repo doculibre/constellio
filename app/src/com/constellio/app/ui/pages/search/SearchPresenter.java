@@ -6,15 +6,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
+
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.data.utils.TimeProvider;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,7 +217,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public SearchResultVODataProvider getSearchResults() {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory,
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
@@ -232,6 +231,32 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 				Metadata metadata = getMetadata(sortCriterion);
 				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
+			}
+
+			boolean hasExtensionsBeenNotified = false;
+
+			@Override
+			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
+				if (!hasExtensionsBeenNotified) {
+					hasExtensionsBeenNotified = true;
+					SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)),
+							types())
+							.setUser(getCurrentUser().getId())
+							.setSortField(sortCriterion)
+							.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+							.setSelectedFacets(facetSelections.getNestedMap())
+							.setTemporary(false);
+
+					search = prepareSavedSearch(search);
+
+					LocalDateTime queryDateTime = TimeProvider.getLocalDateTime();
+					String username = view.getSessionContext().getCurrentUser().getUsername();
+					String language = view.getSessionContext().getCurrentLocale().getLanguage();
+					UserSearchEvent param = new UserSearchEvent(response, query, search, queryDateTime, language, username);
+
+					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
+							.notifyNewUserSearch(param);
+				}
 			}
 		};
 	}
@@ -457,6 +482,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 				.setSelectedFacets(facetSelections.getNestedMap())
 				.setTemporary(false);
+
 		try {
 			recordServices().add(prepareSavedSearch(search));
 		} catch (RecordServicesException e) {

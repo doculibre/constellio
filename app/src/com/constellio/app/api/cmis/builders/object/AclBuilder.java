@@ -10,6 +10,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListI
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepositoryInfoManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
@@ -19,6 +20,11 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 
 public class AclBuilder {
+
+	public static final String CMIS_READ = "cmis:read";
+	public static final String CMIS_WRITE = "cmis:write";
+	public static final String CMIS_DELETE = "cmis:delete";
+	public static final String CMIS_ALL = "cmis:all";
 
 	private final ModelLayerFactory modelLayerFactory;
 
@@ -46,11 +52,15 @@ public class AclBuilder {
 		for (Authorization authorization : authorizationsServices.getRecordAuthorizations(record)) {
 			List<String> cmisPermissions = new ArrayList<>();
 			if (authorization.getDetail().getRoles().contains(Role.READ)) {
-				cmisPermissions.add("cmis:read");
+				cmisPermissions.add(CMIS_READ);
 			}
 
 			if (authorization.getDetail().getRoles().contains(Role.WRITE)) {
-				cmisPermissions.add("cmis:write");
+				cmisPermissions.add(CMIS_WRITE);
+			}
+
+			if (authorization.getDetail().getRoles().contains(Role.DELETE)) {
+				cmisPermissions.add(CMIS_DELETE);
 			}
 
 			boolean direct = authorization.getGrantedOnRecords().contains(record.getId());

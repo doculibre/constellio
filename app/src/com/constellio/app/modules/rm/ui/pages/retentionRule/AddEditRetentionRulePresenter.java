@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import static com.constellio.app.modules.rm.model.calculators.document.DocumentDecomDatesDynamicLocalDependency.isMetadataUsableByCopyRetentionRules;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
@@ -15,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
+import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -285,9 +287,8 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
 		SessionContext sessionContext = view.getSessionContext();
 
-		for (Metadata metadata : schema.getMetadatas().onlyWithType(DATE_TIME, DATE)) {
-			if (!DocumentDecomDatesDynamicLocalDependency.excludedMetadatas.contains(metadata.getLocalCode()) &&
-					!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+		for (Metadata metadata : schema.getMetadatas()) {
+			if (isMetadataUsableByCopyRetentionRules(metadata) && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
 				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
 				dateMetadataVOs.add(metadataVO);
 			}
@@ -313,8 +314,9 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
 		SessionContext sessionContext = view.getSessionContext();
 
-		for (Metadata metadata : folder.getAllMetadatas().onlyWithType(DATE_TIME, DATE)) {
-			if (!Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+		for (Metadata metadata : folder.getAllMetadatas()) {
+			if (FolderDecomDatesDynamicLocalDependency.isMetadataUsableByCopyRetentionRules(metadata)
+					&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
 				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
 				dateMetadataVOs.add(metadataVO);
 			}

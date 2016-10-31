@@ -671,7 +671,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				tuple(WEBSITE + "index.html", true),
 				tuple(WEBSITE + "girafe.png", true),
 				tuple(WEBSITE + "girafe_corrupt.png", true),
-				tuple(WEBSITE + "empty.html", true)
+				tuple(WEBSITE + "empty.html", false)
 		);
 	}
 

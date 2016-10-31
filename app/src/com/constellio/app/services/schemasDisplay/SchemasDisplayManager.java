@@ -172,6 +172,14 @@ public class SchemasDisplayManager
 		return getMetadata(collection, schemaCode + "_" + metadataLocalCode);
 	}
 
+	public SchemaDisplayConfig getDisplayConfig(MetadataSchema schema) {
+		return getSchema(schema.getCollection(), schema.getCode());
+	}
+
+	public MetadataDisplayConfig getDisplayConfig(Metadata metadata) {
+		return getMetadata(metadata.getCollection(), metadata.getCode());
+	}
+
 	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
 		if (metadataCode.split("_").length != 3) {
 			throw new RuntimeException("Invalid code : " + metadataCode);

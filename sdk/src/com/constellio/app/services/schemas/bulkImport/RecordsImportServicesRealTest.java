@@ -70,7 +70,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
+import com.constellio.model.extensions.events.records.RecordCreationEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -2885,6 +2891,66 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(zeSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(anotherSchema.type()).returnAll()))).isEqualTo(297);
 		assertThat(searchServices.getResultsCount(new LogicalSearchQuery(from(thirdSchema.type()).returnAll()))).isEqualTo(297);
+	}
+
+	@Test
+	public void givenRecordPreparationErrorsThenValidationExceptionWithStackTrace1()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAStringMetadata());
+
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+
+			@Override
+			public void recordInCreationBeforeValidationAndAutomaticValuesCalculation(
+					RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+				throw new RuntimeException("Mouhahahah!");
+			}
+		});
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+
+			fail("exception expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getValidationErrors(), "message")).containsOnly(
+					tuple("RecordsImportServices_recordPreparationError", "Mouhahahah!")
+			);
+			assertThat(e.getValidationErrors().getValidationErrors().get(0).getParameters()).containsKey("stacktrace");
+			assertThat(frenchMessages(e).get(0)).startsWith(
+					"Ze type de schéma 2 : Une erreur est survenue durant la préparation/validation de l'enregistrement : java.lang.RuntimeException: Mouhahahah!");
+		}
+	}
+
+	@Test
+	public void givenRecordPreparationErrorsThenValidationExceptionWithStackTrace2()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.withAStringMetadata());
+
+		getModelLayerFactory().getExtensions().forCollection(zeCollection).recordExtensions.add(new RecordExtension() {
+			@Override
+			public void recordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event) {
+				throw new RuntimeException("Mouhahahah!");
+			}
+		});
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+
+			fail("exception expected");
+		} catch (ValidationException e) {
+			assertThat(extractingSimpleCodeAndParameters(e.getValidationErrors(), "message")).containsOnly(
+					tuple("RecordsImportServices_recordPreparationError", "Mouhahahah!")
+			);
+			assertThat(e.getValidationErrors().getValidationErrors().get(0).getParameters()).containsKey("stacktrace");
+			assertThat(frenchMessages(e).get(0)).startsWith(
+					"Ze type de schéma 2 : Une erreur est survenue durant la préparation/validation de l'enregistrement : java.lang.RuntimeException: Mouhahahah!");
+		}
 	}
 
 	@Test

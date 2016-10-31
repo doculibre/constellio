@@ -24,6 +24,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class ContentManagerImportThreadServices {
 
@@ -38,6 +39,7 @@ public class ContentManagerImportThreadServices {
 	private File errorsEmptyFolder;
 	private File errorsUnparsableFolder;
 	private File indexProperties;
+	private File filesExceedingParsingSizeLimit;
 	private File tempFolder;
 	private IOServices ioServices;
 	private int batchSize;
@@ -59,6 +61,7 @@ public class ContentManagerImportThreadServices {
 		this.errorsEmptyFolder = new File(contentImportFolder, "errors-empty");
 		this.errorsUnparsableFolder = new File(contentImportFolder, "errors-unparsable");
 		this.indexProperties = new File(contentImportFolder, "filename-sha1-index.properties");
+		this.filesExceedingParsingSizeLimit = new File(contentImportFolder, "files-exceeding-parsing-size-limit.txt");
 	}
 
 	public void importFiles() {
@@ -131,7 +134,16 @@ public class ContentManagerImportThreadServices {
 					newEntriesInIndex.put(key, dataSummary);
 
 					if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
-						ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+						if (fileNotExceedingParsingLimit(file)) {
+							ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+						} else {
+							try {
+								ioServices.appendFileContent(filesExceedingParsingSizeLimit, key + "\n");
+							} catch (IOException e) {
+								throw new RuntimeException(e);
+							}
+							ioServices.deleteQuietly(file);
+						}
 					} else {
 						ioServices.deleteQuietly(file);
 					}
@@ -146,8 +158,18 @@ public class ContentManagerImportThreadServices {
 					if (!emptyFileKeys.contains(key)) {
 						ContentVersionDataSummary dataSummary = uploader.get(key);
 						newEntriesInIndex.put(key, dataSummary);
+
 						if (contentManager.getParsedContent(dataSummary.getHash()).getParsedContent().isEmpty()) {
-							ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+							if (fileNotExceedingParsingLimit(file)) {
+								ioServices.moveFile(file, new File(errorsUnparsableFolder, key.replace("/", File.separator)));
+							} else {
+								try {
+									ioServices.appendFileContent(filesExceedingParsingSizeLimit, key + "\n");
+								} catch (IOException e) {
+									throw new RuntimeException(e);
+								}
+								ioServices.deleteQuietly(file);
+							}
 						} else {
 							ioServices.deleteQuietly(file);
 						}
@@ -160,6 +182,12 @@ public class ContentManagerImportThreadServices {
 			writeNewEntriesInIndex(newEntriesInIndex);
 		}
 
+	}
+
+	private boolean fileNotExceedingParsingLimit(File file) {
+		long limit = (int) modelLayerFactory.getSystemConfigurationsManager()
+				.getValue(ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS) * 1024 * 1024;
+		return file.length() <= limit;
 	}
 
 	private void writeNewEntriesInIndex(Map<String, ContentVersionDataSummary> newEntriesInIndex) {
@@ -263,6 +291,11 @@ public class ContentManagerImportThreadServices {
 		toImportFolder.mkdirs();
 		errorsEmptyFolder.mkdirs();
 		errorsUnparsableFolder.mkdirs();
+		try {
+			FileUtils.touch(filesExceedingParsingSizeLimit);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Map<String, Factory<ContentVersionDataSummary>> readFileNameSHA1Index() {

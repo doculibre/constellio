@@ -653,6 +653,26 @@ public class ContentImplTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenCurrentVersion0_9WhenNewMinorVersionThen0_10()
+			throws Exception {
+
+		content = new ContentImpl(contentId1, firstHistoryVersion, history, null, null, null, false);
+
+		givenTimeIs(meetingOClock);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		assertThat(content.getCurrentVersion().getVersion()).isEqualTo("0.9");
+		content.updateContent(alice, new ContentVersionDataSummary("zeNewHash", "zeNewMime", zeNewLength), false);
+		assertThat(content.getCurrentVersion().getVersion()).isEqualTo("0.10");
+	}
+
 	private void givenNonCheckedOutContent() {
 		content = new ContentImpl(contentId1, currentVersion, history, null, null, null, false);
 	}

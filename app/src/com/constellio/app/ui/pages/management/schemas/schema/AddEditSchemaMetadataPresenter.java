@@ -1,6 +1,11 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,10 +59,8 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.isSystemReserved() || metadata.isLocalCode(Schemas.IDENTIFIER.getLocalCode()) ||
-						metadata.isLocalCode(Schemas.CREATED_BY.getLocalCode())	||
-						metadata.isLocalCode(Schemas.MODIFIED_BY.getLocalCode()) ||
-						metadata.isLocalCode(Schemas.MODIFIED_ON.getLocalCode());
+				return !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON);
 			}
 		};
 	}

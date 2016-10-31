@@ -26,11 +26,11 @@ public class MetadataListTest extends ConstellioTest {
 	Metadata metadata1 = mockMetadata("type1_default_metadata1");
 	Metadata metadata2 = mockMetadata("type1_default_metadata2");
 	Metadata metadata3 = mockMetadata("type1_default_metadata3");
-	Metadata metadata4 = mockMetadata("type1_default_metadata4");
+	Metadata USRmetadata4 = mockMetadata("type1_default_USRmetadata4");
 	@Mock AllowedReferences allowedReferencesMetadata1;
 	@Mock AllowedReferences allowedReferencesMetadata2;
 	@Mock AllowedReferences allowedReferencesMetadata3;
-	@Mock AllowedReferences allowedReferencesMetadata4;
+	@Mock AllowedReferences allowedReferencesUSRmetadata4;
 
 	@Before
 	public void setup()
@@ -39,14 +39,14 @@ public class MetadataListTest extends ConstellioTest {
 		when(metadata1.getDataStoreCode()).thenReturn("metadata1_s");
 		when(metadata2.getDataStoreCode()).thenReturn("metadata2_s");
 		when(metadata3.getDataStoreCode()).thenReturn("metadata3_s");
-		when(metadata4.getDataStoreCode()).thenReturn("metadata4_s");
+		when(USRmetadata4.getDataStoreCode()).thenReturn("USRmetadata4_s");
 
 		metadatas1 = new ArrayList<>();
 		metadatas1.add(metadata1);
 		metadatas1.add(metadata2);
 		metadatas2 = new ArrayList<>();
 		metadatas2.add(metadata3);
-		metadatas2.add(metadata4);
+		metadatas2.add(USRmetadata4);
 
 		metadataList = spy(new MetadataList());
 	}
@@ -82,8 +82,8 @@ public class MetadataListTest extends ConstellioTest {
 
 		Metadata customMetadataWithoutInheritance = mockMetadata("type1_custom_metadataWithoutInheritance");
 
-		Metadata defaultMetadata4 = mockMetadata("type1_default_metadata4");
-		Metadata customMetadata4 = mockMetadata("type1_custom_metadata4");
+		Metadata defaultUSRmetadata4 = mockMetadata("type1_default_USRmetadata4");
+		Metadata customUSRmetadata4 = mockMetadata("type1_custom_USRmetadata4");
 		Metadata defaultMetadata1InAnotherType = mockMetadata("type2_default_metadata1");
 		Metadata customMetadata1InAnotherType = mockMetadata("type2_custom_metadata1");
 
@@ -97,8 +97,8 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.contains(customMetadata2)).isTrue();
 		assertThat(metadataList.contains(customMetadataWithoutInheritance)).isTrue();
 
-		assertThat(metadataList.contains(defaultMetadata4)).isFalse();
-		assertThat(metadataList.contains(customMetadata4)).isFalse();
+		assertThat(metadataList.contains(defaultUSRmetadata4)).isFalse();
+		assertThat(metadataList.contains(customUSRmetadata4)).isFalse();
 		assertThat(metadataList.contains(defaultMetadata1InAnotherType)).isFalse();
 		assertThat(metadataList.contains(customMetadata1InAnotherType)).isFalse();
 	}
@@ -146,7 +146,7 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.nestedList).hasSize(4);
 		assertThat(metadataList.nestedList.get(0)).isEqualTo(metadata1);
 		assertThat(metadataList.nestedList.get(1)).isEqualTo(metadata3);
-		assertThat(metadataList.nestedList.get(2)).isEqualTo(metadata4);
+		assertThat(metadataList.nestedList.get(2)).isEqualTo(USRmetadata4);
 		assertThat(metadataList.nestedList.get(3)).isEqualTo(metadata2);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata1")).isEqualTo(metadata1);
@@ -157,9 +157,9 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isEqualTo(metadata3);
 		assertThat(metadataList.codeIndex.get("type1_default_metadata3")).isEqualTo(metadata3);
 		assertThat(metadataList.datastoreCodeIndex.get("metadata3_s")).isEqualTo(metadata3);
-		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
-		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata4_s")).isEqualTo(metadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
+		assertThat(metadataList.datastoreCodeIndex.get("USRmetadata4_s")).isEqualTo(USRmetadata4);
 	}
 
 	@Test
@@ -207,12 +207,12 @@ public class MetadataListTest extends ConstellioTest {
 
 		metadataList.addAll(metadatas1);
 
-		metadataList.add(1, metadata4);
+		metadataList.add(1, USRmetadata4);
 
 		assertThat(metadataList.nestedList).hasSize(3);
-		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
-		assertThat(metadataList.codeIndex.get("type1_default_metadata4")).isEqualTo(metadata4);
-		assertThat(metadataList.datastoreCodeIndex.get("metadata4_s")).isEqualTo(metadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
+		assertThat(metadataList.codeIndex.get("type1_default_USRmetadata4")).isEqualTo(USRmetadata4);
+		assertThat(metadataList.datastoreCodeIndex.get("USRmetadata4_s")).isEqualTo(USRmetadata4);
 	}
 
 	@Test
@@ -290,7 +290,7 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.contains(metadata1)).isTrue();
 		assertThat(metadataList.contains(metadata2)).isTrue();
 		assertThat(metadataList.contains(metadata3)).isFalse();
-		assertThat(metadataList.contains(metadata4)).isFalse();
+		assertThat(metadataList.contains(USRmetadata4)).isFalse();
 	}
 
 	@Test
@@ -306,7 +306,7 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(metadataList.contains(metadata1)).isFalse();
 		assertThat(metadataList.contains(metadata2)).isFalse();
 		assertThat(metadataList.contains(metadata3)).isFalse();
-		assertThat(metadataList.contains(metadata4)).isFalse();
+		assertThat(metadataList.contains(USRmetadata4)).isFalse();
 	}
 
 	@Test
@@ -333,12 +333,12 @@ public class MetadataListTest extends ConstellioTest {
 		when(allowedReferencesMetadata2.getTypeWithAllowedSchemas()).thenReturn("type2");
 		when(metadata3.getAllowedReferences()).thenReturn(allowedReferencesMetadata3);
 		when(allowedReferencesMetadata3.getTypeWithAllowedSchemas()).thenReturn("type1");
-		when(metadata4.getAllowedReferences()).thenReturn(allowedReferencesMetadata4);
-		when(allowedReferencesMetadata4.getTypeWithAllowedSchemas()).thenReturn("type1");
+		when(USRmetadata4.getAllowedReferences()).thenReturn(allowedReferencesUSRmetadata4);
+		when(allowedReferencesUSRmetadata4.getTypeWithAllowedSchemas()).thenReturn("type1");
 		when(metadata1.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata2.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata3.getType()).thenReturn(MetadataValueType.REFERENCE);
-		when(metadata4.getType()).thenReturn(MetadataValueType.REFERENCE);
+		when(USRmetadata4.getType()).thenReturn(MetadataValueType.REFERENCE);
 
 		metadataList.addAll(metadatas1);
 		metadataList.addAll(metadatas2);
@@ -347,9 +347,9 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(filteredMetadataList.nestedList).hasSize(2);
 		assertThat(filteredMetadataList.nestedList.get(0)).isEqualTo(metadata3);
-		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(metadata4);
+		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(USRmetadata4);
 		assertThat(filteredMetadataList.contains(metadata3)).isTrue();
-		assertThat(filteredMetadataList.contains(metadata4)).isTrue();
+		assertThat(filteredMetadataList.contains(USRmetadata4)).isTrue();
 	}
 
 	@Test
@@ -359,11 +359,11 @@ public class MetadataListTest extends ConstellioTest {
 		when(metadata1.isChildOfRelationship()).thenReturn(false);
 		when(metadata2.isChildOfRelationship()).thenReturn(true);
 		when(metadata3.isChildOfRelationship()).thenReturn(false);
-		when(metadata4.isChildOfRelationship()).thenReturn(true);
+		when(USRmetadata4.isChildOfRelationship()).thenReturn(true);
 		when(metadata1.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata2.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata3.getType()).thenReturn(MetadataValueType.REFERENCE);
-		when(metadata4.getType()).thenReturn(MetadataValueType.REFERENCE);
+		when(USRmetadata4.getType()).thenReturn(MetadataValueType.REFERENCE);
 
 		metadataList.addAll(metadatas1);
 		metadataList.addAll(metadatas2);
@@ -372,9 +372,9 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(filteredMetadataList.nestedList).hasSize(2);
 		assertThat(filteredMetadataList.nestedList.get(0)).isEqualTo(metadata2);
-		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(metadata4);
+		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(USRmetadata4);
 		assertThat(filteredMetadataList.contains(metadata2)).isTrue();
-		assertThat(filteredMetadataList.contains(metadata4)).isTrue();
+		assertThat(filteredMetadataList.contains(USRmetadata4)).isTrue();
 	}
 
 	@Test
@@ -384,11 +384,11 @@ public class MetadataListTest extends ConstellioTest {
 		when(metadata1.isChildOfRelationship()).thenReturn(false);
 		when(metadata2.isChildOfRelationship()).thenReturn(true);
 		when(metadata3.isChildOfRelationship()).thenReturn(false);
-		when(metadata4.isChildOfRelationship()).thenReturn(true);
+		when(USRmetadata4.isChildOfRelationship()).thenReturn(true);
 		when(metadata1.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata2.getType()).thenReturn(MetadataValueType.REFERENCE);
 		when(metadata3.getType()).thenReturn(MetadataValueType.REFERENCE);
-		when(metadata4.getType()).thenReturn(MetadataValueType.REFERENCE);
+		when(USRmetadata4.getType()).thenReturn(MetadataValueType.REFERENCE);
 
 		metadataList.addAll(metadatas1);
 		metadataList.addAll(metadatas2);
@@ -409,7 +409,7 @@ public class MetadataListTest extends ConstellioTest {
 		when(metadata1.isEnabled()).thenReturn(false);
 		when(metadata2.isEnabled()).thenReturn(true);
 		when(metadata3.isEnabled()).thenReturn(false);
-		when(metadata4.isEnabled()).thenReturn(true);
+		when(USRmetadata4.isEnabled()).thenReturn(true);
 
 		metadataList.addAll(metadatas1);
 		metadataList.addAll(metadatas2);
@@ -418,8 +418,20 @@ public class MetadataListTest extends ConstellioTest {
 
 		assertThat(filteredMetadataList.nestedList).hasSize(2);
 		assertThat(filteredMetadataList.nestedList.get(0)).isEqualTo(metadata2);
-		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(metadata4);
+		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(USRmetadata4);
 		assertThat(filteredMetadataList.contains(metadata2)).isTrue();
-		assertThat(filteredMetadataList.contains(metadata4)).isTrue();
+		assertThat(filteredMetadataList.contains(USRmetadata4)).isTrue();
+	}
+
+	@Test
+	public void whenGetOnlyUSRMetadatasThenOK()
+			throws Exception {
+
+		metadataList.add(metadata1);
+		metadataList.add(metadata2);
+		metadataList.add(metadata3);
+		metadataList.add(USRmetadata4);
+
+		assertThat(metadataList.onlyUSR().toLocalCodesList()).containsOnly("USRmetadata4");
 	}
 }
