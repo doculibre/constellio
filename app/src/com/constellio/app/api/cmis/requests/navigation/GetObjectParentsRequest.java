@@ -58,12 +58,20 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 	protected List<ObjectParentData> process()
 			throws ConstellioCmisException {
 
+		ObjectParentData parent;
+
 		if (objectId.startsWith("content_")) {
-			return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(buildContentObjectData()));
+			parent = new ObjectParentDataImpl(buildContentObjectData());
+
+		} else if (objectId.startsWith("taxo_")) {
+			Record record = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
+			parent = new ObjectParentDataImpl(newObjectDataBuilder().build(record, filter, false, false, objectInfo));
 
 		} else {
-			return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(buildRecordObjectData()));
+			Record record = recordServices.getDocumentById(objectId, user);
+			parent = new ObjectParentDataImpl(buildRecordObjectData(record));
 		}
+		return Collections.<ObjectParentData>singletonList(parent);
 	}
 
 	private ObjectData buildContentObjectData() {
@@ -71,8 +79,8 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 		return newObjectDataBuilder().build(content.getRecord(), filter, false, false, objectInfo);
 	}
 
-	private ObjectData buildRecordObjectData() {
-		Record record = recordServices.getDocumentById(objectId, user);
+	private ObjectData buildRecordObjectData(Record record) {
+
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
 		MetadataSchema schema = types().getSchema(record.getSchemaCode());
 		List<Metadata> parentReferencesMetadatas = schema.getParentReferences();

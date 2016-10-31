@@ -45,61 +45,33 @@ import com.constellio.sdk.tests.setups.Users;
 @DriverTest
 public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CmisAllowableActionsAcceptanceTest.class);
-
-	UserServices userServices;
-	TaxonomiesManager taxonomiesManager;
-	MetadataSchemasManager metadataSchemasManager;
+	AuthorizationsServices authorizationsServices;
 	RecordServices recordServices;
 	Users users = new Users();
-
-	//	Session cmisSession;
 	Session session;
-
-	AuthorizationsServices authorizationsServices;
-
-	String aliceId, bobId, charlesId, dakotaId, edouardId, chuckId, gandalfId, robinId, heroesId;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withFoldersAndContainersOfEveryStatus()
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
+				.withFoldersAndContainersOfEveryStatus()
 				.withDocumentsHavingContent());
 
-		userServices = getModelLayerFactory().newUserServices();
-		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		recordServices = getModelLayerFactory().newRecordServices();
-
-		users.setUp(userServices);
-
-		userServices.addUserToCollection(users.alice(), zeCollection);
-		userServices.addUserToCollection(users.bob(), zeCollection);
-		userServices.addUserToCollection(users.charles(), zeCollection);
-		userServices.addUserToCollection(users.dakotaLIndien(), zeCollection);
-		userServices.addUserToCollection(users.edouardLechat(), zeCollection);
-		userServices.addUserToCollection(users.gandalfLeblanc(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-		userServices.addUserToCollection(users.sasquatch(), zeCollection);
-		userServices.addUserToCollection(users.robin(), zeCollection);
-
-		userServices.addUserToCollection(users.admin(), zeCollection);
-		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
-
-		recordServices.update(users.adminIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true)
-				.setCollectionDeleteAccess(true));
-		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
-		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true)
-				.setCollectionDeleteAccess(true));
-		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
-
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+
+		users.setUp(getModelLayerFactory().newUserServices());
+
+		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
+		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
+		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionAllAccess(true));
+		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
 	}
 
-	//@Test
+	@Test
 	public void whenGetAllowableActionsOfRootThenOK()
 			throws Exception {
 
@@ -112,15 +84,18 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
 		assertThatAllowableActionsOf("/").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
 
+		while (true) {
+			Thread.sleep(1000);
+		}
 	}
 
-	//@Test
+	@Test
 	public void whenGetAllowableActionsOfTaxonomyThenOK()
 			throws Exception {
 
 		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatAllowableActionsOf("/taxo_taxo1").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
-		assertThatAllowableActionsOf("/taxo_taxo2").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
+		assertThatAllowableActionsOf("/taxo_plan/a").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
+		assertThatAllowableActionsOf("/taxo_unit/").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
 
 		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
 		assertThatAllowableActionsOf("/taxo_taxo1").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
@@ -282,6 +257,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 	private void printTaxonomies(User user) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
+		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		StringBuilder stringBuilder = new StringBuilder();
 		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(zeCollection)) {
 			stringBuilder.append(taxonomy.getCode() + " : \n");

@@ -25,7 +25,12 @@ public class AllowableActionsRequest extends CmisCollectionRequest<AllowableActi
 
 	@Override
 	public AllowableActions process() {
-		return allowableActionsBuilder.build(modelLayerFactory.newRecordServices().getDocumentById(objectId));
+		if (objectId.startsWith("taxo_")) {
+			return allowableActionsBuilder.buildTaxonomyActions(objectId.substring(5));
+		} else {
+			return allowableActionsBuilder.build(modelLayerFactory.newRecordServices().getDocumentById(objectId));
+		}
+
 	}
 
 	@Override

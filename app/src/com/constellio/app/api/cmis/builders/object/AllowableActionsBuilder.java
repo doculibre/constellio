@@ -67,6 +67,8 @@ public class AllowableActionsBuilder {
 		this.configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
+	static final List<Action> TAXONOMY_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+			CAN_GET_OBJECT_PARENTS);
 	static final List<Action> ROOT_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
 	static final List<Action> UNSECURIZED_RECORD_ACTIONS = asList(CAN_GET_PROPERTIES);
 	static final List<Action> NO_RIGHT_ON_RECORD_ACTIONS = asList(CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE);
@@ -210,5 +212,12 @@ public class AllowableActionsBuilder {
 		if (condition) {
 			aas.add(action);
 		}
+	}
+
+	public AllowableActions buildTaxonomyActions(String substring) {
+		Set<Action> availableActions = new HashSet<>(TAXONOMY_ACTIONS);
+		AllowableActionsImpl result = new AllowableActionsImpl();
+		result.setAllowableActions(availableActions);
+		return result;
 	}
 }
