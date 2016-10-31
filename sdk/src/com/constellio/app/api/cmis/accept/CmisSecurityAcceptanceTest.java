@@ -673,7 +673,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void whenCheckingInThenOnlyWorksIfBorrower()
+    public void whenCheckingInThenOnlyWorksIfUserIsBorrower()
             throws Exception {
 
         session = newCMISSessionAsUserInZeCollection(admin);
