@@ -511,6 +511,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getSequencesManager();
 
 		assertThat(sequencesManager.getLastSequenceValue("1")).isEqualTo(1);
+		assertThat(sequencesManager.next("1")).isEqualTo(2);
 		assertThat(sequencesManager.getLastSequenceValue("2")).isEqualTo(7);
 
 		//newWebDriver();
