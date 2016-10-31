@@ -359,8 +359,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected InputStream getTestResourceInputStream(String partialName) {
+		return getTestResourceInputStream(null, partialName);
+	}
+
+	protected InputStream getTestResourceInputStream(Class<?> clazz, String partialName) {
 		ensureNotUnitTest();
-		File testResourceFile = getTestResourceFile(partialName);
+		File testResourceFile = getTestResourceFile(clazz, partialName);
 		InputStream inputStream;
 		try {
 			inputStream = newFileInputStream(testResourceFile);
@@ -388,15 +392,6 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected File getTestResourceFile(String partialName) {
-		if (partialName.contains(":")) {
-			String[] splitted = partialName.split(":");
-			try {
-				return getTestResourceFile(Class.forName(splitted[0]), splitted[1]);
-			} catch (ClassNotFoundException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
 		return getTestResourceFile(null, partialName);
 	}
 
