@@ -17,6 +17,7 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 	public static final String PARENT = "parent";
 	public static final String STATUS = "status";
 	public static final String HIERARCHY = "hierarchy";
+	public static final String LOCALLY_CREATED = "locallyCreated";
 
 	public SolrGlobalGroup(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -102,4 +103,16 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 		collections.remove(collection);
 		return setUsersAutomaticallyAddedToCollections(collections);
 	}
+
+	@Override
+	public boolean isLocallyCreated() {
+		return get(LOCALLY_CREATED);
+	}
+
+	@Override
+	public GlobalGroup withLocallyCreated(boolean locallyCreated) {
+		return set(LOCALLY_CREATED, locallyCreated);
+	}
+
+
 }

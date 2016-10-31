@@ -341,7 +341,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 			}
 		};
 		addSubGroupButton.addStyleName("DisplayGlobalGroupView.addSubGroup");
-		addSubGroupButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+		addSubGroupButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 		actionMenuButtons.add(addSubGroupButton);
 		Button editButton = new EditButton(false) {
 			@Override
@@ -349,7 +349,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 				presenter.editButtonClicked(globalGroupVO);
 			}
 		};
-		editButton.setEnabled(presenter.canAddOrModify());
+		editButton.setEnabled(globalGroupVO.isLocallyCreated());
 		actionMenuButtons.add(editButton);
 		Button deleteButton = new DeleteButton(false) {
 			@Override
@@ -357,7 +357,7 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 				presenter.deleteButtonClicked(globalGroupVO);
 			}
 		};
-		deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+		deleteButton.setEnabled((globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE) && globalGroupVO.isLocallyCreated());
 		actionMenuButtons.add(deleteButton);
 
 		return actionMenuButtons;

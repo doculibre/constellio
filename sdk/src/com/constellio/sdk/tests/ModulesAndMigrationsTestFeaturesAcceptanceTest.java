@@ -91,7 +91,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("collection").getCode()).isEqualTo("collection");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("task").getCode()).isEqualTo("task");
 		assertThat(manager.getSchemaTypes("zeCollection").getSchemaType("event").getCode()).isEqualTo("event");
-		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("6.5");
+		assertThat(getAppLayerFactory().newMigrationServices().getCurrentVersion(zeCollection)).isEqualTo("6.5.1");
 
 	}
 

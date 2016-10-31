@@ -35,13 +35,13 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 	}
 
 	@Override
-	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
-		return new XmlGlobalGroup(code, name, collections, parent, status);
+	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return new XmlGlobalGroup(code, name, collections, parent, status, locallyCreated);
 	}
 
 	@Override
-	public GlobalGroup create(String code, String parent, GlobalGroupStatus status) {
-		return create(code, code, Collections.<String>emptyList(), parent, status);
+	public GlobalGroup create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return create(code, code, Collections.<String>emptyList(), parent, status, locallyCreated);
 	}
 
 	@Override

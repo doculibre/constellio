@@ -381,7 +381,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	private void addGroup(String groupCode) {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		GlobalGroup group = userServices.createGlobalGroup(
-				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE);
+				groupCode, groupCode, new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(group);
 	}
 }

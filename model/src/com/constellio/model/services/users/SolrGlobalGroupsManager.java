@@ -42,18 +42,19 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	}
 
 	@Override
-	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
+	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
 		return ((SolrGlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
 				.setCode(code)
 				.setName(name)
 				.setUsersAutomaticallyAddedToCollections(collections)
 				.setParent(parent)
-				.setStatus(status);
+				.setStatus(status)
+				.withLocallyCreated(locallyCreated);
 	}
 
 	@Override
-	public GlobalGroup create(String code, String parent, GlobalGroupStatus status) {
-		return create(code, code, Collections.<String>emptyList(), parent, status);
+	public GlobalGroup create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return create(code, code, Collections.<String>emptyList(), parent, status, locallyCreated);
 	}
 
 	@Override
@@ -210,14 +211,15 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 
 	private void createGlobalGroupSchema(MetadataSchemaTypesBuilder builder) {
 		MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
-		credentialsTypeBuilder.setSecurity(false);
-		MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
+        credentialsTypeBuilder.setSecurity(false);
+        MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
 
-		groups.createUniqueCodeMetadata();
-		groups.createUndeletable(SolrGlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
-		groups.createUndeletable(SolrGlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-		groups.createUndeletable(SolrGlobalGroup.PARENT).setType(MetadataValueType.STRING);
-		groups.createUndeletable(SolrGlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
-		groups.createUndeletable(SolrGlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
+        groups.createUniqueCodeMetadata();
+        groups.createUndeletable(SolrGlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
+        groups.createUndeletable(SolrGlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+        groups.createUndeletable(SolrGlobalGroup.PARENT).setType(MetadataValueType.STRING);
+        groups.createUndeletable(SolrGlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+        groups.createUndeletable(SolrGlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
+        groups.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
 	}
 }
