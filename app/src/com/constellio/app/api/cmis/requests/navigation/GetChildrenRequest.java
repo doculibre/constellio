@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderListImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -34,7 +35,6 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final String folderId;
 	private final Set<String> filter;
 	private final boolean includeAllowableActions;
@@ -46,8 +46,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 	public GetChildrenRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, String folderId, String filter, Boolean includeAllowableActions, Boolean includePathSegment,
 			BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfo) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.folderId = folderId;
 		if (filter != null) {
 			this.filter = CmisUtils.splitFilter(filter);
@@ -69,63 +68,59 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(),
 				StatusFilter.ACTIVES);
 
-		String collection = context.get(ConstellioCmisContextParameters.COLLECTION).toString();
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
 		List<Record> childRecords;
 		if (collection.equals(folderId)) {
-			List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
+			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
 			for (Taxonomy taxonomy : taxonomies) {
-				ObjectData object = newTaxonomyObjectBuilder().build(context, taxonomy, objectInfo);
+				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo);
 				children.getObjects().add(new ObjectInFolderDataImpl(object));
 			}
 		} else if (folderId.startsWith("taxo_")) {
 			childRecords = searchServices.getRootConcept(collection, folderId.substring(5), taxonomiesSearchOptions);
 			addFoldersToChildren(children, childRecords);
 		} else {
-			Record record = modelLayerFactory.newRecordServices().getDocumentById(folderId, user);
+			Record record = recordServices.getDocumentById(folderId, user);
+			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_CHILDREN);
 			childRecords = searchServices.getChildConcept(record, taxonomiesSearchOptions);
 			addFoldersToChildren(children, childRecords);
-			addDocumentsToChildren(children, record, collection, user);
+			addDocumentsToChildren(children, record);
 		}
 		return children;
 	}
 
 	private void addFoldersToChildren(ObjectInFolderList children, List<Record> childRecords) {
 		for (Record childRecord : childRecords) {
-			ObjectData object = newObjectDataBuilder().build(context, childRecord, filter, includeAllowableActions, false,
-					objectInfo);
+			ObjectData object = newObjectDataBuilder().build(childRecord, filter, includeAllowableActions, false, objectInfo);
 			children.getObjects().add(new ObjectInFolderDataImpl(object));
 		}
 	}
 
-	private void addDocumentsToChildren(ObjectInFolderList children, Record record, String collection, User user) {
-		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-				.getSchema(record.getSchemaCode());
+	private void addDocumentsToChildren(ObjectInFolderList children, Record record) {
+		MetadataSchema schema = types().getSchema(record.getSchemaCode());
 		for (Metadata metadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
-			addDocumentsForMetadata(children, record, user, metadata);
+			addDocumentsForMetadata(children, record, metadata);
 		}
 	}
 
-	private void addDocumentsForMetadata(ObjectInFolderList children, Record record, User user, Metadata metadata) {
+	private void addDocumentsForMetadata(ObjectInFolderList children, Record record, Metadata metadata) {
 		if (record.get(metadata) != null) {
 			if (metadata.isMultivalue() == true) {
 				List<Content> contents = record.getList(metadata);
 				for (Content content : contents) {
-					addDocumentToChildren(children, record, user, metadata, content);
+					addDocumentToChildren(children, record, metadata, content);
 				}
 			} else {
 				Content content = record.get(metadata);
-				addDocumentToChildren(children, record, user, metadata, content);
+				addDocumentToChildren(children, record, metadata, content);
 			}
 		}
 	}
 
-	private void addDocumentToChildren(ObjectInFolderList children, Record record, User user, Metadata metadata,
-			Content content) {
+	private void addDocumentToChildren(ObjectInFolderList children, Record record, Metadata metadata, Content content) {
 		ContentCmisDocument contentDocument = ContentCmisDocument
 				.createForVersionSeenBy(content, record, metadata.getLocalCode(), user);
 		ObjectData contentObject = newContentObjectDataBuilder()
-				.build(appLayerFactory, context, contentDocument, filter, includeAllowableActions, false, objectInfo);
+				.build(contentDocument, filter, includeAllowableActions, false, objectInfo);
 		children.getObjects().add(new ObjectInFolderDataImpl(contentObject));
 	}
 

@@ -221,7 +221,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		Map<String, Object> subFolderParameters = new HashMap<>();
 		subFolderParameters.put("cmis:name", "Sub folder ");
 		subFolderParameters.put(PropertyIds.OBJECT_TYPE_ID, "folder_default");
-		Folder subFolder = aFolder.createFolder(subFolderParameters);
+ 		Folder subFolder = aFolder.createFolder(subFolderParameters);
 
 		subFolder.setAcl(aces);
 

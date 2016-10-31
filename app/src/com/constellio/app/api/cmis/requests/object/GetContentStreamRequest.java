@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.math.BigInteger;
 
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PartialContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -26,15 +27,13 @@ public class GetContentStreamRequest extends CmisCollectionRequest<ContentStream
 	private static final String READ_CONTENT_STREAM = "GetContentStreamRequest-ReadContentStream";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final String objectId;
 	private final BigInteger offset;
 	private final BigInteger length;
 
 	public GetContentStreamRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, String objectId, BigInteger offset, BigInteger length) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.offset = offset;
 		this.length = length;
@@ -42,11 +41,8 @@ public class GetContentStreamRequest extends CmisCollectionRequest<ContentStream
 
 	@Override
 	public ContentStream process() {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(repository.getCollection());
-		ContentCmisDocument contentCmisDocument = CmisContentUtils.getContent(objectId, recordServices, metadataSchemaTypes);
-		ContentManager contentManager = modelLayerFactory.getContentManager();
+		ContentCmisDocument contentCmisDocument = CmisContentUtils.getContent(objectId, recordServices, types());
+		ensureUserHasAllowableActionsOnRecord(contentCmisDocument.getRecord(), Action.CAN_GET_CONTENT_STREAM);
 		InputStream stream = contentManager
 				.getContentInputStream(contentCmisDocument.getContentVersion().getHash(), READ_CONTENT_STREAM);
 		ContentVersion version = contentCmisDocument.getContentVersion();

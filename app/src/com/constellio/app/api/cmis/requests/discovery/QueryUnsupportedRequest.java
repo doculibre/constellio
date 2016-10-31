@@ -19,7 +19,6 @@ public class QueryUnsupportedRequest extends CmisCollectionRequest<ObjectList> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private static final Pattern IN_FOLDER_QUERY_PATTERN = Pattern
 			.compile("(?i)select\\s+.+\\s+from\\s+(\\S*).*\\s+where\\s+in_folder\\('(.*)'\\)");
-	private final CallContext callContext;
 	private final String statement;
 	private final boolean includeAllowableActions;
 	private final BigInteger maxItems;
@@ -30,8 +29,7 @@ public class QueryUnsupportedRequest extends CmisCollectionRequest<ObjectList> {
 			CallContext callContext,
 			String statement, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
 			ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
-		this.callContext = callContext;
+		super(callContext, repository, appLayerFactory);
 		this.statement = statement;
 		this.includeAllowableActions = includeAllowableActions;
 		this.maxItems = maxItems;

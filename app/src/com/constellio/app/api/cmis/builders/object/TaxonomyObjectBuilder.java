@@ -22,9 +22,15 @@ import com.constellio.model.entities.Taxonomy;
 
 public class TaxonomyObjectBuilder {
 
+	private CallContext context;
+
+	public TaxonomyObjectBuilder(CallContext context) {
+		this.context = context;
+	}
+
 	public static final String TAXONOMY_TYPE_ID = "taxonomy";
 
-	public ObjectData build(CallContext context, Taxonomy taxonomy, ObjectInfoHandler objectInfoHandler) {
+	public ObjectData build(Taxonomy taxonomy, ObjectInfoHandler objectInfoHandler) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 

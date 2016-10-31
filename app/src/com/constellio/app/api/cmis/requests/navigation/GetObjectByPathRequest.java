@@ -25,7 +25,6 @@ public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetObjectByPathRequest.class);
 
-	private final CallContext context;
 	private final String folderPath;
 	private final Set<String> filter;
 	private final boolean includeAllowableActions;
@@ -35,8 +34,7 @@ public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 	public GetObjectByPathRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, String folderPath, String filter, boolean includeAllowableActions, boolean includeACL,
 			ObjectInfoHandler objectInfo) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.folderPath = folderPath;
 		if (filter != null) {
 			this.filter = CmisUtils.splitFilter(filter);
@@ -66,25 +64,21 @@ public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 	}
 
 	private ObjectData recordObjectData(String id) {
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
-		Record record = modelLayerFactory.newRecordServices().getDocumentById(id, user);
+		Record record = modelLayerFactory.newRecordServices().getDocumentById(id);
 		return recordObjectData(record);
 	}
 
 	private ObjectData taxoObjectData(String taxonomyCode) {
-		Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomyWithCode(repository.getCollection(),
-				taxonomyCode);
-		return newTaxonomyObjectBuilder().build(context, taxonomy, objectInfos);
+		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
+		return newTaxonomyObjectBuilder().build(taxonomy, objectInfos);
 	}
 
 	private ObjectData collectionObjectData() {
-		Record collection = appLayerFactory.getCollectionsManager().getCollection(repository.getCollection())
-				.getWrappedRecord();
-		return recordObjectData(collection);
+		return recordObjectData(appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord());
 	}
 
 	private ObjectData recordObjectData(Record record) {
-		return newObjectDataBuilder().build(context, record, filter, includeAllowableActions, includeACL, objectInfos);
+		return newObjectDataBuilder().build(record, filter, includeAllowableActions, includeACL, objectInfos);
 	}
 
 	@Override

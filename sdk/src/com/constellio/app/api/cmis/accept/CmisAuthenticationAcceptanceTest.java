@@ -58,11 +58,11 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 		assertThat(canAuthenticate(adminServiceKey, adminToken)).isTrue();
 		assertThat(getRepositories(adminServiceKey, adminToken)).hasSize(2);
 
-		//Because bob is not a system admin
-		assertThat(canAuthenticate(bobServiceKey, bobToken)).isFalse();
-		assertThat(getRepositories(bobServiceKey, bobToken)).hasSize(0);
+		//Bob is a typical user
+		assertThat(canAuthenticate(bobServiceKey, bobToken)).isTrue();
+		assertThat(getRepositories(bobServiceKey, bobToken)).hasSize(2);
 
-		//Because chuck norris is a system admin
+		//Chuck Norris is an other system admin
 		assertThat(canAuthenticate(chuckNorrisServiceKey, chuckNorrisToken)).isTrue();
 		assertThat(getRepositories(chuckNorrisServiceKey, chuckNorrisToken)).hasSize(2);
 

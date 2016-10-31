@@ -1,6 +1,11 @@
 package com.constellio.app.api.cmis.requests.object;
 
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_FOLDER;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_MOVE_OBJECT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
+
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -26,16 +31,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 public class MoveObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final Holder<String> objectId;
 	private final String targetFolderId;
 	private final ObjectInfoHandler objectInfos;
 
-	public MoveObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context,
+	public MoveObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
 			Holder<String> objectId, String targetFolderId, ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.targetFolderId = targetFolderId;
 		this.objectInfos = objectInfos;
@@ -47,20 +49,18 @@ public class MoveObjectRequest extends CmisCollectionRequest<ObjectData> {
 			throw new CmisExceptions_InvalidArgument("Id");
 		}
 
-		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(repository.getCollection());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
 		Record record = recordServices.getDocumentById(objectId.getValue(), user);
 		Record targetRecord = recordServices.getDocumentById(targetFolderId, user);
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		ensureUserHasAllowableActionsOnRecord(record, CAN_MOVE_OBJECT, CAN_UPDATE_PROPERTIES);
+		ensureUserHasAllowableActionsOnRecord(targetRecord, CAN_CREATE_FOLDER);
+		MetadataSchema schema = types().getSchema(record.getSchemaCode());
 		new CmisRecordUtils(modelLayerFactory).setParentOfRecord(record, targetRecord, schema);
 		try {
 			recordServices.update(record);
 		} catch (RecordServicesException e) {
 			throw new CmisExceptions_CmisRuntimeCannotUpdateRecord(record.getId(), e);
 		}
-		return newObjectDataBuilder().build(context, record, null, false, false, objectInfos);
+		return newObjectDataBuilder().build(record, null, false, false, objectInfos);
 	}
 
 	@Override

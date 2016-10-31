@@ -15,21 +15,17 @@ import com.constellio.model.entities.records.Record;
 public class AllowableActionsRequest extends CmisCollectionRequest<AllowableActions> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final String objectId;
 
 	public AllowableActionsRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, String objectId) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 	}
 
 	@Override
 	public AllowableActions process() {
-		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
-
-		return new AllowableActionsBuilder(appLayerFactory, repository, record).build();
+		return allowableActionsBuilder.build(modelLayerFactory.newRecordServices().getDocumentById(objectId));
 	}
 
 	@Override

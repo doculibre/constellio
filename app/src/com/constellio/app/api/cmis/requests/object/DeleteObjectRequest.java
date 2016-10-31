@@ -3,6 +3,8 @@ package com.constellio.app.api.cmis.requests.object;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +28,8 @@ public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 	private final String objectId;
 
 	public DeleteObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			String objectId) {
-		super(repository, appLayerFactory);
+			CallContext callContext, String objectId) {
+		super(callContext, repository, appLayerFactory);
 		this.objectId = objectId;
 	}
 
@@ -35,13 +37,11 @@ public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 	public Boolean process()
 			throws ConstellioCmisException {
 		if (objectId.startsWith("content_")) {
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager()
-					.getSchemaTypes(repository.getCollection());
-			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types);
+			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types());
 			Record record = content.getRecord();
+			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_DELETE_CONTENT_STREAM);
 			String metadataCode = record.getSchemaCode() + "_" + content.getMetadataLocalCode();
-			Metadata metadata = types.getMetadata(metadataCode);
+			Metadata metadata = types().getMetadata(metadataCode);
 			if (metadata.isMultivalue() == true) {
 				List<Object> contentsInRecord = new ArrayList<>();
 				contentsInRecord.addAll(record.getList(metadata));
