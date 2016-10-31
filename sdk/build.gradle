@@ -1,4 +1,6 @@
-apply from: 'http://plugins.jasoft.fi/vaadin-groovy.plugin?version=0.9.7'
+plugins {
+    id "fi.jasoft.plugin.vaadin" version '0.10.5'
+}
 
 vaadin {
     version '7.6.5'

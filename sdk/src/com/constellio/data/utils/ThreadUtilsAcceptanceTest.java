@@ -3,19 +3,17 @@ package com.constellio.data.utils;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
 
 import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
+import com.constellio.sdk.tests.ConstellioTest;
 
-public class ThreadUtilsAcceptanceTest {
+public class ThreadUtilsAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void testName()
