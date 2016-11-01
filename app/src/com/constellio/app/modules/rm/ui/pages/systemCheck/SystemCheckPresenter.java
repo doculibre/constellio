@@ -8,7 +8,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
-	
+
 	private boolean systemCheckStarted = false;
 
 	public SystemCheckPresenter(SystemCheckView view) {
@@ -19,16 +19,16 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 	}
-	
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices().getUser(user.getUsername()).isSystemAdmin();
 	}
-	
+
 	SystemCheckManager getSystemCheckManager() {
 		return appLayerFactory.getSystemCheckManager();
 	}
-	
+
 	void viewAssembled() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckStarted = systemCheckManager.isSystemCheckResultsRunning();
@@ -38,24 +38,23 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			view.setReportContent(reportContent);
 		}
 	}
-	
+
 	void startSystemCheckButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(false);
 		view.setSystemCheckRunning(true);
 		systemCheckStarted = true;
 	}
-	
+
 	void startSystemCheckAndRepairButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(true);
 		view.setSystemCheckRunning(true);
 		systemCheckStarted = true;
 	}
-	
+
 	void viewRefreshed() {
 		if (systemCheckStarted) {
-			System.out.println("test");
 			SystemCheckManager systemCheckManager = getSystemCheckManager();
 			boolean systemCheckRunning = systemCheckManager.isSystemCheckResultsRunning();
 			if (!systemCheckRunning) {
@@ -66,7 +65,7 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			}
 		}
 	}
-	
+
 	void backButtonClicked() {
 		view.navigate().to().adminModule();
 	}
