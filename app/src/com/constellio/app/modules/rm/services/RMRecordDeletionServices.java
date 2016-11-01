@@ -1,25 +1,17 @@
-package com.constellio.dev;
+package com.constellio.app.modules.rm.services;
 
-import com.constellio.app.modules.rm.model.calculators.decommissioningList.DecomListFoldersCalculator;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +28,8 @@ import static java.util.Arrays.asList;
 /**
  * Created by Constelio on 2016-10-31.
  */
-public class AdministrativeUnitCleaner {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdministrativeUnitCleaner.class);
+public class RMRecordDeletionServices {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RMRecordDeletionServices.class);
 
     static public void cleanAllAdministrativeUnits(String collection, AppLayerFactory appLayerFactory) {
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);

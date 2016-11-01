@@ -1,36 +1,29 @@
-package com.constellio.dev;
+package com.constellio.app.modules.rm.services;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.ui.pages.management.schemas.metadata.AddEditMetadataPresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedNavigation;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Created by Constelio on 2016-10-31.
+ * Created by Constelio on 2016-11-01.
  */
-public class AdministrativeUnitCleanerAcceptanceTest extends ConstellioTest{
+public class RMRecordDeletionServicesAcceptanceTest extends ConstellioTest{
     RMTestRecords records = new RMTestRecords(zeCollection);
     SearchServices searchServices;
     RMSchemasRecordsServices rm;
@@ -63,14 +56,14 @@ public class AdministrativeUnitCleanerAcceptanceTest extends ConstellioTest{
         assertThat(oldNumFolderInAdminUnit).isNotEqualTo(0);
         assertThat(oldNumDocumentInAdminUnit).isNotEqualTo(0);
 
-        AdministrativeUnitCleaner.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+
         long newTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schema()).returnAll());
         long newTotalNumDocument = searchServices.getResultsCount(from(rm.document.schema()).returnAll());
         long newNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schema()).where(Schemas.PRINCIPAL_PATH)
                 .isContainingText(administrativeUnit.getId()));
         long newNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schema()).where(Schemas.PRINCIPAL_PATH)
                 .isContainingText(administrativeUnit.getId()));
-
         assertThat(newNumFolderInAdminUnit).isEqualTo(0);
         assertThat(newNumDocumentInAdminUnit).isEqualTo(0);
         assertThat(newTotalNumFolder).isEqualTo(oldTotalNumFolder-oldNumFolderInAdminUnit);
@@ -88,11 +81,11 @@ public class AdministrativeUnitCleanerAcceptanceTest extends ConstellioTest{
         assertThat(oldTotalNumContainer).isNotEqualTo(0);
         assertThat(oldNumContainerInAdminUnit).isNotEqualTo(0);
 
-        AdministrativeUnitCleaner.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+
         long newTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schema()).returnAll());
         long newNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schema()).where(Schemas.PRINCIPAL_PATH)
                 .isContainingText(administrativeUnit.getId()));
-
         assertThat(newNumContainerInAdminUnit).isEqualTo(0);
         assertThat(newTotalNumContainer).isEqualTo(oldTotalNumContainer-oldNumContainerInAdminUnit);
     }
@@ -109,27 +102,18 @@ public class AdministrativeUnitCleanerAcceptanceTest extends ConstellioTest{
         Record container = searchServices.search(new LogicalSearchQuery().setCondition(
                 from(rm.containerRecord.schema()).where(Schemas.TITLE).isEqualTo("10_A_04"))).get(0);
 
-        List<DecommissioningList> decommissioningLists = rm.searchDecommissioningLists(anyConditions(
-                where(rm.decommissioningList.folders()).isContaining(asList(folder.getId())),
-                where(rm.decommissioningList.documents()).isContaining(asList(document.getId())),
-                where(rm.decommissioningList.containers()).isContaining(asList(container.getId()))
-        ));
-
+        List<DecommissioningList> decommissioningLists = getDecommissioningListsThatContainsAnyOf(asList(folder.getId()),
+                asList(document.getId()), asList(container.getId()));
         assertThat(decommissioningLists).isNotEmpty();
 
-        AdministrativeUnitCleaner.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
+        RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
 
         List<DecommissioningList> decommissioningListsAfterCleaning = rm.searchDecommissioningLists(
-                where(Schemas.IDENTIFIER).isIn(extractIdentifier(decommissioningLists))
-        );
-
+                where(Schemas.IDENTIFIER).isIn(extractIdentifier(decommissioningLists)));
         assertThat(decommissioningListsAfterCleaning).hasSameSizeAs(decommissioningLists);
-        long numberOfDecomListContainingRecords = searchServices.getResultsCount(from(rm.decommissioningList.schema()).whereAnyCondition(
-                where(rm.decommissioningList.folders()).isContaining(asList(folder.getId())),
-                where(rm.decommissioningList.documents()).isContaining(asList(document.getId())),
-                where(rm.decommissioningList.containers()).isContaining(asList(container.getId()))
-        ));
 
+        long numberOfDecomListContainingRecords = getDecommissioningListsThatContainsAnyOf(asList(folder.getId()),
+                asList(document.getId()), asList(container.getId())).size();
         assertThat(numberOfDecomListContainingRecords).isEqualTo(0);
     }
 
@@ -139,5 +123,15 @@ public class AdministrativeUnitCleanerAcceptanceTest extends ConstellioTest{
             identifierList.add(decommissioningList.getId());
         }
         return identifierList;
+    }
+
+    public List<DecommissioningList> getDecommissioningListsThatContainsAnyOf(List<String> folderIDs,
+                                                                              List<String> documentIDs,
+                                                                              List<String> containerIDs) {
+        return rm.searchDecommissioningLists(anyConditions(
+                where(rm.decommissioningList.folders()).isContaining(folderIDs),
+                where(rm.decommissioningList.documents()).isContaining(documentIDs),
+                where(rm.decommissioningList.containers()).isContaining(containerIDs)
+        ));
     }
 }
