@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
@@ -37,7 +38,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	protected void validateZeCollectionState()
 			throws Exception {
 		if (getModelLayerFactory().getCollectionsListManager().getCollections().contains(zeCollection)) {
-			MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+			MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
+					.getSchemaTypes(zeCollection);
 			if (metadataSchemaTypes.hasType(RetentionRule.SCHEMA_TYPE)) {
 				whenMigratingToCurrentVersionThenValidSchemas();
 				whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
@@ -47,23 +49,31 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				whenMigratingToCurrentVersionThenConfigHasValidDefaultValue();
 				whenMigratingToCurrentVersionThenTaskModuleIsEnabledAndExtraRMMetadatasAreCreated();
 				whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3();
-                whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(metadataSchemaTypes);
+				whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(
+						metadataSchemaTypes);
+				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
 			}
 		}
 	}
 
-	private void whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(final MetadataSchemaTypes metadataSchemaTypes) {
+	private void whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted() {
+		DocumentType documentType = rm.emailDocumentType();
+		assertThat(documentType.isLogicallyDeletedStatus()).isFalse();
+	}
+
+	private void whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(
+			final MetadataSchemaTypes metadataSchemaTypes) {
 		final MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
 		assertThat(folderSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
 		assertThat(folderSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
-        assertThat(folderSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
-        assertThat(folderSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
+		assertThat(folderSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
+		assertThat(folderSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
 
-        final MetadataSchema documentSchema = metadataSchemaTypes.getSchema(Document.DEFAULT_SCHEMA);
-        assertThat(documentSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
-        assertThat(documentSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
-        assertThat(documentSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
-        assertThat(documentSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
+		final MetadataSchema documentSchema = metadataSchemaTypes.getSchema(Document.DEFAULT_SCHEMA);
+		assertThat(documentSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
+		assertThat(documentSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
+		assertThat(documentSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
+		assertThat(documentSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
 	}
 
 	private void whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3() {
@@ -108,7 +118,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
 		}
 
-		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French)).isEqualTo("Date de l'événement");
+		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French))
+				.isEqualTo("Date de l'événement");
 
 		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
 		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
