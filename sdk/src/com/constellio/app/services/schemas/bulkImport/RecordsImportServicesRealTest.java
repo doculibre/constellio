@@ -16,9 +16,13 @@ import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParamete
 import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasFixedSequence;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasSequenceDefinedByMetadata;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.io.File.separator;
@@ -53,6 +57,7 @@ import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportVal
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.Language;
@@ -2370,6 +2375,125 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		Record record3 = recordWithLegacyId("13");
 		assertThat(record3.get(TITLE)).isEqualTo("Record 3");
+	}
+
+	@Test
+	public void whenImportingValueOfFixedSequenceMetadatasThenSetAndIncrementSequences()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichHasFixedSequence("sequence1"))
+				.withAnotherStringMetadata(whichHasFixedSequence("sequence2"), whichHasInputMask("9999")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
+				.addField("stringMetadata", "3").addField("anotherStringMetadata", "0003"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
+				.addField("stringMetadata", "4").addField("anotherStringMetadata", "0002"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
+				.addField("stringMetadata", "1").addField("anotherStringMetadata", "0042"));
+
+		services.bulkImport(importDataProvider, progressionListener, admin);
+
+		Record record1 = recordWithLegacyId("11");
+		assertThat(record1.get(zeSchema.stringMetadata())).isEqualTo("3");
+		assertThat(record1.get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
+
+		Record record2 = recordWithLegacyId("12");
+		assertThat(record2.get(zeSchema.stringMetadata())).isEqualTo("4");
+		assertThat(record2.get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
+
+		Record record3 = recordWithLegacyId("13");
+		assertThat(record3.get(zeSchema.stringMetadata())).isEqualTo("1");
+		assertThat(record3.get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
+
+		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
+		assertThat(sequencesManager.getLastSequenceValue("sequence1")).isEqualTo(4);
+		assertThat(sequencesManager.getLastSequenceValue("sequence2")).isEqualTo(42);
+
+	}
+
+	@Test
+	public void givenSequencesHigherThanImportedValuesWhenImportingValueOfFixedSequenceMetadatasThenDoNotSetSequences()
+			throws Exception {
+
+		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
+		sequencesManager.set("sequence1", 10000);
+		sequencesManager.set("sequence2", 20000);
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichHasFixedSequence("sequence1"))
+				.withAnotherStringMetadata(whichHasFixedSequence("sequence2"), whichHasInputMask("9999")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
+				.addField("stringMetadata", "3").addField("anotherStringMetadata", "0003"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
+				.addField("stringMetadata", "4").addField("anotherStringMetadata", "0002"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
+				.addField("stringMetadata", "1").addField("anotherStringMetadata", "0042"));
+
+		services.bulkImport(importDataProvider, progressionListener, admin);
+
+		Record record1 = recordWithLegacyId("11");
+		assertThat(record1.get(zeSchema.stringMetadata())).isEqualTo("3");
+		assertThat(record1.get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
+
+		Record record2 = recordWithLegacyId("12");
+		assertThat(record2.get(zeSchema.stringMetadata())).isEqualTo("4");
+		assertThat(record2.get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
+
+		Record record3 = recordWithLegacyId("13");
+		assertThat(record3.get(zeSchema.stringMetadata())).isEqualTo("1");
+		assertThat(record3.get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
+
+		assertThat(sequencesManager.getLastSequenceValue("sequence1")).isEqualTo(10000);
+		assertThat(sequencesManager.getLastSequenceValue("sequence2")).isEqualTo(20000);
+
+	}
+
+	@Test
+	public void whenImportingValueOfDynamicSequenceMetadatasThenSetAndIncrementSequences()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata()
+				.withAnotherStringMetadata(whichHasSequenceDefinedByMetadata("stringMetadata"), whichHasInputMask("9999")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("11").addField("title", "Record 1")
+				.addField("stringMetadata", "sequence1").addField("anotherStringMetadata", "0042"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("12").addField("title", "Record 2")
+				.addField("stringMetadata", "sequence2").addField("anotherStringMetadata", "0002"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("13").addField("title", "Record 3")
+				.addField("stringMetadata", "sequence1").addField("anotherStringMetadata", "0003"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("14").addField("title", "Record 4")
+				.addField("stringMetadata", "sequence2").addField("anotherStringMetadata", "0666"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("15").addField("title", "Record 5")
+				.addField("stringMetadata", null).addField("anotherStringMetadata", "6666"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("16").addField("title", "Record 6")
+				.addField("stringMetadata", "").addField("anotherStringMetadata", "7777"));
+
+		services.bulkImport(importDataProvider, progressionListener, admin);
+
+		Record record1 = recordWithLegacyId("11");
+		assertThat(record1.get(zeSchema.anotherStringMetadata())).isEqualTo("0042");
+
+		Record record2 = recordWithLegacyId("12");
+		assertThat(record2.get(zeSchema.anotherStringMetadata())).isEqualTo("0002");
+
+		Record record3 = recordWithLegacyId("13");
+		assertThat(record3.get(zeSchema.anotherStringMetadata())).isEqualTo("0003");
+
+		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
+		assertThat(sequencesManager.getLastSequenceValue("sequence1")).isEqualTo(42);
+		assertThat(sequencesManager.getLastSequenceValue("sequence2")).isEqualTo(666);
 	}
 
 	public static class NoZMetadataValidator implements RecordMetadataValidator<String> {
