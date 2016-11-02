@@ -33,7 +33,6 @@ public class FoldersLocatorGivenTomcatContextRealTest extends ConstellioTestWith
 	static File constellioProperties, constellioSetupProperties, tomcatInstallationFolder, conf, importation, bin, webapp,
 			webapps, webinf, deploy, temp, uploadConstellioWar, settings, buildData,
 			i18n_resources, lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, crypt;
-	@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	String testCase;
 	FoldersLocator foldersLocator;
 

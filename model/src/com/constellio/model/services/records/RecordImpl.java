@@ -780,6 +780,11 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public boolean isDisconnected() {
+		return disconnected;
+	}
+
+	@Override
 	public List<String> getFollowers() {
 		if (modifiedValues.containsKey("followers_ss")) {
 			followers = (List<String>) modifiedValues.get("followers_ss");

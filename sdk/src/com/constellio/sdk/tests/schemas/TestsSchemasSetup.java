@@ -661,10 +661,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
 				.defineChildOfRelationshipToType(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
+				.defineReferencesTo(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}
