@@ -91,8 +91,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 			}
 		}
 
-		for (Category category : categories) {
-
+		if (markedForReindexing) {
+			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}
 	}
 }
