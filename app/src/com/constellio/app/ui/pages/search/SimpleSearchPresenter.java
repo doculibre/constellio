@@ -106,9 +106,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
-		for (MetadataVO metadata : getMetadataAllowedInSort(schemaTypes.get(0))) {
-			String localCode = MetadataVO.getCodeWithoutPrefix(metadata.getCode());
-			if (isMetadataInAllTypes(localCode, schemaTypes)) {
+		for(MetadataSchemaType metadataSchemaType: schemaTypes) {
+			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
 				result.add(metadata);
 			}
 		}

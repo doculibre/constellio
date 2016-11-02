@@ -343,4 +343,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		MetadataValueType valueType = formMetadataVO.getValueType();
 		return valueType != null && !valueType.equals(MetadataValueType.CONTENT);
 	}
+
+	public boolean isMetadataSystemReserved() {
+		return !metadataCode.isEmpty() && getMetadata(metadataCode).isSystemReserved();
+	}
 }

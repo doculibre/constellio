@@ -458,6 +458,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 		});
 
+		if(presenter.isMetadataSystemReserved()) {
+			disableFieldsForSystemReservedMetadatas();
+		}
+
 		return metadataForm;
 	}
 
@@ -465,5 +469,22 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	public void reloadForm() {
 		metadataForm.commit();
 		metadataForm.reload();
+	}
+
+	public void disableFieldsForSystemReservedMetadatas() {
+		localcodeField.setEnabled(false);
+		valueType.setEnabled(false);
+		refType.setEnabled(false);
+		inputType.setEnabled(false);
+		multivalueType.setEnabled(false);
+		requiredField.setEnabled(false);
+		enabledField.setEnabled(false);
+		searchableField.setEnabled(false);
+		advancedSearchField.setEnabled(false);
+		highlight.setEnabled(false);
+		autocomplete.setEnabled(false);
+		duplicableField.setEnabled(false);
+		inputMask.setEnabled(false);
+		defaultValueField.setEnabled(false);
 	}
 }

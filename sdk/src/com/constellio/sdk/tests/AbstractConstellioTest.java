@@ -356,8 +356,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected InputStream getTestResourceInputStream(String partialName) {
+		return getTestResourceInputStream(null, partialName);
+	}
+
+	protected InputStream getTestResourceInputStream(Class<?> clazz, String partialName) {
 		ensureNotUnitTest();
-		File testResourceFile = getTestResourceFile(partialName);
+		File testResourceFile = getTestResourceFile(clazz, partialName);
 		InputStream inputStream;
 		try {
 			inputStream = newFileInputStream(testResourceFile);

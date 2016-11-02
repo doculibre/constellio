@@ -15,19 +15,19 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
 public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView {
-	
+
 	private SystemCheckPresenter presenter;
-	
+
 	private VerticalLayout mainLayout;
-	
-	private HorizontalLayout buttonsLayout; 
-	
+
+	private HorizontalLayout buttonsLayout;
+
 	private Label systemCheckInfoLabel;
-	
+
 	private Button startSystemCheckButton;
-	
+
 	private Button startSystemCheckAndRepairButton;
-	
+
 	private BaseTextArea reportContentField;
 
 	public SystemCheckViewImpl() {
@@ -39,12 +39,12 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 		mainLayout = new VerticalLayout();
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
-		
+
 		buttonsLayout = new HorizontalLayout();
 		buttonsLayout.setSpacing(true);
-		
+
 		systemCheckInfoLabel = new Label();
-		
+
 		startSystemCheckButton = new BaseButton($("SystemCheckView.startSystemCheck")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -58,14 +58,15 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 				presenter.startSystemCheckAndRepairButtonClicked();
 			}
 		};
-		
+
 		reportContentField = new BaseTextArea($("SystemCheckView.reportContent"));
 		reportContentField.setWidth("100%");
-		reportContentField.setEnabled(false);
-		
+		reportContentField.setHeight("100%");
+		reportContentField.setEnabled(true);
+
 		mainLayout.addComponents(systemCheckInfoLabel, buttonsLayout, reportContentField);
 		buttonsLayout.addComponents(startSystemCheckButton, startSystemCheckAndRepairButton);
-		
+
 		return mainLayout;
 	}
 

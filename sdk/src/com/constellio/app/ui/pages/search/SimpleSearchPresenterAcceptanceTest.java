@@ -1,15 +1,38 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.importExport.settings.SettingsImportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -231,6 +254,42 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.PATH.getCode());
+	}
+
+	@Test
+	public void givenAMetadataIsSortableAndAtLeastInOneTypeThenAllowedInSort()
+			throws Exception{
+		SettingsImportServices services = new SettingsImportServices(getAppLayerFactory());
+		ImportedSettings settings = new ImportedSettings();
+		settings.newCollectionSettings(zeCollection).newType(Folder.SCHEMA_TYPE).getDefaultSchema()
+				.newMetadata("USRnouvelleMetadataTest").setType(STRING).setLabel("Nouvelle metadata test")
+				.setSortable(true);
+		services.importSettings(settings);
+
+
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
+				.contains(rm.defaultFolderSchema().getMetadata("USRnouvelleMetadataTest").getLocalCode());
+	}
+
+	@Test
+	public void giveIDIsSetToNotSortableThenNotAllowedInSort()
+			throws Exception{
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).getMetadata("id").setSortable(false);
+				types.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).getMetadata("id").setSortable(false);
+				types.getDefaultSchema(Document.SCHEMA_TYPE).getMetadata("id").setSortable(false);
+				types.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata("id").setSortable(false);
+			}
+		});
+
+
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
+				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
 	private List<String> getRecordsIds(List<SearchResultVO> records) {
