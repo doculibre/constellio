@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import java.util.List;
+
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -12,17 +14,13 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setRecord(RecordVO recordVO);
 
-	void setDocuments(RecordVODataProvider dataProvider);
-
-	void setSubFolders(RecordVODataProvider dataProvider);
+	void setFolderContent(List<RecordVODataProvider> dataProviders);
 
 	void setTasks(RecordVODataProvider dataProvider);
 
 	void selectMetadataTab();
 
-	void selectDocumentsTab();
-
-	void selectSubFoldersTab();
+	void selectFolderContentTab();
 
 	void selectTasksTab();
 
@@ -56,7 +54,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setBorrowedMessage(String borrowedMessage);
 
-	void refreshDocumentsTab();
+	void refreshFolderContentTab();
 
 	void openDocumenContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO);
 

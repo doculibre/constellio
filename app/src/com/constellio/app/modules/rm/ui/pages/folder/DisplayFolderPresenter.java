@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -199,19 +198,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (isNotBlank(defaultTabInFolderDisplay)) {
 			if (DefaultTabInFolderDisplay.METADATA.getCode().equals(defaultTabInFolderDisplay)) {
 				view.selectMetadataTab();
-			} else if (DefaultTabInFolderDisplay.DOCUMENTS.getCode().equals(defaultTabInFolderDisplay)) {
-				view.selectDocumentsTab();
-			} else if (DefaultTabInFolderDisplay.SUB_FOLDERS.getCode().equals(defaultTabInFolderDisplay)) {
-				view.selectSubFoldersTab();
+			} else if (DefaultTabInFolderDisplay.CONTENT.getCode().equals(defaultTabInFolderDisplay)) {
+				view.selectFolderContentTab();
 			}
 		}
 	}
 
-	public int getDocumentCount() {
-		return documentsDataProvider.size();
+	public int getFolderContentCount() {
+		return subFoldersDataProvider.size() + documentsDataProvider.size();
 	}
 
-	public Object getSubFolderCount() {
+	public int getSubFolderCount() {
 		return subFoldersDataProvider.size();
 	}
 
@@ -482,8 +479,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void viewAssembled() {
-		view.setDocuments(documentsDataProvider);
-		view.setSubFolders(subFoldersDataProvider);
+		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
 		view.setTasks(tasksDataProvider);
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -601,7 +597,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void contentVersionUploaded(ContentVersionVO uploadedContentVO) {
-		view.selectDocumentsTab();
+		view.selectFolderContentTab();
 		String fileName = uploadedContentVO.getFileName();
 		if (!documentExists(fileName)) {
 			try {
@@ -626,7 +622,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 				schemaPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
-				view.refreshDocumentsTab();
+				view.refreshFolderContentTab();
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			}
@@ -757,6 +753,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		}
 		return previewReturnDate;
+	}
+	
+	boolean isDocument(RecordVO record) {
+		return record.getSchema().getCode().startsWith("document");
 	}
 
 	public boolean canModifyDocument(RecordVO record) {

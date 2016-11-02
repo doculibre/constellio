@@ -4,8 +4,7 @@ import com.constellio.model.entities.EnumWithSmallCode;
 
 public enum DefaultTabInFolderDisplay implements EnumWithSmallCode {
 
-	SUB_FOLDERS("SF"),
-	DOCUMENTS("D"),
+	CONTENT("C"),
 	METADATA("M");
 
 	private final String code;
