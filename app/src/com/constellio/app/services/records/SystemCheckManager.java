@@ -14,9 +14,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.records.SystemCheckManagerRuntimeException.SystemCheckManagerRuntimeException_AlreadyRunning;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -64,7 +66,7 @@ public class SystemCheckManager implements StatefulService {
 			@Override
 			public void run() {
 				try {
-					findBrokenLinks(repair);
+					runSystemCheck(repair);
 
 				} finally {
 					systemCheckResultsRunning = false;
@@ -82,9 +84,12 @@ public class SystemCheckManager implements StatefulService {
 		return systemCheckResultsRunning;
 	}
 
-	private void findBrokenLinks(boolean repair) {
-
+	SystemCheckResults runSystemCheck(boolean repair) {
+		lastSystemCheckResults = new SystemCheckResults();
 		Map<String, String> ids = findIdsAndTypes();
+
+		Language language = Language.withCode(appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage());
+		SystemCheckResultsBuilder builder = new SystemCheckResultsBuilder(language, appLayerFactory, lastSystemCheckResults);
 
 		for (String collection : collectionsListManager.getCollections()) {
 			for (MetadataSchemaType type : schemasManager.getSchemaTypes(collection).getSchemaTypes()) {
@@ -93,7 +98,7 @@ public class SystemCheckManager implements StatefulService {
 				Iterator<Record> allRecords = searchServices.recordsIterator(query, 10000);
 				while (allRecords.hasNext()) {
 					Record record = allRecords.next();
-					boolean recordsRepaired = findBrokenLinksInRecord(ids, references, record, repair);
+					boolean recordsRepaired = findBrokenLinksInRecord(ids, references, record, repair, builder);
 					if (recordsRepaired) {
 
 						try {
@@ -107,7 +112,7 @@ public class SystemCheckManager implements StatefulService {
 
 								recordServices.execute(transaction);
 
-								lastSystemCheckResults.recordsRepaired++;
+								lastSystemCheckResults.repairedRecords.add(record.getId());
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -117,10 +122,19 @@ public class SystemCheckManager implements StatefulService {
 				}
 			}
 		}
+
+		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
+				.getCollectionsExcludingSystem()) {
+			CollectionSystemCheckParams params = new CollectionSystemCheckParams(collection, builder, repair);
+			appLayerFactory.getExtensions().forCollection(collection).checkCollection(params);
+		}
+
+		return getLastSystemCheckResults();
 	}
 
 	private boolean findBrokenLinksInRecord(Map<String, String> ids, List<Metadata> references,
-			Record record, boolean repair) {
+			Record record, boolean repair, SystemCheckResultsBuilder builder) {
+
 		boolean recordRepaired = false;
 		for (Metadata reference : references) {
 			if (reference.isMultivalue()) {
@@ -129,7 +143,7 @@ public class SystemCheckManager implements StatefulService {
 				for (String value : values) {
 					lastSystemCheckResults.checkedReferences++;
 					if (!ids.containsKey(value)) {
-						lastSystemCheckResults.addBrokenLink(record.getId(), value, reference);
+						builder.addBrokenLink(record.getId(), value, reference);
 					} else {
 						modifiedValues.add(value);
 					}
@@ -146,7 +160,7 @@ public class SystemCheckManager implements StatefulService {
 					lastSystemCheckResults.checkedReferences++;
 
 					if (!ids.containsKey(value)) {
-						lastSystemCheckResults.addBrokenLink(record.getId(), value, reference);
+						builder.addBrokenLink(record.getId(), value, reference);
 
 						if (repair && reference.getDataEntry().getType() == MANUAL) {
 							String modifiedValue = null;
@@ -163,6 +177,7 @@ public class SystemCheckManager implements StatefulService {
 
 			}
 		}
+
 		return recordRepaired;
 	}
 

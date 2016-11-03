@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -31,6 +32,9 @@ public class SolrSequencesManager implements SequencesManager {
 
 	@Override
 	public void set(String sequenceId, long value) {
+		if (StringUtils.isBlank(sequenceId)) {
+			throw new IllegalArgumentException("sequenceId is blank");
+		}
 		try {
 			SolrInputDocument document = newSequenceUpdateInputDocument(sequenceId);
 			document.addField("counter_d", new Long(value).doubleValue());
@@ -58,8 +62,6 @@ public class SolrSequencesManager implements SequencesManager {
 
 	@Override
 	public long next(String sequenceId) {
-
-
 
 		String uuid = UUIDV1Generator.newRandomId();
 

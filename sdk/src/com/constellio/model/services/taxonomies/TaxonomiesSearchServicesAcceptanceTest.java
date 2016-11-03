@@ -50,8 +50,6 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 	String TAXO1 = "taxo1";
 	String TAXO2 = "taxo2";
 
-	@Rule
-	public TestRule benchmarkRun = new BenchmarkRule();
 	TwoTaxonomiesContainingFolderAndDocumentsSetup schemas = new TwoTaxonomiesContainingFolderAndDocumentsSetup(zeCollection);
 	Taxonomy1FirstSchemaType taxonomy1FirstSchema = schemas.new Taxonomy1FirstSchemaType();
 	Taxonomy1SecondSchemaType taxonomy1SecondSchema = schemas.new Taxonomy1SecondSchemaType();

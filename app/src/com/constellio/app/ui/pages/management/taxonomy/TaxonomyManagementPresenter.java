@@ -192,7 +192,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		if (isDeletable(recordVO)) {
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
-			utils.delete(utils.toRecord(recordVO), null, false);
+			utils.delete(utils.toRecord(recordVO), null, true);
 			if (recordVO.getId().equals(conceptId)) {
 				backButtonClicked();
 			} else {

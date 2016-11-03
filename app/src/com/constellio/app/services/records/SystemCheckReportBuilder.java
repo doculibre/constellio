@@ -23,7 +23,7 @@ public class SystemCheckReportBuilder {
 		reportBuilder.append("\n");
 		reportBuilder.append("Broken references : " + results.brokenReferences + "\n");
 		reportBuilder.append("Checked references : " + results.checkedReferences + "\n");
-		reportBuilder.append("Repaired records : " + results.recordsRepaired + "\n");
+		reportBuilder.append("Repaired records : " + results.repairedRecords.size() + "\n");
 		reportBuilder.append("\n");
 		if (!errors.getValidationErrors().isEmpty()) {
 			reportBuilder.append("" + errors.getValidationErrors().size() + " errors : \n");
