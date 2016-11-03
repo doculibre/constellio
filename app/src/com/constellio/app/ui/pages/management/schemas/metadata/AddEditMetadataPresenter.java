@@ -345,6 +345,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public boolean isMetadataSystemReserved() {
-		return getMetadata(metadataCode).isSystemReserved();
+		return !metadataCode.isEmpty() && getMetadata(metadataCode).isSystemReserved();
 	}
 }

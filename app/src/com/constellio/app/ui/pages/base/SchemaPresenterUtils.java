@@ -121,19 +121,22 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final void delete(Record record, String reason, boolean physically, User user) {
-		recordServices().logicallyDelete(record, user);
-		modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
-		if (physically && !putFirstInTrash(record)) {
-			recordServices().physicallyDelete(record, user);
+		boolean putFirstInTrash = putFirstInTrash(record);
+		if (recordServices().isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+			recordServices().logicallyDelete(record, user);
+			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
+			if (physically && !putFirstInTrash) {
+				recordServices().physicallyDelete(record, user);
+			}
 		}
 	}
 
 	private boolean putFirstInTrash(Record record) {
 		ModelLayerExtensions ext = modelLayerFactory().getExtensions();
-		if(ext == null){
+		if (ext == null) {
 			return false;
 		}
-		ModelLayerCollectionExtensions extensions =	ext.forCollection(record.getCollection());
+		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
 		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
 		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}

@@ -421,7 +421,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 								Metadata metadataProvidingSequenceCode = schema
 										.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
 
-								if (record.isModified(metadataProvidingSequenceCode)) {
+								if (record.isModified(metadataProvidingSequenceCode) && !record.isModified(metadata)) {
 									String sequenceCode = record.get(metadataProvidingSequenceCode);
 									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
 									record.set(metadata, sequenceCode == null ? null : value);
