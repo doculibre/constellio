@@ -176,7 +176,7 @@ public class AllowableActionsBuilder {
 		//
 		//			if (readAccess) {
 		//				availableActions.add(CAN_GET_PROPERTIES);
-		//			}
+		//			}a
 		//
 		//			//			if (userReadOnly) {
 		//			//				availableActions.add(Action.CAN_UPDATE_PROPERTIES);
