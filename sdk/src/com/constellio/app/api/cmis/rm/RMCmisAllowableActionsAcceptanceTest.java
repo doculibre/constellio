@@ -84,9 +84,6 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
 		assertThatAllowableActionsOf("/").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
 
-		while (true) {
-			Thread.sleep(1000);
-		}
 	}
 
 	@Test
