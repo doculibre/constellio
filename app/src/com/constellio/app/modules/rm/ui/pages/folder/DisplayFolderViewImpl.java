@@ -322,9 +322,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			}
 		};
 
-		if(presenter.hasCurrentUserUseCartPermission()) {
-			addToCartButton = buildAddToCartButton();
-		}
+		addToCartButton = buildAddToCartButton();
 
 		Factory<List<LabelTemplate>> labelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 			@Override
@@ -370,7 +368,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		actionMenuButtons.add(linkToFolderButton);
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(shareFolderButton);
-		actionMenuButtons.add(addToCartButton);
+		if(presenter.hasCurrentUserPermissionToUseCart()) {
+			actionMenuButtons.add(addToCartButton);
+		}
 		actionMenuButtons.add(printLabelButton);
 		actionMenuButtons.add(borrowButton);
 		actionMenuButtons.add(returnFolderButton);

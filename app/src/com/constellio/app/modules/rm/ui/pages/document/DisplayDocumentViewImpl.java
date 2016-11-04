@@ -272,9 +272,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
-		if(presenter.hasCurrentUserPermissionToUseCart()) {
-			addToCartButton = buildAddToCartButton();
-		}
+		addToCartButton = buildAddToCartButton();
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
@@ -447,7 +445,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
-		actionMenuButtons.add(addToCartButton);
+		if(presenter.hasCurrentUserPermissionToUseCart()) {
+			actionMenuButtons.add(addToCartButton);
+		}
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);
