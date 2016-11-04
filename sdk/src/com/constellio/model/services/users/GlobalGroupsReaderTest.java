@@ -23,9 +23,9 @@ public class GlobalGroupsReaderTest extends ConstellioTest {
 	@Before
 	public void setup()
 			throws Exception {
-		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
+		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE, true);
+		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE, true);
+		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE, true);
 
 		Document document = new Document();
 		writer = new GlobalGroupsWriter(document);

@@ -22,6 +22,8 @@ public class LDAPGroup {
 
 	private List<String> ldapUsers = new ArrayList<>();
 
+	private boolean enabled = true;
+
 	public LDAPGroup(String simpleName, String distinguishedName) {
 		super();
 		this.simpleName = extractSimpleName(simpleName);
