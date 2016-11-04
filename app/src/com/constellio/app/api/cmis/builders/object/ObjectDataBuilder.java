@@ -2,6 +2,7 @@ package com.constellio.app.api.cmis.builders.object;
 
 import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
 
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import java.util.Set;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
@@ -76,7 +78,7 @@ public class ObjectDataBuilder {
 		callExtensions(result, propertiesBuilder, record);
 
 		boolean neverReturlACL = modelLayerFactory.getSystemConfigurationsManager().getValue(CMIS_NEVER_RETURN_ACL);
-		if (includeAcl && !neverReturlACL) {
+		if (includeAcl && !neverReturlACL && allowableActionsBuilder.build(record).getAllowableActions().contains(CAN_GET_ACL)) {
 			result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
 			result.setIsExactAcl(true);
 		}
@@ -145,7 +147,7 @@ public class ObjectDataBuilder {
 			}
 
 			if (path != null) {
-				if ("collection_default".equals(typeId)) {
+				if ("collection_default" .equals(typeId)) {
 					propertiesBuilder.addPropertyString(PropertyIds.PATH, "/");
 				} else {
 					path = "/taxo_" + path.substring(1);

@@ -96,6 +96,9 @@ public class AllowableActionsBuilder {
 		boolean readAccess = user.hasReadAccess().on(record);
 		boolean writeAccess = user.hasWriteAccess().on(record);
 		boolean deleteAccess = user.hasDeleteAccess().on(record);
+		boolean canManageACL = user.has(CorePermissions.MANAGE_SECURITY).on(record)
+				&& user.hasWriteAccess().on(record)
+				&& user.hasDeleteAccess().on(record);
 		boolean hasContentMetadata = !type.getAllMetadatas().onlyWithType(MetadataValueType.CONTENT).isEmpty();
 		if (record == null) {
 			throw new IllegalArgumentException("File must not be null!");
@@ -124,7 +127,7 @@ public class AllowableActionsBuilder {
 							availableActions.addAll(RECORD_WITH_CONTENT_WRITE_ACTIONS);
 						}
 
-						if (user.has(CorePermissions.MANAGE_SECURITY).on(record)) {
+						if (canManageACL) {
 							availableActions.addAll(MANAGE_SECURITY_ACTIONS);
 						}
 					}
@@ -149,7 +152,7 @@ public class AllowableActionsBuilder {
 					if (writeAccess) {
 						availableActions.addAll(WRITE_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS);
 
-						if (user.has(CorePermissions.MANAGE_SECURITY).on(record)) {
+						if (canManageACL) {
 							availableActions.addAll(MANAGE_SECURITY_ACTIONS);
 						}
 
@@ -168,40 +171,6 @@ public class AllowableActionsBuilder {
 			availableActions.remove(CAN_GET_ACL);
 		}
 
-		//		if (isRoot) {
-		//			availableActions.add(CAN_GET_PROPERTIES);
-		//			availableActions.add(CAN_GET_CHILDREN);
-		//		} else {
-		//			availableActions.add(CAN_GET_OBJECT_PARENTS);
-		//
-		//			if (readAccess) {
-		//				availableActions.add(CAN_GET_PROPERTIES);
-		//			}a
-		//
-		//			//			if (userReadOnly) {
-		//			//				availableActions.add(Action.CAN_UPDATE_PROPERTIES);
-		//			//				availableActions.add(Action.CAN_MOVE_OBJECT);
-		//			//				availableActions.add(Action.CAN_DELETE_OBJECT);
-		//			//			}
-		//
-		//			if (type.hasSecurity()) {
-		//				availableActions.add(CAN_GET_ACL);
-		//				availableActions.add(CAN_APPLY_ACL);
-		//			}
-		//
-		//			availableActions.add(CAN_GET_CHILDREN);
-		//			availableActions.add(CAN_GET_FOLDER_PARENT);
-		//			availableActions.add(CAN_GET_FOLDER_TREE);
-		//
-		//			if (writeAccess) {
-		//				availableActions.add(CAN_CREATE_FOLDER);
-		//			}
-		//
-		//			if (deleteAccess) {
-		//				availableActions.add(Action.CAN_DELETE_TREE);
-		//			}
-		//
-		//		}
 		AllowableActionsImpl result = new AllowableActionsImpl();
 		result.setAllowableActions(availableActions);
 

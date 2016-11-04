@@ -122,7 +122,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.admin(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
-		recordServices.update(users.adminIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
+		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
 		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
@@ -221,7 +221,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		Map<String, Object> subFolderParameters = new HashMap<>();
 		subFolderParameters.put("cmis:name", "Sub folder ");
 		subFolderParameters.put(PropertyIds.OBJECT_TYPE_ID, "folder_default");
- 		Folder subFolder = aFolder.createFolder(subFolderParameters);
+		Folder subFolder = aFolder.createFolder(subFolderParameters);
 
 		subFolder.setAcl(aces);
 
@@ -301,7 +301,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<String> users = new ArrayList<>();
 
 		for (Ace ace : aces) {
-			if (!"constellio:removeInheritance".equals(ace.getPrincipalId())) {
+			if (!"constellio:removeInheritance" .equals(ace.getPrincipalId())) {
 				users.add(ace.getPrincipalId());
 			}
 		}

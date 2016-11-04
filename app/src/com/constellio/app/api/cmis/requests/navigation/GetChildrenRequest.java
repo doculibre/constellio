@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderData
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderListImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList> {
 
@@ -68,6 +71,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		TaxonomiesSearchOptions taxonomiesSearchOptions = new TaxonomiesSearchOptions(maxItems.intValue(), skipCount.intValue(),
 				StatusFilter.ACTIVES);
 
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
 		List<Record> childRecords;
 		if (collection.equals(folderId)) {
 			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
@@ -76,12 +80,24 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 				children.getObjects().add(new ObjectInFolderDataImpl(object));
 			}
 		} else if (folderId.startsWith("taxo_")) {
-			childRecords = searchServices.getRootConcept(collection, folderId.substring(5), taxonomiesSearchOptions);
+			String taxonomyCode = folderId.substring(5);
+
+			childRecords = new ArrayList<>();
+			for (TaxonomySearchRecord record : searchServices.getVisibleRootConcept(user, collection, taxonomyCode, options)) {
+				childRecords.add(record.getRecord());
+			}
 			addFoldersToChildren(children, childRecords);
 		} else {
 			Record record = recordServices.getDocumentById(folderId, user);
 			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_CHILDREN);
-			childRecords = searchServices.getChildConcept(record, taxonomiesSearchOptions);
+			childRecords = new ArrayList<>();
+			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+			String taxonomyCode =
+					taxonomy == null ? taxonomiesManager.getPrincipalTaxonomy(collection).getCode() : taxonomy.getCode();
+			for (TaxonomySearchRecord child : searchServices.getVisibleChildConcept(user, taxonomyCode, record, options)) {
+				childRecords.add(child.getRecord());
+			}
+
 			addFoldersToChildren(children, childRecords);
 			addDocumentsToChildren(children, record);
 		}

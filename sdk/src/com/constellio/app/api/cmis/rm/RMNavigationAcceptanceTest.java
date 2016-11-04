@@ -24,7 +24,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 
-@InDevelopmentTest
 public class RMNavigationAcceptanceTest extends ConstellioTest {
 
 	AuthorizationsServices authorizationsServices;
@@ -53,9 +52,6 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
-
-		//		newWebDriver();
-		//		waitUntilICloseTheBrowsers();
 	}
 
 	@Test

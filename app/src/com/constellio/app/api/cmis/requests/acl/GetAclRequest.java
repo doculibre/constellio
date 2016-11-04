@@ -29,6 +29,7 @@ public class GetAclRequest extends CmisCollectionRequest<Acl> {
 	 */
 	@Override
 	public Acl process() {
+
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
 		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_ACL);
 		return new AclBuilder(repository, modelLayerFactory).build(record);
