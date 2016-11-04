@@ -272,7 +272,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
-		addToCartButton = buildAddToCartButton();
+		if(presenter.hasCurrentUserPermissionToUseCart()) {
+			addToCartButton = buildAddToCartButton();
+		}
 
 		uploadButton = new LinkButton($("DocumentActionsComponent.upload")) {
 			@Override
