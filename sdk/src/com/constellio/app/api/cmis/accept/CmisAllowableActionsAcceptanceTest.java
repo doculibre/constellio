@@ -10,12 +10,15 @@ import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDRE
 import static org.apache.chemistry.opencmis.commons.enums.Action.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.assertj.core.api.IterableAssert;
 import org.junit.Before;
 import org.junit.Test;
@@ -127,6 +130,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		User dakota = users.dakotaIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
 		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo2_unit1).givingReadWriteAccess(), admin);
+		waitForBatchProcess();
 	}
 
 	@Test
@@ -198,7 +202,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		//Bob has no access
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
-		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(principalTaxoExpectedActionsOfUserWithNoAccess);
+		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").isEmpty();
 	}
 
 	@Test
@@ -251,8 +255,8 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 		//Bob has no access
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithNoAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithNoAccess);
+		assertThatAllowableActionsOf(folder1UrlFromTaxo1).isEmpty();
+		assertThatAllowableActionsOf(folder1UrlFromTaxo2).isEmpty();
 	}
 
 	@Test
@@ -308,8 +312,8 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 		//Bob has no access
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
-		assertThatAllowableActionsOf(folder1DocUrlFromTaxo1).containsOnly(expectedActionsOfUserWithNoAccess);
-		assertThatAllowableActionsOf(folder1DocUrlFromTaxo2).containsOnly(expectedActionsOfUserWithNoAccess);
+		assertThatAllowableActionsOf(folder1DocUrlFromTaxo1).isEmpty();
+		assertThatAllowableActionsOf(folder1DocUrlFromTaxo2).isEmpty();
 	}
 
 	@Test
@@ -365,7 +369,11 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private IterableAssert<Action> assertThatAllowableActionsOf(String path) {
-		return assertThat(session.getObjectByPath(path).getAllowableActions().getAllowableActions());
+		try {
+			return assertThat(session.getObjectByPath(path).getAllowableActions().getAllowableActions());
+		} catch (CmisRuntimeException e) {
+			return assertThat(new HashSet<Action>());
+		}
 	}
 
 	private Folder cmisFolder(Record record) {

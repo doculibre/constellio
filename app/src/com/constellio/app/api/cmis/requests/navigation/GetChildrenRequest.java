@@ -30,6 +30,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
@@ -91,10 +92,8 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 			Record record = recordServices.getDocumentById(folderId, user);
 			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_CHILDREN);
 			childRecords = new ArrayList<>();
-			Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
-			String taxonomyCode =
-					taxonomy == null ? taxonomiesManager.getPrincipalTaxonomy(collection).getCode() : taxonomy.getCode();
-			for (TaxonomySearchRecord child : searchServices.getVisibleChildConcept(user, taxonomyCode, record, options)) {
+
+			for (TaxonomySearchRecord child : searchServices.getVisibleChildConcept(user, record, options)) {
 				childRecords.add(child.getRecord());
 			}
 

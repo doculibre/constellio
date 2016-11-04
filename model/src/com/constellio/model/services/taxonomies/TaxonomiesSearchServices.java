@@ -22,6 +22,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.CorePermissions;
@@ -460,6 +462,20 @@ public class TaxonomiesSearchServices {
 
 		return getLinkableConceptResponse(user, inRecord.getCollection(), usingTaxonomy, selectedType, inRecord, options);
 
+	}
+
+	public List<TaxonomySearchRecord> getVisibleChildConcept(User user, Record record, TaxonomiesSearchOptions options) {
+		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
+		String taxonomyCode = null;
+		if (taxonomy == null) {
+			if (!record.getList(Schemas.PATH).isEmpty()) {
+				String firstPath = record.<String>getList(Schemas.PATH).get(0);
+				taxonomyCode = StringUtils.substringBefore(firstPath.substring(1), "/");
+			}
+		} else {
+			taxonomyCode = taxonomy.getCode();
+		}
+		return getVisibleChildConceptResponse(user, taxonomyCode, record, options).getRecords();
 	}
 
 	public List<TaxonomySearchRecord> getVisibleChildConcept(User user, String taxonomyCode, Record record,

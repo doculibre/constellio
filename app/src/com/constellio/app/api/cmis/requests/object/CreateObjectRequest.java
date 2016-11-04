@@ -55,13 +55,11 @@ public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 		if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 			ContentCmisDocument contentCmisDocument = createDocumentRequest.process();
-			ensureUserHasAllowableActionsOnRecord(contentCmisDocument.getRecord(), Action.CAN_CREATE_DOCUMENT);
 			return newContentObjectDataBuilder().build(contentCmisDocument, null, false, userReadOnly, objectInfos);
 
 		} else if (type.getBaseTypeId() == BaseTypeId.CMIS_FOLDER) {
 			String objectId = createFolderRequest.process();
 			Record record = recordServices.getDocumentById(objectId);
-			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_CREATE_FOLDER);
 			return newObjectDataBuilder().build(record, null, false, userReadOnly, objectInfos);
 
 		} else {

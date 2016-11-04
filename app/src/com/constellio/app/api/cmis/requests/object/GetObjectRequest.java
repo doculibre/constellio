@@ -61,7 +61,7 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 		boolean includeAclValue = CmisUtils.getBooleanParameter(includeAcl, false);
 		Set<String> filterCollection = CmisUtils.splitFilter(filter);
 
-		if ("@root@".equals(objectId)) {
+		if ("@root@" .equals(objectId)) {
 			Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
 			return newObjectDataBuilder()
 					.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
@@ -76,7 +76,8 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 					.build(content, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
 
 		} else {
-			Record record = recordServices.getDocumentById(objectId, user);
+			Record record = recordServices.getDocumentById(objectId);
+			ensureUserHasReadAccessToRecordOrADescendantOf(record);
 			return newObjectDataBuilder()
 					.build(record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
 

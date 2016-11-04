@@ -55,6 +55,8 @@ public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 			} catch (RecordServicesException e) {
 				throw new ConstellioCmisException_RecordServicesError(e);
 			}
+		} else {
+			throw new UnsupportedOperationException();
 		}
 		return true;
 	}

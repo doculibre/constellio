@@ -27,7 +27,10 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 
 public abstract class CmisCollectionRequest<T> {
 
@@ -36,6 +39,8 @@ public abstract class CmisCollectionRequest<T> {
 	protected final AppLayerFactory appLayerFactory;
 	protected final IOServices ioServices;
 	protected final RecordServices recordServices;
+	protected final SearchServices searchServices;
+	protected final TaxonomiesSearchServices taxonomiesSearchServices;
 	protected final TaxonomiesManager taxonomiesManager;
 	protected final ContentManager contentManager;
 	protected final CallContext callContext;
@@ -52,6 +57,8 @@ public abstract class CmisCollectionRequest<T> {
 		this.user = (User) callContext.get(ConstellioCmisContextParameters.USER);
 		this.collection = (String) callContext.get(ConstellioCmisContextParameters.COLLECTION);
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.contentManager = modelLayerFactory.getContentManager();
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
@@ -108,6 +115,17 @@ public abstract class CmisCollectionRequest<T> {
 			if (!recordAllowableActions.contains(action)) {
 				throw new CmisPermissionDeniedException($("CmisCollectionRequest_forbiddenAction",
 						user.getUsername(), action.name(), record.getId(), record.getTitle()));
+			}
+		}
+	}
+
+	protected void ensureUserHasReadAccessToRecordOrADescendantOf(Record record) {
+		if (!user.hasReadAccess().on(record)) {
+			TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRows(1)
+					.setAlwaysReturnTaxonomyConceptsWithReadAccess(true);
+			if (taxonomiesSearchServices.getVisibleChildConcept(user, record, options).isEmpty()) {
+				throw new CmisPermissionDeniedException($("CmisCollectionRequest_noReadAccess",
+						user.getUsername(), record.getId(), record.getTitle()));
 			}
 		}
 	}

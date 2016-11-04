@@ -1,8 +1,11 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -18,6 +21,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
 public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 
@@ -65,6 +70,7 @@ public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 
 	private ObjectData recordObjectData(String id) {
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(id);
+		ensureUserHasReadAccessToRecordOrADescendantOf(record);
 		return recordObjectData(record);
 	}
 
