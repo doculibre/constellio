@@ -122,7 +122,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.admin(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
-		recordServices.update(users.adminIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
+		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
 		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
@@ -301,7 +301,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<String> users = new ArrayList<>();
 
 		for (Ace ace : aces) {
-			if (!"constellio:removeInheritance".equals(ace.getPrincipalId())) {
+			if (!"constellio:removeInheritance" .equals(ace.getPrincipalId())) {
 				users.add(ace.getPrincipalId());
 			}
 		}

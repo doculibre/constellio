@@ -91,9 +91,6 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 
 			String username = userServices.getTokenUser(serviceKey, token);
 			UserCredential userCredential = userServices.getUserCredential(username);
-			if (!userCredential.isSystemAdmin()) {
-				throw new CmisPermissionDeniedException("User must be a system admin");
-			}
 			return userCredential;
 		} catch (UserServicesRuntimeException e) {
 			throw new CmisExceptions_InvalidLogin();

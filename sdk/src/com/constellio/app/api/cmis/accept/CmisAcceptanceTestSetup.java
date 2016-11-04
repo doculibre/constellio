@@ -132,6 +132,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		}
 	}
 
+	public SchemasSetup withContentMetadata() {
+		typesBuilder.getSchemaType("document").getDefaultSchema().create("content").setType(MetadataValueType.CONTENT);
+		return this;
+	}
+
 	public class DocumentFond implements SchemaShortcuts {
 
 		public MetadataSchemaType type() {

@@ -86,6 +86,17 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenGetParentOfTaxonomyThenRootIsReturned()
+			throws Exception {
+		Record record = zeCollectionRecords.taxo1_category2;
+
+		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), "taxo_taxo1", null, null);
+
+		assertThat(objectDataParent.getId()).isEqualTo("zeCollection");
+	}
+
+	@Test
 	public void whenGetParentOfCategoryThenItIsReturned()
 			throws Exception {
 		Record record = zeCollectionRecords.taxo1_category2;

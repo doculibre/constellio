@@ -16,14 +16,12 @@ public class GetRepositoryInfoRequest extends CmisCollectionRequest<RepositoryIn
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private final String repositoryId;
 	private final ExtensionsData extension;
-	private final CallContext callContext;
 
 	public GetRepositoryInfoRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			String repositoryId, ExtensionsData extension, CallContext callContext) {
-		super(repository, appLayerFactory);
+		super(callContext, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.extension = extension;
-		this.callContext = callContext;
 	}
 
 	@Override

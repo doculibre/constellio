@@ -2,11 +2,14 @@ package com.constellio.model.services.users.sync;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.threads.ConstellioJobManager;
+import com.constellio.data.threads.ConstellioJob;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.services.LDAPServices;
 import com.constellio.model.conf.ldap.services.LDAPServices.LDAPUsersAndGroups;
@@ -14,15 +17,17 @@ import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.users.UserUtils;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.threads.BackgroundThreadConfiguration;
-import com.constellio.data.threads.BackgroundThreadExceptionHandling;
-import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
@@ -40,56 +45,109 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
+    public static final String JOB_NAME = "UserSyncManager";
 	private final LDAPConfigurationManager ldapConfigurationManager;
 	UserServices userServices;
 	GlobalGroupsManager globalGroupsManager;
 	LDAPUserSyncConfiguration userSyncConfiguration;
 	LDAPServerConfiguration serverConfiguration;
-	BackgroundThreadsManager backgroundThreadsManager;
 	boolean processingSynchronizationOfUsers = false;
 
-	public LDAPUserSyncManager(UserServices userServices, GlobalGroupsManager globalGroupsManager,
-			LDAPConfigurationManager ldapConfigurationManager, BackgroundThreadsManager backgroundThreadsManager) {
+    private ConstellioJobManager constellioJobManager;
+
+    public LDAPUserSyncManager(UserServices userServices, GlobalGroupsManager globalGroupsManager,
+			LDAPConfigurationManager ldapConfigurationManager, final ConstellioJobManager constellioJobManager) {
 		this.userServices = userServices;
 		this.globalGroupsManager = globalGroupsManager;
 		this.ldapConfigurationManager = ldapConfigurationManager;
-		this.backgroundThreadsManager = backgroundThreadsManager;
+		this.constellioJobManager = constellioJobManager;
 	}
 
 	@Override
 	public void initialize() {
-		this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
 		this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
-		if (userSyncConfiguration != null && userSyncConfiguration.getDurationBetweenExecution() != null) {
-			configureBackgroundThread();
+
+        this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
+
+        if (!(userSyncConfiguration == null || (userSyncConfiguration.getDurationBetweenExecution() == null && userSyncConfiguration.getScheduleTime() == null))) {
+            scheduleJob();
 		}
 	}
 
 	public void reloadLDAPUserSynchConfiguration() {
-		this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
-		this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
-	}
+        this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
+        this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
+    }
 
 	@Override
 	public void close() {
 	}
 
-	void configureBackgroundThread() {
+    private void scheduleJob() {
+        //
+        final ConstellioJob.Action action = new ConstellioJob.Action() {
+            @Override
+            public void run() {
+                synchronizeIfPossible(new LDAPSynchProgressionInfo());
+            }
+        };
 
-		Runnable synchronizeAction = new Runnable() {
-			@Override
-			public void run() {
-				synchronizeIfPossible(new LDAPSynchProgressionInfo());
-			}
-		};
+        //
+        if (userSyncConfiguration.getDurationBetweenExecution() != null) {
+            final int period = new Long(userSyncConfiguration.getDurationBetweenExecution().getStandardSeconds()).intValue();
 
-		backgroundThreadsManager.configure(BackgroundThreadConfiguration
-				.repeatingAction("UserSyncManager", synchronizeAction)
-				.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
-				.executedEvery(userSyncConfiguration.getDurationBetweenExecution()));
-	}
+            //
+            try {
+                constellioJobManager.addJob(LDAPUserSyncManagerJob.class, JOB_NAME, period, action, false, true);
+            } catch (final SchedulerException e) {
+                LOGGER.error("LDAP users/groups synchronization job can't be scheduled", e);
+            }
 
-	public synchronized void synchronizeIfPossible(){
+            //
+            LOGGER.error("LDAP users/groups synchronization job successfully scheduled");
+        }
+
+        //
+        if (userSyncConfiguration.getScheduleTime() != null) {
+            //
+            final List<LocalTime> scheduleTimeList = new ArrayList(
+                    CollectionUtils.collect(
+                            userSyncConfiguration.getScheduleTime(),
+                            new Transformer() {
+                                @Override
+                                public Object transform(Object input) {
+                                    return DateTimeFormat.forPattern(LDAPUserSyncConfiguration.TIME_PATTERN).parseLocalTime((String) input);
+                                }
+                            }
+                    )
+            );
+
+            final Map<Integer, List<Integer>> minuteHoursMap = new HashMap<>();
+            for (final LocalTime time : scheduleTimeList) {
+                if (!minuteHoursMap.containsKey(time.getMinuteOfHour())) {
+                    minuteHoursMap.put(time.getMinuteOfHour(), new ArrayList<Integer>());
+                }
+                minuteHoursMap.get(time.getMinuteOfHour()).add(time.getHourOfDay());
+            }
+
+            final List<String> cronExpressions = new ArrayList<>();
+            for (final Map.Entry<Integer, List<Integer>> minuteHours : minuteHoursMap.entrySet()) {
+                cronExpressions.add(String.format("0 %d %s ? * *", minuteHours.getKey(), Joiner.on(",").join(minuteHours.getValue())));
+            }
+
+            //
+            try {
+                constellioJobManager.addJob(LDAPUserSyncManagerJob.class, JOB_NAME, cronExpressions, action, false, true);
+            } catch (final SchedulerException e) {
+                LOGGER.error("LDAP users/groups synchronization job can't be scheduled.", e);
+            }
+
+            //
+            LOGGER.error("LDAP users/groups synchronization job successfully scheduled.");
+        }
+    }
+
+    public synchronized void synchronizeIfPossible(){
 		synchronizeIfPossible(null);
 	}
 
@@ -132,7 +190,6 @@ public class LDAPUserSyncManager implements StatefulService {
 
 			usersIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getUsersNames());
 			groupsIdsAfterSynchronisation.addAll(updatedUsersAndGroups.getGroupsCodes());
-
 		}
 
 		//remove inexistingUsers
@@ -204,7 +261,7 @@ public class LDAPUserSyncManager implements StatefulService {
 			usersAutomaticallyAddedToCollections = new HashSet<>();
 		}
 		return userServices.createGlobalGroup(
-				code, name, new ArrayList<>(usersAutomaticallyAddedToCollections), null, GlobalGroupStatus.ACTIVE);
+				code, name, new ArrayList<>(usersAutomaticallyAddedToCollections), null, GlobalGroupStatus.ACTIVE, false);
 	}
 
 	private UserCredential createUserCredentialsFromLdapUser(LDAPUser ldapUser, List<String> selectedCollectionsCodes) {
@@ -280,18 +337,42 @@ public class LDAPUserSyncManager implements StatefulService {
 	}
 
 	private void removeGroups(List<String> removedGroupsIds) {
-		UserCredential admin = userServices.getUser(LDAPAuthenticationService.ADMIN_USERNAME);
+		final UserCredential adminUserCredential = userServices.getUser(LDAPAuthenticationService.ADMIN_USERNAME);
+
 		for (String groupId : removedGroupsIds) {
 			GlobalGroup group = userServices.getGroup(groupId);
-			userServices.logicallyRemoveGroupHierarchy(admin, group);
+			userServices.logicallyRemoveGroupHierarchy(adminUserCredential, group);
 		}
+	}
+
+	private void removeGroupsHavingOnlyDisabledUsers(final List<String> groupCodeList) {
+        final UserCredential adminUserCredential = userServices.getUser(LDAPAuthenticationService.ADMIN_USERNAME);
+
+        for (final String groupCode : groupCodeList) {
+            final HashSet userCredentialStatusSet = new HashSet<>(CollectionUtils.collect(
+                    userServices.getGlobalGroupActifUsers(groupCode),
+                    new Transformer() {
+                        @Override
+                        public Object transform(Object input) {
+                            return ((UserCredential) input).getStatus();
+                        }
+                    }
+            ));
+
+            if (!userCredentialStatusSet.contains(UserCredentialStatus.ACTIVE)) {
+                userServices.logicallyRemoveGroupHierarchy(adminUserCredential, userServices.getGroup(groupCode));
+            }
+
+        }
 	}
 
 	private List<String> getGroupsIds() {
 		List<String> groups = new ArrayList<>();
 		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
 		for (GlobalGroup globalGroup : globalGroups) {
-			groups.add(globalGroup.getCode());
+            if (!globalGroup.isLocallyCreated()) {
+                groups.add(globalGroup.getCode());
+            }
 		}
 		return groups;
 	}
@@ -309,7 +390,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		return this.processingSynchronizationOfUsers;
 	}
 
-	private class UpdatedUsersAndGroups {
+    private class UpdatedUsersAndGroups {
 
 		private Set<String> usersNames = new HashSet<>();
 		private Set<String> groupsCodes = new HashSet<>();
@@ -343,4 +424,7 @@ public class LDAPUserSyncManager implements StatefulService {
 			}
 		}
 	}
+
+    public static class LDAPUserSyncManagerJob extends ConstellioJob {
+    }
 }

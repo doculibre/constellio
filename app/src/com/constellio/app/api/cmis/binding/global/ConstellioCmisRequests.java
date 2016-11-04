@@ -233,7 +233,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	@Override
 	public void deleteObjectOrCancelCheckOut(String repositoryId, String objectId, Boolean allVersions,
 			ExtensionsData extension) {
-		new DeleteObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
+		new DeleteObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(), objectId)
 				.processRequest();
 	}
 
@@ -359,9 +359,8 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public void cancelCheckOut(String repositoryId, String objectId, ExtensionsData extension) {
-		new CancelCheckOutUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, repositoryId,
-				objectId,
-				extension).processRequest();
+		new CancelCheckOutUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
+				repositoryId, objectId, extension).processRequest();
 	}
 
 	@Override
@@ -393,7 +392,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions, ExtensionsData extension) {
-		return new GetAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
+		return new GetAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(), objectId)
 				.processRequest();
 	}
 

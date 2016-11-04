@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -31,7 +32,6 @@ import com.constellio.model.services.records.RecordServicesException;
 public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocument> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final Properties properties;
 	private final String folderId;
 	private final ContentStream contentStream;
@@ -40,8 +40,7 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 	public CreateDocumentRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, Properties properties, String folderId, ContentStream contentStream,
 			VersioningState versioningState) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.properties = properties;
 		this.folderId = folderId;
 		this.contentStream = contentStream;
@@ -53,14 +52,12 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 			throws ConstellioCmisException {
 
 		String metadataLocalCode = (String) properties.getProperties().get("metadata").getFirstValue();
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
 
-		Record record = modelLayerFactory.newRecordServices().getDocumentById(folderId);
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(record.getCollection());
-		MetadataSchema metadataSchema = types.getSchema(record.getSchemaCode());
+		Record record = recordServices.getDocumentById(folderId);
+		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_CREATE_DOCUMENT);
+		MetadataSchema metadataSchema = types().getSchema(record.getSchemaCode());
 		Metadata metadata = metadataSchema.getMetadata(metadataLocalCode);
 
-		ContentManager contentManager = modelLayerFactory.getContentManager();
 		Content content;
 		ContentVersionDataSummary dataSummary = contentManager.upload(contentStream.getStream());
 		if (versioningState == VersioningState.MAJOR) {
@@ -79,7 +76,7 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 			record.set(metadata, content);
 		}
 		try {
-			modelLayerFactory.newRecordServices().update(record);
+			recordServices.update(record);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}

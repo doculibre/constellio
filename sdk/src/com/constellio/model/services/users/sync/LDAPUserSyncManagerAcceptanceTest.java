@@ -4,11 +4,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import com.constellio.model.conf.ldap.RegexFilter;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Transformer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -329,7 +329,7 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		assertThat(currentGroups).containsOnly(groupB, groupC);
 		List<String> usersAutomaticallyAddedToCollections = Collections.emptyList();
 		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
-				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE));
+				groupA, groupA, usersAutomaticallyAddedToCollections, null, GlobalGroupStatus.ACTIVE, true));
 		bfay = bfay.withGlobalGroups(asList(groupA, groupB));
 		userServices.addUpdateUserCredential(bfay);
 		currentGroups = bfay.getGlobalGroups();
@@ -349,9 +349,14 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 		ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(ldapUserSyncConfiguration.getUser(),
 				ldapUserSyncConfiguration.getPassword(),
-				ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getGroupFilter(),
-				ldapUserSyncConfiguration.getDurationBetweenExecution(), ldapUserSyncConfiguration.getGroupBaseContextList(),
-				Arrays.asList("OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca"));
+				ldapUserSyncConfiguration.getUserFilter(),
+				ldapUserSyncConfiguration.getGroupFilter(),
+				ldapUserSyncConfiguration.getDurationBetweenExecution(),
+				ldapUserSyncConfiguration.getScheduleTime(),
+				ldapUserSyncConfiguration.getGroupBaseContextList(),
+				Arrays.asList("OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca"),
+                ldapUserSyncConfiguration.getUserFilterGroupsList(),
+				ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated());
 		getModelLayerFactory().getLdapConfigurationManager()
 				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 
@@ -363,4 +368,135 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(allUsers.size()).isGreaterThan(3000);
 	}
+
+	@Test
+    public void givenMembershipAutomaticDerivationOptionDisabled_WhenSyncing_ThenUsersAndGroupsImportAreDecoupledNotFilteredByGroupSearchBaseContext()
+            throws Exception {
+        // Given
+        final LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+
+        getModelLayerFactory().
+                getLdapConfigurationManager().
+                saveLDAPConfiguration(
+                        LDAPTestConfig.getLDAPServerConfiguration(),
+                        new LDAPUserSyncConfiguration(
+                                ldapUserSyncConfiguration.getUser(),
+                                ldapUserSyncConfiguration.getPassword(),
+                                new RegexFilter(
+                                        "",
+                                        "Sharepoint.*"
+                                ),
+                                new RegexFilter(
+                                        "",
+                                        "group105"
+                                ),
+                                ldapUserSyncConfiguration.getDurationBetweenExecution(),
+                                ldapUserSyncConfiguration.getScheduleTime(),
+                                Arrays.asList(
+                                        "CN=group100,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+                                        "CN=group101,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+                                        "CN=group102,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+                                        "CN=group103,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+                                        "CN=group104,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca",
+                                        "CN=group105,OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca"
+                                ),
+                                Arrays.asList(
+                                        "CN=Users,DC=test,DC=doculibre,DC=ca"
+                                ),
+                                Arrays.asList(
+                                        "CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
+                                ),
+                                false
+                        )
+                );
+
+        // When
+        getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
+
+        // Then
+        final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(userCredentialsManager.getUserCredentials(), new Transformer() {
+            @Override
+            public Object transform(Object input) {
+                return ((UserCredential) input).getUsername();
+            }
+        }));
+        assertThat(userNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
+                // Users imported based on users search base, user groups filter and users regex search filter
+                "admin", "bgagnon", "vdq2"})));
+
+        final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(globalGroupsManager.getAllGroups(), new Transformer() {
+            @Override
+            public Object transform(Object input) {
+                return ((GlobalGroup) input).getName();
+            }
+        }));
+        assertThat(groupNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
+                // Groups derived from imported users
+                "Second sharepoint group", "Sharepoint Groups Test",
+                // Groups imported based on groups search base and groups search filter
+                "group100", "group101", "group102", "group103", "group104"})));
+    }
+
+    @Test
+    public void givenMembershipAutomaticDerivationOptionDisabled_WhenSyncing_ThenEmptyGroupAreImported()
+            throws Exception {
+        // Given
+        final LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+
+        getModelLayerFactory().
+                getLdapConfigurationManager().
+                saveLDAPConfiguration(
+                        LDAPTestConfig.getLDAPServerConfiguration(),
+                        new LDAPUserSyncConfiguration(
+                                ldapUserSyncConfiguration.getUser(),
+                                ldapUserSyncConfiguration.getPassword(),
+                                new RegexFilter(
+                                        "",
+                                        ""
+                                ),
+                                new RegexFilter(
+                                        "",
+                                        ""
+                                ),
+                                ldapUserSyncConfiguration.getDurationBetweenExecution(),
+                                ldapUserSyncConfiguration.getScheduleTime(),
+                                Arrays.asList(
+                                        "CN=emptyGroup,OU=Departement4,OU=doculibre,DC=test,DC=doculibre,DC=ca"
+                                ),
+                                Arrays.asList(
+                                        "CN=Users,DC=test,DC=doculibre,DC=ca"
+                                ),
+                                Arrays.asList(
+                                        "CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
+                                ),
+                                false
+                        )
+                );
+
+        // When
+        getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
+
+        // Then
+        final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(userCredentialsManager.getUserCredentials(), new Transformer() {
+            @Override
+            public Object transform(Object input) {
+                return ((UserCredential) input).getUsername();
+            }
+        }));
+        assertThat(userNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
+                // Users imported based on users search base, user groups filter and users regex search filter
+                "admin", "bgagnon", "sharepointtest", "vdq2"})));
+
+        final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(globalGroupsManager.getAllGroups(), new Transformer() {
+            @Override
+            public Object transform(Object input) {
+                return ((GlobalGroup) input).getName();
+            }
+        }));
+        assertThat(groupNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
+                // Groups derived from imported users
+                "Second sharepoint group", "Sharepoint Groups Test",
+                // Groups imported based on groups search base and groups search filter
+                "emptyGroup"})));
+    }
 }

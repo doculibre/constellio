@@ -182,4 +182,23 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		assertThat(ldapUserSyncConfiguration.getUser()).isNull();
 		assertThat(ldapUserSyncConfiguration.getPassword()).isNull();
 	}
+
+	@Test
+	public void givenConfigWithScheduleTimeWhenSavedThenCorrectlySaved() throws Exception {
+        // Given
+		final LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+
+        final List<String> scheduleTimeList = Arrays.asList(new String[] {"0;00", "12:00"});
+		ldapUserSyncConfiguration.setScheduleTime(scheduleTimeList);
+
+        // When
+		ldapConfigManager.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+
+        // Then
+		assertThat(ldapConfigManager.isLDAPAuthentication()).isEqualTo(true);
+		assertThat(ldapConfigManager.idUsersSynchActivated()).isEqualTo(false);
+		assertThat(ldapConfigManager.getLDAPUserSyncConfiguration().getScheduleTime()).isEqualTo(scheduleTimeList);
+	}
 }

@@ -138,8 +138,8 @@ public class UserServices {
 	}
 
 	public GlobalGroup createGlobalGroup(
-			String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
-		return globalGroupsManager.create(code, name, collections, parent, status);
+			String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return globalGroupsManager.create(code, name, collections, parent, status, locallyCreated);
 	}
 
 	public void addUpdateGlobalGroup(GlobalGroup globalGroup) {

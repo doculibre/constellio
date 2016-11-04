@@ -13,17 +13,19 @@ public class XmlGlobalGroup implements GlobalGroup {
 	final String name;
 	final List<String> usersAutomaticallyAddedToCollections;
 	final GlobalGroupStatus status;
+    final boolean locallyCreated;
 
-	public XmlGlobalGroup(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
+	public XmlGlobalGroup(String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
 		this.code = code;
 		this.name = name;
 		this.usersAutomaticallyAddedToCollections = Collections.unmodifiableList(collections);
 		this.parent = parent;
 		this.status = status;
+        this.locallyCreated = locallyCreated;
 	}
 
-	public XmlGlobalGroup(String code, String parent, GlobalGroupStatus status) {
-		this(code, code, Collections.<String>emptyList(), parent, status);
+	public XmlGlobalGroup(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		this(code, code, Collections.<String>emptyList(), parent, status, locallyCreated);
 	}
 
 	@Override
@@ -51,29 +53,39 @@ public class XmlGlobalGroup implements GlobalGroup {
 		return status;
 	}
 
-	@Override
+    @Override
 	public GlobalGroup withName(String name) {
-		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
+		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
 	}
 
 	@Override
 	public GlobalGroup withUsersAutomaticallyAddedToCollections(List<String> usersAutomaticallyAddedToCollections) {
-		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
+		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
 	}
 
 	@Override
 	public GlobalGroup withStatus(GlobalGroupStatus status) {
-		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status);
+		return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
 	}
 
 	@Override
 	public GlobalGroup withRemovedCollection(String collection) {
 		List<String> collections = new ArrayList<>(usersAutomaticallyAddedToCollections);
 		collections.remove(collection);
-		return new XmlGlobalGroup(code, name, collections, parent, status);
+		return new XmlGlobalGroup(code, name, collections, parent, status, locallyCreated);
 	}
 
-	@Override
+    @Override
+    public boolean isLocallyCreated() {
+        return locallyCreated;
+    }
+
+    @Override
+    public GlobalGroup withLocallyCreated(boolean locallyCreated) {
+        return new XmlGlobalGroup(code, name, usersAutomaticallyAddedToCollections, parent, status, locallyCreated);
+    }
+
+    @Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
 	}

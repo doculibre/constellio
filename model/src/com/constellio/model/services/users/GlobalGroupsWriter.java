@@ -23,6 +23,7 @@ public class GlobalGroupsWriter {
 	private static final String GLOBAL_GROUPS = "globalGroups";
 	public static final String PARENT = "parent";
 	public static final String STATUS = "status";
+	public static final String LOCALLY_CREATED = "locallyCreated";
 	Document document;
 
 	public GlobalGroupsWriter(Document document) {
@@ -62,6 +63,7 @@ public class GlobalGroupsWriter {
 		Element parentElement = new Element(PARENT).setText(globalGroup.getParent());
 		Element statusElement = new Element(STATUS).setText(globalGroup.getStatus().name());
 		Element globalGroupElement = new Element(GLOBAL_GROUP).setAttribute(CODE, globalGroup.getCode());
+		Element locallyCreated = new Element(LOCALLY_CREATED).setText(globalGroup.getCode());
 
 		globalGroupElement.addContent(nameElement);
 		globalGroupElement.addContent(parentElement);

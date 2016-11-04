@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +19,8 @@ public class CancelCheckOutUnsupportedRequest extends CmisCollectionRequest<Bool
 	ExtensionsData extension;
 
 	public CancelCheckOutUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			String repositoryId, String objectId,
-			ExtensionsData extension) {
-		super(repository, appLayerFactory);
+			CallContext callContext, String repositoryId, String objectId, ExtensionsData extension) {
+		super(callContext, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
 		this.extension = extension;

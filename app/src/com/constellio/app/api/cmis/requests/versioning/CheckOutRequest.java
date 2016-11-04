@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -27,14 +28,12 @@ public class CheckOutRequest extends CmisCollectionRequest<Boolean> {
 	Holder<String> objectId;
 	ExtensionsData extension;
 	Holder<Boolean> contentCopied;
-	private CallContext context;
 
 	public CheckOutRequest(ConstellioCollectionRepository repository, CallContext context,
 			AppLayerFactory appLayerFactory,
 			String repositoryId,
 			Holder<String> objectId, ExtensionsData extension, Holder<Boolean> contentCopied) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
 		this.extension = extension;
@@ -45,10 +44,12 @@ public class CheckOutRequest extends CmisCollectionRequest<Boolean> {
 	protected Boolean process()
 			throws ConstellioCmisException {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(repository.getCollection());
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		ContentCmisDocument content = CmisContentUtils.getContent(objectId.getValue(), recordServices, types);
 
-		Content pwcContent = content.getContent().checkOut((User) context.get(ConstellioCmisContextParameters.USER));
+		ensureUserHasAllowableActionsOnRecord(content.getRecord(), Action.CAN_CHECK_OUT);
+
+		Content pwcContent = content.getContent().checkOut(user);
 		ContentCmisDocument updatedContent = CmisContentUtils.getContent(objectId.getValue(), recordServices, types);
 
 		try {

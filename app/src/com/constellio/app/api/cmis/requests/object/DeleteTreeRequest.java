@@ -3,6 +3,7 @@ package com.constellio.app.api.cmis.requests.object;
 import java.util.ArrayList;
 
 import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -23,24 +24,18 @@ public class DeleteTreeRequest extends CmisCollectionRequest<FailedToDeleteData>
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private final String folderId;
 	private final Boolean continueOnFailure;
-	private final CallContext context;
 
 	public DeleteTreeRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context,
-			String folderId, Boolean continueOnFailure) {
-		super(repository, appLayerFactory);
-		this.context = context;
+			CallContext context, String folderId, Boolean continueOnFailure) {
+		super(context, repository, appLayerFactory);
 		this.folderId = folderId;
 		this.continueOnFailure = continueOnFailure;
 	}
 
 	@Override
 	public FailedToDeleteData process() {
-
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
 		Record record = recordServices.getDocumentById(folderId, user);
-
+		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_DELETE_TREE);
 		recordServices.logicallyDelete(record, user);
 
 		try {

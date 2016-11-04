@@ -56,6 +56,7 @@ import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
@@ -113,7 +114,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock CollectionsListManager collectionsListManager;
 	@Mock RecordPopulateServices recordPopulateServices;
 	@Mock Factory<EncryptionServices> encryptionServiceFactory;
-
+	@Mock AuthorizationsServices authorizationServices;
 	ModelLayerExtensions extensions = new ModelLayerExtensions();
 
 	long firstVersion = anInteger();
@@ -190,6 +191,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Mock CollectionsManager collectionsManager;
 
 	MetadataSchemaTypes metadataSchemaTypes;
+	@Mock MetadataSchemaType metadataSchemaType;
 
 	@Before
 	public void setUp()
@@ -207,11 +209,6 @@ public class RecordServicesTest extends ConstellioTest {
 				return "" + (++i);
 			}
 		};
-
-		recordServices = spy(
-				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
-						uniqueIdGenerator, recordsCaches));
-		doNothing().when(recordServices).sleep(anyLong());
 
 		doReturn(recordPopulateServices).when(modelFactory).newRecordPopulateServices();
 
@@ -245,6 +242,11 @@ public class RecordServicesTest extends ConstellioTest {
 		when(modelFactory.getExtensions()).thenReturn(extensions);
 
 		when(collectionsManager.getCollectionLanguages(zeCollection)).thenReturn(Arrays.asList("fr", "en"));
+
+		recordServices = spy(
+				(RecordServicesImpl) new RecordServicesImpl(recordDao, eventsDao, notificationsDao, modelFactory, typesFactory,
+						uniqueIdGenerator, recordsCaches));
+		doNothing().when(recordServices).sleep(anyLong());
 
 		doReturn(validationServices).when(recordServices).newRecordValidationServices(any(RecordProvider.class));
 		doReturn(automaticMetadataServices).when(recordServices).newAutomaticMetadataServices();
@@ -323,27 +325,48 @@ public class RecordServicesTest extends ConstellioTest {
 
 	@SuppressWarnings("unchecked")
 	@Test(expected = UserCannotReadDocument.class)
-	public void givenUnauthorizedIdWhenGetDocumentByIdThenThrowException()
+	public void givenUnauthorizedAccessWhenGetDocumentByIdThenThrowException()
 			throws Exception {
 		User theUser = mock(User.class, "theUser");
 
 		when(recordDao.get(theId)).thenReturn(recordDTO);
-		AuthorizationsServices authorizationServices = mock(AuthorizationsServices.class);
 		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
 		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
+
+		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
+		when(metadataSchemaType.hasSecurity()).thenReturn(true);
 
 		recordServices.getDocumentById(theId, theUser);
 	}
 
 	@Test
-	public void givenAuthorizedIdWhenGetDocumentByIdThenRecordReturned()
+	public void givenAuthorizedAccessWhenGetDocumentByIdThenRecordReturned()
 			throws Exception {
 		User theUser = mock(User.class, "theUser");
 
 		when(recordDao.get(theId)).thenReturn(recordDTO);
-		AuthorizationsServices authorizationServices = mock(AuthorizationsServices.class);
+
 		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(true);
 		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
+
+		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
+		when(metadataSchemaType.hasSecurity()).thenReturn(true);
+
+		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
+	}
+
+	@Test
+	public void givenRecordOfSchemaTypeWithoutSecurityWhenGetDocumentByIdThenRecordReturned()
+			throws Exception {
+		User theUser = mock(User.class, "theUser");
+
+		when(recordDao.get(theId)).thenReturn(recordDTO);
+
+		when(authorizationServices.canRead(eq(theUser), any(Record.class))).thenReturn(false);
+		when(modelFactory.newAuthorizationsServices()).thenReturn(authorizationServices);
+
+		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
+		when(metadataSchemaType.hasSecurity()).thenReturn(false);
 
 		assertThat(recordServices.getDocumentById(theId, theUser)).isNotNull();
 	}

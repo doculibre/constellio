@@ -67,8 +67,6 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 			throws Exception {
 		CmisObject objectData = cmisSession.getObjectByPath("/");
 
-		// assertThat(objectData.getProperties().getProperties().get("cmis:path").getFirstValue()).isEqualTo("/");
-
 		assertThat(objectData).has(property("cmis:path", "/"));
 	}
 

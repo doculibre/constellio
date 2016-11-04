@@ -40,7 +40,7 @@ import com.microsoft.aad.adal4j.AuthenticationResult;
 import com.microsoft.aad.adal4j.ClientCredential;
 
 public class AzureADServices implements LDAPServices {
-	Logger LOGGER = LoggerFactory.getLogger(LDAPServicesImpl.class);
+	private Logger LOGGER = LoggerFactory.getLogger(LDAPServicesImpl.class);
 
 	@Override
 	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
@@ -185,7 +185,7 @@ public class AzureADServices implements LDAPServices {
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			JSONArray groupsJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-			for (int i = 0, jsonArrayLength = groupsJsonArray.length(); i < jsonArrayLength; i++) {
+			for (int i = 0, groupsJsonArrayLength = groupsJsonArray.length(); i < groupsJsonArrayLength; i++) {
 				try {
 					JSONObject groupJsonObject = groupsJsonArray.getJSONObject(i);
 					LDAPGroup ldapGroup = createLDAPGroupFromJsonObject(groupJsonObject);
@@ -199,8 +199,7 @@ public class AzureADServices implements LDAPServices {
 						if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 							JSONArray groupMembersJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-							for (int j = 0, groupMembersJsonArrayLength = groupMembersJsonArray.length();
-								 j < groupMembersJsonArrayLength; j++) {
+							for (int j = 0, groupMembersJsonArrayLength = groupMembersJsonArray.length(); j < groupMembersJsonArrayLength; j++) {
 								String groupMemberUrl = groupMembersJsonArray.getJSONObject(i).optString("url");
 								if (groupMemberUrl.endsWith("Microsoft.DirectoryServices.User")) {
 									response = getObjectResponseByUrl(client, groupMemberUrl, accessToken);
@@ -216,8 +215,7 @@ public class AzureADServices implements LDAPServices {
 								}
 							}
 						} else {
-							LOGGER.error(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message")
-									.optString("value"));
+							LOGGER.error(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
 						}
 					}
 				} catch (JSONException e) {
@@ -233,7 +231,7 @@ public class AzureADServices implements LDAPServices {
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			JSONArray usersJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-			for (int i = 0, jsonArrayLength = usersJsonArray.length(); i < jsonArrayLength; i++) {
+			for (int i = 0, usersJsonArrayLength = usersJsonArray.length(); i < usersJsonArrayLength; i++) {
 				try {
 					JSONObject userJsonObject = usersJsonArray.getJSONObject(i);
 					LDAPUser ldapUser = createLDAPUserFromJsonObject(userJsonObject);
@@ -248,7 +246,7 @@ public class AzureADServices implements LDAPServices {
 						if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 							JSONArray userGroupJsonArray = new JSONObject(responseText).getJSONArray("value");
 
-							for (int j = 0;	 j < userGroupJsonArray.length(); j++) {
+							for (int j = 0, userGroupJsonArrayLength = userGroupJsonArray.length();	 j < userGroupJsonArrayLength; j++) {
 								String userGroupUrl = "";
 								try{
 									JSONObject object = userGroupJsonArray.getJSONObject(i);
@@ -274,8 +272,7 @@ public class AzureADServices implements LDAPServices {
 								}
 							}
 						} else {
-							LOGGER.error(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message")
-									.optString("value"));
+							LOGGER.error(new JSONObject(responseText).optJSONObject("odata.error").optJSONObject("message").optString("value"));
 						}
 					}
 				} catch (JSONException e) {

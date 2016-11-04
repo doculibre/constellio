@@ -47,6 +47,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
 
+	public static final SystemConfiguration ICAP_SERVER_URL;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(USER_TITLE_PATTERN = others.createString("userTitlePattern").scriptedBy(UserTitlePatternConfigScript.class)
@@ -88,6 +90,8 @@ public class ConstellioEIMConfigs {
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
 				.scriptedBy(WriteZZRecordsScript.class));
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
+
+		add(ICAP_SERVER_URL = others.createString("icapServerUrl"));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -142,7 +146,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(DATE_TIME_FORMAT);
 	}
 
-	public Integer getTrashPurgeDelai(){
+	public Integer getTrashPurgeDelai() {
 		return manager.getValue(TRASH_PURGE_DELAI);
 	}
 
@@ -152,6 +156,10 @@ public class ConstellioEIMConfigs {
 
 	public SearchSortType getSearchSortType() {
 		return manager.getValue(SEARCH_SORT_TYPE);
+	}
+
+	public Boolean isCmisNeverReturnAcl() {
+		return manager.getValue(CMIS_NEVER_RETURN_ACL);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {
@@ -166,4 +174,8 @@ public class ConstellioEIMConfigs {
 		}
 
 	}
+
+    public String getIcapServerUrl() {
+        return manager.getValue(ICAP_SERVER_URL);
+    }
 }
