@@ -278,6 +278,10 @@ public class i18n {
 		for (ValidationError error : errors.getValidationErrors()) {
 			messages.add($(error));
 		}
+
+		for (ValidationError error : errors.getValidationWarnings()) {
+			messages.add($(error));
+		}
 		return messages;
 	}
 
