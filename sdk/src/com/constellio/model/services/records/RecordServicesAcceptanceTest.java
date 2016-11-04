@@ -78,7 +78,6 @@ import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordServicesAcceptanceTest extends ConstellioTest {
@@ -1023,7 +1022,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenUpdateARecordAReferenceToANewRecord()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema());
+		defineSchemasManager().using(schemas.withAParentReferenceFromAnotherSchemaToZeSchema());
 
 		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
 		recordServices.add(anotherSchemaRecord);

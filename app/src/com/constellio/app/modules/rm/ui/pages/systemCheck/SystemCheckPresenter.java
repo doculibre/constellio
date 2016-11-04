@@ -8,8 +8,8 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 
 public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
-
-	private boolean systemCheckStarted = false;
+	
+	private boolean buttonsDisabled = false;
 
 	public SystemCheckPresenter(SystemCheckView view) {
 		super(view);
@@ -19,53 +19,51 @@ public class SystemCheckPresenter extends BasePresenter<SystemCheckView> {
 			SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 	}
-
+	
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return userServices().getUser(user.getUsername()).isSystemAdmin();
 	}
-
+	
 	SystemCheckManager getSystemCheckManager() {
 		return appLayerFactory.getSystemCheckManager();
 	}
-
+	
 	void viewAssembled() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
-		systemCheckStarted = systemCheckManager.isSystemCheckResultsRunning();
-		view.setSystemCheckRunning(systemCheckStarted);
+		buttonsDisabled = systemCheckManager.isSystemCheckResultsRunning();
+		view.setSystemCheckRunning(buttonsDisabled);
 		if (systemCheckManager.getLastSystemCheckResults() != null) {
 			String reportContent = new SystemCheckReportBuilder(systemCheckManager).build();
 			view.setReportContent(reportContent);
 		}
 	}
-
+	
 	void startSystemCheckButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(false);
 		view.setSystemCheckRunning(true);
-		systemCheckStarted = true;
+		buttonsDisabled = true;
 	}
-
+	
 	void startSystemCheckAndRepairButtonClicked() {
 		SystemCheckManager systemCheckManager = getSystemCheckManager();
 		systemCheckManager.startSystemCheck(true);
 		view.setSystemCheckRunning(true);
-		systemCheckStarted = true;
+		buttonsDisabled = true;
 	}
-
+	
 	void viewRefreshed() {
-		if (systemCheckStarted) {
-			SystemCheckManager systemCheckManager = getSystemCheckManager();
-			boolean systemCheckRunning = systemCheckManager.isSystemCheckResultsRunning();
-			if (!systemCheckRunning) {
-				String reportContent = new SystemCheckReportBuilder(systemCheckManager).build();
-				view.setReportContent(reportContent);
-				view.setSystemCheckRunning(false);
-				systemCheckRunning = false;
-			}
+		SystemCheckManager systemCheckManager = getSystemCheckManager();
+		boolean systemCheckRunning = systemCheckManager.isSystemCheckResultsRunning();
+		if (buttonsDisabled != systemCheckRunning) {
+			String reportContent = new SystemCheckReportBuilder(systemCheckManager).build();
+			view.setReportContent(reportContent);
+			view.setSystemCheckRunning(false);
+			buttonsDisabled = false;
 		}
 	}
-
+	
 	void backButtonClicked() {
 		view.navigate().to().adminModule();
 	}
