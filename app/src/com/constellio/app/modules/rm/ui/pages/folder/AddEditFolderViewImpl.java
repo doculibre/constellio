@@ -47,9 +47,17 @@ public class AddEditFolderViewImpl extends BaseViewImpl implements AddEditFolder
 	protected String getTitle() {
 		String titleKey;
 		if (presenter.isAddView()) {
-			titleKey = "AddEditFolderView.addViewTitle";
+			if (presenter.isSubfolder()) {
+				titleKey = "AddEditFolderView.addSubFolderViewTitle";
+			} else {
+				titleKey = "AddEditFolderView.addViewTitle";
+			}
 		} else {
-			titleKey = "AddEditFolderView.editViewTitle";
+			if (presenter.isSubfolder()) {
+				titleKey = "AddEditFolderView.editSubFolderViewTitle";
+			} else {
+				titleKey = "AddEditFolderView.editViewTitle";
+			}
 		}
 		return $(titleKey);
 	}

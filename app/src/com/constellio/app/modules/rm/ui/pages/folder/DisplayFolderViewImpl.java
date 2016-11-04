@@ -823,7 +823,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void openDocumenContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
+	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
 		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO));
 		UI.getCurrent().addWindow(documentVersionWindow);
 	}
@@ -833,10 +833,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		documentVersionWindow.close();
 	}
 
-	@Override
-	public void openAgentURL(String agentURL) {
-		Page.getCurrent().open(agentURL, null);
-	}
+//	@Override
+//	public void openAgentURL(String agentURL) {
+//		Page.getCurrent().open(agentURL, null);
+//	}
 
 	@Override
 	public void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO) {

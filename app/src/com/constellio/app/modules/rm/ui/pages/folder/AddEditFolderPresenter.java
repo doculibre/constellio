@@ -1,6 +1,19 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,9 +64,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
     private static final String ID = "id";
@@ -189,6 +207,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	public void viewAssembled() {
 		adjustCustomFields(null, true);
 	}
+	
+	public boolean isSubfolder() {
+		return folderHadAParent;
+	}
 
 	public boolean isAddView() {
 		return addView;
@@ -244,8 +266,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String currentSchemaCode = getSchemaCode();
 		String folderTypeRecordId = getTypeFieldValue();
 		if (StringUtils.isNotBlank(folderTypeRecordId)) {
-			String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices
-					.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
+			String schemaCodeForFolderTypeRecordId = rmSchemasRecordsServices.getSchemaCodeForFolderTypeRecordId(folderTypeRecordId);
 			if (schemaCodeForFolderTypeRecordId != null) {
 				reload = !currentSchemaCode.equals(schemaCodeForFolderTypeRecordId);
 			} else
@@ -318,7 +339,42 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private boolean isFieldRequired(String metadataCode) {
-		return folderVO.getMetadata(metadataCode).isRequired();
+		MetadataVO metadataVO = folderVO.getMetadata(metadataCode);
+		String adjustedMetadataCode;
+		switch (metadataCode) {
+		case ADMINISTRATIVE_UNIT_ENTERED:
+			adjustedMetadataCode = ADMINISTRATIVE_UNIT;
+			break;
+		case CATEGORY_ENTERED:
+			adjustedMetadataCode = CATEGORY;
+			break;
+		case UNIFORM_SUBDIVISION_ENTERED:
+			adjustedMetadataCode = UNIFORM_SUBDIVISION;
+			break;
+		case RETENTION_RULE_ENTERED:
+			adjustedMetadataCode = RETENTION_RULE;
+			break;
+		case COPY_STATUS_ENTERED:
+			adjustedMetadataCode = COPY_STATUS;
+			break;
+		case MAIN_COPY_RULE_ID_ENTERED:
+			adjustedMetadataCode = MAIN_COPY_RULE;
+			break;
+		default:
+			adjustedMetadataCode = metadataCode;
+		}
+		
+		MetadataSchema folderSchema;
+		String folderTypeRecordId = getTypeFieldValue();
+		if (StringUtils.isNotBlank(folderTypeRecordId)) {
+			folderSchema = rmSchemasRecordsServices.folderSchemaFor(folderTypeRecordId);
+			if (folderSchema == null) {
+				folderSchema = rmSchemasRecordsServices.defaultFolderSchema();
+			}
+		} else {
+			folderSchema = rmSchemasRecordsServices.defaultFolderSchema();
+		}
+		return folderSchema.get(adjustedMetadataCode).isDefaultRequirement();
 	}
 
 	private void setFieldVisible(CustomFolderField<?> field, boolean visible, String metadataCode) {
@@ -707,5 +763,27 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	@Override
+	protected Record newRecord() {
+		Record record = super.newRecord();
+        Folder folder = rmSchemas().wrapFolder(record);
+        folder.setOpenDate(new LocalDate());
+        
+        // If the current user is only attached to one administrative unit, set it as the field value.
+        User currentUser = getCurrentUser();
+        SearchServices searchServices = searchServices();
+        MetadataSchemaTypes types = types();
+        MetadataSchemaType administrativeUnitSchemaType = types.getSchemaType(AdministrativeUnit.SCHEMA_TYPE);
+        LogicalSearchQuery visibleAdministrativeUnitsQuery = new LogicalSearchQuery();
+        visibleAdministrativeUnitsQuery.filteredWithUserWrite(currentUser);
+        LogicalSearchCondition visibleAdministrativeUnitsCondition = from(administrativeUnitSchemaType).returnAll();
+        visibleAdministrativeUnitsQuery.setCondition(visibleAdministrativeUnitsCondition);
+        if (searchServices.getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
+        	Record defaultAdministrativeUnitRecord = searchServices.search(visibleAdministrativeUnitsQuery).get(0);
+        	folder.setAdministrativeUnitEntered(defaultAdministrativeUnitRecord);
+        }
+		return record;
 	}
 }

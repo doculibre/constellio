@@ -56,11 +56,11 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void refreshFolderContentTab();
 
-	void openDocumenContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO);
+	void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO);
 
 	void closeDocumentContentVersionWindow();
 
-	void openAgentURL(String agentURL);
+//	void openAgentURL(String agentURL);
 
 	void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO);
 	

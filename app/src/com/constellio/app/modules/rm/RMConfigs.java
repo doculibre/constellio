@@ -61,7 +61,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -194,6 +194,8 @@ public class RMConfigs {
 		add(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS = agent.createInteger("backupRetentionPeriodInDays").withDefaultValue(30));
 
 		add(AGENT_TOKEN_DURATION_IN_HOURS = agent.createInteger("tokenDurationInHours").withDefaultValue(10));
+
+		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -361,6 +363,10 @@ public class RMConfigs {
 
 	public int getAgentTokenDurationInHours() {
 		return manager.getValue(AGENT_TOKEN_DURATION_IN_HOURS);
+	}
+
+	public boolean isAgentReadOnlyWarning() {
+		return manager.getValue(AGENT_READ_ONLY_WARNING);
 	}
 
 	public int getBorrowingDurationDays() {
