@@ -104,7 +104,7 @@ public class LDAPUserSyncManager implements StatefulService {
             }
 
             //
-            LOGGER.error("LDAP users/groups synchronization job successfully scheduled.");
+            LOGGER.error("LDAP users/groups synchronization job successfully scheduled");
         }
 
         //
@@ -370,7 +370,9 @@ public class LDAPUserSyncManager implements StatefulService {
 		List<String> groups = new ArrayList<>();
 		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
 		for (GlobalGroup globalGroup : globalGroups) {
-			groups.add(globalGroup.getCode());
+            if (!globalGroup.isLocallyCreated()) {
+                groups.add(globalGroup.getCode());
+            }
 		}
 		return groups;
 	}

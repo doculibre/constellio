@@ -185,8 +185,8 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 					}
 				};
-				addButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
-				addButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				addButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
+				addButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				return addButton;
 			}
 		});
@@ -239,8 +239,8 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 
 					}
 				};
-				editButton.setEnabled(presenter.canAddOrModify());
-				editButton.setVisible(presenter.canAddOrModify());
+				editButton.setEnabled(globalGroupVO.isLocallyCreated());
+				editButton.setVisible(globalGroupVO.isLocallyCreated());
 				return editButton;
 			}
 		});
@@ -255,8 +255,8 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 						presenter.deleteUserCredentialButtonClicked(entity, globalGroupVO.getCode());
 					}
 				};
-				deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
-				deleteButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				deleteButton.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
+				deleteButton.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				return deleteButton;
 
 			}
@@ -294,9 +294,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 				};
 				editSubGroupButton.addStyleName("DisplayGlobalGroupView.editSubGroup");
 				editSubGroupButton
-						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				editSubGroupButton
-						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				return editSubGroupButton;
 			}
 		});
@@ -313,9 +313,9 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 				};
 				deleteSubGroupButton.addStyleName("DisplayGlobalGroupView.deleteSubGroup");
 				deleteSubGroupButton
-						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+						.setEnabled(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				deleteSubGroupButton
-						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+						.setVisible(globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE && globalGroupVO.isLocallyCreated());
 				return deleteSubGroupButton;
 			}
 		});

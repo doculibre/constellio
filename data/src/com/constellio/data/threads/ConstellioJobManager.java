@@ -16,6 +16,8 @@ import org.quartz.SchedulerException;
 import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -27,6 +29,42 @@ import java.util.Set;
  *
  */
 public class ConstellioJobManager implements StatefulService {
+
+    private static class SetActionJobListener implements JobListener {
+
+        private final ConstellioJob.Action action;
+
+        private final boolean unscheduleOnException;
+
+        public SetActionJobListener(final ConstellioJob.Action action, final boolean unscheduleOnException) {
+            this.action = action;
+            this.unscheduleOnException = unscheduleOnException;
+        }
+
+        @Override
+        public String getName() {
+            return getClass().getSimpleName();
+        }
+
+        @Override
+        public void jobToBeExecuted(JobExecutionContext context) {
+            final ConstellioJob job = (ConstellioJob) context.getJobInstance();
+
+            job.setAction(action);
+            job.setUnscheduleOnException(unscheduleOnException);
+        }
+
+        @Override
+        public void jobExecutionVetoed(JobExecutionContext context) {
+        }
+
+        @Override
+        public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
+        }
+
+    }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioJob.class);
 
     private Scheduler scheduler;
 
@@ -68,14 +106,14 @@ public class ConstellioJobManager implements StatefulService {
         addJob(jobDetail, triggers, action, unscheduleOnException, cleanPreviousTriggers);
     }
 
-    private JobDetail buildJobDetail(final Class<? extends Job> jobClass, final String name) {
+    private static JobDetail buildJobDetail(final Class<? extends Job> jobClass, final String name) {
         return JobBuilder.
                 newJob(jobClass).
                 withIdentity(name + "-Job", Scheduler.DEFAULT_GROUP).
                 build();
     }
 
-    private Trigger buildTrigger(final String name, final int period, final Date startTime) {
+    private static Trigger buildTrigger(final String name, final int period, final Date startTime) {
         return TriggerBuilder.
                 newTrigger().
                 withIdentity(name + "-" + period + "-Trigger", Scheduler.DEFAULT_GROUP).
@@ -114,7 +152,7 @@ public class ConstellioJobManager implements StatefulService {
         addJob(jobDetail, triggers, action, unscheduleOnException, cleanPreviousTriggers);
     }
 
-    private Set<Trigger> buildTriggers(final String name, final List<String> cronExpressions, final Date startTime) {
+    private static Set<Trigger> buildTriggers(final String name, final List<String> cronExpressions, final Date startTime) {
         final Set<Trigger> triggers = new HashSet<>();
 
         if (cronExpressions != null) {
@@ -125,7 +163,7 @@ public class ConstellioJobManager implements StatefulService {
         return triggers;
     }
 
-    private Trigger buildTrigger(final String name, final String cronExpression, final Date startTime) {
+    private static Trigger buildTrigger(final String name, final String cronExpression, final Date startTime) {
         return TriggerBuilder.
                 newTrigger().
                 withIdentity(name + "-" + cronExpression + "-Trigger", Scheduler.DEFAULT_GROUP).
@@ -135,36 +173,4 @@ public class ConstellioJobManager implements StatefulService {
                 build();
     }
 
-    private static class SetActionJobListener implements JobListener {
-
-        private final ConstellioJob.Action action;
-
-        private final boolean unscheduleOnException;
-
-        public SetActionJobListener(final ConstellioJob.Action action, final boolean unscheduleOnException) {
-            this.action = action;
-            this.unscheduleOnException = unscheduleOnException;
-        }
-
-        @Override
-        public String getName() {
-            return getClass().getSimpleName();
-        }
-
-        @Override
-        public void jobToBeExecuted(JobExecutionContext context) {
-            final ConstellioJob job = (ConstellioJob) context.getJobInstance();
-            job.setAction(action);
-            job.setUnscheduleOnException(unscheduleOnException);
-        }
-
-        @Override
-        public void jobExecutionVetoed(JobExecutionContext context) {
-        }
-
-        @Override
-        public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
-        }
-
-    }
 }
