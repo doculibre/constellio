@@ -1,8 +1,9 @@
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.model.entities.security.global.AuthorizationBuilder.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_FOLDER;
+import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -20,11 +21,13 @@ import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.Fail;
+import org.assertj.core.api.ListAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +41,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.contents.ContentManagementAcceptTest;
-import com.constellio.model.services.contents.ContentManagerAcceptanceTest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -154,6 +156,91 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		CmisObject root = session.getObjectByPath("/");
 		getChildren(root);
 		assertThat(false).isTrue();
+	}
+
+	@Test
+	public void whenGetParentOfRecordWithoutReadAccessThenError()
+			throws Exception {
+
+		String recordId = zeCollectionRecords.folder1_doc1.getId();
+		session = newCMISSessionAsUserInZeCollection(admin);
+		List<ObjectParentData> bindingParents = session.getBinding().getNavigationService().getObjectParents(
+				session.getRepositoryInfo().getId(), recordId, null, false, NONE, null, true, null);
+		assertThat(bindingParents).extracting("object.id").containsOnly(zeCollectionRecords.folder1.getId());
+
+		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+		bindingParents = session.getBinding().getNavigationService().getObjectParents(
+				session.getRepositoryInfo().getId(), recordId, null, false, NONE, null, true, null);
+		assertThat(bindingParents).extracting("object.id").containsOnly(zeCollectionRecords.folder1.getId());
+
+		session = newCMISSessionAsUserInZeCollection(dakota);
+		bindingParents = session.getBinding().getNavigationService().getObjectParents(
+				session.getRepositoryInfo().getId(), recordId, null, false, NONE, null, true, null);
+		assertThat(bindingParents).extracting("object.id").containsOnly(zeCollectionRecords.folder1.getId());
+
+		session = newCMISSessionAsUserInZeCollection(bobGratton);
+
+		try {
+			bindingParents = session.getBinding().getNavigationService().getObjectParents(
+					session.getRepositoryInfo().getId(), recordId, null, false, NONE, null, true, null);
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage())
+					.isEqualTo("L'utilisateur bob n'a pas de droit en lecture sur l'enregistrement folder1_doc1 - folder1_doc1");
+		}
+
+	}
+
+	@Test
+	public void givenRecordAsAuthOnALeafRecordThenCanCallGetChildrenAndGetParentsOnNodeLeadingToIt()
+			throws Exception {
+
+		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
+				.on(zeCollectionRecords.folder1_doc1).givingReadAccess(), users.adminIn(zeCollection));
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		assertThatChildren(session.getRootFolder()).containsOnly("taxo_taxo1", "taxo_taxo2");
+		assertThatChildren("taxo_taxo1").containsOnly("zetaxo1_fond1");
+		assertThatChildren("zetaxo1_fond1").containsOnly("zetaxo1_fond1_1", "zetaxo1_category2");
+		assertThatChildren("zetaxo1_fond1_1").containsOnly("zetaxo1_category1");
+		assertThatChildren("zetaxo1_category1").containsOnly("folder1", "folder2");
+		assertThatChildren("folder1").containsOnly("folder1_doc1");
+
+		assertThatChildren("taxo_taxo2").containsOnly("zetaxo2_unit1");
+		assertThatChildren("zetaxo2_unit1").containsOnly("zetaxo2_station2", "zetaxo2_unit1_1");
+		assertThatChildren("zetaxo2_station2").containsOnly("folder1", "zetaxo2_station2_1");
+		assertThatChildren("folder1").containsOnly("folder1_doc1");
+
+		session = newCMISSessionAsUserInZeCollection(robin);
+		assertThatChildren(session.getRootFolder()).containsOnly("taxo_taxo1", "taxo_taxo2");
+		assertThatChildren("taxo_taxo1").containsOnly("zetaxo1_fond1");
+		assertThatChildren("zetaxo1_fond1").containsOnly("zetaxo1_fond1_1", "zetaxo1_category2");
+		assertThatChildren("zetaxo1_fond1_1").containsOnly("zetaxo1_category1");
+		assertThatChildren("zetaxo1_category1").containsOnly("folder1");
+		assertThatChildren("folder1").containsOnly("folder1_doc1");
+
+		assertThatChildren("taxo_taxo2").containsOnly("zetaxo2_unit1");
+		assertThatChildren("zetaxo2_unit1").containsOnly("zetaxo2_station2");
+		assertThatChildren("zetaxo2_station2").containsOnly("folder1");
+		assertThatChildren("folder1").containsOnly("folder1_doc1");
+
+	}
+
+	private ListAssert<Object> assertThatChildren(String id) {
+		Folder folder = (Folder) session.getObject(id);
+		return assertThatChildren(folder);
+	}
+
+	private ListAssert<Object> assertThatChildren(Folder folder) {
+
+		List<CmisObject> children = new ArrayList<>();
+		for (CmisObject object : folder.getChildren()) {
+			List<ObjectParentData> bindingParents = session.getBinding().getNavigationService().getObjectParents(
+					session.getRepositoryInfo().getId(), object.getId(), null, false, NONE, null, true, null);
+			assertThat(bindingParents).extracting("object.id").contains(folder.getId());
+			children.add(object);
+		}
+		return assertThat(children).extracting("id");
 	}
 
 	@Test

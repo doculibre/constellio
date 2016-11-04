@@ -89,7 +89,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 			}
 			addFoldersToChildren(children, childRecords);
 		} else {
-			Record record = recordServices.getDocumentById(folderId, user);
+			Record record = recordServices.getDocumentById(folderId);
 			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_CHILDREN);
 			childRecords = new ArrayList<>();
 
