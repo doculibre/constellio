@@ -2,7 +2,6 @@ package com.constellio.app.api.cmis.requests;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.enums.Action;
@@ -11,6 +10,7 @@ import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.slf4j.Logger;
 
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_Runtime;
+import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_UnsupportedOperation;
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
@@ -19,7 +19,6 @@ import com.constellio.app.api.cmis.builders.object.ContentObjectDataBuilder;
 import com.constellio.app.api.cmis.builders.object.ObjectDataBuilder;
 import com.constellio.app.api.cmis.builders.object.TaxonomyObjectBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -87,6 +86,10 @@ public abstract class CmisCollectionRequest<T> {
 		try {
 			T response = process();
 			return response;
+
+		} catch (UnsupportedOperationException e) {
+			throw new CmisExceptions_UnsupportedOperation();
+
 		} catch (ConstellioCmisException e) {
 			String requestString = toString().replace("com.constellio.app.api.cmis.requests.", "");
 			logger.error("Constellio exception while calling cmis request ' " + requestString + "'", e);

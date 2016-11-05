@@ -79,7 +79,6 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(zeCollectionSchemas.withContentMetadata());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
-		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -127,16 +126,12 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
 
-		User dakota = users.dakotaIn(zeCollection);
-		User admin = users.adminIn(zeCollection);
-		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo2_unit1).givingReadWriteAccess(), admin);
-		waitForBatchProcess();
 	}
 
 	@Test
 	public void whenGetAllowableActionsOfRootThenOK()
 			throws Exception {
-
+		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
 		session = newCMISSessionAsUserInZeCollection(admin);
 		assertThatAllowableActionsOf("/").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
 
@@ -151,7 +146,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetAllowableActionsOfTaxonomyThenOK()
 			throws Exception {
-
+		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
 		session = newCMISSessionAsUserInZeCollection(admin);
 		assertThatAllowableActionsOf("/taxo_taxo1").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
 		assertThatAllowableActionsOf("/taxo_taxo2").containsOnly(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
@@ -168,7 +163,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetAllowableActionsOfTaxonomyConceptThenOK()
 			throws Exception {
-
+		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
 		Action[] secondaryTaxoExpectedActionsOfUserOrAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
 				CAN_CREATE_FOLDER, CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
 
@@ -188,27 +183,68 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		session = newCMISSessionAsUserInZeCollection(admin);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
 		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(principalTaxoExpectedActionsOfAdmin);
+		assertThatAllowableActionsOf(records.taxo2_station2).containsOnly(principalTaxoExpectedActionsOfAdmin);
+		assertThatAllowableActionsOf(records.taxo2_station2_1).containsOnly(principalTaxoExpectedActionsOfAdmin);
 
 		//Alice has read access on all the collection
 		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
 		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(principalTaxoExpectedActionsOfUserWithReadAccess);
+		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(principalTaxoExpectedActionsOfUserWithReadAccess);
+		assertThatAllowableActionsOf(records.taxo2_station2).containsOnly(principalTaxoExpectedActionsOfUserWithReadAccess);
+		assertThatAllowableActionsOf(records.taxo2_station2_1).containsOnly(principalTaxoExpectedActionsOfUserWithReadAccess);
 
 		//Dakota has read and write access on some administrative units
 		session = newCMISSessionAsUserInZeCollection(dakota);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
 		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(principalTaxoExpectedActionsOfUserWithWriteAccess);
+		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(principalTaxoExpectedActionsOfUserWithWriteAccess);
+		assertThatAllowableActionsOf(records.taxo2_station2).containsOnly(principalTaxoExpectedActionsOfUserWithWriteAccess);
+		assertThatAllowableActionsOf(records.taxo2_station2_1).containsOnly(principalTaxoExpectedActionsOfUserWithWriteAccess);
 
 		//Bob has no access
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
 		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
 		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").isEmpty();
+		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").isEmpty();
+		assertThatAllowableActionsOf(records.taxo2_station2).isEmpty();
+		assertThatAllowableActionsOf(records.taxo2_station2_1).isEmpty();
+	}
+
+	@Test
+	public void givenTaxo1IsPrincipalWhenGetAllowableActionsOfTaxonomyConceptThenOK()
+			throws Exception {
+		givenTaxonomy1IsPrincipalWithAuthOnAConcept();
+		Action[] secondaryTaxoExpectedActionsOfUserOrAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+				CAN_CREATE_FOLDER, CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+
+		Action[] principalTaxoExpectedActionsOfAdmin = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+				CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_ACL, CAN_APPLY_ACL, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+
+		Action[] principalTaxoExpectedActionsOfUserWithWriteAccess = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+				CAN_GET_CHILDREN, CAN_CREATE_FOLDER, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+
+		Action[] principalTaxoExpectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
+				CAN_GET_CHILDREN, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS };
+
+		//These actions are required to allow the user to navigate to its folders
+		Action[] principalTaxoExpectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_FOLDER_PARENT, CAN_GET_CHILDREN,
+				CAN_GET_FOLDER_TREE };
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		assertThatAllowableActionsOf("/taxo_taxo1/zetaxo1_fond1").containsOnly(principalTaxoExpectedActionsOfAdmin);
+		assertThatAllowableActionsOf("/taxo_taxo2/zetaxo2_unit1").containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
+
+		assertThatAllowableActionsOf(records.taxo2_station1).containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
+		assertThatAllowableActionsOf(records.taxo2_station2).containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
+		assertThatAllowableActionsOf(records.taxo2_station2_1).containsOnly(secondaryTaxoExpectedActionsOfUserOrAdmin);
+
 	}
 
 	@Test
 	public void whenGetActionsOfSecurizedRecordWithoutContentThenOK()
 			throws Exception {
-
+		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
 		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
 				CAN_GET_FOLDER_TREE,
 				CAN_GET_PROPERTIES };
@@ -262,7 +298,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGetActionsOfSecurizedRecordWithContentThenOK()
 			throws Exception {
-
+		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
 		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
 				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS };
 
@@ -320,7 +356,7 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	public void givenACLDisabledThenNoAllowableActions()
 			throws Exception {
 
-		//
+		givenTaxonomy2IsPrincipalWithAuthOnAConcept();
 
 		String folder1UrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1";
 		String folder1DocUrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1/folder1_doc1";
@@ -368,9 +404,17 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private IterableAssert<Action> assertThatAllowableActionsOf(String path) {
+	private IterableAssert<Action> assertThatAllowableActionsOf(Record record) {
+		return assertThatAllowableActionsOf(record.getId());
+	}
+
+	private IterableAssert<Action> assertThatAllowableActionsOf(String idOrPath) {
 		try {
-			return assertThat(session.getObjectByPath(path).getAllowableActions().getAllowableActions());
+			if (idOrPath.startsWith("/")) {
+				return assertThat(session.getObjectByPath(idOrPath).getAllowableActions().getAllowableActions());
+			} else {
+				return assertThat(session.getObject(idOrPath).getAllowableActions().getAllowableActions());
+			}
 		} catch (CmisRuntimeException e) {
 			return assertThat(new HashSet<Action>());
 		}
@@ -378,6 +422,30 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 	private Folder cmisFolder(Record record) {
 		return (Folder) session.getObject(record.getId());
+	}
+
+	private void givenTaxonomy2IsPrincipalWithAuthOnAConcept() {
+		User dakota = users.dakotaIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
+		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo2_unit1).givingReadWriteAccess(), admin);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void givenTaxonomy1IsPrincipalWithAuthOnAConcept() {
+		User dakota = users.dakotaIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
+		authorizationsServices.add(authorizationForUsers(dakota).on(records.taxo1_category2).givingReadWriteAccess(), admin);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

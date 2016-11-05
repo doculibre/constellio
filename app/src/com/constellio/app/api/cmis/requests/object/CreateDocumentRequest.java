@@ -5,8 +5,10 @@ import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
@@ -51,12 +54,26 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 	public ContentCmisDocument process()
 			throws ConstellioCmisException {
 
-		String metadataLocalCode = (String) properties.getProperties().get("metadata").getFirstValue();
-
 		Record record = recordServices.getDocumentById(folderId);
 		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_CREATE_DOCUMENT);
 		MetadataSchema metadataSchema = types().getSchema(record.getSchemaCode());
-		Metadata metadata = metadataSchema.getMetadata(metadataLocalCode);
+
+		PropertyData<?> property = properties.getProperties().get("metadata");
+
+		Metadata metadata = null;
+		if (property == null) {
+			for (Metadata aContentMetadata : metadataSchema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
+				metadata = aContentMetadata;
+				break;
+			}
+		} else {
+			String metadataLocalCode = (String) property.getFirstValue();
+			metadata = metadataSchema.getMetadata(metadataLocalCode);
+		}
+
+		if (metadata == null) {
+			throw new CmisRuntimeException("No content metadata");
+		}
 
 		Content content;
 		ContentVersionDataSummary dataSummary = contentManager.upload(contentStream.getStream());
@@ -81,7 +98,7 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 			throw new RuntimeException(e);
 		}
 
-		return ContentCmisDocument.createForVersionSeenBy(content, record, metadataLocalCode, user);
+		return ContentCmisDocument.createForVersionSeenBy(content, record, metadata.getLocalCode(), user);
 	}
 
 	@Override

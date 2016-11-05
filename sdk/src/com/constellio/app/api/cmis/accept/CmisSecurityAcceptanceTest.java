@@ -8,6 +8,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,15 +18,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.Fail;
@@ -62,6 +69,12 @@ import com.constellio.sdk.tests.setups.Users;
 public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisACLAcceptanceTest.class);
 
+	private final String PDF_MIMETYPE = "application/pdf";
+	private long pdf1Length = 170039L;
+	private long pdf2Length = 167347L;
+	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
+	private String pdf2Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
+
 	UserServices userServices;
 	TaxonomiesManager taxonomiesManager;
 	MetadataSchemasManager metadataSchemasManager;
@@ -93,7 +106,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		users.setUp(userServices);
 
-		defineSchemasManager().using(zeCollectionSchemas);
+		defineSchemasManager().using(zeCollectionSchemas.withContentMetadata());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
@@ -727,13 +740,64 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCheckingInThenOnlyWorksIfUserIsBorrower()
 			throws Exception {
-		//TODO Gabriel
+		session = newCMISSessionAsUserInZeCollection(admin);
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(PropertyIds.NAME, "cmis:document");
+		properties.put(PropertyIds.OBJECT_TYPE_ID, "document_default");
+
+		Folder document = cmisFolder(zeCollectionRecords.folder1).createFolder(properties);
+		document.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+		//properties.put("metadata", "content");
+		Document content = document.createDocument(properties, pdf1ContentStream(), VersioningState.MAJOR);
+
+		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+		content = (Document) session.getObject(content.getId());
+		try {
+
+			content.checkOut();
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).contains("permission CMIS CAN_CHECK_OUT");
+		}
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		content = (Document) session.getObject(content.getId());
+		content.checkOut();
+
+		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+		content = (Document) session.getObject(content.getId());
+		try {
+
+			content.checkIn(true, new HashMap<String, Object>(), pdf2ContentStream(), "Ze comment");
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).contains("permission CMIS CAN_CHECK_IN");
+		}
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		content = (Document) session.getObject(content.getId());
+		content.checkIn(true, new HashMap<String, Object>(), pdf2ContentStream(), "Ze comment");
 	}
 
-	@Test
-	public void whenBorrowingThenOnlyWorksIfUserHasWriteAuthorization()
-			throws Exception {
-		//TODO Gabriel
+	private ContentStream pdf1ContentStream()
+			throws IOException {
+		String filename = "pdf1.pdf";
+		BigInteger length = BigInteger.valueOf(pdf1Length);
+		InputStream stream = getTestResourceInputStream(CmisSinglevalueContentManagementAcceptTest.class, "pdf1.pdf");
+		return new ContentStreamImpl(filename, length, PDF_MIMETYPE, stream);
+	}
+
+	private ContentStream pdf2ContentStream()
+			throws IOException {
+		String filename = "pdf2.pdf";
+		BigInteger length = BigInteger.valueOf(pdf2Length);
+		String mimetype = PDF_MIMETYPE;
+		InputStream stream = getTestResourceInputStream(CmisSinglevalueContentManagementAcceptTest.class, "pdf2.pdf");
+		return new ContentStreamImpl(filename, length, mimetype, stream);
 	}
 
 	private List<CmisObject> getChildren(CmisObject parent) {

@@ -168,6 +168,12 @@ public class CmisExceptions {
 		}
 	}
 
+	public static class CmisExceptions_UnsupportedOperation extends CmisRuntimeException {
+		public CmisExceptions_UnsupportedOperation() {
+			super("Unsupported operation");
+		}
+	}
+
 	public static class CmisExceptions_Runtime extends CmisRuntimeException {
 
 		public CmisExceptions_Runtime(String message) {
