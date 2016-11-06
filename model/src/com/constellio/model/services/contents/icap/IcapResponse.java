@@ -3,8 +3,6 @@ package com.constellio.model.services.contents.icap;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,8 +44,6 @@ public final class IcapResponse {
             return new IcapResponse(this);
         }
     }
-
-    private static final Log LOG = LogFactory.getLog(IcapResponse.class);
 
     private static final String ICAP_HEADER_X_VIRUS_NAME = "X-Virus-Name";
 

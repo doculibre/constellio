@@ -104,7 +104,7 @@ public class LDAPUserSyncManager implements StatefulService {
             }
 
             //
-            LOGGER.error("LDAP users/groups synchronization job successfully scheduled");
+            LOGGER.info("LDAP users/groups synchronization job successfully scheduled");
         }
 
         //
@@ -143,7 +143,7 @@ public class LDAPUserSyncManager implements StatefulService {
             }
 
             //
-            LOGGER.error("LDAP users/groups synchronization job successfully scheduled.");
+            LOGGER.info("LDAP users/groups synchronization job successfully scheduled.");
         }
     }
 

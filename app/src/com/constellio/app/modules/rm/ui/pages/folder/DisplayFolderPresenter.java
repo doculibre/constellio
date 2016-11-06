@@ -1,6 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapCommunicationFailure;
+import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanTimedout;
+import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanThreatFound;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -14,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -627,7 +630,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				schemaPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshDocumentsTab();
-			} catch (Exception e) {
+			} catch (final ContentManagerRuntimeException_IcapScanThreatFound|ContentManagerRuntimeException_IcapScanTimedout e) {
+                LOGGER.warn(e.getMessage());
+
+                view.showErrorMessage(e.getMessage());
+			} catch (final ContentManagerRuntimeException_IcapCommunicationFailure e) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
+
+                LOGGER.warn(e.getMessage());
+            } catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			}
 		}

@@ -47,7 +47,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
 
-	public static final SystemConfiguration ICAP_SERVER_URL;
+    public static final SystemConfiguration ICAP_SERVER_URL;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -91,8 +91,10 @@ public class ConstellioEIMConfigs {
 				.scriptedBy(WriteZZRecordsScript.class));
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
-		add(ICAP_SERVER_URL = others.createString("icapServerUrl"));
+        //
+        add(ICAP_SERVER_URL = others.createString("icapServerUrl"));
 
+        //
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 

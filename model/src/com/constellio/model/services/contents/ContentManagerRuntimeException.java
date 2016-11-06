@@ -66,4 +66,21 @@ public class ContentManagerRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class ContentManagerRuntimeException_IcapCommunicationFailure extends ContentManagerRuntimeException {
+		public ContentManagerRuntimeException_IcapCommunicationFailure(final Throwable cause) {
+			super("ICAP communication failure", cause);
+		}
+	}
+
+    public static class ContentManagerRuntimeException_IcapScanTimedout extends ContentManagerRuntimeException {
+        public ContentManagerRuntimeException_IcapScanTimedout() {
+            super("ICAP scanning has timed out");
+        }
+    }
+
+    public static class ContentManagerRuntimeException_IcapScanThreatFound extends ContentManagerRuntimeException {
+        public ContentManagerRuntimeException_IcapScanThreatFound(final String message) {
+            super(message);
+        }
+    }
 }
