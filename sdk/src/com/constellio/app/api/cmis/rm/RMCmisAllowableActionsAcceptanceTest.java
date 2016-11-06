@@ -93,6 +93,8 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
 	}
 
 	@Test

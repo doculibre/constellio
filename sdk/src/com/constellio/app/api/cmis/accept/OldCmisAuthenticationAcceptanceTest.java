@@ -79,7 +79,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.bob(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), anotherCollection);
-
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 	//
 	//	@Test

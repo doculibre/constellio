@@ -126,6 +126,8 @@ public class CmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
 
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
 	}
 
 	@Test

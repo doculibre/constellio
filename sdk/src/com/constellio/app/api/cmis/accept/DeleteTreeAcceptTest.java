@@ -76,6 +76,7 @@ public class DeleteTreeAcceptTest extends ConstellioTest {
 
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

@@ -154,6 +154,8 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
 		givenFolderInheritingTaxonomyAuthorizations();
 		startApplication();
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@After

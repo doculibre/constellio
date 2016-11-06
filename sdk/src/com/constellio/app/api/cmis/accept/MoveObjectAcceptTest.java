@@ -75,6 +75,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 				.build();
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
