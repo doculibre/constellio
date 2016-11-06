@@ -66,6 +66,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -401,6 +402,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
 						}
+						validationServices.validateAccess(record, transaction);
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
 						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
 							updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));

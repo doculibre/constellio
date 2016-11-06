@@ -392,10 +392,10 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingDocumentInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
 			throws Exception {
-		String parentId = "zetaxo2_unit1";
+		String parentId = zeCollectionRecords.folder1.getId();
 
 		session = newCMISSessionAsUserInZeCollection(admin);
-		Folder parent = cmisFolder(zeCollectionRecords.taxo2_unit1);
+		Folder parent = cmisFolder(zeCollectionRecords.folder1);
 		parent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
 
 		Record createdRecord = createNewDocumentWithTestProperties(parentId);
@@ -408,6 +408,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		createdRecord = createNewDocumentWithTestProperties(parentId);
 		assertThat(createdRecord).isNotNull();
 
+		assertThat(users.bobIn(zeCollection).hasWriteAccess().on(recordServices.getDocumentById(parentId))).isTrue();
 		session = newCMISSessionAsUserInZeCollection(bobGratton);
 		createdRecord = createNewDocumentWithTestProperties(parentId);
 		assertThat(createdRecord).isNotNull();

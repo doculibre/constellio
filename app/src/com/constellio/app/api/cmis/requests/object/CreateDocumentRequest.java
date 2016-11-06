@@ -20,9 +20,11 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -93,10 +95,13 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 			record.set(metadata, content);
 		}
 		try {
-			recordServices.update(record);
+			recordServices.execute(new Transaction(record).setUser(user));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
+
+//		CreateDocumentParams params = new CreateDocumentParams(user, record);
+		//		appLayerFactory.getExtensions().forCollection(collection).onCreateCMISDocument(params);
 
 		return ContentCmisDocument.createForVersionSeenBy(content, record, metadata.getLocalCode(), user);
 	}
