@@ -4,6 +4,7 @@ import static com.constellio.model.entities.security.global.AuthorizationBuilder
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
 import static org.apache.chemistry.opencmis.commons.enums.IncludeRelationships.NONE;
+import static org.apache.commons.io.IOUtils.toByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -32,6 +33,7 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.Fail;
 import org.assertj.core.api.ListAssert;
@@ -738,6 +740,40 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		deletedRecord = createAndDeleteNewDocument(charlesFrancoisXavier, parentID);
 		assertThat(deletedRecord).isNotNull();
+	}
+
+	@Test
+	public void whenGetContentInputStreamThenOnlyWorkIfUserHasAccess()
+			throws Exception {
+		session = newCMISSessionAsUserInZeCollection(admin);
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(PropertyIds.NAME, "cmis:document");
+		properties.put(PropertyIds.OBJECT_TYPE_ID, "document_default");
+
+		Folder document = cmisFolder(zeCollectionRecords.folder1).createFolder(properties);
+		document.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, R)), REPOSITORYDETERMINED);
+
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+		//properties.put("metadata", "content");
+		String id = document.createDocument(properties, pdf1ContentStream(), VersioningState.MAJOR).getId();
+
+		for (String user : asList(charlesFrancoisXavier, bobGratton, admin, aliceWonderland, dakota)) {
+			session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+			assertThat(toByteArray(((Document) session.getObject(id)).getContentStream().getStream()).length)
+					.isEqualTo((int) pdf1Length);
+		}
+
+		for (String user : asList(robin, edouard)) {
+			session = newCMISSessionAsUserInZeCollection(robin);
+			try {
+				toByteArray(((Document) session.getObject(id)).getContentStream().getStream());
+				fail("Exception expected");
+			} catch (CmisRuntimeException e) {
+				assertThat(e.getMessage()).contains("permission CMIS CAN_GET_CONTENT_STREAM");
+			}
+		}
 	}
 
 	@Test
