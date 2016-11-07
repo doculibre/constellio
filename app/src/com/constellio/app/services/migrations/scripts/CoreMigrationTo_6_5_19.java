@@ -14,13 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class CoreMigrationTo_6_5_1 implements MigrationScript {
+public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_6_5_1.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_6_5_19.class);
 
 	@Override
 	public String getVersion() {
-		return "6.5.1";
+		return "6.5.19";
 	}
 
 	@Override
