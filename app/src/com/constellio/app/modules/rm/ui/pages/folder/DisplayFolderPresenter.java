@@ -824,4 +824,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			e.printStackTrace();
 		}
 	}
+
+	public boolean hasCurrentUserPermissionToUseCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
+	}
 }
