@@ -41,6 +41,7 @@ import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.extensions.records.RecordAppExtension;
@@ -54,6 +55,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.utils.Provider;
@@ -155,6 +157,15 @@ public class AppLayerCollectionExtensions {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.onGetObject(params);
 		}
+	}
+
+	public boolean isSchemaTypeSupported(final IsSchemaTypeSupportedParams params, boolean defaultValue) {
+		return ExtensionUtils.getBooleanValue(cmisExtensions, defaultValue, new BooleanCaller<CmisExtension>() {
+			@Override
+			public ExtensionBooleanResult call(CmisExtension extension) {
+				return extension.isSchemaTypeSupported(params);
+			}
+		});
 	}
 	//
 	//	public void onCreateCMISFolder(CreateFolderParams params) {

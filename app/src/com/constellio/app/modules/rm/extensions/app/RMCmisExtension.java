@@ -18,26 +18,34 @@ import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.logging.EventFactory;
 import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RMCmisExtension extends CmisExtension {
 
 	RMSchemasRecordsServices rm;
 	LoggingServices loggingServices;
+	TaxonomiesManager taxonomiesManager;
 
 	public RMCmisExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.loggingServices = new LoggingServices(appLayerFactory.getModelLayerFactory());
+		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
 	}
 
 	@Override
@@ -132,4 +140,16 @@ public class RMCmisExtension extends CmisExtension {
 	//	public void onDeleteContent(DeleteContentParams params) {
 	//
 	//	}
+
+	@Override
+	public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {
+		String schemaType = params.getSchemaType().getCode();
+
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
+			return ExtensionBooleanResult.FORCE_TRUE;
+		} else {
+			return ExtensionBooleanResult.NOT_APPLICABLE;
+		}
+	}
+
 }
