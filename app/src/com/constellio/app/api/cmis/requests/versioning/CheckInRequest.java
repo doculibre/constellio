@@ -31,6 +31,8 @@ import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -112,6 +114,8 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 					throw new ConstellioCmisException_ContentAlreadyCheckedOut();
 				}
 				recordServices.update(contentCmisDocument.getRecord(), user);
+				CheckInParams params = new CheckInParams(user, contentCmisDocument.getRecord());
+				appLayerFactory.getExtensions().forCollection(collection).onCheckIn(params);
 			} catch (IOException e) {
 				throw new ConstellioCmisException_IOError(e);
 			} catch (RecordServicesException e) {
@@ -134,6 +138,8 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 			}
 			try {
 				recordServices.update(contentCmisDocument.getRecord(), user);
+				CheckInParams params = new CheckInParams(user, contentCmisDocument.getRecord());
+				appLayerFactory.getExtensions().forCollection(collection).onCheckIn(params);
 			} catch (RecordServicesException e) {
 				throw new ConstellioCmisException_RecordServicesError(e);
 			}
@@ -141,7 +147,6 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 		return true;
 
 	}
-
 
 	@Override
 	protected Logger getLogger() {

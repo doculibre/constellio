@@ -19,6 +19,8 @@ import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameter
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -68,6 +70,9 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		ContentManager contentManager = modelLayerFactory.getContentManager();
+
+//		UpdateDocumentParams params = new UpdateDocumentParams(user, contentCmisDocument.getRecord());
+		//		appLayerFactory.getExtensions().forCollection(collection).onUpdateCMISDocument(params);
 
 		setContent(user, recordServices, contentCmisDocument, content, ioServices, contentManager);
 

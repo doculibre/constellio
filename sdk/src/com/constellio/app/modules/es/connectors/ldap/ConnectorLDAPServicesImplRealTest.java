@@ -26,12 +26,12 @@ import com.constellio.sdk.tests.annotations.InternetTest;
 
 @InternetTest
 public class ConnectorLDAPServicesImplRealTest {
-	ConnectorLDAPServices connectorLDAPServices = new ConnectorLDAPServicesImpl();
+	ConnectorLDAPServices connectorLDAPServices;
 
 	@Before
 	public void setUp()
 			throws Exception {
-
+		connectorLDAPServices = new ConnectorLDAPServicesImpl();
 	}
 
 	private LdapContext getValidContext() {
@@ -45,6 +45,7 @@ public class ConnectorLDAPServicesImplRealTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenConnectToLDAPThenOK()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -66,6 +67,7 @@ public class ConnectorLDAPServicesImplRealTest {
 	}
 
 	@Test
+	@InternetTest
 	public void givenAContextWhenGetAllUsersThenOk()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -76,6 +78,7 @@ public class ConnectorLDAPServicesImplRealTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenGetAllUsersThenOk()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -89,6 +92,7 @@ public class ConnectorLDAPServicesImplRealTest {
 	}
 
 	@Test
+	@InternetTest
 	public void unitTestForConnectorLDAPServicesImpl()
 			throws Exception {
 		try {
@@ -106,6 +110,7 @@ public class ConnectorLDAPServicesImplRealTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenGetUsersUsingFilterThenOnlyFilteredUsersAreReturned()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -118,6 +123,7 @@ public class ConnectorLDAPServicesImplRealTest {
 	}
 
 	@Test
+	@InternetTest
 	public void unitTest2ForConnectorLDAPServicesImpl()
 			throws Exception {
 		assertThat(getSimpleName("CN=admin,CN=users,DN=test")).isEqualTo("admin");
@@ -126,6 +132,7 @@ public class ConnectorLDAPServicesImplRealTest {
 
 	//TODO see avec cola
 	@Test
+	@InternetTest
 	public void whenGetObjectAttributesThenAllBasicADAttributesAreOk()
 			throws Exception {
 

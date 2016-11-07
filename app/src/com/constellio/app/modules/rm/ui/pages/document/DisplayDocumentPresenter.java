@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import org.apache.commons.lang3.ObjectUtils;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -361,5 +362,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public boolean hasCurrentUserPermissionToUseCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 }

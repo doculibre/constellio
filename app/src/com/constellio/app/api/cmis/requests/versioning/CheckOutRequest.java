@@ -10,13 +10,13 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -58,6 +58,8 @@ public class CheckOutRequest extends CmisCollectionRequest<Boolean> {
 			throw new ConstellioCmisException.ConstellioCmisException_RecordServicesError(e);
 		}
 
+		CheckOutParams params = new CheckOutParams(user, updatedContent.getRecord());
+		appLayerFactory.getExtensions().forCollection(collection).onCheckOut(params);
 		objectId.setValue(updatedContent.getPrivateWorkingCopyVersionId());
 
 		return true;

@@ -17,6 +17,8 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.CmisUtils;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -70,6 +72,8 @@ public class GetObjectByPathRequest extends CmisCollectionRequest<ObjectData> {
 
 	private ObjectData recordObjectData(String id) {
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(id);
+		GetObjectParams params = new GetObjectParams(user, record);
+		appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
 		ensureUserHasReadAccessToRecordOrADescendantOf(record);
 		return recordObjectData(record);
 	}

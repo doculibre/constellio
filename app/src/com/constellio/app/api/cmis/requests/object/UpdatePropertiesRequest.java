@@ -16,6 +16,7 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.builders.object.RecordBuilder;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -56,10 +57,12 @@ public class UpdatePropertiesRequest extends CmisCollectionRequest<ObjectData> {
 	public ObjectData updateRecordFromProperties(Record updatedRecord, MetadataSchema schema) {
 		new RecordBuilder(properties, callContext, appLayerFactory).setMetadataFromProperties(updatedRecord);
 		try {
-			recordServices.execute(new Transaction(updatedRecord));
+			recordServices.execute(new Transaction(updatedRecord).setUser(user));
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
+//		UpdateFolderParams updateFolderParams = new UpdateFolderParams(user, updatedRecord);
+		//		appLayerFactory.getExtensions().forCollection(collection).onUpdateCMISFolder(updateFolderParams);
 		recordServices.refresh(updatedRecord);
 		return newObjectDataBuilder().build(updatedRecord, null, false, false, objectInfos);
 	}

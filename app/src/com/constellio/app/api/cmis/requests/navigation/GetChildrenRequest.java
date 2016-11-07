@@ -85,16 +85,21 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 
 			childRecords = new ArrayList<>();
 			for (TaxonomySearchRecord record : searchServices.getVisibleRootConcept(user, collection, taxonomyCode, options)) {
-				childRecords.add(record.getRecord());
+				if (repository.getTypeDefinitionsManager().hasTypeDefinition(record.getRecord().getSchemaCode())) {
+					childRecords.add(record.getRecord());
+				}
 			}
 			addFoldersToChildren(children, childRecords);
 		} else {
-			Record record = recordServices.getDocumentById(folderId, user);
+			Record record = recordServices.getDocumentById(folderId);
 			ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_CHILDREN);
 			childRecords = new ArrayList<>();
 
 			for (TaxonomySearchRecord child : searchServices.getVisibleChildConcept(user, record, options)) {
-				childRecords.add(child.getRecord());
+				if (repository.getTypeDefinitionsManager().hasTypeDefinition(child.getRecord().getSchemaCode())) {
+					childRecords.add(child.getRecord());
+				}
+
 			}
 
 			addFoldersToChildren(children, childRecords);

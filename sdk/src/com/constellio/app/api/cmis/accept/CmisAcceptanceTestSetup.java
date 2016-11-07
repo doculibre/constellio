@@ -1,25 +1,38 @@
 package com.constellio.app.api.cmis.accept;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.extensions.api.cmis.CmisExtension;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import com.constellio.sdk.tests.setups.Users;
 
 /**
  * This schema setup can be used to test multiple taxonomy behaviors :
@@ -77,10 +90,10 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		setupFolderType(folderType, categoryType, administrativeUnitType);
 		setupDocumentType(documentType, folderType);
 
-		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", collection, Arrays.asList("documentFond", "category"));
-		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", collection, Arrays.asList("administrativeUnit"));
+		Taxonomy firstTaxonomy = Taxonomy.createPublic("taxo1", "taxo1", collection, asList("documentFond", "category"));
+		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", "taxo2", collection, asList("administrativeUnit"));
 
-		taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
+		taxonomies = asList(firstTaxonomy, secondTaxonomy);
 	}
 
 	private void setupFolderType(MetadataSchemaTypeBuilder folderType, MetadataSchemaTypeBuilder category,
@@ -135,6 +148,18 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 	public SchemasSetup withContentMetadata() {
 		typesBuilder.getSchemaType("document").getDefaultSchema().create("content").setType(MetadataValueType.CONTENT);
 		return this;
+	}
+
+	public static void allSchemaTypesSupported(AppLayerFactory appLayerFactory) {
+		for (String collection : appLayerFactory.getModelLayerFactory().getCollectionsListManager()
+				.getCollectionsExcludingSystem()) {
+			appLayerFactory.getExtensions().forCollection(collection).cmisExtensions.add(new CmisExtension() {
+				@Override
+				public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {
+					return ExtensionBooleanResult.FORCE_TRUE;
+				}
+			});
+		}
 	}
 
 	public class DocumentFond implements SchemaShortcuts {
@@ -652,11 +677,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 
 			users.add(CHUCK = addUserRecord(transaction, prefix + "CHUCK", null));
 			users.add(BOB = addUserRecord(transaction, prefix + "BOB", null));
-			users.add(ALICE = addUserRecord(transaction, prefix + "ALICE", Arrays.asList(LEGENDS)));
-			users.add(EDOUARD = addUserRecord(transaction, prefix + "EDOUARD", Arrays.asList(LEGENDS)));
-			users.add(XAVIER = addUserRecord(transaction, prefix + "XAVIER", Arrays.asList(HEROES)));
-			users.add(DAKOTA = addUserRecord(transaction, prefix + "DAKOTA", Arrays.asList(HEROES)));
-			users.add(GANDALF = addUserRecord(transaction, prefix + "GANDALF", Arrays.asList(LEGENDS, HEROES)));
+			users.add(ALICE = addUserRecord(transaction, prefix + "ALICE", asList(LEGENDS)));
+			users.add(EDOUARD = addUserRecord(transaction, prefix + "EDOUARD", asList(LEGENDS)));
+			users.add(XAVIER = addUserRecord(transaction, prefix + "XAVIER", asList(HEROES)));
+			users.add(DAKOTA = addUserRecord(transaction, prefix + "DAKOTA", asList(HEROES)));
+			users.add(GANDALF = addUserRecord(transaction, prefix + "GANDALF", asList(LEGENDS, HEROES)));
 
 			recordServices.execute(transaction);
 		}
@@ -679,6 +704,31 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 
 		public List<Record> allUsers() {
 			return users;
+		}
+
+	}
+
+	public static void giveUseCMISPermissionToUsers(ModelLayerFactory modelLayerFactory) {
+		UserServices userServices = modelLayerFactory.newUserServices();
+		RolesManager rolesManager = modelLayerFactory.getRolesManager();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		for (String collection : modelLayerFactory.getCollectionsListManager().getCollectionsExcludingSystem()) {
+			rolesManager.addRole(new Role(collection, "cmisRole", asList(CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION)));
+
+			Transaction transaction = new Transaction();
+			for (UserCredential userCredential : userServices.getAllUserCredentials()) {
+				if (userCredential.getCollections().contains(collection)) {
+					User user = userServices.getUserInCollection(userCredential.getUsername(), collection);
+					List<String> roles = new ArrayList<>(user.getUserRoles());
+					roles.add("cmisRole");
+					transaction.add(user.setUserRoles(roles));
+				}
+			}
+			try {
+				recordServices.execute(transaction);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 	}

@@ -15,6 +15,7 @@ import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.CmisUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -61,7 +62,7 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 		boolean includeAclValue = CmisUtils.getBooleanParameter(includeAcl, false);
 		Set<String> filterCollection = CmisUtils.splitFilter(filter);
 
-		if ("@root@" .equals(objectId)) {
+		if ("@root@".equals(objectId)) {
 			Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
 			return newObjectDataBuilder()
 					.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
@@ -72,14 +73,27 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 		} else if (objectId.startsWith("content_")) {
 			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types());
+			GetObjectParams params = new GetObjectParams(user, content.getRecord());
+			appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
+
 			return newContentObjectDataBuilder()
 					.build(content, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
 
 		} else {
 			Record record = recordServices.getDocumentById(objectId);
-			ensureUserHasReadAccessToRecordOrADescendantOf(record);
-			return newObjectDataBuilder()
-					.build(record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+			GetObjectParams params = new GetObjectParams(user, record);
+			appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
+
+			if (record.getId().equals(record.getCollection())) {
+				Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
+				return newObjectDataBuilder()
+						.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+
+			} else {
+				ensureUserHasReadAccessToRecordOrADescendantOf(record);
+				return newObjectDataBuilder()
+						.build(record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+			}
 
 		}
 

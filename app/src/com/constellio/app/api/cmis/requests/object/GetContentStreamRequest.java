@@ -16,6 +16,8 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -43,6 +45,10 @@ public class GetContentStreamRequest extends CmisCollectionRequest<ContentStream
 	public ContentStream process() {
 		ContentCmisDocument contentCmisDocument = CmisContentUtils.getContent(objectId, recordServices, types());
 		ensureUserHasAllowableActionsOnRecord(contentCmisDocument.getRecord(), Action.CAN_GET_CONTENT_STREAM);
+
+		GetObjectParams params = new GetObjectParams(user, contentCmisDocument.getRecord());
+		appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
+
 		InputStream stream = contentManager
 				.getContentInputStream(contentCmisDocument.getContentVersion().getHash(), READ_CONTENT_STREAM);
 		ContentVersion version = contentCmisDocument.getContentVersion();

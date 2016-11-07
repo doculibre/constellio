@@ -181,6 +181,8 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
+
+
 		}
 		for (String auth : authorizationsPotentiallyEmpty) {
 			Authorization authorization = authorizationsServices.getAuthorization(collection, auth);
@@ -188,6 +190,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 				authorizationsServices.delete(authorization.getDetail(), user);
 			}
 		}
+
 	}
 
 	private void createNewAuthorizations(List<Ace> acesToAdd) {

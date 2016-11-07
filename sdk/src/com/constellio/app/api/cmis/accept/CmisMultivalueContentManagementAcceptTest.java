@@ -85,7 +85,7 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		givenTimeIs(firstDocumentModificationOClock);
 
 		defineSchemasManager().using(schemas.withAMultivalueContentMetadata());
-
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
@@ -118,6 +118,8 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		bob.setCollectionWriteAccess(true);
 		recordServices.update(alice.getWrappedRecord());
 		recordServices.update(bob.getWrappedRecord());
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

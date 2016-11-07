@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ObjectNotFound;
 import com.constellio.app.api.cmis.builders.objectType.CollectionRepositoryTypesDefinitionBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -29,15 +30,17 @@ public class ConstellioCollectionTypeDefinitionsManager implements MetadataSchem
 
 	private static final String NAMESPACE = "http://chemistry.apache.org/opencmis/fileshare";
 
+	private final AppLayerFactory appLayerFactory;
 	private final TypeDefinitionFactory typeDefinitionFactory;
 	private final MetadataSchemasManager metadataSchemasManager;
 
 	private String collection;
 	private Map<String, TypeDefinition> typeDefinitions;
 
-	public ConstellioCollectionTypeDefinitionsManager(ModelLayerFactory modelLayerFactory, String collection) {
+	public ConstellioCollectionTypeDefinitionsManager(AppLayerFactory appLayerFactory, String collection) {
 		this.collection = collection;
-		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.appLayerFactory = appLayerFactory;
+		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 		this.metadataSchemasManager.registerListener(this);
 
 		this.typeDefinitionFactory = setupTypeDefinitionFactory();
@@ -58,7 +61,7 @@ public class ConstellioCollectionTypeDefinitionsManager implements MetadataSchem
 	}
 
 	public Map<String, TypeDefinition> newCollectionRepositoryTypesDefinitionBuilder(MetadataSchemaTypes types) {
-		return new CollectionRepositoryTypesDefinitionBuilder(types, typeDefinitionFactory).build();
+		return new CollectionRepositoryTypesDefinitionBuilder(types, typeDefinitionFactory, appLayerFactory).build();
 	}
 
 	public synchronized TypeDefinition getInternalTypeDefinition(String typeId) {
@@ -96,5 +99,9 @@ public class ConstellioCollectionTypeDefinitionsManager implements MetadataSchem
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			typeDefinitions = newCollectionRepositoryTypesDefinitionBuilder(types);
 		}
+	}
+
+	public boolean hasTypeDefinition(String schemaCode) {
+		return typeDefinitions.containsKey(schemaCode);
 	}
 }

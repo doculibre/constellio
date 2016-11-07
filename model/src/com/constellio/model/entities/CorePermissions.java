@@ -46,4 +46,7 @@ public class CorePermissions {
 	public static final String MANAGE_LDAP = permission(SYSTEM_MANAGEMENT, "ldapConfigurationManagement");
 
 	public static final List<String> SYSTEM_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(SYSTEM_MANAGEMENT);
+
+	public static final String OTHERS = "others";
+	public static final String USE_EXTERNAL_APIS_FOR_COLLECTION = permission(OTHERS, "useExternalAPIS");
 }

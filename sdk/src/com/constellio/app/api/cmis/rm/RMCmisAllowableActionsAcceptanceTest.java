@@ -93,6 +93,8 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
 	}
 
 	@Test
@@ -257,115 +259,6 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 			}
 		}
 
-	}
-
-	//@Test
-	public void whenGetActionsOfSecurizedRecordWithoutContentThenOK()
-			throws Exception {
-
-		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES };
-
-		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT };
-
-		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT };
-
-		Action[] expectedActionsOfAdmin = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL };
-
-		//These actions are required to allow the user to navigate to its folders
-		Action[] expectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE };
-
-		String folder1UrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1";
-		String folder1UrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1";
-
-		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfAdmin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfAdmin);
-
-		session = newCMISSessionAsUserInZeCollection(chuckNorris);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-
-		session = newCMISSessionAsUserInZeCollection(gandalf);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Alice has read access on all the collection
-		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadAccess);
-
-		//Dakota has read and write access on some administrative units
-		session = newCMISSessionAsUserInZeCollection(dakota);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Bob has no access
-		session = newCMISSessionAsUserInZeCollection(bobGratton);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithNoAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithNoAccess);
-	}
-
-	//@Test
-	public void whenGetActionsOfSecurizedRecordWithContentThenOK()
-			throws Exception {
-
-		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS };
-
-		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_GET_CONTENT_STREAM,
-				CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM, CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN,
-				CAN_CHECK_OUT };
-
-		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT,
-				CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
-				CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT };
-
-		Action[] expectedActionsOfAdmin = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL,
-				CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
-				CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT };
-
-		//These actions are required to allow the user to navigate to its folders
-		Action[] expectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE };
-
-		String folder1UrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1/folder1_doc1";
-		String folder1UrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1";
-
-		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfAdmin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfAdmin);
-
-		session = newCMISSessionAsUserInZeCollection(chuckNorris);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-
-		session = newCMISSessionAsUserInZeCollection(gandalf);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Alice has read access on all the collection
-		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadAccess);
-
-		//Dakota has read and write access on some administrative units
-		session = newCMISSessionAsUserInZeCollection(dakota);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Bob has no access
-		session = newCMISSessionAsUserInZeCollection(bobGratton);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithNoAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithNoAccess);
 	}
 
 	private void printTaxonomies(User user) {
