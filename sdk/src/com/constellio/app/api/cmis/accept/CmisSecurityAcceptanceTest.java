@@ -606,6 +606,28 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenMovingFolderInFolderWithoutParentWriteAuthorizationThenGoodErrorMessage()
+			throws RecordServicesException {
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		Folder oldParent = cmisFolder(zeCollectionRecords.folder2);
+		oldParent.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
+		movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
+		Folder newParent = cmisFolder(zeCollectionRecords.folder1);
+		newParent.addAcl(asList(ace(bobGratton, R)), REPOSITORYDETERMINED);
+
+		Record record = zeCollectionRecords.folder2_2;
+		String newParentID = zeCollectionRecords.folder1.getId();
+
+		session = newCMISSessionAsUserInZeCollection(bobGratton);
+		assertThat(validateErrorFromFunctionCanBeMovedTo(record, newParentID)).isTrue();
+
+		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
+		assertThat(validateErrorFromFunctionCanBeMovedTo(record, newParentID)).isTrue();
+	}
+
+	@Test
 	public void whenMovingFolderInAdministrativeUnitThenOnlyWorksWithNewParentWriteAuthorization()
 			throws RecordServicesException {
 
@@ -1063,6 +1085,20 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		moveObject(record, oldParentID);
 
 		return isMovable;
+	}
+
+	private boolean validateErrorFromFunctionCanBeMovedTo(Record record, String parentTargetId) {
+		String oldParentID = record.getParentId();
+
+		try {
+			moveObject(record, parentTargetId);
+		} catch (CmisRuntimeException e) {
+			if (e.getMessage().contains("permission CMIS CAN_MOVE_OBJECT") ||
+					e.getMessage().contains("permission CMIS CAN_CREATE_FOLDER")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private boolean canBeMovedTo(Record record, String parentTargetId, Record oldParent) {
