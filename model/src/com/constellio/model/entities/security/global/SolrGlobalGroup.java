@@ -111,8 +111,8 @@ public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 
 	@Override
 	public GlobalGroup withLocallyCreated(boolean locallyCreated) {
-		return set(LOCALLY_CREATED, locallyCreated);
+		RecordWrapper recordWrapper = set(LOCALLY_CREATED, (Object) locallyCreated);
+		return (GlobalGroup) recordWrapper;
 	}
-
 
 }
