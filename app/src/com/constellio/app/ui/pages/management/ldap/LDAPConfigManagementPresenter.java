@@ -52,7 +52,12 @@ public class LDAPConfigManagementPresenter extends
 				.getLdapConfigurationManager();
 		try {
 			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
-			view.showMessage($("ldap.config.saved"));
+
+			if (ldapConfigManager.getNextUsersSyncFireTime() == null) {
+                view.showMessage($("ldap.config.saved"));
+            } else {
+				view.showMessage($("ldap.config.saved") + " " + $("ldap.config.nextUserSyncFireTime", ldapConfigManager.getNextUsersSyncFireTime()));
+			}
 		} catch (TooShortDurationRuntimeException e) {
 			view.showErrorMessage($("ldap.TooShortDurationRuntimeException"));
 		} catch (EmptyDomainsRuntimeException e) {

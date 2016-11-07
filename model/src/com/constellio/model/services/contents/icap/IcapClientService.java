@@ -8,22 +8,58 @@ import com.constellio.data.threads.ConstellioJob;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
  */
 public class IcapClientService {
 
-    public static class IcapPreviewLengthReaderJob extends ConstellioJob {
-        private static final int PERIOD = DateTimeConstants.SECONDS_PER_HOUR;
+    public final static class IcapPreviewLengthReaderJob extends ConstellioJob {
+
+        private static Runnable action;
+
+        @Override
+        protected String name() {
+            return IcapPreviewLengthReaderJob.class.getSimpleName();
+        }
+
+        @Override
+        protected Runnable action() {
+            return action;
+        }
+
+        @Override
+        protected boolean unscheduleOnException() {
+            return false;
+        }
+
+        @Override
+        protected Set<Integer> intervals() {
+            return new TreeSet<>(Arrays.asList(new Integer[]{DateTimeConstants.SECONDS_PER_HOUR}));
+        }
+
+        @Override
+        protected Set<String> cronExpressions() {
+            return null;
+        }
+
+        @Override
+        protected Date startTime() {
+            return DateTime.now().toDate();
+        }
+
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioJob.class);
@@ -43,7 +79,7 @@ public class IcapClientService {
 
     public void init() {
         //
-        final ConstellioJob.Action action = new ConstellioJob.Action() {
+        IcapPreviewLengthReaderJob.action = new Runnable() {
             @Override
             public void run() {
                 readPreviewLengthFromIcapServer();
@@ -51,20 +87,7 @@ public class IcapClientService {
         };
 
         //
-        try {
-            constellioJobManager.addJob(
-                    IcapPreviewLengthReaderJob.class,
-                    IcapPreviewLengthReaderJob.class.getSimpleName(),
-                    IcapPreviewLengthReaderJob.PERIOD,
-                    action,
-                    false,
-                    true);
-        } catch (final SchedulerException e) {
-            LOGGER.error("ICAP preview length reader job can't be scheduled", e);
-        }
-
-        //
-        LOGGER.info("ICAP preview length reader job successfully scheduled");
+        constellioJobManager.addJob(new IcapPreviewLengthReaderJob(), true);
     }
 
     void readPreviewLengthFromIcapServer() {
@@ -76,7 +99,7 @@ public class IcapClientService {
             try {
                 icapPreviewLengthNewValue = new IcapClient(URI.create(icapServerUrl), null).getIcapConfigurationsFromServer().getPreviewLength();
             } catch (final IOException e) {
-                LOGGER.warn("Communication error while reading preview length from ICAP server");
+                LOGGER.warn("communication error while reading preview length from ICAP server");
             }
 
             if (icapPreviewLengthNewValue == null) {
@@ -96,12 +119,12 @@ public class IcapClientService {
 
                 final IcapResponse icapResponse = new IcapClient(URI.create(icapServerUrl), null).scanFile(filename, fileContent, constellioServerHostname, icapPreviewLength);
 
-                if (icapResponse.isClear()) {
-                    return;
+                if (icapResponse.isScanTimedout()) {
+                    throw new ContentManagerRuntimeException_IcapScanTimedout();
                 }
 
-                if (icapResponse.isTimedout()) {
-                    throw new ContentManagerRuntimeException_IcapScanTimedout();
+                if (icapResponse.isNoThreatFound()) {
+                    return;
                 }
 
                 throw new ContentManagerRuntimeException_IcapScanThreatFound(icapResponse.getThreatDescription());

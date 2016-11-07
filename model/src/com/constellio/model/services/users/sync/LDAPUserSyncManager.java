@@ -2,6 +2,7 @@ package com.constellio.model.services.users.sync;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,6 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 
 public class LDAPUserSyncManager implements StatefulService {
 	private final static Logger LOGGER = LoggerFactory.getLogger(LDAPUserSyncManager.class);
-    public static final String JOB_NAME = "UserSyncManager";
 	private final LDAPConfigurationManager ldapConfigurationManager;
 	UserServices userServices;
 	GlobalGroupsManager globalGroupsManager;
@@ -70,22 +69,21 @@ public class LDAPUserSyncManager implements StatefulService {
         this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
 
         if (!(userSyncConfiguration == null || (userSyncConfiguration.getDurationBetweenExecution() == null && userSyncConfiguration.getScheduleTime() == null))) {
-            scheduleJob();
+            configureAndScheduleJob();
 		}
 	}
 
 	public void reloadLDAPUserSynchConfiguration() {
-        this.userSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration(false);
-        this.serverConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
+        initialize();
     }
 
 	@Override
 	public void close() {
 	}
 
-    private void scheduleJob() {
+    private void configureAndScheduleJob() {
         //
-        final ConstellioJob.Action action = new ConstellioJob.Action() {
+        LDAPUserSyncManagerJob.action = new Runnable() {
             @Override
             public void run() {
                 synchronizeIfPossible(new LDAPSynchProgressionInfo());
@@ -93,18 +91,11 @@ public class LDAPUserSyncManager implements StatefulService {
         };
 
         //
+        LDAPUserSyncManagerJob.intervals = new HashSet<Integer>();
         if (userSyncConfiguration.getDurationBetweenExecution() != null) {
-            final int period = new Long(userSyncConfiguration.getDurationBetweenExecution().getStandardSeconds()).intValue();
-
-            //
-            try {
-                constellioJobManager.addJob(LDAPUserSyncManagerJob.class, JOB_NAME, period, action, false, true);
-            } catch (final SchedulerException e) {
-                LOGGER.error("LDAP users/groups synchronization job can't be scheduled", e);
-            }
-
-            //
-            LOGGER.info("LDAP users/groups synchronization job successfully scheduled");
+            LDAPUserSyncManagerJob.intervals.add(
+                    new Long(userSyncConfiguration.getDurationBetweenExecution().getStandardSeconds()).intValue()
+            );
         }
 
         //
@@ -130,21 +121,14 @@ public class LDAPUserSyncManager implements StatefulService {
                 minuteHoursMap.get(time.getMinuteOfHour()).add(time.getHourOfDay());
             }
 
-            final List<String> cronExpressions = new ArrayList<>();
+            LDAPUserSyncManagerJob.cronExpressions = new HashSet<>(minuteHoursMap.entrySet().size());
             for (final Map.Entry<Integer, List<Integer>> minuteHours : minuteHoursMap.entrySet()) {
-                cronExpressions.add(String.format("0 %d %s ? * *", minuteHours.getKey(), Joiner.on(",").join(minuteHours.getValue())));
+                LDAPUserSyncManagerJob.cronExpressions.add(String.format("0 %d %s ? * *", minuteHours.getKey(), Joiner.on(",").join(minuteHours.getValue())));
             }
-
-            //
-            try {
-                constellioJobManager.addJob(LDAPUserSyncManagerJob.class, JOB_NAME, cronExpressions, action, false, true);
-            } catch (final SchedulerException e) {
-                LOGGER.error("LDAP users/groups synchronization job can't be scheduled.", e);
-            }
-
-            //
-            LOGGER.info("LDAP users/groups synchronization job successfully scheduled.");
         }
+
+        //
+        ldapConfigurationManager.setNextUsersSyncFireTime(constellioJobManager.addJob(new LDAPUserSyncManagerJob(), true));
     }
 
     public synchronized void synchronizeIfPossible(){
@@ -425,6 +409,40 @@ public class LDAPUserSyncManager implements StatefulService {
 		}
 	}
 
-    public static class LDAPUserSyncManagerJob extends ConstellioJob {
-    }
+    public final static class LDAPUserSyncManagerJob extends ConstellioJob {
+
+        private static Runnable action;
+
+        private static Set<Integer> intervals;
+
+        private static Set<String> cronExpressions;
+
+        private static Date startTime;
+
+        @Override
+		protected String name() {
+			return LDAPUserSyncManagerJob.class.getSimpleName();
+		}
+
+		@Override
+        protected Runnable action() {
+			return action;
+		}
+
+		@Override
+        protected boolean unscheduleOnException() {
+			return false;
+		}
+
+		@Override
+        protected Set<Integer> intervals() {
+			return intervals;
+		}
+
+		@Override
+        protected Set<String> cronExpressions() {
+			return cronExpressions;
+		}
+
+	}
 }

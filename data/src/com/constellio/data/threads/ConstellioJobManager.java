@@ -1,28 +1,18 @@
 package com.constellio.data.threads;
 
 import com.constellio.data.dao.managers.StatefulService;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.DateBuilder;
-import org.quartz.Job;
-import org.quartz.JobBuilder;
+import org.joda.time.DateTime;
 import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.JobListener;
 import org.quartz.impl.StdSchedulerFactory;
-import org.quartz.impl.matchers.KeyMatcher;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.SimpleScheduleBuilder;
 import org.quartz.Trigger;
-import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -30,41 +20,7 @@ import java.util.Set;
  */
 public class ConstellioJobManager implements StatefulService {
 
-    private static class SetActionJobListener implements JobListener {
-
-        private final ConstellioJob.Action action;
-
-        private final boolean unscheduleOnException;
-
-        public SetActionJobListener(final ConstellioJob.Action action, final boolean unscheduleOnException) {
-            this.action = action;
-            this.unscheduleOnException = unscheduleOnException;
-        }
-
-        @Override
-        public String getName() {
-            return getClass().getSimpleName();
-        }
-
-        @Override
-        public void jobToBeExecuted(JobExecutionContext context) {
-            final ConstellioJob job = (ConstellioJob) context.getJobInstance();
-
-            job.setAction(action);
-            job.setUnscheduleOnException(unscheduleOnException);
-        }
-
-        @Override
-        public void jobExecutionVetoed(JobExecutionContext context) {
-        }
-
-        @Override
-        public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
-        }
-
-    }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioJobManager.class);
 
     private Scheduler scheduler;
 
@@ -91,86 +47,41 @@ public class ConstellioJobManager implements StatefulService {
         }
     }
 
-    public void addJob(final Class<? extends Job> jobClass, final String name, final int period, final ConstellioJob.Action action, final boolean unscheduleOnException, final boolean cleanPreviousTriggers) throws SchedulerException {
+    public Date addJob(final ConstellioJob job, final boolean cleanPreviousTriggers) {
         //
-        final JobDetail jobDetail = buildJobDetail(jobClass, name);
-
-        //
-        final Set<Trigger> triggers = new HashSet<>();
-
-        if (period != 0) {
-            triggers.add(buildTrigger(name, period, DateBuilder.newDate().build()));
-        }
+        final Set<Trigger> triggers = job.buildIntervalTriggers();
+        triggers.addAll(job.buildCronTriggers());
 
         //
-        addJob(jobDetail, triggers, action, unscheduleOnException, cleanPreviousTriggers);
-    }
+        if (triggers.isEmpty()) {
+            LOGGER.warn(job.name() + " has no trigger");
+        } else {
+            try {
+                //
+                final JobDetail jobDetail = job.buildJobDetail();
 
-    private static JobDetail buildJobDetail(final Class<? extends Job> jobClass, final String name) {
-        return JobBuilder.
-                newJob(jobClass).
-                withIdentity(name + "-Job", Scheduler.DEFAULT_GROUP).
-                build();
-    }
+                //
+                if (cleanPreviousTriggers) {
+                    scheduler.deleteJob(jobDetail.getKey());
+                }
 
-    private static Trigger buildTrigger(final String name, final int period, final Date startTime) {
-        return TriggerBuilder.
-                newTrigger().
-                withIdentity(name + "-" + period + "-Trigger", Scheduler.DEFAULT_GROUP).
-                startAt(startTime).
-                withSchedule(SimpleScheduleBuilder.
-                        simpleSchedule().
-                        withIntervalInSeconds(period).
-                        repeatForever()).
-                build();
-    }
+                //
+                scheduler.scheduleJob(jobDetail, triggers, true);
 
-    private void addJob(final JobDetail jobDetail, final Set<Trigger> triggers, final ConstellioJob.Action action, final boolean unscheduleOnException, final boolean cleanPreviousTriggers) throws SchedulerException {
-        //
-        if (!triggers.isEmpty()) {
-            //
-            if (cleanPreviousTriggers) {
-                scheduler.deleteJob(jobDetail.getKey());
+                LOGGER.info(job.name() + " successfully scheduled");
+
+                final Set<Date> nextFireTimes = new TreeSet<>();
+                for (final Trigger trigger : triggers) {
+                    nextFireTimes.add(trigger.getFireTimeAfter(DateTime.now().toDate()));
+                }
+
+                return nextFireTimes.iterator().next();
+            } catch (final SchedulerException e) {
+                LOGGER.error(job.name() + " can't be scheduled", e);
             }
 
-            //
-            scheduler.getListenerManager().addJobListener(new SetActionJobListener(action, unscheduleOnException), KeyMatcher.keyEquals(jobDetail.getKey()));
-
-            //
-            scheduler.scheduleJob(jobDetail, triggers, true);
         }
+
+        return null;
     }
-
-    public void addJob(final Class<? extends Job> jobClass, final String name, final List<String> cronExpressions, final ConstellioJob.Action action, final boolean unscheduleOnException, final boolean cleanPreviousTriggers) throws SchedulerException {
-        //
-        final JobDetail jobDetail = buildJobDetail(jobClass, name);
-
-        //
-        final Set<Trigger> triggers = buildTriggers(name, cronExpressions, DateBuilder.newDate().build());
-
-        //
-        addJob(jobDetail, triggers, action, unscheduleOnException, cleanPreviousTriggers);
-    }
-
-    private static Set<Trigger> buildTriggers(final String name, final List<String> cronExpressions, final Date startTime) {
-        final Set<Trigger> triggers = new HashSet<>();
-
-        if (cronExpressions != null) {
-            for (final String cronExpression : cronExpressions) {
-                triggers.add(buildTrigger(name, cronExpression, startTime));
-            }
-        }
-        return triggers;
-    }
-
-    private static Trigger buildTrigger(final String name, final String cronExpression, final Date startTime) {
-        return TriggerBuilder.
-                newTrigger().
-                withIdentity(name + "-" + cronExpression + "-Trigger", Scheduler.DEFAULT_GROUP).
-                startAt(startTime).
-                withSchedule(CronScheduleBuilder.
-                        cronSchedule(cronExpression)).
-                build();
-    }
-
 }

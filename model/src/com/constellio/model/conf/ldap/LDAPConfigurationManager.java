@@ -1,7 +1,7 @@
 package com.constellio.model.conf.ldap;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
@@ -34,6 +34,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	LDAPServerConfiguration serverConfiguration;
 	EncryptionServices encryptionServices;
 	ConfigManager configManager;
+	Date nextUsersSyncFireTime;
 
 	public LDAPConfigurationManager(ModelLayerFactory modelLayerFactory, ConfigManager configManager) {
 		this.configManager = configManager;
@@ -410,4 +411,12 @@ public class LDAPConfigurationManager implements StatefulService {
 		LDAPUserSyncConfiguration config = getLDAPUserSyncConfiguration(false);
 		return config != null && (config.getDurationBetweenExecution() != null && CollectionUtils.isEmpty(config.getScheduleTime()));
 	}
+
+	public Date getNextUsersSyncFireTime() {
+		return nextUsersSyncFireTime;
+	}
+
+    public void setNextUsersSyncFireTime(Date nextUsersSyncFireTime) {
+        this.nextUsersSyncFireTime = nextUsersSyncFireTime;
+    }
 }

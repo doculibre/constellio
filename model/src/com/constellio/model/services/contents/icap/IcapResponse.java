@@ -163,7 +163,7 @@ public final class IcapResponse {
         headers = Collections.unmodifiableMap(new TreeMap<>(builder.headers));
     }
 
-    public boolean isTimedout() {
+    public boolean isScanTimedout() {
         return timedout;
     }
 
@@ -175,7 +175,7 @@ public final class IcapResponse {
         }
     }
 
-    public boolean isClear() {
+    public boolean isNoThreatFound() {
         return HttpStatus.SC_NO_CONTENT == httpStatusCode;
     }
 
