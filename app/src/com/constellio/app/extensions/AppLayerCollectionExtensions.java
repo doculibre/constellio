@@ -18,14 +18,25 @@ import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
-import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
-import com.constellio.app.api.extensions.taxonomies.*;
+import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
+import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
+import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -37,6 +48,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.utils.Provider;
@@ -127,6 +139,75 @@ public class AppLayerCollectionExtensions {
 			extension.buildConstellioRecordFromCmisObject(params);
 		}
 	}
+
+	public void buildAllowableActions(BuildAllowableActionsParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.buildAllowableActions(params);
+		}
+	}
+
+	public void onGetObject(GetObjectParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onGetObject(params);
+		}
+	}
+
+	public boolean isSchemaTypeSupported(final IsSchemaTypeSupportedParams params, boolean defaultValue) {
+		return ExtensionUtils.getBooleanValue(cmisExtensions, defaultValue, new BooleanCaller<CmisExtension>() {
+			@Override
+			public ExtensionBooleanResult call(CmisExtension extension) {
+				return extension.isSchemaTypeSupported(params);
+			}
+		});
+	}
+	//
+	//	public void onCreateCMISFolder(CreateFolderParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onCreateCMISFolder(params);
+	//		}
+	//	}
+	//
+	//	public void onCreateCMISDocument(CreateDocumentParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onCreateCMISDocument(params);
+	//		}
+	//	}
+	//
+	//	public void onUpdateCMISFolder(UpdateFolderParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onUpdateCMISFolder(params);
+	//		}
+	//	}
+	//
+	//	public void onUpdateCMISDocument(UpdateDocumentParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onUpdateCMISDocument(params);
+	//		}
+	//	}
+
+	public void onCheckIn(CheckInParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onCheckIn(params);
+		}
+	}
+
+	public void onCheckOut(CheckOutParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onCheckOut(params);
+		}
+	}
+
+	public void onDeleteTree(DeleteTreeParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onDeleteTree(params);
+		}
+	}
+
+	//	public void onDeleteContent(DeleteContentParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onDeleteContent(params);
+	//		}
+	//	}
 
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam params) {
 		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();

@@ -1,5 +1,7 @@
 package com.constellio.app.api.cmis.binding.global;
 
+import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
+
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -90,8 +92,22 @@ public class ConstellioCmisRequestFactory extends AbstractServiceFactory {
 		try {
 
 			String username = userServices.getTokenUser(serviceKey, token);
-			UserCredential userCredential = userServices.getUserCredential(username);
+			UserCredential userCredential = userServices.getUser(username);
+			if (collection != null) {
+				User user = userServices.getUserInCollection(username, collection);
+				if (!userCredential.isSystemAdmin() && !user.has(USE_EXTERNAL_APIS_FOR_COLLECTION).globally()) {
+					throw new CmisPermissionDeniedException(
+							"User does not have permission to use CMIS in collection '" + collection + "'");
+				}
+			} else {
+				if (!userServices.has(userCredential).globalPermissionInAnyCollection(USE_EXTERNAL_APIS_FOR_COLLECTION)) {
+					throw new CmisPermissionDeniedException(
+							"User must have the permission to use CMIS in at least one collection");
+				}
+
+			}
 			return userCredential;
+
 		} catch (UserServicesRuntimeException e) {
 			throw new CmisExceptions_InvalidLogin();
 		}

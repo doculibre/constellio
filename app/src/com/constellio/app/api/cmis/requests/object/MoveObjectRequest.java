@@ -19,8 +19,11 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.api.cmis.utils.CmisRecordUtils;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -50,16 +53,19 @@ public class MoveObjectRequest extends CmisCollectionRequest<ObjectData> {
 		}
 
 		Record record = recordServices.getDocumentById(objectId.getValue(), user);
+
 		Record targetRecord = recordServices.getDocumentById(targetFolderId, user);
 		ensureUserHasAllowableActionsOnRecord(record, CAN_MOVE_OBJECT, CAN_UPDATE_PROPERTIES);
 		ensureUserHasAllowableActionsOnRecord(targetRecord, CAN_CREATE_FOLDER);
 		MetadataSchema schema = types().getSchema(record.getSchemaCode());
 		new CmisRecordUtils(modelLayerFactory).setParentOfRecord(record, targetRecord, schema);
 		try {
-			recordServices.update(record);
+			recordServices.execute(new Transaction(record).setUser(user));
 		} catch (RecordServicesException e) {
 			throw new CmisExceptions_CmisRuntimeCannotUpdateRecord(record.getId(), e);
 		}
+//		UpdateFolderParams updateFolderParams = new UpdateFolderParams(user, record);
+		//		appLayerFactory.getExtensions().forCollection(collection).onUpdateCMISFolder(updateFolderParams);
 		return newObjectDataBuilder().build(record, null, false, false, objectInfos);
 	}
 

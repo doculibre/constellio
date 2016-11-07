@@ -32,6 +32,7 @@ import org.apache.chemistry.opencmis.commons.server.CallContext;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
@@ -67,26 +68,28 @@ public class AllowableActionsBuilder {
 		this.configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 	}
 
-	static final List<Action> TAXONOMY_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+	public static final List<Action> TAXONOMY_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
 			CAN_GET_OBJECT_PARENTS);
-	static final List<Action> ROOT_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
-	static final List<Action> UNSECURIZED_RECORD_ACTIONS = asList(CAN_GET_PROPERTIES);
-	static final List<Action> NO_RIGHT_ON_RECORD_ACTIONS = asList(CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE);
-	static final List<Action> READ_RIGHT_ON_RECORD_ACTIONS = asList(CAN_GET_PROPERTIES);
-	static final List<Action> WRITE_RIGHT_ON_RECORD_ACTIONS = asList(CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_CREATE_FOLDER);
-	static final List<Action> DELETE_RIGHT_ON_RECORD_ACTIONS = asList(CAN_DELETE_OBJECT, CAN_DELETE_TREE);
-	static final List<Action> RECORD_WITH_CONTENT_READ_ACTIONS = asList(CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS);
-	static final List<Action> RECORD_WITH_CONTENT_WRITE_ACTIONS = asList(CAN_CREATE_DOCUMENT,
+	public static final List<Action> ROOT_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN);
+	public static final List<Action> UNSECURIZED_RECORD_ACTIONS = asList(CAN_GET_PROPERTIES);
+	public static final List<Action> NO_RIGHT_ON_RECORD_ACTIONS = asList(CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
+			CAN_GET_FOLDER_TREE);
+	public static final List<Action> READ_RIGHT_ON_RECORD_ACTIONS = asList(CAN_GET_PROPERTIES);
+	public static final List<Action> WRITE_RIGHT_ON_RECORD_ACTIONS = asList(CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT,
+			CAN_CREATE_FOLDER);
+	public static final List<Action> DELETE_RIGHT_ON_RECORD_ACTIONS = asList(CAN_DELETE_OBJECT, CAN_DELETE_TREE);
+	public static final List<Action> RECORD_WITH_CONTENT_READ_ACTIONS = asList(CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS);
+	public static final List<Action> RECORD_WITH_CONTENT_WRITE_ACTIONS = asList(CAN_CREATE_DOCUMENT,
 			CAN_SET_CONTENT_STREAM, CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT);
 
-	static final List<Action> SECONDARY_TAXONOMY_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN, CAN_GET_OBJECT_PARENTS,
-			CAN_GET_FOLDER_TREE, CAN_CREATE_FOLDER, CAN_GET_FOLDER_PARENT);
-	static final List<Action> NO_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS = asList(CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-			CAN_GET_FOLDER_TREE);
-	static final List<Action> READ_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_FOLDER_PARENT,
-			CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS);
-	static final List<Action> WRITE_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS = asList(CAN_CREATE_FOLDER);
-	static final List<Action> MANAGE_SECURITY_ACTIONS = asList(CAN_GET_ACL, CAN_APPLY_ACL);
+	public static final List<Action> SECONDARY_TAXONOMY_ACTIONS = asList(CAN_GET_PROPERTIES, CAN_GET_CHILDREN,
+			CAN_GET_OBJECT_PARENTS, CAN_GET_FOLDER_TREE, CAN_CREATE_FOLDER, CAN_GET_FOLDER_PARENT);
+	public static final List<Action> NO_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS = asList(CAN_GET_CHILDREN,
+			CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE);
+	public static final List<Action> READ_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS = asList(CAN_GET_PROPERTIES,
+			CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE, CAN_GET_OBJECT_PARENTS);
+	public static final List<Action> WRITE_RIGHT_ON_PRINCIPAL_TAXONOMY_CONCEPT_ACTIONS = asList(CAN_CREATE_FOLDER);
+	public static final List<Action> MANAGE_SECURITY_ACTIONS = asList(CAN_GET_ACL, CAN_APPLY_ACL);
 
 	public AllowableActions build(Record record) {
 		MetadataSchemaType type = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
@@ -170,6 +173,9 @@ public class AllowableActionsBuilder {
 			availableActions.remove(CAN_APPLY_ACL);
 			availableActions.remove(CAN_GET_ACL);
 		}
+
+		BuildAllowableActionsParams params = new BuildAllowableActionsParams(user, record, availableActions);
+		appLayerFactory.getExtensions().forCollectionOf(record).buildAllowableActions(params);
 
 		AllowableActionsImpl result = new AllowableActionsImpl();
 		result.setAllowableActions(availableActions);

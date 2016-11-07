@@ -28,6 +28,7 @@ import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_SET_CONTENT
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.Folder;
@@ -39,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -79,6 +81,12 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		rolesManager.addRole(new Role(zeCollection, "r4", asList(MANAGE_DOCUMENT_AUTHORIZATIONS)));
 		rolesManager.addRole(new Role(zeCollection, "r5", asList(SHARE_DOCUMENT)));
 
+		Role managerRole = rolesManager.getRole(zeCollection, RMRoles.MANAGER);
+		List<String> managerPermissions = new ArrayList<>(managerRole.getOperationPermissions());
+		managerPermissions.remove(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS);
+		managerPermissions.remove(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS);
+		rolesManager.updateRole(managerRole.withPermissions(managerPermissions));
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		authServices = getModelLayerFactory().newAuthorizationsServices();
 
@@ -93,6 +101,8 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.gandalfIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
 	}
 
 	@Test
@@ -143,22 +153,52 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).givingReadWriteAccess(),
 				users.adminIn(zeCollection));
-		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).giving("r1"),
+		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).giving("r2"),
 				users.adminIn(zeCollection));
+
+		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).givingReadWriteAccess(),
+				users.adminIn(zeCollection));
+		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).giving("r4"),
+				users.adminIn(zeCollection));
+
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).givingReadWriteAccess(),
+				users.adminIn(zeCollection));
+		//Roles giving share folder and share documents permissions, which are not supported in cmis
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).giving("r3", "r5"),
+				users.adminIn(zeCollection));
+
 		waitForBatchProcess();
 
-		for (String user : asList(admin, dakota, chuckNorris)) {
-			ensureUserCanGetAndApplyACLOnRecords(user, records.unitId_10);
+		//Folders :
+
+		for (String user : asList(admin, dakota, chuckNorris, sasquatch, charles)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_A19);
 		}
-		for (String user : asList(edouard, charles, sasquatch, gandalf, aliceWonderland, bobGratton, robin)) {
-			ensureUserCannotGetAndApplyACLOnRecords(user, records.unitId_10);
+		for (String user : asList(edouard, gandalf, aliceWonderland, bobGratton, robin)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_A19);
 		}
 
-		for (String user : asList(admin, chuckNorris)) {
-			ensureUserCanGetAndApplyACLOnRecords(user, records.unitId_30);
+		for (String user : asList(admin, chuckNorris, sasquatch)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_C30);
 		}
-		for (String user : asList(edouard, sasquatch, gandalf, aliceWonderland, bobGratton, robin)) {
-			ensureUserCannotGetAndApplyACLOnRecords(user, records.unitId_30);
+		for (String user : asList(edouard, gandalf, aliceWonderland, bobGratton, robin)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_C30);
+		}
+
+		//Documents :
+
+		for (String user : asList(admin, aliceWonderland, chuckNorris, robin)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.document_A19);
+		}
+		for (String user : asList(edouard, charles, gandalf, bobGratton, sasquatch)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.document_A19);
+		}
+
+		for (String user : asList(admin, chuckNorris, robin)) {
+			ensureUserCanGetAndApplyACLOnRecords(user, records.document_B30);
+		}
+		for (String user : asList(edouard, gandalf, aliceWonderland, bobGratton, sasquatch)) {
+			ensureUserCannotGetAndApplyACLOnRecords(user, records.document_B30);
 		}
 
 	}
@@ -184,24 +224,24 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 				users.adminIn(zeCollection));
 		waitForBatchProcess();
 
-		for (String user : asList(admin, dakota, chuckNorris)) {
+		for (String user : asList(admin, dakota, chuckNorris, sasquatch)) {
 			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_A03);
 		}
-		for (String user : asList(edouard, charles, gandalf, aliceWonderland, bobGratton, robin, sasquatch)) {
+		for (String user : asList(edouard, charles, gandalf, aliceWonderland, bobGratton, robin)) {
 			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_A03);
 		}
 
-		for (String user : asList(admin, chuckNorris)) {
+		for (String user : asList(admin, chuckNorris, sasquatch)) {
 			ensureUserCanGetAndApplyACLOnRecords(user, records.folder_A07);
 		}
-		for (String user : asList(gandalf, aliceWonderland, bobGratton, robin, sasquatch)) {
+		for (String user : asList(gandalf, aliceWonderland, bobGratton, robin)) {
 			ensureUserCannotGetAndApplyACLOnRecords(user, records.folder_A07);
 		}
 
 	}
 
 	private void ensureUserCanGetAndApplyACLOnRecords(String user, String id) {
-		as(user).assertThatAllowableActionsOf(id).contains(CAN_GET_ACL, CAN_APPLY_ACL);
+		as(user).assertThatAllowableActionsOf(id).describedAs("Actions of " + user).contains(CAN_GET_ACL, CAN_APPLY_ACL);
 		assertThat(session.getObject(id).getAcl().getAces()).isNotEmpty();
 		assertThat(session.getAcl(session.getObject(id), false).getAces()).isNotEmpty();
 		session.getObject(id).addAcl(asList(ace(bobGratton, asList(CMIS_READ))), REPOSITORYDETERMINED);
@@ -259,115 +299,6 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	//@Test
-	public void whenGetActionsOfSecurizedRecordWithoutContentThenOK()
-			throws Exception {
-
-		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES };
-
-		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT };
-
-		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT };
-
-		Action[] expectedActionsOfAdmin = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL };
-
-		//These actions are required to allow the user to navigate to its folders
-		Action[] expectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE };
-
-		String folder1UrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1";
-		String folder1UrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1";
-
-		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfAdmin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfAdmin);
-
-		session = newCMISSessionAsUserInZeCollection(chuckNorris);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-
-		session = newCMISSessionAsUserInZeCollection(gandalf);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Alice has read access on all the collection
-		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadAccess);
-
-		//Dakota has read and write access on some administrative units
-		session = newCMISSessionAsUserInZeCollection(dakota);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Bob has no access
-		session = newCMISSessionAsUserInZeCollection(bobGratton);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithNoAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithNoAccess);
-	}
-
-	//@Test
-	public void whenGetActionsOfSecurizedRecordWithContentThenOK()
-			throws Exception {
-
-		Action[] expectedActionsOfUserWithReadAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS };
-
-		Action[] expectedActionsOfUserWithReadWriteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_GET_CONTENT_STREAM,
-				CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM, CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN,
-				CAN_CHECK_OUT };
-
-		Action[] expectedActionsOfUserWithReadWriteDeleteAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE, CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT,
-				CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
-				CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT };
-
-		Action[] expectedActionsOfAdmin = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT, CAN_GET_FOLDER_TREE,
-				CAN_GET_PROPERTIES, CAN_UPDATE_PROPERTIES, CAN_MOVE_OBJECT, CAN_DELETE_OBJECT, CAN_APPLY_ACL, CAN_GET_ACL,
-				CAN_GET_CONTENT_STREAM, CAN_GET_ALL_VERSIONS, CAN_CREATE_DOCUMENT, CAN_SET_CONTENT_STREAM,
-				CAN_DELETE_CONTENT_STREAM, CAN_CHECK_IN, CAN_CHECK_OUT };
-
-		//These actions are required to allow the user to navigate to its folders
-		Action[] expectedActionsOfUserWithNoAccess = new Action[] { CAN_GET_CHILDREN, CAN_GET_FOLDER_PARENT,
-				CAN_GET_FOLDER_TREE };
-
-		String folder1UrlFromTaxo1 = "/taxo_taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1/folder1_doc1";
-		String folder1UrlFromTaxo2 = "/taxo_taxo2/zetaxo2_unit1/zetaxo2_station2/folder1/folder1_doc1";
-
-		session = newCMISSessionAsUserInZeCollection(admin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfAdmin);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfAdmin);
-
-		session = newCMISSessionAsUserInZeCollection(chuckNorris);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteDeleteAccess);
-
-		session = newCMISSessionAsUserInZeCollection(gandalf);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Alice has read access on all the collection
-		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadAccess);
-
-		//Dakota has read and write access on some administrative units
-		session = newCMISSessionAsUserInZeCollection(dakota);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithReadWriteAccess);
-
-		//Bob has no access
-		session = newCMISSessionAsUserInZeCollection(bobGratton);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo1).containsOnly(expectedActionsOfUserWithNoAccess);
-		assertThatAllowableActionsOf(folder1UrlFromTaxo2).containsOnly(expectedActionsOfUserWithNoAccess);
-	}
-
 	private void printTaxonomies(User user) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
@@ -422,7 +353,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void ensureUserCannotGetAndApplyACLOnRecords(String user, String id) {
-		as(user).assertThatAllowableActionsOf(id).doesNotContain(CAN_GET_ACL, CAN_APPLY_ACL);
+		as(user).assertThatAllowableActionsOf(id).describedAs("Actions of " + user).doesNotContain(CAN_GET_ACL, CAN_APPLY_ACL);
 		assertThat(session.getObject(id).getAcl()).isNull();
 		try {
 			session.getAcl(session.getObject(id), true);

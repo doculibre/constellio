@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -477,5 +478,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public int getMaxSelectableResults() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+	}
+
+	public boolean hasCurrentUserPermissionToUseCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 }

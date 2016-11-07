@@ -68,8 +68,13 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 			parent = new ObjectParentDataImpl(newObjectDataBuilder().build(record, filter, false, false, objectInfo));
 
 		} else {
-			Record record = recordServices.getDocumentById(objectId, user);
-			parent = new ObjectParentDataImpl(buildRecordObjectData(record));
+			Record record = recordServices.getDocumentById(objectId);
+			List<ObjectParentData> parentDatas = new ArrayList<>();
+			for (ObjectData objectData : buildRecordObjectData(record)) {
+				parentDatas.add(new ObjectParentDataImpl(objectData));
+			}
+			return parentDatas;
+
 		}
 		return Collections.<ObjectParentData>singletonList(parent);
 	}
@@ -79,8 +84,9 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 		return newObjectDataBuilder().build(content.getRecord(), filter, false, false, objectInfo);
 	}
 
-	private ObjectData buildRecordObjectData(Record record) {
+	private List<ObjectData> buildRecordObjectData(Record record) {
 
+		Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(record);
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
 		MetadataSchema schema = types().getSchema(record.getSchemaCode());
 		List<Metadata> parentReferencesMetadatas = schema.getParentReferences();
@@ -89,19 +95,33 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 		allReferencesMetadatas.addAll(parentReferencesMetadatas);
 		allReferencesMetadatas.addAll(referencesMetadatas);
 
-		Record parentRecord = null;
+		List<ObjectData> parents = new ArrayList<>();
 		for (Metadata referenceMetadata : allReferencesMetadatas) {
 			if (record.get(referenceMetadata) != null) {
 				String parentId = record.get(referenceMetadata);
-				parentRecord = recordServices.getDocumentById(parentId, user);
-				break;
+				Record parentRecord = recordServices.getDocumentById(parentId);
+				parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
 			}
 		}
-		if (parentRecord == null) {
-			return null;
-		} else {
-			return newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo);
+
+		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
+			if (!taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
+				List<Metadata> taxonomyReferencesMetadatas = schema.getTaxonomyRelationshipReferences(asList(taxonomy));
+				for (Metadata referenceMetadata : taxonomyReferencesMetadatas) {
+					if (record.get(referenceMetadata) != null) {
+						String parentId = record.get(referenceMetadata);
+						Record parentRecord = recordServices.getDocumentById(parentId);
+						parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
+					}
+				}
+			}
 		}
+
+		if (parents.isEmpty() && taxonomyOfRecord != null) {
+			parents.add(newTaxonomyObjectBuilder().build(taxonomyOfRecord, objectInfo));
+		}
+
+		return parents;
 
 	}
 

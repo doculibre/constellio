@@ -65,6 +65,7 @@ public class Transaction {
 		for (Record record : transaction.getRecords()) {
 			addUpdate(record);
 		}
+		this.user = transaction.user;
 		this.recordUpdateOptions = transaction.recordUpdateOptions;
 		this.skippingRequiredValuesValidation = transaction.isSkippingRequiredValuesValidation();
 		this.skippingReferenceToLogicallyDeletedValidation = transaction.isSkippingReferenceToLogicallyDeletedValidation();

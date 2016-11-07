@@ -90,7 +90,7 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 
 		defineSchemasManager()
 				.using(schemas.withAContentMetadata());
-
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
@@ -123,6 +123,8 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		bob.setCollectionWriteAccess(true);
 		recordServices.update(alice.getWrappedRecord());
 		recordServices.update(bob.getWrappedRecord());
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

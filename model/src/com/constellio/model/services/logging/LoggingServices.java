@@ -88,6 +88,10 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.VIEW));
 	}
 
+	public void logRecordView(Record record, User currentUser, LocalDateTime dateTime) {
+		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.VIEW, null, dateTime));
+	}
+
 	public void borrowRecord(Record record, User currentUser, LocalDateTime dateTime) {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.BORROW, null, dateTime));
 	}
@@ -98,12 +102,12 @@ public class LoggingServices {
 	}
 
 	public void consultingRecord(Record record, User currentUser, LocalDateTime dateTime) {
-		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, dateTime));
+		logRecordView(record, currentUser, dateTime);
+		//executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, dateTime));
 	}
 
 	public void consultingRecord(Record record, User currentUser) {
-		executeTransaction(
-				eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, TimeProvider.getLocalDateTime()));
+		logRecordView(record, currentUser);
 	}
 
 	public void returnRecord(Record record, User currentUser, LocalDateTime returnDateTime) {

@@ -15,8 +15,11 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
@@ -50,11 +53,14 @@ public class DeleteObjectRequest extends CmisCollectionRequest<Boolean> {
 			} else {
 				record.set(metadata, null);
 			}
+//			DeleteContentParams params = new DeleteContentParams(user, record);
+			//			appLayerFactory.getExtensions().forCollection(collection).onDeleteContent(params);
 			try {
-				recordServices.update(record);
+				recordServices.execute(new Transaction(record).setUser(user));
 			} catch (RecordServicesException e) {
 				throw new ConstellioCmisException_RecordServicesError(e);
 			}
+
 		} else {
 			throw new UnsupportedOperationException();
 		}

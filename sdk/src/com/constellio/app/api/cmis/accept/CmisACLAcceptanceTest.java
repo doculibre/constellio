@@ -94,6 +94,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		users.setUp(userServices);
 
 		defineSchemasManager().using(zeCollectionSchemas);
+		zeCollectionSchemas.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
@@ -141,6 +142,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		robinId = users.robinIn(zeCollection).getId();
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
@@ -301,7 +304,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		List<String> users = new ArrayList<>();
 
 		for (Ace ace : aces) {
-			if (!"constellio:removeInheritance" .equals(ace.getPrincipalId())) {
+			if (!"constellio:removeInheritance".equals(ace.getPrincipalId())) {
 				users.add(ace.getPrincipalId());
 			}
 		}

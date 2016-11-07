@@ -15,6 +15,7 @@ import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameter
 import com.constellio.app.api.cmis.builders.object.RecordBuilder;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.api.cmis.utils.CmisRecordUtils;
+import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -59,7 +60,9 @@ public class CreateFolderRequest extends CmisCollectionRequest<String> {
 		}
 		new CmisRecordUtils(modelLayerFactory).setParentOfRecord(newRecord, parentRecord, schema);
 		try {
-			recordServices.execute(new Transaction(newRecord));
+			recordServices.execute(new Transaction(newRecord).setUser(user));
+//			CreateDocumentParams params = new CreateDocumentParams(user, newRecord);
+			//			appLayerFactory.getExtensions().forCollection(collection).onCreateCMISDocument(params);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
