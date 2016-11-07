@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
@@ -20,25 +21,26 @@ import static java.util.Arrays.asList;
  */
 public class RMMigrationTo6_5_21 implements MigrationScript {
 
-    @Override
-    public String getVersion() {
-        return "6.5.21";
-    }
+	@Override
+	public String getVersion() {
+		return "6.5.21";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
-            throws Exception {
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
+			throws Exception {
 
-        addUseCartPermissionToAllRoles(collection, appLayerFactory);
-    }
+		addUseCartPermissionToAllRoles(collection, appLayerFactory);
+	}
 
-    private void addUseCartPermissionToAllRoles(String collection, AppLayerFactory appLayerFactory) {
-        RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+	private void addUseCartPermissionToAllRoles(String collection, AppLayerFactory appLayerFactory) {
+		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
 
-        List<Role> roleList = rolesManager.getAllRoles(collection);
-        for(Role role: roleList) {
-            Role editedRole = role.withNewPermissions(asList(RMPermissionsTo.USE_CART));
-            rolesManager.updateRole(editedRole);
-        }
-    }
+		List<Role> roleList = rolesManager.getAllRoles(collection);
+		for (Role role : roleList) {
+			Role editedRole = role
+					.withNewPermissions(asList(RMPermissionsTo.USE_CART, CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION));
+			rolesManager.updateRole(editedRole);
+		}
+	}
 }
