@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.commons.impl.jaxb.CheckOut;
-
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -31,19 +29,14 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
-import com.constellio.app.extensions.api.cmis.params.AllowableActionsParams;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
-import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
-import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
-import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
-import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
-import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -147,7 +140,7 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
-	public void buildAllowableActions(AllowableActionsParams params) {
+	public void buildAllowableActions(BuildAllowableActionsParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.buildAllowableActions(params);
 		}
