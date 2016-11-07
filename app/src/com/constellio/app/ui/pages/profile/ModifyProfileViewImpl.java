@@ -241,10 +241,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup(DefaultTabInFolderDisplay.class);
 		defaultTabInFolderDisplay.setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
 		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.SUB_FOLDERS,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.SUB_FOLDERS));
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.DOCUMENTS,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.DOCUMENTS));
+		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
+				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
 		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
 				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
 

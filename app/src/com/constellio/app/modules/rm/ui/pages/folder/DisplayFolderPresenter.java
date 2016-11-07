@@ -36,6 +36,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
@@ -202,20 +203,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (isNotBlank(defaultTabInFolderDisplay)) {
 			if (DefaultTabInFolderDisplay.METADATA.getCode().equals(defaultTabInFolderDisplay)) {
 				view.selectMetadataTab();
-			} else if (DefaultTabInFolderDisplay.DOCUMENTS.getCode().equals(defaultTabInFolderDisplay)) {
-				view.selectDocumentsTab();
-			} else if (DefaultTabInFolderDisplay.SUB_FOLDERS.getCode().equals(defaultTabInFolderDisplay)) {
-				view.selectSubFoldersTab();
+			} else if (DefaultTabInFolderDisplay.CONTENT.getCode().equals(defaultTabInFolderDisplay)) {
+				view.selectFolderContentTab();
 			}
 		}
 	}
 
-	public int getDocumentCount() {
-		return documentsDataProvider.size();
-	}
-
-	public Object getSubFolderCount() {
-		return subFoldersDataProvider.size();
+	public int getFolderContentCount() {
+		return subFoldersDataProvider.size() + documentsDataProvider.size();
 	}
 
 	public int getTaskCount() {
@@ -485,8 +480,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void viewAssembled() {
-		view.setDocuments(documentsDataProvider);
-		view.setSubFolders(subFoldersDataProvider);
+		view.setFolderContent(Arrays.asList(subFoldersDataProvider, documentsDataProvider));
 		view.setTasks(tasksDataProvider);
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -566,7 +560,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
-			view.openAgentURL(agentURL);
+//			view.openAgentURL(agentURL);
+			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 		} else {
 			view.navigate().to(RMViews.class).displayDocument(recordVO.getId());
 		}
@@ -604,7 +599,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void contentVersionUploaded(ContentVersionVO uploadedContentVO) {
-		view.selectDocumentsTab();
+		view.selectFolderContentTab();
 		String fileName = uploadedContentVO.getFileName();
 		if (!documentExists(fileName)) {
 			try {
@@ -629,18 +624,18 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 				schemaPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
-				view.refreshDocumentsTab();
+				view.refreshFolderContentTab();
 			} catch (final ContentManagerRuntimeException_IcapScanThreatFound|ContentManagerRuntimeException_IcapScanTimedout e) {
-                LOGGER.warn(e.getMessage());
+				LOGGER.warn(e.getMessage());
 
-                view.showErrorMessage(e.getMessage());
+				view.showErrorMessage(e.getMessage());
 			} catch (final ContentManagerRuntimeException_IcapCommunicationFailure e) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(e.getMessage(), e);
-                }
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug(e.getMessage(), e);
+				}
 
-                LOGGER.warn(e.getMessage());
-            } catch (Exception e) {
+				LOGGER.warn(e.getMessage());
+			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			}
 		}
@@ -770,6 +765,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 		}
 		return previewReturnDate;
+	}
+
+	boolean isDocument(RecordVO record) {
+		return record.getSchema().getCode().startsWith("document");
 	}
 
 	public boolean canModifyDocument(RecordVO record) {
