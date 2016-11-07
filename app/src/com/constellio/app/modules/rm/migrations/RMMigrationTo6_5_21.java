@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -38,8 +39,10 @@ public class RMMigrationTo6_5_21 implements MigrationScript {
 
 		List<Role> roleList = rolesManager.getAllRoles(collection);
 		for (Role role : roleList) {
-			Role editedRole = role
-					.withNewPermissions(asList(RMPermissionsTo.USE_CART, CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION));
+			Role editedRole = role.withNewPermissions(asList(RMPermissionsTo.USE_CART));
+			if (editedRole.getCode().equals(RMRoles.RGD)) {
+				editedRole = editedRole.withNewPermissions(asList(CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION));
+			}
 			rolesManager.updateRole(editedRole);
 		}
 	}
