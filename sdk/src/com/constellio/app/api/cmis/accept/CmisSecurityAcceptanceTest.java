@@ -615,7 +615,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		Folder movedFolder = cmisFolder(zeCollectionRecords.folder2_2);
 		movedFolder.addAcl(asList(ace(bobGratton, RW), ace(charlesFrancoisXavier, RW)), REPOSITORYDETERMINED);
 		Folder newParent = cmisFolder(zeCollectionRecords.folder1);
-		newParent.addAcl(asList(ace(bobGratton, R)), REPOSITORYDETERMINED);
+		newParent.addAcl(asList(ace(bobGratton, R), ace(charles, R)), REPOSITORYDETERMINED);
 
 		Record record = zeCollectionRecords.folder2_2;
 		String newParentID = zeCollectionRecords.folder1.getId();
