@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.*;
 import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
 import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
 import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
@@ -59,6 +59,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
@@ -337,9 +338,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	String getTypeFieldValue() {
 		return (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
 	}
-
-	private boolean isFieldRequired(String metadataCode) {
-		MetadataVO metadataVO = folderVO.getMetadata(metadataCode);
+	
+	private Metadata getNotEnteredMetadata(String metadataCode) {
 		String adjustedMetadataCode;
 		switch (metadataCode) {
 		case ADMINISTRATIVE_UNIT_ENTERED:
@@ -374,12 +374,22 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		} else {
 			folderSchema = rmSchemasRecordsServices.defaultFolderSchema();
 		}
-		return folderSchema.get(adjustedMetadataCode).isDefaultRequirement();
+		return folderSchema.get(adjustedMetadataCode);
+	}
+
+	private boolean isFieldRequired(String metadataCode) {
+		return getNotEnteredMetadata(metadataCode).isDefaultRequirement();
+	}
+
+	private String getFieldLabel(String metadataCode) {
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		return getNotEnteredMetadata(metadataCode).getLabel(language);
 	}
 
 	private void setFieldVisible(CustomFolderField<?> field, boolean visible, String metadataCode) {
 		if (visible) {
 			field.setRequired(isFieldRequired(metadataCode));
+			field.setCaption(getFieldLabel(metadataCode));
 		} else {
 			field.setRequired(false);
 		}
@@ -421,11 +431,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		parentFolderField.setVisible(folderHadAParent);
 	}
 
-	@SuppressWarnings("unchecked")
 	void adjustAdministrativeUnitField() {
 		FolderAdministrativeUnitField administrativeUnitField = (FolderAdministrativeUnitField) view.getForm().getCustomField(
 				Folder.ADMINISTRATIVE_UNIT_ENTERED);
-
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (administrativeUnitField != null) {
 			String parentId = parentFolderField.getFieldValue();
