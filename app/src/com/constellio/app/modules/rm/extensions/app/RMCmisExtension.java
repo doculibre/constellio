@@ -82,12 +82,14 @@ public class RMCmisExtension extends CmisExtension {
 		User user = params.getUser();
 		Record record = params.getRecord();
 
-		if (user.hasWriteAccess().on(record) && user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record)
+		if (user.hasWriteAccess().on(record) && user.hasDeleteAccess().on(record)
+				&& user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record)
 				&& record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
 			params.getActions().addAll(AllowableActionsBuilder.MANAGE_SECURITY_ACTIONS);
 		}
 
-		if (user.hasWriteAccess().on(record) && user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
+		if (user.hasWriteAccess().on(record) && user.hasDeleteAccess().on(record)
+				&& user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
 				&& record.getTypeCode().equals(Document.SCHEMA_TYPE)) {
 			params.getActions().addAll(AllowableActionsBuilder.MANAGE_SECURITY_ACTIONS);
 		}
