@@ -25,6 +25,7 @@ allprojects {
     }
 
     tasks.withType(Javadoc) {
+        task -> enabled = false;
         options.encoding = 'UTF-8'
     }
 
