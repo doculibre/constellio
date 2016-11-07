@@ -729,6 +729,25 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSavingAgregatedMetadatasThenDataTypeAndParametersConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(zeSchema.code()).create("calculatedString").setType(STRING).defineDataEntry()
+						.asCalculated(new TestParametrizedMetadataValueCalculator("value1", 42));
+			}
+		}));
+
+		CalculatedDataEntry dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+
+		TestParametrizedMetadataValueCalculator calculator = (TestParametrizedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(dataEntry.getType()).isEqualTo(CALCULATED);
+		assertThat(calculator.parameter1).isEqualTo("value1");
+		assertThat(calculator.parameter2).isEqualTo(42);
+	}
+
+	@Test
 	public void whenSavingParameterizedCalculatedMetadataThenDataTypeAndParametersConserved()
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {

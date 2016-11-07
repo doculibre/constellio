@@ -8,6 +8,8 @@ import java.util.List;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AgregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -50,6 +52,11 @@ public class DataEntryBuilder {
 
 		CopiedDataEntry copiedDataEntry = new CopiedDataEntry(referenceMetadataCode, copiedMetadataCode);
 		metadata.dataEntry = copiedDataEntry;
+		return metadata;
+	}
+
+	public MetadataBuilder asSumOfFieldOfRecordsReferencing(String inputMetadataCode, String referenceMetadataCode) {
+		metadata.dataEntry = new AgregatedDataEntry(inputMetadataCode, referenceMetadataCode, AgregationType.SUM);
 		return metadata;
 	}
 
