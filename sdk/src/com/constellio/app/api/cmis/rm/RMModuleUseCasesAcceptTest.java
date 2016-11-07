@@ -26,6 +26,7 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
@@ -63,7 +64,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
 				.build();
-
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	//@Test

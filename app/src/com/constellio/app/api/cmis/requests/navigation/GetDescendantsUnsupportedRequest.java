@@ -17,7 +17,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 public class GetDescendantsUnsupportedRequest extends CmisCollectionRequest<List<ObjectInFolderContainer>> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final String folderId;
 	private final String filter;
 	private final boolean includeAllowableActions;
@@ -29,8 +28,7 @@ public class GetDescendantsUnsupportedRequest extends CmisCollectionRequest<List
 	public GetDescendantsUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, String folderId, BigInteger depth, String filter, Boolean includeAllowableActions,
 			Boolean includePathSegment, ObjectInfoHandler objectInfos, boolean foldersOnly) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.folderId = folderId;
 		this.filter = filter;
 		this.includeAllowableActions = includeAllowableActions;

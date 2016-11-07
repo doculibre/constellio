@@ -21,6 +21,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	public String getSchemaCode();
 
+	String getTypeCode();
+
 	public boolean isDirty();
 
 	public boolean isFullyLoaded();
@@ -62,4 +64,5 @@ public interface Record extends Serializable, CollectionObject {
 	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
 
 	boolean isOfSchemaType(String type);
+
 }

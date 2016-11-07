@@ -8,8 +8,18 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.api.cmis.builders.object.PropertiesBuilder;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
+import com.constellio.app.extensions.api.cmis.params.AllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
+import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -17,13 +27,17 @@ import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.logging.EventFactory;
+import com.constellio.model.services.logging.LoggingServices;
 
 public class RMCmisExtension extends CmisExtension {
 
 	RMSchemasRecordsServices rm;
+	LoggingServices loggingServices;
 
 	public RMCmisExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.loggingServices = new LoggingServices(appLayerFactory.getModelLayerFactory());
 	}
 
 	@Override
@@ -60,4 +74,62 @@ public class RMCmisExtension extends CmisExtension {
 			}
 		}
 	}
+
+	@Override
+	public void buildAllowableActions(AllowableActionsParams params) {
+		super.buildAllowableActions(params);
+	}
+
+	@Override
+	public void onGetObject(GetObjectParams params) {
+		if (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.logRecordView(params.getRecord(), params.getUser());
+		}
+	}
+	//
+	//	@Override
+	//	public void onCreateCMISFolder(CreateFolderParams params) {
+	//
+	//	}
+	//
+	//	@Override
+	//	public void onCreateCMISDocument(CreateDocumentParams params) {
+	//		super.onCreateCMISDocument(params);
+	//	}
+	//
+	//	@Override
+	//	public void onUpdateCMISFolder(UpdateFolderParams params) {
+	//		super.onUpdateCMISFolder(params);
+	//	}
+	//
+	//	@Override
+	//	public void onUpdateCMISDocument(UpdateDocumentParams params) {
+	//		super.onUpdateCMISDocument(params);
+	//	}
+
+	@Override
+	public void onDeleteTree(DeleteTreeParams params) {
+		if (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.logDeleteRecordWithJustification(params.getRecord(), params.getUser(), null);
+		}
+	}
+
+	@Override
+	public void onCheckIn(CheckInParams params) {
+		if (params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.borrowRecord(params.getRecord(), params.getUser());
+		}
+	}
+
+	@Override
+	public void onCheckOut(CheckOutParams params) {
+		if (params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.returnRecord(params.getRecord(), params.getUser());
+		}
+	}
+
+	//	@Override
+	//	public void onDeleteContent(DeleteContentParams params) {
+	//
+	//	}
 }

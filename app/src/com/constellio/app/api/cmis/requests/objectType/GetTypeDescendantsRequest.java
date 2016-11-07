@@ -16,7 +16,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 public class GetTypeDescendantsRequest extends CmisCollectionRequest<List<TypeDefinitionContainer>> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private CallContext callContext;
 	private String typeId;
 	private BigInteger depth;
 	private Boolean includePropertiesDefinition;
@@ -24,7 +23,7 @@ public class GetTypeDescendantsRequest extends CmisCollectionRequest<List<TypeDe
 
 	public GetTypeDescendantsRequest(ConstellioCollectionRepository repository, CallContext context, String typeId,
 			BigInteger depth, Boolean includePropertiesDefinition, AppLayerFactory appLayerFactory) {
-		super(repository, appLayerFactory);
+		super(context, repository, appLayerFactory);
 		this.context = context;
 		this.typeId = typeId;
 		this.depth = depth;

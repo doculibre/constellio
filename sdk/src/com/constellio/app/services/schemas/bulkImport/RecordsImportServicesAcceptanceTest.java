@@ -42,6 +42,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
@@ -122,6 +123,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenImportingZipOfXMLFilesThenImportedCorrectly()
 			throws Exception {
 
@@ -137,6 +139,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenImportingXMLFilesWithCreationModificationInfosThenImportedCorrectly()
 			throws Exception {
 
@@ -243,6 +246,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	@InternetTest
 	public void whenImportingXMLFilesSeparatelyThenImportedCorrectly()
 			throws Exception {
 
@@ -619,7 +623,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 		File tempFolder = newTempFolder();
 		File zipFile = new File(newTempFolder(), StringUtils.replace(StringUtils.join(files, "_"), ":", "-") + "testdata.zip");
-
 
 		for (String file : files) {
 			String filenameInTempFolder = file;

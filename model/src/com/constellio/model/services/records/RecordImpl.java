@@ -436,6 +436,11 @@ public class RecordImpl implements Record {
 		return schemaCode;
 	}
 
+	@Override
+	public String getTypeCode() {
+		return SchemaUtils.getSchemaTypeCode(schemaCode);
+	}
+
 	public RecordDTO getRecordDTO() {
 		return recordDTO;
 	}

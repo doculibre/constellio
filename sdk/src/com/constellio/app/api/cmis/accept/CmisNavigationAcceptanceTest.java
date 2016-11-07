@@ -63,6 +63,7 @@ public class CmisNavigationAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);
 
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
