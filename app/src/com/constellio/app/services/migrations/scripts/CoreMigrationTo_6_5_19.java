@@ -27,6 +27,25 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory) throws Exception {
         //
 		new AddGlobalGroupLocallyCreatedMetadata(collection, provider, appLayerFactory).migrate();
+
+
+		// Set metadata value
+		final boolean locallyCreated = appLayerFactory.
+				getModelLayerFactory().
+				newUserServices().
+				canAddOrModifyUserAndGroup();
+
+		final List<GlobalGroup> globalGroupList = appLayerFactory.
+				getModelLayerFactory().
+				getGlobalGroupsManager().
+				getAllGroups();
+
+		for (final GlobalGroup globalGroup : globalGroupList) {
+			appLayerFactory.
+					getModelLayerFactory().
+					getGlobalGroupsManager().
+					addUpdate(globalGroup.withLocallyCreated(locallyCreated));
+		}
     }
 
 	private void setAllDeleteLogicallyToNow(String collection, AppLayerFactory appLayerFactory) {
@@ -47,23 +66,8 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
                     metadataSchemaBuilder.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
                 }
 
-                // Set metadata value
-                final boolean locallyCreated = appLayerFactory.
-                        getModelLayerFactory().
-                        newUserServices().
-                        canAddOrModifyUserAndGroup();
 
-                final List<GlobalGroup> globalGroupList = appLayerFactory.
-                        getModelLayerFactory().
-                        getGlobalGroupsManager().
-                        getAllGroups();
 
-                for (final GlobalGroup globalGroup : globalGroupList) {
-                    appLayerFactory.
-                            getModelLayerFactory().
-                            getGlobalGroupsManager().
-                            addUpdate(globalGroup.withLocallyCreated(locallyCreated));
-                }
             }
 		}
 	}
