@@ -92,8 +92,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private ContentVersionUploadField uploadField;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
-	private Component documentsComponent;
-	private Component subFoldersComponent;
+	private Component folderContentComponent;
 	private Component tasksComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
@@ -148,15 +147,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		});
 
 		recordDisplay = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
-		documentsComponent = new CustomComponent();
-		subFoldersComponent = new CustomComponent();
+		folderContentComponent = new CustomComponent();
 		tasksComponent = new CustomComponent();
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
 		tabSheet.addTab(recordDisplay, $("DisplayFolderView.tabs.metadata"));
-		tabSheet.addTab(documentsComponent, $("DisplayFolderView.tabs.documents", presenter.getDocumentCount()));
-		tabSheet.addTab(subFoldersComponent, $("DisplayFolderView.tabs.subFolders", presenter.getSubFolderCount()));
+		tabSheet.addTab(folderContentComponent, $("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 
 		Component disabled = new CustomComponent();
@@ -437,20 +434,25 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void setDocuments(final RecordVODataProvider dataProvider) {
-		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(new RecordVOLazyContainer(dataProvider));
+	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
+		final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(dataProviders);
+		ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<>(nestedContainer);
 		container.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(Object itemId) {
 				int index = (int) itemId;
-				final RecordVO record = dataProvider.getRecordVO(index);
+				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
 						presenter.editDocumentButtonClicked(record);
 					}
 				};
-				button.setEnabled(presenter.canModifyDocument(record));
+				if (presenter.isDocument(record)) {
+					button.setEnabled(presenter.canModifyDocument(record));
+				} else {
+					button.setVisible(false);
+				}
 				return button;
 			}
 		});
@@ -458,7 +460,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			@Override
 			protected Button newButtonInstance(Object itemId) {
 				int index = (int) itemId;
-				final RecordVO record = dataProvider.getRecordVO(index);
+				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new IconButton(new ThemeResource("images/icons/actions/save.png"),
 						$("DisplayFolderView.download")) {
 					@Override
@@ -466,7 +468,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						presenter.downloadDocumentButtonClicked(record);
 					}
 				};
-				button.setEnabled(record.get(Document.CONTENT) != null);
+				if (presenter.isDocument(record)) {
+					button.setEnabled(record.get(Document.CONTENT) != null);
+				} else {
+					button.setVisible(false);
+				}
 				return button;
 			}
 		});
@@ -474,11 +480,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			@Override
 			protected Button newButtonInstance(Object itemId) {
 				int index = (int) itemId;
-				final RecordVO record = dataProvider.getRecordVO(index);
+				final RecordVO record = nestedContainer.getRecordVO(index);
 				Button button = new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.displayDocumentButtonClicked(record);
+						if (presenter.isDocument(record)) {
+							presenter.displayDocumentButtonClicked(record);
+						} else {
+							presenter.subFolderClicked(record);
+						}
 					}
 				};
 				return button;
@@ -493,36 +503,23 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				if (event.getButton() == MouseButton.LEFT) {
 					RecordVOItem item = (RecordVOItem) event.getItem();
 					RecordVO recordVO = item.getRecord();
-					presenter.documentClicked(recordVO);
+					if (presenter.isDocument(recordVO)) {
+						presenter.documentClicked(recordVO);
+					} else {
+						presenter.subFolderClicked(recordVO);
+					}
 				}
 			}
 		});
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(documentsComponent, table);
-		documentsComponent = table;
+		tabSheet.replaceComponent(folderContentComponent, table);
+		folderContentComponent = table;
 	}
 
 	@Override
-	public void refreshDocumentsTab() {
-		Tab documentsTab = tabSheet.getTab(documentsComponent);
-		documentsTab.setCaption($("DisplayFolderView.tabs.documents", presenter.getDocumentCount()));
-	}
-
-	@Override
-	public void setSubFolders(RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable(dataProvider);
-		table.setSizeFull();
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.subFolderClicked(recordVO);
-			}
-		});
-		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(subFoldersComponent, table);
-		subFoldersComponent = table;
+	public void refreshFolderContentTab() {
+		Tab folderContentTab = tabSheet.getTab(folderContentComponent);
+		folderContentTab.setCaption($("DisplayFolderView.tabs.folderContent", presenter.getFolderContentCount()));
 	}
 
 	@Override
@@ -548,13 +545,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void selectDocumentsTab() {
-		tabSheet.setSelectedTab(documentsComponent);
-	}
-
-	@Override
-	public void selectSubFoldersTab() {
-		tabSheet.setSelectedTab(subFoldersComponent);
+	public void selectFolderContentTab() {
+		tabSheet.setSelectedTab(folderContentComponent);
 	}
 
 	@Override
@@ -833,7 +825,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void openDocumenContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
+	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
 		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO));
 		UI.getCurrent().addWindow(documentVersionWindow);
 	}
@@ -843,10 +835,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		documentVersionWindow.close();
 	}
 
-	@Override
-	public void openAgentURL(String agentURL) {
-		Page.getCurrent().open(agentURL, null);
-	}
+//	@Override
+//	public void openAgentURL(String agentURL) {
+//		Page.getCurrent().open(agentURL, null);
+//	}
 
 	@Override
 	public void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO) {

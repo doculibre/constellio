@@ -106,7 +106,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			document = rmSchemasRecordsServices.getDocument(id);
 			addView = false;
 		} else {
-			document = rmSchemasRecordsServices.newDocument();
+			document = newDocument();
 			if (StringUtils.isNotBlank(idCopy)) {
 				addViewWithCopy = true;
 			}
@@ -617,5 +617,13 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	Document newDocument() {
+		User currentUser = getCurrentUser();
+		Document document = rmSchemasRecordsServices.newDocument();
+		document.setCreatedBy(currentUser.getId());
+		document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
+		return document;
 	}
 }

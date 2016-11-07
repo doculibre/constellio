@@ -66,9 +66,9 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 		tabs.add(TASKS_NOT_ASSIGNED);
 		tabs.add(TASKS_RECENTLY_COMPLETED);
 
-		if (areWorkflowsEnabled()) {
-			tabs.add(WORKFLOWS_STARTED);
-		}
+//		if (areWorkflowsEnabled()) {
+//			tabs.add(WORKFLOWS_STARTED);
+//		}
 
 		return tabs;
 	}
