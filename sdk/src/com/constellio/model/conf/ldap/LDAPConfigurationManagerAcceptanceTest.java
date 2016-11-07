@@ -190,7 +190,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 
-        final List<String> scheduleTimeList = Arrays.asList(new String[] {"0;00", "12:00"});
+        final List<String> scheduleTimeList = Arrays.asList(new String[] {"0:00", "12:00"});
 		ldapUserSyncConfiguration.setScheduleTime(scheduleTimeList);
 
         // When

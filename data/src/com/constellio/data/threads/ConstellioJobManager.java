@@ -10,9 +10,7 @@ import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 
 /**
@@ -68,14 +66,18 @@ public class ConstellioJobManager implements StatefulService {
                 //
                 scheduler.scheduleJob(jobDetail, triggers, true);
 
+                //
                 LOGGER.info(job.name() + " successfully scheduled");
 
-                final Set<Date> nextFireTimes = new TreeSet<>();
+                //
+                final List<Date> nextFireTimes = new ArrayList<>();
                 for (final Trigger trigger : triggers) {
                     nextFireTimes.add(trigger.getFireTimeAfter(DateTime.now().toDate()));
                 }
+                Collections.sort(nextFireTimes);
 
-                return nextFireTimes.iterator().next();
+                //
+                return nextFireTimes.get(0);
             } catch (final SchedulerException e) {
                 LOGGER.error(job.name() + " can't be scheduled", e);
             }

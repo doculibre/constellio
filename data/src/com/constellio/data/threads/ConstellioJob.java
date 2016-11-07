@@ -78,13 +78,7 @@ public abstract class ConstellioJob implements Job {
         if (CollectionUtils.isNotEmpty(intervals)) {
             intervals = new TreeSet<>(intervals);
 
-            Date startTime = startTime();
-
             for (final int interval : intervals) {
-                if (startTime == null) {
-                    startTime = DateTime.now().plusSeconds(interval).toDate();
-                }
-
                 final TriggerBuilder triggerBuilder = TriggerBuilder.
                         newTrigger().
                         withIdentity(name() + "-Trigger-" + interval, Scheduler.DEFAULT_GROUP).
@@ -93,7 +87,11 @@ public abstract class ConstellioJob implements Job {
                                 withIntervalInSeconds(interval).
                                 repeatForever());
 
-                triggerBuilder.startAt(startTime);
+                if (startTime() == null) {
+                    triggerBuilder.startAt(DateTime.now().plusSeconds(interval).toDate());
+                } else {
+                    triggerBuilder.startAt(startTime());
+                }
 
                 triggers.add(triggerBuilder.build());
             }
@@ -110,26 +108,24 @@ public abstract class ConstellioJob implements Job {
         if (CollectionUtils.isNotEmpty(cronExpressions)) {
             cronExpressions = new TreeSet<>(cronExpressions);
 
-            Date startTime = startTime();
-
             for (final String cronExpression : cronExpressions) {
-                if (startTime == null) {
-                    try {
-                        startTime = new CronExpression(cronExpression).getNextValidTimeAfter(new Date());
-                    } catch (final ParseException e) {
-                        LOGGER.error("invalid cron expression " + cronExpression , e);
+                try {
+                    final TriggerBuilder triggerBuilder = TriggerBuilder.
+                            newTrigger().
+                            withIdentity(name() + "-Trigger-" + cronExpression, Scheduler.DEFAULT_GROUP).
+                            withSchedule(CronScheduleBuilder.
+                                    cronSchedule(cronExpression));
+                    ;
+                    if (startTime() == null) {
+                        triggerBuilder.startAt( new CronExpression(cronExpression).getNextValidTimeAfter(new Date()));
+                    } else {
+                        triggerBuilder.startAt(startTime());
                     }
+
+                    triggers.add(triggerBuilder.build());
+                } catch (final ParseException e) {
+                    LOGGER.error("invalid cron expression " + cronExpression , e);
                 }
-
-                final TriggerBuilder triggerBuilder = TriggerBuilder.
-                        newTrigger().
-                        withIdentity(name() + "-Trigger-" + cronExpression, Scheduler.DEFAULT_GROUP).
-                        withSchedule(CronScheduleBuilder.
-                                cronSchedule(cronExpression));
-
-                triggerBuilder.startAt(startTime);
-
-                triggers.add(triggerBuilder.build());
             }
         }
 
