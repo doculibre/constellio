@@ -628,13 +628,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} catch (final ContentManagerRuntimeException_IcapScanThreatFound|ContentManagerRuntimeException_IcapScanTimedout e) {
 				LOGGER.warn(e.getMessage());
 
-				view.showErrorMessage(e.getMessage());
+                if (e instanceof ContentManagerRuntimeException_IcapScanThreatFound) {
+                    view.showErrorMessage(e.getMessage().replace("icap.analysis.virusFound", $("icap.analysis.virusFound")));
+                } else {
+                    view.showErrorMessage($(e.getMessage()));
+                }
 			} catch (final ContentManagerRuntimeException_IcapCommunicationFailure e) {
-				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug(e.getMessage(), e);
-				}
+				LOGGER.warn(e.getMessage(), e);
 
-				LOGGER.warn(e.getMessage());
+				view.showErrorMessage($(e.getMessage()));
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			}
