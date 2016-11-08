@@ -102,7 +102,6 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 
 		if(type.equals("ddv")) {
 			for(MetadataSchemaType schemaType: modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
-				System.out.println(schemaType.getCode());
 				if(schemaType.getCode().contains("ddv")) {
 					schemaList.addAll(schemaType.getAllSchemas());
 				}
@@ -110,7 +109,6 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 		}
 		else {
 			for(MetadataSchemaType schemaType: modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).getSchemaTypes()) {
-				System.out.println(schemaType.getCode());
 				if(cleanAll(schemaType.getCode()).equals(cleanAll(type))) {
 					schemaList.addAll(schemaType.getAllSchemas());
 				}
