@@ -1,5 +1,11 @@
 package com.constellio.model.entities.schemas.entries;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType;
+
 public class AgregatedDataEntry implements DataEntry {
 
 	private String inputMetadata;
@@ -12,6 +18,13 @@ public class AgregatedDataEntry implements DataEntry {
 		this.inputMetadata = inputMetadata;
 		this.referenceMetadata = referenceMetadata;
 		this.agregationType = agregationType;
+
+		String inputMetadataSchema = new SchemaUtils().getSchemaCode(inputMetadata);
+		String referenceMetadataSchema = new SchemaUtils().getSchemaCode(referenceMetadata);
+
+		if (!inputMetadataSchema.equals(referenceMetadataSchema)) {
+			throw new DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType(inputMetadata, referenceMetadata);
+		}
 	}
 
 	public String getInputMetadata() {

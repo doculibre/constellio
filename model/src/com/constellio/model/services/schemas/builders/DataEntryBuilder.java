@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata;
 import com.constellio.model.utils.ClassProvider;
@@ -55,8 +56,13 @@ public class DataEntryBuilder {
 		return metadata;
 	}
 
-	public MetadataBuilder asSumOfFieldOfRecordsReferencing(String inputMetadataCode, String referenceMetadataCode) {
-		metadata.dataEntry = new AgregatedDataEntry(inputMetadataCode, referenceMetadataCode, AgregationType.SUM);
+	public MetadataBuilder asSum(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
+		if (!metadata.getCode().contains("_default_")) {
+			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		metadata.dataEntry = new AgregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),
+				AgregationType.SUM);
 		return metadata;
 	}
 
