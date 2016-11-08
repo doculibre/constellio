@@ -47,6 +47,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	boolean isActive();
 
+	boolean isDisconnected();
+
 	List<String> getFollowers();
 
 	Record getCopyOfOriginalRecord();

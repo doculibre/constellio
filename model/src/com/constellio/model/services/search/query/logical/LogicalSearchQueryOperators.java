@@ -1,5 +1,6 @@
 package com.constellio.model.services.search.query.logical;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,8 +54,18 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaFilters(schema));
 	}
 
-	public static OngoingLogicalSearchCondition from(MetadataSchemaType schemaType) {
-		return new OngoingLogicalSearchCondition(new SchemaFilters(schemaType));
+	public static OngoingLogicalSearchCondition from(MetadataSchemaType firstSchemaType, MetadataSchemaType... otherSchemaType) {
+		List<MetadataSchemaType> types = new ArrayList<>();
+		if (otherSchemaType.length == 0) {
+			return new OngoingLogicalSearchCondition(new SchemaFilters(firstSchemaType));
+		} else {
+
+			types.add(firstSchemaType);
+			for (MetadataSchemaType type : otherSchemaType) {
+				types.add(type);
+			}
+			return new OngoingLogicalSearchCondition(new SchemaTypesFilters(types));
+		}
 	}
 
 	public static OngoingLogicalSearchCondition from(List<MetadataSchemaType> schemaTypes) {
