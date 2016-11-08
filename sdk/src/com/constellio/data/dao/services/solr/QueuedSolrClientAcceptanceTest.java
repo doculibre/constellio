@@ -25,6 +25,8 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenPushingLotsOfDocumentsUsingMultipleThreadsThenAllSaved()
 			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("inc", "1.0");

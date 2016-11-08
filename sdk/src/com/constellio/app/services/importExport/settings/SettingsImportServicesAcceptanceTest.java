@@ -501,6 +501,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	public void whenImportSequencesThenOK()
 			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("1"));
 
 		settings.addSequence(new ImportedSequence().setKey("2").setValue("7"));

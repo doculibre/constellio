@@ -199,6 +199,8 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Test
 	public void givenSequencesWhenReplayLoggedThenSetToGoodValues()
 			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 
 		for (int i = 0; i < 6; i++) {
 			getDataLayerFactory().getSequencesManager().next("zeSequence");

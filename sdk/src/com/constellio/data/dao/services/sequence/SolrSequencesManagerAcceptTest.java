@@ -32,6 +32,9 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		notAUnitItest = true;
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 		givenTransactionLogIsEnabled();
 		sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
 				getDataLayerFactory().getSecondTransactionLogManager());
