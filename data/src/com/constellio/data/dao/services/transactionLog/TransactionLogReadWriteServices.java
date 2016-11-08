@@ -39,4 +39,13 @@ public class TransactionLogReadWriteServices {
 	public String toLogEntry(BigVaultServerTransaction transaction) {
 		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toLogEntry(transaction);
 	}
+
+	public String toSetSequenceLogEntry(String sequenceId, long value) {
+		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toSetSequenceLogEntry(sequenceId, value);
+	}
+
+	public String toNextSequenceLogEntry(String sequenceId) {
+		return new TransactionWriterV1(configuration.isWriteZZRecords(), extensions).toNextSequenceLogEntry(sequenceId);
+	}
+
 }

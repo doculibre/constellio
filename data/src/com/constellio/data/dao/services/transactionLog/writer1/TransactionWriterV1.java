@@ -28,6 +28,18 @@ public class TransactionWriterV1 {
 		this.writeZZRecords = writeZZRecords;
 	}
 
+	public String toSetSequenceLogEntry(String sequenceId, long value) {
+		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
+		stringBuilder.append("sequence set " + sequenceId + "=" + value + "\n");
+		return stringBuilder.toString();
+	}
+
+	public String toNextSequenceLogEntry(String sequenceId) {
+		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
+		stringBuilder.append("sequence next " + sequenceId + "\n");
+		return stringBuilder.toString();
+	}
+
 	public String toLogEntry(BigVaultServerTransaction transaction) {
 
 		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");

@@ -32,7 +32,9 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		notAUnitItest = true;
-		sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+		givenTransactionLogIsEnabled();
+		sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
+				getDataLayerFactory().getSecondTransactionLogManager());
 		client = getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
 	}
 
@@ -51,7 +53,7 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 			threads.add(new Thread() {
 				@Override
 				public void run() {
-					SequencesManager sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+					SequencesManager sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao(), null);
 					List<Long> ids = new ArrayList<Long>();
 					for (int j = 0; j < 200; j++) {
 						try {
@@ -128,8 +130,10 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	public void whenCallNextSetAndLastSequenceValueThenCorrectAnswers()
 			throws Exception {
 
-		SequencesManager sequencesManager1 = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
-		SequencesManager sequencesManager2 = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+		SequencesManager sequencesManager1 = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
+				getDataLayerFactory().getSecondTransactionLogManager());
+		SequencesManager sequencesManager2 = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
+				getDataLayerFactory().getSecondTransactionLogManager());
 
 		assertThat(sequencesManager1.next("seq1")).isEqualTo(1L);
 		assertThat(sequencesManager1.getLastSequenceValue("seq1")).isEqualTo(1L);
