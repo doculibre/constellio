@@ -198,7 +198,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 
         // Then
 		assertThat(ldapConfigManager.isLDAPAuthentication()).isEqualTo(true);
-		assertThat(ldapConfigManager.idUsersSynchActivated()).isEqualTo(false);
+		assertThat(ldapConfigManager.idUsersSynchActivated()).isEqualTo(true);
 		assertThat(ldapConfigManager.getLDAPUserSyncConfiguration().getScheduleTime()).isEqualTo(scheduleTimeList);
 	}
 }

@@ -409,7 +409,7 @@ public class LDAPConfigurationManager implements StatefulService {
 
 	public Boolean idUsersSynchActivated() {
 		LDAPUserSyncConfiguration config = getLDAPUserSyncConfiguration(false);
-		return config != null && (config.getDurationBetweenExecution() != null && CollectionUtils.isNotEmpty(config.getScheduleTime()));
+		return config != null && !(config.getDurationBetweenExecution() == null && CollectionUtils.isEmpty(config.getScheduleTime()));
 	}
 
 	public Date getNextUsersSyncFireTime() {
