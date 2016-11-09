@@ -45,6 +45,7 @@ public class SearchWebService extends HttpServlet {
 		solrParams.remove("searchEvents");
 		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
 		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
+		solrParams.add("fq", "-type_s:index");
 
 		QueryResponse queryResponse;
 		if (searchingInEvents) {

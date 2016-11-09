@@ -221,8 +221,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public FreeTextSearchServices newFreeTextSearchServices() {
-		return new FreeTextSearchServices(dataLayerFactory.newRecordDao(), dataLayerFactory.newEventsDao(), newUserServices(),
-				securityTokenManager);
+		return new FreeTextSearchServices(this);
 	}
 
 	public FileParser newFileParser() {
