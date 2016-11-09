@@ -213,26 +213,28 @@ public class LDAPUserSyncManager implements StatefulService {
 
 		for (LDAPUser ldapUser : ldapUsers) {
 			if (!ldapUser.getName().toLowerCase().equals("admin")) {
-				UserCredential userCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
-				if (userCredential.getUsername() == null) {
-					LOGGER.error("Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + userCredential.getUsername());
+				UserCredential newUserCredential = createUserCredentialsFromLdapUser(ldapUser, selectedCollectionsCodes);
+				if (newUserCredential.getUsername() == null) {
+					LOGGER.error("Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + newUserCredential.getUsername());
 				} else {
 					try {
                         // Keep locally created groups of existing users
-                        final UserCredential previousUserCredential = userServices.getUserCredential(userCredential.getUsername());
+                        final List<String> newUserGlobalGroups = new ArrayList<>(newUserCredential.getGlobalGroups());
+                        final UserCredential previousUserCredential = userServices.getUserCredential(newUserCredential.getUsername());
                         if (previousUserCredential != null) {
                             for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
                                 final GlobalGroup previousGlobalGroup = globalGroupsManager.getGlobalGroupWithCode(userGlobalGroup);
                                 if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
-                                    userCredential.getGlobalGroups().add(previousGlobalGroup.getCode());
+                                    newUserGlobalGroups.add(previousGlobalGroup.getCode());
                                 }
                             }
                         }
+                        newUserCredential.withGlobalGroups(newUserGlobalGroups);
 
-						userServices.addUpdateUserCredential(userCredential);
+						userServices.addUpdateUserCredential(newUserCredential);
 						updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
 					} catch (Throwable e) {
-						LOGGER.error("User ignored due to error when trying to add it " + userCredential.getUsername(), e);
+						LOGGER.error("User ignored due to error when trying to add it " + newUserCredential.getUsername(), e);
 					}
 				}
 			}

@@ -438,65 +438,90 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
     }
 
     @Test
-    public void givenMembershipAutomaticDerivationOptionDisabled_WhenSyncing_ThenEmptyGroupAreImported()
-            throws Exception {
-        // Given
-        final LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+	public void givenMembershipAutomaticDerivationOptionDisabled_WhenSyncing_ThenEmptyGroupAreImported()
+			throws Exception {
+		// Given
+		final LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 
-        getModelLayerFactory().
-                getLdapConfigurationManager().
-                saveLDAPConfiguration(
-                        LDAPTestConfig.getLDAPServerConfiguration(),
-                        new LDAPUserSyncConfiguration(
-                                ldapUserSyncConfiguration.getUser(),
-                                ldapUserSyncConfiguration.getPassword(),
-                                new RegexFilter(
-                                        "",
-                                        ""
-                                ),
-                                new RegexFilter(
-                                        "",
-                                        ""
-                                ),
-                                ldapUserSyncConfiguration.getDurationBetweenExecution(),
-                                ldapUserSyncConfiguration.getScheduleTime(),
-                                Arrays.asList(
-                                        "CN=emptyGroup,OU=Departement4,OU=doculibre,DC=test,DC=doculibre,DC=ca"
-                                ),
-                                Arrays.asList(
-                                        "CN=Users,DC=test,DC=doculibre,DC=ca"
-                                ),
-                                Arrays.asList(
-                                        "CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
-                                ),
-                                false
-                        )
-                );
+		getModelLayerFactory().
+				getLdapConfigurationManager().
+				saveLDAPConfiguration(
+						LDAPTestConfig.getLDAPServerConfiguration(),
+						new LDAPUserSyncConfiguration(
+								ldapUserSyncConfiguration.getUser(),
+								ldapUserSyncConfiguration.getPassword(),
+								new RegexFilter(
+										"",
+										""
+								),
+								new RegexFilter(
+										"",
+										""
+								),
+								ldapUserSyncConfiguration.getDurationBetweenExecution(),
+								ldapUserSyncConfiguration.getScheduleTime(),
+								Arrays.asList(
+										"CN=emptyGroup,OU=Departement4,OU=doculibre,DC=test,DC=doculibre,DC=ca"
+								),
+								Arrays.asList(
+										"CN=Users,DC=test,DC=doculibre,DC=ca"
+								),
+								Arrays.asList(
+										"CN=Sharepoint Groups Test,OU=Groupes,DC=test,DC=doculibre,DC=ca"
+								),
+								false
+						)
+				);
 
-        // When
-        getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
+		// When
+		getModelLayerFactory().getLdapUserSyncManager().synchronizeIfPossible();
 
-        // Then
-        final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(userCredentialsManager.getUserCredentials(), new Transformer() {
-            @Override
-            public Object transform(Object input) {
-                return ((UserCredential) input).getUsername();
-            }
-        }));
-        assertThat(userNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
-                // Users imported based on users search base, user groups filter and users regex search filter
-                "admin", "bgagnon", "sharepointtest", "vdq2"})));
+		// Then
+		final Set<String> userNameList = new TreeSet<>(CollectionUtils.collect(userCredentialsManager.getUserCredentials(), new Transformer() {
+			@Override
+			public Object transform(Object input) {
+				return ((UserCredential) input).getUsername();
+			}
+		}));
+		assertThat(userNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
+				// Users imported based on users search base, user groups filter and users regex search filter
+				"admin", "bgagnon", "sharepointtest", "vdq2"})));
 
-        final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(globalGroupsManager.getAllGroups(), new Transformer() {
-            @Override
-            public Object transform(Object input) {
-                return ((GlobalGroup) input).getName();
-            }
-        }));
-        assertThat(groupNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
-                // Groups derived from imported users
-                "Second sharepoint group", "Sharepoint Groups Test",
-                // Groups imported based on groups search base and groups search filter
-                "emptyGroup"})));
-    }
+		final Set<String> groupNameList = new TreeSet<>(CollectionUtils.collect(globalGroupsManager.getAllGroups(), new Transformer() {
+			@Override
+			public Object transform(Object input) {
+				return ((GlobalGroup) input).getName();
+			}
+		}));
+		assertThat(groupNameList).isEqualTo(new TreeSet<>(Arrays.asList(new String[] {
+				// Groups derived from imported users
+				"Second sharepoint group", "Sharepoint Groups Test",
+				// Groups imported based on groups search base and groups search filter
+				"emptyGroup"})));
+	}
+
+	@Test
+	public void givenExistingPreviouslySyncedUserInSomeLocalGroup_WhenSyncing_ThenUserHasBothTheLocalGroupAndThoseJustSynced() {
+		// Given
+		final LDAPUserSyncManager ldapUserSyncManager = getModelLayerFactory().getLdapUserSyncManager();
+
+        final String myLocalGroupCode = "myLocalGroupCode";
+		final GlobalGroup myLocalGroup = userServices.createGlobalGroup(myLocalGroupCode, myLocalGroupCode, Arrays.asList(new String[]{ zeCollection }), null, GlobalGroupStatus.ACTIVE, true);
+		userServices.addUpdateGlobalGroup(myLocalGroup);
+
+        ldapUserSyncManager.synchronizeIfPossible();
+
+        final String myUsername = "bfay";
+		UserCredential myUserCredential = userServices.getUser(myUsername);
+		userServices.addUserToCollection(myUserCredential, zeCollection);
+		myUserCredential.withGlobalGroups(Arrays.asList(new String[]{ myLocalGroupCode }));
+		userServices.addUpdateUserCredential(myUserCredential);
+
+		// When
+		ldapUserSyncManager.synchronizeIfPossible();
+
+		// Then
+		myUserCredential = userServices.getUser(myUsername);
+		assertThat(new TreeSet<>(myUserCredential.getGlobalGroups())).isEqualTo(new TreeSet<>(Arrays.asList(new String[]{"CN=B,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", "CN=C,OU=Fonct1,OU=Groupes,DC=test,DC=doculibre,DC=ca", myLocalGroupCode})));
+	}
 }
