@@ -745,13 +745,13 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			@Override
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
 
-				MetadataSchemaBuilder anotherSchemaBuilder = schemaTypes.getDefaultSchema("anotherSchemaType_default");
+				MetadataSchemaBuilder anotherSchemaBuilder = schemaTypes.getSchema("anotherSchemaType_default");
 
 				schemaTypes.getSchema(anotherSchema.code()).create("ref")
 						.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
 				schemaTypes.getSchema(anotherSchema.code()).create("number").setType(MetadataValueType.NUMBER);
 				schemaTypes.getSchema(zeSchema.code()).create("sum").setType(STRING).defineDataEntry()
-						.asSum(anotherSchemaBuilder.get("number"), anotherSchemaBuilder.get("ref"));
+						.asSum(anotherSchemaBuilder.get("ref"), anotherSchemaBuilder.get("number"));
 			}
 		}));
 
@@ -785,14 +785,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataBuilder refMetadata = builder.getSchema("anotherSchemaType_default").get("ref");
 
 		try {
-			metadataBuilder.defineDataEntry().asSum(numberMetadata, builder.getSchema("anotherSchemaType_custom").get("ref"));
+			metadataBuilder.defineDataEntry().asSum(numberMetadata, builder.getSchema("anotherSchemaType_custom1").get("ref"));
 			fail("exception expected");
 		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
 			//OK
 		}
 
 		try {
-			metadataBuilder.defineDataEntry().asSum(builder.getSchema("anotherSchemaType_custom").get("number"), refMetadata);
+			metadataBuilder.defineDataEntry().asSum(builder.getSchema("anotherSchemaType_custom1").get("number"), refMetadata);
 			fail("exception expected");
 		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
 			//OK
@@ -819,7 +819,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			//OK
 		}
 
-		metadataBuilder.defineDataEntry().asSum(numberMetadata, refMetadata);
+		metadataBuilder.defineDataEntry().asSum(refMetadata, numberMetadata);
 	}
 
 	@Test

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType;
 
 public class AgregatedDataEntry implements DataEntry {
@@ -21,6 +22,14 @@ public class AgregatedDataEntry implements DataEntry {
 
 		String inputMetadataSchema = new SchemaUtils().getSchemaCode(inputMetadata);
 		String referenceMetadataSchema = new SchemaUtils().getSchemaCode(referenceMetadata);
+
+		if (!inputMetadataSchema.endsWith("_default")) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata);
+		}
+
+		if (!referenceMetadataSchema.endsWith("_default")) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("referenceMetadata", referenceMetadata);
+		}
 
 		if (!inputMetadataSchema.equals(referenceMetadataSchema)) {
 			throw new DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType(inputMetadata, referenceMetadata);

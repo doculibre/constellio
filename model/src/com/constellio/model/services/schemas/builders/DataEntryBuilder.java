@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.util.Arrays;
@@ -16,6 +18,7 @@ import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata;
 import com.constellio.model.utils.ClassProvider;
@@ -59,6 +62,15 @@ public class DataEntryBuilder {
 	public MetadataBuilder asSum(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder number) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+					referenceToAgregatingSchemaType.getCode());
+		}
+
+		if (number.getType() != NUMBER || number.isMultivalue()) {
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode());
 		}
 
 		metadata.dataEntry = new AgregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),

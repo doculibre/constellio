@@ -24,6 +24,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -595,6 +596,12 @@ public class MetadataSchemaXMLWriter3 {
 			} else {
 				dataEntry.setAttribute("metadataProvidingSequenceCode", sequenceDataEntry.getMetadataProvidingSequenceCode());
 			}
+
+		} else if (dataEntryValue.getType() == DataEntryType.AGREGATED) {
+			AgregatedDataEntry agregatedDataEntry = (AgregatedDataEntry) dataEntryValue;
+			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().name());
+			dataEntry.setAttribute("referenceMetadata", agregatedDataEntry.getReferenceMetadata());
+			dataEntry.setAttribute("inputMetadata", agregatedDataEntry.getInputMetadata());
 
 		}
 

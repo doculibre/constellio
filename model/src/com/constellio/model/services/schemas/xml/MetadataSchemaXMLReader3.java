@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.xml;
 
+import static com.constellio.model.entities.schemas.entries.AgregationType.SUM;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,6 +25,8 @@ import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AgregationType;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -550,6 +554,10 @@ public class MetadataSchemaXMLReader3 {
 				String metadataProvidingSequenceCode = dataEntry.getAttributeValue("metadataProvidingSequenceCode");
 				metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(metadataProvidingSequenceCode);
 
+			} else if (dataEntry.getAttributeValue("agregationType") != null) {
+				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
+				String inputMetadata = dataEntry.getAttributeValue("inputMetadata");
+				metadataBuilder.defineDataEntry().as(new AgregatedDataEntry(inputMetadata, referenceMetadata, SUM));
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {
