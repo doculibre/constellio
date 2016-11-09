@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.model.entities.records.Record;
@@ -57,12 +59,14 @@ public class ReindexingServices {
 	private static final String REINDEX_TYPES = "reindexTypes";
 
 	private ModelLayerFactory modelLayerFactory;
+	private DataLayerFactory dataLayerFactory;
 
 	private SecondTransactionLogManager logManager;
 
 	public ReindexingServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
-		this.logManager = modelLayerFactory.getDataLayerFactory().getSecondTransactionLogManager();
+		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+		this.logManager = dataLayerFactory.getSecondTransactionLogManager();
 	}
 
 	public void reindexCollections(ReindexationMode reindexationMode) {
@@ -73,13 +77,20 @@ public class ReindexingServices {
 		if (logManager != null && params.getReindexationMode().isFullRewrite()) {
 			logManager.regroupAndMoveInVault();
 			logManager.moveTLOGToBackup();
-			RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
+			RecordDao recordDao = dataLayerFactory.newRecordDao();
 			try {
 
-				RecordDTO recordDTO = recordDao.get("the_private_key");
+				List<RecordDTO> records = new ArrayList<>();
+
+				records.add(recordDao.get("the_private_key"));
+
+				for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
+					RecordDTO sequence = recordDao.get("seq_" + entry.getKey());
+					records.add(sequence);
+				}
+
 				try {
-					recordDao.execute(
-							new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(asList(recordDTO)).withFullRewrite(true));
+					recordDao.execute(new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(records).withFullRewrite(true));
 				} catch (OptimisticLocking optimisticLocking) {
 					throw new RuntimeException(optimisticLocking);
 				}
@@ -92,6 +103,7 @@ public class ReindexingServices {
 		for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
 			reindexCollection(collection, params);
 		}
+
 		if (logManager != null && params.getReindexationMode().isFullRewrite()) {
 			logManager.regroupAndMoveInVault();
 			logManager.deleteLastTLOGBackup();
