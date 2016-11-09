@@ -10,6 +10,7 @@ import java.util.List;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AgregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -71,6 +72,10 @@ public class DataEntryBuilder {
 
 		if (number.getType() != NUMBER || number.isMultivalue()) {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode());
+		}
+
+		if (metadata.getType() == null) {
+			metadata.setType(number.getType());
 		}
 
 		metadata.dataEntry = new AgregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),
