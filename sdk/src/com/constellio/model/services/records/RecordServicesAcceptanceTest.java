@@ -292,6 +292,10 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test()
 	public void givenSchemaWithFixedSequenceMetadataWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
 		defineSchemasManager().using(schemas.withAFixedSequence());
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
@@ -341,6 +345,10 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test()
 	public void givenSchemaWithFixedSequenceMetadataWithPatternWhenAddingValidRecordThenSetNewSequenceValue()
 			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
 		defineSchemasManager().using(schemas.withAFixedSequence(whichHasInputMask("99999")));
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
@@ -390,6 +398,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test()
 	public void givenSchemaWithDynamicSequenceMetadataWhenChangeSequenceSourceThenGetNewSequenceUsingNewSource()
 			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 
 		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
 		sequencesManager.set("sequence1", 42);
