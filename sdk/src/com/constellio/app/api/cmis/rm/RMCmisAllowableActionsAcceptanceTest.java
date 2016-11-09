@@ -151,17 +151,23 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		authServices.add(authorizationForUsers(users.edouardIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
 				users.adminIn(zeCollection));
 
-		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).givingReadWriteAccess(),
+		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
 				users.adminIn(zeCollection));
 		authServices.add(authorizationForUsers(users.charlesIn(zeCollection)).on(records.unitId_10).giving("r2"),
 				users.adminIn(zeCollection));
 
-		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).givingReadWriteAccess(),
+		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).givingReadWriteDeleteAccess(),
 				users.adminIn(zeCollection));
 		authServices.add(authorizationForUsers(users.aliceIn(zeCollection)).on(records.folder_A19).giving("r4"),
 				users.adminIn(zeCollection));
 
-		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).givingReadWriteAccess(),
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
+				users.adminIn(zeCollection));
+		//Roles giving share folder and share documents permissions, which are not supported in cmis
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).giving("r3", "r5"),
+				users.adminIn(zeCollection));
+
+		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).givingReadWriteDeleteAccess(),
 				users.adminIn(zeCollection));
 		//Roles giving share folder and share documents permissions, which are not supported in cmis
 		authServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(records.unitId_10).giving("r3", "r5"),
