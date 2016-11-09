@@ -218,6 +218,17 @@ public class LDAPUserSyncManager implements StatefulService {
 					LOGGER.error("Invalid user ignored (missing username). Id: " + ldapUser.getId() + ", Username : " + userCredential.getUsername());
 				} else {
 					try {
+                        // Keep locally created groups of existing users
+                        final UserCredential previousUserCredential = userServices.getUserCredential(userCredential.getUsername());
+                        if (previousUserCredential != null) {
+                            for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
+                                final GlobalGroup previousGlobalGroup = globalGroupsManager.getGlobalGroupWithCode(userGlobalGroup);
+                                if (previousGlobalGroup != null && previousGlobalGroup.isLocallyCreated()) {
+                                    userCredential.getGlobalGroups().add(previousGlobalGroup.getCode());
+                                }
+                            }
+                        }
+
 						userServices.addUpdateUserCredential(userCredential);
 						updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
 					} catch (Throwable e) {
