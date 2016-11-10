@@ -122,7 +122,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSystemWithBrokenMultiValueLinksWhenSystemCheckingThenFindThoseLinks()
 			throws Exception {
-
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(setup.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue));
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 

@@ -279,6 +279,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 	}
 
+
 	@Test
 	public void givenLogicallyDeletedRecordWhenReindexingThenStillLogicallyDeleted_2()
 			throws RecordServicesException {

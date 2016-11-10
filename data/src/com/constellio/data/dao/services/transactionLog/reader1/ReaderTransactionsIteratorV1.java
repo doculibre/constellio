@@ -7,12 +7,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CannotParseLogCommand;
@@ -67,8 +69,27 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 
 		} else if (firstLine.startsWith("deletequery ")) {
 			handleDeleteQueryOperation(transaction, firstLine);
+
+		} else if (firstLine.startsWith("sequence next ")) {
+			handleSequenceNextLine(transaction, firstLine);
+
+		} else if (firstLine.startsWith("sequence set ")) {
+			handleSequenceSetLine(transaction, firstLine);
+
 		}
 
+	}
+
+	private void handleSequenceSetLine(BigVaultServerTransaction transaction, String firstLine) {
+		String infos = firstLine.substring("sequence set ".length());
+		String sequenceId = StringUtils.substringBeforeLast(infos, "=");
+		long value = Long.valueOf(StringUtils.substringAfterLast(infos, "="));
+		transaction.getNewDocuments().add(SolrSequencesManager.setSequenceInLogReplay(sequenceId, value));
+	}
+
+	private void handleSequenceNextLine(BigVaultServerTransaction transaction, String firstLine) {
+		String sequenceId = firstLine.substring("sequence next ".length());
+		transaction.getNewDocuments().add(SolrSequencesManager.incrementSequenceInLogReplay(sequenceId));
 	}
 
 	private void handleDeleteQueryOperation(BigVaultServerTransaction transaction, String firstLine) {
