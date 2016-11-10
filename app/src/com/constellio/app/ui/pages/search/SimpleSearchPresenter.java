@@ -87,6 +87,10 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public String getUserSearchExpression() {
 		return searchExpression;
 	}
+	
+	public void setSearchExpression(String searchExpression) {
+		this.searchExpression = searchExpression;
+	}
 
 	@Override
 	public void suggestionSelected(String suggestion) {
