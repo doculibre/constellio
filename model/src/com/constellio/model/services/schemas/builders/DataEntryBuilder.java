@@ -67,11 +67,11 @@ public class DataEntryBuilder {
 
 		if (referenceToAgregatingSchemaType.getType() != REFERENCE || referenceToAgregatingSchemaType.isMultivalue()) {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
-					referenceToAgregatingSchemaType.getCode());
+					referenceToAgregatingSchemaType.getCode(), REFERENCE);
 		}
 
 		if (number.getType() != NUMBER || number.isMultivalue()) {
-			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode());
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("number", number.getCode(), NUMBER);
 		}
 
 		if (metadata.getType() == null) {

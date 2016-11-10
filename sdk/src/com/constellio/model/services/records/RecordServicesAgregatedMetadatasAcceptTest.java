@@ -35,15 +35,24 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 				MetadataBuilder zeNumber = zeType.getDefaultSchema().create("number").setType(NUMBER);
 				MetadataBuilder zeRef = zeType.getDefaultSchema().create("ref").defineReferencesTo(anotherType);
+				MetadataBuilder pctRef = zeType.getDefaultSchema().create("pct").setType(NUMBER).defineDataEntry().asJexlScript(
+						"if (ref.copiedThirdSchemaTypeSum > 0) {number / ref.copiedThirdSchemaTypeSum} else {0}"
+				);
 
-				MetadataBuilder anotherSchemaSum = anotherType.getDefaultSchema()
-						.create("sum").defineDataEntry().asSum(zeRef, zeNumber);
-				anotherType.getDefaultSchema().create("sumX10").defineDataEntry().asJexlScript("sum * 10");
+				MetadataBuilder anotherSchemaSum = anotherType.getDefaultSchema().create("sum")
+						.defineDataEntry().asSum(zeRef, zeNumber);
+				MetadataBuilder anotherSchemaSumX10 = anotherType.getDefaultSchema().create("sumX10").setType(NUMBER)
+						.defineDataEntry().asJexlScript("sum * 10");
+				MetadataBuilder copiedThirdSchemaTypeSum = anotherType.getDefaultSchema().create("copiedThirdSchemaTypeSum");
 				MetadataBuilder anotherSchemaRef = anotherType.getDefaultSchema().create("ref").defineReferencesTo(thirdType);
 
-				MetadataBuilder thirdSchemaSum = anotherType.getDefaultSchema()
-						.create("sum").defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSum);
-				thirdType.getDefaultSchema().create("zeSumX10").defineDataEntry().asJexlScript("zeSum * 10");
+				MetadataBuilder thirdSchemaSum = thirdType.getDefaultSchema().create("sum")
+						.defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSum);
+				MetadataBuilder thirdSchemaSumX10 = thirdType.getDefaultSchema().create("sumX10")
+						.defineDataEntry().asSum(anotherSchemaRef, anotherSchemaSumX10);
+
+				copiedThirdSchemaTypeSum.setType(NUMBER).defineDataEntry().asCopied(anotherSchemaRef, thirdSchemaSum);
+
 			}
 		}));
 

@@ -1,5 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.schemas.MetadataValueType;
+
 public class DataEntryBuilderRuntimeException extends RuntimeException {
 
 	public DataEntryBuilderRuntimeException(String message) {
@@ -8,9 +10,10 @@ public class DataEntryBuilderRuntimeException extends RuntimeException {
 
 	public static class DataEntryBuilderRuntimeException_InvalidMetadataCode extends DataEntryBuilderRuntimeException {
 
-		public DataEntryBuilderRuntimeException_InvalidMetadataCode(String argument, String metadataCode) {
+		public DataEntryBuilderRuntimeException_InvalidMetadataCode(String argument, String metadataCode,
+				MetadataValueType type) {
 			super("Metadata code '" + metadataCode + "' of argument '" + argument
-					+ "' is invalid. It must be a complete of a metadata in a default schema");
+					+ "' is invalid. It must be a metadata in a default schema of type " + type);
 		}
 	}
 

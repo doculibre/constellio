@@ -1,7 +1,11 @@
 package com.constellio.model.entities.schemas.entries;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
@@ -24,11 +28,11 @@ public class AgregatedDataEntry implements DataEntry {
 		String referenceMetadataSchema = new SchemaUtils().getSchemaCode(referenceMetadata);
 
 		if (!inputMetadataSchema.endsWith("_default")) {
-			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata);
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata, NUMBER);
 		}
 
 		if (!referenceMetadataSchema.endsWith("_default")) {
-			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("referenceMetadata", referenceMetadata);
+			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("referenceMetadata", referenceMetadata, REFERENCE);
 		}
 
 		if (!inputMetadataSchema.equals(referenceMetadataSchema)) {
