@@ -100,24 +100,32 @@ public class BigVaultRecordDao implements RecordDao {
 		this.secondTransactionLogManager = secondTransactionLogManager;
 	}
 
-	@Override
-	public TransactionResponseDTO execute(TransactionDTO transaction)
-			throws RecordDaoException.OptimisticLocking {
+	public BigVaultServerTransaction prepare(TransactionDTO transaction) {
 
 		List<SolrInputDocument> newDocuments = new ArrayList<>();
 		List<SolrInputDocument> updatedDocuments = new ArrayList<>();
 		List<String> deletedRecordsIds = new ArrayList<>();
 		List<String> deletedRecordsQueries = SolrUtils.toDeleteQueries(transaction.getDeletedByQueries());
-
 		prepareDocumentsForSolrTransaction(transaction, newDocuments, updatedDocuments, deletedRecordsIds);
 
 		if (!newDocuments.isEmpty() || !updatedDocuments.isEmpty() || !deletedRecordsIds.isEmpty() || !deletedRecordsQueries
 				.isEmpty()) {
-			try {
+			return new BigVaultServerTransaction(transaction.getRecordsFlushing(), newDocuments, updatedDocuments,
+					deletedRecordsIds, deletedRecordsQueries);
+		} else {
+			return null;
+		}
 
-				BigVaultServerTransaction bigVaultServerTransaction = new BigVaultServerTransaction(
-						transaction.getRecordsFlushing(), newDocuments, updatedDocuments, deletedRecordsIds,
-						deletedRecordsQueries);
+	}
+
+	@Override
+	public TransactionResponseDTO execute(TransactionDTO transaction)
+			throws RecordDaoException.OptimisticLocking {
+
+		BigVaultServerTransaction bigVaultServerTransaction = prepare(transaction);
+
+		if (bigVaultServerTransaction != null) {
+			try {
 
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.prepare(transaction.getTransactionId(), bigVaultServerTransaction);

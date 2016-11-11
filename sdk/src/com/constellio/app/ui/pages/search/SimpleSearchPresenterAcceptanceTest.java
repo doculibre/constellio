@@ -6,33 +6,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.services.importExport.settings.SettingsImportServices;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.sdk.tests.TestUtils;
-import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +19,12 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.importExport.settings.SettingsImportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
@@ -50,6 +34,9 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -94,6 +81,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		when(view.getCollection()).thenReturn(zeCollection);
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -290,6 +278,16 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
 				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
+	}
+
+	@Test
+	public void whenSearchByIdThenRecordFound()
+			throws Exception{
+		String recordId = "00000000166";
+		simpleSearchPresenter = new SimpleSearchPresenter(view);
+		simpleSearchPresenter.setSearchExpression(recordId);
+		assertThat(simpleSearchPresenter.getSearchResults().size()).isEqualTo(1);
+		assertThat(simpleSearchPresenter.getSearchResults().getRecordVO(0).getId()).isEqualTo(recordId);
 	}
 
 	private List<String> getRecordsIds(List<SearchResultVO> records) {
