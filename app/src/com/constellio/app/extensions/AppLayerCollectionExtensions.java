@@ -309,6 +309,12 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
+	public void notifyFolderDeletion(FolderDeletionEvent event) {
+		for (RecordAppExtension extension : recordAppExtensions) {
+			extension.notifyFolderDeleted(event);
+		}
+	}
+
 	public void checkCollection(CollectionSystemCheckParams params) {
 		for (SystemCheckExtension extension : systemCheckExtensions) {
 			extension.checkCollection(params);
