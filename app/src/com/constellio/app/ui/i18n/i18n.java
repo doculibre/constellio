@@ -285,6 +285,15 @@ public class i18n {
 		return messages;
 	}
 
+	public static List<String> asListOfMessages(List<ValidationError> errors) {
+		List<String> messages = new ArrayList<>();
+
+		for (ValidationError error : errors) {
+			messages.add($(error));
+		}
+		return messages;
+	}
+
 	public static List<String> asListOfMessages(ValidationErrors errors, Object... params) {
 		List<String> messages = new ArrayList<>();
 		for (ValidationError error : errors.getValidationErrors()) {
