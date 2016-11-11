@@ -179,6 +179,20 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 
 		afterViewAssembled(event);
+		
+//		StringBuffer js = new StringBuffer();
+//		js.append("setTimeout(function() {setInterval(function() {\r\n"); 
+//		js.append("try {");
+//		js.append("\r\n");
+//		js.append("var req = new XMLHttpRequest();"); 
+//		js.append("\r\n");
+//		js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
+//		js.append("\r\n");
+//		js.append("req.send();");
+//		js.append("\r\n");
+//		js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
+//		js.append("}, 10000);}, 1000);");
+//		if (true) com.vaadin.ui.JavaScript.eval(js.toString());
 	}
 
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
