@@ -7,8 +7,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +26,10 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory) throws Exception {
-        //
+	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
+			throws Exception {
+		//
 		new AddGlobalGroupLocallyCreatedMetadata(collection, provider, appLayerFactory).migrate();
-
 
 		// Set metadata value
 		final boolean locallyCreated = appLayerFactory.
@@ -35,40 +37,44 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 				newUserServices().
 				canAddOrModifyUserAndGroup();
 
-		final List<GlobalGroup> globalGroupList = appLayerFactory.
-				getModelLayerFactory().
-				getGlobalGroupsManager().
-				getAllGroups();
+		MetadataSchemasManager schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		if (schemasManager.getSchemaTypes(collection).hasType(SolrGlobalGroup.SCHEMA_TYPE)) {
 
-		for (final GlobalGroup globalGroup : globalGroupList) {
-			appLayerFactory.
+			final List<GlobalGroup> globalGroupList = appLayerFactory.
 					getModelLayerFactory().
 					getGlobalGroupsManager().
-					addUpdate(globalGroup.withLocallyCreated(locallyCreated));
+					getAllGroups();
+
+			for (final GlobalGroup globalGroup : globalGroupList) {
+				appLayerFactory.
+						getModelLayerFactory().
+						getGlobalGroupsManager().
+						addUpdate(globalGroup.withLocallyCreated(locallyCreated));
+			}
 		}
-    }
+	}
 
 	private void setAllDeleteLogicallyToNow(String collection, AppLayerFactory appLayerFactory) {
 
 	}
 
 	private class AddGlobalGroupLocallyCreatedMetadata extends MetadataSchemasAlterationHelper {
-		public AddGlobalGroupLocallyCreatedMetadata(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory) {
+		public AddGlobalGroupLocallyCreatedMetadata(String collection, MigrationResourcesProvider provider,
+				AppLayerFactory appLayerFactory) {
 			super(collection, provider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder metadataSchemaTypesBuilder) {
-            if (metadataSchemaTypesBuilder.hasSchemaType(SolrGlobalGroup.SCHEMA_TYPE)) {
-                // Add metadata to schema
-                final MetadataSchemaBuilder metadataSchemaBuilder = metadataSchemaTypesBuilder.getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
-                if (!metadataSchemaBuilder.hasMetadata(SolrGlobalGroup.LOCALLY_CREATED)) {
-                    metadataSchemaBuilder.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
-                }
+			if (metadataSchemaTypesBuilder.hasSchemaType(SolrGlobalGroup.SCHEMA_TYPE)) {
+				// Add metadata to schema
+				final MetadataSchemaBuilder metadataSchemaBuilder = metadataSchemaTypesBuilder
+						.getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
+				if (!metadataSchemaBuilder.hasMetadata(SolrGlobalGroup.LOCALLY_CREATED)) {
+					metadataSchemaBuilder.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
+				}
 
-
-
-            }
+			}
 		}
 	}
 

@@ -159,6 +159,14 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 		startApplication();
 
 		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
+		metadataSchemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchemaType(zeCollectionSchemas.documentFond.type().getCode()).setSecurity(true);
+				types.getSchemaType(zeCollectionSchemas.category.type().getCode()).setSecurity(true);
+			}
+		});
 	}
 
 	@After
@@ -339,6 +347,55 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenCreatingRecordsInSecondaryTaxonomyAttachingThemToPrimaryTaxonomyUsingPropertyThenSecurised()
+			throws RecordServicesException {
+		String parentId = "folder2";
+
+		session = newCMISSessionAsUserInZeCollection(admin);
+		Folder parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+		assertThat(parent.createFolder(properties)).isNotNull();
+
+		session = newCMISSessionAsUserInZeCollection(dakota);
+		parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+		assertThat(parent.createFolder(properties)).isNotNull();
+
+		session = newCMISSessionAsUserInZeCollection(aliceWonderland);
+		parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+		try {
+			assertThat(parent.createFolder(properties)).isNotNull();
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage().startsWith("L'utilisateur alice n'a pas de droit en ecriture sur l'enregistrement"));
+		}
+
+		session = newCMISSessionAsUserInZeCollection(edouard);
+		parent = cmisFolder(zeCollectionRecords.taxo1_category1);
+		properties = new HashMap<>();
+		properties.put(PropertyIds.OBJECT_TYPE_ID, zeCollectionSchemas.folderSchema.code());
+		properties.put(PropertyIds.NAME, "Folder");
+		properties.put(zeCollectionSchemas.folderSchema.taxonomy2().getLocalCode(), zeCollectionRecords.taxo2_station1.getId());
+
+		try {
+			assertThat(parent.createFolder(properties)).isNotNull();
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage().startsWith("L'utilisateur edouard n'a pas de droit en ecriture sur l'enregistrement"));
+		}
+
+	}
+
+	@Test
 	public void whenCreatingFolderInAdministrativeUnitThenOnlyWorksWithParentWriteAuthorization()
 			throws RecordServicesException {
 		String parentId = "zetaxo2_station1";
@@ -418,6 +475,16 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		session = newCMISSessionAsUserInZeCollection(charlesFrancoisXavier);
 		createNewDocumentWithTestPropertiesExpectingPermissionError(parentId);
+	}
+
+	@Test
+	public void givenUserWithoutAnyPermissionGetSecondaryConceptByIdThenObtained()
+			throws Exception {
+
+		session = newCMISSessionAsUserInZeCollection(sasquatch);
+
+		assertThat(session.getObject(zeCollectionRecords.taxo1_fond1_1.getId())).isNotNull();
+		assertThat(session.getObject(zeCollectionRecords.taxo1_category2_1.getId())).isNotNull();
 	}
 
 	@Test

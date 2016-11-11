@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -116,6 +117,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
 					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
+		} else {
+			assertThat(allSchemaTypesWithSecurity()).doesNotContain(Category.SCHEMA_TYPE);
 		}
 
 		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French))

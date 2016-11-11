@@ -3,6 +3,7 @@ package com.constellio.app.api.cmis.requests.object;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -59,9 +60,13 @@ public class CreateFolderRequest extends CmisCollectionRequest<String> {
 			ensureUserHasAllowableActionsOnRecord(parentRecord, Action.CAN_CREATE_FOLDER);
 		}
 		new CmisRecordUtils(modelLayerFactory).setParentOfRecord(newRecord, parentRecord, schema);
+
+		recordServices.recalculate(newRecord);
+		ensureUserHasWriteAccessOnRecord(newRecord);
+
 		try {
 			recordServices.execute(new Transaction(newRecord).setUser(user));
-//			CreateDocumentParams params = new CreateDocumentParams(user, newRecord);
+			//			CreateDocumentParams params = new CreateDocumentParams(user, newRecord);
 			//			appLayerFactory.getExtensions().forCollection(collection).onCreateCMISDocument(params);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
