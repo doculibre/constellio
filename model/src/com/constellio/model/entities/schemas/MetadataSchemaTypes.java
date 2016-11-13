@@ -37,8 +37,11 @@ public class MetadataSchemaTypes {
 
 	private final List<Language> languages;
 
+	private final MetadataNetwork metadataNetwork;
+
 	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
-			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages) {
+			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages,
+			MetadataNetwork metadataNetwork) {
 		super();
 		this.version = version;
 		this.collection = collection;
@@ -48,6 +51,7 @@ public class MetadataSchemaTypes {
 		this.searchableMetadatas = getAllMetadatas().onlySearchable();
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
 		this.languages = Collections.unmodifiableList(languages);
+		this.metadataNetwork = metadataNetwork;
 	}
 
 	private Map<String, MetadataSchemaType> toUnmodifiableMap(List<MetadataSchemaType> schemaTypes) {
@@ -56,6 +60,10 @@ public class MetadataSchemaTypes {
 			types.put(type.getCode(), type);
 		}
 		return Collections.unmodifiableMap(types);
+	}
+
+	public MetadataNetwork getMetadataNetwork() {
+		return metadataNetwork;
 	}
 
 	public String getCollection() {

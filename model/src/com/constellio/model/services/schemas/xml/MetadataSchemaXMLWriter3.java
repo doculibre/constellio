@@ -18,6 +18,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -49,7 +50,7 @@ public class MetadataSchemaXMLWriter3 {
 
 	public void writeEmptyDocument(String collection, Document document) {
 		writeSchemaTypes(new MetadataSchemaTypes(collection, 0, new ArrayList<MetadataSchemaType>(), new ArrayList<String>(),
-				new ArrayList<String>(), Arrays.asList(Language.French)), document);
+				new ArrayList<String>(), Arrays.asList(Language.French), MetadataNetwork.EMPTY()), document);
 	}
 
 	public Document write(MetadataSchemaTypes schemaTypes) {
@@ -234,6 +235,9 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isEssentialInSummary()) {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
 		}
+		if (metadata.isIncreasedDependencyLevel()) {
+			metadataElement.setAttribute("increasedDependencyLevel", writeBoolean(metadata.isIncreasedDependencyLevel()));
+		}
 		if (metadata.isEncrypted()) {
 			metadataElement.setAttribute("encrypted", writeBoolean(metadata.isEncrypted()));
 		}
@@ -337,6 +341,10 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (globalMetadataInCollection.isEssentialInSummary() != metadata.isEssentialInSummary()) {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
+			different = true;
+		}
+		if (globalMetadataInCollection.isIncreasedDependencyLevel() != metadata.isIncreasedDependencyLevel()) {
+			metadataElement.setAttribute("increasedDependencyLevel", writeBoolean(metadata.isIncreasedDependencyLevel()));
 			different = true;
 		}
 		if (globalMetadataInCollection.isEncrypted() != metadata.isEncrypted()) {

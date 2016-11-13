@@ -104,6 +104,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public static MetadataBuilderConfigurator whichIncreaseDependencyLevel = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setIncreasedDependencyLevel(true);
+		}
+
+	};
+
 	public static MetadataBuilderConfigurator whichIsEssentialInSummary = new MetadataBuilderConfigurator() {
 
 		@Override

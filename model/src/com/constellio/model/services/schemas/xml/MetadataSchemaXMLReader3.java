@@ -26,7 +26,6 @@ import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AgregationType;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -271,6 +270,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEssentialInSummary(globalMetadataInCollectionSchema.isEssentialInSummary());
 		} else {
 			metadataBuilder.setEssentialInSummary(readBooleanWithDefaultValue(essentialInSummaryStringValue, false));
+		}
+
+		String increasedDependencyLevelStringValue = metadataElement.getAttributeValue("increasedDependencyLevel");
+		if (inheriteGlobalMetadata && increasedDependencyLevelStringValue == null) {
+			metadataBuilder.setIncreasedDependencyLevel(globalMetadataInCollectionSchema.isIncreasedDependencyLevel());
+		} else {
+			metadataBuilder.setIncreasedDependencyLevel(readBooleanWithDefaultValue(increasedDependencyLevelStringValue, false));
 		}
 
 		String unmodifiableStringValue = metadataElement.getAttributeValue("unmodifiable");

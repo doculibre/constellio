@@ -16,9 +16,20 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
 import org.apache.commons.collections.map.HashedMap;
 
 public class DependencyUtils<V> {
+
+	public boolean hasCyclicDependencies(Map<V, Set<V>> dependenciesMap) {
+
+		try {
+			validateNoCyclicDependencies(dependenciesMap);
+			return false;
+		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
+			return true;
+		}
+	}
 
 	public void validateNoCyclicDependencies(Map<V, Set<V>> dependenciesMap) {
 		sortByDependency(dependenciesMap, new Comparator<V>() {
@@ -40,7 +51,7 @@ public class DependencyUtils<V> {
 	}
 
 	public List<V> sortByDependencyWithoutTieSort(Map<V, Set<V>> dependenciesMap) {
-		return sortByDependency(dependenciesMap,new DependencyUtilsParams());
+		return sortByDependency(dependenciesMap, new DependencyUtilsParams());
 	}
 
 	public static List<Record> sortRecordByDependency(MetadataSchemaTypes types, List<Record> records) {
@@ -165,11 +176,11 @@ public class DependencyUtils<V> {
 	private IterationResults<V> getMetadatasWithoutLesserDependencies(Map<V, Set<V>> metadatas) {
 
 		boolean moreDepenciesToAdd = true;
-		while(moreDepenciesToAdd)  {
+		while (moreDepenciesToAdd) {
 			moreDepenciesToAdd = false;
-			for(Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
+			for (Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
 				Set<V> valuesToAdd = new HashSet<>();
-				for(V value : entry.getValue()) {
+				for (V value : entry.getValue()) {
 					valuesToAdd.addAll(metadatas.get(value));
 				}
 				valuesToAdd.add(entry.getKey());
@@ -181,9 +192,8 @@ public class DependencyUtils<V> {
 			}
 		}
 
-
 		int minCounterOfDependencies = 10000000;
-		for(Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
+		for (Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
 			int currentValue = entry.getValue().size();
 			if (currentValue < minCounterOfDependencies) {
 				minCounterOfDependencies = currentValue;
@@ -193,7 +203,7 @@ public class DependencyUtils<V> {
 		List<V> valuesWithLesserDependencies = new ArrayList<>();
 		Map<V, Set<V>> valuesWithDependencies = new HashMap<>();
 
-		for(Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
+		for (Map.Entry<V, Set<V>> entry : metadatas.entrySet()) {
 			if (entry.getValue().size() == minCounterOfDependencies) {
 				valuesWithLesserDependencies.add(entry.getKey());
 			} else {

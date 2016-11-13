@@ -65,6 +65,7 @@ public class MetadataBuilder {
 	private boolean essentialInSummary = false;
 	private boolean multiLingual;
 	private boolean markedForDeletion = false;
+	private boolean increasedDependencyLevel = false;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
@@ -195,6 +196,7 @@ public class MetadataBuilder {
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
 		builder.duplicable = metadata.isDuplicable();
+		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -225,6 +227,7 @@ public class MetadataBuilder {
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
 		builder.multiLingual = metadata.isMultiLingual();
+		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
 
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
@@ -363,6 +366,16 @@ public class MetadataBuilder {
 	public MetadataBuilder setSortable(boolean sortable) {
 		ensureCanModify("sortable");
 		this.sortable = sortable;
+		return this;
+	}
+
+	public boolean isIncreasedDependencyLevel() {
+		return inheritance == null ? increasedDependencyLevel : inheritance.isIncreasedDependencyLevel();
+	}
+
+	public MetadataBuilder setIncreasedDependencyLevel(boolean increasedDependencyLevel) {
+		ensureCanModify("increasedDependencyLevel");
+		this.increasedDependencyLevel = increasedDependencyLevel;
 		return this;
 	}
 
@@ -694,7 +707,7 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion);
+				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, increasedDependencyLevel);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

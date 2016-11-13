@@ -22,6 +22,8 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataNetwork;
+import com.constellio.model.entities.schemas.MetadataNetworkBuilder;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -97,20 +99,22 @@ public class MetadataSchemaTypesBuilder {
 
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		MetadataSchemaTypes types = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
-				referenceDefaultValues, languages);
+		MetadataSchemaTypes tempTypes = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+				referenceDefaultValues, languages, MetadataNetwork.EMPTY());
 
-		for (MetadataSchemaType type : types.getSchemaTypes()) {
+		for (MetadataSchemaType type : tempTypes.getSchemaTypes()) {
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas().onlyCalculated().onlyWithoutInheritance()) {
 					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
 							.getCalculator();
 					if (calculator instanceof InitializedMetadataValueCalculator) {
-						((InitializedMetadataValueCalculator) calculator).initialize(types, schema, metadata);
+						((InitializedMetadataValueCalculator) calculator).initialize(tempTypes, schema, metadata);
 					}
 				}
 			}
 		}
+		MetadataSchemaTypes types = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+				referenceDefaultValues, languages, MetadataNetworkBuilder.buildFrom(buildedSchemaTypes));
 
 		return types;
 	}

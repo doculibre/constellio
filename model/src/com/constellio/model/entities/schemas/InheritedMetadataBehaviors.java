@@ -21,11 +21,12 @@ public class InheritedMetadataBehaviors {
 	final boolean essentialInSummary;
 	final boolean multiLingual;
 	final boolean markedForDeletion;
+	final boolean reverseDependency;
 
 	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
 			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean encrypted, boolean essentialInSummary,
-			boolean multiLingual, boolean markedForDeletion) {
+			boolean multiLingual, boolean markedForDeletion, boolean reverseDependency) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;
@@ -41,6 +42,11 @@ public class InheritedMetadataBehaviors {
 		this.essentialInSummary = essentialInSummary;
 		this.multiLingual = multiLingual;
 		this.markedForDeletion = markedForDeletion;
+		this.reverseDependency = reverseDependency;
+	}
+
+	public boolean isReverseDependency() {
+		return reverseDependency;
 	}
 
 	public boolean isUndeletable() {

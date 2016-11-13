@@ -89,7 +89,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual, false);
+				false, false, false, false, false, false, multiLingual, false, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -344,6 +344,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isSchemaAutocomplete() {
 		return getInheritedMetadataBehaviors().isSchemaAutocomplete();
+	}
+
+	public boolean isIncreasedDependencyLevel() {
+		return getInheritedMetadataBehaviors().isReverseDependency();
 	}
 
 	public StringSortFieldNormalizer getSortFieldNormalizer() {
