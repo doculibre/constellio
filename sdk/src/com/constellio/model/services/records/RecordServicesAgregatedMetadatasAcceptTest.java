@@ -2,22 +2,26 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -31,6 +35,9 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 	AnotherSchemaMetadatas anotherSchema = schemas.new AnotherSchemaMetadatas();
 	ThirdSchemaMetadatas thirdSchema = schemas.new ThirdSchemaMetadatas();
+	RecordServices recordServices;
+	RecordServicesAgregatedMetadatasAcceptTestRecords records = new RecordServicesAgregatedMetadatasAcceptTestRecords();
+	SearchServices searchServices;
 
 	@Before
 	public void setUp()
@@ -68,6 +75,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 			}
 		}));
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
 
 	}
 
@@ -95,6 +104,30 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void givenAgregatedSumMetadataWhenCreateInputRecordThenSum()
+			throws Exception {
+		records.setup(schemas, getModelLayerFactory());
+
+		assertThatZeSchemaRecords().containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.0),
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.0),
+				tuple("zeSchemaRecord4", 4.0, 0.0)
+		);
+
+		assertThatAnotherSchemasRecords().containsOnly(
+				tuple("anotherSchemaRecord1", null, null, null),
+				tuple("anotherSchemaRecord2", null, null, null)
+		);
+
+		assertThatThirdSchemasRecords().containsOnly(
+				tuple("aThirdSchemaRecord1", null, null),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+	}
+
 	private List<Tuple> getNetworkLinks() {
 
 		List<Tuple> tuples = new ArrayList();
@@ -117,9 +150,28 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		return tuples;
 	}
 
-	@Test
-	public void givenAgregatedSumMetadataWhenCreateInputRecordThenSum()
-			throws Exception {
+	private ListAssert<Tuple> assertThatZeSchemaRecords() {
+		return assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll()))).extractingMetadatas(
+				Schemas.IDENTIFIER,
+				zeSchema.metadata("number"),
+				zeSchema.metadata("pct")
+		);
+	}
 
+	private ListAssert<Tuple> assertThatAnotherSchemasRecords() {
+		return assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll()))).extractingMetadatas(
+				Schemas.IDENTIFIER,
+				anotherSchema.metadata("sum"),
+				anotherSchema.metadata("sumX10"),
+				anotherSchema.metadata("copiedThirdSchemaTypeSum")
+		);
+	}
+
+	private ListAssert<Tuple> assertThatThirdSchemasRecords() {
+		return assertThatRecords(searchServices.search(query(from(thirdSchema.type()).returnAll()))).extractingMetadatas(
+				Schemas.IDENTIFIER,
+				thirdSchema.metadata("sum"),
+				thirdSchema.metadata("sumX10")
+		);
 	}
 }
