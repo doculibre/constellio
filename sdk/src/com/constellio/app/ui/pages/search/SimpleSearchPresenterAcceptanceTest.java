@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -160,7 +163,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.isEqualTo(documentsCount);
 	}
 
-
 	@Test
 	public void givenSearchOrderAscByIDThenOK()
 			throws Exception {
@@ -170,7 +172,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.IDENTIFIER.getCode());
 		SearchResultVODataProvider searchResults = simpleSearchPresenter.getSearchResults();
 		List<SearchResultVO> result = searchResults.listSearchResultVOs(0, searchResults.size());
-		List<String> resultsIds  = getRecordsIds(result);
+		List<String> resultsIds = getRecordsIds(result);
 		assertThat(result.size()).isGreaterThan(1);
 		List<String> orderedResults = new ArrayList<>(resultsIds);
 		Collections.sort(orderedResults, new Comparator<String>() {
@@ -191,7 +193,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.IDENTIFIER.getCode());
 		SearchResultVODataProvider searchResults = simpleSearchPresenter.getSearchResults();
 		List<SearchResultVO> result = searchResults.listSearchResultVOs(0, searchResults.size());
-		List<String> resultsIds  = getRecordsIds(result);
+		List<String> resultsIds = getRecordsIds(result);
 		assertThat(result.size()).isGreaterThan(1);
 		List<String> orderedResults = new ArrayList<>(resultsIds);
 		Collections.sort(orderedResults, new Comparator<String>() {
@@ -210,7 +212,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
 		assertThat(simpleSearchPresenter.getSortCriterion()).isNull();
-
 
 		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.CREATION_DATE_ASC);
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
@@ -232,7 +233,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.MODIFIED_ON.getCode());
 
-
 		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.PATH_ASC);
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.ASCENDING);
@@ -246,14 +246,13 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenAMetadataIsSortableAndAtLeastInOneTypeThenAllowedInSort()
-			throws Exception{
+			throws Exception {
 		SettingsImportServices services = new SettingsImportServices(getAppLayerFactory());
 		ImportedSettings settings = new ImportedSettings();
 		settings.newCollectionSettings(zeCollection).newType(Folder.SCHEMA_TYPE).getDefaultSchema()
 				.newMetadata("USRnouvelleMetadataTest").setType(STRING).setLabel("Nouvelle metadata test")
 				.setSortable(true);
 		services.importSettings(settings);
-
 
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
@@ -262,7 +261,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void giveIDIsSetToNotSortableThenNotAllowedInSort()
-			throws Exception{
+			throws Exception {
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -274,25 +273,14 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
 				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
-	@Test
-	public void whenSearchByIdThenRecordFound()
-			throws Exception{
-		String recordId = "00000000166";
-		simpleSearchPresenter = new SimpleSearchPresenter(view);
-		simpleSearchPresenter.setSearchExpression(recordId);
-		assertThat(simpleSearchPresenter.getSearchResults().size()).isEqualTo(1);
-		assertThat(simpleSearchPresenter.getSearchResults().getRecordVO(0).getId()).isEqualTo(recordId);
-	}
-
 	private List<String> getRecordsIds(List<SearchResultVO> records) {
 		List<String> returnList = new ArrayList<>();
-		for(SearchResultVO record: records){
+		for (SearchResultVO record : records) {
 			returnList.add(record.getRecordVO().getId());
 		}
 		return returnList;

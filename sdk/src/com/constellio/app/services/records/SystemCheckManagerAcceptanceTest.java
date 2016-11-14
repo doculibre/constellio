@@ -1,5 +1,13 @@
 package com.constellio.app.services.records;
 
+import static com.constellio.app.services.records.SystemCheckManager.BROKEN_REFERENCES_METRIC;
+import static com.constellio.app.services.records.SystemCheckManager.CHECKED_REFERENCES_METRIC;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage1;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage2;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage3;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage4;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage5;
+import static com.constellio.app.services.records.SystemCheckManagerAcceptanceTestResources.expectedMessage6;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_ON;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
@@ -14,6 +22,8 @@ import static org.joda.time.LocalDate.now;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
+import org.joda.time.LocalDate;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -37,12 +47,20 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
 
+	@Before
+	public void setUp()
+			throws Exception {
+		givenTimeIs(new LocalDate(2014, 12, 12));
+
+	}
+
 	@Test
 	public void givenSystemWithBrokenSingleValueLinksWhenSystemCheckingThenFindThoseLinks()
 			throws Exception {
 
 		defineSchemasManager().using(setup.withAReferenceFromAnotherSchemaToZeSchema());
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
 
 		Transaction transaction = new Transaction();
 		transaction.add(new TestRecord(zeSchema, "zeId").set(TITLE, "1"));
@@ -74,9 +92,9 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		//params.put("record", recordId);
 		//params.put("brokenLinkRecordId
 
-		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(systemCheckResults.brokenReferences).isEqualTo(2);
-		assertThat(systemCheckResults.checkedReferences).isEqualTo(3);
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(3);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "metadataCode", "record", "brokenLinkRecordId"))
 				.containsOnly(
@@ -93,10 +111,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				.isEqualTo("bad");
 		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo("notGood");
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage1);
 
-		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(true);
-		assertThat(systemCheckResults.brokenReferences).isEqualTo(2);
-		assertThat(systemCheckResults.checkedReferences).isEqualTo(3);
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(3);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(2);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "metadataCode", "record", "brokenLinkRecordId"))
 				.containsOnly(
@@ -110,10 +129,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				.isNull();
 		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isNull();
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage2);
 
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(systemCheckResults.brokenReferences).isEqualTo(0);
-		assertThat(systemCheckResults.checkedReferences).isEqualTo(1);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(0);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(1);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
 		assertThat(systemCheckResults.errors.getValidationErrors()).isEmpty();
 		assertThat(systemCheckResults.errors.getValidationWarnings()).isEmpty();
@@ -147,9 +167,10 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		//params.put("record", recordId);
 		//params.put("brokenLinkRecordId
 
-		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(systemCheckResults.brokenReferences).isEqualTo(2);
-		assertThat(systemCheckResults.checkedReferences).isEqualTo(7);
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(7);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "metadataCode", "record", "brokenLinkRecordId"))
 				.containsOnly(
@@ -167,10 +188,11 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				.isEqualTo(asList("recordC", "recordA", "recordB"));
 		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA", "recordC"));
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage3);
 
-		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(true);
-		assertThat(systemCheckResults.brokenReferences).isEqualTo(2);
-		assertThat(systemCheckResults.checkedReferences).isEqualTo(7);
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(2);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(7);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(2);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "metadataCode", "record", "brokenLinkRecordId"))
 				.containsOnly(
@@ -185,13 +207,15 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 				.isEqualTo(asList("recordA", "recordB"));
 		assertThat(recordServices.getDocumentById("recordWithProblem2").get(anotherSchema.referenceFromAnotherSchemaToZeSchema()))
 				.isEqualTo(asList("recordA"));
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage4);
 
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
-		assertThat(systemCheckResults.brokenReferences).isEqualTo(0);
-		assertThat(systemCheckResults.checkedReferences).isEqualTo(5);
+		assertThat(systemCheckResults.getMetric(BROKEN_REFERENCES_METRIC)).isEqualTo(0);
+		assertThat(systemCheckResults.getMetric(CHECKED_REFERENCES_METRIC)).isEqualTo(5);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
 		assertThat(systemCheckResults.errors.getValidationErrors()).isEmpty();
 		assertThat(systemCheckResults.errors.getValidationWarnings()).isEmpty();
+
 	}
 
 	@Test
@@ -219,7 +243,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(records.getCategory_Z110().isLogicallyDeletedStatus()).isTrue();
 		assertThat(records.getCategory_Z112().isLogicallyDeletedStatus()).isTrue();
 
-		SystemCheckResults systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
 
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).containsOnly(
@@ -234,8 +259,9 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(statusOf(records.categoryId_Z100)).isEqualTo(RecordStatus.LOGICALLY_DELETED);
 		assertThat(statusOf(records.categoryId_Z110)).isEqualTo(RecordStatus.LOGICALLY_DELETED);
 		assertThat(statusOf(records.categoryId_Z112)).isEqualTo(RecordStatus.LOGICALLY_DELETED);
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage5);
 
-		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(true);
+		systemCheckResults = systemCheckManager.runSystemCheck(true);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(18);
 		assertThat(extractingSimpleCodeAndParameters(systemCheckResults.errors, "schemaType", "recordId")).containsOnly(
 				SystemCheckManagerAcceptanceTestResources.expectedErrorsWhenLogicallyDeletedCategoriesAndUnits);
@@ -246,6 +272,7 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(statusOf(records.categoryId_Z)).isEqualTo(RecordStatus.ACTIVE);
 		assertThat(statusOf(records.categoryId_Z110)).isEqualTo(RecordStatus.DELETED);
 		assertThat(statusOf(records.categoryId_Z112)).isEqualTo(RecordStatus.DELETED);
+		assertThat(new SystemCheckReportBuilder(systemCheckManager).build()).isEqualTo(expectedMessage6);
 
 		systemCheckResults = new SystemCheckManager(getAppLayerFactory()).runSystemCheck(false);
 		assertThat(systemCheckResults.repairedRecords.size()).isEqualTo(0);
