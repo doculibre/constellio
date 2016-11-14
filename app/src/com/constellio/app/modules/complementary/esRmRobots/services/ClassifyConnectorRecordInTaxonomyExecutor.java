@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapClientException;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -613,7 +614,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
-		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument e) {
+		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument|IcapClientException e) {
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
 			}

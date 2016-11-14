@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapClientException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -153,7 +154,10 @@ public class SmbClassifyServices {
 				recordServices.update(connectorDocument.setFetched(false));
 			}
 			return document.getId();
-		} catch (ConnectorSmbRuntimeException | RecordServicesException | ConnectorServicesRuntimeException e) {
+		} catch (ConnectorSmbRuntimeException |
+				RecordServicesException |
+				ConnectorServicesRuntimeException |
+				IcapClientException e) {
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
 			}

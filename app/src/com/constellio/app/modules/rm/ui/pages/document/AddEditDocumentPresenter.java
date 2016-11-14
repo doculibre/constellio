@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapClientException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,8 +57,11 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
+
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
 	private DocumentToVOBuilder voBuilder;
@@ -251,7 +255,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	private void setAsNewVersionOfContent(Document document) {
-		ContentManager contentManager = modelLayerFactory.getContentManager();
 		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
 		Content contentBeforeChange = documentBeforeChange.getContent();
 		ContentVersionVO contentVersionVO = documentVO.getContent();
@@ -261,22 +264,31 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			contentVersionSummary = contentManager.upload(in, filename);
+			contentVersionSummary = uploadContent(in, true, true, filename);
+            contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
+            document.setContent(contentBeforeChange);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}
-		contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
-		document.setContent(contentBeforeChange);
 	}
 
 	public void saveButtonClicked() {
-		Record record = toRecord(documentVO, newFile);
-		Document document = rmSchemas().wrapDocument(record);
+        Record record;
+        Document document;
 
-		boolean editWithUserDocument = !addView && userDocumentId != null;
-		if (editWithUserDocument) {
-			setAsNewVersionOfContent(document);
-		}
+        try {
+            record = toRecord(documentVO, newFile);
+            document = rmSchemas().wrapDocument(record);
+
+            boolean editWithUserDocument = !addView && userDocumentId != null;
+            if (editWithUserDocument) {
+                setAsNewVersionOfContent(document);
+            }
+        } catch (final IcapClientException e) {
+            view.showErrorMessage(e.getMessage());
+
+            return;
+        }
 
 		if (!canSaveDocument(document, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
@@ -549,14 +561,18 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					contentVersionVO.setMajorVersion(true);
 					Record documentRecord = toRecord(documentVO);
 					Document document = new Document(documentRecord, types());
-					Content content = toContent(contentVersionVO);
-					document.setContent(content);
-					modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
-					documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
-					documentVO.getContent().setMajorVersion(null);
-					documentVO.getContent().setHash(null);
-					view.setRecord(documentVO);
-					view.getForm().reload();
+                    try {
+                        Content content = toContent(contentVersionVO);
+                        document.setContent(content);
+                        modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
+                        documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
+                        documentVO.getContent().setMajorVersion(null);
+                        documentVO.getContent().setHash(null);
+                        view.setRecord(documentVO);
+                        view.getForm().reload();
+                    } catch (final IcapClientException e) {
+                        view.showErrorMessage(e.getMessage());
+                    }
 				}
 			}
 		});

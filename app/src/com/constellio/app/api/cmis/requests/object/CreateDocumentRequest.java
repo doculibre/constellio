@@ -78,7 +78,7 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 		}
 
 		Content content;
-		ContentVersionDataSummary dataSummary = contentManager.upload(contentStream.getStream());
+		ContentVersionDataSummary dataSummary = uploadContent(contentStream.getStream());
 		if (versioningState == VersioningState.MAJOR) {
 			content = contentManager.createMajor(user, contentStream.getFileName(), dataSummary);
 		} else if (versioningState == VersioningState.MINOR) {

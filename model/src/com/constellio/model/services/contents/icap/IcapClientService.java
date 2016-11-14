@@ -1,9 +1,5 @@
 package com.constellio.model.services.contents.icap;
 
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapCommunicationFailure;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanTimedout;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanThreatFound;
-
 import com.constellio.data.threads.ConstellioJob;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -120,16 +116,22 @@ public class IcapClientService {
                 final IcapResponse icapResponse = new IcapClient(URI.create(icapServerUrl), null).scanFile(filename, fileContent, constellioServerHostname, icapPreviewLength);
 
                 if (icapResponse.isScanTimedout()) {
-                    throw new ContentManagerRuntimeException_IcapScanTimedout();
+                    final IcapClientException.IcapScanTimedout exception_icapScanTimedout = new IcapClientException.IcapScanTimedout();
+                    LOGGER.info(exception_icapScanTimedout.getMessage());
+                    throw exception_icapScanTimedout;
                 }
 
                 if (icapResponse.isNoThreatFound()) {
                     return;
                 }
 
-                throw new ContentManagerRuntimeException_IcapScanThreatFound(icapResponse.getThreatDescription());
+                final IcapClientException.IcapScanThreatFound exception_icapScanThreatFound = new IcapClientException.IcapScanThreatFound(icapResponse.getThreatDescription());
+                LOGGER.info(exception_icapScanThreatFound.getMessage() + " - " + exception_icapScanThreatFound.getThreatName());
+                throw exception_icapScanThreatFound;
             } catch (final IOException e) {
-                throw new ContentManagerRuntimeException_IcapCommunicationFailure(e);
+                final IcapClientException.IcapCommunicationFailure exception_icapCommunicationFailure = new IcapClientException.IcapCommunicationFailure(e);
+                LOGGER.warn(exception_icapCommunicationFailure.getMessage(), exception_icapCommunicationFailure);
+                throw exception_icapCommunicationFailure;
             }
         }
     }

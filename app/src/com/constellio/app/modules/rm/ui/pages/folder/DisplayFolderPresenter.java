@@ -1,9 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapCommunicationFailure;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanTimedout;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanThreatFound;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -17,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.ContentManagerRuntimeException;
+import com.constellio.model.services.contents.icap.IcapClientException;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -625,18 +622,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				schemaPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
-			} catch (final ContentManagerRuntimeException_IcapScanThreatFound|ContentManagerRuntimeException_IcapScanTimedout e) {
-				LOGGER.warn(e.getMessage());
-
-                if (e instanceof ContentManagerRuntimeException_IcapScanThreatFound) {
-                    view.showErrorMessage(e.getMessage().replace("icap.analysis.virusFound", $("icap.analysis.virusFound")));
-                } else {
-                    view.showErrorMessage($(e.getMessage()));
-                }
-			} catch (final ContentManagerRuntimeException_IcapCommunicationFailure e) {
-				LOGGER.warn(e.getMessage(), e);
-
-				view.showErrorMessage($(e.getMessage()));
+			} catch (final IcapClientException e) {
+                view.showErrorMessage(e.getMessage());
 			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
 			}

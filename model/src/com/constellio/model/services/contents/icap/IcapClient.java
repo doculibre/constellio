@@ -81,8 +81,6 @@ public class IcapClient {
                 append(CR_LF).
                 append("Host: ").append(icapServerUrl.getHost()).
                 append(CR_LF).
-                //append("User-Agent: Java")
-                append(CR_LF).
                 append(CR_LF).
                 toString();
     }
@@ -105,18 +103,29 @@ public class IcapClient {
 
         IcapResponse response = null;
 
-        try {
-            connect();
+        if (fileContent.available() > 0) {
+            try {
+                connect();
 
-            sendRespmodMethodRequest(filename, clientHostname, previewLength);
+                sendRespmodMethodRequest(filename, clientHostname, previewLength);
 
-            response = sendContentPreview(fileContent, previewLength);
+                response = sendContentPreview(fileContent, previewLength);
 
-            if (response.isMoreThanPreviewScanNeeded()) {
-                response = sendPreviewRemaingingContent(fileContent);
+                if (response.isMoreThanPreviewScanNeeded()) {
+                    response = sendPreviewRemaingingContent(fileContent);
+                }
+            } finally {
+                disconnect();
             }
-        } finally {
-            disconnect();
+        } else {
+            try (final InputStream emptyInputStream = new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    return 0;
+                }
+            }) {
+                response = IcapResponse.parse(emptyInputStream);
+            }
         }
 
         return response;

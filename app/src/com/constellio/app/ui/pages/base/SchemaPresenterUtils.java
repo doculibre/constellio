@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.model.services.contents.icap.IcapClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -276,7 +279,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = contentManager.upload(inputStream, fileName);
+				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName);
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);

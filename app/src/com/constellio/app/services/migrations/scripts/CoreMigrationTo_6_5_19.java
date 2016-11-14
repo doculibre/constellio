@@ -18,9 +18,7 @@ import java.util.List;
 
 public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_6_5_19.class);
-
-	@Override
+    @Override
 	public String getVersion() {
 		return "6.5.19";
 	}
@@ -31,50 +29,41 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 		//
 		new AddGlobalGroupLocallyCreatedMetadata(collection, provider, appLayerFactory).migrate();
 
-		// Set metadata value
-		final boolean locallyCreated = appLayerFactory.
-				getModelLayerFactory().
-				newUserServices().
-				canAddOrModifyUserAndGroup();
+        if (appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection).hasSchema(SolrGlobalGroup.DEFAULT_SCHEMA)) {
+            // Set metadata value
+            final boolean locallyCreated = appLayerFactory.
+                    getModelLayerFactory().
+                    newUserServices().
+                    canAddOrModifyUserAndGroup();
 
-		MetadataSchemasManager schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-		if (schemasManager.getSchemaTypes(collection).hasType(SolrGlobalGroup.SCHEMA_TYPE)) {
+            final List<GlobalGroup> globalGroupList = appLayerFactory.
+                    getModelLayerFactory().
+                    getGlobalGroupsManager().
+                    getAllGroups();
 
-			final List<GlobalGroup> globalGroupList = appLayerFactory.
-					getModelLayerFactory().
-					getGlobalGroupsManager().
-					getAllGroups();
-
-			for (final GlobalGroup globalGroup : globalGroupList) {
-				appLayerFactory.
-						getModelLayerFactory().
-						getGlobalGroupsManager().
-						addUpdate(globalGroup.withLocallyCreated(locallyCreated));
-			}
-		}
-	}
-
-	private void setAllDeleteLogicallyToNow(String collection, AppLayerFactory appLayerFactory) {
-
-	}
+            for (final GlobalGroup globalGroup : globalGroupList) {
+                appLayerFactory.
+                        getModelLayerFactory().
+                        getGlobalGroupsManager().
+                        addUpdate(globalGroup.withLocallyCreated(locallyCreated));
+            }
+        }
+    }
 
 	private class AddGlobalGroupLocallyCreatedMetadata extends MetadataSchemasAlterationHelper {
-		public AddGlobalGroupLocallyCreatedMetadata(String collection, MigrationResourcesProvider provider,
-				AppLayerFactory appLayerFactory) {
+		public AddGlobalGroupLocallyCreatedMetadata(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory) {
 			super(collection, provider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder metadataSchemaTypesBuilder) {
-			if (metadataSchemaTypesBuilder.hasSchemaType(SolrGlobalGroup.SCHEMA_TYPE)) {
-				// Add metadata to schema
-				final MetadataSchemaBuilder metadataSchemaBuilder = metadataSchemaTypesBuilder
-						.getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
-				if (!metadataSchemaBuilder.hasMetadata(SolrGlobalGroup.LOCALLY_CREATED)) {
-					metadataSchemaBuilder.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
-				}
-
-			}
+            if (metadataSchemaTypesBuilder.hasSchemaType(SolrGlobalGroup.SCHEMA_TYPE)) {
+                // Add metadata to schema
+                final MetadataSchemaBuilder metadataSchemaBuilder = metadataSchemaTypesBuilder.getSchema(SolrGlobalGroup.DEFAULT_SCHEMA);
+                if (!metadataSchemaBuilder.hasMetadata(SolrGlobalGroup.LOCALLY_CREATED)) {
+                    metadataSchemaBuilder.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
+                }
+            }
 		}
 	}
 
