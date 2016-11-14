@@ -1,9 +1,13 @@
 package com.constellio.app.ui.pages.imports;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +23,11 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 
@@ -67,7 +71,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		File file = new File(folder, filename);
 
 		if (!exportedIdsStr.isEmpty()) {
-			List<String> ids = new ArrayList<>(Arrays.asList(exportedIdsStr.split(",")));
+			List<String> ids = new ArrayList<>(asList(exportedIdsStr.split(",")));
 			ids.remove("tools");
 
 			List<String> verifiedIds = new ArrayList<>();
@@ -107,7 +111,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 					params.setExportNoContent();
 				}
 				if (StringUtils.isNotBlank(exportedIdsStr)) {
-					params.setOnlyExportContentOfRecords(Arrays.asList(StringUtils.split(exportedIdsStr, ",")));
+					params.setOnlyExportContentOfRecords(asList(StringUtils.split(exportedIdsStr, ",")));
 				}
 				exporter().exportSystemToFile(file, params);
 				view.startDownload(filename, new FileInputStream(file), "application/zip");
@@ -128,5 +132,39 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	private PartialSystemStateExporter partialExporter() {
 		return new PartialSystemStateExporter(appLayerFactory);
+	}
+
+	public void exportLogs() {
+		ZipService zipService = modelLayerFactory.getIOServicesFactory().newZipService();
+
+		String filename = "logs-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+		File folder = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newFileService()
+				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
+		File zipFile = new File(folder, filename);
+
+		List<File> logFiles = new ArrayList<>();
+
+		for (String logFilename : asList("wrapper.log", "constellio.log", "constellio.log.1", "constellio.log.2",
+				"constellio.log.3", "constellio.log.4", "constellio.log.5")) {
+
+			File logFile = new File("/opt/constellio/" + logFilename);
+			if (logFile.exists()) {
+				logFiles.add(logFile);
+			}
+		}
+
+		if (logFiles.isEmpty()) {
+			view.showErrorMessage($("ExportView.noLogs"));
+		} else {
+
+			try {
+				zipService.zip(zipFile, logFiles);
+				view.startDownload(filename, new FileInputStream(zipFile), "application/zip");
+			} catch (Throwable t) {
+				LOGGER.error("Error while generating zip of logss", t);
+				view.showErrorMessage($("ExportView.error"));
+			}
+		}
+
 	}
 }
