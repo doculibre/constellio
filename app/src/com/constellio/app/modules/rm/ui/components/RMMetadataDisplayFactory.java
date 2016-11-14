@@ -31,7 +31,11 @@ public class RMMetadataDisplayFactory extends MetadataDisplayFactory {
 				}
 				sb.append(keyword);
 			}
-			displayComponent = new Label(sb.toString());
+			if (sb.length() > 0) {
+	 			displayComponent = new Label(sb.toString());
+			} else {
+	 			displayComponent = null;
+			}
 		} else {
 			displayComponent = super.build(recordVO, metadataValue); 
 		}

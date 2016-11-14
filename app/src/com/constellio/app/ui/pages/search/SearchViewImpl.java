@@ -112,7 +112,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	@Override
 	public void refreshSearchResults(boolean temporarySave) {
 		if (temporarySave) {
-			presenter.saveTemporarySearch(true);
+			presenter.saveTemporarySearch(false);
 		}
 
 		suggestions.removeAllComponents();
