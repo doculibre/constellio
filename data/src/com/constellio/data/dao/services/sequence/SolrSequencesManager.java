@@ -5,6 +5,7 @@ import static java.util.Collections.singletonMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,17 +18,23 @@ import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class SolrSequencesManager implements SequencesManager {
 
+	SecondTransactionLogManager secondTransactionLogManager;
+
 	SolrClient client;
 
-	public SolrSequencesManager(RecordDao recordDao) {
+	public SolrSequencesManager(RecordDao recordDao, SecondTransactionLogManager secondTransactionLogManager) {
 		this.client = recordDao.getBigVaultServer().getNestedSolrServer();
+		this.secondTransactionLogManager = secondTransactionLogManager;
 	}
 
 	@Override
@@ -38,6 +45,11 @@ public class SolrSequencesManager implements SequencesManager {
 		try {
 			SolrInputDocument document = newSequenceUpdateInputDocument(sequenceId);
 			document.addField("counter_d", new Long(value).doubleValue());
+
+			if (secondTransactionLogManager != null) {
+				secondTransactionLogManager.setSequence(sequenceId, value);
+			}
+
 			client.add(document);
 
 		} catch (Exception e) {
@@ -67,6 +79,10 @@ public class SolrSequencesManager implements SequencesManager {
 
 		SolrInputDocument solrInputDocument = prepareSolrInputDocumentForAtomicIncrement(sequenceId, uuid);
 
+		if (secondTransactionLogManager != null) {
+			secondTransactionLogManager.nextSequence(sequenceId);
+		}
+
 		try {
 			client.add(solrInputDocument);
 
@@ -90,6 +106,37 @@ public class SolrSequencesManager implements SequencesManager {
 
 		return returnedValue;
 
+	}
+
+	@Override
+	public Map<String, Long> getSequences() {
+
+		try {
+			client.commit(true, true, true);
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		Map<String, Long> sequences = new HashMap<>();
+		ModifiableSolrParams solrParams = new ModifiableSolrParams();
+		solrParams.add("q", "id:seq_*");
+		solrParams.set("rows", 1000000);
+		try {
+			QueryResponse queryResponse = client.query(solrParams);
+
+			for (SolrDocument doc : queryResponse.getResults()) {
+				String id = ((String) doc.get("id")).substring(4);
+				Double value = ((Double) doc.get("counter_d"));
+				sequences.put(id, value.longValue());
+			}
+
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
+
+		return Collections.unmodifiableMap(sequences);
 	}
 
 	SolrInputDocument prepareSolrInputDocumentForAtomicIncrement(String sequenceId, String uuid) {
@@ -193,7 +240,32 @@ public class SolrSequencesManager implements SequencesManager {
 		return (SolrDocument) response.getResponse().get("doc");
 	}
 
-	private SolrInputDocument newSequenceUpdateInputDocument(String sequenceId) {
+	public static SolrInputDocument setSequenceInLogReplay(String sequenceId, long value) {
+		String uuid = UUIDV1Generator.newRandomId();
+		SolrInputDocument solrInputDocument;
+		solrInputDocument = new SolrInputDocument();
+		solrInputDocument.addField("id", "seq_" + sequenceId);
+		solrInputDocument.addField("_version_", "-1");
+		solrInputDocument.addField("type_s", "sequence");
+		if (uuid == null) {
+			solrInputDocument.addField("uuids_ss", new ArrayList<>());
+		} else {
+			solrInputDocument.addField("uuids_ss", asList(uuid));
+		}
+		solrInputDocument.addField("counter_d", new Long(value).doubleValue());
+		solrInputDocument.remove("_version_");
+		return solrInputDocument;
+
+	}
+
+	public static SolrInputDocument incrementSequenceInLogReplay(String sequenceId) {
+		SolrInputDocument solrInputDocument = newSequenceUpdateInputDocument(sequenceId);
+		solrInputDocument.addField("counter_d", singletonMap("inc", 1.0));
+		solrInputDocument.remove("_version_");
+		return solrInputDocument;
+	}
+
+	private static SolrInputDocument newSequenceUpdateInputDocument(String sequenceId) {
 		SolrInputDocument solrInputDocument = new SolrInputDocument();
 		solrInputDocument.addField("id", "seq_" + sequenceId);
 		solrInputDocument.addField("_version_", "1");

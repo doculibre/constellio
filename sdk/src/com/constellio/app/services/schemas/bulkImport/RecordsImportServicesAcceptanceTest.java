@@ -111,7 +111,8 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	@Test(expected = RecordServicesRuntimeException.IdAlreadyExisting.class)
 	public void givenRecordsWithIdAlreadyExistingWhenImportingZipOfXMLFilesWithRealIdsThenException()
 			throws Exception {
-
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 		getModelLayerFactory().newRecordServices().add(rm.newDocumentTypeWithId("zeRule2").setCode("ze").setTitle("ze"));
 
 		File zipFile = buildZipWith("administrativeUnit.xml", "categoryWithRealIds.xml:category.xml",

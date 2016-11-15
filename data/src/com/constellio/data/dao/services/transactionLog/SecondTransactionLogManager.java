@@ -12,6 +12,10 @@ public interface SecondTransactionLogManager extends StatefulService {
 
 	void cancel(String transactionId);
 
+	void setSequence(String sequenceId, long value);
+
+	void nextSequence(String sequenceId);
+
 	String regroupAndMoveInVault();
 
 	void destroyAndRebuildSolrCollection();
