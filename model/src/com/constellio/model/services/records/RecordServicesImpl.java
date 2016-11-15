@@ -459,7 +459,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 					}
 				}
-				record.set(Schemas.MARKED_FOR_REINDEXING, false);
+				if (schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())) {
+					record.set(Schemas.MARKED_FOR_REINDEXING, false);
+				}
 			}
 
 		}
