@@ -1,12 +1,17 @@
 package com.constellio.model.entities.records;
 
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static java.lang.Boolean.TRUE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -16,6 +21,7 @@ import com.constellio.model.entities.records.TransactionRuntimeException.Records
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 
 public class Transaction {
@@ -30,6 +36,8 @@ public class Transaction {
 	RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
 
 	Map<String, Record> referencedRecords = new HashMap<>();
+
+	Set<String> idsToReindex = new HashSet<>();
 
 	private User user;
 	private String collection;
@@ -65,6 +73,7 @@ public class Transaction {
 		for (Record record : transaction.getRecords()) {
 			addUpdate(record);
 		}
+		this.idsToReindex.addAll(transaction.getIdsToReindex());
 		this.recordUpdateOptions = transaction.recordUpdateOptions;
 		this.skippingRequiredValuesValidation = transaction.isSkippingRequiredValuesValidation();
 		this.skippingReferenceToLogicallyDeletedValidation = transaction.isSkippingReferenceToLogicallyDeletedValidation();
@@ -72,6 +81,21 @@ public class Transaction {
 
 	public boolean isContainingUpdatedRecord(Record record) {
 		return updatedRecordsMap.containsKey(record.getId());
+	}
+
+	public Transaction addRecordToReindex(String id) {
+		idsToReindex.add(id);
+		return this;
+	}
+
+	public Transaction addRecordToReindex(Record record) {
+		idsToReindex.add(record.getId());
+		return this;
+	}
+
+	public Transaction addRecordToReindex(RecordWrapper record) {
+		idsToReindex.add(record.getId());
+		return this;
 	}
 
 	public Transaction addUpdate(Record addUpdateRecord) {
@@ -215,7 +239,7 @@ public class Transaction {
 			List<Record> modifiedRecords = new ArrayList<>();
 
 			for (Record record : records) {
-				if (!record.isSaved() || record.isDirty()) {
+				if (!record.isSaved() || record.isDirty() || TRUE.equals(record.get(MARKED_FOR_REINDEXING))) {
 					modifiedRecords.add(record);
 				}
 			}
@@ -323,6 +347,10 @@ public class Transaction {
 			}
 		}
 		return null;
+	}
+
+	public Set<String> getIdsToReindex() {
+		return Collections.unmodifiableSet(idsToReindex);
 	}
 
 	public Map<String, ParsedContent> getParsedContentCache() {

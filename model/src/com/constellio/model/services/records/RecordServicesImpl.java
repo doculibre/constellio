@@ -6,7 +6,9 @@ import static com.constellio.model.utils.MaskUtils.format;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -75,6 +77,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.records.RecordServicesException.UnresolvableOptimisticLockingConflict;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NewReferenceToOtherLogicallyDeletedRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotDelayFlushingOfRecordsInCache;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating;
@@ -99,7 +102,6 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
-import com.constellio.model.utils.MaskUtils;
 
 public class RecordServicesImpl extends BaseRecordServices {
 
@@ -139,6 +141,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		validateNotTooMuchRecords(transaction);
 		if (transaction.getRecords().isEmpty()) {
+			if (!transaction.getIdsToReindex().isEmpty()) {
+				throw new CannotSetIdsToReindexInEmptyTransaction();
+			}
 			return;
 		}
 		String collection = transaction.getCollection();
@@ -228,10 +233,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 		OptimisticLockingResolution resolution = transaction.getRecordUpdateOptions().getOptimisticLockingResolution();
 
-		if (resolution == OptimisticLockingResolution.EXCEPTION) {
+		if (resolution == OptimisticLockingResolution.EXCEPTION || transaction.getModifiedRecords().isEmpty()) {
 			throw new RecordServicesException.OptimisticLocking(transactionDTO, e);
 		} else if (resolution == OptimisticLockingResolution.TRY_MERGE) {
-			mergeRecords(transaction);
+			mergeRecords(transaction, e.getId());
 			if (handler == null) {
 				execute(transaction, attempt + 1);
 			} else {
@@ -240,7 +245,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	void mergeRecords(Transaction transaction)
+	void mergeRecords(Transaction transaction, String failedId)
 			throws RecordServicesException.UnresolvableOptimisticLockingConflict {
 		List<LogicalSearchCondition> conditions = new ArrayList<>();
 
@@ -264,6 +269,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+		}
+
+		if (conditions.isEmpty()) {
+			throw new RecordServicesException.UnresolvableOptimisticLockingConflict(failedId);
 		}
 
 		LogicalSearchCondition condition = fromAllSchemasIn(transaction.getCollection()).whereAnyCondition(conditions);
@@ -450,6 +459,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 					}
 				}
+				record.set(Schemas.MARKED_FOR_REINDEXING, false);
 			}
 
 		}
@@ -573,7 +583,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			throws RecordServicesException {
 
 		List<Record> modifiedOrUnsavedRecords = transaction.getModifiedRecords();
-		if (!modifiedOrUnsavedRecords.isEmpty()) {
+		if (!modifiedOrUnsavedRecords.isEmpty() || !transaction.getIdsToReindex().isEmpty()) {
 			TransactionDTO transactionDTO = createTransactionDTO(transaction, modifiedOrUnsavedRecords);
 			try {
 				MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
@@ -673,6 +683,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		};
 
+		Set<String> ids = new HashSet<>();
 		for (Record record : modifiedOrUnsavedRecords) {
 			MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 					.getSchema(record.getSchemaCode());
@@ -686,11 +697,23 @@ public class RecordServicesImpl extends BaseRecordServices {
 					addedRecords.add(((RecordImpl) record).toDocumentDTO(schema, fieldsPopulators));
 				}
 			}
+			ids.add(record.getId());
 		}
+
+		Set<String> markedForReindexing = new HashSet<>();
+		for (String id : transaction.getIdsToReindex()) {
+			if (!ids.contains(id)) {
+				markedForReindexing.add(id);
+			}
+		}
+
 		return new TransactionDTO(
-				transaction.getId(), transaction.getRecordUpdateOptions().getRecordsFlushing(), addedRecords, modifiedRecordDTOs)
-				.withSkippingReferenceToLogicallyDeletedValidation(transaction.isSkippingReferenceToLogicallyDeletedValidation())
-				.withFullRewrite(transaction.getRecordUpdateOptions().isFullRewrite());
+				transaction.getId(), transaction.getRecordUpdateOptions().getRecordsFlushing(), addedRecords,
+				modifiedRecordDTOs)
+				.withSkippingReferenceToLogicallyDeletedValidation(
+						transaction.isSkippingReferenceToLogicallyDeletedValidation())
+				.withFullRewrite(transaction.getRecordUpdateOptions().isFullRewrite())
+				.withMarkedForReindexing(markedForReindexing);
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {

@@ -613,7 +613,7 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
 
-		doNothing().when(recordServices).mergeRecords(transaction);
+		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
 		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
 				any(RecordModificationImpactHandler.class));
 
@@ -621,7 +621,7 @@ public class RecordServicesTest extends ConstellioTest {
 				optimisticLockingException, 3);
 
 		InOrder inOrder = inOrder(recordServices);
-		inOrder.verify(recordServices).mergeRecords(transaction);
+		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
 		inOrder.verify(recordServices).executeWithImpactHandler(transaction, recordModificationImpactHandler, 4);
 	}
 
@@ -632,14 +632,14 @@ public class RecordServicesTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
 
-		doNothing().when(recordServices).mergeRecords(transaction);
+		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
 		doNothing().when(recordServices).execute(any(Transaction.class));
 
 		recordServices
 				.handleOptimisticLocking(mock(TransactionDTO.class), transaction, null, optimisticLockingException, 2);
 
 		InOrder inOrder = inOrder(recordServices);
-		inOrder.verify(recordServices).mergeRecords(transaction);
+		inOrder.verify(recordServices).mergeRecords(eq(transaction), anyString());
 		inOrder.verify(recordServices).execute(transaction, 3);
 	}
 
@@ -660,7 +660,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		when(searchServices.search(query.capture())).thenReturn(modifiedRecords);
 
-		recordServices.mergeRecords(transaction);
+		recordServices.mergeRecords(transaction, "zeId");
 
 		verify(firstRecord).merge(eq(newFirstRecordVersion), any(MetadataSchema.class));
 		verify(secondRecord).merge(eq(newSecondRecordVersion), any(MetadataSchema.class));
@@ -698,7 +698,7 @@ public class RecordServicesTest extends ConstellioTest {
 				eq(newSecondRecordVersion), any(MetadataSchema.class));
 		when(searchServices.search(any(LogicalSearchQuery.class))).thenReturn(modifiedRecords);
 
-		recordServices.mergeRecords(transaction);
+		recordServices.mergeRecords(transaction, "zeId");
 	}
 
 	@Test

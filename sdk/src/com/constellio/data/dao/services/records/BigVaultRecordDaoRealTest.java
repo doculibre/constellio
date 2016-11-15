@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -185,7 +186,8 @@ public class BigVaultRecordDaoRealTest extends ConstellioTest {
 			throws Exception {
 		RecordDTO record = newRecordWithSingleReference("idOfNonExistentIndex");
 		recordDao.execute(new TransactionDTO(UUID.randomUUID().toString(), RecordsFlushing.NOW, Arrays.asList(record),
-				new ArrayList<RecordDeltaDTO>(), new ArrayList<RecordDTO>(), new ArrayList<SolrParams>(), true, false));
+				new ArrayList<RecordDeltaDTO>(), new ArrayList<RecordDTO>(), new ArrayList<SolrParams>(), new HashSet<String>(),
+				true, false));
 		assertEquals(record.getFields().get("title_s"), recordDao.get(record.getId()).getFields().get("title_s"));
 	}
 
