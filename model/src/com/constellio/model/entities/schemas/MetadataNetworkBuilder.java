@@ -94,10 +94,10 @@ public class MetadataNetworkBuilder {
 
 		for (Metadata to : tos) {
 			ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, to, level);
-			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
-			if (message.contains("ze") || message.contains("another") || message.contains("aThird")) {
-				System.out.println(message);
-			}
+//			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
+			//			if (message.contains("ze") || message.contains("another") || message.contains("aThird")) {
+			//				System.out.println(message);
+			//			}
 			links.add(link);
 			linksFromMetadata.add(from.getCode(), link);
 			linksToMetadata.add(to.getCode(), link);
