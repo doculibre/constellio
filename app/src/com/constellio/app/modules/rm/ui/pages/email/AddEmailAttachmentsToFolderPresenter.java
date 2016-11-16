@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -101,7 +101,7 @@ public class AddEmailAttachmentsToFolderPresenter extends SingleSchemaBasePresen
 					} catch (RecordServicesException e) {
 						view.showErrorMessage(MessageUtils.toMessage(e));
 						noExceptionDisplayed = false;
-					} catch (final IcapClientException e) {
+					} catch (final IcapException e) {
                         view.showErrorMessage(e.getMessage());
 
 						noExceptionDisplayed = false;

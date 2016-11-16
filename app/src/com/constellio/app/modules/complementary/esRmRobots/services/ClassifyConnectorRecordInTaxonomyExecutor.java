@@ -1,6 +1,7 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
 
 import java.io.InputStream;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -595,7 +596,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				for (String availableVersion : availableVersions) {
 					InputStream versionStream = connectorServices(connectorDocument)
 							.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
-					newVersionDataSummary = contentManager.upload(versionStream, false, true, null);
+					newVersionDataSummary = contentManager.upload(versionStream, false, true, connectorDocument.getTitle());
 					addVersionToDocument(connectorDocument, availableVersion, newVersionDataSummary, document);
 				}
 			} catch (UnsupportedOperationException ex) {
@@ -609,16 +610,30 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					version = (majorVersions ? "1.0" : "0.1");
 				}
 
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
+				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle());
 				addVersionToDocument(connectorDocument, version, newVersionDataSummary, document);
 			}
 
 			return new ClassifiedDocument(connectorDocument, document);
-		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument|IcapClientException e) {
+		} catch (ConnectorServicesRuntimeException_CannotDownloadDocument|IcapException e) {
+            Exception exception = e;
+
+            if (e instanceof IcapException) {
+                if (e instanceof IcapException.ThreatFoundException) {
+                    exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+                } else {
+                    if (e.getCause() == null) {
+                        exception = new IcapException($(e, ((IcapException) e).getFileName()));
+                    } else {
+                        exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
+                    }
+                }
+            }
+
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
 			}
-			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, e);
+			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, exception);
 		}
 
 	}

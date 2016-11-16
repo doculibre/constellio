@@ -1,10 +1,12 @@
 package com.constellio.model.services.contents.icap;
 
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +15,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URLEncoder;
 
-public class IcapClient {
+class IcapClient {
 
     private static final String ICAP_SCHEME = "icap";
 
@@ -118,13 +120,21 @@ public class IcapClient {
                 disconnect();
             }
         } else {
-            try (final InputStream emptyInputStream = new InputStream() {
-                @Override
-                public int read() throws IOException {
-                    return 0;
+            InputStream mockedIcapResponse = null;
+
+            try {
+                mockedIcapResponse = new ByteArrayInputStream(
+                        new StringBuilder("ICAP/1.0 ").
+                                append(HttpStatus.SC_NO_CONTENT).
+                                append(" OK").
+                                toString().
+                                getBytes());
+
+                response = IcapResponse.parse(mockedIcapResponse);
+            } finally {
+                if (mockedIcapResponse != null) {
+                    IOUtils.closeQuietly(mockedIcapResponse);
                 }
-            }) {
-                response = IcapResponse.parse(emptyInputStream);
             }
         }
 

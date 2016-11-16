@@ -93,13 +93,13 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
 			if (content.getCheckoutUserId() != null) {
 				if (user.getId().equals(content.getCheckoutUserId())) {
-					ContentVersionDataSummary dataSummary = uploadContent(inFromCopy);
+					ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
 					content.updateCheckedOutContentWithName(dataSummary, contentStream.getFileName());
 				} else {
 					throw new RuntimeException("TODO : Cannot modify content checked out by other user");
 				}
 			} else {
-				ContentVersionDataSummary dataSummary = uploadContent(inFromCopy);
+				ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
 				content.updateContentWithName(user, dataSummary, false, contentStream.getFileName());
 			}
 			recordServices.update(contentCmisDocument.getRecord(), user);

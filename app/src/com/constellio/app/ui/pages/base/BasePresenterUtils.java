@@ -16,7 +16,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -172,15 +172,15 @@ public class BasePresenterUtils implements Serializable {
 	public ContentVersionDataSummary uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
 		try {
 			return modelLayerFactory.getContentManager().upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
-		} catch (final IcapClientException e) {
-			if (e instanceof IcapClientException.IcapScanThreatFound) {
-				throw new IcapClientException($(e, ((IcapClientException.IcapScanThreatFound) e).getThreatName()));
+		} catch (final IcapException e) {
+			if (e instanceof IcapException.ThreatFoundException) {
+				throw new IcapException($(e, e.getFileName(),((IcapException.ThreatFoundException) e).getThreatName()));
 			}
 
             if (e.getCause() == null) {
-                throw new IcapClientException($(e));
+                throw new IcapException($(e, e.getFileName()));
             } else {
-                throw new IcapClientException($(e), e.getCause());
+                throw new IcapException($(e, e.getFileName()), e.getCause());
             }
 		}
 	}

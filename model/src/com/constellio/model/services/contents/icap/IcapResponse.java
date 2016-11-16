@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 public final class IcapResponse {
 
-    private static class Builder {
+    static class Builder {
 
         private int httpStatusCode;
 

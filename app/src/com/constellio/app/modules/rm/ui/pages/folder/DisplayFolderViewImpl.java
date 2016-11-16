@@ -872,4 +872,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			return table;
 		}
 	}
+
+    @Override
+    public void clearUploadField() {
+        uploadField.setInternalValue(null);
+    }
 }

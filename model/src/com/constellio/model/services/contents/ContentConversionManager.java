@@ -57,7 +57,7 @@ public class ContentConversionManager implements AutoCloseable {
 		try {
 			convertedFile = conversionManager().convertToPDF(original, current.getFilename());
 			converted = ioServices.newFileInputStream(convertedFile, "ContentConversionManager-converted");
-			return contentManager.upload(converted);
+			return contentManager.upload(converted, current.getFilename());
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} finally {

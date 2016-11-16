@@ -1,5 +1,6 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -11,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -120,7 +121,7 @@ public class SmbClassifyServices {
 			Content content;
 			if (StringUtils.isEmpty(versions)) {
 				InputStream inputStream = connectorUtilsServices.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT);
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
+				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle());
 				//Content content;
 				if (majorVersions) {
 					content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
@@ -157,11 +158,26 @@ public class SmbClassifyServices {
 		} catch (ConnectorSmbRuntimeException |
 				RecordServicesException |
 				ConnectorServicesRuntimeException |
-				IcapClientException e) {
+				IcapException e) {
+
+			Exception exception = e;
+
+			if (e instanceof IcapException) {
+				if (e instanceof IcapException.ThreatFoundException) {
+					exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+				} else {
+                    if (e.getCause() == null) {
+                        exception = new IcapException($(e, ((IcapException) e).getFileName()));
+                    } else {
+                        exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
+                    }
+                }
+			}
+
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
 			}
-			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, e);
+			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, exception);
 		}
 	}
 
@@ -175,7 +191,7 @@ public class SmbClassifyServices {
 			InputStream availableVersionInputStream = connectorUtilsServices
 					.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 			ContentVersionDataSummary contentVersionDataSummary = contentManager
-					.upload(availableVersionInputStream, false, true, null);
+					.upload(availableVersionInputStream, false, true, connectorDocument.getTitle());
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();

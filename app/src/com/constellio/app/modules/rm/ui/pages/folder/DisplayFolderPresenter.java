@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -622,12 +622,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				schemaPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
-			} catch (final IcapClientException e) {
+			} catch (final IcapException e) {
                 view.showErrorMessage(e.getMessage());
-			} catch (Exception e) {
+            } catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
-			}
-		}
+			} finally {
+                view.clearUploadField();
+            }
+        }
 	}
 
 	public boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId, BorrowingType borrowingType,

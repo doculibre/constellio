@@ -13,8 +13,7 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.InputStream;
 
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -197,7 +196,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.getParsedContent(hash);
 	}
 
-    @Test(expected = IcapClientException.IcapCommunicationFailure.class)
+    @Test(expected = IcapException.CommunicationFailure.class)
     public void givenInfectedNonYetParsedContentWhenUploadedThenCommunicationExceptionThrown()
             throws Exception {
         // Given
@@ -205,12 +204,12 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
         contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("any content"));
 
         // When
-        contentManager.upload(contentStream);
+        contentManager.upload(contentStream, "someFileName");
 
         // Then, the exception is thrown.
     }
 
-	@Test(expected = IcapClientException.IcapScanThreatFound.class)
+	@Test(expected = IcapException.ThreatFoundException.class)
 	public void givenInfectedNonYetParsedContentWhenUploadedThenThreatFoundExceptionThrown()
 			throws Exception {
 		// Given
@@ -218,7 +217,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
 
 		// When
-		contentManager.upload(contentStream);
+		contentManager.upload(contentStream, "someFileName");
 
 		// Then, the exception is thrown.
 	}

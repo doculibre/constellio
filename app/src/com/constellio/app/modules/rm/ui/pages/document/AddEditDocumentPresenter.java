@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,8 +57,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.users.UserServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -284,7 +282,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
             if (editWithUserDocument) {
                 setAsNewVersionOfContent(document);
             }
-        } catch (final IcapClientException e) {
+        } catch (final IcapException e) {
             view.showErrorMessage(e.getMessage());
 
             return;
@@ -570,8 +568,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
                         documentVO.getContent().setHash(null);
                         view.setRecord(documentVO);
                         view.getForm().reload();
-                    } catch (final IcapClientException e) {
+                    } catch (final IcapException e) {
                         view.showErrorMessage(e.getMessage());
+
+                        documentVO.setContent(null);
+                        getContentField().setFieldValue(null);
                     }
 				}
 			}

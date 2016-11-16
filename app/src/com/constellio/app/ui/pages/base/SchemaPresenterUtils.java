@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

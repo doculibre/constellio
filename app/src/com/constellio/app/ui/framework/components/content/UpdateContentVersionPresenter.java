@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import com.constellio.model.services.contents.icap.IcapClientException;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,7 +172,7 @@ public class UpdateContentVersionPresenter implements Serializable {
                     } else if (!newContent) {
                         content.updateContentWithName(currentUser, newVersionDataSummary, newMajorVersion, fileName);
                     }
-                } catch(final IcapClientException e) {
+                } catch(final IcapException e) {
                     window.showErrorMessage(e.getMessage());
 
                     return;
