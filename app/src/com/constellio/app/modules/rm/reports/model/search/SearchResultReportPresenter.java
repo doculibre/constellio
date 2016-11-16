@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataList;
@@ -22,6 +23,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultReportPresenter {
 	static int LIMIT = 10000;
@@ -132,7 +135,7 @@ public class SearchResultReportPresenter {
 				Record record = modelLayerFactory.newRecordServices().getDocumentById(referenceId);
 				String code = record.get(Schemas.CODE);
 				String title = record.get(Schemas.TITLE);
-				if (code == null) {
+				if (code == null || !metadata.isDefaultRequirement()) {
 					return title;
 				} else {
 					return code + "-" + title;
@@ -140,6 +143,12 @@ public class SearchResultReportPresenter {
 			}
 
 		}
+		else if(metadata.getType() == MetadataValueType.BOOLEAN) {
+			return metadataValue.equals(true)? $("yes"):$("no");
+		}
+//		else if(metadata.getType() == MetadataValueType.TEXT) {
+//			return "blabla";
+//		}
 
 		return metadataValue;
 	}

@@ -2,11 +2,19 @@ package com.constellio.app.modules.rm.reports.model.search;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import org.apache.solr.schema.SchemaManager;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -159,5 +167,87 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 				bobGratton, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateDefaultReport(model);
+	}
+
+	@Test
+	public void givenReportWithMultivalueThenWrittenCorrectly() throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		Folder folder1 = rm.getFolder(records.folder_A01);
+		Folder folder2 = rm.getFolder(records.folder_A02);
+		folder1.setKeywords(asList("mot1", "mot2", "mot3"));
+		folder2.setKeywords(new ArrayList<String>());
+		recordServices.update(folder1.getWrappedRecord());
+		recordServices.update(folder2.getWrappedRecord());
+		reportTestUtils.addDefaultReportWithMultivalue(reportTitle);
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				admin, reportTitle, searchQuery, Locale.FRENCH);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateDefaultReportWithMultivalue(model);
+	}
+
+	@Test
+	public void givenReportWithBooleanThenWrittenCorrectly() throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Folder folder1 = rm.getFolder(records.folder_A01);
+		Folder folder2 = rm.getFolder(records.folder_A02);
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+				Folder folder1 = rm.getFolder(records.folder_A01);
+				Folder folder2 = rm.getFolder(records.folder_A02);
+
+				types.getSchema(folder2.getSchemaCode()).getMetadata(Folder.BORROWED).setEnabled(true);
+				types.getSchema(folder1.getSchemaCode()).getMetadata(Folder.BORROWED).setEnabled(true);
+			}
+		});
+
+		folder1.setBorrowed(true);
+		folder2.setBorrowed(false);
+		recordServices.update(folder1.getWrappedRecord());
+		recordServices.update(folder2.getWrappedRecord());
+		reportTestUtils.addDefaultReportWithBoolean(reportTitle);
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				admin, reportTitle, searchQuery, Locale.FRENCH);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateDefaultReportWithBoolean(model);
+	}
+
+	@Test
+	public void givenReportWithRichTextThenWrittenCorrectly() throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		Folder folder1 = rm.getFolder(records.folder_A01);
+		Folder folder2 = rm.getFolder(records.folder_A02);
+		folder1.setKeywords(asList("mot1", "mot2", "mot3"));
+		folder2.setKeywords(new ArrayList<String>());
+		recordServices.update(folder1.getWrappedRecord());
+		recordServices.update(folder2.getWrappedRecord());
+		reportTestUtils.addDefaultReportWithMultivalue(reportTitle);
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
+				admin, reportTitle, searchQuery, Locale.FRENCH);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateDefaultReportWithMultivalue(model);
+	}
+
+	@Test
+	public void givenReportWithReferenceThenWrittenCorrectly() throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		Folder folder1 = rm.getFolder(records.folder_A01);
+		Folder folder2 = rm.getFolder(records.folder_A02);
+		folder1.setParentFolder(folder2);
+		recordServices.update(folder1.getWrappedRecord());
+		reportTestUtils.addDefaultReportWithReference(reportTitle);
+		presenter = new SearchResultReportPresenter(getModelLayerFactory(), asList(records.folder_A01), folderSchemaType, zeCollection,
+				admin, reportTitle, searchQuery, Locale.FRENCH);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateDefaultReportWithReference(model);
 	}
 }
