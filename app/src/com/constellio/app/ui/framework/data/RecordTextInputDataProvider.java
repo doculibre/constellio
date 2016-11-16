@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.data;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupField.Text
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -58,7 +60,7 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 
 	private boolean determineIfSecurity() {
 		boolean security = false;
-		
+
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(getCurrentCollection());
 		List<MetadataSchemaType> typesByCode = new ArrayList<MetadataSchemaType>();
 		if (schemaTypeCode != null) {
@@ -122,19 +124,25 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
 		LogicalSearchCondition condition;
+
 		if (schemaTypeCode != null) {
+
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
+			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
-				condition = from(type).where(autocompleteFieldMatching(text));
+				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
 			} else {
 				condition = from(type).returnAll();
 			}
 		} else {
+
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
+			List<Metadata> extraMetadatas = schema.getMetadatas().onlySearchable().onlySchemaAutocomplete();
 			if (StringUtils.isNotBlank(text)) {
-				condition = from(schema).where(autocompleteFieldMatching(text));
+				condition = from(schema).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
+
 			} else {
 				condition = from(schema).returnAll();
 			}
@@ -144,6 +152,7 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
+				.setPreferAnalyzedFields(true)
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);

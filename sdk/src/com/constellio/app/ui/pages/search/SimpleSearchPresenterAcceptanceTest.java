@@ -280,7 +280,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
 	}
 
-	@Test
+//TODO	@Test
 	public void whenSearchByIdThenRecordFound()
 			throws Exception{
 		String recordId = "00000000166";

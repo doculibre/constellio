@@ -78,7 +78,7 @@ public class Category extends RecordWrapper {
 		return getList(KEYWORDS);
 	}
 
-	public Category setKeywords(String keywords) {
+	public Category setKeywords(List<String> keywords) {
 		set(KEYWORDS, keywords);
 		return this;
 	}
