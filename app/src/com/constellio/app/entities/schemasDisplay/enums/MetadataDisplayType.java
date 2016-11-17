@@ -3,6 +3,7 @@ package com.constellio.app.entities.schemasDisplay.enums;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 public enum MetadataDisplayType {
@@ -25,28 +26,17 @@ public enum MetadataDisplayType {
         return caption;
     }
 
-    public static List<MetadataDisplayType> getAvailableMetadataDisplayTypesFor(MetadataValueType type) {
+    public static List<MetadataDisplayType> getAvailableMetadataDisplayTypesFor(MetadataValueType type, MetadataInputType input) {
         List<MetadataDisplayType> displayTypes = new ArrayList<>();
 
-        switch (type) {
-            case REFERENCE:
-                displayTypes.add(VERTICAL);
-                displayTypes.add(HORIZONTAL);
-                break;
-            default:
-                displayTypes.add(VERTICAL);
+
+        if(type != null && type.equals(MetadataValueType.REFERENCE) &&
+                input != null && (input.equals(MetadataInputType.RADIO_BUTTONS) || input.equals(MetadataInputType.CHECKBOXES))) {
+
+            displayTypes.add(HORIZONTAL);
         }
 
-//        switch (type) {
-//            case RADIO_BUTTONS:
-//            case CHECKBOXES:
-//                displayTypes.add(VERTICAL);
-//                displayTypes.add(HORIZONTAL);
-//                break;
-//            default:
-//                displayTypes.add(VERTICAL);
-//                break;
-//        }
+        displayTypes.add(VERTICAL);
 
         return displayTypes;
     }

@@ -134,11 +134,19 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			displayType.setEnabled(false);
 			displayType.removeAllItems();
 			displayType.setEnabled(true);
-			List<MetadataDisplayType> displayTypes = MetadataDisplayType.getAvailableMetadataDisplayTypesFor(value);
-saadsafds
+			List<MetadataDisplayType> displayTypes = MetadataDisplayType.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
 			for (MetadataDisplayType type : displayTypes) {
 				displayType.addItem(type);
 				displayType.setItemCaption(type, $(MetadataDisplayType.getCaptionFor(type)));
+			}
+			if(displayTypes.size() < 2) {
+				displayType.setEnabled(false);
+				displayType.setVisible(false);
+				displayType.setValue(displayType.getItemIds().iterator().next());
+			}
+			else {
+				displayType.setEnabled(true);
+				displayType.setVisible(true);
 			}
 
 			if (!inherited) {
