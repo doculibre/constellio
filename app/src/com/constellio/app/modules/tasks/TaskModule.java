@@ -13,7 +13,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
-import com.constellio.app.modules.tasks.extensions.TaskSchemasExtension;
+import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
@@ -66,7 +66,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
 		ModelLayerCollectionExtensions extensions = appLayerFactory.getModelLayerFactory().getExtensions()
 				.forCollection(collection);
-		extensions.recordExtensions.add(new TaskSchemasExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new TaskRecordExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new TaskStatusSchemasExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new WorkflowRecordExtension(collection, appLayerFactory));
 		extensions.schemaExtensions.add(new TaskTrashSchemaExtension());

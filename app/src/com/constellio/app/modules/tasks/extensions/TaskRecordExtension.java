@@ -22,11 +22,14 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASK
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -58,8 +61,8 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
-public class TaskSchemasExtension extends RecordExtension {
-	private static final Logger LOGGER = LogManager.getLogger(TaskSchemasExtension.class);
+public class TaskRecordExtension extends RecordExtension {
+	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
 	private final TasksSchemasRecordsServices tasksSchema;
 	String collection;
 
@@ -68,7 +71,7 @@ public class TaskSchemasExtension extends RecordExtension {
 	UserServices userServices;
 	ConstellioEIMConfigs eimConfigs;
 
-	public TaskSchemasExtension(String collection, AppLayerFactory appLayerFactory) {
+	public TaskRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.collection = collection;
 		tasksSchema = new TasksSchemasRecordsServices(collection, appLayerFactory);
@@ -468,4 +471,29 @@ public class TaskSchemasExtension extends RecordExtension {
 		return followersIds;
 	}
 
+	@Override
+	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {
+        final Record record = event.getRecord();
+
+        if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+            final Task task = tasksSchema.wrapTask(record);
+
+            //
+            addAssigneeAsCompletionEventFollower(task);
+        }
+    }
+
+    private void addAssigneeAsCompletionEventFollower(final Task task) {
+        final List<TaskFollower> currentFollowersList = task.getTaskFollowers();
+
+        if (!(task.isModel() || task.getAssignee() == null)) {
+            final TaskFollower assigneeAsCompletionEventFollower = new TaskFollower().setFollowerId(task.getAssignee()).setFollowTaskCompleted(true).setDirty(true);
+
+            if (!currentFollowersList.contains(assigneeAsCompletionEventFollower)) {
+                final List<TaskFollower> newFollowersList = new ArrayList<>(task.getTaskFollowers());
+                newFollowersList.add(assigneeAsCompletionEventFollower);
+                task.setTaskFollowers(Collections.unmodifiableList(newFollowersList));
+            }
+        }
+    }
 }
