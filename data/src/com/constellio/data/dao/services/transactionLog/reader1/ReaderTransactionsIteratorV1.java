@@ -80,31 +80,31 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 
 	}
 
-	private void handleSequenceSetLine(BigVaultServerTransaction transaction, String firstLine) {
+	protected void handleSequenceSetLine(BigVaultServerTransaction transaction, String firstLine) {
 		String infos = firstLine.substring("sequence set ".length());
 		String sequenceId = StringUtils.substringBeforeLast(infos, "=");
 		long value = Long.valueOf(StringUtils.substringAfterLast(infos, "="));
 		transaction.getNewDocuments().add(SolrSequencesManager.setSequenceInLogReplay(sequenceId, value));
 	}
 
-	private void handleSequenceNextLine(BigVaultServerTransaction transaction, String firstLine) {
+	protected void handleSequenceNextLine(BigVaultServerTransaction transaction, String firstLine) {
 		String sequenceId = firstLine.substring("sequence next ".length());
 		transaction.getNewDocuments().add(SolrSequencesManager.incrementSequenceInLogReplay(sequenceId));
 	}
 
-	private void handleDeleteQueryOperation(BigVaultServerTransaction transaction, String firstLine) {
+	protected void handleDeleteQueryOperation(BigVaultServerTransaction transaction, String firstLine) {
 		int index = firstLine.indexOf(" ");
 		String query = firstLine.substring(index);
 		transaction.getDeletedQueries().add(query);
 	}
 
-	private void handleDeleteOperation(BigVaultServerTransaction transaction, String firstLine) {
+	protected void handleDeleteOperation(BigVaultServerTransaction transaction, String firstLine) {
 		int index = firstLine.indexOf(" ");
 		List<String> ids = Arrays.asList(firstLine.substring(index).split(" "));
 		transaction.getDeletedRecords().addAll(ids);
 	}
 
-	private void handleAddUpdateLine(String fileName, BigVaultServerTransaction transaction, List<String> currentAddUpdateLines,
+	protected void handleAddUpdateLine(String fileName, BigVaultServerTransaction transaction, List<String> currentAddUpdateLines,
 			String firstLine) {
 		String[] firstLineParts = firstLine.split(" ");
 		if (firstLineParts.length != 3) {

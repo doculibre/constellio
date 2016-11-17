@@ -67,10 +67,14 @@ public class SmbUnmodifiedDocumentRetrievalJob extends ConnectorJob implements S
 				connector.getLogger()
 						.error("Unable to get record for url : " + url, "", new LinkedHashMap<String, String>());
 			} else {
+				/*
 				ConnectorDocument failedDocument = failedDocuments.get(0);
 				String failedDocumentParentId = smbRecordService.getRecordIdForFolder(parentUrl);
 				updater.updateFailedDocumentOrFolder(smbObject, failedDocument, failedDocumentParentId);
 				eventObserver.push(Arrays.asList(failedDocument));
+                */
+				connector.getLogger()
+						.error("Skipping url : " + url, "See error logs above", new LinkedHashMap<String, String>());
 			}
 			break;
 		case DELETE_DTO:
