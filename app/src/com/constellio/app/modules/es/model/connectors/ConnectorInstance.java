@@ -160,7 +160,9 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 			if (schedule.getWeekDay() == currentTime.getDayOfWeek()) {
 				LocalDateTime startTime = formatter.parseLocalDateTime(schedule.getStartTime());
 				LocalDateTime endTime = formatter.parseLocalDateTime(schedule.getEndTime());
-				if (startTimeBeforeCurrentTime(startTime, currentTime) && endTimeAfterCurrentTime(endTime, currentTime)) {
+				if (startTime.getHourOfDay() == 0 && startTime.getMinuteOfHour() == 0 && endTime.getHourOfDay() == 0 && endTime.getMinuteOfHour() == 0) {
+					return true;
+				} else if (startTimeBeforeCurrentTime(startTime, currentTime) && endTimeAfterCurrentTime(endTime, currentTime)) {
 					return true;
 				}
 			}

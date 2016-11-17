@@ -124,6 +124,10 @@ public abstract class Decommissioner {
 	private void markApproved() {
 		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
 	}
+	
+	protected void removeManualArchivisticStatus(Folder folder) {
+		folder.setManualArchivisticStatus(null);
+	}
 
 	protected LocalDate getProcessingDate() {
 		return processingDate;
@@ -433,6 +437,7 @@ class TransferringDecommissioner extends Decommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		markFolderTransferred(folder);
 		processDocumentsIn(folder);
 	}
@@ -532,6 +537,7 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		processDepositedFolder(folder, detail);
 	}
 
@@ -564,6 +570,7 @@ class DestroyingDecommissioner extends DeactivatingDecommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		processDeletedFolder(folder, detail);
 	}
 
@@ -598,6 +605,7 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		if (shouldDeposit(folder, detail)) {
 			processDepositedFolder(folder, detail);
 		} else {

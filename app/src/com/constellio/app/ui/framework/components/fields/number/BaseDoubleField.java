@@ -1,8 +1,8 @@
 package com.constellio.app.ui.framework.components.fields.number;
 
+import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.vaadin.data.Property;
-import com.vaadin.data.util.converter.StringToDoubleConverter;
 
 public class BaseDoubleField extends BaseTextField {
 
@@ -36,7 +36,7 @@ public class BaseDoubleField extends BaseTextField {
 	}
 
 	private void init() {
-		setConverter(new StringToDoubleConverter());
+		setConverter(new BaseStringToDoubleConverter());
 		setWidth("100px");
 	}
 }
