@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -122,7 +123,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
-				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP,
+				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
 				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false);
 	}
 
