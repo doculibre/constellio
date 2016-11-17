@@ -88,6 +88,11 @@ public class Transaction {
 		return this;
 	}
 
+	public Transaction addAllRecordsToReindex(List<String> ids) {
+		idsToReindex.addAll(ids);
+		return this;
+	}
+
 	public Transaction addRecordToReindex(Record record) {
 		idsToReindex.add(record.getId());
 		return this;

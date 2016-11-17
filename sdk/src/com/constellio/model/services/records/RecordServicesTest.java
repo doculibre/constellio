@@ -759,7 +759,7 @@ public class RecordServicesTest extends ConstellioTest {
 				any(MetadataSchemaTypes.class));
 		Transaction transaction = new Transaction();
 		transaction.update(zeRecord);
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(alreadyReindexedMetadata);
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(alreadyReindexedMetadata);
 		doReturn(asList(aModificationImpact, anotherModificationImpact)).when(recordServices).calculateImpactOfModification(
 				transaction, taxonomiesManager, searchServices, metadataSchemaTypes, true);
 		doReturn(defaultHandler).when(recordServices).addToBatchProcessModificationImpactHandler();
@@ -781,7 +781,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.isDirty()).thenReturn(true);
 
 		Transaction transaction = new Transaction();
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(alreadyReindexedMetadata);
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(alreadyReindexedMetadata);
 		transaction.update(zeRecord);
 		transaction.setRecordFlushing(recordsFlushing);
 

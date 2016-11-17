@@ -56,7 +56,7 @@ public class RecordUpdateOptions {
 		return this;
 	}
 
-	public RecordUpdateOptions forceReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {
+	public RecordUpdateOptions setForcedReindexationOfMetadatas(TransactionRecordsReindexation transactionRecordsReindexation) {
 		this.transactionRecordsReindexation = transactionRecordsReindexation;
 		return this;
 	}
