@@ -1,9 +1,11 @@
 package com.constellio.model.services.background;
 
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
 import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
 
 import java.util.List;
 
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -40,14 +42,18 @@ public class BackgroundReindexingCommand implements Runnable {
 			query.setNumberOfRows(1000);
 
 			List<Record> records = searchServices.search(query);
-			Transaction transaction = new Transaction(records);
+			Transaction transaction = new Transaction(records).setOptimisticLockingResolution(EXCEPTION);
 			transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(ALL());
-			try {
-				recordServices.executeHandlingImpactsAsync(transaction);
-			} catch (RecordServicesException e) {
-				throw new RuntimeException(e);
-			}
+			executeTransaction(transaction);
 		}
 
+	}
+
+	void executeTransaction(Transaction transaction) {
+		try {
+			recordServices.executeHandlingImpactsAsync(transaction);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
