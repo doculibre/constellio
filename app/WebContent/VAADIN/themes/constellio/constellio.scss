@@ -436,6 +436,16 @@ $popup-view-z-index: 3;
     .v-disabled:hover {
     	text-decoration: none;
     }
+    
+    .v-filterselect-suggestmenu {
+    	.gwt-MenuItem {
+    		padding-left: 0px;
+    		padding-right: 0px;
+    		span {
+    			padding-left: 10px;
+    		}
+    	}
+    }
 
     .autocomplete-error, .lookup-error {
     	.v-filterselect-input {
