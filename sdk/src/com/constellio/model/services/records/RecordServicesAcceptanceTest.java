@@ -61,6 +61,7 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -1123,12 +1124,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
-				tuple("newTitleOfRecord1", false),
-				tuple("newTitleOfRecord2", false),
-				tuple("record3", false),
+				tuple("newTitleOfRecord1", null),
+				tuple("newTitleOfRecord2", null),
+				tuple("record3", null),
 				tuple("record4", true),
 				tuple("record5", true),
-				tuple("record6", false)
+				tuple("record6", null)
 		);
 
 	}
@@ -1149,11 +1150,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
-				tuple("record1", false),
-				tuple("record2", false),
-				tuple("record3", false),
-				tuple("record4", false),
-				tuple("record5", false)
+				tuple("record1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", null)
 		);
 
 		Transaction transaction = new Transaction();
@@ -1166,7 +1167,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
-				tuple("newTitleOfRecord1", false),
+				tuple("newTitleOfRecord1", null),
 				tuple("record2", true),
 				tuple("record3", true),
 				tuple("record4", true),
@@ -1183,13 +1184,28 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
-				tuple("newTitleOfRecord1", false),
-				tuple("record2", false),
-				tuple("record3", false),
-				tuple("record4", false),
+				tuple("newTitleOfRecord1", null),
+				tuple("record2", true),
+				tuple("record3", true),
+				tuple("record4", true),
 				tuple("record5", true)
 		);
 
+		transaction = new Transaction();
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		transaction.add(record2);
+		transaction.add(record3);
+		transaction.update(record4);
+		recordServices.execute(transaction);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("newTitleOfRecord1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", true)
+		);
 	}
 
 	@Test
@@ -1223,11 +1239,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
-				tuple("record1", false),
-				tuple("record2", false),
-				tuple("record3", false),
-				tuple("record4", false),
-				tuple("record5", false)
+				tuple("record1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", null)
 		);
 
 	}

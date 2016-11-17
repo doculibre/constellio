@@ -244,7 +244,7 @@ public class Transaction {
 			List<Record> modifiedRecords = new ArrayList<>();
 
 			for (Record record : records) {
-				if (!record.isSaved() || record.isDirty() || TRUE.equals(record.get(MARKED_FOR_REINDEXING))) {
+				if (!record.isSaved() || record.isDirty()) {
 					modifiedRecords.add(record);
 				}
 			}

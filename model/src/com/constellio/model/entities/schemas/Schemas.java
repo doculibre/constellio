@@ -62,6 +62,8 @@ public class Schemas {
 	public static final Metadata FRENCH_SEARCH_FIELD = add(new Metadata("search_txt_fr", TEXT, true));
 	public static final Metadata ENGLISH_SEARCH_FIELD = add(new Metadata("search_txt_en", TEXT, true));
 	public static final Metadata SPELL_CHECK_FIELD = add(new Metadata("_spell_text", TEXT, true));
+
+	//TODO : Remove
 	public static final Metadata FOLLOWERS = add(new Metadata("followers_ss", STRING, true));
 
 	public static final Metadata CODE = new Metadata("code_s", STRING, false);

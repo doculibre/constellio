@@ -59,4 +59,8 @@ public class TransactionRecordsReindexation {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
+
+	public boolean isReindexAll() {
+		return reindexAllMetadatas;
+	}
 }
