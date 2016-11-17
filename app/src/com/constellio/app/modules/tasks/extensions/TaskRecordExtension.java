@@ -479,19 +479,19 @@ public class TaskRecordExtension extends RecordExtension {
             final Task task = tasksSchema.wrapTask(record);
 
             //
-            addAssigneeAsCompletionEventFollower(task);
+            addAssignerAsCompletionEventFollower(task);
         }
     }
 
-    private void addAssigneeAsCompletionEventFollower(final Task task) {
+    private void addAssignerAsCompletionEventFollower(final Task task) {
         final List<TaskFollower> currentFollowersList = task.getTaskFollowers();
 
-        if (!(task.isModel() || task.getAssignee() == null)) {
-            final TaskFollower assigneeAsCompletionEventFollower = new TaskFollower().setFollowerId(task.getAssignee()).setFollowTaskCompleted(true).setDirty(true);
+        if (!(task.isModel() || task.getAssigner() == null)) {
+            final TaskFollower assignerAsCompletionEventFollower = new TaskFollower().setFollowerId(task.getAssigner()).setFollowTaskCompleted(true).setDirty(true);
 
-            if (!currentFollowersList.contains(assigneeAsCompletionEventFollower)) {
+            if (!currentFollowersList.contains(assignerAsCompletionEventFollower)) {
                 final List<TaskFollower> newFollowersList = new ArrayList<>(task.getTaskFollowers());
-                newFollowersList.add(assigneeAsCompletionEventFollower);
+                newFollowersList.add(assignerAsCompletionEventFollower);
                 task.setTaskFollowers(Collections.unmodifiableList(newFollowersList));
             }
         }

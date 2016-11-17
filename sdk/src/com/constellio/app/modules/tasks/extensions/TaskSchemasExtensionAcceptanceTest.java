@@ -595,15 +595,16 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenTaskCreatedThenAssigneeIsAddedByDefaultToCompletionEventFollowers()
+	public void givenTaskCreatedThenAssignerIsAddedByDefaultToCompletionEventFollowers()
 			throws RecordServicesException {
         // Given
-        final User someUser = users.aliceIn(zeCollection);
+        final User someAssigner = users.aliceIn(zeCollection);
+        final User someAssignee = users.bobIn(zeCollection);
 
 		final Task someTask = tasksSchemas.newTask().
                 setTitle("title").
-                setAssigner(someUser.getId()).
-                setAssignee(someUser.getId()).
+                setAssigner(someAssigner.getId()).
+                setAssignee(someAssignee.getId()).
                 setAssignationDate(now.toLocalDate()).
                 setAssignedOn(now.toLocalDate());
 
@@ -613,7 +614,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 
         // Then
 		assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).isNotEmpty();
-        assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).contains(new TaskFollower().setFollowerId(someUser.getId()).setFollowTaskCompleted(true));
+        assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).contains(new TaskFollower().setFollowerId(someAssigner.getId()).setFollowTaskCompleted(true));
 	}
 
 }
