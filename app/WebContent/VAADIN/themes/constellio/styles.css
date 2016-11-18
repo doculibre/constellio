@@ -12970,6 +12970,10 @@ div.v-layout.v-horizontal.v-widget {
 	text-align: center;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table {
+	width: 100%;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
 	border: none;
 	padding: 0;

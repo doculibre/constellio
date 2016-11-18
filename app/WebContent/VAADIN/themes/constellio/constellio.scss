@@ -859,6 +859,10 @@ $popup-view-z-index: 3;
 						    	border: 1px solid lightgray;
 						    	padding: 2px;
 						    	text-align: center;
+						    	
+						    	.v-slot-list-add-remove-table {
+						    		width: 100%;
+						    	}
 							}
 
 							.copy-retention-rule-table-medium-types-field {
