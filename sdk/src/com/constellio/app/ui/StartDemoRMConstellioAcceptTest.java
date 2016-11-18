@@ -33,6 +33,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.dev.DevUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -102,6 +103,8 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		});
 
 		setupSequences();
+
+		DevUtils.addMetadataListingReferencesInAllSchemaTypes(getAppLayerFactory());
 
 	}
 

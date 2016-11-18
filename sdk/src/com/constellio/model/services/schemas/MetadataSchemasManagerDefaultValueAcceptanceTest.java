@@ -50,7 +50,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void givenReferenceMetadataWithDefaultValueThenValueSaved()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenOtherTypeRecords();
 
@@ -82,7 +82,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void givenReferenceMetadataWithDefaultValueWhenDeletingRecordThenRemoveDefaultValue()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenOtherTypeRecords();
 
@@ -104,7 +104,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void givenReferenceMetadataWithDefaultValueWhenDeletingParentRecordThenRemoveDefaultValue()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenTaxonomyOfZeSchema();
 		givenOtherTypeRecords();
@@ -131,7 +131,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void givenMultivalueReferenceMetadataWithDefaultValueThenValueSaved()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAParentReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenOtherTypeRecords();
 
@@ -165,7 +165,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void givenMultivalueReferenceMetadataWithDefaultValueWhenDeletingRecordThenRemoveDefaultValue()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAParentReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenOtherTypeRecords();
 
@@ -192,7 +192,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 	public void givenMultivalueReferenceMetadataWithDefaultValueWhenDeletingParentRecordThenRemoveDefaultValue()
 			throws Exception {
 		defineSchemasManager().using(schemas
-				.withAReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
+				.withAParentReferenceFromAnotherSchemaToZeSchema(whichIsMultivalue)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenTaxonomyOfZeSchema();
 		givenOtherTypeRecords();

@@ -16,10 +16,12 @@ import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
+import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.taxonomies.*;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -74,6 +76,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<RecordFieldFactoryExtension> recordFieldFactoryExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SystemCheckExtension> systemCheckExtensions = new VaultBehaviorsList<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
@@ -302,6 +306,18 @@ public class AppLayerCollectionExtensions {
 	public void notifyNewUserSearch(UserSearchEvent event) {
 		for (SearchPageExtension extension : searchPageExtensions) {
 			extension.notifyNewUserSearch(event);
+		}
+	}
+
+	public void notifyFolderDeletion(FolderDeletionEvent event) {
+		for (RecordAppExtension extension : recordAppExtensions) {
+			extension.notifyFolderDeleted(event);
+		}
+	}
+
+	public void checkCollection(CollectionSystemCheckParams params) {
+		for (SystemCheckExtension extension : systemCheckExtensions) {
+			extension.checkCollection(params);
 		}
 	}
 

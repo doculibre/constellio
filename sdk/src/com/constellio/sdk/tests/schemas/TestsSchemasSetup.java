@@ -186,6 +186,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+
 	public static MetadataBuilderConfigurator whichIsSearchable = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -364,6 +365,30 @@ public class TestsSchemasSetup extends SchemasSetup {
 			@Override
 			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 				getCustomMetadata(builder, schemaTypes).addLabel(Language.French, label);
+			}
+
+		};
+	}
+
+	public static MetadataBuilderConfigurator whichHasFixedSequence(final String fixedSequenceCode) {
+
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asFixedSequence(fixedSequenceCode);
+			}
+
+		};
+	}
+
+	public static MetadataBuilderConfigurator whichHasSequenceDefinedByMetadata(final String metadataLocalCode) {
+
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asSequenceDefinedByMetadata(metadataLocalCode);
 			}
 
 		};
@@ -636,10 +661,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
 				.defineChildOfRelationshipToType(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
+				.defineReferencesTo(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
 		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
 		return this;
 	}

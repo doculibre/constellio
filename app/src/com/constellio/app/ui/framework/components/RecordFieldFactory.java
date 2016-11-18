@@ -22,7 +22,7 @@ public class RecordFieldFactory implements Serializable {
 		return metadataFieldFactory.build(metadataVO);
 	}
 	
-	public void postBuild(Field<?> field, RecordVO recordVO, MetadataVO metadataVO) {
+	protected void postBuild(Field<?> field, RecordVO recordVO, MetadataVO metadataVO) {
 		metadataFieldFactory.postBuild(field, metadataVO);
 	}
 

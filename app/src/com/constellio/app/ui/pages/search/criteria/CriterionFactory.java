@@ -108,11 +108,15 @@ public class CriterionFactory implements StructureFactory {
 			newCriterion.setValue(Integer.valueOf(value));
 			break;
 		case NUMBER:
-			double doubleValue = Double.parseDouble(value);
-			newCriterion.setValue(doubleValue);
-			if (endValue != null) {
-				double doubleEndValue = Double.parseDouble(endValue);
-				newCriterion.setEndValue(doubleEndValue);
+			if (value != null) {
+				double doubleValue = Double.parseDouble(value);
+				newCriterion.setValue(doubleValue);
+				if (endValue != null) {
+					double doubleEndValue = Double.parseDouble(endValue);
+					newCriterion.setEndValue(doubleEndValue);
+				}
+			} else {
+				newCriterion.setValue(null);
 			}
 			break;
 		case BOOLEAN:

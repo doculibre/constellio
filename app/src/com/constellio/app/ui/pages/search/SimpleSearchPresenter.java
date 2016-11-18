@@ -4,7 +4,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -85,6 +87,10 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public String getUserSearchExpression() {
 		return searchExpression;
 	}
+	
+	public void setSearchExpression(String searchExpression) {
+		this.searchExpression = searchExpression;
+	}
 
 	@Override
 	public void suggestionSelected(String suggestion) {
@@ -106,9 +112,12 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
+		Set<String> resultCodes = new HashSet<>();
 		for(MetadataSchemaType metadataSchemaType: schemaTypes) {
 			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
-				result.add(metadata);
+				if(resultCodes.add(metadata.getLocalCode())) {
+					result.add(metadata);
+				}
 			}
 		}
 		return result;

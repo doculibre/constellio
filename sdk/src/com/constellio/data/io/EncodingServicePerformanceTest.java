@@ -27,7 +27,7 @@ public class EncodingServicePerformanceTest extends ConstellioTestWithGlobalCont
 	static byte[] bytes10mo;
 	static byte[] bytes100mo;
 	static byte[] bytes500mo;
-	@Rule public TestRule benchmarkRun = new BenchmarkRule();
+	//@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	EncodingService encodingService;
 
 	@Test

@@ -141,7 +141,7 @@ public class MetadataSchemaType {
 		}
 
 		Metadata metadata;
-		if (schemaCode.contains(DEFAULT)) {
+		if (schemaCode.contains("_" + DEFAULT) || schemaCode.equals(DEFAULT)) {
 			metadata = getDefaultSchema().getMetadata(localMetadataCode);
 		} else {
 			metadata = getCustomSchema(schemaCode).getMetadata(localMetadataCode);
