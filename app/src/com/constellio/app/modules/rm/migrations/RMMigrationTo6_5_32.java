@@ -1,11 +1,17 @@
 package com.constellio.app.modules.rm.migrations;
 
+import org.apache.poi.hslf.record.RecordContainer;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -22,6 +28,13 @@ public class RMMigrationTo6_5_32 implements MigrationScript {
 			throws Exception {
 
 		new SchemaAlterationsFor6_5_32(collection, provider, appLayerFactory).migrate();
+		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
+		transaction.in(ContainerRecord.SCHEMA_TYPE).addToDisplay(ContainerRecord.ADMINISTRATIVE_UNITS)
+				.afterMetadata(ContainerRecord.ADMINISTRATIVE_UNITS);
+
+		schemaDisplayManager.execute(transaction.build());
+
 	}
 
 	public static class SchemaAlterationsFor6_5_32 extends MetadataSchemasAlterationHelper {
