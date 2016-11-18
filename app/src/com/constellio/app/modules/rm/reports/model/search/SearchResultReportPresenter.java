@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -22,6 +26,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.parser.FileParser;
+import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -156,7 +162,9 @@ public class SearchResultReportPresenter {
 			SchemasDisplayManager schemasManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
 			if(config.getInputType().equals(MetadataInputType.RICHTEXT)) {
-                //TODO
+				String result = metadataValue.toString().replaceAll("<br>", "\n");
+				result = result.toString().replaceAll("\\<[^>]*>","");
+				return result;
 			}
 		}
 
