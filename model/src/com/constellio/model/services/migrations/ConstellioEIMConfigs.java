@@ -47,7 +47,11 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration SEARCH_SORT_TYPE;
 
+    public static final SystemConfiguration ICAP_SCAN_ACTIVATED;
+
     public static final SystemConfiguration ICAP_SERVER_URL;
+
+	public static final SystemConfiguration ICAP_RESPONSE_TIMEOUT;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -92,7 +96,10 @@ public class ConstellioEIMConfigs {
 		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
 
         //
-        add(ICAP_SERVER_URL = others.createString("icapServerUrl"));
+		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
+        add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
+		add(ICAP_SERVER_URL = icapConfigurationGroup.createString("icapServerUrl"));
+		add(ICAP_RESPONSE_TIMEOUT = icapConfigurationGroup.createInteger("icapResponseTimeout").withDefaultValue(5000));
 
         //
 		configurations = Collections.unmodifiableList(modifiableConfigs);
@@ -177,7 +184,16 @@ public class ConstellioEIMConfigs {
 
 	}
 
+    public boolean getIcapScanActivated() {
+        return manager.getValue(ICAP_SCAN_ACTIVATED);
+    }
+
     public String getIcapServerUrl() {
         return manager.getValue(ICAP_SERVER_URL);
     }
+
+	public int getIcapResponseTimeout() {
+		return manager.getValue(ICAP_RESPONSE_TIMEOUT);
+	}
+
 }

@@ -225,6 +225,11 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		return new Label(itemCaption);
 	}
 
+	@Override
+	public void setInternalValue(Object newValue) {
+		super.setInternalValue(newValue);
+	}
+
 	protected void deleteTempFile(Object itemId) {
 
 	}

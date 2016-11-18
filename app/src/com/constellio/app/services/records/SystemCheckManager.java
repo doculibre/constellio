@@ -18,6 +18,7 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.records.SystemCheckManagerRuntimeException.SystemCheckManagerRuntimeException_AlreadyRunning;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -46,6 +47,9 @@ public class SystemCheckManager implements StatefulService {
 	private UserServices userServices;
 	private RecordServices recordServices;
 
+	static final String CHECKED_REFERENCES_METRIC = "core.checkedReferences";
+	static final String BROKEN_REFERENCES_METRIC = "core.brokenReferences";
+
 	public SystemCheckManager(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
@@ -56,7 +60,7 @@ public class SystemCheckManager implements StatefulService {
 	}
 
 	public synchronized void startSystemCheck(final boolean repair) {
-		lastSystemCheckResults = new SystemCheckResults();
+		lastSystemCheckResults = new SystemCheckResults(TimeProvider.getLocalDateTime());
 		if (systemCheckResultsRunning) {
 			throw new SystemCheckManagerRuntimeException_AlreadyRunning();
 		}
@@ -85,7 +89,7 @@ public class SystemCheckManager implements StatefulService {
 	}
 
 	SystemCheckResults runSystemCheck(boolean repair) {
-		lastSystemCheckResults = new SystemCheckResults();
+		lastSystemCheckResults = new SystemCheckResults(TimeProvider.getLocalDateTime());
 		Map<String, String> ids = findIdsAndTypes();
 
 		Language language = Language.withCode(appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage());
@@ -141,7 +145,7 @@ public class SystemCheckManager implements StatefulService {
 				List<String> values = record.getList(reference);
 				List<String> modifiedValues = new ArrayList<>();
 				for (String value : values) {
-					lastSystemCheckResults.checkedReferences++;
+					builder.incrementMetric(CHECKED_REFERENCES_METRIC);
 					if (!ids.containsKey(value)) {
 						builder.addBrokenLink(record.getId(), value, reference);
 					} else {
@@ -157,7 +161,7 @@ public class SystemCheckManager implements StatefulService {
 			} else {
 				String value = record.get(reference);
 				if (value != null) {
-					lastSystemCheckResults.checkedReferences++;
+					builder.incrementMetric(CHECKED_REFERENCES_METRIC);
 
 					if (!ids.containsKey(value)) {
 						builder.addBrokenLink(record.getId(), value, reference);

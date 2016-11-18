@@ -29,6 +29,14 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 
 	RecordServices recordServices;
 
+	public final String METRIC_LOGICALLY_DELETED_ADM_UNITS = "rm.admUnits.logicallyDeleted";
+	public final String METRIC_LOGICALLY_DELETED_CATEGORIES = "rm.categories.logicallyDeleted";
+
+	public final String DELETED_ADM_UNITS = "rm.admUnit.deleted";
+	public final String RESTORED_ADM_UNITS = "rm.admUnit.restored";
+	public final String DELETED_CATEGORIES = "rm.category.deleted";
+	public final String RESTORED_CATEGORIES = "rm.category.restored";
+
 	public RMSystemCheckExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
@@ -40,6 +48,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		boolean markedForReindexing = false;
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		for (AdministrativeUnit unit : rm.searchAdministrativeUnits(where(Schemas.LOGICALLY_DELETED_STATUS).isTrue())) {
+			String label = unit.getCode() + " - " + unit.getTitle();
+			params.getResultsBuilder().incrementMetric(METRIC_LOGICALLY_DELETED_ADM_UNITS);
 			params.getResultsBuilder().markLogicallyDeletedRecordAsError(unit);
 			if (params.isRepair()) {
 				params.getResultsBuilder().markAsRepaired(unit.getId());
@@ -49,13 +59,15 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 						recordServices.add(unit.set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
 
 						if (recordServices.isLogicallyThenPhysicallyDeletable(unit.getWrappedRecord(), User.GOD)) {
-							LOGGER.info("Deleting record " + unit.getId() + " physically");
 							recordServices.logicallyDelete(unit.getWrappedRecord(), User.GOD);
 							recordServices.physicallyDelete(unit.getWrappedRecord(), User.GOD);
+							params.getResultsBuilder().addListItem(DELETED_ADM_UNITS, label);
 
+						} else {
+							params.getResultsBuilder().addListItem(RESTORED_ADM_UNITS, label);
 						}
 					} else {
-						LOGGER.info("Record " + unit.getId() + " already deleted physically");
+						params.getResultsBuilder().addListItem(DELETED_ADM_UNITS, label);
 					}
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
@@ -69,6 +81,8 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 		List<Category> categories = rm.searchCategorys(where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
 
 		for (Category category : categories) {
+			String label = category.getCode() + " - " + category.getTitle();
+			params.getResultsBuilder().incrementMetric(METRIC_LOGICALLY_DELETED_CATEGORIES);
 			params.getResultsBuilder().markLogicallyDeletedRecordAsError(category);
 			if (params.isRepair()) {
 				params.getResultsBuilder().markAsRepaired(category.getId());
@@ -79,7 +93,12 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 						if (recordServices.isLogicallyThenPhysicallyDeletable(category.getWrappedRecord(), User.GOD)) {
 							recordServices.logicallyDelete(category.getWrappedRecord(), User.GOD);
 							recordServices.physicallyDelete(category.getWrappedRecord(), User.GOD);
+							params.getResultsBuilder().addListItem(DELETED_CATEGORIES, label);
+						} else {
+							params.getResultsBuilder().addListItem(RESTORED_CATEGORIES, label);
 						}
+					} else {
+						params.getResultsBuilder().addListItem(DELETED_CATEGORIES, label);
 					}
 
 				} catch (RecordServicesException e) {

@@ -70,6 +70,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -134,7 +135,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public ContainerRecordType getContainerRecordType(String id) {
-		return new ContainerRecordType(get(id), getTypes());
+		try {
+			return new ContainerRecordType(get(id), getTypes());
+		} catch (NoSuchRecordWithId e) {
+			return null;
+		}
 	}
 
 	public ContainerRecordType newContainerRecordType() {

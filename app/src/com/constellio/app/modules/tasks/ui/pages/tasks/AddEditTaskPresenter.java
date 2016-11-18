@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -109,23 +110,28 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		if (recordVO == null) {
 			return;
 		}
-		Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
-		if (task.getAssignee() == null) {
-			task.setAssignationDate(null);
-			task.setAssigner(null);
-		} else {
-			if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
-				task.setAssignationDate(TimeProvider.getLocalDate());
-				task.setAssigner(getCurrentUser().getId());
+
+		try {
+			Task task = taskPresenterServices.toTask(new TaskVO(recordVO), toRecord(recordVO));
+			if (task.getAssignee() == null) {
+				task.setAssignationDate(null);
+				task.setAssigner(null);
+			} else {
+				if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assignee())) {
+					task.setAssignationDate(TimeProvider.getLocalDate());
+					task.setAssigner(getCurrentUser().getId());
+				}
 			}
-		}
-		addOrUpdate(task.getWrappedRecord());
-		if (StringUtils.isNotBlank(workflowId)) {
-			view.navigate().to(TaskViews.class).displayWorkflow(workflowId);
-		} else if (StringUtils.isNotBlank(parentId)) {
-			view.navigate().to(TaskViews.class).displayTask(parentId);
-		} else {
-			view.navigate().to(TaskViews.class).taskManagement();
+			addOrUpdate(task.getWrappedRecord());
+			if (StringUtils.isNotBlank(workflowId)) {
+				view.navigate().to(TaskViews.class).displayWorkflow(workflowId);
+			} else if (StringUtils.isNotBlank(parentId)) {
+				view.navigate().to(TaskViews.class).displayTask(parentId);
+			} else {
+				view.navigate().to(TaskViews.class).taskManagement();
+			}
+		} catch (final IcapException e) {
+			view.showErrorMessage(e.getMessage());
 		}
 	}
 

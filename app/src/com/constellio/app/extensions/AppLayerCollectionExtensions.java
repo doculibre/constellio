@@ -22,6 +22,7 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
@@ -387,6 +388,12 @@ public class AppLayerCollectionExtensions {
 	public void notifyNewUserSearch(UserSearchEvent event) {
 		for (SearchPageExtension extension : searchPageExtensions) {
 			extension.notifyNewUserSearch(event);
+		}
+	}
+
+	public void notifyFolderDeletion(FolderDeletionEvent event) {
+		for (RecordAppExtension extension : recordAppExtensions) {
+			extension.notifyFolderDeleted(event);
 		}
 	}
 

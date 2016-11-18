@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +20,8 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class NewFilePresenter implements Serializable {
 
@@ -73,8 +76,17 @@ public class NewFilePresenter implements Serializable {
 				InputStream inputStream = contentManager
 						.getContentInputStream(templateContent.getCurrentVersion().getHash(), "newFilePresenterInputStream");
 				try {
-					ContentVersionDataSummary dataSummary = contentManager.upload(inputStream);
+					ContentVersionDataSummary dataSummary = contentManager.upload(inputStream, filename);
 					fileContent = contentManager.createMinor(user, filename, dataSummary);
+				} catch (final IcapException e) {
+                    final String message;
+                    if (e instanceof IcapException.ThreatFoundException) {
+                        message = $(e.getMessage(), e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName());
+                    } else {
+                        message = $(e.getMessage(), e.getFileName());
+                    }
+
+					window.showErrorMessage(message);
 				} finally {
 					IOUtils.closeQuietly(inputStream);
 				}
@@ -102,7 +114,7 @@ public class NewFilePresenter implements Serializable {
 
 		InputStream newFileInput = NewFileUtils.newFile(extension);
 		try {
-			ContentVersionDataSummary dataSummary = contentManager.upload(newFileInput);
+			ContentVersionDataSummary dataSummary = contentManager.upload(newFileInput, fileName);
 			return contentManager.createMinor(user, fileName, dataSummary);
 		} finally {
 			IOUtils.closeQuietly(newFileInput);

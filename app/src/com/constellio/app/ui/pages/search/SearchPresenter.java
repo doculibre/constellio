@@ -460,7 +460,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isSortable()) {
 				result.add(builder.build(metadata, view.getSessionContext()));

@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 public final class IcapResponse {
 
-    private static class Builder {
+    static class Builder {
 
         private int httpStatusCode;
 
@@ -187,9 +187,9 @@ public final class IcapResponse {
         final StringBuilder description = new StringBuilder();
 
         if (headers.containsKey(ICAP_HEADER_X_VIRUS_ID)) {
-            description.append("icap.analysis.virusFound " + headers.get(ICAP_HEADER_X_VIRUS_ID));
+            description.append("Virus " + headers.get(ICAP_HEADER_X_VIRUS_ID));
         } else if (headers.containsKey(ICAP_HEADER_X_VIRUS_NAME)) {
-            description.append("icap.analysis.virusFound " + headers.get(ICAP_HEADER_X_VIRUS_NAME));
+            description.append("Virus " + headers.get(ICAP_HEADER_X_VIRUS_NAME));
         }
 
         if (headers.containsKey(ICAP_HEADER_X_BLOCK_REASON)) {

@@ -738,4 +738,13 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		presenter = new DisplayFolderPresenter(displayFolderView);
 	}
+
+	@Test
+	public void test()
+			throws Exception {
+
+		displayFolderView.selectFolderContentTab();
+
+
+	}
 }

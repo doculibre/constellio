@@ -2,8 +2,11 @@ package com.constellio.app.api.cmis.requests;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.io.InputStream;
 import java.util.Set;
 
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -141,6 +144,22 @@ public abstract class CmisCollectionRequest<T> {
 		if (!user.hasWriteAccess().on(record)) {
 			throw new CmisPermissionDeniedException($("CmisCollectionRequest_noWriteAccess",
 					user.getUsername(), record.getId(), record.getTitle()));
+		}
+	}
+
+	protected ContentVersionDataSummary uploadContent(final InputStream inputStream, final String fileName) {
+		try {
+			return modelLayerFactory.getContentManager().upload(inputStream, fileName);
+		} catch (final IcapException e) {
+			if (e instanceof IcapException.ThreatFoundException) {
+				throw new IcapException($(e, e.getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+			}
+
+            if (e.getCause() == null) {
+                throw new IcapException($(e, e.getFileName()));
+            } else {
+                throw new IcapException($(e, e.getFileName()), e.getCause());
+            }
 		}
 	}
 }

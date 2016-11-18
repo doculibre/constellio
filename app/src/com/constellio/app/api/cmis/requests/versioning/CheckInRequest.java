@@ -108,7 +108,7 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 				inFromCopy = ioServices.newFileInputStream(file, READ_TEMP_FILE);
 
 				if (user.getId().equals(content.getCheckoutUserId())) {
-					ContentVersionDataSummary dataSummary = contentManager.upload(inFromCopy);
+					ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
 					content.checkInWithModificationAndName(dataSummary, major, contentStream.getFileName());
 				} else {
 					throw new ConstellioCmisException_ContentAlreadyCheckedOut();

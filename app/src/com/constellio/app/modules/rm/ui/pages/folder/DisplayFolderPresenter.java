@@ -1,9 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapCommunicationFailure;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanTimedout;
-import static com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_IcapScanThreatFound;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -17,7 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.services.contents.ContentManagerRuntimeException;
+import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -508,6 +507,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
+		appLayerFactory.getExtensions().forCollection(collection).notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 		delete(record, reason, false);
 		if (parentId != null) {
 			view.navigate().to(RMViews.class).displayFolder(parentId);
@@ -591,7 +591,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		Metadata folderMetadata = documentsSchema.getMetadata(Document.FOLDER);
 		Metadata titleMetadata = documentsSchema.getMetadata(Schemas.TITLE.getCode());
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record);
+		LogicalSearchCondition parentCondition = from(documentsSchemaType).where(folderMetadata).is(record).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		query.setCondition(parentCondition.andWhere(titleMetadata).is(fileName));
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -625,22 +625,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				schemaPresenterUtils.addOrUpdate(newRecord);
 				documentsDataProvider.fireDataRefreshEvent();
 				view.refreshFolderContentTab();
-			} catch (final ContentManagerRuntimeException_IcapScanThreatFound|ContentManagerRuntimeException_IcapScanTimedout e) {
-				LOGGER.warn(e.getMessage());
-
-                if (e instanceof ContentManagerRuntimeException_IcapScanThreatFound) {
-                    view.showErrorMessage(e.getMessage().replace("icap.analysis.virusFound", $("icap.analysis.virusFound")));
-                } else {
-                    view.showErrorMessage($(e.getMessage()));
-                }
-			} catch (final ContentManagerRuntimeException_IcapCommunicationFailure e) {
-				LOGGER.warn(e.getMessage(), e);
-
-				view.showErrorMessage($(e.getMessage()));
-			} catch (Exception e) {
+			} catch (final IcapException e) {
+                view.showErrorMessage(e.getMessage());
+            } catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
-			}
-		}
+			} finally {
+                view.clearUploadField();
+            }
+        }
 	}
 
 	public boolean borrowFolder(LocalDate borrowingDate, LocalDate previewReturnDate, String userId, BorrowingType borrowingType,

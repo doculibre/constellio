@@ -51,6 +51,7 @@ public class TraversalSchedulesComponent extends CustomField<List<TraversalSched
 		layout.setSpacing(true);
 
 		table = new Table();
+		table.setWidth("100%");
 		table.setPageLength(0);
 		container = new BeanItemContainer<>(TraversalSchedule.class);
 		table.setContainerDataSource(container);
@@ -106,6 +107,12 @@ public class TraversalSchedulesComponent extends CustomField<List<TraversalSched
 		for (TraversalSchedule traversalSchedule : traversalSchedules) {
 			addItem(traversalSchedule);
 		}
+	}
+
+	private void removeItem(TraversalSchedule traversalSchedule) {
+		List<TraversalSchedule> traversalSchedules = getTraversalSchedules();
+		traversalSchedules.remove(traversalSchedule);
+		setValue(traversalSchedules);
 	}
 
 	private void addItem(TraversalSchedule traversalSchedule) {
@@ -194,16 +201,15 @@ public class TraversalSchedulesComponent extends CustomField<List<TraversalSched
 		}
 	}
 
-	public static class DeleteButtonGenerator implements ColumnGenerator {
-		public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/supprimer.gif");
+	public class DeleteButtonGenerator implements ColumnGenerator {
+		public final Resource ICON_RESOURCE = new ThemeResource("images/commun/supprimer.gif");
 
 		@Override
 		public Object generateCell(final Table source, final Object itemId, Object columnId) {
 			Button delete = new IconButton(ICON_RESOURCE, $("delete"), true) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					source.removeItem(itemId);
-					source.setPageLength(source.size());
+					removeItem((TraversalSchedule) itemId);
 				}
 			};
 			delete.setEnabled(source.size() > 1);
@@ -229,6 +235,9 @@ public class TraversalSchedulesComponent extends CustomField<List<TraversalSched
 	private boolean startTimeBeforeEndTime(TraversalSchedule traversalSchedule) {
 		int startTime = toInt(traversalSchedule.getStartTime());
 		int endTime = toInt(traversalSchedule.getEndTime());
+		if (startTime == 0 && endTime == 0) {
+			return true;
+		}
 		return startTime < endTime;
 	}
 

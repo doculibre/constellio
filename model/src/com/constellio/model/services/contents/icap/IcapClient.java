@@ -1,10 +1,12 @@
 package com.constellio.model.services.contents.icap;
 
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +15,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URLEncoder;
 
-public class IcapClient {
+class IcapClient {
 
     private static final String ICAP_SCHEME = "icap";
 
@@ -81,8 +83,6 @@ public class IcapClient {
                 append(CR_LF).
                 append("Host: ").append(icapServerUrl.getHost()).
                 append(CR_LF).
-                //append("User-Agent: Java")
-                append(CR_LF).
                 append(CR_LF).
                 toString();
     }
@@ -105,18 +105,37 @@ public class IcapClient {
 
         IcapResponse response = null;
 
-        try {
-            connect();
+        if (fileContent.available() > 0) {
+            try {
+                connect();
 
-            sendRespmodMethodRequest(filename, clientHostname, previewLength);
+                sendRespmodMethodRequest(filename, clientHostname, previewLength);
 
-            response = sendContentPreview(fileContent, previewLength);
+                response = sendContentPreview(fileContent, previewLength);
 
-            if (response.isMoreThanPreviewScanNeeded()) {
-                response = sendPreviewRemaingingContent(fileContent);
+                if (response.isMoreThanPreviewScanNeeded()) {
+                    response = sendPreviewRemaingingContent(fileContent);
+                }
+            } finally {
+                disconnect();
             }
-        } finally {
-            disconnect();
+        } else {
+            InputStream mockedIcapResponse = null;
+
+            try {
+                mockedIcapResponse = new ByteArrayInputStream(
+                        new StringBuilder("ICAP/1.0 ").
+                                append(HttpStatus.SC_NO_CONTENT).
+                                append(" OK").
+                                toString().
+                                getBytes());
+
+                response = IcapResponse.parse(mockedIcapResponse);
+            } finally {
+                if (mockedIcapResponse != null) {
+                    IOUtils.closeQuietly(mockedIcapResponse);
+                }
+            }
         }
 
         return response;
