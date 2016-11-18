@@ -281,7 +281,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			return super.getReport(reportTitle);
 		} catch (UnknownReportRuntimeException e) {
 			/**/
-			return new SearchResultReportBuilderFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
+			return new SearchResultReportBuilderFactory(appLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
 					collection, reportTitle, getCurrentUser(), getSearchQuery());
 		}
 	}
