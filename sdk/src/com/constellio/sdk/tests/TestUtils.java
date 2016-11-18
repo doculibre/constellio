@@ -461,7 +461,7 @@ public class TestUtils {
 			return (RecordAssert) super.has(new Condition<Record>() {
 				@Override
 				public boolean matches(Record value) {
-					assertThat(actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					assertThat((Object)actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
 					return true;
 				}
 			});
@@ -477,7 +477,7 @@ public class TestUtils {
 						assertThat(actual.getList(metadata)).as((metadata.getCode())).isEmpty();
 					} else {
 
-						assertThat(actual.get(metadata)).as((metadata.getCode())).isNull();
+						assertThat((Object)actual.get(metadata)).as((metadata.getCode())).isNull();
 					}
 					return true;
 				}
@@ -525,7 +525,7 @@ public class TestUtils {
 			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
 				@Override
 				public boolean matches(RecordWrapper value) {
-					assertThat(actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					assertThat((Object)actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
 					return true;
 				}
 			});
