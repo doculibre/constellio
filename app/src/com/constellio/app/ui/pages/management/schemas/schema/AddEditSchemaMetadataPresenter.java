@@ -59,24 +59,24 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		MetadataVODataProvider custom = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON);
+				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON));
 			}
 		};
 		
 		MetadataVODataProvider system = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON);
+				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON));
 			}
 		};
 		
 		MetadataVODataProvider disabled = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
 			@Override
 			protected boolean isAccepted(Metadata metadata) {
-				return !metadata.isEnabled() && !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
-						CREATED_ON, MODIFIED_ON);
+				return !metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON));
 			}
 		};
 		
