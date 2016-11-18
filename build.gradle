@@ -111,13 +111,13 @@ allprojects {
     }
 
     jar {
-        version = '6.5.31'
+        version = '6.5.32'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "6.5.31"
+    version = "6.5.32"
 
     webInf {
         from("resources_i18n/") {
