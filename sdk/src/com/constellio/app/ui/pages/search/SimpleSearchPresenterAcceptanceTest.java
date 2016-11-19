@@ -2,37 +2,16 @@ package com.constellio.app.ui.pages.search;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.services.importExport.settings.SettingsImportServices;
-import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
-import com.constellio.app.services.importExport.settings.model.ImportedSettings;
-import com.constellio.app.services.importExport.settings.model.ImportedType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.sdk.tests.TestUtils;
-import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +20,12 @@ import org.mockito.Mock;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.services.importExport.settings.SettingsImportServices;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
@@ -50,6 +35,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -94,6 +84,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		when(view.getCollection()).thenReturn(zeCollection);
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -172,7 +163,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				.isEqualTo(documentsCount);
 	}
 
-
 	@Test
 	public void givenSearchOrderAscByIDThenOK()
 			throws Exception {
@@ -182,7 +172,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.IDENTIFIER.getCode());
 		SearchResultVODataProvider searchResults = simpleSearchPresenter.getSearchResults();
 		List<SearchResultVO> result = searchResults.listSearchResultVOs(0, searchResults.size());
-		List<String> resultsIds  = getRecordsIds(result);
+		List<String> resultsIds = getRecordsIds(result);
 		assertThat(result.size()).isGreaterThan(1);
 		List<String> orderedResults = new ArrayList<>(resultsIds);
 		Collections.sort(orderedResults, new Comparator<String>() {
@@ -203,7 +193,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.IDENTIFIER.getCode());
 		SearchResultVODataProvider searchResults = simpleSearchPresenter.getSearchResults();
 		List<SearchResultVO> result = searchResults.listSearchResultVOs(0, searchResults.size());
-		List<String> resultsIds  = getRecordsIds(result);
+		List<String> resultsIds = getRecordsIds(result);
 		assertThat(result.size()).isGreaterThan(1);
 		List<String> orderedResults = new ArrayList<>(resultsIds);
 		Collections.sort(orderedResults, new Comparator<String>() {
@@ -222,7 +212,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
 		assertThat(simpleSearchPresenter.getSortCriterion()).isNull();
-
 
 		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.CREATION_DATE_ASC);
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
@@ -244,7 +233,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.DESCENDING);
 		assertThat(simpleSearchPresenter.getSortCriterion()).isEqualTo(Schemas.MODIFIED_ON.getCode());
 
-
 		givenConfig(ConstellioEIMConfigs.SEARCH_SORT_TYPE, SearchSortType.PATH_ASC);
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getSortOrder()).isEqualTo(SortOrder.ASCENDING);
@@ -258,14 +246,13 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenAMetadataIsSortableAndAtLeastInOneTypeThenAllowedInSort()
-			throws Exception{
+			throws Exception {
 		SettingsImportServices services = new SettingsImportServices(getAppLayerFactory());
 		ImportedSettings settings = new ImportedSettings();
 		settings.newCollectionSettings(zeCollection).newType(Folder.SCHEMA_TYPE).getDefaultSchema()
 				.newMetadata("USRnouvelleMetadataTest").setType(STRING).setLabel("Nouvelle metadata test")
 				.setSortable(true);
 		services.importSettings(settings);
-
 
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
@@ -274,7 +261,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void giveIDIsSetToNotSortableThenNotAllowedInSort()
-			throws Exception{
+			throws Exception {
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -286,7 +273,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-
 		simpleSearchPresenter = new SimpleSearchPresenter(view);
 		assertThat(simpleSearchPresenter.getMetadataAllowedInSort()).extracting("localCode")
 				.doesNotContain(rm.defaultFolderSchema().getMetadata("id").getLocalCode());
@@ -294,7 +280,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	private List<String> getRecordsIds(List<SearchResultVO> records) {
 		List<String> returnList = new ArrayList<>();
-		for(SearchResultVO record: records){
+		for (SearchResultVO record : records) {
 			returnList.add(record.getRecordVO().getId());
 		}
 		return returnList;

@@ -1,8 +1,11 @@
 package com.constellio.app.services.records;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
@@ -23,7 +26,7 @@ public class SystemCheckResultsBuilder {
 
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
-	SystemCheckResults results = new SystemCheckResults();
+	SystemCheckResults results;
 
 	public SystemCheckResultsBuilder(Language language, AppLayerFactory appLayerFactory, SystemCheckResults results) {
 		this.language = language;
@@ -59,7 +62,7 @@ public class SystemCheckResultsBuilder {
 	}
 
 	public void addBrokenLink(String recordId, String brokenLinkRecordId, Metadata referenceMetadata) {
-		results.brokenReferences++;
+		incrementMetric(SystemCheckManager.BROKEN_REFERENCES_METRIC);
 		Map<String, Object> params = new HashMap<>();
 
 		params.put("metadataCode", referenceMetadata.getCode());
@@ -71,5 +74,67 @@ public class SystemCheckResultsBuilder {
 
 	public void markAsRepaired(String id) {
 		results.markAsRepaired(id);
+	}
+
+	public Map<String, Integer> getMetrics() {
+		return results.getMetrics();
+	}
+
+	public int getMetric(String key) {
+		Integer metric = getMetrics().get(key);
+		if (metric == null) {
+			metric = 0;
+			setMetric(key, 0);
+		}
+
+		return metric;
+
+	}
+
+	public <T> SystemCheckResultsBuilder incrementMetric(String key) {
+		getMetrics().put(key, getMetric(key) + 1);
+		return this;
+	}
+
+	public <T> SystemCheckResultsBuilder incrementMetric(String key, int value) {
+		getMetrics().put(key, getMetric(key) + value);
+		return this;
+	}
+
+	public <T> SystemCheckResultsBuilder setMetric(String key, int value) {
+		getMetrics().put(key, value);
+		return this;
+	}
+
+	public Map<String, Object> getResultsInfos() {
+		return results.getResultsInfos();
+	}
+
+	public <T> T get(String key) {
+		return (T) getResultsInfos().get(key);
+	}
+
+	public <T> SystemCheckResultsBuilder set(String key, T value) {
+		getResultsInfos().put(key, value);
+		return this;
+	}
+
+	public <T> List<T> getList(String key) {
+		List<T> value = (List<T>) getResultsInfos().get(key);
+		if (value == null) {
+			value = new ArrayList<T>();
+			setList(key, value);
+		}
+		return value;
+	}
+
+	public <T> SystemCheckResultsBuilder setList(String key, List<T> value) {
+		getResultsInfos().put(key, value);
+		return this;
+	}
+
+	public <T> SystemCheckResultsBuilder addListItem(String key, T value) {
+		getList(key).add(value);
+		return this;
 	}
 }

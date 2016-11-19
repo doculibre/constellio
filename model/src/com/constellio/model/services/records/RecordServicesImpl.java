@@ -425,7 +425,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 								if (record.isModified(metadataProvidingSequenceCode) && !record.isModified(metadata)) {
 									String sequenceCode = record.get(metadataProvidingSequenceCode);
-									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+									String value = sequenceCode == null ?
+											null :
+											format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
 									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							}
