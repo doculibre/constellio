@@ -98,8 +98,16 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 				}
 
 				if (importDataProvider != null) {
+
+					BulkImportParams params;
+					if (view.getImportFileMode() == ImportFileMode.PERMISSIVE) {
+						params = BulkImportParams.PERMISSIVE();
+					} else {
+						params = BulkImportParams.STRICT();
+					}
+
 					BulkImportResults errors = importServices
-							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections());
+							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections(), params);
 					for (ImportError error : errors.getImportErrors()) {
 						view.showErrorMessage(format(error));
 					}
