@@ -6,6 +6,7 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
@@ -2962,6 +2963,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
 								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
+						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("content").setType(CONTENT);
+
 						Map<Language, String> labels = new HashMap<Language, String>();
 						labels.put(Language.French, "Autre type de schéma");
 						schemaTypes.getSchemaType("anotherSchemaType").setLabels(labels);
@@ -2989,7 +2992,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
-					new BulkImportParams().setImportErrorsBehavior(CONTINUE).setThreads(3));
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE).setThreads(5));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
