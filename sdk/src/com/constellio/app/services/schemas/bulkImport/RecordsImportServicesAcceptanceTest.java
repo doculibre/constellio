@@ -73,6 +73,8 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
 
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
 		givenTimeIs(now);
 
 		importServices = new RecordsImportServices(getModelLayerFactory());
@@ -80,6 +82,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
 	}
 
 	@Test
@@ -620,7 +623,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 		File tempFolder = newTempFolder();
 		File zipFile = new File(newTempFolder(), StringUtils.replace(StringUtils.join(files, "_"), ":", "-") + "testdata.zip");
-
 
 		for (String file : files) {
 			String filenameInTempFolder = file;
