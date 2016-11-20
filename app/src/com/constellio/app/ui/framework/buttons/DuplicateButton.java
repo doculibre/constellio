@@ -8,9 +8,9 @@ import com.vaadin.server.ThemeResource;
 @SuppressWarnings("serial")
 public abstract class DuplicateButton extends IconButton {
 
-    public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/actions/duplicate-template.png");
+    public static final Resource ICON_RESOURCE = new ThemeResource("images/icons/actions/copy.png");
 
-    public static final String BUTTON_STYLE = "edit-button";
+    public static final String BUTTON_STYLE = "copy-button";
 
     public DuplicateButton() {
         super(ICON_RESOURCE, $("duplicate"), true);
