@@ -968,7 +968,16 @@ public class MetadataBuilder {
 		return customAttributes.contains(flag);
 	}
 
+	public MetadataBuilder setCustomAttributes(Set<String> customAttributes) {
+		this.customAttributes = customAttributes;
+		return this;
+	}
+
 	public MetadataBuilder addCustomAttribute(String customAttribute) {
+		if (customAttribute.contains(",")) {
+			throw new MetadataBuilderRuntimeException.InvalidAttribute("Custom Attribute", customAttribute);
+		}
+
 		customAttributes.add(customAttribute);
 		return this;
 	}

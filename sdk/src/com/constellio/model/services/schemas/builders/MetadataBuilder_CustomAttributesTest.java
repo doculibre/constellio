@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
@@ -73,6 +74,13 @@ public class MetadataBuilder_CustomAttributesTest extends MetadataBuilderTest {
 		inheritedMetadataBuilder.setType(STRING).addCustomAttribute("flag1").addCustomAttribute("flag2");
 		assertThat(metadataWithInheritanceBuilder.getCustomAttributes()).containsOnly("flag1", "flag2");
 
+	}
+
+	@Test (expected = (MetadataBuilderRuntimeException.class))
+	public void givenCustomAttributesWithCommasThenException()
+			throws Exception {
+		inheritedMetadataBuilder.setType(STRING).addCustomAttribute("fla,g1");
+		fail();
 	}
 
 }
