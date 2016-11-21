@@ -85,7 +85,6 @@ public class LDAPConfigurationManager implements StatefulService {
 					directoryType = LDAPDirectoryType.ACTIVE_DIRECTORY;
 				}
 				if (directoryType == LDAPDirectoryType.AZURE_AD) {
-					properties.put("ldap.serverConfiguration.authorityUrl", ldapServerConfiguration.getAuthorityUrl());
 					properties.put("ldap.serverConfiguration.authorityTenantId", ldapServerConfiguration.getTenantName());
 					properties.put("ldap.serverConfiguration.clientId", ldapServerConfiguration.getClientId());
 					properties.put("ldap.syncConfiguration.clientId", ldapUserSyncConfiguration.getClientId());
@@ -265,8 +264,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			String authorityUrl = getString(configs, "ldap.serverConfiguration.authorityUrl", null);
 			String authorityTanentId = getString(configs, "ldap.serverConfiguration.authorityTenantId", null);
 			String clientId = getString(configs, "ldap.serverConfiguration.clientId", null);
-			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId)
-					.setAuthorityUrl(authorityUrl).setClientId(clientId);
+			AzureADServerConfig serverConf = new AzureADServerConfig().setAuthorityTenantId(authorityTanentId).setClientId(clientId);
 			return new LDAPServerConfiguration(serverConf, active);
 		} else {
 			List<String> urls = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.serverConfiguration.urls.sharpSV",
