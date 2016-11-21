@@ -8,12 +8,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -229,38 +233,33 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	public void givenReportWithRichTextThenWrittenCorrectly() throws Exception {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		final String richText = "<blockquote><blockquote><b>Ceci </b><i>est </i><u>un </u>tes<sub>t</sub> " +
+				"pou<sup>r</sup> l'<strike>université</strike>.<br><hr><br><br><ol><li>1</li><li>2</li>" +
+				"<ol><li>2.1</li></ol></ol><ul><li>A</li><li>B</li><ul><li>B.A<br><hr></li></ul></ul><p>" +
+				"<br></p></blockquote></blockquote>";
+		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				Map<Language, String> labels = new HashMap<>();
+				labels.put(Language.French, "richText");
+
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("richText").setType(MetadataValueType.TEXT).setLabels(labels).setEnabled(true);
+			}
+		});
+		SchemasDisplayManager displayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		MetadataDisplayConfig config = displayManager.getMetadata(zeCollection, Folder.DEFAULT_SCHEMA + "_richText").withInputType(MetadataInputType.RICHTEXT);
+		displayManager.saveMetadata(config);
 		Folder folder1 = rm.getFolder(records.folder_A01);
 		Folder folder2 = rm.getFolder(records.folder_A02);
-		folder1.setKeywords(asList("mot1", "mot2", "mot3"));
-		folder2.setKeywords(new ArrayList<String>());
+		folder1.set("richText", richText);
 		recordServices.update(folder1.getWrappedRecord());
 		recordServices.update(folder2.getWrappedRecord());
-		reportTestUtils.addDefaultReportWithMultivalue(reportTitle);
+		reportTestUtils.addDefaultReportWithRichText(reportTitle);
 		presenter = new SearchResultReportPresenter(getAppLayerFactory(), foldersA01AndA02, folderSchemaType, zeCollection,
 				admin, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
-		reportTestUtils.validateDefaultReportWithMultivalue(model);
-
-		String result = "";
-		String result2 = "";
-		String text = "Ceci est <b>un</b> <i>test</i> <u>pour</u> L'université Laval.<br><br><ol><li>test1</li><li>test2</li><li>test3<br></li></ol>";
-		FileParser fileParser = getAppLayerFactory().getModelLayerFactory().newFileParser();
-		InputStream stream = new ByteArrayInputStream(text.toString().getBytes(StandardCharsets.UTF_8));
-		try {
-			result2 = text.replaceAll("<br>", "\n");
-			result2 = result2.replaceAll("\\<[^>]*>","");
-			result = fileParser.parse(stream, true).getParsedContent();
-		} catch (FileParserException e) {
-			//We do nothing, we will return metadataValue
-		} finally {
-			try {
-				stream.close();
-			} catch (IOException e) {
-
-			}
-		}
-		System.out.println(result);
-		System.out.println(result2);
+		reportTestUtils.validateDefaultReportWithRichText(model);
 	}
 
 	@Test

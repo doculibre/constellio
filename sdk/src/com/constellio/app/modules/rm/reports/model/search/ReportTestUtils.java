@@ -156,6 +156,23 @@ public class ReportTestUtils {
 		reportServices.addUpdate(report);
 	}
 
+	public void addDefaultReportWithRichText(String title) {
+		MetadataSchema reportSchema = types.getSchemaType(Report.SCHEMA_TYPE).getDefaultSchema();
+		Report report = new Report(recordServices.newRecordWithSchema(reportSchema), types);
+		report.setTitle(title);
+		report.setColumnsCount(2);
+		report.setLinesCount(1);
+		report.setSchemaTypeCode(folderSchemaType);
+		List<ReportedMetadata> reportedMetadataList = new ArrayList<>();
+
+		reportedMetadataList.add(new ReportedMetadata(folderTitleMetadataCode, 0));
+		reportedMetadataList.add(new ReportedMetadata(folderCreatedByMetadataCode, 1));
+		reportedMetadataList.add(new ReportedMetadata(reportSchema.getCode() + "_richText", 2));
+
+		report.setReportedMetadata(reportedMetadataList);
+		reportServices.addUpdate(report);
+	}
+
 	public void validateDefaultReport(SearchResultReportModel model) {
 		List<String> titles = model.getColumnsTitles();
 		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French),
@@ -176,7 +193,7 @@ public class ReportTestUtils {
 		List<String> titles = model.getColumnsTitles();
 		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French),
 				types.getMetadata(folderCreatedByMetadataCode).getLabel(Language.French),
-				types.getMetadata(folderKeywordsMetadataCode).getLabel(Language.French));
+				"richText");
 		List<List<Object>> content = model.getResults();
 		assertThat(content.size()).isEqualTo(2);
 		List<Object> result1 = content.get(0);
@@ -189,6 +206,34 @@ public class ReportTestUtils {
 		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);
 		assertThat(result2.get(1)).isEqualTo("Bob 'Elvis' Gratton");
 		assertThat(result2.get(2)).isEqualTo(asList());
+	}
+
+	public void validateDefaultReportWithRichText(SearchResultReportModel model) {
+		List<String> titles = model.getColumnsTitles();
+		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French),
+				types.getMetadata(folderCreatedByMetadataCode).getLabel(Language.French),
+				"richText");
+		List<List<Object>> content = model.getResults();
+		assertThat(content.size()).isEqualTo(2);
+		List<Object> result1 = content.get(0);
+		assertThat(result1.size()).isEqualTo(3);
+		assertThat(result1.get(0)).isEqualTo(expectedFolderTitle_A01);
+		assertThat(result1.get(1)).isEqualTo("Chuck Norris");
+		assertThat(result1.get(2)).isEqualTo("Ceci est un test pour l'université.\n" +
+				"\n" +
+				"\n" +
+				"\n" +
+				"1\n" +
+				"2\n" +
+				"2.1\n" +
+				"A\n" +
+				"B\n" +
+				"B.A\n\n");
+		List<Object> result2 = content.get(1);
+		assertThat(result2.size()).isEqualTo(3);
+		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);
+		assertThat(result2.get(1)).isEqualTo("Bob 'Elvis' Gratton");
+		assertThat(result2.get(2)).isEqualTo(null);
 	}
 
 	public void validateDefaultReportWithBoolean(SearchResultReportModel model) {

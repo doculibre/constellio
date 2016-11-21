@@ -153,7 +153,6 @@ public class SearchResultReportPresenter {
 					return code + "-" + title;
 				}
 			}
-
 		}
 		else if(metadata.getType() == MetadataValueType.BOOLEAN) {
 			return metadataValue.equals(true)? $("yes"):$("no");
@@ -163,6 +162,7 @@ public class SearchResultReportPresenter {
 			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
 			if(config.getInputType().equals(MetadataInputType.RICHTEXT)) {
 				String result = metadataValue.toString().replaceAll("<br>", "\n");
+				result = result.toString().replaceAll("<li>", "\n");
 				result = result.toString().replaceAll("\\<[^>]*>","");
 				return result;
 			}
