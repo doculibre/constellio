@@ -107,7 +107,7 @@ public class SmbModifiedDocumentRetrievalJobAcceptanceTest extends ConstellioTes
 						.setUrl(FILE_URL)));
 
 		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getRecordIdForFolder(anyString());
+		verify(smbRecordService, times(1)).getFolder(anyString());
 		verify(smbRecordService, times(1)).updateResumeUrl(FILE_URL);
 	}
 
@@ -132,7 +132,7 @@ public class SmbModifiedDocumentRetrievalJobAcceptanceTest extends ConstellioTes
 						.setUrl(FILE_URL)));
 
 		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getRecordIdForFolder(anyString());
+		verify(smbRecordService, times(1)).getFolder(anyString());
 	}
 	
 	@Test

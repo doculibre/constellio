@@ -15,6 +15,15 @@ public interface SmbService {
 		private double size = -4;
 		private long lastModified = 0;
 
+		public SmbModificationIndicator() {
+		}
+
+		public SmbModificationIndicator(String permissionsHash, double size, long lastModified) {
+			this.permissionsHash = permissionsHash;
+			this.size = size;
+			this.lastModified = lastModified;
+		}
+
 		public String getPermissionsHash() {
 			return permissionsHash;
 		}
