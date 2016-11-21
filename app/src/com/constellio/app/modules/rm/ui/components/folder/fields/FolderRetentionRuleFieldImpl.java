@@ -86,6 +86,12 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 		setValue((String) value);
 	}
 
+	@Override
+	protected void setInternalValue(String newValue) {
+		super.setInternalValue(newValue);
+		this.value = newValue;
+	}
+
 	private List<Record> loadRetentionRules(List<String> options) {
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(types().getSchemaType(RetentionRule.SCHEMA_TYPE)).where(Schemas.IDENTIFIER).isIn(options))
