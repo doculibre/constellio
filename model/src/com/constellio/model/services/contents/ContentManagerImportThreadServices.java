@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +104,14 @@ public class ContentManagerImportThreadServices {
 					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
-					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
+					File dest = new File(errorsEmptyFolder, key.replace("/", File.separator));
+					dest.getParentFile().mkdirs();
+					try {
+						ioServices.moveFile(file, dest);
+					} catch (Exception e) {
+						LOGGER.warn("Failed to move empty file, deleting it...", e);
+						FileUtils.deleteQuietly(file);
+					}
 				}
 			}
 		}
@@ -116,7 +124,16 @@ public class ContentManagerImportThreadServices {
 					uploader.uploadAsync(key, ioServices.newInputStreamFactory(file, READ_FILE_INPUTSTREAM), key);
 				} else {
 					emptyFileKeys.add(key);
-					ioServices.moveFile(file, new File(errorsEmptyFolder, key.replace("/", File.separator)));
+
+					File dest = new File(errorsEmptyFolder, key.replace("/", File.separator));
+					dest.getParentFile().mkdirs();
+					try {
+						ioServices.moveFile(file, dest);
+					} catch (Exception e) {
+						LOGGER.warn("Failed to move empty file, deleting it...", e);
+						FileUtils.deleteQuietly(file);
+					}
+
 				}
 			}
 		}

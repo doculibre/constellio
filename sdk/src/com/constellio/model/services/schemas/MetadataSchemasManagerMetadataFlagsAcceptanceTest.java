@@ -114,7 +114,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	}
 
 	@Test
-	public void whenAddUpdateSchemasThenSaveDuplicableFlag()
+	public void whenAddUpdateSchemasThenSaveCustomAttributes()
 			throws Exception {
 		defineSchemasManager().using(schemas
 				.withAStringMetadata(whichHasCustomAttributes("flag1", "flag2"))
@@ -130,7 +130,7 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder schema = types.getSchema(zeSchema.code());
 				schema.get(zeSchema.stringMetadata()).removeCustomAttribute("flag1").addCustomAttribute("flag5");
-				schema.get(zeSchema.booleanMetadata()).removeCustomAttribute("flag3").removeCustomAttribute("flag4");
+				schema.get(zeSchema.numberMetadata()).removeCustomAttribute("flag3").removeCustomAttribute("flag4");
 				schema.get(zeSchema.booleanMetadata()).addCustomAttribute("flag6");
 			}
 		});
@@ -141,7 +141,8 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	}
 
 	@Test
-	public void whenAddUpdateSchemasThenSaveCustomAttributes()
+
+	public void whenAddUpdateSchemasThenSaveDuplicableFlag()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsDuplicable).withABooleanMetadata());
 
