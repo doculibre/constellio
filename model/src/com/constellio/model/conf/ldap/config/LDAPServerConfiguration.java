@@ -27,7 +27,6 @@ public class LDAPServerConfiguration implements Serializable {
 		this.directoryType = LDAPDirectoryType.AZURE_AD;
 		this.ldapAuthenticationActive = ldapAuthenticationActive;
 		this.azurServerConfig.authorityTenantId = serverConfig.authorityTenantId;
-		this.azurServerConfig.authorityUrl = serverConfig.authorityUrl;
 		this.azurServerConfig.clientId = serverConfig.clientId;
 	}
 
@@ -51,10 +50,6 @@ public class LDAPServerConfiguration implements Serializable {
 		return nonAzureAdServerConfig.followReferences;
 	}
 
-	public String getAuthorityUrl() {
-		return this.azurServerConfig.authorityUrl;
-	}
-
 	public String getTenantName() {
 		return this.azurServerConfig.getTenantName();
 	}
@@ -63,7 +58,4 @@ public class LDAPServerConfiguration implements Serializable {
 		return this.azurServerConfig.getClientId();
 	}
 
-	public String getResource() {
-		return this.azurServerConfig.getResource();
-	}
 }
