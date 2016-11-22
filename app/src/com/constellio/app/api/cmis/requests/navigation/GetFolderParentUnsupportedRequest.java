@@ -15,7 +15,6 @@ public class GetFolderParentUnsupportedRequest extends CmisCollectionRequest<Obj
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private final GetObjectParentsRequest getObjectParentsRequest;
-	private final CallContext context;
 	private final String folderId;
 	private final String filter;
 	private final ObjectInfoHandler objectInfos;
@@ -23,9 +22,8 @@ public class GetFolderParentUnsupportedRequest extends CmisCollectionRequest<Obj
 	public GetFolderParentUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			GetObjectParentsRequest getObjectParentsRequest, CallContext context, String folderId, String filter,
 			ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
+		super(context, repository, appLayerFactory);
 		this.getObjectParentsRequest = getObjectParentsRequest;
-		this.context = context;
 		this.folderId = folderId;
 		this.filter = filter;
 		this.objectInfos = objectInfos;

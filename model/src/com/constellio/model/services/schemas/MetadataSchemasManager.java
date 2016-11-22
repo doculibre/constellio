@@ -21,7 +21,9 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -144,10 +146,21 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory, modelLayerFactory);
 
-
 				return builtTypes;
 			}
 		};
+	}
+
+	public MetadataSchema getSchemaOf(Record record) {
+		return getSchemaTypes(record).getSchema(record.getSchemaCode());
+	}
+
+	public MetadataSchemaType getSchemaTypeOf(Record record) {
+		return getSchemaTypes(record).getSchemaType(record.getTypeCode());
+	}
+
+	public MetadataSchemaTypes getSchemaTypes(CollectionObject collectionObject) {
+		return getSchemaTypes(collectionObject.getCollection());
 	}
 
 	public MetadataSchemaTypes getSchemaTypes(String collection) {

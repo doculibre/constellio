@@ -11,6 +11,9 @@ public class TaxonomiesSearchOptions {
 	private int rows = 100;
 	private int startRow = 0;
 	private StatusFilter includeStatus = StatusFilter.ACTIVES;
+
+	//Only supported in the "visible" services
+	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
 
 	public TaxonomiesSearchOptions() {
@@ -85,6 +88,16 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
+	public boolean isAlwaysReturnTaxonomyConceptsWithReadAccess() {
+		return alwaysReturnTaxonomyConceptsWithReadAccess;
+	}
+
+	public TaxonomiesSearchOptions setAlwaysReturnTaxonomyConceptsWithReadAccess(
+			boolean alwaysReturnTaxonomyConceptsWithReadAccess) {
+		this.alwaysReturnTaxonomyConceptsWithReadAccess = alwaysReturnTaxonomyConceptsWithReadAccess;
+		return this;
+	}
+
 	public TaxonomiesSearchOptions cloneAddingReturnedField(Metadata metadata) {
 		TaxonomiesSearchOptions clonedOptions = new TaxonomiesSearchOptions(this);
 		clonedOptions.setReturnedMetadatasFilter(returnedMetadatasFilter.withIncludedMetadata(metadata));
@@ -92,6 +105,7 @@ public class TaxonomiesSearchOptions {
 		clonedOptions.setRequiredAccess(requiredAccess);
 		clonedOptions.setRows(rows);
 		clonedOptions.setStartRow(startRow);
+		clonedOptions.setAlwaysReturnTaxonomyConceptsWithReadAccess(alwaysReturnTaxonomyConceptsWithReadAccess);
 		return clonedOptions;
 
 	}

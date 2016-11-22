@@ -247,18 +247,28 @@ public class MetadataSchemaType {
 		return Collections.unmodifiableList(returnedMetadatas);
 	}
 
-	public MetadataSchema getSchema(String codeOrCode) {
+	private MetadataSchema getNullableSchema(String codeOrCode) {
 		MetadataSchema schema = null;
 		if (codeOrCode.contains("_")) {
 			schema = getSchemaWithCompleteCode(codeOrCode);
 		} else {
 			schema = getSchemaWithLocalCode(codeOrCode);
 		}
+		return schema;
+	}
+
+	public MetadataSchema getSchema(String codeOrCode) {
+		MetadataSchema schema = getNullableSchema(codeOrCode);
 		if (schema == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchSchema(codeOrCode);
 		} else {
 			return schema;
 		}
+	}
+
+	public boolean hasSchema(String codeOrCode) {
+		MetadataSchema schema = getNullableSchema(codeOrCode);
+		return schema != null;
 	}
 
 	private MetadataSchema getSchemaWithLocalCode(String code) {

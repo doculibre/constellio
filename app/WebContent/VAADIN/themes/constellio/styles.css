@@ -1615,10 +1615,6 @@ div.v-layout.v-horizontal.v-widget {
 	border-radius: 4px;
 }
 
-.constellio .v-table-row-textRed {
-    color: red;
-}
-
 .constellio .v-loading-indicator {
 	position: fixed !important;
 	z-index: 99999;
@@ -12768,7 +12764,6 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table .v-table-body .v-disabled {
-	text-align: left;
 	opacity: 10%;
 	color: black;
 }

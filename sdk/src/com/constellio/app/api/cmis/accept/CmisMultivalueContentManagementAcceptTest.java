@@ -118,6 +118,8 @@ public class CmisMultivalueContentManagementAcceptTest extends ConstellioTest {
 		bob.setCollectionWriteAccess(true);
 		recordServices.update(alice.getWrappedRecord());
 		recordServices.update(bob.getWrappedRecord());
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

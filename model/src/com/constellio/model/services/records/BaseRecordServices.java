@@ -9,16 +9,22 @@ import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public abstract class BaseRecordServices implements RecordServices {
 
 	ModelLayerFactory modelLayerFactory;
 
+	MetadataSchemasManager metadataSchemasManager;
+
 	protected BaseRecordServices(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
+		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
 	public final void add(Record record)
@@ -112,7 +118,8 @@ public abstract class BaseRecordServices implements RecordServices {
 
 	public final Record getDocumentById(String id, User user) {
 		Record record = getDocumentById(id);
-		if (modelLayerFactory.newAuthorizationsServices().canRead(user, record)) {
+		if (!metadataSchemasManager.getSchemaTypeOf(record).hasSecurity()
+				|| modelLayerFactory.newAuthorizationsServices().canRead(user, record)) {
 			return record;
 		} else {
 			throw new RecordServicesRuntimeException.UserCannotReadDocument(id, user.getUsername());

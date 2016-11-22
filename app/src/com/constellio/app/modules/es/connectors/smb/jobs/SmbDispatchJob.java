@@ -59,7 +59,7 @@ public class SmbDispatchJob extends ConnectorJob implements SmbConnectorJob {
 							} else if (smbChildFolderRetrievalJob == SmbNullJob.getInstance(connectorSmb)) {
 								// NullJob. Do nothing.
 								connector.getLogger()
-										.info(toString(), " Unexpected child folder NullJob", new LinkedHashMap<String, String>());
+										.debug(toString(), " Unexpected child folder NullJob", new LinkedHashMap<String, String>());
 							} else {
 								connectorSmb.queueJob(smbChildFolderRetrievalJob);
 							}
@@ -72,7 +72,7 @@ public class SmbDispatchJob extends ConnectorJob implements SmbConnectorJob {
 							} else if (smbChildDocumentRetrievalJob == SmbNullJob.getInstance(connectorSmb)) {
 								// NullJob. Do nothing.
 								connector.getLogger()
-										.info(toString(), " Unexpected child document NullJob", new LinkedHashMap<String, String>());
+										.debug(toString(), " Unexpected child document NullJob", new LinkedHashMap<String, String>());
 							} else {
 								connectorSmb.queueJob(smbChildDocumentRetrievalJob);
 							}

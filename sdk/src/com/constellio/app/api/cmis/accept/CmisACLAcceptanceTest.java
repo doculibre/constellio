@@ -122,7 +122,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.admin(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 
-		recordServices.update(users.adminIn(zeCollection).setCollectionReadAccess(true).setCollectionWriteAccess(true));
+		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
 		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
@@ -141,6 +141,8 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		robinId = users.robinIn(zeCollection).getId();
 
 		givenConfig(ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL, false);
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

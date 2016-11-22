@@ -285,11 +285,11 @@ public class RMTestRecords {
 	public final String folder_C54 = "C54";
 	public final String folder_C55 = "C55";
 
-	public final String document_A19 = "doc_A19";
-	public final String document_A49 = "doc_A49";
-	public final String document_B30 = "doc_B30";
-	public final String document_B33 = "doc_B33";
-	public final String document_A79 = "doc_A79";
+	public final String document_A19 = "docA19";
+	public final String document_A49 = "docA49";
+	public final String document_B30 = "docB30";
+	public final String document_B33 = "docB33";
+	public final String document_A79 = "docA79";
 
 	public final String folder_A01_documentWithSameCopy = "doc_A01_same_copy";
 	public final String folder_A01_documentWithDifferentCopy = "A02";

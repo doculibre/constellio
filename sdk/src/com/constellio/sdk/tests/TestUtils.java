@@ -40,6 +40,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
@@ -53,7 +54,10 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
@@ -461,7 +465,7 @@ public class TestUtils {
 			return (RecordAssert) super.has(new Condition<Record>() {
 				@Override
 				public boolean matches(Record value) {
-					assertThat((Object)actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					assertThat((Object) actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
 					return true;
 				}
 			});
@@ -477,7 +481,7 @@ public class TestUtils {
 						assertThat(actual.getList(metadata)).as((metadata.getCode())).isEmpty();
 					} else {
 
-						assertThat((Object)actual.get(metadata)).as((metadata.getCode())).isNull();
+						assertThat((Object) actual.get(metadata)).as((metadata.getCode())).isNull();
 					}
 					return true;
 				}
@@ -525,7 +529,8 @@ public class TestUtils {
 			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
 				@Override
 				public boolean matches(RecordWrapper value) {
-					assertThat((Object)actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					assertThat((Object) actual.getWrappedRecord().get(metadata)).as((metadata.getCode()))
+							.isEqualTo(expectedValue);
 					return true;
 				}
 			});
@@ -542,6 +547,16 @@ public class TestUtils {
 			//					return true;
 			//				}
 			//			});
+		}
+
+		public void doesNotExist() {
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			try {
+				modelLayerFactory.newRecordServices().getDocumentById(actual.getId());
+				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does exist");
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+
+			}
 		}
 	}
 
@@ -684,5 +699,9 @@ public class TestUtils {
 		i18n.setLocale(originalLocale);
 
 		return messages;
+	}
+
+	public static void assumeWindows() {
+		org.junit.Assume.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
 	}
 }
