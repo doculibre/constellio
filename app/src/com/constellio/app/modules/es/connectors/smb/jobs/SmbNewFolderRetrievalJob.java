@@ -48,17 +48,25 @@ public class SmbNewFolderRetrievalJob extends ConnectorJob implements SmbConnect
 
 		switch (smbObject.getStatus()) {
 		case FULL_DTO:
-			ConnectorDocument fullFolder = smbRecordService.newConnectorSmbFolder(url);
-			String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
-			updater.updateDocumentOrFolder(smbObject, fullFolder, parentId);
-			eventObserver.push(Arrays.asList(fullFolder));
-			smbRecordService.updateResumeUrl(url);
+			try {
+				ConnectorDocument fullFolder = smbRecordService.newConnectorSmbFolder(url);
+				String parentId = smbRecordService.getSafeId(smbRecordService.getFolder(parentUrl));
+				updater.updateDocumentOrFolder(smbObject, fullFolder, parentId);
+				eventObserver.push(Arrays.asList(fullFolder));
+				smbRecordService.updateResumeUrl(url);
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
+			}
 			break;
 		case FAILED_DTO:
-			ConnectorDocument failedFolder = smbRecordService.newConnectorSmbFolder(url);
-			String failedFolderParentId = smbRecordService.getRecordIdForFolder(parentUrl);
-			updater.updateFailedDocumentOrFolder(smbObject, failedFolder, failedFolderParentId);
-			eventObserver.push(Arrays.asList(failedFolder));
+			try {
+				ConnectorDocument failedFolder = smbRecordService.newConnectorSmbFolder(url);
+				String parentId = smbRecordService.getSafeId(smbRecordService.getFolder(parentUrl));
+				updater.updateFailedDocumentOrFolder(smbObject, failedFolder, parentId);
+				eventObserver.push(Arrays.asList(failedFolder));
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
+			}
 			break;
 		case DELETE_DTO:
 			try {
@@ -66,8 +74,7 @@ public class SmbNewFolderRetrievalJob extends ConnectorJob implements SmbConnect
 				ConnectorJob deleteJob = jobFactory.get(SmbJobCategory.DELETE, url, parentUrl);
 				connectorSmb.queueJob(deleteJob);
 			} catch (Exception e) {
-				this.connector.getLogger()
-						.errorUnexpected(e);
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		default:

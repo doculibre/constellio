@@ -22,6 +22,8 @@ import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 
 public class SmbJobFactoryImpl implements SmbJobFactory {
@@ -99,27 +101,27 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 				if (urlComparator.compare(url, resumeUrl) > -1) {
 					if (retrievalJobs.add(url)) {
 						if (smbUtils.isFolder(url)) {
-							if (smbRecordService.isNew(url)) {
+							ConnectorSmbFolder recordFolder = smbRecordService.getFolder(url);
+							if (recordFolder == null) {
 								job = new SmbNewFolderRetrievalJob(connector, url, smbService, eventObserver, smbRecordService, updater, parentUrl, this);
 								return job;
 							} else {
-								job = new SmbExistingFolderRetrievalJob(connector, url, smbService, eventObserver, smbRecordService, updater, parentUrl, this);
+								job = new SmbExistingFolderRetrievalJob(connector, url, recordFolder, smbService, eventObserver, smbRecordService, updater, parentUrl, this);
 								return job;
 							}
 						} else {
-							if (smbRecordService.isNew(url)) {
+							ConnectorSmbDocument recordDocument = smbRecordService.getDocument(url);
+							if (recordDocument == null) {
 								job = new SmbNewDocumentRetrievalJob(connector, url, smbService, eventObserver, smbRecordService, updater, parentUrl, this);
 								return job;
 							} else {
 								SmbModificationIndicator indicators = smbService.getModificationIndicator(url);
-								if (smbRecordService.isModified(url, indicators.getLastModified(), indicators.getPermissionsHash(), indicators.getSize())) {
+								if (smbRecordService.isDocumentModified(recordDocument, url, indicators)) {
 									job = new SmbModifiedDocumentRetrievalJob(connector, url, smbService, eventObserver, smbRecordService, updater, parentUrl,
 											this);
 									return job;
 								} else {
-									job = new SmbUnmodifiedDocumentRetrievalJob(connector, url, smbService, eventObserver, smbRecordService, updater,
-											parentUrl, this);
-									return job;
+									// Do nothing.
 								}
 							}
 						}
@@ -150,7 +152,6 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 
 	@Override
 	public synchronized void reset() {
-		// TODO Benoit. Add mechanism so it can be reset only if there are no jobs left that can use it.
 		dispatchJobs.clear();
 		retrievalJobs.clear();
 		deleteJobs.clear();
@@ -164,6 +165,5 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 		} else {
 			this.resumeUrl = resumeUrl;
 		}
-
 	}
 }
