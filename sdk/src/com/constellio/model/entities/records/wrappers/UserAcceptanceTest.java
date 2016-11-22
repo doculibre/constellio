@@ -52,4 +52,16 @@ public class UserAcceptanceTest extends ConstellioTest {
 		assertThat(admin.isVisibleTableColumnsConfiguredFor("otherTable")).isFalse();
 
 	}
+
+	@Test
+	public void givenUserThenHavePersonalEmailsMetadata()
+			throws Exception {
+
+		User admin = users.adminIn(zeCollection);
+		admin.setPersonalEmails("admin@gmail.com");
+		recordServices.update(admin);
+
+		admin = users.adminIn(zeCollection);
+		assertThat(admin.getPersonalEmails()).isEqualTo("admin@gmail.com");
+	}
 }

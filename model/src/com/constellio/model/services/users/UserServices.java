@@ -118,6 +118,15 @@ public class UserServices {
 				msExchDelegateListBL, dn);
 	}
 
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email, String personalEmails,
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+											   String dn) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
+				msExchDelegateListBL, dn);
+	}
+
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		validateAdminIsActive(userCredential);

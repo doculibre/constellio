@@ -14,10 +14,7 @@ import com.vaadin.data.Validator;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
+import com.vaadin.ui.*;
 
 public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEditUserCredentialView {
 
@@ -40,6 +37,9 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 
 	@PropertyId("email")
 	private TextField emailField;
+
+	@PropertyId("personalEmails")
+	private TextArea personalEmails;
 
 	@PropertyId("password")
 	private PasswordField passwordField;
@@ -120,6 +120,14 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		emailField.addValidator(new EmailValidator($("AddEditUserCredentialView.invalidEmail")));
 		emailField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
+		personalEmails = new TextArea();
+		personalEmails.setCaption($("UserCredentialView.personalEmails"));
+		personalEmails.setRequired(false);
+		personalEmails.setNullRepresentation("");
+		personalEmails.setId("personalEmails");
+		personalEmails.addStyleName("email");
+		personalEmails.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+
 		passwordField = new PasswordField();
 		passwordField.setCaption($("UserCredentialView.password"));
 		passwordField.setRequired(addActionMode);
@@ -183,7 +191,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField, lastNameField, emailField,
-				passwordField, confirmPasswordField, collectionsField, statusField) {
+				personalEmails, passwordField, confirmPasswordField, collectionsField, statusField) {
 			@Override
 			protected void saveButtonClick(UserCredentialVO userCredentialVO)
 					throws ValidationException {
