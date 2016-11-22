@@ -76,7 +76,7 @@ public class MetadataBuilder_CustomAttributesTest extends MetadataBuilderTest {
 
 	}
 
-	@Test (expected = (MetadataBuilderRuntimeException.class))
+	@Test (expected = MetadataBuilderRuntimeException.class)
 	public void givenCustomAttributesWithCommasThenException()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).addCustomAttribute("fla,g1");
