@@ -21,6 +21,7 @@ import org.junit.Test;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -153,55 +154,33 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getSchema(zeSchema.code()).create("aStringMetadataContainingReferences").setType(STRING);
 				types.getSchema(zeSchema.code()).create("calculatedRef").setType(REFERENCE)
+						.defineReferencesTo(types.getSchemaType(anotherSchema.typeCode()))
 						.defineDataEntry().asJexlScript("aStringMetadataContainingReferences");
 			}
 		});
 
+		Record anotherSchemaRecord = new TestRecord(anotherSchema, "anotherSchemaRecord");
+		recordServices.add(anotherSchemaRecord);
 		List<String> idsMarkedForReindexing = new ArrayList<>();
 		final Transaction firstTransaction = new Transaction().setOptimisticLockingResolution(EXCEPTION);
-		firstTransaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord"));
 		for (int i = 0; i < 100; i++) {
 			Record record = new TestRecord(zeSchema).set(zeSchema.stringMetadata(), "pomme");
-
-			if (i % 2 == 0) {
-				record.set(zeSchema.metadata("aStringMetadataContainingReferences"), "anotherSchemaRecord");
-			}
+			record.set(zeSchema.metadata("aStringMetadataContainingReferences"), "anotherSchemaRecord");
 
 			firstTransaction.add(record);
 			idsMarkedForReindexing.add(record.getId());
 		}
 		recordServices.execute(firstTransaction);
+		recordServices.logicallyDelete(anotherSchemaRecord, User.GOD);
 
-		setNumberMetadataToABadValueTo(firstTransaction.getRecords());
-
+		setRefMetadataToABadValueTo(firstTransaction.getRecords());
 		markForReindexing(idsMarkedForReindexing);
 
-		BackgroundReindexingCommand command = new BackgroundReindexingCommand(getModelLayerFactory()) {
+		BackgroundReindexingCommand command = new BackgroundReindexingCommand(getModelLayerFactory());
 
-			@Override
-			void executeTransaction(Transaction transaction) {
-
-				//Executing a malicious transaction that will cause an optimistick locking exception
-
-				Record record = firstTransaction.getRecords().get(42);
-				try {
-					recordServices.update(record.set(Schemas.TITLE, "new title"));
-				} catch (RecordServicesException e) {
-					throw new RuntimeException(e);
-				}
-
-				super.executeTransaction(transaction);
-			}
-		};
-
-		try {
-			command.run();
-			fail("Exception expected");
-		} catch (Exception e) {
-			//OK
-		}
-		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(0);
-		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(100);
+		command.run();
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(zeSchema.metadata("calculatedRef"))
+				.isEqualTo(anotherSchemaRecord.getId()))).isEqualTo(100);
 
 	}
 
@@ -211,6 +190,20 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		markingForReindexing.add(recordServices.getDocumentById(zeCollection));
 		markingForReindexing.addAllRecordsToReindex(idsMarkedForReindexing);
 		recordServices.execute(markingForReindexing);
+	}
+
+	private void setRefMetadataToABadValueTo(List<Record> records)
+			throws Exception {
+		List<SolrInputDocument> updates = new ArrayList<>();
+		for (Record record : records) {
+			SolrInputDocument update = new SolrInputDocument();
+			update.setField("id", record.getId());
+			update.setField("calculatedRefId_s", asMap("set", "toto"));
+			updates.add(update);
+		}
+
+		solrClient.add(updates);
+		solrClient.commit(true, true, true);
 	}
 
 	private void setNumberMetadataToABadValueTo(List<Record> records)

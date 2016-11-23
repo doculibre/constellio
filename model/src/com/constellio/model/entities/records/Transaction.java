@@ -28,9 +28,6 @@ public class Transaction {
 
 	private String id = UUIDV1Generator.newRandomId();
 
-	boolean skippingRequiredValuesValidation = false;
-	private boolean skippingReferenceToLogicallyDeletedValidation = false;
-
 	Map<String, Record> updatedRecordsMap = new HashMap<>();
 	List<Record> records = new ArrayList<>();
 	RecordUpdateOptions recordUpdateOptions = new RecordUpdateOptions();
@@ -74,9 +71,7 @@ public class Transaction {
 			addUpdate(record);
 		}
 		this.idsToReindex.addAll(transaction.getIdsToReindex());
-		this.recordUpdateOptions = transaction.recordUpdateOptions;
-		this.skippingRequiredValuesValidation = transaction.isSkippingRequiredValuesValidation();
-		this.skippingReferenceToLogicallyDeletedValidation = transaction.isSkippingReferenceToLogicallyDeletedValidation();
+		this.recordUpdateOptions = new RecordUpdateOptions(transaction.recordUpdateOptions);
 	}
 
 	public boolean isContainingUpdatedRecord(Record record) {
@@ -267,20 +262,20 @@ public class Transaction {
 	}
 
 	public boolean isSkippingRequiredValuesValidation() {
-		return skippingRequiredValuesValidation;
+		return recordUpdateOptions.isSkippingRequiredValuesValidation();
 	}
 
 	public boolean isSkippingReferenceToLogicallyDeletedValidation() {
-		return skippingReferenceToLogicallyDeletedValidation;
+		return recordUpdateOptions.isSkippingReferenceToLogicallyDeletedValidation();
 	}
 
 	public Transaction setSkippingRequiredValuesValidation(boolean skippingRequiredValuesValidation) {
-		this.skippingRequiredValuesValidation = skippingRequiredValuesValidation;
+		recordUpdateOptions.setSkippingRequiredValuesValidation(skippingRequiredValuesValidation);
 		return this;
 	}
 
 	public Transaction setSkippingReferenceToLogicallyDeletedValidation(boolean skippingReferenceToLogicallyDeletedValidation) {
-		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
+		recordUpdateOptions.setSkippingReferenceToLogicallyDeletedValidation(skippingReferenceToLogicallyDeletedValidation);
 		return this;
 	}
 
