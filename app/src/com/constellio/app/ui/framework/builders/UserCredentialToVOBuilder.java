@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.ui.entities.UserCredentialVO;
@@ -20,7 +22,6 @@ public class UserCredentialToVOBuilder implements Serializable {
 		String firstName = userCredential.getFirstName();
 		String lastName = userCredential.getLastName();
 		String email = userCredential.getEmail();
-		String personalEmails = userCredential.getPersonalEmails();
 		Map<String, LocalDateTime> tokens = userCredential.getAccessTokens();
 		String serviceKey = userCredential.getServiceKey();
 		boolean systemAdmin = userCredential.isSystemAdmin();
@@ -29,7 +30,12 @@ public class UserCredentialToVOBuilder implements Serializable {
 		collections.addAll(userCredential.getCollections());
 		UserCredentialStatus status = userCredential.getStatus();
 
-		return new UserCredentialVO(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
+		String personalEmailsPresentation = null;
+		if (!CollectionUtils.isEmpty(userCredential.getPersonalEmails())) {
+			personalEmailsPresentation = Joiner.on("\n").join(userCredential.getPersonalEmails());
+		}
+
+		return new UserCredentialVO(username, firstName, lastName, email, personalEmailsPresentation, serviceKey, systemAdmin, globalGroups, collections,
 				tokens, null, null, status);
 
 	}

@@ -73,7 +73,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	}
 
 	@Override
-	public String getPersonalEmails() {
+	public List<String> getPersonalEmails() {
 		return get(PERSONAL_EMAILS);
 	}
 
@@ -82,7 +82,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		return this;
 	}
 
-	public SolrUserCredential setPersonalEmails(String personalEmails) {
+	public SolrUserCredential setPersonalEmails(List<String> personalEmails) {
 		set(PERSONAL_EMAILS, personalEmails);
 		return this;
 	}
@@ -245,7 +245,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	}
 
 	@Override
-	public UserCredential withPersonalEmails(String personalEmails) {
+	public UserCredential withPersonalEmails(List<String> personalEmails) {
 		return setPersonalEmails(personalEmails);
 	}
 

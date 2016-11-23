@@ -24,7 +24,7 @@ public interface UserCredentialsManager extends StatefulService {
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn);
 
-	UserCredential create(String username, String firstName, String lastName, String email, String personalEmails, String serviceKey,
+	UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
 						  boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 						  UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn);
 

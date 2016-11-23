@@ -14,7 +14,7 @@ public interface UserCredential {
 
 	String getEmail();
 
-	String getPersonalEmails();
+	List<String> getPersonalEmails();
 
 	String getServiceKey();
 
@@ -52,7 +52,7 @@ public interface UserCredential {
 
 	UserCredential withEmail(String email);
 
-	UserCredential withPersonalEmails(String personalEmails);
+	UserCredential withPersonalEmails(List<String> personalEmails);
 
 	UserCredential withStatus(UserCredentialStatus status);
 

@@ -3,12 +3,9 @@ package com.constellio.model.services.users;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
@@ -118,7 +115,7 @@ public class UserServices {
 				msExchDelegateListBL, dn);
 	}
 
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email, String personalEmails,
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email, List<String> personalEmails,
 											   String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
 											   Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
 											   String dn) {
@@ -468,8 +465,7 @@ public class UserServices {
 	}
 
 	private void sync(UserCredential user, String collection, Transaction transaction) {
-		User userInCollection = null;
-		userInCollection = getUserInCollection(user.getUsername(), collection);
+		User userInCollection = getUserInCollection(user.getUsername(), collection);
 
 		if (userInCollection == null) {
 			userInCollection = newUserInCollection(collection);
@@ -477,6 +473,7 @@ public class UserServices {
 			userInCollection.set(CommonMetadataBuilder.LOGICALLY_DELETED, false);
 		}
 		userInCollection.setEmail(StringUtils.isBlank(user.getEmail()) ? null : user.getEmail());
+		userInCollection.setPersonalEmails(CollectionUtils.isEmpty(user.getPersonalEmails()) ? null : user.getPersonalEmails());
 		userInCollection.setFirstName(user.getFirstName());
 		userInCollection.setLastName(user.getLastName());
 		userInCollection.setUsername(user.getUsername());

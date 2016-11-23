@@ -39,7 +39,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 	private TextField emailField;
 
 	@PropertyId("personalEmails")
-	private TextArea personalEmails;
+	private TextArea personalEmailsField;
 
 	@PropertyId("password")
 	private PasswordField passwordField;
@@ -120,13 +120,24 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		emailField.addValidator(new EmailValidator($("AddEditUserCredentialView.invalidEmail")));
 		emailField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
-		personalEmails = new TextArea();
-		personalEmails.setCaption($("UserCredentialView.personalEmails"));
-		personalEmails.setRequired(false);
-		personalEmails.setNullRepresentation("");
-		personalEmails.setId("personalEmails");
-		personalEmails.addStyleName("email");
-		personalEmails.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+		personalEmailsField = new TextArea();
+		personalEmailsField.setCaption($("UserCredentialView.personalEmails"));
+		personalEmailsField.setRequired(false);
+		personalEmailsField.setNullRepresentation("");
+		personalEmailsField.setId("personalEmails");
+		personalEmailsField.addStyleName("email");
+		personalEmailsField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
+		personalEmailsField.addValidator(new Validator() {
+			private Validator emailValidator = new EmailValidator($("ModifyProfileView.invalidEmail"));
+			@Override
+			public void validate(Object value) throws InvalidValueException {
+				if (value != null) {
+					for (final String email : ((String) value).split("\n")) {
+						emailValidator.validate(email);
+					}
+				}
+			}
+		});
 
 		passwordField = new PasswordField();
 		passwordField.setCaption($("UserCredentialView.password"));
@@ -191,7 +202,7 @@ public class AddEditUserCredentialViewImpl extends BaseViewImpl implements AddEd
 		statusField.setEnabled(presenter.canAndOrModify(userCredentialVO.getUsername()));
 
 		return new BaseForm<UserCredentialVO>(userCredentialVO, this, usernameField, firstNameField, lastNameField, emailField,
-				personalEmails, passwordField, confirmPasswordField, collectionsField, statusField) {
+                personalEmailsField, passwordField, confirmPasswordField, collectionsField, statusField) {
 			@Override
 			protected void saveButtonClick(UserCredentialVO userCredentialVO)
 					throws ValidationException {

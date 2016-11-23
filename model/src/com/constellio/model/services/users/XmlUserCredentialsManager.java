@@ -120,7 +120,7 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, String personalEmails, String serviceKey,
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
 								 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		return new XmlUserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,

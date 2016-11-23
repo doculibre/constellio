@@ -171,8 +171,13 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 		}
 		UserCredentialStatus status = userCredentialVO.getStatus();
 		String domain = userCredentialVO.getDomain();
+
+		List<String> personalEmails = new ArrayList<>();
+		if (userCredentialVO.getPersonalEmails() != null) {
+			personalEmails = Arrays.asList(userCredentialVO.getPersonalEmails().split("\n"));
+		}
 		return userServices.createUserCredential(userCredentialVO.getUsername(), userCredentialVO.getFirstName(),
-				userCredentialVO.getLastName(), userCredentialVO.getEmail(),userCredentialVO.getPersonalEmails(), userCredentialVO.getServiceKey(),
+				userCredentialVO.getLastName(), userCredentialVO.getEmail(), personalEmails, userCredentialVO.getServiceKey(),
 				userCredentialVO.isSystemAdmin(), globalGroups, collections, tokens, status, domain, Arrays.asList(""), null);
 	}
 

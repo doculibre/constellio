@@ -73,7 +73,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, String personalEmails, String serviceKey,
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
 								 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
@@ -334,8 +334,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 		credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
 		credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
 				.setUniqueValue(false).addValidator(EmailValidator.class);
-		credentials.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.TEXT)
-				.setUniqueValue(false);
+		credentials.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING).setMultivalue(true);
 		credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
 		credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
 				.setEncrypted(true);

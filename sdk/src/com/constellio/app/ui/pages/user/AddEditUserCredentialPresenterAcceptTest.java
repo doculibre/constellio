@@ -234,8 +234,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		newUserCredentialVO.setLastName("lastName");
 		newUserCredentialVO.setPassword("password");
 		newUserCredentialVO.setConfirmPassword("password");
-		newUserCredentialVO.setPersonalEmails("admin@gmail.com" +
-				"\nadmin@hotmail.com");
+		newUserCredentialVO.setPersonalEmails("admin@gmail.com\nadmin@hotmail.com");
 
 		presenter.saveButtonClicked(newUserCredentialVO);
 
@@ -246,8 +245,7 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		assertThat(newUserCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
 		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");
-		assertThat(newUserCredential.getPersonalEmails()).isEqualTo("admin@gmail.com" +
-				"\nadmin@hotmail.com");
+		assertThat(newUserCredential.getPersonalEmails()).isEqualTo(Arrays.asList("admin@gmail.com", "admin@hotmail.com"));
 	}
 
 	@Test

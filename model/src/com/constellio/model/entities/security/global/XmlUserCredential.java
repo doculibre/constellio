@@ -15,7 +15,7 @@ public class XmlUserCredential implements UserCredential {
 	private final String firstName;
 	private final String lastName;
 	private final String email;
-	private final String personalEmails;
+	private final List<String> personalEmails;
 	private final String serviceKey;
 	private final Map<String, LocalDateTime> tokensMap;
 	private final boolean systemAdmin;
@@ -78,7 +78,7 @@ public class XmlUserCredential implements UserCredential {
 		this.dn = dn;
 	}
 
-	public XmlUserCredential(String username, String firstName, String lastName, String email, String personalEmails, String serviceKey,
+	public XmlUserCredential(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
 							 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 							 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		this.username = username;
@@ -119,7 +119,7 @@ public class XmlUserCredential implements UserCredential {
 	}
 
 	@Override
-	public String getPersonalEmails() {
+	public List<String> getPersonalEmails() {
 		return personalEmails;
 	}
 
@@ -235,7 +235,7 @@ public class XmlUserCredential implements UserCredential {
 	}
 
 	@Override
-	public UserCredential withPersonalEmails(String personalEmails) {
+	public UserCredential withPersonalEmails(List<String> personalEmails) {
 		return new XmlUserCredential(username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections,
 				tokensMap, status, domain, msExchDelegateListBL, dn);
 	}

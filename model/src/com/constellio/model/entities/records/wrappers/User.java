@@ -174,11 +174,11 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
-	public String getPersonalEmails() {
+	public List<String> getPersonalEmails() {
 		return get(PERSONAL_EMAILS);
 	}
 
-	public User setPersonalEmails(String emails) {
+	public User setPersonalEmails(List<String> emails) {
 		set(PERSONAL_EMAILS, emails);
 		return this;
 	}

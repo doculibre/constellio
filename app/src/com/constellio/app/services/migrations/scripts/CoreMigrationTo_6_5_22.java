@@ -58,8 +58,13 @@ public class CoreMigrationTo_6_5_22 implements MigrationScript {
                 Map<Language, String> labels = new HashMap<>();
                 labels.put(Language.French, "Courriels personnels");
                 labels.put(Language.English, "Personal emails");
-                types.getDefaultSchema(User.SCHEMA_TYPE).create(User.PERSONAL_EMAILS).setType(MetadataValueType.TEXT).setEnabled(true).setLabels(labels)
-                        .setEssential(false).setMultivalue(false);
+                types.getDefaultSchema(User.SCHEMA_TYPE).
+                        create(User.PERSONAL_EMAILS).
+                        setType(MetadataValueType.STRING).
+                        setMultivalue(true).
+                        setEnabled(true).
+                        setLabels(labels).
+                        setEssential(false);
             }
         });
 
