@@ -23,6 +23,9 @@ public class Category extends RecordWrapper {
 	public static final String KEYWORDS = "keywords";
 
 	public static final String COMMENTS = "comments";
+	public static final String DEFAULT_COPY_RULE_ID = "defaultCopyRuleIdentifier";
+	public static final String DEFAULT_COPY_RULE = "defaultCopyRule";
+	public static final String DEFAULT_RETENTION_RULE = "defaultCopyRule";
 	public static final String RETENTION_RULES = "retentionRules";
 	public static final String LEVEL = "level";
 	public static final String COPY_RETENTION_RULES_ON_DOCUMENT_TYPES = "copyRetentionRulesOnDocumentTypes";
@@ -53,6 +56,19 @@ public class Category extends RecordWrapper {
 
 	public Category setParent(String category) {
 		set(PARENT, category);
+		return this;
+	}
+
+	public String getDefaultCopyRule() {
+		return get(DEFAULT_COPY_RULE);
+	}
+
+	public String getDefaultCopyRuleId() {
+		return get(DEFAULT_COPY_RULE_ID);
+	}
+
+	public Category setDefaultCopyRuleId(RetentionRule defaultCopyRuleId) {
+		set(DEFAULT_COPY_RULE_ID, defaultCopyRuleId);
 		return this;
 	}
 
