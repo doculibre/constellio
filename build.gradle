@@ -111,13 +111,13 @@ allprojects {
     }
 
     jar {
-        version = '6.5.38'
+        version = '6.5.39' 
     }
 }
 
 war {
     baseName = "constellio"
-    version = "6.5.38"
+    version = "6.5.39"
 
     webInf {
         from("resources_i18n/") {
@@ -156,7 +156,7 @@ task compilePlugin() {
 task unWar(type: Copy) {
     def outputDir = buildDir.getAbsolutePath() + "/tmp/war_tmp/"
 
-    from zipTree(war.archivePath)
+    from zipTree(war.archivePath) b
     into outputDir
 }
 
