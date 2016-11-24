@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.extensions;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_ASSIGNEE;
@@ -173,6 +174,8 @@ public class TaskRecordExtension extends RecordExtension {
 				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
 		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
 				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
+
+        newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
 
 		emailToSend.setParameters(newParameters);
 	}
