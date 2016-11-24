@@ -8,7 +8,9 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
-import com.constellio.app.modules.rm.model.calculators.category.CategoryDefaultRetentionRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.category.CategoryDefaultCopyRuleInRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.category.CategoryDefaultCopyRuleInRuleCalculator.CategoryDefaultCopyRuleCalculator;
+import com.constellio.app.modules.rm.model.calculators.category.CategoryDefaultCopyRuleInRuleCalculator.CategoryDefaultRetentionRuleCalculator;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -31,13 +33,13 @@ public class RMMigrationTo6_5_40 implements MigrationScript {
 			throws Exception {
 
 		new SchemaAlterationsFor6_5_40(collection, provider, appLayerFactory).migrate();
-//		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-		//		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
-		//		transaction.in(Category.SCHEMA_TYPE).addToDisplay(Category.)
-		//				.afterMetadata(Category.RETENTION_RULES);
+		SchemasDisplayManager schemaDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaTypesDisplayTransactionBuilder transaction = schemaDisplayManager.newTransactionBuilderFor(collection);
+		transaction.in(Category.SCHEMA_TYPE).addToDisplay(Category.DEFAULT_RETENTION_RULE, Category.DEFAULT_COPY_RULE)
+				.afterMetadata(Category.RETENTION_RULES);
 
-//		schemaDisplayManager.execute(transaction.build());
-		//		setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), provider);
+		schemaDisplayManager.execute(transaction.build());
+		setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), provider);
 
 	}
 
@@ -57,11 +59,15 @@ public class RMMigrationTo6_5_40 implements MigrationScript {
 			MetadataSchemaTypeBuilder retentionRuleSchemaType = types().getSchemaType(RetentionRule.SCHEMA_TYPE);
 			MetadataSchemaTypeBuilder categorySchemaType = types().getSchemaType(Category.SCHEMA_TYPE);
 
-//			categorySchemaType.getDefaultSchema().create(Category.DEFAULT_COPY_RULE_ID).setType(MetadataValueType.STRING);
-			//			categorySchemaType.getDefaultSchema().create(Category.DEFAULT_COPY_RULE)
-			//					.defineStructureFactory(CopyRetentionRuleFactory.class)
-			//					.defineDataEntry().asCalculated(CategoryDefaultRetentionRuleCalculator.class));
-			//			categorySchemaType.getDefaultSchema().create(Category.DEFAULT_COPY_RULE_ID).setType(MetadataValueType.STRING);
+			categorySchemaType.getDefaultSchema().create(Category.DEFAULT_COPY_RULE_ID).setType(MetadataValueType.STRING);
+
+			categorySchemaType.getDefaultSchema().create(Category.DEFAULT_RETENTION_RULE)
+					.defineReferencesTo(retentionRuleSchemaType)
+					.defineDataEntry().asCalculated(CategoryDefaultRetentionRuleCalculator.class);
+
+			categorySchemaType.getDefaultSchema().create(Category.DEFAULT_COPY_RULE)
+					.defineStructureFactory(CopyRetentionRuleFactory.class)
+					.defineDataEntry().asCalculated(CategoryDefaultCopyRuleCalculator.class);
 
 		}
 	}
