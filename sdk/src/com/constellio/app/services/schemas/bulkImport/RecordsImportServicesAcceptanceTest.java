@@ -74,6 +74,8 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
 
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
 		givenTimeIs(now);
 
 		importServices = new RecordsImportServices(getModelLayerFactory());
@@ -81,6 +83,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
 	}
 
 	@Test

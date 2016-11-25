@@ -700,4 +700,8 @@ public class TestUtils {
 
 		return messages;
 	}
+
+	public static void assumeWindows() {
+		org.junit.Assume.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
+	}
 }

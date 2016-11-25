@@ -4,6 +4,7 @@ import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+
 import org.apache.solr.common.params.SolrParams;
 
 import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBooleanValue;
@@ -11,19 +12,19 @@ import static com.constellio.data.frameworks.extensions.ExtensionUtils.getBoolea
 public class DataLayerSystemExtensions {
 
 	//------------ Extension points -----------
-	private VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
-	private VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<BigVaultServerExtension> bigVaultServerExtension = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<TransactionLogExtension> transactionLogExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BigVaultServerExtension> getBigVaultServerExtension() {
 		return bigVaultServerExtension;
 	}
-	
+
 	public void afterQuery(SolrParams params, long qtime) {
 		for (BigVaultServerExtension extension : bigVaultServerExtension) {
 			try {
 				extension.afterQuery(params, qtime);
-			}catch (Exception e){
-			//	e.printStackTrace();
+			} catch (Exception e) {
+				//	e.printStackTrace();
 			}
 		}
 	}
