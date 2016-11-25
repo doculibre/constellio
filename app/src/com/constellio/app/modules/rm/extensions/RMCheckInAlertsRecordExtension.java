@@ -97,7 +97,9 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					LocalDateTime returnDate = TimeProvider.getLocalDateTime();
 					emailToSend.setTo(toAddress);
 					emailToSend.setSendOn(returnDate);
-					emailToSend.setSubject($("RMObject.alertWhenAvailableSubject", schemaType) + ": " + record.getTitle());
+					emailToSend.setSubject($("RMObject.alertWhenAvailableSubject",
+							$("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase())
+							+ ": " + record.getTitle());
 					emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 					List<String> parameters = new ArrayList<>();
 					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + returnDate);
@@ -106,6 +108,7 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					String constellioUrl = eimConfigs.getConstellioUrl();
 					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase());
 					emailToSend.setParameters(parameters);
 					transaction.add(emailToSend);
 				}
