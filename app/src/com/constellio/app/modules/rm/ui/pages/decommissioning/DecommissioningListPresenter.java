@@ -35,8 +35,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 
-public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView> implements
-																									 NewReportPresenter {
+public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
+		implements NewReportPresenter {
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
