@@ -12,7 +12,7 @@ import com.constellio.app.modules.rm.reports.builders.administration.plan.UserRe
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactoryWithoutRecords;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.ReportPresenter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 
@@ -37,7 +37,7 @@ public class RMReportsPresenter extends BasePresenter<RMReportsView> implements 
 				"Reports.Users");
 	}
 
-	public ReportBuilderFactory getReport(String report) {
+	public ReportWriterFactory getReport(String report) {
 		switch (report) {
 		case "Reports.fakeReport2":
 			return new ExampleReportFactoryWithoutRecords();

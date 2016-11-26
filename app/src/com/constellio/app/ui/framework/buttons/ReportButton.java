@@ -5,7 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.components.ReportViewer;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
@@ -52,7 +52,7 @@ public class ReportButton extends WindowButton {
 		if (presenter != null) {
 			return new ReportViewer(presenter.getReport(report));
 		} else {
-			NewReportBuilderFactory<Object> reportBuilderFactory = (NewReportBuilderFactory<Object>) newPresenter
+			NewReportWriterFactory<Object> reportBuilderFactory = (NewReportWriterFactory<Object>) newPresenter
 					.getReport(report);
 			Object parameters = newPresenter.getReportParameters(report);
 			String filename = reportBuilderFactory.getFilename(parameters);

@@ -6,12 +6,12 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.Decommissi
 import com.constellio.app.modules.rm.reports.model.decommissioning.DecommissioningListReportPresenter;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class DecommissioningListReportViewImpl implements NewReportBuilderFactory<DecommissioningListReportFactoryParameters> {
+public class DecommissioningListReportViewImpl implements NewReportWriterFactory<DecommissioningListReportFactoryParameters> {
 
 	protected ModelLayerFactory modelLayerFactory;
 

@@ -7,11 +7,11 @@ import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportWriter;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class LabelsReportFactory implements ReportBuilderFactory {
+public class LabelsReportFactory implements ReportWriterFactory {
 	private final List<String> recordIds;
 	private final LabelTemplate labelConfiguration;
 	private final int startPosition;

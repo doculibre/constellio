@@ -10,11 +10,11 @@ import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 // TODO: DELETE ME!
-public class ExampleReportFactory implements ReportBuilderFactory {
+public class ExampleReportFactory implements ReportWriterFactory {
 	private final List<String> recordIds;
 
 	public ExampleReportFactory(List<String> recordIds) {

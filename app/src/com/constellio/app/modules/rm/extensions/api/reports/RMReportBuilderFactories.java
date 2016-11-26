@@ -7,14 +7,14 @@ import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerR
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportFactory.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.data.frameworks.extensions.SingleValueExtension;
 import com.constellio.data.utils.Provider;
 
 public class RMReportBuilderFactories {
 
-	public SingleValueExtension<NewReportBuilderFactory<ContainerRecordReportParameters>> transferContainerRecordBuilderFactory = new SingleValueExtension<>();
+	public SingleValueExtension<NewReportWriterFactory<ContainerRecordReportParameters>> transferContainerRecordBuilderFactory = new SingleValueExtension<>();
 
 	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
 		//TODO Nicolas : Déplacer ce register dans le plugin des rapports
@@ -26,7 +26,7 @@ public class RMReportBuilderFactories {
 	 */
 	@Deprecated
 	public RMReportBuilderFactories register(
-			Provider<ContainerRecordReportFactoryParams, ReportBuilderFactory> transferContainerRecordReportProvider) {
+			Provider<ContainerRecordReportFactoryParams, ReportWriterFactory> transferContainerRecordReportProvider) {
 		return this;
 	}
 

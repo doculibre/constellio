@@ -7,13 +7,13 @@ import com.constellio.app.modules.rm.reports.model.search.SearchResultReportMode
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class SearchResultReportBuilderFactory implements ReportBuilderFactory {
+public class SearchResultReportWriterFactory implements ReportWriterFactory {
 	private final List<String> selectedRecords;
 	private final String schemaType;
 	private final String collection;
@@ -22,7 +22,7 @@ public class SearchResultReportBuilderFactory implements ReportBuilderFactory {
 	private final LogicalSearchQuery searchQuery;
 	private final ModelLayerFactory modelLayerFactory;
 
-	public SearchResultReportBuilderFactory(ModelLayerFactory modelLayerFactory, List<String> selectedRecords, String schemaType,
+	public SearchResultReportWriterFactory(ModelLayerFactory modelLayerFactory, List<String> selectedRecords, String schemaType,
 			String collection, String reportTitle, User user, LogicalSearchQuery searchQuery) {
 		this.selectedRecords = selectedRecords;
 		this.schemaType = schemaType;

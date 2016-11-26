@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportWriterFactory;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -34,7 +34,7 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.KeySetMap;
@@ -50,7 +50,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.StatusFilter;
@@ -318,12 +317,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public ReportWriterFactory getReport(String report) {
 		switch (report) {
 		case "Reports.fakeReport":
 			return new ExampleReportFactory(view.getSelectedRecordIds());
 		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportBuilderFactory(view.getCollection(), modelLayerFactory, getSearchQuery());
+			return new StatsReportWriterFactory(view.getCollection(), modelLayerFactory, getSearchQuery());
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}

@@ -22,7 +22,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -36,7 +36,7 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
@@ -276,12 +276,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String reportTitle) {
+	public ReportWriterFactory getReport(String reportTitle) {
 		try {
 			return super.getReport(reportTitle);
 		} catch (UnknownReportRuntimeException e) {
 			/**/
-			return new SearchResultReportBuilderFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
+			return new SearchResultReportWriterFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
 					collection, reportTitle, getCurrentUser(), getSearchQuery());
 		}
 	}

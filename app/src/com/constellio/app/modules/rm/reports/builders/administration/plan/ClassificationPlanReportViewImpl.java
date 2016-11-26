@@ -7,11 +7,11 @@ import org.apache.commons.lang.StringUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class ClassificationPlanReportViewImpl implements ReportBuilderFactory {
+public class ClassificationPlanReportViewImpl implements ReportWriterFactory {
 
 	boolean detail;
 	private String administrativeUnitId;

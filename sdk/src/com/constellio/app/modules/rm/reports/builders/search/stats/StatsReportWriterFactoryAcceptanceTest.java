@@ -56,7 +56,7 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isEqualTo("inexistingid");
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(0);
-		StatsReportBuilderFactory statsReportBuilderFactory = new StatsReportBuilderFactory(zeCollection, getModelLayerFactory(),
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
 				query);
 		assertThat(statsReportBuilderFactory.getStatistics()).isNull();
 	}
@@ -70,7 +70,7 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		List<String> foldersIds = Arrays.asList(new String[] { records.folder_A01, records.folder_A55 });
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(foldersIds);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		StatsReportBuilderFactory statsReportBuilderFactory = new StatsReportBuilderFactory(zeCollection, getModelLayerFactory(),
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
 				query);
 		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
 		assertThat(stats).isNotNull();
@@ -88,7 +88,7 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		List<String> foldersIds = Arrays.asList(new String[] { records.folder_A01, records.folder_A55 });
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(foldersIds);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		StatsReportBuilderFactory statsReportBuilderFactory = new StatsReportBuilderFactory(zeCollection, getModelLayerFactory(),
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
 				query);
 		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
 		assertThat(stats).isNotNull();
@@ -102,7 +102,7 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		List<String> foldersIds = Arrays.asList(new String[] { records.folder_A01, records.folder_A55 });
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(foldersIds);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		StatsReportBuilderFactory statsReportBuilderFactory = new StatsReportBuilderFactory(zeCollection, getModelLayerFactory(),
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
 				query);
 		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
 		assertThat(stats).isNull();

@@ -27,9 +27,8 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
@@ -114,7 +113,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	@Override
-	public NewReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(containerId);
 		ContainerRecord containerRecord = new ContainerRecord(record, types());
 

@@ -3,12 +3,12 @@ package com.constellio.app.ui.framework.components;
 import java.io.Serializable;
 import java.util.List;
 
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 
 public interface NewReportPresenter extends Serializable {
 	List<String> getSupportedReports();
 
-	NewReportBuilderFactory getReport(String report);
+	NewReportWriterFactory getReport(String report);
 
 	Object getReportParameters(String report);
 }

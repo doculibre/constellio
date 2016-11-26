@@ -11,7 +11,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
@@ -22,7 +22,7 @@ import com.vaadin.ui.VerticalLayout;
 
 public class ReportViewer extends VerticalLayout {
 	@Deprecated
-	public ReportViewer(ReportBuilderFactory factory) {
+	public ReportViewer(ReportWriterFactory factory) {
 		StreamSource source = buildSource(factory);
 
 		Embedded viewer = new Embedded();
@@ -73,7 +73,7 @@ public class ReportViewer extends VerticalLayout {
 	}
 
 	@Deprecated
-	private StreamSource buildSource(final ReportBuilderFactory factory) {
+	private StreamSource buildSource(final ReportWriterFactory factory) {
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {

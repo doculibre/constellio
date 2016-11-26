@@ -27,7 +27,7 @@ import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -391,7 +391,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	@Override
-	public NewReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 
 		if (report.equals("Reports.DecommissioningList")) {
 			return new DecommissioningListReportViewImpl(appLayerFactory);

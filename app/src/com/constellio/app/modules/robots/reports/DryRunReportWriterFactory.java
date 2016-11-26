@@ -7,21 +7,21 @@ import java.util.List;
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class DryRunReportBuilderFactory implements ReportBuilderFactory {
+public class DryRunReportWriterFactory implements ReportWriterFactory {
 	private List<DryRunRobotAction> dryRunRobotActions;
 	private SessionContext sessionContext;
 
 	@Deprecated
-	public DryRunReportBuilderFactory(List<DryRunRobotAction> dryRunRobotActions) {
+	public DryRunReportWriterFactory(List<DryRunRobotAction> dryRunRobotActions) {
 		this.dryRunRobotActions = dryRunRobotActions;
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
 	}
 
-	public DryRunReportBuilderFactory(List<DryRunRobotAction> dryRunRobotActions, SessionContext sessionContext) {
+	public DryRunReportWriterFactory(List<DryRunRobotAction> dryRunRobotActions, SessionContext sessionContext) {
 		this.dryRunRobotActions = dryRunRobotActions;
 		this.sessionContext = sessionContext;
 	}

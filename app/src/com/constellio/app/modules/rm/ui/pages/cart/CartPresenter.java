@@ -19,7 +19,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -32,7 +32,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -538,10 +538,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public ReportWriterFactory getReport(String report) {
 		List<String> recordids = getRecordsIds(view.getCurrentSchemaType());
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.schemaType(view.getCurrentSchemaType())).returnAll());
-		return new SearchResultReportBuilderFactory(modelLayerFactory, recordids, view.getCurrentSchemaType(),
+		return new SearchResultReportWriterFactory(modelLayerFactory, recordids, view.getCurrentSchemaType(),
 				collection, report, getCurrentUser(), query);
 	}
 }

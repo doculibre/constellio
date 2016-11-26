@@ -7,12 +7,12 @@ import com.constellio.app.modules.rm.reports.decommissioning.ContainerRecordRepo
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-public class ContainerRecordReportFactory implements NewReportBuilderFactory<ContainerRecordReportParameters> {
+public class ContainerRecordReportFactory implements NewReportWriterFactory<ContainerRecordReportParameters> {
 
 	protected ModelLayerFactory modelLayerFactory;
 	protected AppLayerFactory appLayerFactory;
