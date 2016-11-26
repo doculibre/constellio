@@ -67,7 +67,6 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_40;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -240,7 +239,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.searchPageExtensions.add(new RMSearchPageExtension(appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
-		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions());
+		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 	}
 

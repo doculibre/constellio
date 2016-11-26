@@ -1,21 +1,32 @@
 package com.constellio.app.modules.rm.extensions.api.reports;
 
+import static com.constellio.data.frameworks.extensions.SingleValueExtension.DEFAULT_VALUE;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportViewImpl;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportFactory;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportFactory.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.data.frameworks.extensions.SingleValueExtension;
 import com.constellio.data.utils.Provider;
 
 public class RMReportBuilderFactories {
 
-	ContainerRecordReportFactoryProvider transferContainerRecordReportProvider = new ContainerRecordReportFactoryProvider();
+	public SingleValueExtension<NewReportBuilderFactory<ContainerRecordReportParameters>> transferContainerRecordBuilderFactory = new SingleValueExtension<>();
 
-	public ReportBuilderFactory build(ContainerRecordReportFactoryParams params) {
-		return transferContainerRecordReportProvider.get(params);
+	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
+		//TODO Nicolas : Déplacer ce register dans le plugin des rapports
+		transferContainerRecordBuilderFactory.register(DEFAULT_VALUE, new ContainerRecordReportFactory(appLayerFactory));
 	}
 
-	public RMReportBuilderFactories register(ContainerRecordReportFactoryProvider transferContainerRecordReportProvider) {
-		this.transferContainerRecordReportProvider = transferContainerRecordReportProvider;
+	/**
+	 * Use public attributes instead
+	 */
+	@Deprecated
+	public RMReportBuilderFactories register(
+			Provider<ContainerRecordReportFactoryParams, ReportBuilderFactory> transferContainerRecordReportProvider) {
 		return this;
 	}
 
@@ -27,13 +38,6 @@ public class RMReportBuilderFactories {
 
 		public boolean isTransfer() {
 			return getWrappedRecord().getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-		}
-	}
-
-	public static class ContainerRecordReportFactoryProvider
-			implements Provider<ContainerRecordReportFactoryParams, ReportBuilderFactory> {
-		public ReportBuilderFactory get(ContainerRecordReportFactoryParams params) {
-			return new ContainerRecordReportViewImpl(params.getWrappedRecord().getId(), params.isTransfer());
 		}
 	}
 

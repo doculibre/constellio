@@ -10,6 +10,8 @@ import java.io.InputStream;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
@@ -31,6 +33,22 @@ public class ReportViewer extends VerticalLayout {
 
 		Link download = new Link($("ReportViewer.download", factory.getFilename()),
 				new DownloadStreamResource(source, factory.getFilename(), getMimeTypeFromFileName(factory.getFilename())));
+
+		addComponents(download, viewer);
+		setWidth("100%");
+	}
+
+	public ReportViewer(ReportBuilder reportBuilder, String filename) {
+		StreamSource source = buildSource(reportBuilder);
+
+		Embedded viewer = new Embedded();
+		viewer.setSource(new StreamResource(source, filename));
+		viewer.setType(Embedded.TYPE_BROWSER);
+		viewer.setWidth("100%");
+		viewer.setHeight("1024px");
+
+		Link download = new Link($("ReportViewer.download", filename),
+				new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
 
 		addComponents(download, viewer);
 		setWidth("100%");
@@ -62,6 +80,21 @@ public class ReportViewer extends VerticalLayout {
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
 				try {
 					factory.getReportBuilder(modelLayerFactory).build(output);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				return new ByteArrayInputStream(output.toByteArray());
+			}
+		};
+	}
+
+	private StreamSource buildSource(final ReportBuilder reportBuilder) {
+		return new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				ByteArrayOutputStream output = new ByteArrayOutputStream();
+				try {
+					reportBuilder.build(output);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
