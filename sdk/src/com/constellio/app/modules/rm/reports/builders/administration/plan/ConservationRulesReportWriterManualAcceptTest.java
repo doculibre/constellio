@@ -14,7 +14,7 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Conservat
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 
-public class ConservationRulesReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class ConservationRulesReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	List<String> supportTypes;
 	Map<String, String> principalsHolders;
@@ -92,6 +92,6 @@ public class ConservationRulesReportBuilderManualAcceptTest extends ReportBuilde
 		model.setRules(Arrays.asList(rule, rule));
 		//		model.setRules(Arrays.asList(rule));
 
-		build(new ConservationRulesReportBuilder(model,getModelLayerFactory().getFoldersLocator()));
+		build(new ConservationRulesReportWriter(model,getModelLayerFactory().getFoldersLocator()));
 	}
 }

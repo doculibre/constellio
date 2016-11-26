@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_User;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 
-public class AdministrativeUnitReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class AdministrativeUnitReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	AdministrativeUnitReportModel model;
 
@@ -23,14 +23,14 @@ public class AdministrativeUnitReportBuilderManualAcceptTest extends ReportBuild
 	@Test
 	public void whenBuildEmptyAdministrativeUnitReportThenOk() {
 		model = new AdministrativeUnitReportModel();
-		build(new AdministrativeUnitReportBuilder(model,
+		build(new AdministrativeUnitReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
 	public void whenBuildDetailedAdministrativeUnitReportThenOk() {
 		model = configAdminUnits();
-		build(new AdministrativeUnitReportBuilder(model,
+		build(new AdministrativeUnitReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 

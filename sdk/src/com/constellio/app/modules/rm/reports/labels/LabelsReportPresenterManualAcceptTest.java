@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportWriter;
 import com.constellio.app.modules.rm.reports.model.labels.ImageLabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
@@ -175,7 +175,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -190,7 +190,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -204,7 +204,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -218,7 +218,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -232,7 +232,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -248,7 +248,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(2);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -264,7 +264,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(3);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -280,7 +280,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(3);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -296,7 +296,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(4);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -312,7 +312,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(14);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -328,7 +328,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(14);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -344,7 +344,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(15);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -361,7 +361,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(20);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -379,7 +379,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		assertThat(model.getLabelsReportLabels()).hasSize(1);
 		assertThat(model.getLabelsReportLabels().get(0).getFields()).isEmpty();
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -395,7 +395,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(1);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -411,7 +411,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(2);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -427,7 +427,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		assertThat(model.getLabelsReportLabels().size()).isEqualTo(2);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 
 	}
 
@@ -457,7 +457,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 	}
 
 	@Test
@@ -484,7 +484,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 	}
 
 	@Test
@@ -513,7 +513,7 @@ public class LabelsReportPresenterManualAcceptTest extends ReportBuilderTestFram
 		LabelsReportModel model = presenter.build(folderIds, startPosition, copies, labelTemplate);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		write(new LabelsReportWriter(model));
 	}
 
 	private void givenFileNameTemplate(String filename)

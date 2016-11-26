@@ -9,17 +9,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel;
-import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel.FoldersCertificateReportModel_Folder;
+import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCertificateReportModel;
+import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCertificateReportModel.DocumentsCertificateReportModel_Document;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -27,8 +26,9 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 /**
  * Created by Patrick on 2016-01-15.
  */
-public class FoldersCertificateReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
-	FoldersCertificateReportModel model;
+public class DocumentsCertificateReportWriterManualAcceptTest extends ReportBuilderTestFramework {
+
+	DocumentsCertificateReportModel model;
 
 	RMSchemasRecordsServices rm;
 	MetadataSchemaTypes types;
@@ -52,92 +52,98 @@ public class FoldersCertificateReportBuilderManualAcceptTest extends ReportBuild
 	}
 
 	@Test
-	public void whenBuildEmptyFoldersCertificateReportThenOk() {
-		model = new FoldersCertificateReportModel();
+	public void whenBuildEmptyDocumentsCertificateReportThenOk() {
+		model = new DocumentsCertificateReportModel();
 		model.setCellBorder(true);
 		model.setDestructionDate(TimeProvider.getLocalDate().toString());
 		model.setCertificateCreationDate(TimeProvider.getLocalDate().toString());
 		model.setHash("T+4zq4cGP/tXkdJp/qz1WVWYhoQ=");
-		build(new FoldersCertificateReportBuilder(model,
+		build(new DocumentsCertificateReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
-	public void whenBuildTestFoldersCertificateReportThenOk() {
+	public void whenBuildTestDocumentsCertificateReportThenOk() {
 		model = newTestCertificateReportModel();
 		model.setDestructionDate(TimeProvider.getLocalDate().toString());
 		model.setCertificateCreationDate(TimeProvider.getLocalDate().toString());
 		model.setHash("T+4zq4cGP/tXkdJp/qz1WVWYhoQ=");
-		build(new FoldersCertificateReportBuilder(model, getModelLayerFactory().getFoldersLocator()));
+		build(new DocumentsCertificateReportWriter(model, getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
-	public void whenBuildFoldersCertificateReportThenOk() {
+	public void whenBuildDocumentsCertificateReportThenOk() {
 		model = newCertificateReportModel();
 		model.setDestructionDate(TimeProvider.getLocalDate().toString());
 		model.setCertificateCreationDate(TimeProvider.getLocalDate().toString());
 		model.setHash("T+4zq4cGP/tXkdJp/qz1WVWYhoQ=");
-		build(new FoldersCertificateReportBuilder(model, getModelLayerFactory().getFoldersLocator()));
+		build(new DocumentsCertificateReportWriter(model, getModelLayerFactory().getFoldersLocator()));
 	}
 
-	private FoldersCertificateReportModel newTestCertificateReportModel() {
+	private DocumentsCertificateReportModel newTestCertificateReportModel() {
 
-		FoldersCertificateReportModel model = newCertificateReportModel();
-		List<FoldersCertificateReportModel_Folder> foldersModel = new ArrayList<>();
+		DocumentsCertificateReportModel model = newCertificateReportModel();
+		List<DocumentsCertificateReportModel_Document> documents = new ArrayList<>();
 
 		for (int i = 0; i < 10; i++) {
-			FoldersCertificateReportModel_Folder folderModel = new FoldersCertificateReportModel_Folder();
-			folderModel.setFolder("folder folder folder folder folder folder folder folder folder folder " + i);
-			folderModel.setId("00000" + i);
-			folderModel.setTitle(
-					"Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title Folder title "
-							+ i);
-			folderModel.setRetentionRuleCode("ruleCode" + i);
-			folderModel.setPrincipalCopyRetentionRule("888-3-d" + i);
-			foldersModel.add(folderModel);
+			DocumentsCertificateReportModel_Document document = new DocumentsCertificateReportModel_Document();
+			document.setFilename("filename" + i + ".ext");
+			document.setFolder("folder " + i);
+			document.setId("00000" + i);
+			document.setTitle("document title " + i);
+			document.setMd5("T+4zq4cGP/tXkdJp/qz1WVWYhoQ=" + i);
+			document.setRetentionRuleCode("rule" + i);
+			document.setPrincipalCopyRetentionRule("888-3-d" + i);
+			documents.add(document);
 		}
 
-		model.setFolders(foldersModel);
+		model.setDocuments(documents);
 
 		return model;
 	}
 
-	private FoldersCertificateReportModel newCertificateReportModel() {
+	private DocumentsCertificateReportModel newCertificateReportModel() {
 
-		FoldersCertificateReportModel model = new FoldersCertificateReportModel();
+		DocumentsCertificateReportModel model = new DocumentsCertificateReportModel();
 
 		DecommissioningList decommissioningList = rm.getDecommissioningList("list02");
 
-		List<FoldersCertificateReportModel_Folder> foldersModel = new ArrayList<>();
+		List<DocumentsCertificateReportModel_Document> documentsModel = new ArrayList<>();
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
-		LogicalSearchCondition condition = from(types.getSchemaType(Folder.SCHEMA_TYPE))
-				.where(Schemas.IDENTIFIER)
+		LogicalSearchCondition condition = from(types.getSchemaType(Document.SCHEMA_TYPE))
+				.where(rm.documentParentFolder())
 				.isIn(decommissioningList.getFolders());
 		query.setCondition(condition);
 		List<Record> documentsRecords = searchServices.search(query);
-		List<Folder> folders = rm.wrapFolders(documentsRecords);
+		List<Document> documents = rm.wrapDocuments(documentsRecords);
 
-		for (Folder folder : folders) {
-			FoldersCertificateReportModel_Folder folderModel = new FoldersCertificateReportModel_Folder();
-			String parentFolder = "";
+		for (Document document : documents) {
+			DocumentsCertificateReportModel_Document documentModel = new DocumentsCertificateReportModel_Document();
+			String filename = "";
 			try {
-				parentFolder = rm.getFolder(folder.getParentFolder()).getTitle();
+				filename = document.getContent().getCurrentVersion().getFilename();
 			} catch (Exception e) {
 			}
-			folderModel.setFolder(parentFolder);
-			folderModel.setId(folder.getId());
-			folderModel.setTitle(folder.getTitle());
-			folderModel
-					.setRetentionRuleCode(rm.getRetentionRule(folder.getRetentionRule()).getCode());
-			folderModel.setPrincipalCopyRetentionRule(folder.getMainCopyRule().getCode());
-			foldersModel.add(folderModel);
+			documentModel.setFilename(filename);
+			documentModel.setFolder(rm.getFolder(document.getFolder()).getTitle());
+			documentModel.setId(document.getId());
+			documentModel.setTitle(document.getTitle());
+			String hash = "";
+			try {
+				hash = document.getContent().getCurrentVersion().getHash();
+			} catch (Exception e) {
+			}
+			documentModel.setMd5(hash);
+			documentModel
+					.setRetentionRuleCode(rm.getRetentionRule(rm.getFolder(document.getFolder()).getRetentionRule()).getCode());
+			documentModel.setPrincipalCopyRetentionRule(rm.getFolder(document.getFolder()).getMainCopyRule().getCode());
+			documentsModel.add(documentModel);
 
 		}
 
-		model.setFolders(foldersModel);
+		model.setDocuments(documentsModel);
 
 		return model;
 	}
-
 }

@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
@@ -133,7 +133,7 @@ public class ClassificationPlanReportPresenterManualAcceptTest extends ReportBui
 		assertThat(ze42Category.getLabel()).isEqualTo("Ze 42");
 		assertThat(ze42Category.getCategories()).isEmpty();
 
-		build(new ClassificationPlanReportBuilder(model,
+		build(new ClassificationPlanReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 }

@@ -10,7 +10,7 @@ import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -26,7 +26,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class UserReportBuilder implements ReportBuilder {
+public class UserReportWriter implements ReportWriter {
 
 	private static final int COLUMN_NUMBER = 20;
 	public static final int TABLE_WIDTH_PERCENTAGE = 90;
@@ -50,7 +50,7 @@ public class UserReportBuilder implements ReportBuilder {
 	private PdfTableUtils pdfTableUtils;
 	private FoldersLocator foldersLocator;
 
-	public UserReportBuilder(UserReportModel model, FoldersLocator foldersLocator) {
+	public UserReportWriter(UserReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.pdfTableUtils = new PdfTableUtils();
 		this.foldersLocator = foldersLocator;
@@ -61,7 +61,7 @@ public class UserReportBuilder implements ReportBuilder {
 		return PdfTableUtils.PDF;
 	}
 
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		Document document = new Document(PageSize.A4.rotate(), MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
 

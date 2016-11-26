@@ -6,7 +6,7 @@ import java.util.Locale;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.wrappers.User;
@@ -38,17 +38,17 @@ public class SearchResultReportBuilderFactory implements ReportBuilderFactory {
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
+	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		FoldersLocator folderLocator = modelLayerFactory.getFoldersLocator();
 		Locale locale =ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		SearchResultReportPresenter searchResultPresenter = new SearchResultReportPresenter(modelLayerFactory, selectedRecords,
 				schemaType, collection, username, reportTitle, searchQuery, locale);
-		return new SearchResultReportBuilder(searchResultPresenter.buildModel(modelLayerFactory), folderLocator,locale);
+		return new SearchResultReportWriter(searchResultPresenter.buildModel(modelLayerFactory), folderLocator,locale);
 	}
 
 	@Override
 	public String getFilename() {
-		return reportTitle + "." + new SearchResultReportBuilder(new SearchResultReportModel(), null, null).getFileExtension();
+		return reportTitle + "." + new SearchResultReportWriter(new SearchResultReportModel(), null, null).getFileExtension();
 	}
 
 }

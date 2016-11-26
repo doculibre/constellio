@@ -10,8 +10,7 @@ import java.io.InputStream;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.server.DownloadStream;
@@ -22,6 +21,7 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 
 public class ReportViewer extends VerticalLayout {
+	@Deprecated
 	public ReportViewer(ReportBuilderFactory factory) {
 		StreamSource source = buildSource(factory);
 
@@ -38,8 +38,8 @@ public class ReportViewer extends VerticalLayout {
 		setWidth("100%");
 	}
 
-	public ReportViewer(ReportBuilder reportBuilder, String filename) {
-		StreamSource source = buildSource(reportBuilder);
+	public ReportViewer(ReportWriter reportWriter, String filename) {
+		StreamSource source = buildSource(reportWriter);
 
 		Embedded viewer = new Embedded();
 		viewer.setSource(new StreamResource(source, filename));
@@ -72,6 +72,7 @@ public class ReportViewer extends VerticalLayout {
 		return DownloadStreamResource.PDF_MIMETYPE;
 	}
 
+	@Deprecated
 	private StreamSource buildSource(final ReportBuilderFactory factory) {
 		return new StreamSource() {
 			@Override
@@ -79,7 +80,7 @@ public class ReportViewer extends VerticalLayout {
 				ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
 				try {
-					factory.getReportBuilder(modelLayerFactory).build(output);
+					factory.getReportBuilder(modelLayerFactory).write(output);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -88,13 +89,13 @@ public class ReportViewer extends VerticalLayout {
 		};
 	}
 
-	private StreamSource buildSource(final ReportBuilder reportBuilder) {
+	private StreamSource buildSource(final ReportWriter reportWriter) {
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
 				try {
-					reportBuilder.build(output);
+					reportWriter.write(output);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

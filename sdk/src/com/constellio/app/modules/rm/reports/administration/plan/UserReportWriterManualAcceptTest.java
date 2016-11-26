@@ -6,13 +6,13 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 
-public class UserReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class UserReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	UserReportModel model;
 
@@ -24,14 +24,14 @@ public class UserReportBuilderManualAcceptTest extends ReportBuilderTestFramewor
 	@Test
 	public void whenBuildEmptyClassificationPlanReportThenOk() {
 		model = new UserReportModel();
-		build(new UserReportBuilder(model,
+		build(new UserReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
 	public void whenBuildDetailedClassificationPlanReportThenOk() {
 		model = configAdminUnits();
-		build(new UserReportBuilder(model,
+		build(new UserReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 

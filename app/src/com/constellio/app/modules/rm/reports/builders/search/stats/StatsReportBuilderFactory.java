@@ -7,7 +7,7 @@ import java.util.Map;
 import com.constellio.app.modules.rm.reports.model.search.stats.StatsReportModel;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -26,14 +26,14 @@ public class StatsReportBuilderFactory implements ReportBuilderFactory {
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
+	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		FoldersLocator folderLocator = modelLayerFactory.getFoldersLocator();
-		return new StatsReportBuilder(new StatsReportModel().setStats(statistics), folderLocator);
+		return new StatsReportWriter(new StatsReportModel().setStats(statistics), folderLocator);
 	}
 
 	@Override
 	public String getFilename() {
-		return $("Reports.FolderLinearMeasureStats" + "." + new StatsReportBuilder(null, null).getFileExtension());
+		return $("Reports.FolderLinearMeasureStats" + "." + new StatsReportWriter(null, null).getFileExtension());
 	}
 
 	public Map<String, Object> getStatistics() {

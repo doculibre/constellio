@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.reports.search.stats;
 
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportWriter;
 import com.constellio.app.modules.rm.reports.model.search.stats.StatsReportModel;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import org.junit.Before;
@@ -9,7 +9,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StatsReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class StatsReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	StatsReportModel model;
 
@@ -21,14 +21,14 @@ public class StatsReportBuilderManualAcceptTest extends ReportBuilderTestFramewo
 	@Test
 	public void whenBuildEmptyReportThenOk() {
 		model = new StatsReportModel();
-		build(new StatsReportBuilder(model,
+		build(new StatsReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
 	public void whenBuildDetailedClassificationPlanReportThenOk() {
 		model = configStats();
-		build(new StatsReportBuilder(model,
+		build(new StatsReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 

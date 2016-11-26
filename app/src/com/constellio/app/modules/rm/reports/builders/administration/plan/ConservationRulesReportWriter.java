@@ -14,7 +14,7 @@ import com.constellio.app.modules.rm.reports.model.administration.plan.Conservat
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -26,7 +26,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class ConservationRulesReportBuilder implements ReportBuilder {
+public class ConservationRulesReportWriter implements ReportWriter {
 
 	ConservationRulesReportModel model;
 	PdfTableUtils pdfTableUtils;
@@ -41,7 +41,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 	public static final int ADMINISTRATIVE_UNIT_TITLE_FONT_SIZE = TITLE_FONT_SIZE + 2;
 	public static final int COLUMN_NUMBER = 30;
 
-	public ConservationRulesReportBuilder(
+	public ConservationRulesReportWriter(
 			ConservationRulesReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.pdfTableUtils = new PdfTableUtils();
@@ -54,7 +54,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 	}
 
 	@Override
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		Document document = new Document(PageSize.A4, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
 

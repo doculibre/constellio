@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportPresenter;
@@ -108,7 +108,7 @@ public class UserReportPresenterManualAcceptTest extends ReportBuilderTestFramew
 
 		verifyAdmin(model);
 
-		build(new UserReportBuilder(model,
+		build(new UserReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}

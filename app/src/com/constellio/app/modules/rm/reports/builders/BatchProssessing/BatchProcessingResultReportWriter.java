@@ -1,12 +1,14 @@
-package com.constellio.app.modules.rm.reports.builders.search;
+package com.constellio.app.modules.rm.reports.builders.BatchProssessing;
 
-import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.conf.FoldersLocator;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
+
 import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
+import jxl.format.*;
+import jxl.format.Colour;
 import jxl.write.*;
 import jxl.write.Number;
 
@@ -15,16 +17,18 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 
-public class SearchResultReportBuilder implements ReportBuilder{
+import static com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel.getColumnsTitles;
+import static java.util.Arrays.asList;
+
+
+public class BatchProcessingResultReportWriter implements ReportWriter {
     private static final WritableFont.FontName FONT = WritableFont.TIMES;
     private static final int FONT_SIZE = 10;
-    SearchResultReportModel model;
-    FoldersLocator foldersLocator;
+    BatchProcessingResultModel model;
     Locale locale;
 
-    public SearchResultReportBuilder(SearchResultReportModel model, FoldersLocator foldersLocator, Locale locale) {
+    public BatchProcessingResultReportWriter(BatchProcessingResultModel model, Locale locale) {
         this.model = model;
-        this.foldersLocator = foldersLocator;
         this.locale = locale;
     }
 
@@ -34,7 +38,7 @@ public class SearchResultReportBuilder implements ReportBuilder{
     }
 
     @Override
-    public void build(OutputStream output) throws IOException {
+    public void write(OutputStream output) throws IOException {
         WorkbookSettings wbSettings = new WorkbookSettings();
 
         wbSettings.setLocale(locale);
@@ -42,13 +46,11 @@ public class SearchResultReportBuilder implements ReportBuilder{
         WritableWorkbook workbook = Workbook.createWorkbook(output, wbSettings);
         workbook.createSheet(i18n.$("Report.sheetName"), 0);
         WritableSheet excelSheet = workbook.getSheet(0);
+        excelSheet.setColumnView(0, 30);
+        excelSheet.setColumnView(1, 30);
+        excelSheet.setColumnView(2, 30);
         try {
-            addHeader(excelSheet, model.getColumnsTitles());
-        } catch (WriteException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            createContent(excelSheet, model.getResults());
+            createContent(excelSheet, model);
         } catch (WriteException e) {
             throw new RuntimeException(e);
         }
@@ -63,7 +65,7 @@ public class SearchResultReportBuilder implements ReportBuilder{
 
     private void addHeader(WritableSheet sheet, List<String> columnsTitles)
             throws WriteException {
-        WritableCellFormat  boldFont = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
+        WritableCellFormat boldFont = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
 
         CellView cv = new CellView();
         cv.setFormat(boldFont);
@@ -74,21 +76,39 @@ public class SearchResultReportBuilder implements ReportBuilder{
         }
     }
 
-    private void createContent(WritableSheet sheet, List<List<Object>> lines) throws WriteException{
+    private void createContent(WritableSheet sheet, BatchProcessingResultModel model) throws WriteException{
         WritableCellFormat  font = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE));
+        WritableCellFormat boldFont = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
+        WritableCellFormat redFont = new WritableCellFormat (new WritableFont(FONT, FONT_SIZE, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.RED));
 
-        for(int lineNumber =0; lineNumber < lines.size(); lineNumber++){
-            List<Object> currentLine = lines.get(lineNumber);
-            writeLine(sheet, currentLine, lineNumber+1, font);
+        int currentExcelLine = 0;
+        List<Object> resultHeaderLine = getColumnsTitles();
+
+        for(int lineNumber =0; lineNumber < model.resultsCount(); lineNumber++) {
+            BatchProcessRecordModifications currentResult = model.getResult(lineNumber);
+            writeLine(sheet, asList(model.getResultTitle(currentResult)), currentExcelLine, boldFont);
+            currentExcelLine++;
+            writeLine(sheet, resultHeaderLine, currentExcelLine, boldFont);
+            currentExcelLine++;
+            for(List<Object> currentLine : model.getResultLines(currentResult)) {
+                writeLine(sheet, currentLine, currentExcelLine, font);
+                currentExcelLine++;
+            }
+            for(List<Object> currentImpact : model.getImpacts(currentResult)) {
+                writeLine(sheet, currentImpact, currentExcelLine, redFont);
+                currentExcelLine++;
+            }
+            currentExcelLine ++;
         }
     }
 
+
     private void writeLine(WritableSheet sheet, List<Object> currentLine, int lineNumber, WritableCellFormat font) throws WriteException {
-        CellView cv = new CellView();
-        cv.setFormat(font);
-        cv.setAutosize(true);
         for(int columnNumber = 0; columnNumber < currentLine.size(); columnNumber++){
             Object cellObject = currentLine.get(columnNumber);
+            /*if(columnNumber == 0){
+                cellObject.set
+            }*/
             if(cellObject == null){
                 continue;
             }

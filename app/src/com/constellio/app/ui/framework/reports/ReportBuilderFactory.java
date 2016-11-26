@@ -5,7 +5,7 @@ import java.io.Serializable;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public interface ReportBuilderFactory extends Serializable {
-	ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory);
+	ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory);
 
 	String getFilename();
 }

@@ -16,7 +16,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-public class DecommissioningListReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class DecommissioningListReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	DecommissioningListReportModel model;
 
@@ -39,14 +39,14 @@ public class DecommissioningListReportBuilderManualAcceptTest extends ReportBuil
 	@Test
 	public void whenBuildEmptyDecommissioningListReportThenOk() {
 		model = new DecommissioningListReportModel();
-		build(new DecommissioningListReportBuilder(model,
+		build(new DecommissioningListReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
 	@Test
 	public void whenBuildDecommissioningListReportThenOk() {
 		model = newDecommissioningListReportModel();
-		build(new DecommissioningListReportBuilder(model,
+		build(new DecommissioningListReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 

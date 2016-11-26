@@ -16,7 +16,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Copy;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ConservationRulesReportModel.ConservationRulesReportModel_Rule;
@@ -80,7 +80,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 		processRule4(modelRules);
 
-		build(new ConservationRulesReportBuilder(model,
+		build(new ConservationRulesReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -103,7 +103,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 
 		processRule4(modelRules);
 
-		build(new ConservationRulesReportBuilder(model,
+		build(new ConservationRulesReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -131,7 +131,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_20")).size()).isEqualTo(1);
 		assertRule1Infos(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_20")).get(0));
 
-		build(new ConservationRulesReportBuilder(model,
+		build(new ConservationRulesReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -157,7 +157,7 @@ public class ConservationRulesReportPresenterManualAcceptTest extends ReportBuil
 		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(1).getRuleNumber()).isEqualTo("zeCode");
 		assertThat(adminUnitRulesMap.get(rm.getAdministrativeUnit("unitId_10")).get(1).getTitle()).isEqualTo("zeTitle");
 
-		build(new ConservationRulesReportBuilder(model,
+		build(new ConservationRulesReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}

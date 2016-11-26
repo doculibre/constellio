@@ -3,13 +3,13 @@ package com.constellio.app.modules.rm.reports.factories;
 import java.util.Arrays;
 import java.util.List;
 
-import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportWriter;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportFont;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -22,7 +22,7 @@ public class ExampleReportFactory implements ReportBuilderFactory {
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
+	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		// TODO: Build the model and return a ReportBuilder
 		LabelsReportModel model = new LabelsReportModel();
 
@@ -59,7 +59,7 @@ public class ExampleReportFactory implements ReportBuilderFactory {
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(true);
 
-		return new LabelsReportBuilder(model);
+		return new LabelsReportWriter(model);
 	}
 
 	@Override

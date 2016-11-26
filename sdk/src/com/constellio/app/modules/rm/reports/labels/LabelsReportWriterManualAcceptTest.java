@@ -6,22 +6,15 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.constellio.app.modules.rm.model.labelTemplate.BarCodeLabelTemplateField;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldHorizontalAlignment;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldVerticalAlignment;
-import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportWriter;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportFont;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
-import com.constellio.model.entities.schemas.Schemas;
-import com.itextpdf.text.Font.FontFamily;
 
-public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class LabelsReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	@Test
 	public void given2ColumnsAnd5RowsOfLabelsThenSheetIsCorrectlyDivided() {
@@ -65,7 +58,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		build(new LabelsReportWriter(model));
 	}
 
 	@Test
@@ -110,7 +103,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		build(new LabelsReportWriter(model));
 	}
 
 	@Test
@@ -189,7 +182,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(false);
 
-		build(new LabelsReportBuilder(model));
+		build(new LabelsReportWriter(model));
 	}
 
 
@@ -260,7 +253,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		build(new LabelsReportWriter(model));
 	}
 
 	@Test
@@ -381,7 +374,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		//		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		build(new LabelsReportWriter(model));
 	}
 
 	@Test
@@ -439,7 +432,7 @@ public class LabelsReportBuilderManualAcceptTest extends ReportBuilderTestFramew
 		model.setLabelsReportLabels(stickers);
 		model.setPrintBorders(true);
 
-		build(new LabelsReportBuilder(model));
+		build(new LabelsReportWriter(model));
 	}
 
 }

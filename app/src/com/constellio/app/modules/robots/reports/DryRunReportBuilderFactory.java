@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -27,14 +27,14 @@ public class DryRunReportBuilderFactory implements ReportBuilderFactory {
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
+	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		DryRunReportPresenter dryRunReportPresenter = new DryRunReportPresenter(modelLayerFactory, dryRunRobotActions, sessionContext);
-		return new DryRunReportBuilder(dryRunReportPresenter.buildModel(), null);
+		return new DryRunReportWriter(dryRunReportPresenter.buildModel(), null);
 	}
 
 	@Override
 	public String getFilename() {
-		return $("DryRunReport.filename") + "." + new DryRunReportBuilder(new DryRunReportModel(), null)
+		return $("DryRunReport.filename") + "." + new DryRunReportWriter(new DryRunReportModel(), null)
 				.getFileExtension();
 	}
 

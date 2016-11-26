@@ -9,7 +9,7 @@ import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DecommissioningListReportModel;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DecommissioningListReportModel.DecommissioningListReportModel_Folder;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -21,7 +21,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class DecommissioningListReportBuilder implements ReportBuilder {
+public class DecommissioningListReportWriter implements ReportWriter {
 
 	public static final float MARGIN_LEFT = 0f;
 	public static final float MARGIN_RIGHT = 0f;
@@ -35,7 +35,7 @@ public class DecommissioningListReportBuilder implements ReportBuilder {
 	private PdfTableUtils pdfTableUtils;
 	private FoldersLocator foldersLocator;
 
-	public DecommissioningListReportBuilder(DecommissioningListReportModel model, FoldersLocator foldersLocator) {
+	public DecommissioningListReportWriter(DecommissioningListReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.pdfTableUtils = new PdfTableUtils();
 		this.foldersLocator = foldersLocator;
@@ -46,7 +46,7 @@ public class DecommissioningListReportBuilder implements ReportBuilder {
 		return PdfTableUtils.PDF;
 	}
 
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		Document document = new Document(PageSize.A4, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
 

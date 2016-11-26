@@ -9,13 +9,14 @@ import java.io.*;
 import java.util.*;
 
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
@@ -196,7 +197,8 @@ public class BatchProcessingPresenterService {
 
 	}
 
-	public BatchProcessResults execute(BatchProcessRequest request) throws RecordServicesException {
+	public BatchProcessResults execute(BatchProcessRequest request)
+			throws RecordServicesException {
 
 		System.out.println("**************** EXECUTE ****************");
 		System.out.println("REQUEST : ");
@@ -217,7 +219,8 @@ public class BatchProcessingPresenterService {
 		return simulate(request);
 	}
 
-	public BatchProcessResults simulate(BatchProcessRequest request) throws RecordServicesException.ValidationException {
+	public BatchProcessResults simulate(BatchProcessRequest request)
+			throws RecordServicesException.ValidationException {
 		System.out.println("**************** SIMULATE ****************");
 		System.out.println("REQUEST : ");
 		System.out.println(request);
@@ -481,7 +484,7 @@ public class BatchProcessingPresenterService {
 				fieldsModifications.put(metadataVO.getCode(), value);
 			}
 		}
-		if(org.apache.commons.lang3.StringUtils.isNotBlank(selectedType)){
+		if (org.apache.commons.lang3.StringUtils.isNotBlank(selectedType)) {
 			Metadata typeMetadata = schemas.getRecordTypeMetadataOf(type);
 			LOGGER.info(typeMetadata.getCode() + ":" + selectedType);
 			fieldsModifications.put(typeMetadata.getCode(), selectedType);
@@ -498,8 +501,8 @@ public class BatchProcessingPresenterService {
 		try {
 			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE);
 			outputStream = new FileOutputStream(resultsFile);
-			new BatchProcessingResultReportBuilder(new BatchProcessingResultModel(results, locale), i18n.getLocale())
-					.build((OutputStream) outputStream);
+			new BatchProcessingResultReportWriter(new BatchProcessingResultModel(results, locale), i18n.getLocale())
+					.write((OutputStream) outputStream);
 			IOUtils.closeQuietly(outputStream);
 			return new FileInputStream(resultsFile);
 		} catch (Exception e) {

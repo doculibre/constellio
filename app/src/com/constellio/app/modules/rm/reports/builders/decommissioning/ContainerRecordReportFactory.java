@@ -8,7 +8,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -23,17 +23,17 @@ public class ContainerRecordReportFactory implements NewReportBuilderFactory<Con
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ContainerRecordReportParameters parameters) {
+	public ReportWriter getReportBuilder(ContainerRecordReportParameters parameters) {
 		String collection = getSessionContext().getCurrentCollection();
 		if (parameters.transfer) {
 			ContainerRecordReportPresenter presenter = new ContainerRecordReportPresenter(collection, modelLayerFactory);
 			ContainerRecord containerRecord = presenter.getContainerRecord(parameters.containerId);
-			return new DocumentTransfertReportBuilder(presenter.build(containerRecord), presenter.getIoServices(),
+			return new DocumentTransfertReportWriter(presenter.build(containerRecord), presenter.getIoServices(),
 					modelLayerFactory.getFoldersLocator());
 		} else {
 			ContainerRecordReportPresenter presenter = new ContainerRecordReportPresenter(collection, modelLayerFactory);
 			ContainerRecord containerRecord = presenter.getContainerRecord(parameters.containerId);
-			return new DocumentVersementReportBuilder(presenter.build(containerRecord), presenter.getIoServices(),
+			return new DocumentVersementReportWriter(presenter.build(containerRecord), presenter.getIoServices(),
 					modelLayerFactory.getFoldersLocator());
 		}
 	}

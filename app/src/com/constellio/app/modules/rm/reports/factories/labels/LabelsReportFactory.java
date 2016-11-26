@@ -3,10 +3,10 @@ package com.constellio.app.modules.rm.reports.factories.labels;
 import java.util.List;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.labels.LabelsReportWriter;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -26,10 +26,10 @@ public class LabelsReportFactory implements ReportBuilderFactory {
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
+	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		String collection = getSessionContext().getCurrentCollection();
 		LabelsReportPresenter presenter = new LabelsReportPresenter(collection, modelLayerFactory);
-		return new LabelsReportBuilder(presenter.build(recordIds, startPosition, numberOfCopies, labelConfiguration));
+		return new LabelsReportWriter(presenter.build(recordIds, startPosition, numberOfCopies, labelConfiguration));
 	}
 
 	@Override

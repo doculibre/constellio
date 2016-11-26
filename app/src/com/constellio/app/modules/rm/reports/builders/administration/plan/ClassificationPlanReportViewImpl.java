@@ -6,7 +6,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -26,11 +26,11 @@ public class ClassificationPlanReportViewImpl implements ReportBuilderFactory {
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
+	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		String collection = getSessionContext().getCurrentCollection();
 		ClassificationPlanReportPresenter presenter = new ClassificationPlanReportPresenter(collection, modelLayerFactory,
 				detail, administrativeUnitId);
-		return new ClassificationPlanReportBuilder(presenter.build(), presenter.getFoldersLocator());
+		return new ClassificationPlanReportWriter(presenter.build(), presenter.getFoldersLocator());
 	}
 
 	@Override

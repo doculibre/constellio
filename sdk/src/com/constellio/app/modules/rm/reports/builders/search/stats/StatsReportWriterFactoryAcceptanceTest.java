@@ -23,7 +23,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 
-public class StatsReportBuilderFactoryAcceptanceTest extends ConstellioTest {
+public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private SessionContext sessionContext;
 	private RecordServices recordServices;

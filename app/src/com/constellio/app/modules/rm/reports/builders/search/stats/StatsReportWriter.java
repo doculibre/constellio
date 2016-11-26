@@ -13,7 +13,7 @@ import java.util.Set;
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
 import com.constellio.app.modules.rm.reports.model.search.stats.StatsReportModel;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -29,7 +29,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class StatsReportBuilder implements ReportBuilder {
+public class StatsReportWriter implements ReportWriter {
 
 	public static final int TABLE_WIDTH_PERCENTAGE = 90;
 
@@ -44,7 +44,7 @@ public class StatsReportBuilder implements ReportBuilder {
 
 	private FoldersLocator foldersLocator;
 
-	public StatsReportBuilder(StatsReportModel model, FoldersLocator foldersLocator) {
+	public StatsReportWriter(StatsReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 
 		this.foldersLocator = foldersLocator;
@@ -54,7 +54,7 @@ public class StatsReportBuilder implements ReportBuilder {
 		return PdfTableUtils.PDF;
 	}
 
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		Document document = new Document(PageSize.A4, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
 
@@ -94,20 +94,20 @@ public class StatsReportBuilder implements ReportBuilder {
 		PdfPCell cell = new PdfPCell();
 		cell.setBorder(Rectangle.NO_BORDER);
 		Map<String, Object> stats = model.getStats();
-		if(stats != null){
-			for(KeyCaption keyCaption: orderAccordingToCaptions(stats.keySet())){
+		if (stats != null) {
+			for (KeyCaption keyCaption : orderAccordingToCaptions(stats.keySet())) {
 				String caption = keyCaption.getCaption();
 				Object value = stats.get(keyCaption.getKey());
-				if(value != null){
-					if(keyCaption.getKey().equals("sum")){
-						value = Double.valueOf(value.toString()) /100;
+				if (value != null) {
+					if (keyCaption.getKey().equals("sum")) {
+						value = Double.valueOf(value.toString()) / 100;
 					}
 					cell = addLine(writer, caption, value.toString());
 					table.addCell(cell);
 					table.completeRow();
 				}
 			}
-		}else{
+		} else {
 			cell = addLine(writer, $("FolderLinearMeasureStatsReport.sum"), "0");
 			table.addCell(cell);
 			table.completeRow();
@@ -118,7 +118,7 @@ public class StatsReportBuilder implements ReportBuilder {
 
 	private java.util.List<KeyCaption> orderAccordingToCaptions(Set<String> keys) {
 		java.util.List<KeyCaption> keyCaptionList = new ArrayList<>();
-		for(String key : keys){
+		for (String key : keys) {
 			String caption = $("FolderLinearMeasureStatsReport." + key);
 			keyCaptionList.add(new KeyCaption(key, caption));
 		}
@@ -136,7 +136,7 @@ public class StatsReportBuilder implements ReportBuilder {
 	private PdfPCell addLine(PdfWriter writer, String caption, String value) {
 		PdfPTable userTable = new PdfPTable(2);
 
-		float[] columnWidths = new float[] { 0.7f, 0.8f};
+		float[] columnWidths = new float[] { 0.7f, 0.8f };
 
 		try {
 			userTable.setWidths(columnWidths);

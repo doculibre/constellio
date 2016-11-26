@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_User;
@@ -112,7 +112,7 @@ public class AdministrativeUnitReportPresenterManualAcceptTest extends ReportBui
 
 		testAdministrativeUnit30c(model);
 
-		build(new AdministrativeUnitReportBuilder(model,
+		build(new AdministrativeUnitReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -123,7 +123,7 @@ public class AdministrativeUnitReportPresenterManualAcceptTest extends ReportBui
 		AdministrativeUnitReportModel model = presenter.build();
 		assertThat(model.getAdministrativeUnits()).isNotNull();
 
-		build(new AdministrativeUnitReportBuilder(model,
+		build(new AdministrativeUnitReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}

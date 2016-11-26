@@ -77,7 +77,7 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 			public InputStream getStream() {
 				ByteArrayOutputStream output = new ByteArrayOutputStream();
 				try {
-					factory.getReportBuilder(modelLayerFactory).build(output);
+					factory.getReportBuilder(modelLayerFactory).write(output);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -85,11 +85,11 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 			}
 		};
 	}
-	
+
 	public void backButtonClicked() {
 		view.navigate().to(RobotViews.class).listRootRobots();
 	}
-	
+
 	public void deleteRecordsButtonClicked() {
 		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
 	}
@@ -97,5 +97,5 @@ public class RobotConfigurationPresenter extends BaseRobotPresenter<RobotConfigu
 	public void deleteRecordsButtonClicked(RecordVO robot) {
 		view.navigate().to(RobotViews.class).deleteRobotRecords(rootRobotId);
 	}
-	
+
 }

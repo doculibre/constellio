@@ -11,7 +11,7 @@ import com.constellio.app.modules.rm.reports.model.labels.LabelsReportField;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Image;
@@ -21,12 +21,12 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class LabelsReportBuilder implements ReportBuilder {
+public class LabelsReportWriter implements ReportWriter {
 
 	private LabelsReportModel model;
 	private PdfTableUtils tableUtils;
 
-	public LabelsReportBuilder(LabelsReportModel model) {
+	public LabelsReportWriter(LabelsReportModel model) {
 		this.model = model;
 		this.tableUtils = new PdfTableUtils();
 	}
@@ -35,7 +35,7 @@ public class LabelsReportBuilder implements ReportBuilder {
 		return "pdf";
 	}
 
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		LabelsReportLayout layout = model.getLayout();
 		Document document = new Document(layout.getPageSize(), layout.getLeftMargin(), layout.getRightMargin(),

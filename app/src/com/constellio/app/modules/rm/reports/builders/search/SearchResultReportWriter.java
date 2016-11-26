@@ -1,32 +1,31 @@
-package com.constellio.app.modules.robots.reports;
+package com.constellio.app.modules.rm.reports.builders.search;
+
+import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
+import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.model.conf.FoldersLocator;
+
+import jxl.CellView;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.write.*;
+import jxl.write.Number;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 
-import jxl.CellView;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-
-import com.constellio.app.ui.framework.reports.ReportBuilder;
-import com.constellio.app.ui.i18n.i18n;
-
-public class DryRunReportBuilder implements ReportBuilder {
+public class SearchResultReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
 	private static final int FONT_SIZE = 10;
-	DryRunReportModel model;
+	SearchResultReportModel model;
+	FoldersLocator foldersLocator;
 	Locale locale;
 
-	public DryRunReportBuilder(DryRunReportModel model, Locale locale) {
+	public SearchResultReportWriter(SearchResultReportModel model, FoldersLocator foldersLocator, Locale locale) {
 		this.model = model;
+		this.foldersLocator = foldersLocator;
 		this.locale = locale;
 	}
 
@@ -36,7 +35,7 @@ public class DryRunReportBuilder implements ReportBuilder {
 	}
 
 	@Override
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		WorkbookSettings wbSettings = new WorkbookSettings();
 

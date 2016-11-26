@@ -7,9 +7,9 @@ import java.io.OutputStream;
 
 import com.constellio.app.modules.rm.reports.PageEvent;
 import com.constellio.app.modules.rm.reports.PdfTableUtils;
-import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel;
-import com.constellio.app.modules.rm.reports.model.decommissioning.FoldersCertificateReportModel.FoldersCertificateReportModel_Folder;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCertificateReportModel;
+import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCertificateReportModel.DocumentsCertificateReportModel_Document;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.itextpdf.text.BadElementException;
@@ -21,7 +21,7 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-public class FoldersCertificateReportBuilder implements ReportBuilder {
+public class DocumentsCertificateReportWriter implements ReportWriter {
 
 	public static final float MARGIN_LEFT = 0f;
 	public static final float MARGIN_RIGHT = 0f;
@@ -30,12 +30,12 @@ public class FoldersCertificateReportBuilder implements ReportBuilder {
 	public static final int FONT_SIZE = 8;
 	public static final int COLUMN_NUMBER = 100;
 
-	private FoldersCertificateReportModel model;
+	private DocumentsCertificateReportModel model;
 
 	private PdfTableUtils pdfTableUtils;
 	private FoldersLocator foldersLocator;
 
-	public FoldersCertificateReportBuilder(FoldersCertificateReportModel model, FoldersLocator foldersLocator) {
+	public DocumentsCertificateReportWriter(DocumentsCertificateReportModel model, FoldersLocator foldersLocator) {
 		this.model = model;
 		this.pdfTableUtils = new PdfTableUtils();
 		this.foldersLocator = foldersLocator;
@@ -46,7 +46,7 @@ public class FoldersCertificateReportBuilder implements ReportBuilder {
 		return PdfTableUtils.PDF;
 	}
 
-	public void build(OutputStream output)
+	public void write(OutputStream output)
 			throws IOException {
 		Document document = new Document(PageSize.A4, MARGIN_LEFT, MARGIN_RIGHT, MARGIN_TOP, MARGIN_BOTTOM);
 
@@ -89,8 +89,8 @@ public class FoldersCertificateReportBuilder implements ReportBuilder {
 		pdfTableUtils.addEmptyCells(table, 100, cell.getHeight());
 		pdfTableUtils.addEmptyCells(table, 100, cell.getHeight());
 
-		for (FoldersCertificateReportModel_Folder folder : model.getFolders()) {
-			addRow(folder, table);
+		for (DocumentsCertificateReportModel_Document document : model.getDocuments()) {
+			addRow(document, table);
 		}
 
 		return table;
@@ -115,9 +115,13 @@ public class FoldersCertificateReportBuilder implements ReportBuilder {
 		pdfTableUtils
 				.addLeftPhraseCell(table, "#", FONT_SIZE, 10, model.hasCellBorder());
 		pdfTableUtils
-				.addLeftPhraseCell(table, $("CertificateReport.title"), FONT_SIZE, 40, model.hasCellBorder());
+				.addLeftPhraseCell(table, $("CertificateReport.title"), FONT_SIZE, 20, model.hasCellBorder());
 		pdfTableUtils
-				.addLeftPhraseCell(table, $("CertificateReport.category"), FONT_SIZE, 30, model.hasCellBorder());
+				.addLeftPhraseCell(table, $("CertificateReport.md5"), FONT_SIZE, 15, model.hasCellBorder());
+		pdfTableUtils
+				.addLeftPhraseCell(table, $("CertificateReport.filename"), FONT_SIZE, 15, model.hasCellBorder());
+		pdfTableUtils
+				.addLeftPhraseCell(table, $("CertificateReport.folder"), FONT_SIZE, 20, model.hasCellBorder());
 		pdfTableUtils
 				.addLeftPhraseCell(table, $("CertificateReport.retentionRule"), FONT_SIZE, 10, model.hasCellBorder());
 		pdfTableUtils
@@ -125,14 +129,18 @@ public class FoldersCertificateReportBuilder implements ReportBuilder {
 						model.hasCellBorder());
 	}
 
-	private void addRow(FoldersCertificateReportModel_Folder document, PdfPTable table) {
+	private void addRow(DocumentsCertificateReportModel_Document document, PdfPTable table) {
 
 		pdfTableUtils
 				.addLeftPhraseCell(table, document.getId(), FONT_SIZE, 10);
 		pdfTableUtils
-				.addLeftPhraseCell(table, document.getTitle(), FONT_SIZE, 40);
+				.addLeftPhraseCell(table, document.getTitle(), FONT_SIZE, 20);
 		pdfTableUtils
-				.addLeftPhraseCell(table, document.getFolder(), FONT_SIZE, 30);
+				.addLeftPhraseCell(table, document.getMd5(), FONT_SIZE, 15);
+		pdfTableUtils
+				.addLeftPhraseCell(table, document.getFilename(), FONT_SIZE, 15);
+		pdfTableUtils
+				.addLeftPhraseCell(table, document.getFolder(), FONT_SIZE, 20);
 		pdfTableUtils
 				.addLeftPhraseCell(table, document.getRetentionRuleCode(), FONT_SIZE, 10);
 		pdfTableUtils

@@ -9,13 +9,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationPlanReportWriter;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 
-public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class ClassificationPlanReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	ClassificationPlanReportModel model;
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -36,7 +36,7 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		model = new ClassificationPlanReportModel();
 		//model.setHeaderLogo(getTestResourceInputStreamFactory("logo.png"));
 
-		build(new ClassificationPlanReportBuilder(model,
+		build(new ClassificationPlanReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -51,7 +51,7 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		model.setCategoriesByAdministrativeUnit(administrativeUnitListCategoryMap);
 		model.setByAdministrativeUnit(true);
 
-		build(new ClassificationPlanReportBuilder(model,
+		build(new ClassificationPlanReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
@@ -61,7 +61,7 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		boolean detailed = true;
 		model = configCategories(detailed);
 
-		build(new ClassificationPlanReportBuilder(model,
+		build(new ClassificationPlanReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 
@@ -71,7 +71,7 @@ public class ClassificationPlanReportBuilderManualAcceptTest extends ReportBuild
 		boolean detailed = false;
 		model = configCategories(detailed);
 
-		build(new ClassificationPlanReportBuilder(model,
+		build(new ClassificationPlanReportWriter(model,
 				getModelLayerFactory().getFoldersLocator()));
 	}
 

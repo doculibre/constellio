@@ -9,7 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DocumentTransfertReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DocumentTransfertReportWriter;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Calendar;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Document;
@@ -66,7 +66,7 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 
 		assertThat(model).isNotNull();
 
-		build(new DocumentTransfertReportBuilder(model, getIOLayerFactory().newIOServices(),
+		build(new DocumentTransfertReportWriter(model, getIOLayerFactory().newIOServices(),
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -77,7 +77,7 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 
 		assertThat(model).isNotNull();
 
-		build(new DocumentTransfertReportBuilder(model, getIOLayerFactory().newIOServices(),
+		build(new DocumentTransfertReportWriter(model, getIOLayerFactory().newIOServices(),
 				getModelLayerFactory().getFoldersLocator()));
 
 	}
@@ -88,7 +88,7 @@ public class ContainerRecordReportPresenterManualAcceptTest extends ReportBuilde
 
 		assertThat(model).isNotNull();
 
-		build(new DocumentTransfertReportBuilder(model, getIOLayerFactory().newIOServices(),
+		build(new DocumentTransfertReportWriter(model, getIOLayerFactory().newIOServices(),
 				getModelLayerFactory().getFoldersLocator()));
 
 	}

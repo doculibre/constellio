@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DocumentVersementReportBuilder;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DocumentVersementReportWriter;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Calendar;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentReportModel.DocumentTransfertModel_Document;
@@ -13,7 +13,7 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.ReportBoolean
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import com.constellio.data.utils.TimeProvider;
 
-public class DocumentVersementReportBuilderManualAcceptTest extends ReportBuilderTestFramework {
+public class DocumentVersementReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 
 	@Test
 	public void verify_report_has_one_page_and_informations_in_all_fields() {
@@ -24,7 +24,7 @@ public class DocumentVersementReportBuilderManualAcceptTest extends ReportBuilde
 		createIdentification(model);
 		createDocumentList(model, 80);
 
-		build(new DocumentVersementReportBuilder(model, getIOLayerFactory().newIOServices(),
+		write(new DocumentVersementReportWriter(model, getIOLayerFactory().newIOServices(),
 				getModelLayerFactory().getFoldersLocator()));
 	}
 

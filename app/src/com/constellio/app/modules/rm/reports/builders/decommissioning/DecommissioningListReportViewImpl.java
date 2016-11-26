@@ -7,7 +7,7 @@ import com.constellio.app.modules.rm.reports.model.decommissioning.Decommissioni
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.NewReportBuilderFactory;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
@@ -20,11 +20,11 @@ public class DecommissioningListReportViewImpl implements NewReportBuilderFactor
 	}
 
 	@Override
-	public ReportBuilder getReportBuilder(DecommissioningListReportFactoryParameters parameters) {
+	public ReportWriter getReportBuilder(DecommissioningListReportFactoryParameters parameters) {
 		String collection = getSessionContext().getCurrentCollection();
 		DecommissioningListReportPresenter presenter = new DecommissioningListReportPresenter(collection, modelLayerFactory,
 				parameters.decommissioningListId);
-		return new DecommissioningListReportBuilder(presenter.build(), presenter.getFoldersLocator());
+		return new DecommissioningListReportWriter(presenter.build(), presenter.getFoldersLocator());
 	}
 
 	@Override
