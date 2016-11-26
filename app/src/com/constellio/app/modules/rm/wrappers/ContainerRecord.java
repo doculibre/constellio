@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.wrappers;
 import java.util.List;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -16,6 +17,7 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 	public static final String ADMINISTRATIVE_UNIT = "administrativeUnit";
+	public static final String ADMINISTRATIVE_UNITS = "administrativeUnits";
 	public static final String BORROW_DATE = "borrowDate";
 	public static final String BORROWER = "borrower";
 	public static final String COMPLETION_DATE = "completionDate";
@@ -185,6 +187,16 @@ public class ContainerRecord extends RecordWrapper {
 
 	public ContainerRecord setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
 		set(ADMINISTRATIVE_UNIT, administrativeUnit);
+		return this;
+	}
+
+	public List<String> getAdministrativeUnits() {
+		return get(ADMINISTRATIVE_UNITS);
+
+	}
+
+	public ContainerRecord setAdministrativeUnits(List<?> administrativeUnits) {
+		set(ADMINISTRATIVE_UNITS, administrativeUnits);
 		return this;
 	}
 

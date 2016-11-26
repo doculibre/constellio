@@ -60,6 +60,13 @@ public class UserImportServices implements ImportServices {
 		}
 	}
 
+	@Override
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+			BulkImportProgressionListener bulkImportProgressionListener, User user, List<String> collections,
+			BulkImportParams params) {
+		return bulkImport(importDataProvider, bulkImportProgressionListener, user, collections);
+	}
+
 	int bulkImport(BulkImportResults importResults, ImportDataProvider importDataProvider, List<String> collections) {
 		int skipped = 0;
 		Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator("user");

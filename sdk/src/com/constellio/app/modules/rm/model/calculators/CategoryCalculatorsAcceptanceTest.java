@@ -189,4 +189,62 @@ public class CategoryCalculatorsAcceptanceTest extends ConstellioTest {
 				principal888_9_C.in("rule2", "w100", 1)); //type4
 	}
 
+//	@Test
+	//	public void givenRubricAsDefaultCopyRuleIdThenDefaultRuleAndDefaultCopyRule()
+	//			throws Exception {
+	//
+	//		CopyRetentionRule principal888_1_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-1-C");
+	//		CopyRetentionRule principal888_2_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-2-C");
+	//		CopyRetentionRule principal888_3_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-3-C");
+	//		CopyRetentionRule secondary888_4_C = copyBuilder.newSecondary(TestUtils.asList(records.PA), "888-4-C");
+	//
+	//		CopyRetentionRule principal888_5_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-5-C");
+	//		CopyRetentionRule principal888_6_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-6-C");
+	//		CopyRetentionRule principal888_7_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-7-C");
+	//		CopyRetentionRule secondary888_8_C = copyBuilder.newSecondary(TestUtils.asList(records.PA), "888-8-C");
+	//
+	//		CopyRetentionRule principal888_9_C = copyBuilder.newPrincipal(TestUtils.asList(records.PA), "888-9-C");
+	//
+	//		Transaction transaction = new Transaction();
+	//
+	//		RetentionRule zeRule = transaction.add(rm.newRetentionRuleWithId("zeRule").setCode("zeRule").setTitle("Ze rule")
+	//				.setResponsibleAdministrativeUnits(true));
+	//		zeRule.setCopyRetentionRules(asList(principal888_1_C, principal888_2_C, principal888_3_C, secondary888_4_C));
+	//
+	//		RetentionRule anotherRule = transaction.add(rm.newRetentionRuleWithId("anotherRule").setCode("anotherRule")
+	//				.setTitle("Another rule").setResponsibleAdministrativeUnits(true));
+	//		anotherRule.setCopyRetentionRules(asList(principal888_5_C, principal888_6_C, principal888_7_C, secondary888_8_C));
+	//
+	//		Category w = transaction.add(rm.newCategoryWithId("w").setCode("W").setTitle("W")
+	//				.setDefaultCopyRuleId(principal888_2_C)
+	//				.setRetentionRules(asList(zeRule, anotherRule)));
+	//
+	//		recordServices.execute(transaction);
+	//
+	//		assertThat(w.getDefaultCopyRuleId()).isEqualTo(principal888_2_C.getId());
+	//		assertThat(w.getDefaultCopyRule()).isEqualTo(principal888_2_C);
+	//		assertThat(w.getDefaultRetentionRule()).isEqualTo("zeRule");
+	//
+	//		recordServices.update(w.setDefaultCopyRuleId(secondary888_8_C.getId()));
+	//		assertThat(w.getDefaultCopyRuleId()).isEqualTo(secondary888_8_C.getId());
+	//		assertThat(w.getDefaultCopyRule()).isNull();
+	//		assertThat(w.getDefaultRetentionRule()).isNull();
+	//
+	//		recordServices.update(w.setDefaultCopyRuleId(principal888_7_C.getId()));
+	//		assertThat(w.getDefaultCopyRuleId()).isEqualTo(principal888_7_C.getId());
+	//		assertThat(w.getDefaultCopyRule()).isEqualTo(principal888_7_C);
+	//		assertThat(w.getDefaultRetentionRule()).isEqualTo("anotherRule");
+	//
+	//		recordServices.update(w.setDefaultCopyRuleId(principal888_9_C.getId()));
+	//		assertThat(w.getDefaultCopyRuleId()).isEqualTo(principal888_9_C.getId());
+	//		assertThat(w.getDefaultCopyRule()).isNull();
+	//		assertThat(w.getDefaultRetentionRule()).isNull();
+	//
+	//		recordServices.update(w.setDefaultCopyRuleId((CopyRetentionRule) null));
+	//		assertThat(w.getDefaultCopyRuleId()).isNull();
+	//		assertThat(w.getDefaultCopyRule()).isNull();
+	//		assertThat(w.getDefaultRetentionRule()).isNull();
+	//
+	//	}
+
 }

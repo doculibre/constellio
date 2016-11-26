@@ -17,6 +17,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
 
 public class Transaction {
 
@@ -106,6 +107,23 @@ public class Transaction {
 	public Transaction addAll(RecordWrapper... recordWrappers) {
 		for (RecordWrapper recordWrapper : recordWrappers) {
 			this.add(recordWrapper.getWrappedRecord());
+		}
+		return this;
+	}
+
+	public Transaction addAll(List<?> records) {
+		for (Object record : records) {
+			if (record != null) {
+				if (record instanceof RecordWrapper) {
+					this.add(((RecordWrapper) record).getWrappedRecord());
+
+				} else if (record instanceof Record) {
+					this.add((Record) record);
+
+				} else {
+					throw new IllegalArgumentException("Unsupported object of type " + record.getClass().getName());
+				}
+			}
 		}
 		return this;
 	}

@@ -16,6 +16,7 @@ import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 
 public class SmbNewDocumentRetrievalJob extends ConnectorJob implements SmbConnectorJob {
 	private static final String jobName = SmbNewDocumentRetrievalJob.class.getSimpleName();
@@ -48,17 +49,25 @@ public class SmbNewDocumentRetrievalJob extends ConnectorJob implements SmbConne
 
 		switch (smbObject.getStatus()) {
 		case FULL_DTO:
-			ConnectorDocument fullDocument = smbRecordService.newConnectorSmbDocument(url);
-			String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
-			updater.updateDocumentOrFolder(smbObject, fullDocument, parentId);
-			eventObserver.push(Arrays.asList(fullDocument));
-			smbRecordService.updateResumeUrl(url);
+			try {
+				ConnectorDocument fullDocument = smbRecordService.newConnectorSmbDocument(url);
+				String parentId = smbRecordService.getSafeId(smbRecordService.getFolder(parentUrl));
+				updater.updateDocumentOrFolder(smbObject, fullDocument, parentId);
+				eventObserver.push(Arrays.asList(fullDocument));
+				smbRecordService.updateResumeUrl(url);
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
+			}
 			break;
 		case FAILED_DTO:
-			ConnectorDocument failedDocument = smbRecordService.newConnectorSmbDocument(url);
-			String failedDocumentParentId = smbRecordService.getRecordIdForFolder(parentUrl);
-			updater.updateFailedDocumentOrFolder(smbObject, failedDocument, failedDocumentParentId);
-			eventObserver.push(Arrays.asList(failedDocument));
+			try {
+				ConnectorDocument failedDocument = smbRecordService.newConnectorSmbDocument(url);
+				String parentId = smbRecordService.getSafeId(smbRecordService.getFolder(parentUrl));
+				updater.updateFailedDocumentOrFolder(smbObject, failedDocument, parentId);
+				eventObserver.push(Arrays.asList(failedDocument));
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
+			}
 			break;
 		case DELETE_DTO:
 			try {
@@ -66,8 +75,7 @@ public class SmbNewDocumentRetrievalJob extends ConnectorJob implements SmbConne
 				ConnectorJob deleteJob = jobFactory.get(SmbJobCategory.DELETE, url, parentUrl);
 				connectorSmb.queueJob(deleteJob);
 			} catch (Exception e) {
-				this.connector.getLogger()
-						.errorUnexpected(e);
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		default:
