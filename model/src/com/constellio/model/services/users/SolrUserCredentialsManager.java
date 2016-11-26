@@ -73,9 +73,10 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails,
+			String serviceKey,
+			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
@@ -310,46 +311,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 
 	@Override
 	public void systemCollectionCreated() {
-		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypesBuilder builder = manager.modify(Collection.SYSTEM_COLLECTION);
-		createUserCredentialSchema(builder);
-		try {
-			manager.saveUpdateSchemaTypes(builder);
-		} catch (OptimisticLocking e) {
-			systemCollectionCreated();
-		}
 
-	}
-
-	private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
-		MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SolrUserCredential.SCHEMA_TYPE);
-		credentialsTypeBuilder.setSecurity(false);
-		MetadataSchemaBuilder credentials = credentialsTypeBuilder.getDefaultSchema();
-
-		credentials.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCalculated(UserTitleCalculator.class);
-
-		credentials.createUndeletable(SolrUserCredential.USERNAME).setType(MetadataValueType.STRING)
-				.setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
-		credentials.createUndeletable(SolrUserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
-		credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
-		credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
-				.setUniqueValue(false).addValidator(EmailValidator.class);
-		credentials.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING).setMultivalue(true);
-		credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
-		credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
-				.setEncrypted(true);
-		credentials.createUndeletable(SolrUserCredential.TOKEN_EXPIRATIONS).setType(MetadataValueType.DATE_TIME)
-				.setMultivalue(true);
-		credentials.createUndeletable(SolrUserCredential.SYSTEM_ADMIN).setType(MetadataValueType.BOOLEAN)
-				.setDefaultRequirement(true).setDefaultValue(false);
-		credentials.createUndeletable(SolrUserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-		credentials.createUndeletable(SolrUserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
-		credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class)
-				.setDefaultRequirement(true);
-		credentials.createUndeletable(SolrUserCredential.DOMAIN).setType(MetadataValueType.STRING);
-		credentials.createUndeletable(SolrUserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
-				.setMultivalue(true);
-		credentials.createUndeletable(SolrUserCredential.DN).setType(MetadataValueType.STRING);
 	}
 
 	private LogicalSearchQuery getQueryFilteredByStatus(UserCredentialStatus status) {
