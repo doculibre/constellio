@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -14,9 +15,19 @@ public class EnumWithSmallCodeOptionGroup<E extends EnumWithSmallCode> extends L
 	private Class<E> enumWithSmallCodeClass;
 	
 	private EnumWithSmallCodeFieldPresenter presenter;
-	
+
+	MetadataDisplayType metadataDisplayType;
+
 	public EnumWithSmallCodeOptionGroup(Class<E> enumWithSmallCodeClass) {
 		super();
+		this.enumWithSmallCodeClass = enumWithSmallCodeClass;
+		this.presenter = new EnumWithSmallCodeFieldPresenter(this);
+		this.presenter.forEnumClass(enumWithSmallCodeClass);
+	}
+	
+	public EnumWithSmallCodeOptionGroup(Class<E> enumWithSmallCodeClass,  MetadataDisplayType metadataDisplayType) {
+		super();
+		this.metadataDisplayType = metadataDisplayType;
 		this.enumWithSmallCodeClass = enumWithSmallCodeClass;
 		this.presenter = new EnumWithSmallCodeFieldPresenter(this);
 		this.presenter.forEnumClass(enumWithSmallCodeClass);
@@ -24,18 +35,28 @@ public class EnumWithSmallCodeOptionGroup<E extends EnumWithSmallCode> extends L
 
 	@Override
 	public void setOptions(List<EnumWithSmallCode> enumConstants) {
+		initStyleName();
 	    for (EnumWithSmallCode enumWithSmallCode : enumConstants) {
 			String enumCode = enumWithSmallCode.getCode();
 			addItem(enumWithSmallCode);
 			// TODO Use EnumWithSmallCodeToCaptionConverter
 			String caption = $(enumWithSmallCodeClass.getSimpleName() + "." + enumCode);
 			setItemCaption(enumWithSmallCode, caption);
-		}	
+		}
 	}
 
 	@Override
 	public SessionContext getSessionContext() {
 		return ConstellioUI.getCurrentSessionContext();
 	}
+
+	public void initStyleName() {
+		if(metadataDisplayType != null && metadataDisplayType.equals(MetadataDisplayType.HORIZONTAL)) {
+			this.addStyleName("horizontal");
+		}
+		else {
+			this.addStyleName("vertical");
+		}
+	};
 
 }

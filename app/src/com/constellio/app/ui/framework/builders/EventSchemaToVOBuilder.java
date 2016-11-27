@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -20,12 +21,12 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 	protected MetadataToVOBuilder newMetadataToVOBuilder() {
 		return new MetadataToVOBuilder() {
 			@Override
-			protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode, MetadataValueType type,
-					String collection, MetadataSchemaVO schemaVO, boolean required, boolean multivalue,
-					boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
-					String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
+		protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode, MetadataValueType type,
+				    String collection, MetadataSchemaVO schemaVO, boolean required, boolean multivalue,
+				    boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
+				    String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
 					AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory,
-					String metadataGroup, Object defaultValue, String inputMask) {
+											   String metadataGroup, Object defaultValue, String inputMask) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -36,11 +37,11 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 						newLabels.put(labelLocale, newLabel);
 					}
 					metadataVO = super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly,
-							labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
+							labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 							structureFactory, metadataGroup, defaultValue, inputMask);
 				} else {
 					metadataVO = super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly,
-							labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled,
+							labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 							structureFactory, metadataGroup, defaultValue, inputMask);
 				}
 				return metadataVO;
