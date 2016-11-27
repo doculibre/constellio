@@ -52,6 +52,22 @@ public class ConstellioEIMConfigs {
     public static final SystemConfiguration ICAP_SERVER_URL;
 
 	public static final SystemConfiguration ICAP_RESPONSE_TIMEOUT;
+	
+	public static final SystemConfiguration CKEDITOR_TOOLBAR_CONFIG;
+	
+	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = ""	+
+	        "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" + 
+			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" + 
+			"	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" + 
+			"	'/',\n" + 
+			"	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n" + 
+			"	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n" + 
+			"	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" + 
+			"	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" + 
+			"	'/',\n" + 
+			"	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" + 
+			"	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" + 
+			"	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -101,6 +117,8 @@ public class ConstellioEIMConfigs {
 		add(ICAP_SERVER_URL = icapConfigurationGroup.createString("icapServerUrl"));
 		add(ICAP_RESPONSE_TIMEOUT = icapConfigurationGroup.createInteger("icapResponseTimeout").withDefaultValue(5000));
 
+        add(CKEDITOR_TOOLBAR_CONFIG = others.createString("ckeditorToolbarConfig").withDefaultValue(DEFAULT_CKEDITOR_TOOLBAR_CONFIG));
+		
         //
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -194,6 +212,10 @@ public class ConstellioEIMConfigs {
 
 	public int getIcapResponseTimeout() {
 		return manager.getValue(ICAP_RESPONSE_TIMEOUT);
+	}
+	
+	public String getCKEditorToolbarConfig() {
+		return manager.getValue(CKEDITOR_TOOLBAR_CONFIG);
 	}
 
 }
