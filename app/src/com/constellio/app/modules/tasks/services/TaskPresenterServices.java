@@ -147,7 +147,7 @@ public class TaskPresenterServices {
 		if (!user.hasWriteAccess().on(record)) {
 			return false;
 		}
-		if (!isAssignedToUser(record, user)) {
+		if (!wasCreatedByUser(record, user)) {
 			return false;
 		}
 		Object statusId = record.get(tasksSchemas.userTask.status());
@@ -167,6 +167,11 @@ public class TaskPresenterServices {
 			return true;
 		}
 		return CollectionUtils.containsAny(task.getAssigneeGroupsCandidates(), user.getUserGroups());
+	}
+
+	boolean wasCreatedByUser(Record record, User user) {
+		Task task = tasksSchemas.wrapTask(record);
+		return task.getCreatedBy() != null && task.getCreatedBy().equals(user.getId());
 	}
 
 	public void sendReminder(Record record, User user) {

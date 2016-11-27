@@ -21,8 +21,7 @@ public class AllowedMetadataUtil {
 
         List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
 
-        result = !metadataVO.isMultivalue();
-        result = result && !restrictedType.contains(metadataVO.getType());
+        result = !restrictedType.contains(metadataVO.getType());
         result = result && !localCodes.contains(metadataVO.getCode());//getLocalcode()
 
         return result;

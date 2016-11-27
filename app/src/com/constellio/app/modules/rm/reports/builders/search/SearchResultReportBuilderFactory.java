@@ -5,6 +5,7 @@ import java.util.Locale;
 
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportPresenter;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.ReportBuilder;
 import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
@@ -20,16 +21,16 @@ public class SearchResultReportBuilderFactory implements ReportBuilderFactory {
 	private final String username;
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
-	private final ModelLayerFactory modelLayerFactory;
+	private final AppLayerFactory appLayerFactory;
 
-	public SearchResultReportBuilderFactory(ModelLayerFactory modelLayerFactory, List<String> selectedRecords, String schemaType,
+	public SearchResultReportBuilderFactory(AppLayerFactory appLayerFactory, List<String> selectedRecords, String schemaType,
 			String collection, String reportTitle, User user, LogicalSearchQuery searchQuery) {
 		this.selectedRecords = selectedRecords;
 		this.schemaType = schemaType;
 		this.collection = collection;
 		this.reportTitle = reportTitle;
 		this.searchQuery = searchQuery;
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
 		if (user != null) {
 			this.username = user.getUsername();
 		} else {
@@ -41,7 +42,7 @@ public class SearchResultReportBuilderFactory implements ReportBuilderFactory {
 	public ReportBuilder getReportBuilder(ModelLayerFactory modelLayerFactory) {
 		FoldersLocator folderLocator = modelLayerFactory.getFoldersLocator();
 		Locale locale =ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		SearchResultReportPresenter searchResultPresenter = new SearchResultReportPresenter(modelLayerFactory, selectedRecords,
+		SearchResultReportPresenter searchResultPresenter = new SearchResultReportPresenter(appLayerFactory, selectedRecords,
 				schemaType, collection, username, reportTitle, searchQuery, locale);
 		return new SearchResultReportBuilder(searchResultPresenter.buildModel(modelLayerFactory), folderLocator,locale);
 	}
