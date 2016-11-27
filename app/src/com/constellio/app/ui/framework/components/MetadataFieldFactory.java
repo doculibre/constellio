@@ -122,9 +122,9 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case RADIO_BUTTONS:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 					} else {
 						field = null;
 					}
@@ -167,9 +167,9 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case RADIO_BUTTONS:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 						if (firstSchemaCode != null) {
@@ -271,10 +271,10 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case CHECKBOXES:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 						((EnumWithSmallCodeOptionGroup) field).setMultiSelect(true);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 						((TaxonomyOptionGroup) field).setMultiSelect(true);
 					} else {
 						field = null;
@@ -318,9 +318,9 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case CHECKBOXES:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 						((TaxonomyOptionGroup) field).setMultiSelect(true);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);

@@ -27,9 +27,9 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 
 	public RecordOptionGroup(String schemaCode, MetadataDisplayType metadataDisplayType) {
 		super();
+		this.metadataDisplayType = metadataDisplayType;
 		this.presenter = new RecordOptionFieldPresenter(this);
 		this.presenter.forSchemaCode(schemaCode);
-		this.metadataDisplayType = metadataDisplayType;
 	}
 
 	@Override
