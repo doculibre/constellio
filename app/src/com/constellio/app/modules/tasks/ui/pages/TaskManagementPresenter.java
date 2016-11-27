@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
@@ -59,16 +60,15 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public List<String> getTabs() {
-
 		List<String> tabs = new ArrayList<>();
 		tabs.add(TASKS_ASSIGNED_TO_CURRENT_USER);
 		tabs.add(TASKS_ASSIGNED_BY_CURRENT_USER);
 		tabs.add(TASKS_NOT_ASSIGNED);
 		tabs.add(TASKS_RECENTLY_COMPLETED);
 
-//		if (areWorkflowsEnabled()) {
-//			tabs.add(WORKFLOWS_STARTED);
-//		}
+		if (areWorkflowsEnabled() && getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally()) {
+			tabs.add(WORKFLOWS_STARTED);
+		}
 
 		return tabs;
 	}
