@@ -210,8 +210,8 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(bob));
-		assertThat(results.size()).isEqualTo(1);
-		assertThatRecord(results.get(0)).hasMetadataValue(Schemas.TITLE, "taskAssignedByBobToChuckFinished");
+		assertThat(results.size()).isEqualTo(2);
+		assertThat(results).extracting("title").containsAll(asList("taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
 	}
 
 	@Test
@@ -219,7 +219,9 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getRecentlyCompletedTasks(chuck));
-		assertThat(results.size()).isEqualTo(2);
+		assertThat(results.size()).isEqualTo(4);
+		assertThat(results).extracting("title").containsAll(asList("taskAssignedByChuckToAliceClosed",
+				"taskAssignedByChuckToAliceFinished", "taskAssignedByBobToChuckFinished", "taskAssignedByBobToChuckClosed"));
 	}
 
 	@Test
