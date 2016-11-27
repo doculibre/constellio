@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -51,7 +52,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
 public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
-	private TaskSchemasExtension taskSchemasExtension;
+	private TaskRecordExtension taskRecordExtension;
 
 	Users users = new Users();
 	RecordServices recordServices;
@@ -87,7 +88,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		searchServices = getModelLayerFactory().newSearchServices();
 		tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		emailToSendSchema = tasksSchemas.emailToSend();
-		taskSchemasExtension = new TaskSchemasExtension(zeCollection, getAppLayerFactory());
+		taskRecordExtension = new TaskRecordExtension(zeCollection, getAppLayerFactory());
 		userServices = getModelLayerFactory().newUserServices();
 		eimConfigs = new ConstellioEIMConfigs(getModelLayerFactory().getSystemConfigurationsManager());
 		constellioUrl = eimConfigs.getConstellioUrl();
@@ -376,7 +377,7 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		zeTask.setTaskFollowers(null);
 		recordServices.add(zeTask);
 		recordServices.flush();
-		taskSchemasExtension.sendDeletionEventToFollowers(zeTask);
+		taskRecordExtension.sendDeletionEventToFollowers(zeTask);
 		assertThat(getEmailToSendNotHavingAssignedToYouTemplateId()).isNull();
 	}
 
@@ -592,4 +593,28 @@ public class TaskSchemasExtensionAcceptanceTest extends ConstellioTest {
 		}
 		return tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getUsername();
 	}
+
+	@Test
+	public void givenTaskCreatedThenAssignerIsAddedByDefaultToCompletionEventFollowers()
+			throws RecordServicesException {
+        // Given
+        final User someAssigner = users.aliceIn(zeCollection);
+        final User someAssignee = users.bobIn(zeCollection);
+
+		final Task someTask = tasksSchemas.newTask().
+                setTitle("title").
+                setAssigner(someAssigner.getId()).
+                setAssignee(someAssignee.getId()).
+                setAssignationDate(now.toLocalDate()).
+                setAssignedOn(now.toLocalDate());
+
+        // When
+		recordServices.add(someTask);
+		recordServices.flush();
+
+        // Then
+		assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).isNotEmpty();
+        assertThat(tasksSchemas.getTask(someTask.getId()).getTaskFollowers()).contains(new TaskFollower().setFollowerId(someAssigner.getId()).setFollowTaskCompleted(true));
+	}
+
 }

@@ -196,6 +196,21 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.getParsedContent(hash);
 	}
 
+    @Test
+	public void givenEmptyNonYetParsedContentWhenUploadedThenUploaded()
+			throws Exception {
+		// Given
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent(""));
+
+		// When
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(contentStream, "someFileName");
+
+		// Then
+        assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=")).isNotNull();
+        assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=").getLength()).isEqualTo(0);
+	}
+
     @Test(expected = IcapException.CommunicationFailure.class)
     public void givenInfectedNonYetParsedContentWhenUploadedThenCommunicationExceptionThrown()
             throws Exception {
