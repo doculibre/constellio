@@ -2,6 +2,7 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import java.util.*;
 
@@ -29,6 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -115,12 +117,14 @@ public class UserServices {
 				msExchDelegateListBL, dn);
 	}
 
-	public UserCredential createUserCredential(String username, String firstName, String lastName, String email, List<String> personalEmails,
-											   String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
-											   Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-											   String dn) {
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> personalEmails,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn) {
 		return userCredentialsManager.create(
-				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
+				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
+				status, domain,
 				msExchDelegateListBL, dn);
 	}
 
@@ -473,7 +477,9 @@ public class UserServices {
 			userInCollection.set(CommonMetadataBuilder.LOGICALLY_DELETED, false);
 		}
 		userInCollection.setEmail(StringUtils.isBlank(user.getEmail()) ? null : user.getEmail());
-		userInCollection.setPersonalEmails(CollectionUtils.isEmpty(user.getPersonalEmails()) ? null : user.getPersonalEmails());
+		if (userInCollection.getSchema().hasMetadataWithCode(SolrUserCredential.PERSONAL_EMAILS)) {
+			userInCollection.setPersonalEmails(isEmpty(user.getPersonalEmails()) ? null : user.getPersonalEmails());
+		}
 		userInCollection.setFirstName(user.getFirstName());
 		userInCollection.setLastName(user.getLastName());
 		userInCollection.setUsername(user.getUsername());
