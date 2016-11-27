@@ -305,10 +305,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
 				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
-					Object metadataValue = folderVO.get(metadataVO);
-					Object defaultValue = metadataVO.getDefaultValue();
-					if (metadataValue == null || !metadataValue.equals(defaultValue)) {
-						folder.getWrappedRecord().set(matchingMetadata, metadataValue);
+					Object voMetadataValue = folderVO.get(metadataVO);
+					Object defaultValue = matchingMetadata.getDefaultValue();
+					Object voDefaultValue = metadataVO.getDefaultValue();
+					if (voMetadataValue == null && defaultValue == null) {
+						folder.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+						folder.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {

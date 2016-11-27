@@ -12,6 +12,7 @@ import java.util.Map;
 import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -473,14 +474,17 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
 				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
-					Object metadataValue = documentVO.get(metadataVO);
-					Object defaultValue = metadataVO.getDefaultValue();
-					if (metadataValue instanceof ContentVersionVO) {
+					Object voMetadataValue = documentVO.get(metadataVO);
+					Object defaultValue = matchingMetadata.getDefaultValue();
+					Object voDefaultValue = metadataVO.getDefaultValue();
+					if (voMetadataValue instanceof ContentVersionVO) {
 						// Special case dealt with later
-						metadataValue = null;
-						document.getWrappedRecord().set(matchingMetadata, metadataValue);
-					} else if (metadataValue == null || !metadataValue.equals(defaultValue)) {
-						document.getWrappedRecord().set(matchingMetadata, metadataValue);
+						voMetadataValue = null;
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue == null && defaultValue == null) {
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
