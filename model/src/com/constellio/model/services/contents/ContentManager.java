@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.constellio.model.services.contents.icap.IcapService;
+
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -100,7 +101,7 @@ public class ContentManager implements StatefulService {
 	private final CollectionsListManager collectionsListManager;
 	private final AtomicBoolean closing = new AtomicBoolean();
 	private final ModelLayerFactory modelLayerFactory;
-    private final IcapService icapService;
+	private final IcapService icapService;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		super();
@@ -118,7 +119,7 @@ public class ContentManager implements StatefulService {
 		this.configuration = modelLayerFactory.getConfiguration();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-        icapService = new IcapService(modelLayerFactory);
+		icapService = new IcapService(modelLayerFactory);
 	}
 
 	@Override
@@ -154,8 +155,8 @@ public class ContentManager implements StatefulService {
 							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
 		}
 
-        //
-        icapService.init();
+		//
+		icapService.init();
 	}
 
 	@Override
@@ -243,7 +244,7 @@ public class ContentManager implements StatefulService {
 		return new ParsedContentConverter().convertToString(parsingResults);
 	}
 
-    @Deprecated
+	@Deprecated
 	public ContentVersionDataSummary upload(InputStream inputStream) {
 		return upload(inputStream, true, true, null);
 	}
@@ -317,11 +318,13 @@ public class ContentManager implements StatefulService {
 
 	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
-        //
-        try (final InputStream inputStream = inputStreamFactory.create(hash + ".icapscan")) {
-            final String filename = ((CopyInputStreamFactory) inputStreamFactory).getFilename();
-            icapService.scan(filename, inputStream);
-        }
+		//
+		try (final InputStream inputStream = inputStreamFactory.create(hash + ".icapscan")) {
+			if (inputStreamFactory instanceof CopyInputStreamFactory) {
+				final String filename = ((CopyInputStreamFactory) inputStreamFactory).getFilename();
+				icapService.scan(filename, inputStream);
+			}
+		}
 
 		ParsedContent parsedContent = tryToParse(inputStreamFactory);
 		saveParsedContent(hash, parsedContent);
