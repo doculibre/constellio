@@ -325,7 +325,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private interface SetupScript {
+	public interface SetupScript {
 
 		void setupCollection();
 

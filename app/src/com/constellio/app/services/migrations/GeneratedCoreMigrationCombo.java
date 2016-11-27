@@ -19,6 +19,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.EmailAddressFactory;
+import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -105,6 +106,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder collection_detachedauthorizations = collectionSchema.get("detachedauthorizations");
 		collection_detachedauthorizations.setSystemReserved(true);
 		collection_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder collection_errorOnPhysicalDeletion = collectionSchema.get("errorOnPhysicalDeletion");
+		collection_errorOnPhysicalDeletion.setSystemReserved(true);
+		collection_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder collection_followers = collectionSchema.get("followers");
 		collection_followers.setMultivalue(true);
 		collection_followers.setSystemReserved(true);
@@ -133,6 +137,9 @@ public final class GeneratedCoreMigrationCombo {
 		collection_legacyIdentifier.setSearchable(true);
 		collection_legacyIdentifier.setUniqueValue(true);
 		collection_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder collection_logicallyDeletedOn = collectionSchema.get("logicallyDeletedOn");
+		collection_logicallyDeletedOn.setSystemReserved(true);
+		collection_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder collection_manualTokens = collectionSchema.get("manualTokens");
 		collection_manualTokens.setMultivalue(true);
 		collection_manualTokens.setSystemReserved(true);
@@ -221,6 +228,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder group_detachedauthorizations = groupSchema.get("detachedauthorizations");
 		group_detachedauthorizations.setSystemReserved(true);
 		group_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder group_errorOnPhysicalDeletion = groupSchema.get("errorOnPhysicalDeletion");
+		group_errorOnPhysicalDeletion.setSystemReserved(true);
+		group_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder group_followers = groupSchema.get("followers");
 		group_followers.setMultivalue(true);
 		group_followers.setSystemReserved(true);
@@ -247,6 +257,9 @@ public final class GeneratedCoreMigrationCombo {
 		group_legacyIdentifier.setSearchable(true);
 		group_legacyIdentifier.setUniqueValue(true);
 		group_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder group_logicallyDeletedOn = groupSchema.get("logicallyDeletedOn");
+		group_logicallyDeletedOn.setSystemReserved(true);
+		group_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder group_manualTokens = groupSchema.get("manualTokens");
 		group_manualTokens.setMultivalue(true);
 		group_manualTokens.setSystemReserved(true);
@@ -357,6 +370,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder user_email = userSchema.create("email").setType(MetadataValueType.STRING);
 		user_email.setUndeletable(true);
 		user_email.defineValidators().add(EmailValidator.class);
+		MetadataBuilder user_errorOnPhysicalDeletion = userSchema.get("errorOnPhysicalDeletion");
+		user_errorOnPhysicalDeletion.setSystemReserved(true);
+		user_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder user_firstname = userSchema.create("firstname").setType(MetadataValueType.STRING);
 		user_firstname.setUndeletable(true);
 		MetadataBuilder user_followers = userSchema.get("followers");
@@ -400,6 +416,9 @@ public final class GeneratedCoreMigrationCombo {
 		user_legacyIdentifier.setSearchable(true);
 		user_legacyIdentifier.setUniqueValue(true);
 		user_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder user_logicallyDeletedOn = userSchema.get("logicallyDeletedOn");
+		user_logicallyDeletedOn.setSystemReserved(true);
+		user_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder user_loginLanguageCode = userSchema.create("loginLanguageCode").setType(MetadataValueType.STRING);
 		user_loginLanguageCode.setUndeletable(true);
 		MetadataBuilder user_manualTokens = userSchema.get("manualTokens");
@@ -482,6 +501,8 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder user_visibleInTrees = userSchema.get("visibleInTrees");
 		user_visibleInTrees.setSystemReserved(true);
 		user_visibleInTrees.setUndeletable(true);
+		MetadataBuilder user_visibleTableColumns = userSchema.create("visibleTableColumns").setType(MetadataValueType.STRUCTURE);
+		user_visibleTableColumns.defineStructureFactory(MapStringListStringStructureFactory.class);
 		MetadataBuilder emailToSend_BCC = emailToSendSchema.create("BCC").setType(MetadataValueType.STRUCTURE);
 		emailToSend_BCC.setMultivalue(true);
 		emailToSend_BCC.setUndeletable(true);
@@ -518,6 +539,9 @@ public final class GeneratedCoreMigrationCombo {
 		emailToSend_detachedauthorizations.setUndeletable(true);
 		MetadataBuilder emailToSend_error = emailToSendSchema.create("error").setType(MetadataValueType.STRING);
 		emailToSend_error.setUndeletable(true);
+		MetadataBuilder emailToSend_errorOnPhysicalDeletion = emailToSendSchema.get("errorOnPhysicalDeletion");
+		emailToSend_errorOnPhysicalDeletion.setSystemReserved(true);
+		emailToSend_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder emailToSend_followers = emailToSendSchema.get("followers");
 		emailToSend_followers.setMultivalue(true);
 		emailToSend_followers.setSystemReserved(true);
@@ -545,6 +569,9 @@ public final class GeneratedCoreMigrationCombo {
 		emailToSend_legacyIdentifier.setSearchable(true);
 		emailToSend_legacyIdentifier.setUniqueValue(true);
 		emailToSend_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder emailToSend_logicallyDeletedOn = emailToSendSchema.get("logicallyDeletedOn");
+		emailToSend_logicallyDeletedOn.setSystemReserved(true);
+		emailToSend_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder emailToSend_manualTokens = emailToSendSchema.get("manualTokens");
 		emailToSend_manualTokens.setMultivalue(true);
 		emailToSend_manualTokens.setSystemReserved(true);
@@ -652,6 +679,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder event_detachedauthorizations = eventSchema.get("detachedauthorizations");
 		event_detachedauthorizations.setSystemReserved(true);
 		event_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder event_errorOnPhysicalDeletion = eventSchema.get("errorOnPhysicalDeletion");
+		event_errorOnPhysicalDeletion.setSystemReserved(true);
+		event_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder event_eventPrincipalPath = eventSchema.create("eventPrincipalPath").setType(MetadataValueType.STRING);
 		event_eventPrincipalPath.setUndeletable(true);
 		MetadataBuilder event_followers = eventSchema.get("followers");
@@ -680,6 +710,9 @@ public final class GeneratedCoreMigrationCombo {
 		event_legacyIdentifier.setSearchable(true);
 		event_legacyIdentifier.setUniqueValue(true);
 		event_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder event_logicallyDeletedOn = eventSchema.get("logicallyDeletedOn");
+		event_logicallyDeletedOn.setSystemReserved(true);
+		event_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder event_manualTokens = eventSchema.get("manualTokens");
 		event_manualTokens.setMultivalue(true);
 		event_manualTokens.setSystemReserved(true);
@@ -798,6 +831,9 @@ public final class GeneratedCoreMigrationCombo {
 		facet_elementPerPage.setDefaultRequirement(true);
 		facet_elementPerPage.setUndeletable(true);
 		facet_elementPerPage.setDefaultValue(5);
+		MetadataBuilder facet_errorOnPhysicalDeletion = facetSchema.get("errorOnPhysicalDeletion");
+		facet_errorOnPhysicalDeletion.setSystemReserved(true);
+		facet_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder facet_facetType = facetSchema.create("facetType").setType(MetadataValueType.ENUM);
 		facet_facetType.setDefaultRequirement(true);
 		facet_facetType.setUndeletable(true);
@@ -829,6 +865,9 @@ public final class GeneratedCoreMigrationCombo {
 		facet_legacyIdentifier.setSearchable(true);
 		facet_legacyIdentifier.setUniqueValue(true);
 		facet_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder facet_logicallyDeletedOn = facetSchema.get("logicallyDeletedOn");
+		facet_logicallyDeletedOn.setSystemReserved(true);
+		facet_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder facet_manualTokens = facetSchema.get("manualTokens");
 		facet_manualTokens.setMultivalue(true);
 		facet_manualTokens.setSystemReserved(true);
@@ -936,6 +975,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder report_detachedauthorizations = reportSchema.get("detachedauthorizations");
 		report_detachedauthorizations.setSystemReserved(true);
 		report_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder report_errorOnPhysicalDeletion = reportSchema.get("errorOnPhysicalDeletion");
+		report_errorOnPhysicalDeletion.setSystemReserved(true);
+		report_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder report_followers = reportSchema.get("followers");
 		report_followers.setMultivalue(true);
 		report_followers.setSystemReserved(true);
@@ -963,6 +1005,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder report_linesCount = reportSchema.create("linesCount").setType(MetadataValueType.NUMBER);
 		report_linesCount.setDefaultRequirement(true);
 		report_linesCount.setUndeletable(true);
+		MetadataBuilder report_logicallyDeletedOn = reportSchema.get("logicallyDeletedOn");
+		report_logicallyDeletedOn.setSystemReserved(true);
+		report_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder report_manualTokens = reportSchema.get("manualTokens");
 		report_manualTokens.setMultivalue(true);
 		report_manualTokens.setSystemReserved(true);
@@ -1067,6 +1112,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder savedSearch_detachedauthorizations = savedSearchSchema.get("detachedauthorizations");
 		savedSearch_detachedauthorizations.setSystemReserved(true);
 		savedSearch_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder savedSearch_errorOnPhysicalDeletion = savedSearchSchema.get("errorOnPhysicalDeletion");
+		savedSearch_errorOnPhysicalDeletion.setSystemReserved(true);
+		savedSearch_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder savedSearch_facetSelections = savedSearchSchema.create("facetSelections")
 				.setType(MetadataValueType.STRUCTURE);
 		savedSearch_facetSelections.setMultivalue(true);
@@ -1098,6 +1146,9 @@ public final class GeneratedCoreMigrationCombo {
 		savedSearch_legacyIdentifier.setSearchable(true);
 		savedSearch_legacyIdentifier.setUniqueValue(true);
 		savedSearch_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder savedSearch_logicallyDeletedOn = savedSearchSchema.get("logicallyDeletedOn");
+		savedSearch_logicallyDeletedOn.setSystemReserved(true);
+		savedSearch_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder savedSearch_manualTokens = savedSearchSchema.get("manualTokens");
 		savedSearch_manualTokens.setMultivalue(true);
 		savedSearch_manualTokens.setSystemReserved(true);
@@ -1224,6 +1275,9 @@ public final class GeneratedCoreMigrationCombo {
 		task_detachedauthorizations.setUndeletable(true);
 		MetadataBuilder task_dueDate = taskSchema.create("dueDate").setType(MetadataValueType.DATE_TIME);
 		task_dueDate.setUndeletable(true);
+		MetadataBuilder task_errorOnPhysicalDeletion = taskSchema.get("errorOnPhysicalDeletion");
+		task_errorOnPhysicalDeletion.setSystemReserved(true);
+		task_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder task_finishedBy = taskSchema.create("finishedBy").setType(MetadataValueType.REFERENCE);
 		task_finishedBy.setUndeletable(true);
 		task_finishedBy.defineReferencesTo(userSchemaType);
@@ -1253,6 +1307,9 @@ public final class GeneratedCoreMigrationCombo {
 		task_legacyIdentifier.setSearchable(true);
 		task_legacyIdentifier.setUniqueValue(true);
 		task_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder task_logicallyDeletedOn = taskSchema.get("logicallyDeletedOn");
+		task_logicallyDeletedOn.setSystemReserved(true);
+		task_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder task_manualTokens = taskSchema.get("manualTokens");
 		task_manualTokens.setMultivalue(true);
 		task_manualTokens.setSystemReserved(true);
@@ -1351,6 +1408,9 @@ public final class GeneratedCoreMigrationCombo {
 		MetadataBuilder userDocument_detachedauthorizations = userDocumentSchema.get("detachedauthorizations");
 		userDocument_detachedauthorizations.setSystemReserved(true);
 		userDocument_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder userDocument_errorOnPhysicalDeletion = userDocumentSchema.get("errorOnPhysicalDeletion");
+		userDocument_errorOnPhysicalDeletion.setSystemReserved(true);
+		userDocument_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder userDocument_followers = userDocumentSchema.get("followers");
 		userDocument_followers.setMultivalue(true);
 		userDocument_followers.setSystemReserved(true);
@@ -1375,6 +1435,9 @@ public final class GeneratedCoreMigrationCombo {
 		userDocument_legacyIdentifier.setSearchable(true);
 		userDocument_legacyIdentifier.setUniqueValue(true);
 		userDocument_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder userDocument_logicallyDeletedOn = userDocumentSchema.get("logicallyDeletedOn");
+		userDocument_logicallyDeletedOn.setSystemReserved(true);
+		userDocument_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder userDocument_manualTokens = userDocumentSchema.get("manualTokens");
 		userDocument_manualTokens.setMultivalue(true);
 		userDocument_manualTokens.setSystemReserved(true);
@@ -1593,6 +1656,6 @@ public final class GeneratedCoreMigrationCombo {
 						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
 						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
 						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
-						"core.manageTrash", "core.manageValueList", "core.viewEvents")));
+						"core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents")));
 	}
 }

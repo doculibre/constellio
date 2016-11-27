@@ -132,7 +132,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		File dest = new File(
 				getFoldersLocator().getAppProject()
 						+ "/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
-		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/services/migrations/GeneratedCoreMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -195,7 +194,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
-		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -256,7 +254,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
-		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -316,8 +313,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.build();
 
 		File dest = new File(getFoldersLocator().getAppProject()
-				+ "/src/com/constellio/app/modules/robots/migrations/GeneratedTasksMigrationCombo.java");
-		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/robots/migrations/GeneratedRobotsMigrationCombo.java");
+				+ "/src/com/constellio/app/modules/robots/migrations/GeneratedRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -378,7 +374,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/es/migrations/GeneratedTasksMigrationCombo.java");
-		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -449,11 +444,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		File dest = new File(getFoldersLocator().getAppProject()
 				+ "/src/com/constellio/app/modules/complementary/migrations/GeneratedTasksMigrationCombo.java");
-		//				"/Users/francisbaril/IdeaProjects/constellio-dev/constellio/app/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedESRMRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
-	private MethodSpec generateConstructor() {
+	protected MethodSpec generateConstructor() {
 		MethodSpec constructor = MethodSpec.constructorBuilder().addParameter(String.class, "collection")
 				.addParameter(AppLayerFactory.class, "appLayerFactory")
 				.addParameter(MigrationResourcesProvider.class, "resourcesProvider")
@@ -465,7 +459,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return constructor;
 	}
 
-	private void generateI18n(File moduleFolder)
+	protected void generateI18n(File moduleFolder)
 			throws IOException {
 
 		String module = moduleFolder.getName();
@@ -510,7 +504,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private MethodSpec generateDisplayConfigs(List<String> codesBefore) {
+	protected MethodSpec generateDisplayConfigs(List<String> codesBefore) {
 		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 		Builder main = MethodSpec.methodBuilder("applySchemasDisplay")
 				.addModifiers(Modifier.PUBLIC)
@@ -574,7 +568,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return spec;
 	}
 
-	private MethodSpec generateRoles(List<Role> rolesBefore) {
+	protected MethodSpec generateRoles(List<Role> rolesBefore) {
 		RolesManager rolesManager = getModelLayerFactory().getRolesManager();
 		Builder main = MethodSpec.methodBuilder("applyGeneratedRoles")
 				.addModifiers(Modifier.PUBLIC)
@@ -604,7 +598,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return spec;
 	}
 
-	private MethodSpec generateRecords() {
+	protected MethodSpec generateRecords() {
 		Builder main = MethodSpec.methodBuilder("createRecordTransaction")
 				.addModifiers(Modifier.PUBLIC)
 				.returns(Transaction.class)
@@ -638,7 +632,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return spec;
 	}
 
-	private String toEntriesMethodCalls(MetadataSchemaTypes types, Record record, Map<String, Integer> mapping) {
+	protected String toEntriesMethodCalls(MetadataSchemaTypes types, Record record, Map<String, Integer> mapping) {
 		StringBuilder stringBuilder = new StringBuilder();
 
 		for (Metadata metadata : types.getSchema(record.getSchemaCode()).getMetadatas().onlyManuals()) {
@@ -681,7 +675,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return stringBuilder.toString();
 	}
 
-	private String toValue(Object value) {
+	protected String toValue(Object value) {
 		if (value == null) {
 			return null;
 		}
@@ -725,7 +719,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private MethodSpec generateTypes(MetadataSchemaTypes typesBeforeMigration) {
+	protected MethodSpec generateTypes(MetadataSchemaTypes typesBeforeMigration) {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 
 		Builder main = MethodSpec.methodBuilder("applyGeneratedSchemaAlteration")
@@ -837,7 +831,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return spec;
 	}
 
-	private List<MetadataSchemaType> sorted(List<MetadataSchemaType> schemaTypes) {
+	protected List<MetadataSchemaType> sorted(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataSchemaType> ordered = new ArrayList<>();
 		List<String> firstTypes = asList(Collection.SCHEMA_TYPE, Group.SCHEMA_TYPE, User.SCHEMA_TYPE);
 		for (MetadataSchemaType type : schemaTypes) {
@@ -868,7 +862,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return ordered;
 	}
 
-	private String asListLitteral(List<String> values) {
+	protected String asListLitteral(List<String> values) {
 		if (values.isEmpty()) {
 			return "new ArrayList<String>()";
 		}
@@ -885,7 +879,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return "asList(" + valuesLiteral + ")";
 	}
 
-	private String asListLitteralWithoutQuotes(List<String> values) {
+	protected String asListLitteralWithoutQuotes(List<String> values) {
 		if (values.isEmpty()) {
 			return "new ArrayList<String>()";
 		}
@@ -900,11 +894,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return "asList(" + valuesLiteral + ")";
 	}
 
-	private String variableOf(MetadataSchemaType schemaType) {
+	protected String variableOf(MetadataSchemaType schemaType) {
 		return schemaType.getCode() + "SchemaType";
 	}
 
-	private String variableOf(MetadataSchema schema) {
+	protected String variableOf(MetadataSchema schema) {
 		if ("default".equals(schema.getLocalCode())) {
 			return schema.getCode().split("_")[0] + "Schema";
 		} else {
@@ -912,11 +906,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private String variableOf(Metadata metadata) {
+	protected String variableOf(Metadata metadata) {
 		return variableOfMetadata(metadata.getCode());
 	}
 
-	private String variableOfMetadata(String code) {
+	protected String variableOfMetadata(String code) {
 		if (code.contains("_default_")) {
 			return code.split("_")[0] + "_" + code.split("_")[2];
 		} else {
@@ -924,7 +918,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	private String typeAlterations(MetadataSchemaType type) {
+	protected String typeAlterations(MetadataSchemaType type) {
 		StringBuilder stringBuilder = new StringBuilder();
 
 		if (!type.hasSecurity()) {
@@ -940,7 +934,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		return stringBuilder.toString();
 	}
 
-	private void configureMetadata(Builder method, String variable, Metadata metadata) {
+	protected void configureMetadata(Builder method, String variable, Metadata metadata) {
 
 		if (metadata.isMultivalue()) {
 			method.addStatement("$L.setMultivalue(true)", variable);
