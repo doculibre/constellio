@@ -11,6 +11,7 @@ import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.data.SystemConfigurationGroupdataProvider;
@@ -131,6 +132,8 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 			AbstractField<String> textField;
 			if (config.isHiddenValue()) {
 				textField = new BasePasswordField();
+			} else if (config.getValue() != null && config.getValue().toString().contains("\n")) {
+				textField = new BaseTextArea();
 			} else {
 				textField = new BaseTextField();
 			}
