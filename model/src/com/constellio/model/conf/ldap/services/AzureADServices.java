@@ -22,7 +22,7 @@ public class AzureADServices implements LDAPServices {
 	@Override
 	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
 			throws CouldNotConnectUserToLDAP {
-        new AzureAdClient(ldapServerConfiguration, null).authenticiate(user, password);
+		new AzureAdClient(ldapServerConfiguration, null).authenticiate(user, password);
 	}
 
 	@Override
@@ -30,13 +30,13 @@ public class AzureADServices implements LDAPServices {
 			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> results = new HashSet<>();
 
-        try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
-            azureAdClient.init();
+		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
+			azureAdClient.init();
 
-            results = azureAdClient.getUserNameList();
-        } catch (final Throwable t) {
-            LOGGER.error("Unexpected error in users synchronization dry run", t);
-        }
+			results = azureAdClient.getUserNameList();
+		} catch (final Throwable t) {
+			LOGGER.error("Unexpected error in users synchronization dry run", t);
+		}
 
 		return new ArrayList<>(results);
 	}
@@ -46,13 +46,13 @@ public class AzureADServices implements LDAPServices {
 			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> results = new HashSet<>();
 
-        try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
-            azureAdClient.init();
+		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
+			azureAdClient.init();
 
-            results = azureAdClient.getGroupNameList();
-        } catch (final Throwable t) {
-            LOGGER.error("Unexpected error in groups synchronization dry run", t);
-        }
+			results = azureAdClient.getGroupNameList();
+		} catch (final Throwable t) {
+			LOGGER.error("Unexpected error in groups synchronization dry run", t);
+		}
 
 		return new ArrayList<>(results);
 	}
@@ -61,15 +61,15 @@ public class AzureADServices implements LDAPServices {
 	public LDAPUsersAndGroups importUsersAndGroups(final LDAPServerConfiguration ldapServerConfiguration,
 			final LDAPUserSyncConfiguration ldapUserSyncConfiguration, final String url) {
 		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
-        final Map<String, LDAPUser> ldapUsers = new HashMap<>();
+		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
 
-        try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
-            azureAdClient.init();
+		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
+			azureAdClient.init();
 
-            azureAdClient.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
+			azureAdClient.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
 
-            azureAdClient.getUsersAndTheirGroups(ldapGroups, ldapUsers);
-        }
+			azureAdClient.getUsersAndTheirGroups(ldapGroups, ldapUsers);
+		}
 
 		return new LDAPUsersAndGroups(new HashSet<>(ldapUsers.values()), new HashSet<>(ldapGroups.values()));
 	}

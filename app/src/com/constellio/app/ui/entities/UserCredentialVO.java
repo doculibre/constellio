@@ -22,6 +22,8 @@ public class UserCredentialVO implements Serializable {
 
 	String email;
 
+	String personalEmails;
+
 	String serviceKey;
 
 	Map<String, LocalDateTime> tokensMap;
@@ -44,13 +46,14 @@ public class UserCredentialVO implements Serializable {
 		this.status = UserCredentialStatus.ACTIVE;
 	}
 
-	public UserCredentialVO(String username, String firstName, String lastName, String email, String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, Set<String> collections,
+	public UserCredentialVO(String username, String firstName, String lastName, String email, String personalEmails,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, Set<String> collections,
 			Map<String, LocalDateTime> tokens, String password, String confirmPassword, UserCredentialStatus status) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
+		this.personalEmails = personalEmails;
 		this.serviceKey = serviceKey;
 		this.systemAdmin = systemAdmin;
 		this.globalGroups = Collections.unmodifiableList(globalGroups);
@@ -91,6 +94,14 @@ public class UserCredentialVO implements Serializable {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getPersonalEmails() {
+		return personalEmails;
+	}
+
+	public void setPersonalEmails(String personalEmails) {
+		this.personalEmails = personalEmails;
 	}
 
 	public String getServiceKey() {

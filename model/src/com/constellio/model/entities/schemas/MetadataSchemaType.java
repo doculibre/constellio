@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchema;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -247,18 +248,32 @@ public class MetadataSchemaType {
 		return Collections.unmodifiableList(returnedMetadatas);
 	}
 
-	public MetadataSchema getSchema(String codeOrCode) {
+	private MetadataSchema getNullableSchema(String codeOrCode) {
 		MetadataSchema schema = null;
-		if (codeOrCode.contains("_")) {
-			schema = getSchemaWithCompleteCode(codeOrCode);
-		} else {
-			schema = getSchemaWithLocalCode(codeOrCode);
+		try {
+			if (codeOrCode.contains("_")) {
+				schema = getSchemaWithCompleteCode(codeOrCode);
+			} else {
+				schema = getSchemaWithLocalCode(codeOrCode);
+			}
+		} catch (NoSuchSchema e) {
+			return null;
 		}
+		return schema;
+	}
+
+	public MetadataSchema getSchema(String codeOrCode) {
+		MetadataSchema schema = getNullableSchema(codeOrCode);
 		if (schema == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchSchema(codeOrCode);
 		} else {
 			return schema;
 		}
+	}
+
+	public boolean hasSchema(String codeOrCode) {
+		MetadataSchema schema = getNullableSchema(codeOrCode);
+		return schema != null;
 	}
 
 	private MetadataSchema getSchemaWithLocalCode(String code) {

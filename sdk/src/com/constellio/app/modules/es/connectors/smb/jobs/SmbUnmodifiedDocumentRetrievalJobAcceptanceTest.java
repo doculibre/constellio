@@ -89,7 +89,7 @@ public class SmbUnmodifiedDocumentRetrievalJobAcceptanceTest extends ConstellioT
 	}
 
 	@Test
-	public void givenFullDTOWhenExecutingThenSendFullDocumentToObserver()
+	public void givenFullDTOWhenExecutingThenSendNothingToObserver()
 			throws RecordServicesException {
 		LocalDateTime time1 = new LocalDateTime();
 		givenTimeIs(time1);
@@ -108,11 +108,8 @@ public class SmbUnmodifiedDocumentRetrievalJobAcceptanceTest extends ConstellioT
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbDocument.url())
-				.containsOnly(modifyEvent(es.newConnectorSmbDocument(connectorInstance)
-						.setUrl(FILE_URL)));
+				.isEmpty();
 
-		verify(updater, times(1)).updateUnmodifiedDocument(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getRecordIdForFolder(anyString());
 		verify(smbRecordService, times(1)).updateResumeUrl(FILE_URL);
 	}
 

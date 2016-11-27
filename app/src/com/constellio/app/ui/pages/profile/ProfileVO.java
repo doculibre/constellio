@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.profile;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -11,6 +12,7 @@ public class ProfileVO implements Serializable {
 	String firstName;
 	String lastName;
 	String email;
+    String personalEmails;
 	String phone;
 	String password;
 	String confirmPassword;
@@ -20,7 +22,7 @@ public class ProfileVO implements Serializable {
 	String defaultTaxonomy;
 	String loginLanguageCode;
 
-	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email,
+	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email, String personalEmails,
 			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
 			String password, String confirmPassword, String oldPassword) {
 		this.image = image;
@@ -28,6 +30,7 @@ public class ProfileVO implements Serializable {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
+        this.personalEmails = personalEmails;
 		this.phone = phone;
 		this.startTab = startTab;
 		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
@@ -37,13 +40,14 @@ public class ProfileVO implements Serializable {
 		this.oldPassword = oldPassword;
 	}
 
-	public ProfileVO(String username, String firstName, String lastName, String email, String phone, String startTab,
+	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String startTab,
 			DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
 			String oldPassword) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
+        this.personalEmails = personalEmails;
 		this.phone = phone;
 		this.startTab = startTab;
 		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
@@ -84,6 +88,14 @@ public class ProfileVO implements Serializable {
 	public void setEmail(String email) {
 		this.email = email;
 	}
+
+    public String getPersonalEmails() {
+        return personalEmails;
+    }
+
+    public void setPersonalEmails(String personalEmails) {
+        this.personalEmails = personalEmails;
+    }
 
 	public String getPhone() {
 		return phone;

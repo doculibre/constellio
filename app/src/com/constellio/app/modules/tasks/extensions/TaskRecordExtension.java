@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.extensions;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_ASSIGNEE;
@@ -30,6 +31,7 @@ import java.util.Set;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -173,6 +175,8 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
 				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
+        newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
+
 		emailToSend.setParameters(newParameters);
 	}
 
@@ -181,9 +185,10 @@ public class TaskRecordExtension extends RecordExtension {
 
 		for (String userId : usersIds) {
 			User user = tasksSchema.wrapUser(recordServices.getDocumentById(userId));
-			EmailAddress toAddress = new EmailAddress(user.getTitle(), user.getEmail());
-			emailAddressesTo.add(toAddress);
+
+            emailAddressesTo.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
 		}
+
 		return emailAddressesTo;
 	}
 
@@ -313,20 +318,17 @@ public class TaskRecordExtension extends RecordExtension {
 
 	private Set<EmailAddress> getTaskAssigneesEmails(Task task) {
 		Set<EmailAddress> assigneeEmails = new HashSet<>();
+
 		if (task.getAssignee() != null) {
-			EmailAddress emailAddress = emailAddress(task.getAssignee());
-			if (emailAddress != null) {
-				assigneeEmails.add(emailAddress);
-			}
+            assigneeEmails.addAll(emailAddress(task.getAssignee()));
 		}
+
 		if (task.getAssigneeUsersCandidates() != null) {
 			for (String userId : task.getAssigneeUsersCandidates()) {
-				EmailAddress emailAddress = emailAddress(userId);
-				if (emailAddress != null) {
-					assigneeEmails.add(emailAddress);
-				}
+                assigneeEmails.addAll(emailAddress(userId));
 			}
 		}
+
 		if (task.getAssigneeGroupsCandidates() != null) {
 			for (String groupId : task.getAssigneeGroupsCandidates()) {
 				UserServices userServices = modelLayerFactory.newUserServices();
@@ -334,31 +336,46 @@ public class TaskRecordExtension extends RecordExtension {
 					Group group = tasksSchema.getGroup(groupId);
 					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
 					for (UserCredential user : groupUsers) {
-						String email = user.getEmail();
-						if (StringUtils.isNotBlank(email)) {
-							assigneeEmails.add(new EmailAddress(user.getTitle(), email));
-						}
+                        assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
 					}
 				} catch (UserServicesRuntimeException_NoSuchGroup e) {
 					LOGGER.warn("Group assigned in task " + task.getTitle() + " does not exist " + groupId);
 				}
 			}
 		}
+
 		return assigneeEmails;
 	}
 
-	private EmailAddress emailAddress(String userId) {
+	private List<EmailAddress> emailAddress(String userId) {
+		List<EmailAddress> emailAddressList = new ArrayList<>();
+
 		try {
-			User user = tasksSchema.getUser(userId);
-			String email = user.getEmail();
-			if (StringUtils.isNotBlank(email)) {
-				return new EmailAddress(user.getTitle(), email);
-			}
+			final User user = tasksSchema.getUser(userId);
+
+            emailAddressList = buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails());
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
 			LOGGER.warn("User assignee does not exists " + userId);
 		}
-		return null;
+
+		return emailAddressList;
 	}
+
+    private List<EmailAddress> buildEmailAddressList(final String title, final String principalEmail, final List<String> personalEmails) {
+        final List<EmailAddress> emailAddressList = new ArrayList<>();
+
+        if (StringUtils.isNotBlank(principalEmail)) {
+            emailAddressList.add(new EmailAddress(title, principalEmail));
+        }
+
+        if (!CollectionUtils.isEmpty(personalEmails)) {
+            for (final String personalEmail : personalEmails) {
+                emailAddressList.add(new EmailAddress(title, personalEmail));
+            }
+        }
+
+        return emailAddressList;
+    }
 
 	private String getUserNameById(String userId) {
 		if (StringUtils.isBlank(userId)) {
