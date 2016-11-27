@@ -287,10 +287,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
 				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
-					Object metadataValue = taskVO.get(metadataVO);
-					Object defaultValue = metadataVO.getDefaultValue();
-					if (metadataValue == null || !metadataValue.equals(defaultValue)) {
-						task.getWrappedRecord().set(matchingMetadata, metadataValue);
+					Object voMetadataValue = taskVO.get(metadataVO);
+					Object defaultValue = matchingMetadata.getDefaultValue();
+					Object voDefaultValue = metadataVO.getDefaultValue();
+					if (voMetadataValue == null && defaultValue == null) {
+						task.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+						task.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
