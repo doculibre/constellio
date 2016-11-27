@@ -147,7 +147,7 @@ public class TaskPresenterServices {
 		if (!user.hasWriteAccess().on(record)) {
 			return false;
 		}
-		if (!wasCreatedByUser(record, user)) {
+		if (!isAssignedToUser(record, user) && !wasCreatedByUser(record, user)) {
 			return false;
 		}
 		Object statusId = record.get(tasksSchemas.userTask.status());

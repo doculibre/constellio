@@ -110,7 +110,7 @@ public class TaskTable extends RecordVOTable {
 
 					@Override
 					public boolean isVisible() {
-						return presenter.isCloseButtonEnabled(records.getRecordVO((int) itemId));
+						return isEnabled();
 					}
 				};
 			}
