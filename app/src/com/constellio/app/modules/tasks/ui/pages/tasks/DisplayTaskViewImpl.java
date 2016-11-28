@@ -139,6 +139,11 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			public boolean isVisible() {
 				return super.isVisible() && presenter.isCloseCurrentTaskButtonVisible();
 			}
+
+			@Override
+			public boolean isEnabled() {
+				return super.isEnabled() && presenter.isCloseCurrentTaskButtonVisible();
+			}
 		};
 		actionMenuButtons.add(closeTask);
 
