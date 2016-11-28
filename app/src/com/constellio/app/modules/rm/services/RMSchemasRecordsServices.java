@@ -721,17 +721,17 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//KEEP
 	public boolean isEmail(String fileName) {
-		String extension = FilenameUtils.getExtension(fileName);
-		return extension.equalsIgnoreCase("eml") || extension.equalsIgnoreCase("msg");
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+		return extension.equals("eml") || extension.equals("msg");
 	}
 
 	//KEEP
 	public Map<String, Object> parseEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedMessage;
-		String extension = FilenameUtils.getExtension(fileName);
-		if ("eml".equalsIgnoreCase(extension)) {
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+		if ("eml".equals(extension)) {
 			parsedMessage = parseEml(messageInputStream);
-		} else if ("msg".equalsIgnoreCase(extension)) {
+		} else if ("msg".equals(extension)) {
 			parsedMessage = parseMsg(messageInputStream);
 		} else {
 			throw new IllegalArgumentException("Invalid file name : " + fileName);

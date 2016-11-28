@@ -864,7 +864,14 @@ $popup-view-z-index: 3;
 						    		width: 100%;
 						    	}
 							}
-
+							
+							.v-has-caption {
+								width: 80%;
+								.list-add-remove-comment {
+									width: 100%;
+								}
+							}
+	
 							.copy-retention-rule-table-medium-types-field {
 								border: none;
 								padding: 0;

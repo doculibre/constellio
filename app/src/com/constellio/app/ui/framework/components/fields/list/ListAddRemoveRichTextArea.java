@@ -5,6 +5,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, BaseRichTextArea> {
@@ -29,6 +30,11 @@ public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, BaseRi
 		Label captionLabel = new Label(caption);
 		captionLabel.setContentMode(ContentMode.HTML);
 		return captionLabel;
+	}
+
+	@Override
+	protected void setMainLayoutWidth(VerticalLayout mainLayout) {
+		mainLayout.setWidth("100%");
 	}
 
 }

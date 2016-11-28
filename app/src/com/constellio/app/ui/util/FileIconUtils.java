@@ -42,7 +42,7 @@ public class FileIconUtils implements Serializable {
 	public static String getIconPath(String fileName) {
 		String iconPath;
 		if (fileName != null) {
-			String extension = FilenameUtils.getExtension(fileName);
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 			if (StringUtils.isBlank(extension)) {
 				extension = fileName;
 			}
@@ -72,7 +72,7 @@ public class FileIconUtils implements Serializable {
 			if (DEFAULT_ICON_PATH.equals(iconPath)) {
 				extension = DEFAULT_VALUE;
 			} else {
-				extension = FilenameUtils.getExtension(fileName);
+				extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 			}
 		} else {
 			extension = getExtensionForRecordVO(recordVO);
@@ -82,7 +82,7 @@ public class FileIconUtils implements Serializable {
 
 	public static String getExtensionForRecordVO(RecordVO recordVO) {
 		if (recordVO.getExtension() != null) {
-			return recordVO.getExtension();
+			return recordVO.getExtension().toLowerCase();
 		} else {
 			return null;
 		}

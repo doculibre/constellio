@@ -78,18 +78,19 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 					field.addValueChangeListener(new ValueChangeListener() {
 						@Override
 						public void valueChange(ValueChangeEvent event) {
-							Field field = (Field) event.getProperty();
+							Field<?> field = (Field<?>) event.getProperty();
 							String id = field.getId();
 							String groupCode = tabsheet.getSelectedTab().getId();
 							String iString = StringUtils.substringAfter(id, groupCode);
-							int i = Integer.valueOf(iString);
-							Object value = field.getValue();
-							if (value == null) {
-								dataProvider.valueChange(groupCode, i, null);
-							} else {
-								dataProvider.valueChange(groupCode, i, value);
+							if (StringUtils.isNotBlank(iString)) {
+								int i = Integer.valueOf(iString);
+								Object value = field.getValue();
+								if (value == null) {
+									dataProvider.valueChange(groupCode, i, null);
+								} else {
+									dataProvider.valueChange(groupCode, i, value);
+								}
 							}
-
 						}
 					});
 					field.setSizeFull();

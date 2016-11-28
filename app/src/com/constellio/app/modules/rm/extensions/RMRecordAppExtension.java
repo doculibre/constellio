@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.extensions;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -43,9 +44,9 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			ContentVersionVO contentVersion = recordVO.getMetadataValue(recordVO.getMetadata(Document.CONTENT)).getValue();
 			if (contentVersion != null) {
 				resourceKey = contentVersion.getFileName();
-				extension = FilenameUtils.getExtension(resourceKey);
+				extension = StringUtils.lowerCase(FilenameUtils.getExtension(resourceKey));
 			} else {
-				resourceKey = null;
+				resourceKey = getDocumentIconPath();
 				extension = "document";
 			}
 			setNiceTitle(recordVO, params.getRecord(), schemaTypeCode, schemaCode, Document.DESCRIPTION);
@@ -98,6 +99,10 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	private String getContainerIconPath() {
 		return IMAGES_DIR + "/icons/container/box.png";
+	}
+
+	private String getDocumentIconPath() {
+		return IMAGES_DIR + "/icons/ext/document.gif";
 	}
 
 	private String getFolderIconPath(Folder folder, boolean expanded) {

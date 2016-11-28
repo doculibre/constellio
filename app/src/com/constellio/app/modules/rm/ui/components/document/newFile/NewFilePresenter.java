@@ -63,7 +63,7 @@ public class NewFilePresenter implements Serializable {
 			}
 		} else {
 			if (StringUtils.isNotBlank(filename)) {
-				String fileExtension = FilenameUtils.getExtension(templateContent.getCurrentVersion().getFilename());
+				String fileExtension = StringUtils.lowerCase(FilenameUtils.getExtension(templateContent.getCurrentVersion().getFilename()));
 				filename += "." + fileExtension;
 			}
 		}
@@ -101,12 +101,12 @@ public class NewFilePresenter implements Serializable {
 
 	private boolean isFilenameValid(String fileName) {
 		List<String> supportedExtensions = NewFileUtils.getSupportedExtensions();
-		String extension = FilenameUtils.getExtension(fileName);
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		return supportedExtensions.contains(extension);
 	}
 
 	private Content createNewFile(String fileName) {
-		String extension = FilenameUtils.getExtension(fileName);
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
 		String collection = window.getSessionContext().getCurrentCollection();
 		String username = window.getSessionContext().getCurrentUser().getUsername();
