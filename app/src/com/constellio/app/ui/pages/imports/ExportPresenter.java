@@ -54,14 +54,14 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	void exportWithoutContentsButtonClicked() {
-		export(false);
+		export(false, false);
 	}
 
 	void exportWithContentsButtonClicked() {
-		export(true);
+		export(true, false);
 	}
 
-	private void export(boolean includeContents) {
+	private void export(boolean includeContents, boolean onlyTools) {
 
 		String exportedIdsStr = view.getExportedIds();
 
@@ -70,27 +70,29 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				.newTemporaryFolder(EXPORT_FOLDER_RESOURCE);
 		File file = new File(folder, filename);
 
-		if (!exportedIdsStr.isEmpty()) {
-			List<String> ids = new ArrayList<>(asList(exportedIdsStr.split(",")));
-			ids.remove("tools");
-
-			List<String> verifiedIds = new ArrayList<>();
-
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			SearchServices searchServices = modelLayerFactory.newSearchServices();
-
-			for (String id : ids) {
-				try {
-					recordServices.getDocumentById(id);
-
-				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-					id = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(Long.valueOf(id));
-				}
-				verifiedIds.add(id);
-			}
-
+		if (!exportedIdsStr.isEmpty() || onlyTools) {
+			List<String> ids = new ArrayList<>();
 			PartialSystemStateExportParams params = new PartialSystemStateExportParams();
-			params.setIds(verifiedIds);
+			if (!onlyTools) {
+				ids.addAll(asList(exportedIdsStr.split(",")));
+
+				List<String> verifiedIds = new ArrayList<>();
+
+				RecordServices recordServices = modelLayerFactory.newRecordServices();
+				SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+				for (String id : ids) {
+					try {
+						recordServices.getDocumentById(id);
+
+					} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+						id = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(Long.valueOf(id));
+					}
+					verifiedIds.add(id);
+				}
+
+				params.setIds(verifiedIds);
+			}
 
 			partialExporter().exportSystemToFile(file, params);
 			try {
@@ -166,5 +168,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			}
 		}
 
+	}
+
+	public void exportToolsButtonClicked() {
+		export(false, true);
 	}
 }

@@ -33,6 +33,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 
 	private Button exportLogs;
 
+	private Button exportTools;
+
 	private final ExportPresenter presenter;
 
 	public ExportViewImpl() {
@@ -65,6 +67,12 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 				presenter.exportWithoutContentsButtonClicked();
 			}
 		};
+		exportTools = new BaseButton($("ExportView.exportTools")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.exportToolsButtonClicked();
+			}
+		};
 
 		exportWithContentsButton = new BaseButton($("ExportView.exportAllContents")) {
 			@Override
@@ -80,7 +88,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		};
 		exportWithContentsButton.setVisible(false);
 
-		VerticalLayout layout = new VerticalLayout(idsField, exportWithoutContentsButton, exportWithContentsButton, exportLogs);
+		VerticalLayout layout = new VerticalLayout(idsField, exportWithoutContentsButton, exportWithContentsButton, exportTools,
+				exportLogs);
 		layout.setSizeFull();
 		layout.setSpacing(true);
 
