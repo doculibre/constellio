@@ -550,7 +550,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (!newUsersToAlert.contains(currentUserId) && currentBorrower != null && !currentUserId.equals(currentBorrower)) {
 			newUsersToAlert.add(currentUserId);
 			document.setAlertUsersWhenAvailable(newUsersToAlert);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			presenterUtils.addOrUpdate(document.getWrappedRecord(), User.GOD);
 		}
 		actionsComponent.showMessage($("RMObject.createAlert"));
 	}

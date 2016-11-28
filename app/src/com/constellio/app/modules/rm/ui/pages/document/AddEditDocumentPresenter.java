@@ -217,11 +217,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		contentVersionVO.setHash(null);
 		contentVersionVO.setVersion(null);
 
-		String filename = contentVersion.getFilename();
-		String extension = FilenameUtils.getExtension(filename);
+		String fileName = contentVersion.getFilename();
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		if ("eml".equals(extension) || "msg".equals(extension)) {
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
-			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
+			Email email = rmSchemasRecordsServices.newEmail(fileName, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
 		} else {
@@ -309,7 +309,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (documentVO.getContent() != null) {
 			String currentTitle = document.getTitle();
 			String currentContentFilename = documentVO.getContent().getFileName();
-			String extension = FilenameUtils.getExtension(currentContentFilename);
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(currentContentFilename));
 			if (currentTitle.endsWith("." + extension)) {
 				document.getContent().renameCurrentVersion(currentTitle);
 			}

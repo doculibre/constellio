@@ -258,9 +258,9 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addStyleName(STYLE_NAME);
 
 		mainLayout = new VerticalLayout();
-		mainLayout.setWidth("99%");
 		mainLayout.setHeightUndefined();
 		mainLayout.setSpacing(true);
+		setMainLayoutWidth(mainLayout);
 
 		addEditFieldLayout = new HorizontalLayout();
 		addEditFieldLayout.addStyleName(ADD_EDIT_FIELD_LAYOUT_STYLE_NAME);
@@ -368,6 +368,10 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			setValue(newFieldValue);
 		}
 		return mainLayout;
+	}
+	
+	protected void setMainLayoutWidth(VerticalLayout mainLayout) {
+		mainLayout.setWidth("99%");
 	}
 
 	protected ContainerButton addEditButton() {

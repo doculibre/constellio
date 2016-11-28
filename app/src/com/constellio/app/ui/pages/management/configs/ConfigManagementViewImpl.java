@@ -61,7 +61,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 		final SystemConfigurationGroupdataProvider dataProvider = presenter.systemConfigurationGroupDataProvider();
 		for (String groupCode : dataProvider.getCodesList()) {
 			List<SystemConfigurationVO> configs = dataProvider.getSystemConfigurationGroup(groupCode).getConfigs();
-			if (!configs.isEmpty()) {
+			if(!configs.isEmpty()){
 				GridLayout gridLayout = new GridLayout(2, configs.size() + 1);
 				gridLayout.setSizeFull();
 				gridLayout.setId(groupCode);
@@ -78,11 +78,11 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 					field.addValueChangeListener(new ValueChangeListener() {
 						@Override
 						public void valueChange(ValueChangeEvent event) {
-							Field field = (Field) event.getProperty();
+							Field<?> field = (Field<?>) event.getProperty();
 							String id = field.getId();
 							String groupCode = tabsheet.getSelectedTab().getId();
 							String iString = StringUtils.substringAfter(id, groupCode);
-							if (!iString.isEmpty()) {
+							if (StringUtils.isNotBlank(iString)) {
 								int i = Integer.valueOf(iString);
 								Object value = field.getValue();
 								if (value == null) {
@@ -91,7 +91,6 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements
 									dataProvider.valueChange(groupCode, i, value);
 								}
 							}
-
 						}
 					});
 					field.setSizeFull();
