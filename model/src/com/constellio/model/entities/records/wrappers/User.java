@@ -26,6 +26,7 @@ public class User extends RecordWrapper {
 	public static final String FIRSTNAME = "firstname";
 	public static final String LASTNAME = "lastname";
 	public static final String EMAIL = "email";
+	public static final String PERSONAL_EMAILS = "personalEmails";
 	public static final String GROUPS = "groups";
 	public static final String ROLES = "userroles";
 	public static final String ALL_ROLES = "allroles";
@@ -170,6 +171,15 @@ public class User extends RecordWrapper {
 
 	public User setEmail(String email) {
 		set(EMAIL, email);
+		return this;
+	}
+
+	public List<String> getPersonalEmails() {
+		return get(PERSONAL_EMAILS);
+	}
+
+	public User setPersonalEmails(List<String> emails) {
+		set(PERSONAL_EMAILS, emails);
 		return this;
 	}
 

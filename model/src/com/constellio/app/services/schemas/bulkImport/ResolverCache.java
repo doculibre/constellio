@@ -179,6 +179,21 @@ public class ResolverCache {
 		}
 
 		public synchronized KeySetMap<String, String> getUnresolvableLegacyIds() {
+
+			if (unresolvedLegacyIds.getNestedMap().size() > MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS) {
+				LogicalSearchQuery query = new LogicalSearchQuery();
+				MetadataSchemaType type = types.getSchemaType(schemaType);
+				Metadata resolverMetadata = type.getDefaultSchema().get(this.metadata);
+				query.setCondition(from(type).where(resolverMetadata).isNotNull());
+				query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(resolverMetadata));
+				Iterator<Record> recordsIterator = searchServices.recordsIterator(query, 10000);
+				SchemaTypeUniqueMetadataMappingCache cache = getSchemaTypeCache(schemaType, metadata);
+				while (recordsIterator.hasNext()) {
+					Record record = recordsIterator.next();
+					cache.mapSearch(record.<String>get(resolverMetadata), record.getId());
+				}
+			}
+
 			for (String requiredLegacyId : new HashSet<>(unresolvedLegacyIds.getNestedMap().keySet())) {
 				String id = resolve(schemaType, metadata + ":" + requiredLegacyId);
 				if (id != null) {

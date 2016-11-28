@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.util.Arrays;
 
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
@@ -34,7 +35,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 	@Mock ModifyProfileView view;
 	@Mock UserServices userServices;
 	@Mock RecordServicesImpl recordServices;
-	@Mock UserCredential userCredential, userCredentialWithFirstName, userCredentialWithLastName, userCredentialWithEmail;
+	@Mock UserCredential userCredential, userCredentialWithFirstName, userCredentialWithLastName, userCredentialWithEmail, userCredentialWithPersonalEmails;
 	@Mock User bob;
 	@Mock TaxonomyVODataProvider taxonomyVODataProvider;
 	@Mock Record bobRecord;
@@ -58,7 +59,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		when(view.navigate()).thenReturn(navigator);
 		when(view.getCollection()).thenReturn(zeCollection);
 
-		profileVO = new ProfileVO(contentVersionVO, "bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
+		profileVO = new ProfileVO(contentVersionVO, "bob.gratton", "bob", "Gratton", "bob@constellio.com", "bob@doculibre.com\nbob@gmail.com", "3333333",
 				RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null);
 		profileVO.setLoginLanguageCode("fr");
 
@@ -69,15 +70,18 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		when(userCredential.getFirstName()).thenReturn("bob");
 		when(userCredential.getLastName()).thenReturn("Gratton");
 		when(userCredential.getEmail()).thenReturn("bob@constellio.com");
+        when(userCredential.getPersonalEmails()).thenReturn(Arrays.asList("bob@doculibre.com", "bob@gmail.com"));
 
 		when(userCredential.withFirstName("bob")).thenReturn(userCredentialWithFirstName);
 		when(userCredentialWithFirstName.withLastName("Gratton")).thenReturn(userCredentialWithLastName);
 		when(userCredentialWithLastName.withEmail("bob@constellio.com")).thenReturn(userCredentialWithEmail);
+		when(userCredentialWithEmail.withPersonalEmails(Arrays.asList("bob@doculibre.com", "bob@gmail.com"))).thenReturn(userCredentialWithPersonalEmails);
 		when(userServices.getUserInCollection("bob.gratton", zeCollection)).thenReturn(bob);
 		when(bob.getPhone()).thenReturn("3333333");
 		when(bob.getStartTab()).thenReturn(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		when(bob.getDefaultTaxonomy()).thenReturn("taxo1");
 		when(bob.getWrappedRecord()).thenReturn(bobRecord);
+        when(bob.getPersonalEmails()).thenReturn(Arrays.asList("bob@doculibre.com", "bob@gmail.com"));
 		doNothing().when(recordServices).update(bobRecord);
 
 		presenter = spy(new ModifyProfilePresenter(view));
@@ -94,11 +98,12 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 
 		presenter.saveButtonClicked(profileVO);
 
-		verify(userServices).addUpdateUserCredential(userCredentialWithEmail);
+		verify(userServices).addUpdateUserCredential(userCredentialWithPersonalEmails);
 		verify(bob).setPhone("3333333");
 		verify(bob).setStartTab(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
 		verify(bob).setDefaultTaxonomy("taxo1");
 		verify(bob).setLoginLanguageCode("fr");
+		verify(bob).setPersonalEmails(Arrays.asList("bob@doculibre.com", "bob@gmail.com"));
 		verify(recordServices).update(bobRecord);
 		verify(view.navigate().to()).url(presenter.getParameters());
 
@@ -111,7 +116,7 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		presenter.getProfilVO("bob.gratton");
 
 		verify(presenter)
-				.newProfilVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", "3333333",
+				.newProfilVO("bob.gratton", "bob", "Gratton", "bob@constellio.com", Arrays.asList("bob@doculibre.com", "bob@gmail.com"), "3333333",
 						RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1");
 	}
 

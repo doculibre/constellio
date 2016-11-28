@@ -150,4 +150,13 @@ public class ReportDisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		reportTestUtils.validateDefaultReport(reportMetadataList);
 	}
 
+	@Test
+	public void whenGetReportMetadataThenMultivalueMetadatasAreAvailable() {
+		assertThat(presenter.getDataProvider().listMetadataVO()).extracting("code").contains("folder_employe_" + Folder.KEYWORDS);
+	}
+
+	@Test
+	public void whenGetReportMetadataThenThereIsNoDuplicateLocalCode() {
+		assertThat(presenter.getDataProvider().listMetadataVO()).extracting("localCode").containsOnlyOnce("title");
+	}
 }

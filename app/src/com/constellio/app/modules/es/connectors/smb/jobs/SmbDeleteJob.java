@@ -20,6 +20,7 @@ import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.crawler.DeleteEventOptions;
 
@@ -79,27 +80,16 @@ public class SmbDeleteJob extends ConnectorJob implements SmbConnectorJob {
 
 	private void deleteRecords() {
 		if (smbUtils.isFolder(url)) {
-			List<ConnectorDocument<?>> foldersToDelete = smbRecordService.getExistingFoldersWithUrl(url);
-
-			if (foldersToDelete.isEmpty()) {
-				// Do nothing.
-			} else {
-				ConnectorDocument<?> folderToDelete = foldersToDelete.get(0);
-				List<ConnectorDocument<?>> deletedConnectors = new ArrayList<>();
-				////deletedConnectors.addAll(smbRecordService.getAllDocumentsInFolder(folderToDelete));
-				deletedConnectors.add(folderToDelete);
+			ConnectorSmbFolder folderToDelete = smbRecordService.getFolder(url);
+			if (folderToDelete != null) {
 				DeleteEventOptions options = new DeleteEventOptions();
 				options.getPhysicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(PHYSICALLY_DELETE_THEM);
 				options.getLogicalDeleteOptions().setBehaviorForRecordsAttachedToTaxonomy(LOGICALLY_DELETE_THEM);
-				eventObserver.deleteEvents(options, deletedConnectors.toArray(new ConnectorDocument[] {}));
+				eventObserver.deleteEvents(options, folderToDelete);
 			}
 		} else {
-			List<ConnectorDocument<?>> documentsToDelete = smbRecordService.getExistingDocumentsWithUrl(url);
-
-			if (documentsToDelete.isEmpty()) {
-				// Do nothing.
-			} else {
-				ConnectorDocument<?> documentToDelete = documentsToDelete.get(0);
+			ConnectorSmbDocument documentToDelete = smbRecordService.getDocument(url);
+			if (documentToDelete != null) {
 				eventObserver.deleteEvents(documentToDelete);
 			}
 		}

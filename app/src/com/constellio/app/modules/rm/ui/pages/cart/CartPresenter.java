@@ -541,7 +541,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public ReportBuilderFactory getReport(String report) {
 		List<String> recordids = getRecordsIds(view.getCurrentSchemaType());
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.schemaType(view.getCurrentSchemaType())).returnAll());
-		return new SearchResultReportBuilderFactory(modelLayerFactory, recordids, view.getCurrentSchemaType(),
+		return new SearchResultReportBuilderFactory(appLayerFactory, recordids, view.getCurrentSchemaType(),
 				collection, report, getCurrentUser(), query);
 	}
 }

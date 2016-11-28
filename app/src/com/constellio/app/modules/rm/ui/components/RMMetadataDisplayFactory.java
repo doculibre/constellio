@@ -25,19 +25,21 @@ public class RMMetadataDisplayFactory extends MetadataDisplayFactory {
 		if (metadataVO.codeMatches(Folder.KEYWORDS) || metadataVO.codeMatches(Document.KEYWORDS)) {
 			StringBuilder sb = new StringBuilder();
 			List<String> keywords = metadataValue.getValue();
-			for (String keyword : keywords) {
-				if (sb.length() > 0) {
-					sb.append(", ");
+			if (keywords != null) {
+				for (String keyword : keywords) {
+					if (sb.length() > 0) {
+						sb.append(", ");
+					}
+					sb.append(keyword);
 				}
-				sb.append(keyword);
 			}
 			if (sb.length() > 0) {
-	 			displayComponent = new Label(sb.toString());
+				displayComponent = new Label(sb.toString());
 			} else {
-	 			displayComponent = null;
+				displayComponent = null;
 			}
 		} else {
-			displayComponent = super.build(recordVO, metadataValue); 
+			displayComponent = super.build(recordVO, metadataValue);
 		}
 		return displayComponent;
 	}

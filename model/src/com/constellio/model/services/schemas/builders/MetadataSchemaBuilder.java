@@ -297,6 +297,10 @@ public class MetadataSchemaBuilder {
 		}
 	}
 
+	public MetadataBuilder get(Metadata metadata) {
+		return get(metadata.getLocalCode());
+	}
+
 	public MetadataBuilder get(String code) {
 		String metadataCode = new SchemaUtils().toLocalMetadataCode(code);
 

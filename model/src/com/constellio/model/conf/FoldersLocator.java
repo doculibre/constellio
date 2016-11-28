@@ -534,6 +534,7 @@ public class FoldersLocator {
 
 	public File getWorkFolder() {
 		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			//File workFolder = new File("/raid/francis/work"); //new File(getSDKProject(), "work");
 			File workFolder = new File(getSDKProject(), "work");
 			workFolder.mkdirs();
 			return workFolder;

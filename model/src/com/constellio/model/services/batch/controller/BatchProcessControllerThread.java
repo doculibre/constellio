@@ -139,7 +139,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 	}
 
 	ForkJoinPool newForkJoinPool() {
-		return new ForkJoinPool(2);
+		return new ForkJoinPool(1);
 	}
 
 }

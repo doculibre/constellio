@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
@@ -77,9 +78,11 @@ public class TasksSearchServices {
 	}
 
 	public LogicalSearchQuery getRecentlyCompletedTasks(User user) {
+		List<TaskStatus> taskStatusList = getFinishedStatuses();
+		taskStatusList.addAll(getClosedStatuses());
 		return new LogicalSearchQuery(
 				from(tasksSchemas.userTask.schemaType())
-						.where(tasksSchemas.userTask.status()).isIn(getFinishedStatuses())
+						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
 				.filteredWithUser(user).sortAsc(tasksSchemas.userTask.dueDate());
@@ -105,6 +108,11 @@ public class TasksSearchServices {
 	public List<TaskStatus> getFinishedStatuses() {
 		return tasksSchemas.searchTaskStatuss(
 				where(tasksSchemas.ddvTaskStatus.statusType()).is(FINISHED).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true));
+	}
+
+	public List<TaskStatus> getClosedStatuses() {
+		return tasksSchemas.searchTaskStatuss(
+				where(tasksSchemas.ddvTaskStatus.statusType()).is(CLOSED).andWhere(Schemas.LOGICALLY_DELETED_STATUS).isNotEqual(true));
 	}
 
 	public String getSchemaCodeForTaskTypeRecordId(String taskTypeRecordId) {

@@ -86,7 +86,7 @@ public class SmbExistingFolderRetrievalJobAcceptanceTest extends ConstellioTest 
 	}
 
 	@Test
-	public void givenFullDTOWhenExecutingThenSendFullFolderToObserver()
+	public void givenFullDTOWhenExecutingThenSendNothingToObserver()
 			throws RecordServicesException {
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
 		smbFileDTO.setUrl(SHARE_URL);
@@ -103,20 +103,17 @@ public class SmbExistingFolderRetrievalJobAcceptanceTest extends ConstellioTest 
 		getModelLayerFactory().newRecordServices()
 				.add(connectorSmbFolder);
 
-		retrievalJob = new SmbExistingFolderRetrievalJob(connector, SHARE_URL, smbService, eventObserver, smbRecordService, updater, "", jobFactory);
+		retrievalJob = new SmbExistingFolderRetrievalJob(connector, SHARE_URL, connectorSmbFolder, smbService, eventObserver, smbRecordService, updater, "", jobFactory);
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-				.containsOnly(modifyEvent(es.newConnectorSmbFolder(connectorInstance)
-						.setUrl(SHARE_URL)));
+				.isEmpty();
 
-		verify(updater, times(1)).updateDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getRecordIdForFolder(anyString());
 		verify(smbRecordService, times(1)).updateResumeUrl(SHARE_URL);
 	}
 
 	@Test
-	public void givenFailedDTOWhenExecutingThenSendFailedFolderToObserver()
+	public void givenFailedDTOWhenExecutingThenSendNothingToObserver()
 			throws RecordServicesException {
 		SmbFileDTO smbFileDTO = new SmbFileDTO();
 		smbFileDTO.setUrl(SHARE_URL);
@@ -133,15 +130,11 @@ public class SmbExistingFolderRetrievalJobAcceptanceTest extends ConstellioTest 
 		getModelLayerFactory().newRecordServices()
 				.add(connectorSmbFolder);
 
-		retrievalJob = new SmbExistingFolderRetrievalJob(connector, SHARE_URL, smbService, eventObserver, smbRecordService, updater, "", jobFactory);
+		retrievalJob = new SmbExistingFolderRetrievalJob(connector, SHARE_URL, connectorSmbFolder, smbService, eventObserver, smbRecordService, updater, "", jobFactory);
 		retrievalJob.execute(connector);
 
 		assertThatEventsObservedBy(eventObserver).comparingRecordsUsing(es.connectorSmbFolder.url())
-				.containsOnly(modifyEvent(es.newConnectorSmbFolder(connectorInstance)
-						.setUrl(SHARE_URL)));
-
-		verify(updater, times(1)).updateFailedDocumentOrFolder(any(SmbFileDTO.class), any(ConnectorDocument.class), anyString());
-		verify(smbRecordService, times(1)).getRecordIdForFolder(anyString());
+				.isEmpty();
 	}
 
 	@Test
@@ -152,7 +145,7 @@ public class SmbExistingFolderRetrievalJobAcceptanceTest extends ConstellioTest 
 		smbFileDTO.setStatus(SmbFileDTOStatus.DELETE_DTO);
 		smbService = new FakeSmbService(smbFileDTO);
 
-		retrievalJob = new SmbExistingFolderRetrievalJob(connector, SHARE_URL, smbService, eventObserver, smbRecordService, updater, "", jobFactory);
+		retrievalJob = new SmbExistingFolderRetrievalJob(connector, SHARE_URL, es.newConnectorSmbFolder(connectorInstance), smbService, eventObserver, smbRecordService, updater, "", jobFactory);
 		retrievalJob.execute(connector);
 
 		verify(connector, times(1)).queueJob(any(SmbDeleteJob.class));

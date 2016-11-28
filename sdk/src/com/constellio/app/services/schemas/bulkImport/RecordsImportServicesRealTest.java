@@ -6,6 +6,8 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportValida
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
@@ -43,6 +45,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.solr.common.params.SolrParams;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -56,7 +59,9 @@ import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportVal
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.Language;
@@ -67,11 +72,13 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -93,6 +100,8 @@ import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordValidationServices;
+import com.constellio.model.services.records.cache.CacheConfig;
+import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -2695,6 +2704,51 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenMultipleAlreadyImportedRecordsWhenImportingRecordsOfAnotherTypeThen()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getMetadata("zeSchemaType_default_stringMetadata");
+
+						schemaTypes.getSchemaType("anotherSchemaType").getDefaultSchema().create("refToZeSchema")
+								.defineChildOfRelationshipToType(schemaTypes.getSchemaType("zeSchemaType"));
+					}
+				}));
+
+		Transaction transaction = new Transaction().setOptimisticLockingResolution(EXCEPTION);
+		for (int i = 1; i <= 4000; i++) {
+			transaction.add(new TestRecord(zeSchema).set(Schemas.LEGACY_ID, "record" + i));
+		}
+		recordServices.execute(transaction);
+
+		for (int i = 1; i <= 4000; i++) {
+			anotherSchemaTypeRecords.add(defaultSchemaData().setId("anotherSchemaRecord" + i)
+					.addField("refToZeSchema", "record" + i));
+		}
+
+		final AtomicInteger queriesCount = new AtomicInteger();
+
+		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
+		cache.configureCache(CacheConfig.volatileCache(zeSchema.type(), 1000));
+
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queriesCount.incrementAndGet();
+					}
+				});
+
+		services.bulkImport(importDataProvider, progressionListener, admin,
+				new BulkImportParams().setImportErrorsBehavior(CONTINUE));
+
+		assertThat(queriesCount.get()).isLessThan(4050);
+	}
+
+	@Test
 	public void givenPrevalidationErrorsWhenImportingWithContinueErrorModeThenContinue()
 			throws Exception {
 
@@ -2962,6 +3016,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("refToAnotherSchema")
 								.defineReferencesTo(schemaTypes.getSchemaType("anotherSchemaType"));
 
+						schemaTypes.getSchemaType("aThirdSchemaType").getDefaultSchema().create("content").setType(CONTENT);
+
 						Map<Language, String> labels = new HashMap<Language, String>();
 						labels.put(Language.French, "Autre type de schéma");
 						schemaTypes.getSchemaType("anotherSchemaType").setLabels(labels);
@@ -2989,7 +3045,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		try {
 			services.bulkImport(importDataProvider, progressionListener, admin,
-					new BulkImportParams().setImportErrorsBehavior(CONTINUE).setThreads(3));
+					new BulkImportParams().setImportErrorsBehavior(CONTINUE).setThreads(5));
 
 			fail("ValidationException expected");
 		} catch (ValidationException e) {

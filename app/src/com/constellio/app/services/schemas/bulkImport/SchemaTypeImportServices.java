@@ -73,6 +73,13 @@ public class SchemaTypeImportServices implements ImportServices {
 
 	@Override
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
+			User user, List<String> collections, BulkImportParams params)
+			throws RecordsImportServicesRuntimeException {
+		return bulkImport(importDataProvider, progressionListener, user, collections);
+	}
+
+	@Override
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
 			User user, List<String> collections)
 			throws RecordsImportServicesRuntimeException {
 		currentElement = 0;
