@@ -407,6 +407,8 @@ $popup-view-z-index: 3;
     }
 
     .lookup-autocomplete-field {
+    	width:100%;
+    	
         .v-filterselect-input {
         	padding-right: 0px;
         }
@@ -433,6 +435,16 @@ $popup-view-z-index: 3;
 
     .v-disabled:hover {
     	text-decoration: none;
+    }
+    
+    .v-filterselect-suggestmenu {
+    	.gwt-MenuItem {
+    		padding-left: 0px;
+    		padding-right: 0px;
+    		span {
+    			padding-left: 10px;
+    		}
+    	}
     }
 
     .autocomplete-error, .lookup-error {
@@ -663,6 +675,7 @@ $popup-view-z-index: 3;
 	.v-table {
     	.v-table-body {
 			.v-disabled {
+				text-align: left;
 				opacity: 10%;
 				color: black;
 			}
@@ -846,6 +859,17 @@ $popup-view-z-index: 3;
 						    	border: 1px solid lightgray;
 						    	padding: 2px;
 						    	text-align: center;
+						    	
+						    	.v-slot-list-add-remove-table {
+						    		width: 100%;
+						    	}
+							}
+							
+							.v-has-caption {
+								width: 70%;
+								.list-add-remove-comment {
+									width: 100%;
+								}
 							}
 
 							.copy-retention-rule-table-medium-types-field {

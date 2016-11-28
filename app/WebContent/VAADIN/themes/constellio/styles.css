@@ -12578,6 +12578,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .lookup-autocomplete-field {
+	width: 100%;
+}
+
 .constellio .lookup-autocomplete-field .v-filterselect-input {
 	padding-right: 0px;
 }
@@ -12603,6 +12607,15 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-disabled:hover {
 	text-decoration: none;
+}
+
+.constellio .v-filterselect-suggestmenu .gwt-MenuItem {
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.constellio .v-filterselect-suggestmenu .gwt-MenuItem span {
+	padding-left: 10px;
 }
 
 .constellio .autocomplete-error .v-filterselect-input, .constellio .lookup-error .v-filterselect-input {
@@ -12789,6 +12802,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table .v-table-body .v-disabled {
+	text-align: left;
 	opacity: 10%;
 	color: black;
 }
@@ -12954,6 +12968,18 @@ div.v-layout.v-horizontal.v-widget {
 	border: 1px solid lightgray;
 	padding: 2px;
 	text-align: center;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .list-add-remove .v-slot-list-add-remove-table {
+	width: 100%;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption {
+	width: 70%;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .v-has-caption .list-add-remove-comment {
+	width: 100%;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .copy-retention-rule-table-medium-types-field {
