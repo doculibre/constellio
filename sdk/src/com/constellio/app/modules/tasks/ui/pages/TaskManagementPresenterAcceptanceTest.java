@@ -1,5 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
@@ -8,6 +10,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -28,6 +31,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 
 public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -82,6 +87,20 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		//assertThat(presenter.isRecordIdMetadata(metadataValueVO)).isTrue();
+	}
+
+	@Test
+	public void givenWorkflowsAreActivatedThenOnlyUsersWithNeededPermissionCanSeeTheTab()
+			throws Exception {
+		TaskManagementPresenter presenter = Mockito.spy(new TaskManagementPresenter(view));
+		doReturn(true).when(presenter).areWorkflowsEnabled();
+
+		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+		assertThat(presenter.getTabs()).contains(presenter.WORKFLOWS_STARTED);
+
+		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
+		presenter = Mockito.spy(new TaskManagementPresenter(view));
+		assertThat(presenter.getTabs()).doesNotContain(presenter.WORKFLOWS_STARTED);
 	}
 
 	@Test
