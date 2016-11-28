@@ -13,14 +13,16 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
-import com.vaadin.data.Property;
+import com.vaadin.data.Item;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -50,39 +52,51 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		final String eventType = presenter.getEventType();
 		Container container = new RecordVOLazyContainer(dataProvider);
 
-		String title = EventTypeUtils.getEventTypeCaption(eventType) + "(" + container.size() + ")";
+		String title = EventTypeUtils.getEventTypeCaption(eventType) + " (" + container.size() + ")";
 		final Boolean isRecordEvent = EventTypeUtils.isRecordEvent(eventType);
-		RecordVOTable table = new RecordVOTable(title, container, isRecordEvent){
+		final RecordVOTable table = new RecordVOTable(title, container, isRecordEvent){
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if (presenter.isRecordIdMetadata(metadataValue)){
-					return recordLink(metadataValue, recordVO);
-				}else if (presenter.isDeltaMetadata(metadataValue)){
+				if (presenter.isDeltaMetadata(metadataValue)) {
 					return displayButton(metadataValue);
-				}else {
+				} else {
 					return super.buildMetadataComponent(metadataValue, recordVO);
 				}
 			}
+
+			@Override
+			protected RecordVO getRecordVOForTitleColumn(Item item) {
+				if (isRecordEvent) {
+					RecordVO eventVO = ((RecordVOItem) item).getRecord();
+					return presenter.getLinkedRecordVO(eventVO);
+				} else {
+					return super.getRecordVOForTitleColumn(item);
+				}
+			}
+
+			@Override
+			protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
+				if (isRecordEvent) {
+					title += " (" + titleRecordVO.getId() + ")"; 
+				}
+				return super.getTitleForRecordVO(titleRecordVO, prefix, title);
+			}
 		};
 		if (isRecordEvent){
-			table.collapseColumn(Schemas.TITLE.getLocalCode());
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					Object itemId = event.getItemId();
+					RecordVOItem recordVOItem = (RecordVOItem) table.getItem(itemId);
+					RecordVO recordVO = recordVOItem.getRecord();
+					presenter.recordLinkClicked(recordVO);
+				}
+			});
 		}
 		table.setPageLength(table.getItemIds().size());
 		table.setWidth("100%");
 		table.addStyleName(EVENT_TABLE_STYLE);
 		return table;
-	}
-
-	private Component recordLink(final MetadataValueVO metadataValue, final RecordVO recordVO) {
-		String linkTitle = presenter.getRecordLinkTitle(metadataValue, recordVO);
-		LinkButton recordLink =  new LinkButton(linkTitle
-		) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.recordLinkClicked(metadataValue);
-			}
-		};
-		return recordLink;
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {
