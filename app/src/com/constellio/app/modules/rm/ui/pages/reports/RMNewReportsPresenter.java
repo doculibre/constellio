@@ -45,20 +45,24 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		switch (report) {
 		case "Reports.fakeReport2":
 			//return new ExampleReportFactoryWithoutRecords();
+			break;
 		case "Reports.ClassificationPlan":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.DetailedClassificationPlan":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.ConservationRulesList":
 			///return new ConservationRulesReportViewImpl();
+			break;
 		case "Reports.ConservationRulesListByAdministrativeUnit":
 			//return new ConservationRulesReportViewImpl(BY_ADMINISTRATIVE_UNIT, schemaTypeValue);
+			break;
 		case "Reports.AdministrativeUnits":
 			return rmModuleExtensions.getReportBuilderFactories().administrativeUnitRecordBuilderFactory.getValue();
 		case "Reports.AdministrativeUnitsAndUsers":
 			return rmModuleExtensions.getReportBuilderFactories().administrativeUnitRecordBuilderFactory.getValue();
 		case "Reports.Users":
 			//return new UserReportViewImpl();
+			break;
 		case "Reports.ClassificationPlanByAdministrativeUnit":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		}
@@ -72,20 +76,24 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		switch (report) {
 			case "Reports.fakeReport2":
 				//return new ExampleReportFactoryWithoutRecords();
+				break;
 			case "Reports.ClassificationPlan":
 				return new ClassificationReportPlanParameters(false, null);
 			case "Reports.DetailedClassificationPlan":
 				return new ClassificationReportPlanParameters(true, null);
 			case "Reports.ConservationRulesList":
 				///return new ConservationRulesReportViewImpl();
+				break;
 			case "Reports.ConservationRulesListByAdministrativeUnit":
 				//return new ConservationRulesReportViewImpl(BY_ADMINISTRATIVE_UNIT, schemaTypeValue);
+				break;
 			case "Reports.AdministrativeUnits":
 				return new AdministrativeUnitReportParameters(false);
 			case "Reports.AdministrativeUnitsAndUsers":
 				return new AdministrativeUnitReportParameters(true);
 			case "Reports.Users":
 				//return new UserReportViewImpl();
+				break;
 			case "Reports.ClassificationPlanByAdministrativeUnit":
 				return new ClassificationReportPlanParameters(false, schemaTypeValue);
 		}
