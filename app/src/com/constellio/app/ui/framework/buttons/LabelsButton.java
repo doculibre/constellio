@@ -84,10 +84,10 @@ public class LabelsButton extends WindowButton {
 			protected void saveButtonClick(LabelParametersVO parameters)
 					throws ValidationException {
 				LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
-				LabelsReportFactory factory = new LabelsReportFactory(
-						selector.getSelectedRecordIds(), labelTemplate,
-						parameters.getStartPosition(), parameters.getNumberOfCopies());
-				getWindow().setContent(new ReportViewer(factory));
+//				LabelsReportFactory factory = new LabelsReportFactory(
+//						selector.getSelectedRecordIds(), labelTemplate,
+//						parameters.getStartPosition(), parameters.getNumberOfCopies());
+//				getWindow().setContent(new ReportViewer(factory, ));
 			}
 
 			@Override

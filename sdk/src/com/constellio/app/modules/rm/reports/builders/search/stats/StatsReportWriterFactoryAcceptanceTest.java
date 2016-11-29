@@ -40,6 +40,7 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
+
 		searchServices = getModelLayerFactory().newSearchServices();
 		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
@@ -56,9 +57,11 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isEqualTo("inexistingid");
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(0);
-		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
-				query);
-		assertThat(statsReportBuilderFactory.getStatistics()).isNull();
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(getAppLayerFactory());
+		StatsReportParameters params = new StatsReportParameters(zeCollection, getAppLayerFactory(), query);
+		assertThat(params.getStatistics()).isNotNull();
+		assertThat(params.getStatistics().get("missing")).isEqualTo(0l);
+		assertThat(params.getStatistics().get("sum")).isEqualTo(0d);
 	}
 
 	@Test
@@ -70,12 +73,11 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		List<String> foldersIds = Arrays.asList(new String[] { records.folder_A01, records.folder_A55 });
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(foldersIds);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
-				query);
-		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
-		assertThat(stats).isNotNull();
-		assertThat(stats.get("missing")).isEqualTo(1l);
-		assertThat(stats.get("sum")).isEqualTo(12d);
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(getAppLayerFactory());
+		StatsReportParameters params = new StatsReportParameters(zeCollection, getAppLayerFactory(), query);
+		assertThat(params.getStatistics()).isNotNull();
+		assertThat(params.getStatistics().get("missing")).isEqualTo(1l);
+		assertThat(params.getStatistics().get("sum")).isEqualTo(12d);
 	}
 
 	@Test
@@ -88,12 +90,11 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		List<String> foldersIds = Arrays.asList(new String[] { records.folder_A01, records.folder_A55 });
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(foldersIds);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
-				query);
-		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
-		assertThat(stats).isNotNull();
-		assertThat(stats.get("missing")).isEqualTo(0l);
-		assertThat(stats.get("sum")).isEqualTo(20d);
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(getAppLayerFactory());
+		StatsReportParameters params = new StatsReportParameters(zeCollection, getAppLayerFactory(), query);
+		assertThat(params.getStatistics()).isNotNull();
+		assertThat(params.getStatistics().get("missing")).isEqualTo(0l);
+		assertThat(params.getStatistics().get("sum")).isEqualTo(20d);
 	}
 
 	@Test
@@ -102,9 +103,10 @@ public class StatsReportWriterFactoryAcceptanceTest extends ConstellioTest {
 		List<String> foldersIds = Arrays.asList(new String[] { records.folder_A01, records.folder_A55 });
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isIn(foldersIds);
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(zeCollection, getModelLayerFactory(),
-				query);
-		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
-		assertThat(stats).isNull();
+		StatsReportWriterFactory statsReportBuilderFactory = new StatsReportWriterFactory(getAppLayerFactory());
+		StatsReportParameters params = new StatsReportParameters(zeCollection, getAppLayerFactory(), query);
+		assertThat(params.getStatistics()).isNotNull();
+		assertThat(params.getStatistics().get("missing")).isEqualTo(2l);
+		assertThat(params.getStatistics().get("sum")).isEqualTo(0d);
 	}
 }

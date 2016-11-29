@@ -9,21 +9,22 @@ import com.constellio.app.modules.rm.reports.model.labels.LabelsReportFont;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLabel;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.reports.model.labels.LabelsReportModel;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 // TODO: DELETE ME!
-public class ExampleReportFactory implements ReportWriterFactory {
-	private final List<String> recordIds;
+public class ExampleReportFactory implements NewReportWriterFactory {
+	protected AppLayerFactory appLayerFactory;
 
-	public ExampleReportFactory(List<String> recordIds) {
-		this.recordIds = recordIds;
+	public ExampleReportFactory(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
-	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
-		// TODO: Build the model and return a ReportBuilder
+	public ReportWriter getReportBuilder(Object parameters) {
 		LabelsReportModel model = new LabelsReportModel();
 
 		LabelsReportLayout labelsReportLayout = LabelsReportLayout.AVERY_5159;
@@ -63,8 +64,7 @@ public class ExampleReportFactory implements ReportWriterFactory {
 	}
 
 	@Override
-	public String getFilename() {
-		// TODO: Return a filename
+	public String getFilename(Object parameters) {
 		return "example_report.pdf";
 	}
 }

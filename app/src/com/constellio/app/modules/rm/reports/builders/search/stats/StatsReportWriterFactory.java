@@ -7,6 +7,8 @@ import java.util.Map;
 import com.constellio.app.modules.rm.reports.model.search.stats.StatsReportModel;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.model.conf.FoldersLocator;
@@ -14,29 +16,21 @@ import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class StatsReportWriterFactory implements ReportWriterFactory {
-	private final Map<String, Object> statistics;
+public class StatsReportWriterFactory implements NewReportWriterFactory<StatsReportParameters> {
+	protected AppLayerFactory appLayerFactory;
 
-	public StatsReportWriterFactory(String collection, ModelLayerFactory modelLayerFactory, LogicalSearchQuery query) {
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		DataStoreField folderLinearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		query.computeStatsOnField(folderLinearSizeMetadata.getDataStoreCode());
-		statistics = modelLayerFactory.newSearchServices().query(query)
-				.getStatValues(folderLinearSizeMetadata.getDataStoreCode());
+	public StatsReportWriterFactory(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
-	public ReportWriter getReportBuilder(ModelLayerFactory modelLayerFactory) {
-		FoldersLocator folderLocator = modelLayerFactory.getFoldersLocator();
-		return new StatsReportWriter(new StatsReportModel().setStats(statistics), folderLocator);
+	public ReportWriter getReportBuilder(StatsReportParameters parameters) {
+		FoldersLocator folderLocator = appLayerFactory.getModelLayerFactory().getFoldersLocator();
+		return new StatsReportWriter(new StatsReportModel().setStats(parameters.getStatistics()), folderLocator);
 	}
 
 	@Override
-	public String getFilename() {
+	public String getFilename(StatsReportParameters parameters) {
 		return $("Reports.FolderLinearMeasureStats" + "." + new StatsReportWriter(null, null).getFileExtension());
-	}
-
-	public Map<String, Object> getStatistics() {
-		return statistics;
 	}
 }

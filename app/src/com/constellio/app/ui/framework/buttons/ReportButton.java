@@ -50,7 +50,8 @@ public class ReportButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		if (presenter != null) {
-			return new ReportViewer(presenter.getReport(report));
+			return new ReportViewer(presenter.getReport(report).getReportBuilder(newPresenter.getReportParameters(report)),
+					presenter.getReport(report).getFilename(newPresenter.getReportParameters(report)));
 		} else {
 			NewReportWriterFactory<Object> reportBuilderFactory = (NewReportWriterFactory<Object>) newPresenter
 					.getReport(report);
@@ -58,7 +59,7 @@ public class ReportButton extends WindowButton {
 			String filename = reportBuilderFactory.getFilename(parameters);
 			ReportWriter reportWriter = reportBuilderFactory.getReportBuilder(parameters);
 
-			return new ReportViewer(reportWriter, filename);
+			return new ReportViewer(reportWriter, reportBuilderFactory.getFilename(parameters));
 
 		}
 	}

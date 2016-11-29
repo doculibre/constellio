@@ -10,6 +10,11 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.data.utils.TimeProvider;
 
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +66,7 @@ import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
 
-public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements ReportPresenter {
+public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
 	public enum SortOrder {ASCENDING, DESCENDING}
@@ -317,12 +322,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	@Override
-	public ReportWriterFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 		switch (report) {
 		case "Reports.fakeReport":
-			return new ExampleReportFactory(view.getSelectedRecordIds());
+			return new ExampleReportFactory(appLayerFactory);
 		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportWriterFactory(view.getCollection(), modelLayerFactory, getSearchQuery());
+			return new StatsReportWriterFactory(appLayerFactory);
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -501,4 +506,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return modelLayerFactory.getSearchBoostManager();
 	}
 
+	@Override
+	public Object getReportParameters(String report) {
+		switch (report) {
+			case "Reports.fakeReport":
+				return new ExampleReportParameters(view.getSelectedRecordIds());
+			case "Reports.FolderLinearMeasureStats":
+				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+		}
+		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
+	}
 }

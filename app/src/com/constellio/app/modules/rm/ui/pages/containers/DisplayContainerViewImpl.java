@@ -224,10 +224,10 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				@Override
 				protected void saveButtonClick(LabelParametersVO parameters)
 						throws ValidationException {
-					LabelsReportFactory factory = new LabelsReportFactory(
-							selector.getSelectedRecordIds(), ((LabelTemplate) (labelConfiguration.getValue())),
-							parameters.getStartPosition(), parameters.getNumberOfCopies());
-					getWindow().setContent(new ReportViewer(factory));
+//					LabelsReportFactory factory = new LabelsReportFactory(
+//							selector.getSelectedRecordIds(), ((LabelTemplate) (labelConfiguration.getValue())),
+//							parameters.getStartPosition(), parameters.getNumberOfCopies());
+//					getWindow().setContent(new ReportViewer(factory));
 				}
 
 				@Override

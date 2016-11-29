@@ -13,6 +13,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -276,13 +284,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public ReportWriterFactory getReport(String reportTitle) {
+	public NewReportWriterFactory<SearchResultReportParameters> getReport(String reportTitle) {
 		try {
 			return super.getReport(reportTitle);
 		} catch (UnknownReportRuntimeException e) {
 			/**/
-			return new SearchResultReportWriterFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
-					collection, reportTitle, getCurrentUser(), getSearchQuery());
+			return new SearchResultReportWriterFactory(appLayerFactory);
 		}
 	}
 
@@ -477,5 +484,16 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public int getMaxSelectableResults() {
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+	}
+
+	@Override
+	public Object getReportParameters(String report) {
+		switch (report) {
+			case "Reports.fakeReport":
+			case "Reports.FolderLinearMeasureStats":
+				return super.getReportParameters(report);
+		}
+		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
+				collection, report, getCurrentUser(), getSearchQuery());
 	}
 }

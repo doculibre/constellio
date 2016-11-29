@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -19,24 +20,9 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import org.omg.CORBA.Object;
 
 public class ReportViewer extends VerticalLayout {
-	@Deprecated
-	public ReportViewer(ReportWriterFactory factory) {
-		StreamSource source = buildSource(factory);
-
-		Embedded viewer = new Embedded();
-		viewer.setSource(new StreamResource(source, factory.getFilename()));
-		viewer.setType(Embedded.TYPE_BROWSER);
-		viewer.setWidth("100%");
-		viewer.setHeight("1024px");
-
-		Link download = new Link($("ReportViewer.download", factory.getFilename()),
-				new DownloadStreamResource(source, factory.getFilename(), getMimeTypeFromFileName(factory.getFilename())));
-
-		addComponents(download, viewer);
-		setWidth("100%");
-	}
 
 	public ReportViewer(ReportWriter reportWriter, String filename) {
 		StreamSource source = buildSource(reportWriter);
@@ -73,7 +59,7 @@ public class ReportViewer extends VerticalLayout {
 	}
 
 	@Deprecated
-	private StreamSource buildSource(final ReportWriterFactory factory) {
+	private StreamSource buildSource(final NewReportWriterFactory factory) {
 		return new StreamSource() {
 			@Override
 			public InputStream getStream() {
