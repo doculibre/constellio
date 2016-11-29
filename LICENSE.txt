@@ -9,4 +9,4 @@ The terms of each license can be found in the main directory of the Constellio s
 repository:
 
 GNU AFFERO GENERAL PUBLIC LICENSE v3: https://github.com/doculibre/constellio/blob/master/LICENSE.AGPL3
-LiLiQ-R+ v1.1 : https://github.com/doculibre/constellio/blob/master/LICENSE.LiLiQ-R+-1-1
+LiLiQ-R+ v1.1 : https://github.com/doculibre/constellio/blob/master/LICENSE.LiLiQ-R+1-1
