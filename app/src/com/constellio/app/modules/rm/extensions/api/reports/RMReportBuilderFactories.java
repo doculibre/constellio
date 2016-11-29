@@ -2,9 +2,9 @@ package com.constellio.app.modules.rm.extensions.api.reports;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportFactory;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -19,6 +19,8 @@ public class RMReportBuilderFactories {
 	public SingleValueExtension<NewReportWriterFactory<ContainerRecordReportParameters>> transferContainerRecordBuilderFactory = new SingleValueExtension<>();
 
 	public SingleValueExtension<NewReportWriterFactory<AdministrativeUnitReportParameters>> administrativeUnitRecordBuilderFactory = new SingleValueExtension<>();
+
+	public SingleValueExtension<NewReportWriterFactory<ClassificationReportPlanParameters>> classifcationPlanRecordBuilderFactory = new SingleValueExtension<>();
 
 	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
 		//TODO Nicolas : Déplacer ce register dans le plugin des rapports

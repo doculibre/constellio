@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
+import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -44,7 +46,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		case "Reports.fakeReport2":
 			//return new ExampleReportFactoryWithoutRecords();
 		case "Reports.ClassificationPlan":
-			//return new ClassificationPlanReportViewImpl(false);
+			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.DetailedClassificationPlan":
 			//return new ClassificationPlanReportViewImpl(true);
 		case "Reports.ConservationRulesList":
@@ -71,9 +73,9 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.fakeReport2":
 				//return new ExampleReportFactoryWithoutRecords();
 			case "Reports.ClassificationPlan":
-				//return new ClassificationPlanReportViewImpl(false);
+				return new ClassificationReportPlanParameters(false, null);
 			case "Reports.DetailedClassificationPlan":
-				//return new ClassificationPlanReportViewImpl(true);
+				return new ClassificationReportPlanParameters(true, null);
 			case "Reports.ConservationRulesList":
 				///return new ConservationRulesReportViewImpl();
 			case "Reports.ConservationRulesListByAdministrativeUnit":
@@ -85,7 +87,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.Users":
 				//return new UserReportViewImpl();
 			case "Reports.ClassificationPlanByAdministrativeUnit":
-				//return new ClassificationPlanReportViewImpl(false, schemaTypeValue);
+				return new ClassificationReportPlanParameters(false, schemaTypeValue);
 		}
 
 		throw new RuntimeException("BUG: Unknown report: " + report);
