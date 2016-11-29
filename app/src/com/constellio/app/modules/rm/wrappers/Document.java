@@ -334,9 +334,5 @@ public class Document extends RMObject {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
 
-	public <T> Document set(Metadata metadata, T value) {
-		set(metadata.getLocalCode(), value);
-		return this;
-	}
 
 }
