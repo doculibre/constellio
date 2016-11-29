@@ -9,6 +9,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -29,12 +32,6 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -160,6 +157,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 		builder.setDuplicable(formMetadataVO.isDuplicable());
+
+		if(isInherited(formMetadataVO.getCode())) {
+			MetadataSchemaBuilder defaultSchemaBuilder = types.getSchema(schemaCode.substring(0, schemaCode.lastIndexOf('_')) + "_default");
+			String localCode = formMetadataVO.getCode().substring(formMetadataVO.getCode().lastIndexOf("_") + 1);
+			if(defaultSchemaBuilder.hasMetadata(localCode)) {
+				defaultSchemaBuilder.getMetadata(localCode).setInputMask(formMetadataVO.getInputMask());
+			}
+		}
 
 		try {
 			schemasManager.saveUpdateSchemaTypes(types);
