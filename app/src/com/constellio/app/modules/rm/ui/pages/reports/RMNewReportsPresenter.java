@@ -48,7 +48,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		case "Reports.ClassificationPlan":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.DetailedClassificationPlan":
-			//return new ClassificationPlanReportViewImpl(true);
+			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.ConservationRulesList":
 			///return new ConservationRulesReportViewImpl();
 		case "Reports.ConservationRulesListByAdministrativeUnit":
@@ -60,7 +60,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		case "Reports.Users":
 			//return new UserReportViewImpl();
 		case "Reports.ClassificationPlanByAdministrativeUnit":
-			//return new ClassificationPlanReportViewImpl(false, schemaTypeValue);
+			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		}
 
 		throw new RuntimeException("BUG: Unknown report: " + report);
