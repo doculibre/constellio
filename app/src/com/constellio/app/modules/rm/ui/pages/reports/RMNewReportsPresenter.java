@@ -7,6 +7,8 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -51,18 +53,15 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		case "Reports.DetailedClassificationPlan":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.ConservationRulesList":
-			///return new ConservationRulesReportViewImpl();
-			break;
+			return rmModuleExtensions.getReportBuilderFactories().conservationRulesRecordBuilderFactory.getValue();
 		case "Reports.ConservationRulesListByAdministrativeUnit":
-			//return new ConservationRulesReportViewImpl(BY_ADMINISTRATIVE_UNIT, schemaTypeValue);
-			break;
+			return rmModuleExtensions.getReportBuilderFactories().conservationRulesRecordBuilderFactory.getValue();
 		case "Reports.AdministrativeUnits":
 			return rmModuleExtensions.getReportBuilderFactories().administrativeUnitRecordBuilderFactory.getValue();
 		case "Reports.AdministrativeUnitsAndUsers":
 			return rmModuleExtensions.getReportBuilderFactories().administrativeUnitRecordBuilderFactory.getValue();
 		case "Reports.Users":
-			//return new UserReportViewImpl();
-			break;
+			return rmModuleExtensions.getReportBuilderFactories().userRecordBuilderFactory.getValue();
 		case "Reports.ClassificationPlanByAdministrativeUnit":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		}
@@ -82,18 +81,15 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.DetailedClassificationPlan":
 				return new ClassificationReportPlanParameters(true, null);
 			case "Reports.ConservationRulesList":
-				///return new ConservationRulesReportViewImpl();
-				break;
+				return new ConservationRulesReportParameters(false, null);
 			case "Reports.ConservationRulesListByAdministrativeUnit":
-				//return new ConservationRulesReportViewImpl(BY_ADMINISTRATIVE_UNIT, schemaTypeValue);
-				break;
+				return new ConservationRulesReportParameters(true, null);
 			case "Reports.AdministrativeUnits":
 				return new AdministrativeUnitReportParameters(false);
 			case "Reports.AdministrativeUnitsAndUsers":
 				return new AdministrativeUnitReportParameters(true);
 			case "Reports.Users":
-				//return new UserReportViewImpl();
-				break;
+				return new UserReportParameters();
 			case "Reports.ClassificationPlanByAdministrativeUnit":
 				return new ClassificationReportPlanParameters(false, schemaTypeValue);
 		}
