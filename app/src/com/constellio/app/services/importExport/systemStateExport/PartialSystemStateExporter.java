@@ -130,27 +130,29 @@ public class PartialSystemStateExporter {
 
 			}
 
-			List<Record> records = new ArrayList<>();
 			Set<String> ids = new HashSet<>();
 
-			for (String id : params.getIds()) {
-				String currentId = id;
-				while (currentId != null) {
-					Record record = recordServices.getDocumentById(currentId);
-					String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+			if (params.getIds() != null) {
+				List<Record> records = new ArrayList<>();
+				for (String id : params.getIds()) {
+					String currentId = id;
+					while (currentId != null) {
+						Record record = recordServices.getDocumentById(currentId);
+						String schemaType = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 
-					if (!ids.contains(currentId) && filteredSchemaTypes.contains(schemaType)) {
-						records.add(record);
-						ids.add(currentId);
-						currentId = record.getParentId();
-					} else {
-						currentId = null;
+						if (!ids.contains(currentId) && filteredSchemaTypes.contains(schemaType)) {
+							records.add(record);
+							ids.add(currentId);
+							currentId = record.getParentId();
+						} else {
+							currentId = null;
+						}
+
 					}
 
 				}
-
+				writer.write(records);
 			}
-			writer.write(records);
 
 		} finally {
 			if (writer != null) {
