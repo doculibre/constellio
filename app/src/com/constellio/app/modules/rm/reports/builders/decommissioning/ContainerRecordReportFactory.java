@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.reports.builders.decommissioning;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportFactory.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.reports.decommissioning.ContainerRecordReportPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -44,24 +43,6 @@ public class ContainerRecordReportFactory implements NewReportWriterFactory<Cont
 			return $("Transfer.pdf");
 		} else {
 			return $("Deposit.pdf");
-		}
-	}
-
-	public static class ContainerRecordReportParameters {
-		String containerId;
-		boolean transfer;
-
-		public ContainerRecordReportParameters(String containerId, boolean transfer) {
-			this.containerId = containerId;
-			this.transfer = transfer;
-		}
-
-		public String getContainerId() {
-			return containerId;
-		}
-
-		public boolean isTransfer() {
-			return transfer;
 		}
 	}
 
