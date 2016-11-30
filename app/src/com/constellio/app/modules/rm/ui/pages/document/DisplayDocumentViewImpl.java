@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -413,7 +414,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.publishButtonClicked();
 				}
 			};
-			actionMenuButtons.add(publishButton);
+			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
+				actionMenuButtons.add(publishButton);
+			}
 
 			unpublishButton = new LinkButton($("DocumentContextMenu.unpublish")) {
 				@Override
@@ -421,7 +424,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					presenter.unpublishButtonClicked();
 				}
 			};
-			actionMenuButtons.add(unpublishButton);
+			if(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
+				actionMenuButtons.add(unpublishButton);
+			}
 
 			WindowButton.WindowConfiguration publicLinkConfig = new WindowConfiguration(true, false, "75%", "125px");
 			publicLinkButton = new WindowButton(
@@ -641,10 +646,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setPublishButtons(boolean published) {
-		if (publishButton != null) {
+		if (publishButton != null && presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
 			publishButton.setVisible(!published);
 		}
-		if (unpublishButton != null) {
+		if (unpublishButton != null && presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()) {
 			unpublishButton.setVisible(published);
 		}
 		if (publicLinkButton != null) {

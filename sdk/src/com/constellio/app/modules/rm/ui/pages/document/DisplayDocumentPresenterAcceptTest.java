@@ -1,12 +1,22 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
+import com.constellio.model.entities.Permissions;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.UserServices;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -279,4 +289,24 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 	}
 
+	@Test
+	public void givenDocumentThenPublishAndUnpublishButtonsOnlyShowWhenUserHasTheRightPermission()
+			throws Exception {
+		DisplayDocumentPresenter presenter = spy(this.presenter);
+		RolesManager manager = getModelLayerFactory().getRolesManager();
+		Role zeNewRole = new Role(zeCollection, "zeNewRoleWithPublishPermission", asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
+		manager.addRole(zeNewRole);
+		users.bobIn(zeCollection).setUserRoles(asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		connectAsBob();
+		presenter.forParams(rmRecords.document_A19);
+		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isTrue();
+
+		zeNewRole.withPermissions(new ArrayList<String>());
+		manager.updateRole(zeNewRole);
+		connectAsBob();
+		presenter.forParams(rmRecords.document_A19);
+		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();
+	}
 }
