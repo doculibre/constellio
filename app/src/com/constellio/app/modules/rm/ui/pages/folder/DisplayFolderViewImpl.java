@@ -330,14 +330,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return presenter.getTemplates();
 			}
 		};
-		printLabelButton = new LabelsButton(
-				$("DisplayFolderView.printLabel"), $("DisplayFolderView.printLabel"),
+		printLabelButton = new LabelsButton($("DisplayFolderView.printLabel"),
+				$("DisplayFolderView.printLabel"),
 				new RecordSelector() {
 					@Override
 					public List<String> getSelectedRecordIds() {
 						return Arrays.asList(recordVO.getId());
 					}
-				}, labelTemplatesFactory);
+				},
+				labelTemplatesFactory,
+				presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
 
 		borrowButton = buildBorrowButton();
 

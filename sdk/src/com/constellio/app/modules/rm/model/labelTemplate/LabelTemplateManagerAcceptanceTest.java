@@ -17,7 +17,6 @@ import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.itextpdf.text.FontFactory;
 
 public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 
@@ -154,7 +153,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 		assertThat(template.getSchemaType()).isEqualTo(Folder.SCHEMA_TYPE);
 		assertThat(template.getFields()).hasSize(2);
 
-		assertThat(template.getFields().get(0).getFontName()).isEqualTo(FontFactory.COURIER);
+		assertThat(template.getFields().get(0).getFontName()).isEqualTo("Courier");
 		assertThat(template.getFields().get(0).getFontSize()).isEqualTo(10);
 		assertThat(template.getFields().get(0).getMaxLength()).isEqualTo(10);
 		assertThat(template.getFields().get(0).getHeight()).isEqualTo(5);
@@ -167,7 +166,7 @@ public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 				.isEqualTo(LabelTemplateFieldHorizontalAlignment.RIGHT);
 		assertThat(template.getFields().get(0).getVerticalAlignment()).isEqualTo(LabelTemplateFieldVerticalAlignment.TOP);
 
-		assertThat(template.getFields().get(1).getFontName()).isEqualTo(FontFactory.COURIER);
+		assertThat(template.getFields().get(1).getFontName()).isEqualTo("Courier");
 		assertThat(template.getFields().get(1).getFontSize()).isEqualTo(10);
 		assertThat(template.getFields().get(0).getMaxLength()).isEqualTo(10);
 		assertThat(template.getFields().get(1).getHeight()).isEqualTo(5);

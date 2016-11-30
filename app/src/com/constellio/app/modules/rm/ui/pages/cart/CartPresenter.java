@@ -19,7 +19,8 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmlService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -29,10 +30,12 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
@@ -48,7 +51,7 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, ReportPresenter {
+public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
 	private transient Cart cart;
 	private String cartId;
@@ -538,10 +541,16 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory<SearchResultReportParameters> getReport(String report) {
+		return new SearchResultReportWriterFactory(appLayerFactory);
+	}
+
+	@Override
+	public Object getReportParameters(String report) {
 		List<String> recordids = getRecordsIds(view.getCurrentSchemaType());
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.schemaType(view.getCurrentSchemaType())).returnAll());
-		return new SearchResultReportBuilderFactory(modelLayerFactory, recordids, view.getCurrentSchemaType(),
+
+		return new SearchResultReportParameters(recordids, view.getCurrentSchemaType(),
 				collection, report, getCurrentUser(), query);
 	}
 }

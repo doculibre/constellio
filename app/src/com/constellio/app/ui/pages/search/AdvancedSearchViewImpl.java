@@ -122,8 +122,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					return presenter.getTemplates();
 				}
 			};
-			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-					labelTemplatesFactory);
+			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
+					$("SearchView.printLabels"),
+					this,
+					labelTemplatesFactory,
+					presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 			selectionActions.add(labelsButton);

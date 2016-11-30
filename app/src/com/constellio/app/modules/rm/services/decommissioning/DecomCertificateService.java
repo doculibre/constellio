@@ -14,8 +14,10 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DocumentsCertificateReportBuilder;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.FoldersCertificateReportBuilder;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.builders.DocumentToDocumentCertificate;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.builders.FolderToFolderCertificate;
 import com.constellio.app.modules.rm.reports.model.decommissioning.DocumentsCertificateReportModel;
@@ -26,10 +28,12 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -71,27 +75,55 @@ public class DecomCertificateService {
 		}
 	}
 
+	AppLayerFactory appLayerFactory() {
+		//TODO Remove this bad singleton!
+		return ConstellioFactories.getInstance().getAppLayerFactory();
+	}
+
+	RMReportBuilderFactories reportBuilderFactories() {
+		AppLayerCollectionExtensions extensions = appLayerFactory().getExtensions().forCollection(rm.getCollection());
+		RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories();
+	}
+
 	Content buildFoldersContent(List<FoldersCertificateReportModel_Folder> folders) {
 		FoldersCertificateReportModel reportModel = new FoldersCertificateReportModel();
 		reportModel.setDate(TimeProvider.getLocalDate()).setFolders(folders);
-		ReportBuilder builder = new FoldersCertificateReportBuilder(reportModel, new FoldersLocator());
-		return getContent(builder, $(FOLDERS_CERTIFICATE));
+
+		NewReportWriterFactory<FolderDecommissioningCertificateParams> factory = reportBuilderFactories().folderDecommissioningCertificateFactory
+				.getValue();
+
+		if (factory != null) {
+			return getContent(factory.getReportBuilder(new FolderDecommissioningCertificateParams(reportModel)),
+					$(FOLDERS_CERTIFICATE));
+		} else {
+			return null;
+		}
+
 	}
 
 	Content buildDocumentsContent(List<DocumentsCertificateReportModel_Document> documents) {
 		DocumentsCertificateReportModel reportModel = new DocumentsCertificateReportModel();
 		reportModel.setDate(TimeProvider.getLocalDate()).setDocuments(documents);
-		ReportBuilder builder = new DocumentsCertificateReportBuilder(reportModel, new FoldersLocator());
-		return getContent(builder, $(DOCUMENTS_CERTIFICATE));
+
+		NewReportWriterFactory<DocumentDecommissioningCertificateParams> factory = reportBuilderFactories().documentDecommissioningCertificateFactory
+				.getValue();
+
+		if (factory != null) {
+			return getContent(factory.getReportBuilder(new DocumentDecommissioningCertificateParams(reportModel)),
+					$(DOCUMENTS_CERTIFICATE));
+		} else {
+			return null;
+		}
 	}
 
-	Content getContent(ReportBuilder builder, String filename) {
+	Content getContent(ReportWriter builder, String filename) {
 		File tempFile = fileService.newTemporaryFile(filename);
 		OutputStream outputStream = null;
 		InputStream inputStream = null;
 		try {
 			outputStream = new FileOutputStream(tempFile);
-			builder.build(outputStream);
+			builder.write(outputStream);
 			inputStream = new FileInputStream(tempFile);
 			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream);
 			Content content = contentManager.createMajor(user, filename, contentVersion);
