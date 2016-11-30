@@ -34,14 +34,14 @@ public class LabelsButton extends WindowButton {
 	@PropertyId("labelConfigurations") private ComboBox format;
 	@PropertyId("numberOfCopies") private TextField copies;
 
-    private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
+	private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
 
 	public LabelsButton(String caption, String windowCaption, RecordSelector selector,
-                        Factory<List<LabelTemplate>> templatesFactory, NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
+			Factory<List<LabelTemplate>> templatesFactory, NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
 		super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 		this.selector = selector;
 		this.templatesFactory = templatesFactory;
-        this.labelsReportFactory = labelsReportFactory;
+		this.labelsReportFactory = labelsReportFactory;
 	}
 
 	@Override
@@ -93,13 +93,18 @@ public class LabelsButton extends WindowButton {
 					throws ValidationException {
 				LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
 
-                LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
-                        selector.getSelectedRecordIds(),
-                        parameters.getLabelConfiguration(),
-                        parameters.getStartPosition(),
-                        parameters.getNumberOfCopies());
+				LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+						selector.getSelectedRecordIds(),
+						labelTemplate,
+						parameters.getStartPosition(),
+						parameters.getNumberOfCopies());
 
-                getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters), labelsReportFactory.getFilename(null)));
+				if (labelsReportFactory != null) {
+					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters),
+							labelsReportFactory.getFilename(null)));
+				} else {
+					showErrorMessage($("ReportViewer.noReportFactoryAvailable"));
+				}
 			}
 
 			@Override
