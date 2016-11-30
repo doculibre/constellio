@@ -157,7 +157,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				query.setCondition(condition);
 				query.filteredWithUser(getCurrentUser());
 				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.sortDesc(Schemas.MODIFIED_ON);
+				query.sortAsc(Schemas.TITLE);
 				return query;
 			}
 		};
@@ -175,7 +175,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				query.setCondition(from(foldersSchemaType).where(parentFolderMetadata).is(record));
 				query.filteredWithUser(getCurrentUser());
 				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.sortDesc(Schemas.MODIFIED_ON);
+				query.sortAsc(Schemas.TITLE);
 				return query;
 			}
 		};
