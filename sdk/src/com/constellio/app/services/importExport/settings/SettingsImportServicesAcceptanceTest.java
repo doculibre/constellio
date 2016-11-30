@@ -501,6 +501,9 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 	public void whenImportSequencesThenOK()
 			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("1"));
 
 		settings.addSequence(new ImportedSequence().setKey("2").setValue("7"));
@@ -511,6 +514,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getSequencesManager();
 
 		assertThat(sequencesManager.getLastSequenceValue("1")).isEqualTo(1);
+		assertThat(sequencesManager.next("1")).isEqualTo(2);
 		assertThat(sequencesManager.getLastSequenceValue("2")).isEqualTo(7);
 
 		//newWebDriver();

@@ -5,11 +5,13 @@ import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.Im
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.io.File.separator;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -53,6 +56,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
@@ -121,6 +125,7 @@ public class RecordsImportServicesExecutor {
 		String schemaType;
 		AtomicInteger addUpdateCount;
 		boolean recordsBeforeImport;
+		boolean hasContents;
 	}
 
 	private static class TypeBatchImportContext {
@@ -128,6 +133,7 @@ public class RecordsImportServicesExecutor {
 		Transaction transaction;
 		ImportDataOptions options;
 		BulkUploader bulkUploader;
+		Map<String, Long> sequences = new HashMap<>();
 	}
 
 	//
@@ -207,6 +213,7 @@ public class RecordsImportServicesExecutor {
 					.toLocalCodesList();
 			int previouslySkipped = 0;
 			context.addUpdateCount = new AtomicInteger();
+			context.hasContents = !types.getSchemaType(schemaType).getAllMetadatas().onlyWithType(CONTENT).isEmpty();
 			boolean typeImportFinished = false;
 
 			while (!typeImportFinished) {
@@ -290,6 +297,8 @@ public class RecordsImportServicesExecutor {
 						importDataIterator.getOptions(), importDataBatches.next());
 				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
+				incrementSequences(typeBatchImportContext);
+
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
 					importDataBatches.next();
@@ -300,6 +309,16 @@ public class RecordsImportServicesExecutor {
 		}
 
 		return skipped;
+	}
+
+	private void incrementSequences(TypeBatchImportContext typeBatchImportContext) {
+		SequencesManager sequencesManager = modelLayerFactory.getDataLayerFactory().getSequencesManager();
+		for (Map.Entry<String, Long> highestSequenceValue : typeBatchImportContext.sequences.entrySet()) {
+			long currentSystemValue = sequencesManager.getLastSequenceValue(highestSequenceValue.getKey());
+			if (currentSystemValue < highestSequenceValue.getValue()) {
+				sequencesManager.set(highestSequenceValue.getKey(), highestSequenceValue.getValue());
+			}
+		}
 	}
 
 	private TypeBatchImportContext newTypeBatchImportContext(TypeImportContext typeImportContext,
@@ -325,10 +344,18 @@ public class RecordsImportServicesExecutor {
 
 		final AtomicInteger skipped = new AtomicInteger();
 
-		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, params.getBatchSize());
+		int batchSize = params.getBatchSize();
+		int threads = params.getThreads();
+
+		if (typeImportContext.hasContents) {
+			batchSize = (int) Math.ceil(batchSize / 2.0);
+			threads = (int) Math.ceil(threads / 2.0);
+		}
+
+		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
 		final ImportDataOptions options = importDataIterator.getOptions();
 		try {
-			iterateOverRunningTaskInParallel(importDataBatches, params.threads, new IteratorElementTask<List<ImportData>>() {
+			iterateOverRunningTaskInParallel(importDataBatches, threads, new IteratorElementTask<List<ImportData>>() {
 				@Override
 				public void executeTask(List<ImportData> value)
 						throws Exception {
@@ -406,7 +433,7 @@ public class RecordsImportServicesExecutor {
 
 		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
 
-		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());
+		contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
 		return skipped;
 	}
 
@@ -465,12 +492,35 @@ public class RecordsImportServicesExecutor {
 							resolverCache.mapIds(typeImportContext.schemaType, uniqueMetadata, value, record.getId());
 						}
 					}
+
+					findHigherSequenceValues(typeImportContext, typeBatchImportContext, record);
 				}
 
 			} catch (SkippedBecauseOfFailedDependency e) {
 				skippedRecordsImport.markAsSkippedBecauseOfDependencyFailure(typeImportContext.schemaType, legacyId);
 			}
 			progressionHandler.incrementProgression();
+		}
+	}
+
+	private void findHigherSequenceValues(TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
+			Record record) {
+
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		for (Metadata metadata : schema.getMetadatas().onlySequence()) {
+			if (record.get(metadata) != null) {
+				SequenceDataEntry sequenceDataEntry = (SequenceDataEntry) metadata.getDataEntry();
+				String key = sequenceDataEntry.getFixedSequenceCode();
+				if (key == null) {
+					key = record.get(schema.getMetadata(sequenceDataEntry.getMetadataProvidingSequenceCode()));
+				}
+
+				long value = Long.valueOf(record.<String>get(metadata));
+				Long currentHighestValue = typeBatchImportContext.sequences.get(key);
+				if (isNotBlank(key) && (currentHighestValue == null || currentHighestValue.longValue() < value)) {
+					typeBatchImportContext.sequences.put(key, value);
+				}
+			}
 		}
 	}
 

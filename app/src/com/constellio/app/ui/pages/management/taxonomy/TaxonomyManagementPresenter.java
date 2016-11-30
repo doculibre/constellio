@@ -141,13 +141,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	RecordVODataProvider createDataProvider(final Factory<LogicalSearchQuery> queryFactory) {
 		final String schemaCode = queryFactory.get().getSchemaCondition().getCode();
 
-		List<String> metadataCodes = new ArrayList<String>();
-		metadataCodes.add(schemaCode + "_id");
-		metadataCodes.add(schemaCode + "_code");
-		metadataCodes.add(schemaCode + "_title");
-
 		MetadataSchemaVO schemaVO = schemaVOBuilder.build(
-				schema(schemaCode), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+				schema(schemaCode), VIEW_MODE.TABLE, null, view.getSessionContext());
 		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 		RecordVODataProvider dataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -192,7 +187,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		if (isDeletable(recordVO)) {
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
-			utils.delete(utils.toRecord(recordVO), null, false);
+			utils.delete(utils.toRecord(recordVO), null, true);
 			if (recordVO.getId().equals(conceptId)) {
 				backButtonClicked();
 			} else {

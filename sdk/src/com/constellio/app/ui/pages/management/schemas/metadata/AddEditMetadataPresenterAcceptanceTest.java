@@ -9,8 +9,18 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
@@ -191,6 +201,39 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(result.isMultivalue()).isFalse();
 		assertThat(result.isSortable()).isTrue();
 		assertThat(result.isDuplicable()).isFalse();
+	}
+
+	@Test
+	public void givenEditInheritedMetadataInputMaskThenAllSchemaSaved()
+			throws Exception {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypesBuilder types = schemasManager.modify(zeCollection);
+		Map<String, String> labels = new HashMap<>();
+		labels.put("fr", "zeNewSchema");
+		types.getDefaultSchema("zeSchemaType").create("zeMask").setInputMask("9999-9999").addLabel(Language.French, "Mask").setType(MetadataValueType.STRING);
+		types.getSchemaType("zeSchemaType").createCustomSchema("zeNewSchema", labels).setDefaultSchema(types.getDefaultSchema("zeSchemaType"));
+		schemasManager.saveUpdateSchemaTypes(types);
+
+		Metadata zeNewSchemaMetadata = rm.schema("zeSchemaType_zeNewSchema").getMetadata("zeMask");
+		Metadata defaultMetadata = rm.schema("zeSchemaType_default").getMetadata("zeMask");
+
+		assertThat(zeNewSchemaMetadata.getInputMask()).isEqualTo("9999-9999");
+		assertThat(defaultMetadata.getInputMask()).isEqualTo("9999-9999");
+
+		presenter.setSchemaCode("zeSchemaType_zeNewSchema");
+
+		FormMetadataVO newMetadataForm = new FormMetadataVO("zeSchemaType_zeNewSchema_zeMask", MetadataValueType.STRING, false, null, "",
+				newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				null, "AAAA-AAAA", false, view.getSessionContext());
+
+		presenter.saveButtonClicked(newMetadataForm, true);
+
+		zeNewSchemaMetadata = rm.schema("zeSchemaType_zeNewSchema").getMetadata("zeMask");
+		defaultMetadata = rm.schema("zeSchemaType_default").getMetadata("zeMask");
+
+		assertThat(zeNewSchemaMetadata.getInputMask()).isEqualTo("AAAA-AAAA");
+		assertThat(defaultMetadata.getInputMask()).isEqualTo("AAAA-AAAA");
 	}
 
 }

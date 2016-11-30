@@ -35,7 +35,7 @@ public class RecordServices_AddUpdatesByTransactionSizePerformanceTest extends C
 	static ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 	static RecordServices recordServices;
 	static RandomWordsIterator randomWordsIterator;
-	@Rule public TestRule benchmarkRun = new BenchmarkRule();
+	//@Rule public TestRule benchmarkRun = new BenchmarkRule();
 
 	@Test
 	public void __prepareTests__()

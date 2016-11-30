@@ -10,6 +10,7 @@ import java.util.List;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -98,15 +99,21 @@ public class MetadataVODataProvider implements Serializable {
 		if (types != null) {
 			MetadataSchema schema = types.getSchema(schemaCode);
 			for (Metadata meta : schema.getMetadatas()) {
-				if (!meta.isSystemReserved() && isAccepted(meta)) {
+				if (isAccepted(meta)) {
 					result.add(voBuilder.build(meta));
 				}
 			}
 		}
+		Collections.sort(result, new AbstractTextComparator<MetadataVO>() {
+			@Override
+			protected String getText(MetadataVO object) {
+				return object.getLabel();
+			}
+		});
 		return result;
 	}
 
 	protected boolean isAccepted(Metadata meta) {
-		return true;
+		return !meta.isSystemReserved();
 	}
 }

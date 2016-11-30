@@ -436,6 +436,11 @@ public class RecordImpl implements Record {
 		return schemaCode;
 	}
 
+	@Override
+	public String getTypeCode() {
+		return SchemaUtils.getSchemaTypeCode(schemaCode);
+	}
+
 	public RecordDTO getRecordDTO() {
 		return recordDTO;
 	}
@@ -777,6 +782,11 @@ public class RecordImpl implements Record {
 	@Override
 	public boolean isActive() {
 		return Boolean.TRUE != get(Schemas.LOGICALLY_DELETED_STATUS);
+	}
+
+	@Override
+	public boolean isDisconnected() {
+		return disconnected;
 	}
 
 	@Override

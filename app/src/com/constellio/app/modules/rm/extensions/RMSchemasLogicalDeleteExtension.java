@@ -2,7 +2,10 @@ package com.constellio.app.modules.rm.extensions;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +98,9 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		} else if (event.isSchemaType(AdministrativeUnit.SCHEMA_TYPE)) {
 			return isAdministrativeUnitLogicallyDeletable(event);
 
+		} else if (event.isSchemaType(Category.SCHEMA_TYPE)) {
+			return isCategoryLogicallyDeletable(event);
+
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
@@ -103,7 +109,14 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
 	private ExtensionBooleanResult isAdministrativeUnitLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
-				fromAllSchemasIn(event.getCollection()).where(Schemas.PATH_PARTS).isEqualTo(event.getRecord().getId())));
+				fromAllSchemasExcept(asList(rm.administrativeUnit.schemaType()))
+						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
+	}
+
+	private ExtensionBooleanResult isCategoryLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
+				fromAllSchemasExcept(asList(rm.category.schemaType()))
+						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
 	}
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {

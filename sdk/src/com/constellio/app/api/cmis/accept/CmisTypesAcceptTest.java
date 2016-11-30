@@ -82,6 +82,8 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), anotherCollection);
 
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
+
 	}
 
 	@Test

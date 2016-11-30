@@ -11,8 +11,11 @@ import com.vaadin.ui.themes.ValoTheme;
 public class DownloadLink extends Link {
 	public static final String STYLE_NAME = "download-link";
 
+	protected Resource downloadedResource;
+
 	public DownloadLink(Resource downloadedResource, String caption) {
 		super(caption, wrapForDownload(downloadedResource));
+		this.downloadedResource = downloadedResource;
 		addStyleName(STYLE_NAME);
 		addStyleName(ValoTheme.BUTTON_LINK);
 
@@ -43,11 +46,11 @@ public class DownloadLink extends Link {
 				@Override
 				public DownloadStream getStream() {
 					DownloadStream stream = adaptee.getStream();
-		            if (stream.getParameter("Content-Disposition") == null) {
-		                // Content-Disposition: attachment generally forces download
-		                stream.setParameter("Content-Disposition",
-		                        "attachment; filename=\"" + stream.getFileName() + "\"");
-		            }
+					if (stream.getParameter("Content-Disposition") == null) {
+						// Content-Disposition: attachment generally forces download
+						stream.setParameter("Content-Disposition",
+								"attachment; filename=\"" + stream.getFileName() + "\"");
+					}
 					return stream;
 				}
 

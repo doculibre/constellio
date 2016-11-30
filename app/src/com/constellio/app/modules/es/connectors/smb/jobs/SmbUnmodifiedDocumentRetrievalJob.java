@@ -49,29 +49,11 @@ public class SmbUnmodifiedDocumentRetrievalJob extends ConnectorJob implements S
 
 		switch (smbObject.getStatus()) {
 		case FULL_DTO:
-			List<ConnectorDocument<?>> fullDocuments = smbRecordService.getExistingDocumentsWithUrl(url);
-			if (fullDocuments.isEmpty()) {
-				connector.getLogger()
-						.error("Unable to get record for url : " + url, "", new LinkedHashMap<String, String>());
-			} else {
-				ConnectorDocument fullDocument = fullDocuments.get(0);
-				String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
-				updater.updateUnmodifiedDocument(smbObject, fullDocument, parentId);
-				eventObserver.push(Arrays.asList(fullDocument));
-				smbRecordService.updateResumeUrl(url);
-			}
+			smbRecordService.updateResumeUrl(url);
 			break;
 		case FAILED_DTO:
-			List<ConnectorDocument<?>> failedDocuments = smbRecordService.getExistingDocumentsWithUrl(url);
-			if (failedDocuments.isEmpty()) {
-				connector.getLogger()
-						.error("Unable to get record for url : " + url, "", new LinkedHashMap<String, String>());
-			} else {
-				ConnectorDocument failedDocument = failedDocuments.get(0);
-				String failedDocumentParentId = smbRecordService.getRecordIdForFolder(parentUrl);
-				updater.updateFailedDocumentOrFolder(smbObject, failedDocument, failedDocumentParentId);
-				eventObserver.push(Arrays.asList(failedDocument));
-			}
+			connector.getLogger()
+						.error("Skipping url : " + url, "See error logs above", new LinkedHashMap<String, String>());
 			break;
 		case DELETE_DTO:
 			try {
@@ -79,8 +61,7 @@ public class SmbUnmodifiedDocumentRetrievalJob extends ConnectorJob implements S
 				ConnectorJob deleteJob = jobFactory.get(SmbJobCategory.DELETE, url, parentUrl);
 				connectorSmb.queueJob(deleteJob);
 			} catch (Exception e) {
-				this.connector.getLogger()
-						.errorUnexpected(e);
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		default:

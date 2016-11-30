@@ -9,15 +9,17 @@ import com.constellio.app.ui.framework.components.SearchResultDisplay;
 
 public class ESSearchPageExtension extends SearchPageExtension {
 
+	private AppLayerFactory appLayerFactory;
+
 	public ESSearchPageExtension(AppLayerFactory appLayerFactory) {
-		super(appLayerFactory);
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
 
-			return new SmbSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), getAppLayerFactory());
+			return new SmbSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory);
 		}
 		return super.getCustomResultDisplayFor(param);
 	}

@@ -29,9 +29,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.client.WebTarget;
 
+import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrClient;
+import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
@@ -86,6 +88,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
 import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -356,8 +359,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected InputStream getTestResourceInputStream(String partialName) {
+		return getTestResourceInputStream(null, partialName);
+	}
+
+	protected InputStream getTestResourceInputStream(Class<?> clazz, String partialName) {
 		ensureNotUnitTest();
-		File testResourceFile = getTestResourceFile(partialName);
+		File testResourceFile = getTestResourceFile(clazz, partialName);
 		InputStream inputStream;
 		try {
 			inputStream = newFileInputStream(testResourceFile);
@@ -1374,5 +1381,23 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected void assumeNotSolrCloud() {
 		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
+	}
+
+	protected Session newCMISSessionAsUserInZeCollection(String username) {
+		ensureNotUnitTest();
+		return newCMISSessionAsUserInCollection(username, zeCollection);
+	}
+
+	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
+		ensureNotUnitTest();
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		userServices.addUpdateUserCredential(userServices.getUser(username).withServiceKey(username + "-key"));
+		String token = userServices.generateToken(username, Duration.standardHours(72));
+		System.out.println("Logging as " + username + "-key / " + token);
+		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
+		if (session == null) {
+			throw new RuntimeException("Failed to initialize cmis session");
+		}
+		return session;
 	}
 }

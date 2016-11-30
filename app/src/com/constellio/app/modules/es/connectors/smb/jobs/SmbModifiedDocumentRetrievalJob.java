@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 
 public class SmbModifiedDocumentRetrievalJob extends ConnectorJob implements SmbConnectorJob {
 	private static final String jobName = SmbModifiedDocumentRetrievalJob.class.getSimpleName();
@@ -49,28 +51,24 @@ public class SmbModifiedDocumentRetrievalJob extends ConnectorJob implements Smb
 
 		switch (smbObject.getStatus()) {
 		case FULL_DTO:
-			List<ConnectorDocument<?>> fullDocuments = smbRecordService.getExistingDocumentsWithUrl(url);
-			if (fullDocuments.isEmpty()) {
-				connector.getLogger()
-						.error("Unable to get record for url : " + url, "", new LinkedHashMap<String, String>());
-			} else {
-				ConnectorDocument fullDocument = fullDocuments.get(0);
-				String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
-				updater.updateDocumentOrFolder(smbObject, fullDocument, parentId);
-				eventObserver.push(Arrays.asList(fullDocument));
+			try {
+				ConnectorDocument connectorDocument = smbRecordService.getDocument(url);
+				String parentId = smbRecordService.getSafeId(smbRecordService.getFolder(parentUrl));
+				updater.updateDocumentOrFolder(smbObject, connectorDocument, parentId);
+				eventObserver.push(Arrays.asList(connectorDocument));
 				smbRecordService.updateResumeUrl(url);
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		case FAILED_DTO:
-			List<ConnectorDocument<?>> failedDocuments = smbRecordService.getExistingDocumentsWithUrl(url);
-			if (failedDocuments.isEmpty()) {
-				connector.getLogger()
-						.error("Unable to get record for url : " + url, "", new LinkedHashMap<String, String>());
-			} else {
-				ConnectorDocument failedDocument = failedDocuments.get(0);
-				String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
-				updater.updateFailedDocumentOrFolder(smbObject, failedDocument, parentId);
-				eventObserver.push(Arrays.asList(failedDocument));
+			try {
+				ConnectorDocument connectorDocument = smbRecordService.getDocument(url);
+				String parentId = smbRecordService.getSafeId(smbRecordService.getFolder(parentUrl));
+				updater.updateFailedDocumentOrFolder(smbObject, connectorDocument, parentId);
+				eventObserver.push(Arrays.asList(connectorDocument));
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		case DELETE_DTO:
@@ -79,8 +77,7 @@ public class SmbModifiedDocumentRetrievalJob extends ConnectorJob implements Smb
 				ConnectorJob deleteJob = jobFactory.get(SmbJobCategory.DELETE, url, parentUrl);
 				connectorSmb.queueJob(deleteJob);
 			} catch (Exception e) {
-				this.connector.getLogger()
-						.errorUnexpected(e);
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		default:

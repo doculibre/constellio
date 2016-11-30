@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.taxonomies.*;
+import org.apache.chemistry.opencmis.commons.impl.jaxb.CheckOut;
+
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -16,18 +19,25 @@ import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
+import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
-import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
+import com.constellio.app.extensions.api.cmis.params.AllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
+import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -79,6 +89,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<CollectionSequenceExtension> collectionSequenceExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<SystemCheckExtension> systemCheckExtensions = new VaultBehaviorsList<>();
+
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
 	}
@@ -127,6 +139,66 @@ public class AppLayerCollectionExtensions {
 			extension.buildConstellioRecordFromCmisObject(params);
 		}
 	}
+
+	public void buildAllowableActions(AllowableActionsParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.buildAllowableActions(params);
+		}
+	}
+
+	public void onGetObject(GetObjectParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onGetObject(params);
+		}
+	}
+	//
+	//	public void onCreateCMISFolder(CreateFolderParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onCreateCMISFolder(params);
+	//		}
+	//	}
+	//
+	//	public void onCreateCMISDocument(CreateDocumentParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onCreateCMISDocument(params);
+	//		}
+	//	}
+	//
+	//	public void onUpdateCMISFolder(UpdateFolderParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onUpdateCMISFolder(params);
+	//		}
+	//	}
+	//
+	//	public void onUpdateCMISDocument(UpdateDocumentParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onUpdateCMISDocument(params);
+	//		}
+	//	}
+
+	public void onCheckIn(CheckInParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onCheckIn(params);
+		}
+	}
+
+	public void onCheckOut(CheckOutParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onCheckOut(params);
+		}
+	}
+
+	public void onDeleteTree(DeleteTreeParams params) {
+		for (CmisExtension extension : cmisExtensions) {
+			extension.onDeleteTree(params);
+		}
+	}
+
+	//	public void onDeleteContent(DeleteContentParams params) {
+	//		for (CmisExtension extension : cmisExtensions) {
+	//			extension.onDeleteContent(params);
+	//		}
+	//	}
 
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam params) {
 		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
@@ -301,6 +373,24 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return recordFieldFactory;
+	}
+
+	public void notifyNewUserSearch(UserSearchEvent event) {
+		for (SearchPageExtension extension : searchPageExtensions) {
+			extension.notifyNewUserSearch(event);
+		}
+	}
+
+	public void notifyFolderDeletion(FolderDeletionEvent event) {
+		for (RecordAppExtension extension : recordAppExtensions) {
+			extension.notifyFolderDeleted(event);
+		}
+	}
+
+	public void checkCollection(CollectionSystemCheckParams params) {
+		for (SystemCheckExtension extension : systemCheckExtensions) {
+			extension.checkCollection(params);
+		}
 	}
 
 }

@@ -56,6 +56,8 @@ public class MetadataDisplayFactory implements Serializable {
 		String metadataCode = metadataVO.getCode();
 		StructureFactory structureFactory = metadataVO.getStructureFactory();
 
+		MetadataValueType metadataValueType = metadataVO.getType();
+
 		if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
 			displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
 			displayComponent.setWidthUndefined();
@@ -65,6 +67,8 @@ public class MetadataDisplayFactory implements Serializable {
 			Collection<?> collectionDisplayValue = (Collection<?>) displayValue;
 			if (collectionDisplayValue.isEmpty()) {
 				displayComponent = null;
+			} else if (MetadataValueType.STRING.equals(metadataValueType)) {
+				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
 				for (Object elementDisplayValue : collectionDisplayValue) {
@@ -153,7 +157,8 @@ public class MetadataDisplayFactory implements Serializable {
 				if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
 					displayComponent = null;
 				} else {
-					displayComponent = new Label(displayValue.toString());
+					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+					displayComponent = new Label(stringValue, ContentMode.HTML);
 				}
 				break;
 			case TEXT:
@@ -205,6 +210,17 @@ public class MetadataDisplayFactory implements Serializable {
 			}
 		}
 		return displayComponent;
+	}
+	
+	protected Component newStringCollectionValueDisplayComponent(Collection<String> stringCollectionValue) {
+		StringBuilder sb = new StringBuilder();
+		for (String stringValue : stringCollectionValue) {
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append(stringValue);
+		}
+		return new Label(sb.toString());
 	}
 
 	//	protected Component newContentVersionDisplayComponent(RecordVO recordVO, ContentVersionVO contentVersionVO) {

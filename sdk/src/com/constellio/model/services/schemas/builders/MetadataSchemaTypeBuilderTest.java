@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas.builders;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +19,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
@@ -401,6 +403,16 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	}
 
 	private void validateSchemaTypeHasCustomSchemaWithMetadata() {
+		assertThat(schemaType.hasSchema(customSchemaCode)).isTrue();
+		assertThat(schemaType.hasSchema(schemaType.getCode() + "_" + customSchemaCode)).isTrue();
+		assertThat(schemaType.hasSchema("invalidSchema")).isFalse();
+		try {
+			assertThat(schemaType.hasSchema("otherType_" + customSchemaCode)).isTrue();
+			fail("Exception expected");
+		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType e) {
+			//OK
+		}
+
 		MetadataSchema customSchema = schemaType.getCustomSchema(customSchemaCode);
 		Metadata metadata = customSchema.getMetadata(metadataCode);
 

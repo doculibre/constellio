@@ -33,7 +33,6 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 			webapp2, webapp3, webinf, wrapperConf, command, deploy, temp, commandCmdTxt, uploadConstellioWar, settings, custom,
 			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData, vaadin, themes, themesConstellio,
 			themesConstellioImages, crypt, workFolder;
-	@Rule public TestRule benchmarkRun = new BenchmarkRule();
 	String testCase;
 	FoldersLocator foldersLocator;
 

@@ -182,6 +182,16 @@ public class RetentionRule extends RecordWrapper {
 		return getList(COPY_RETENTION_RULES);
 	}
 
+	public CopyRetentionRule getCopyRetentionRuleWithCode(String code) {
+		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
+			if (code.equals(copyRetentionRule.getCode())) {
+				return copyRetentionRule;
+			}
+		}
+
+		return null;
+	}
+
 	public RetentionRule setCopyRetentionRules(CopyRetentionRule... copyRetentionRules) {
 		return setCopyRetentionRules(Arrays.asList(copyRetentionRules));
 	}
