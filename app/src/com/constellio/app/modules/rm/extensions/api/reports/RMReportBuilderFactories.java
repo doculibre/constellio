@@ -5,16 +5,17 @@ import com.constellio.app.modules.rm.reports.builders.administration.plan.Admini
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportFactory;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
+import com.constellio.app.modules.rm.reports.factories.ExampleReportParameters;
+import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecordsParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.data.frameworks.extensions.SingleValueExtension;
 import com.constellio.data.utils.Provider;
-
-import static com.constellio.data.frameworks.extensions.SingleValueExtension.DEFAULT_VALUE;
 
 public class RMReportBuilderFactories {
 
@@ -28,12 +29,15 @@ public class RMReportBuilderFactories {
 
 	public SingleValueExtension<NewReportWriterFactory<UserReportParameters>> userRecordBuilderFactory = new SingleValueExtension<>();
 
-	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
-		//TODO Nicolas : Déplacer ce register dans le plugin des rapports
-		transferContainerRecordBuilderFactory.register(DEFAULT_VALUE, new ContainerRecordReportFactory(appLayerFactory));
+    public SingleValueExtension<NewReportWriterFactory<DecommissioningListReportParameters>> decommissioningListBuilderFactory = new SingleValueExtension<>();
 
-		//completed
-		//administrativeUnitRecordBuilderFactory.register(DEFAULT_VALUE, new AdministrativeUnitReportFactory(appLayerFactory));
+    public SingleValueExtension<NewReportWriterFactory<LabelsReportParameters>> labelsBuilderFactory = new SingleValueExtension<>();
+
+    public SingleValueExtension<NewReportWriterFactory<ExampleReportParameters>> exampleBuilderFactory = new SingleValueExtension<>();
+
+    public SingleValueExtension<NewReportWriterFactory<ExampleReportWithoutRecordsParameters>> exampleWithoutRecordsBuilderFactory = new SingleValueExtension<>();
+
+	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
 	}
 
 	/**

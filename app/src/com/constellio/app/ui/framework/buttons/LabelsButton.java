@@ -5,11 +5,16 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.List;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -29,11 +34,14 @@ public class LabelsButton extends WindowButton {
 	@PropertyId("labelConfigurations") private ComboBox format;
 	@PropertyId("numberOfCopies") private TextField copies;
 
+    private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
+
 	public LabelsButton(String caption, String windowCaption, RecordSelector selector,
-			Factory<List<LabelTemplate>> templatesFactory) {
+                        Factory<List<LabelTemplate>> templatesFactory, NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
 		super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 		this.selector = selector;
 		this.templatesFactory = templatesFactory;
+        this.labelsReportFactory = labelsReportFactory;
 	}
 
 	@Override
@@ -84,10 +92,14 @@ public class LabelsButton extends WindowButton {
 			protected void saveButtonClick(LabelParametersVO parameters)
 					throws ValidationException {
 				LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
-//				LabelsReportFactory factory = new LabelsReportFactory(
-//						selector.getSelectedRecordIds(), labelTemplate,
-//						parameters.getStartPosition(), parameters.getNumberOfCopies());
-//				getWindow().setContent(new ReportViewer(factory, ));
+
+                LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+                        selector.getSelectedRecordIds(),
+                        parameters.getLabelConfiguration(),
+                        parameters.getStartPosition(),
+                        parameters.getNumberOfCopies());
+
+                getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters), labelsReportFactory.getFilename(null)));
 			}
 
 			@Override

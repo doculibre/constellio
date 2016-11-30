@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportViewImpl;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportViewImpl.DecommissioningListReportFactoryParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -394,7 +393,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public NewReportWriterFactory getReport(String report) {
 
 		if (report.equals("Reports.DecommissioningList")) {
-			return new DecommissioningListReportViewImpl(appLayerFactory);
+			return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
 		} else {//Reports.documentsCertificate //Reports.foldersCertificate
 			throw new RuntimeException("BUG: Unknown report: " + report);
 		}
@@ -402,7 +401,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	@Override
 	public Object getReportParameters(String report) {
-		return new DecommissioningListReportFactoryParameters(decommissioningList.getId());
+		return new DecommissioningListReportParameters(decommissioningList.getId());
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {

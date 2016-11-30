@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.reports.builders.decommissioning;
 
 public class ContainerRecordReportParameters {
-    String containerId;
-    boolean transfer;
+    private String containerId;
+    private boolean transfer;
 
     public ContainerRecordReportParameters(String containerId, boolean transfer) {
         this.containerId = containerId;

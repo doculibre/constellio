@@ -5,10 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
@@ -135,7 +136,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		buttons.add(slip);
 
 		Button labels = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-				presenter.getTemplates());
+				presenter.getTemplates(), presenter.getLabelsReportFactory());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 
@@ -167,16 +168,18 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	public static class ContainerLabelsButton extends WindowButton {
 		private final RecordSelector selector;
 		private final List<LabelTemplate> labelTemplates;
+        private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
 
 		@PropertyId("startPosition") private ComboBox startPosition;
 		@PropertyId("numberOfCopies") private TextField copies;
 		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
 
 		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
-				List<LabelTemplate> labelTemplates) {
+				List<LabelTemplate> labelTemplates, final NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
 			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 			this.selector = selector;
 			this.labelTemplates = labelTemplates;
+            this.labelsReportFactory = labelsReportFactory;
 		}
 
 		@Override
@@ -224,10 +227,13 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				@Override
 				protected void saveButtonClick(LabelParametersVO parameters)
 						throws ValidationException {
-//					LabelsReportFactory factory = new LabelsReportFactory(
-//							selector.getSelectedRecordIds(), ((LabelTemplate) (labelConfiguration.getValue())),
-//							parameters.getStartPosition(), parameters.getNumberOfCopies());
-//					getWindow().setContent(new ReportViewer(factory));
+                    LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+                            selector.getSelectedRecordIds(),
+                            parameters.getLabelConfiguration(),
+                            parameters.getStartPosition(),
+                            parameters.getNumberOfCopies());
+
+					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters), labelsReportFactory.getFilename(null)));
 				}
 
 				@Override

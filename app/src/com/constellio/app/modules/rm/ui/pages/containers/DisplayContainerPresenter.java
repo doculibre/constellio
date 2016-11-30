@@ -7,14 +7,17 @@ import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -229,5 +232,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
+	}
+
+	public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
+		return getRmReportBuilderFactories().labelsBuilderFactory.getValue();
 	}
 }

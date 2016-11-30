@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -254,5 +257,11 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 			config = manager.getNavigationConfig(view.getCollection());
 		}
 		return config;
+	}
+
+	public RMReportBuilderFactories getRmReportBuilderFactories() {
+		final AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		final RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories();
 	}
 }
