@@ -4,23 +4,18 @@ import static com.constellio.data.utils.LangUtils.isTrueOrNull;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.PARENT_PATH;
 import static com.constellio.model.entities.schemas.Schemas.PATH;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIs;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
-import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,6 +26,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordUtils;
@@ -504,11 +500,10 @@ public class TaxonomiesSearchServices {
 		int level = path.split("/").length - 2;
 		int consumed = 0;
 		List<TaxonomySearchRecord> resultVisible = new ArrayList<>();
-		while (batchIterators.hasNext() && resultVisible.size() < options.getStartRow() + options
-				.getRows()) {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(record.getCollection());
+		while (batchIterators.hasNext() && resultVisible.size() < options.getStartRow() + options.getRows()) {
 
-			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(path,
-					taxonomy, false, options);
+			LogicalSearchCondition condition = findVisibleNonTaxonomyRecordsInStructure(path, taxonomy, false, options);
 			query = new LogicalSearchQuery(condition)
 					.filteredWithUser(user)
 					.filteredByStatus(options.getIncludeStatus())
@@ -516,20 +511,37 @@ public class TaxonomiesSearchServices {
 					.setNumberOfRows(0);
 
 			List<Record> batch = batchIterators.next();
-			for (Record child : batch) {
-				query.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, level, child));
+
+			boolean[] isTaxonomyRecord = new boolean[batch.size()];
+			boolean[] hasChildrenFlagCalculated = new boolean[batch.size()];
+			boolean[] recordMayBeParent = new boolean[batch.size()];
+			boolean[] readAccess = new boolean[batch.size()];
+
+			for (int i = 0; i < batch.size(); i++) {
+				Record child = batch.get(i);
+				readAccess[i] = user == User.GOD || user.hasReadAccess().on(child);
+				isTaxonomyRecord[i] = taxonomy.getSchemaTypes().contains(child.getTypeCode());
+				recordMayBeParent[i] = types.getTypeParentOfOtherTypes().contains(child.getTypeCode());
+				hasChildrenFlagCalculated[i] = isTaxonomyRecord[i]
+						|| (options.isHasChildrenFlagCalculated() && recordMayBeParent[i])
+						|| (!readAccess[i]);
+
+				if (hasChildrenFlagCalculated[i]) {
+					query.addQueryFacet(CHILDREN_QUERY, facetQueryFor(taxonomy, level, child));
+				}
 			}
 
 			SPEQueryResponse response = searchServices.query(query);
 
-			for (Record child : batch) {
+			for (int i = 0; i < batch.size(); i++) {
+				Record child = batch.get(i);
 				consumed++;
-				String childType = schemaUtils.getSchemaTypeCode(child.getSchemaCode());
-				boolean isTaxonomyRecord = taxonomy.getSchemaTypes().contains(childType);
-				boolean hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, level, child)) > 0;
-				boolean hasAccess = false;
-				if (!isTaxonomyRecord) {
-					hasAccess = user == User.GOD || user.hasReadAccess().on(child);
+
+				boolean hasChildren;
+				if (hasChildrenFlagCalculated[i]) {
+					hasChildren = response.getQueryFacetCount(facetQueryFor(taxonomy, level, child)) > 0;
+				} else {
+					hasChildren = recordMayBeParent[i];
 				}
 
 				boolean showEvenIfNoChildren = false;
@@ -551,7 +563,7 @@ public class TaxonomiesSearchServices {
 
 				}
 
-				if (hasAccess || hasChildren || showEvenIfNoChildren) {
+				if ((!isTaxonomyRecord[i] && readAccess[i]) || hasChildren || showEvenIfNoChildren) {
 					resultVisible.add(new TaxonomySearchRecord(child, NOT_LINKABLE, hasChildren));
 				}
 			}
