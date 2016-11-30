@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -83,8 +84,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public boolean isInherited(String metadataCode) {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
-		return metadata.inheritDefaultSchema();
+		try {
+			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
+			return metadata.inheritDefaultSchema();
+		} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
+			return false;
+		}
 	}
 
 	public List<String> getMetadataTypesCode() {
@@ -158,10 +163,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 		builder.setDuplicable(formMetadataVO.isDuplicable());
 
-		if(isInherited(formMetadataVO.getCode())) {
-			MetadataSchemaBuilder defaultSchemaBuilder = types.getSchema(schemaCode.substring(0, schemaCode.lastIndexOf('_')) + "_default");
+		if (isInherited(formMetadataVO.getCode())) {
+			MetadataSchemaBuilder defaultSchemaBuilder = types
+					.getSchema(schemaCode.substring(0, schemaCode.lastIndexOf('_')) + "_default");
 			String localCode = formMetadataVO.getCode().substring(formMetadataVO.getCode().lastIndexOf("_") + 1);
-			if(defaultSchemaBuilder.hasMetadata(localCode)) {
+			if (defaultSchemaBuilder.hasMetadata(localCode)) {
 				defaultSchemaBuilder.getMetadata(localCode).setInputMask(formMetadataVO.getInputMask());
 			}
 		}
