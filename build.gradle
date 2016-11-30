@@ -99,7 +99,6 @@ allprojects {
         compile "org.apache.curator:curator-client:2.7.0"
         compile "org.apache.curator:curator-test:2.7.0"
         compile "commons-beanutils:commons-beanutils:1.9.2"
-        compile "com.itextpdf:itextpdf:5.0.6"
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
