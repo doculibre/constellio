@@ -10,7 +10,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
 import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -24,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportWriterFactory;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -324,7 +322,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		case "Reports.fakeReport":
 			return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
 		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportWriterFactory(appLayerFactory);
+			return getRmReportBuilderFactories().statsBuilderFactory.getValue();
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}

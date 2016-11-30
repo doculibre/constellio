@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.reports.builders.administration.plan.Conser
 import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportParameters;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecordsParameters;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
@@ -36,6 +37,8 @@ public class RMReportBuilderFactories {
     public SingleValueExtension<NewReportWriterFactory<ExampleReportParameters>> exampleBuilderFactory = new SingleValueExtension<>();
 
     public SingleValueExtension<NewReportWriterFactory<ExampleReportWithoutRecordsParameters>> exampleWithoutRecordsBuilderFactory = new SingleValueExtension<>();
+
+	public SingleValueExtension<NewReportWriterFactory<StatsReportParameters>> statsBuilderFactory = new SingleValueExtension<>();
 
 	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
 	}
