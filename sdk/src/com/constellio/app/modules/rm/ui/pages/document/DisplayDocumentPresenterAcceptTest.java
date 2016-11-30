@@ -17,6 +17,7 @@ import com.constellio.model.entities.Permissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -289,6 +290,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 	}
 
+	@InDevelopmentTest
 	@Test
 	public void givenDocumentThenPublishAndUnpublishButtonsOnlyShowWhenUserHasTheRightPermission()
 			throws Exception {
@@ -296,17 +298,22 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		RolesManager manager = getModelLayerFactory().getRolesManager();
 		Role zeNewRole = new Role(zeCollection, "zeNewRoleWithPublishPermission", asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
 		manager.addRole(zeNewRole);
-		users.bobIn(zeCollection).setUserRoles(asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
-		UserServices userServices = getModelLayerFactory().newUserServices();
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.update(users.bobIn(zeCollection).setUserRoles(asList("zeNewRoleWithPublishPermission")));
+
+		assertThat(users.bobIn(zeCollection).getAllRoles()).containsOnly("zeNewRoleWithPublishPermission");
 
 		connectAsBob();
 		presenter.forParams(rmRecords.document_A19);
 		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isTrue();
 
-		zeNewRole.withPermissions(new ArrayList<String>());
-		manager.updateRole(zeNewRole);
+		manager.updateRole(zeNewRole.withPermissions(new ArrayList<String>()));
+		assertThat(manager.getRole(zeCollection, "zeNewRoleWithPublishPermission").hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
 		connectAsBob();
 		presenter.forParams(rmRecords.document_A19);
 		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();
+
+		newWebDriver();
+		waitUntilICloseTheBrowsers();
 	}
 }

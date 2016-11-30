@@ -365,6 +365,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
-		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
+		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
+				.on(getRecord(presenterUtils.getDocumentVO().getId()));
 	}
 }
