@@ -41,6 +41,7 @@ public class RMReportBuilderFactories {
 	public SingleValueExtension<NewReportWriterFactory<ExampleReportWithoutRecordsParameters>> exampleWithoutRecordsBuilderFactory = new SingleValueExtension<>();
 
 	public SingleValueExtension<NewReportWriterFactory<FolderDecommissioningCertificateParams>> folderDecommissioningCertificateFactory = new SingleValueExtension<>();
+
 	public SingleValueExtension<NewReportWriterFactory<DocumentDecommissioningCertificateParams>> documentDecommissioningCertificateFactory = new SingleValueExtension<>();
 
 	public SingleValueExtension<NewReportWriterFactory<StatsReportParameters>> statsBuilderFactory = new SingleValueExtension<>();
