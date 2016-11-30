@@ -11,6 +11,8 @@ import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportPa
 import com.constellio.app.modules.rm.reports.factories.ExampleReportParameters;
 import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecordsParameters;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.modules.rm.services.decommissioning.DocumentDecommissioningCertificateParams;
+import com.constellio.app.modules.rm.services.decommissioning.FolderDecommissioningCertificateParams;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
@@ -30,13 +32,16 @@ public class RMReportBuilderFactories {
 
 	public SingleValueExtension<NewReportWriterFactory<UserReportParameters>> userRecordBuilderFactory = new SingleValueExtension<>();
 
-    public SingleValueExtension<NewReportWriterFactory<DecommissioningListReportParameters>> decommissioningListBuilderFactory = new SingleValueExtension<>();
+	public SingleValueExtension<NewReportWriterFactory<DecommissioningListReportParameters>> decommissioningListBuilderFactory = new SingleValueExtension<>();
 
-    public SingleValueExtension<NewReportWriterFactory<LabelsReportParameters>> labelsBuilderFactory = new SingleValueExtension<>();
+	public SingleValueExtension<NewReportWriterFactory<LabelsReportParameters>> labelsBuilderFactory = new SingleValueExtension<>();
 
-    public SingleValueExtension<NewReportWriterFactory<ExampleReportParameters>> exampleBuilderFactory = new SingleValueExtension<>();
+	public SingleValueExtension<NewReportWriterFactory<ExampleReportParameters>> exampleBuilderFactory = new SingleValueExtension<>();
 
-    public SingleValueExtension<NewReportWriterFactory<ExampleReportWithoutRecordsParameters>> exampleWithoutRecordsBuilderFactory = new SingleValueExtension<>();
+	public SingleValueExtension<NewReportWriterFactory<ExampleReportWithoutRecordsParameters>> exampleWithoutRecordsBuilderFactory = new SingleValueExtension<>();
+
+	public SingleValueExtension<NewReportWriterFactory<FolderDecommissioningCertificateParams>> folderDecommissioningCertificateFactory = new SingleValueExtension<>();
+	public SingleValueExtension<NewReportWriterFactory<DocumentDecommissioningCertificateParams>> documentDecommissioningCertificateFactory = new SingleValueExtension<>();
 
 	public SingleValueExtension<NewReportWriterFactory<StatsReportParameters>> statsBuilderFactory = new SingleValueExtension<>();
 

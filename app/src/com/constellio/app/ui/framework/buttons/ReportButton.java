@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ReportButton extends WindowButton {
@@ -55,12 +56,17 @@ public class ReportButton extends WindowButton {
 		} else {
 			NewReportWriterFactory<Object> reportBuilderFactory = (NewReportWriterFactory<Object>) newPresenter
 					.getReport(report);
-			Object parameters = newPresenter.getReportParameters(report);
-			String filename = reportBuilderFactory.getFilename(parameters);
-			ReportWriter reportWriter = reportBuilderFactory.getReportBuilder(parameters);
 
-			return new ReportViewer(reportWriter, reportBuilderFactory.getFilename(parameters));
+			if (reportBuilderFactory == null) {
+				return new Label($("ReportViewer.noReportFactoryAvailable"));
+			} else {
 
+				Object parameters = newPresenter.getReportParameters(report);
+				String filename = reportBuilderFactory.getFilename(parameters);
+				ReportWriter reportWriter = reportBuilderFactory.getReportBuilder(parameters);
+
+				return new ReportViewer(reportWriter, reportBuilderFactory.getFilename(parameters));
+			}
 		}
 	}
 }
