@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.reports.builders.administration.plan.Admini
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
+import com.constellio.app.modules.rm.reports.factories.ExampleReportWithoutRecordsParameters;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportPresenter;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -46,8 +47,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
 		switch (report) {
 		case "Reports.fakeReport2":
-			//return new ExampleReportFactoryWithoutRecords();
-			break;
+			return rmModuleExtensions.getReportBuilderFactories().exampleWithoutRecordsBuilderFactory.getValue();
 		case "Reports.ClassificationPlan":
 			return rmModuleExtensions.getReportBuilderFactories().classifcationPlanRecordBuilderFactory.getValue();
 		case "Reports.DetailedClassificationPlan":
@@ -74,8 +74,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 	public Object getReportParameters(String report) {
 		switch (report) {
 			case "Reports.fakeReport2":
-				//return new ExampleReportFactoryWithoutRecords();
-				break;
+				return new ExampleReportWithoutRecordsParameters();
 			case "Reports.ClassificationPlan":
 				return new ClassificationReportPlanParameters(false, null);
 			case "Reports.DetailedClassificationPlan":
