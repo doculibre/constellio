@@ -163,10 +163,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		builder.setDefaultRequirement(formMetadataVO.isRequired());
 		builder.setDuplicable(formMetadataVO.isDuplicable());
 
-		if (isInherited(formMetadataVO.getCode())) {
+		if (isInherited(code)) {
 			MetadataSchemaBuilder defaultSchemaBuilder = types
 					.getSchema(schemaCode.substring(0, schemaCode.lastIndexOf('_')) + "_default");
-			String localCode = formMetadataVO.getCode().substring(formMetadataVO.getCode().lastIndexOf("_") + 1);
+			String localCode = code.substring(code.lastIndexOf("_") + 1);
 			if (defaultSchemaBuilder.hasMetadata(localCode)) {
 				defaultSchemaBuilder.getMetadata(localCode).setInputMask(formMetadataVO.getInputMask());
 			}
