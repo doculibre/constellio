@@ -12,6 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
@@ -215,7 +221,7 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		presenter.setSchemaCode("zeSchemaType_zeNewSchema");
 
 		FormMetadataVO newMetadataForm = new FormMetadataVO("zeSchemaType_zeNewSchema_zeMask", MetadataValueType.STRING, false, null, "",
-				newLabels, false, false, false, false, false, MetadataInputType.FIELD, false, false, true, "default",
+				newLabels, false, false, false, false, false, MetadataInputType.FIELD, MetadataDisplayType.VERTICAL, false, false, true, "default",
 				null, "AAAA-AAAA", false, view.getSessionContext());
 
 		presenter.saveButtonClicked(newMetadataForm, true);
