@@ -21,6 +21,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String FIRST_NAME = "firstname";
 	public static final String LAST_NAME = "lastname";
 	public static final String EMAIL = "email";
+	public static final String PERSONAL_EMAILS = "personalEmails";
 	public static final String SERVICE_KEY = "serviceKey";
 	public static final String TOKEN_KEYS = "tokenKeys";
 	public static final String TOKEN_EXPIRATIONS = "tokenExpirations";
@@ -71,8 +72,18 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		return get(EMAIL);
 	}
 
+	@Override
+	public List<String> getPersonalEmails() {
+		return get(PERSONAL_EMAILS);
+	}
+
 	public SolrUserCredential setEmail(String email) {
 		set(EMAIL, email);
+		return this;
+	}
+
+	public SolrUserCredential setPersonalEmails(List<String> personalEmails) {
+		set(PERSONAL_EMAILS, personalEmails);
 		return this;
 	}
 
@@ -231,6 +242,11 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	@Override
 	public UserCredential withEmail(String email) {
 		return setEmail(email);
+	}
+
+	@Override
+	public UserCredential withPersonalEmails(List<String> personalEmails) {
+		return setPersonalEmails(personalEmails);
 	}
 
 	@Override

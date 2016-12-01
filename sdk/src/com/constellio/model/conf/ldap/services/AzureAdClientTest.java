@@ -34,7 +34,6 @@ public class AzureAdClientTest extends ConstellioTest {
             throws Exception {
         when(ldapServerConfiguration.getClientId()).thenReturn("69ab5806-25cf-4d80-a818-5b7cb7df1681");
         when(ldapServerConfiguration.getTenantName()).thenReturn("adgrics.onmicrosoft.com");
-
         when(ldapUserSyncConfiguration.getClientId()).thenReturn("bec3eab8-7c58-4263-b439-71ae66faa656");
         when(ldapUserSyncConfiguration.getClientSecret()).thenReturn("keAVWBUg69oq5pVEKXw1IrPsFuQD8GU4J1D2XGj0Bx0=");
 

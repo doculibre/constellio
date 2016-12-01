@@ -12553,6 +12553,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .lookup-autocomplete-field {
+	width: 100%;
+}
+
 .constellio .lookup-autocomplete-field .v-filterselect-input {
 	padding-right: 0px;
 }

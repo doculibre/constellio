@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -291,6 +291,32 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + documentWithContentA19.getTitle());
 
 		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
+	}
+
+	@Test
+	public void givenViewIsEnteredThenAddToCartButtonOnlyShowsWhenUserHasPermission() {
+		String roleCode = users.aliceIn(zeCollection).getUserRoles().get(0);
+		RolesManager rolesManager = getAppLayerFactory().getModelLayerFactory().getRolesManager();
+
+		Role role = rolesManager.getRole(zeCollection, roleCode);
+		Role editedRole = role.withPermissions(new ArrayList<String>());
+		rolesManager.updateRole(editedRole);
+
+		connectWithAlice();
+		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isFalse();
+
+		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_CART));
+		rolesManager.updateRole(editedRole2);
+
+		connectWithAlice();
+		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isTrue();
+	}
+
+	private void connectWithAlice() {
+		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayDocumentPresenter(displayDocumentView);
 	}
 
 	//

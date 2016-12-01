@@ -91,6 +91,7 @@ public class RMPermissionsTo {
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";
 
+	public static final String USE_CART = permission(RM_MANAGEMENT, "useCart");
 	public static final String MANAGE_UNIFORMSUBDIVISIONS = permission(RM_MANAGEMENT, "manageUniformSubdivisions");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");

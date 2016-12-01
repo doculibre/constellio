@@ -18,7 +18,9 @@ public class GlobalGroupToVOBuilder implements Serializable {
 		collections.addAll(globalGroup.getUsersAutomaticallyAddedToCollections());
 		String parent = globalGroup.getParent();
 		GlobalGroupStatus status = globalGroup.getStatus();
+		boolean locallyCreated = globalGroup.isLocallyCreated();
 
-		return new GlobalGroupVO(code, name, collections, parent, status);
+
+		return new GlobalGroupVO(code, name, collections, parent, status, locallyCreated);
 	}
 }

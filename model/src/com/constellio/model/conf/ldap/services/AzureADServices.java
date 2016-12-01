@@ -27,7 +27,7 @@ public class AzureADServices implements LDAPServices {
 
 	@Override
 	public List<String> getTestSynchronisationUsersNames(final LDAPServerConfiguration ldapServerConfiguration,
-														 final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> results = new HashSet<>();
 
 		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
@@ -43,7 +43,7 @@ public class AzureADServices implements LDAPServices {
 
 	@Override
 	public List<String> getTestSynchronisationGroups(final LDAPServerConfiguration ldapServerConfiguration,
-													 final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> results = new HashSet<>();
 
 		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
@@ -59,7 +59,7 @@ public class AzureADServices implements LDAPServices {
 
 	@Override
 	public LDAPUsersAndGroups importUsersAndGroups(final LDAPServerConfiguration ldapServerConfiguration,
-												   final LDAPUserSyncConfiguration ldapUserSyncConfiguration, final String url) {
+			final LDAPUserSyncConfiguration ldapUserSyncConfiguration, final String url) {
 		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
 		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
 

@@ -1,9 +1,11 @@
 package com.constellio.model.services.search.query.logical.valueCondition;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -20,8 +22,11 @@ import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchConditionBuilder;
 import com.constellio.model.services.search.query.logical.criteria.IsEqualCriterion;
 import com.constellio.model.services.search.query.logical.criteria.IsStartingWithTextCriterion;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 
 public class ConditionTemplateFactory {
 
@@ -57,38 +62,65 @@ public class ConditionTemplateFactory {
 		return ConditionTemplate.field(Schemas.SCHEMA, not(any(schemaTypesCriteria)));
 	}
 
-	public static ConditionTemplate autocompleteFieldMatching(String text) {
+	public static LogicalSearchConditionBuilder autocompleteFieldMatching(String text) {
+		return autocompleteFieldMatchingInMetadatas(text, asList(Schemas.SCHEMA_AUTOCOMPLETE_FIELD));
+	}
+
+	public static LogicalSearchConditionBuilder autocompleteFieldMatchingInMetadatas(String text, List<Metadata> metadatas) {
 		if (StringUtils.isBlank(text)) {
-			return ConditionTemplate.field(Schemas.IDENTIFIER, new IsEqualCriterion("a38"));
+			return new LogicalSearchConditionBuilder() {
+				@Override
+				public LogicalSearchCondition build(OngoingLogicalSearchCondition ongoing) {
+					return ongoing.where(Schemas.IDENTIFIER).isEqualTo("a38");
+				}
+			};
 		}
 		String cleanedText = AccentApostropheCleaner.removeAccents(text).toLowerCase();
 
 		String[] cleanedTextWords = cleanedText.split(" ");
 
-		LogicalSearchValueCondition condition;
+		final LogicalSearchCondition condition;
+		metadatas = new ArrayList<>(metadatas);
+
+		boolean schemaAutocomplete = false;
+		for (Metadata metadata : metadatas) {
+			schemaAutocomplete |= metadata.getLocalCode().equals(Schemas.SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode());
+		}
+
+		if (!schemaAutocomplete) {
+			metadatas.add(Schemas.SCHEMA_AUTOCOMPLETE_FIELD);
+		}
+
 		if (cleanedTextWords.length == 1) {
 			if (cleanedText.endsWith(" ")) {
-				condition = new IsEqualCriterion(cleanedText.trim());
+				condition = whereAny(metadatas).isEqualTo(cleanedText.trim());
 			} else {
-				condition = new IsStartingWithTextCriterion(cleanedText.trim());
+				condition = whereAny(metadatas).isStartingWithText(cleanedText.trim());
 			}
 		} else {
-			List<LogicalSearchValueCondition> conditions = new ArrayList<>();
+			List<LogicalSearchCondition> conditions = new ArrayList<>();
 			for (int i = 0; i < cleanedTextWords.length; i++) {
 				if (i + 1 == cleanedTextWords.length) {
 					if (cleanedText.endsWith(" ")) {
-						conditions.add(new IsEqualCriterion(cleanedTextWords[i]));
+						conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords[i]));
 					} else {
-						conditions.add(new IsStartingWithTextCriterion(cleanedTextWords[i]));
+						conditions.add(whereAny(metadatas).isStartingWithText(cleanedTextWords[i])
+								.orWhereAny(metadatas).isEqualTo(cleanedTextWords[i]));
 					}
 				} else {
-					conditions.add(new IsEqualCriterion(cleanedTextWords[i]));
+					conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords[i]));
 				}
 			}
-			condition = all(conditions);
+			condition = allConditions(conditions);
 		}
 
-		return ConditionTemplate.field(Schemas.SCHEMA_AUTOCOMPLETE_FIELD, condition);
+		return new LogicalSearchConditionBuilder() {
+			@Override
+			public LogicalSearchCondition build(OngoingLogicalSearchCondition ongoing) {
+				return ongoing.where(condition);
+			}
+		};
+
 	}
 
 	public ConditionTemplate metadatasHasAnalyzedValue(String value, Metadata... metadatas) {

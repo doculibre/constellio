@@ -8,6 +8,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
@@ -18,6 +19,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
@@ -116,6 +118,14 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 	@Override
 	public void setAgentURL(String agentURL) {
 		this.agentURL = agentURL;
+	}
+	
+	public Window openWindow() {
+		Window warningWindow = new BaseWindow($("DocumentContentVersionWindow.windowTitle"), this);
+		warningWindow.center();
+		warningWindow.setModal(true);
+		UI.getCurrent().addWindow(warningWindow);
+		return warningWindow;
 	}
 
 	@Override

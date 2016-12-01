@@ -371,7 +371,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 			@Override
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				return ComponentState.ENABLED;
+				return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
 			}
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, LogsViewGroup.class) {

@@ -450,7 +450,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		actionMenuButtons.add(addAuthorizationButton);
 		actionMenuButtons.add(createPDFAButton);
 		actionMenuButtons.add(shareDocumentButton);
-		actionMenuButtons.add(addToCartButton);
+		if(presenter.hasCurrentUserPermissionToUseCart()) {
+			actionMenuButtons.add(addToCartButton);
+		}
 		actionMenuButtons.add(uploadButton);
 		actionMenuButtons.add(checkInButton);
 		actionMenuButtons.add(alertWhenAvailableButton);

@@ -44,7 +44,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			ContentVersionVO contentVersionVO = record.get(Document.CONTENT);
 			String agentURL = ConstellioAgentUtils.getAgentURL(record, contentVersionVO);
 			if (agentURL != null) {
-				titleComponent = new ConstellioAgentLink(agentURL, contentVersionVO, record.getTitle(), false);
+				titleComponent = new ConstellioAgentLink(agentURL, record, contentVersionVO, record.getTitle(), false);
 			} else {
 				titleComponent = super.newTitleComponent(searchResultVO);
 			}

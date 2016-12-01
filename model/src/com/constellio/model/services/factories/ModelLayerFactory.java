@@ -170,7 +170,7 @@ public class ModelLayerFactory extends LayerFactory {
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
 				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-						dataLayerFactory.getBackgroundThreadsManager()));
+						dataLayerFactory.getConstellioJobManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
 						ioServicesFactory.newHashingService(BASE64), newUserServices()));
@@ -221,8 +221,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public FreeTextSearchServices newFreeTextSearchServices() {
-		return new FreeTextSearchServices(dataLayerFactory.newRecordDao(), dataLayerFactory.newEventsDao(), newUserServices(),
-				securityTokenManager);
+		return new FreeTextSearchServices(this);
 	}
 
 	public FileParser newFileParser() {

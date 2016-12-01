@@ -4,8 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import java.util.Map;
 
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.users.UserServices;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -630,6 +630,25 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + folderC30.getTitle());
 	}
 
+	@Test
+	public void givenViewIsEnteredThenAddToCartButtonOnlyShowsWhenUserHasPermission() {
+		String roleCode = users.aliceIn(zeCollection).getUserRoles().get(0);
+		RolesManager rolesManager = getAppLayerFactory().getModelLayerFactory().getRolesManager();
+
+		Role role = rolesManager.getRole(zeCollection, roleCode);
+		Role editedRole = role.withPermissions(new ArrayList<String>());
+		rolesManager.updateRole(editedRole);
+
+		connectWithAlice();
+		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isFalse();
+
+		Role editedRole2 = editedRole.withPermissions(asList(RMPermissionsTo.USE_CART));
+		rolesManager.updateRole(editedRole2);
+
+		connectWithAlice();
+		assertThat(presenter.hasCurrentUserPermissionToUseCart()).isTrue();
+	}
+
 	//
 	private void givenRemovedPermissionToModifyBorrowedFolder(String permission) {
 
@@ -718,5 +737,14 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		presenter = new DisplayFolderPresenter(displayFolderView);
+	}
+
+	@Test
+	public void test()
+			throws Exception {
+
+		displayFolderView.selectFolderContentTab();
+
+
 	}
 }

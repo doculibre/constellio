@@ -120,7 +120,6 @@ war {
     version = "6.5.43"
 
     webInf {
-        2
         from("resources_i18n/") {
             into("resources_i18n")
         }

@@ -297,8 +297,8 @@ public class MetadataVO implements Serializable {
 				if (other.schema != null) {
 					return false;
 				}
-			} else if (!schema.equals(other.schema)) {
-				return false;
+//			} else if (!schema.equals(other.schema)) {
+//				return false;
 			}
 		}
 		return true;
