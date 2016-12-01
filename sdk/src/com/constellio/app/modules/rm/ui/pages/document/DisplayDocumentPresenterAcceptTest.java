@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -297,11 +298,9 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 	}
 
-	@InDevelopmentTest
 	@Test
 	public void givenDocumentThenPublishAndUnpublishButtonsOnlyShowWhenUserHasTheRightPermission()
 			throws Exception {
-		DisplayDocumentPresenter presenter = spy(this.presenter);
 		RolesManager manager = getModelLayerFactory().getRolesManager();
 		Role zeNewRole = new Role(zeCollection, "zeNewRoleWithPublishPermission", asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
 		manager.addRole(zeNewRole);
@@ -318,9 +317,6 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(manager.getRole(zeCollection, "zeNewRoleWithPublishPermission").hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
 		connectAsSasquatch();
 		presenter.forParams(rmRecords.document_A19);
-		//assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();
-
-		newWebDriver();
-		waitUntilICloseTheBrowsers();
+		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();
 	}
 }
