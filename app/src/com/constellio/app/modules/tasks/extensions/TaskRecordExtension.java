@@ -153,22 +153,22 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.addAll(parameters);
 
 		String parentTaskTitle = "";
-		String assignerUserName = getUserNameById(task.getAssigner());
-		String assigneeUserName = getUserNameById(task.getAssignee());
+		String assignerFullName = getUserFullNameById(task.getAssigner());
+		String assigneeFullName = getUserFullNameById(task.getAssignee());
 		if (task.getParentTask() != null) {
 			Task parentTask = tasksSchema.getTask(task.getParentTask());
 			parentTaskTitle = parentTask.getTitle();
 		}
 		String status = tasksSchema.getTaskStatus(task.getStatus()).getTitle();
 
-		newParameters.add(TASK_TITLE_PARAMETER + ":" + task.getTitle());
-		newParameters.add(PARENT_TASK_TITLE + ":" + parentTaskTitle);
-		newParameters.add(TASK_ASSIGNED_BY + ":" + assignerUserName);
-		newParameters.add(TASK_ASSIGNED_ON + ":" + task.getAssignedOn());
-		newParameters.add(TASK_ASSIGNED + ":" + assigneeUserName);
-		newParameters.add(TASK_DUE_DATE + ":" + task.getDueDate());
-		newParameters.add(TASK_STATUS + ":" + status);
-		newParameters.add(TASK_DESCRIPTION + ":" + task.getDescription());
+		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(task.getTitle()));
+		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(parentTaskTitle));
+		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(assignerFullName));
+		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
+		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
+		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
+		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
+		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
 		String constellioURL = eimConfigs.getConstellioUrl();
 		newParameters
 				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
@@ -178,6 +178,13 @@ public class TaskRecordExtension extends RecordExtension {
         newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
 
 		emailToSend.setParameters(newParameters);
+	}
+
+	private Object formatToParameter(Object parameter) {
+		if(parameter == null) {
+			return "";
+		}
+		return parameter;
 	}
 
 	private List<EmailAddress> getEmails(Set<String> usersIds) {
@@ -382,6 +389,14 @@ public class TaskRecordExtension extends RecordExtension {
 			return "";
 		}
 		return tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getUsername();
+	}
+
+	private String getUserFullNameById(String userId) {
+		if (StringUtils.isBlank(userId)) {
+			return "";
+		}
+		return tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
+				tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	private void sendSubTasksModification(Task parentTask, Task task) {
