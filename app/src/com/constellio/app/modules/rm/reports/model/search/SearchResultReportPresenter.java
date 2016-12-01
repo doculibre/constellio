@@ -132,6 +132,9 @@ public class SearchResultReportPresenter {
 			for (Object item : items) {
 				convertedValue.add(getConvertedScalarValue(metadata, item));
 			}
+			if(convertedValue.isEmpty()) {
+				return "";
+			}
 			return convertedValue;
 		} else {
 			return getConvertedScalarValue(metadata, metadataValue);

@@ -193,7 +193,7 @@ public class ReportTestUtils {
 		List<String> titles = model.getColumnsTitles();
 		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French),
 				types.getMetadata(folderCreatedByMetadataCode).getLabel(Language.French),
-				"richText");
+				"Mots-clés");
 		List<List<Object>> content = model.getResults();
 		assertThat(content.size()).isEqualTo(2);
 		List<Object> result1 = content.get(0);
@@ -205,7 +205,7 @@ public class ReportTestUtils {
 		assertThat(result2.size()).isEqualTo(3);
 		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);
 		assertThat(result2.get(1)).isEqualTo("Bob 'Elvis' Gratton");
-		assertThat(result2.get(2)).isEqualTo(asList());
+		assertThat(result2.get(2)).isEqualTo("");
 	}
 
 	public void validateDefaultReportWithRichText(SearchResultReportModel model) {
