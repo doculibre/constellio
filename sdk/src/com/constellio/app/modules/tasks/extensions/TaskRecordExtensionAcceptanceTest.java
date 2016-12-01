@@ -24,11 +24,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.structures.EmailAddress;
@@ -298,6 +294,9 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(newTask.setTitle("new task")
 						.setParentTask(validParentTaskFollowingSubTasks.getId())
 						.setTaskFollowers(zeFollowers)
+						.setAssigner(users.adminIn(zeCollection).getId())
+						.setAssignee(users.adminIn(zeCollection).getId())
+						.setAssignationDate(now.plusDays(1).toLocalDate())
 		);
 
 		recordServices.add(newTask.setParentTask((String) null));
@@ -571,11 +570,11 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 	}
 
 	private void assertThatParametersAreOk(Task task, EmailToSend emailToSend) {
-		String assignerUserName = getUserNameById(task.getAssigner());
-        assertThat(assignerUserName).isNotEmpty();
+		String assignerFullName = getUserFullNameById(task.getAssigner());
+        assertThat(assignerFullName).isNotEmpty();
 
-		String assigneeUserName = getUserNameById(task.getAssignee());
-        assertThat(assigneeUserName).isNotEmpty();
+		String assigneeFullName = getUserFullNameById(task.getAssignee());
+        assertThat(assigneeFullName).isNotEmpty();
 
         assertThat(task.getAssignedOn()).isNotNull();
 
@@ -590,12 +589,12 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(emailToSend.getParameters()).contains(
 				TASK_TITLE_PARAMETER + ":" + task.getTitle(),
 				PARENT_TASK_TITLE + ":" + parentTaskTitle,
-				TASK_ASSIGNED_BY + ":" + assignerUserName,
+				TASK_ASSIGNED_BY + ":" + assignerFullName,
 				TASK_ASSIGNED_ON + ":" + task.getAssignedOn(),
-				TASK_ASSIGNED + ":" + assigneeUserName,
-				TASK_DUE_DATE + ":" + task.getDueDate(),
+				TASK_ASSIGNED + ":" + assigneeFullName,
+				TASK_DUE_DATE + ":" + "",
 				TASK_STATUS + ":" + status,
-				TASK_DESCRIPTION + ":" + task.getDescription(),
+				TASK_DESCRIPTION + ":" + "",
 				DISPLAY_TASK + ":" + constellioUrl + "#!displayTask/" + task.getId(),
 				COMPLETE_TASK + ":" + constellioUrl + "#!editTask/completeTask%253Dtrue%253Bid%253D" + task.getId(),
 				CONSTELLIO_URL + ":" + constellioUrl
@@ -609,6 +608,14 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 			return "";
 		}
 		return tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getUsername();
+	}
+
+	private String getUserFullNameById(String userId) {
+		if (org.apache.commons.lang3.StringUtils.isBlank(userId)) {
+			return "";
+		}
+		return tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
+				tasksSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	@Test
