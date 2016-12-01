@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.components.userDocument;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserDocumentVO;
@@ -26,8 +27,8 @@ public class DeclareUserDocumentContainerButton extends ContainerButton {
 	protected Button newButtonInstance(final Object itemId) {
 		Button declareUserDocumentButton;
 		final UserDocumentVO userDocumentVO = (UserDocumentVO) itemId;
-		String filename = userDocumentVO.getFileName();
-		String extension = FilenameUtils.getExtension(filename);
+		String fileName = userDocumentVO.getFileName();
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		Resource icon = new ThemeResource("images/icons/folder/folder_into.png");
 		if ("eml".equals(extension) || "msg".equals(extension)) {
 			declareUserDocumentButton = new WindowButton(icon, $("ListUserDocumentsView.declareDocument"),

@@ -1,8 +1,12 @@
 package com.constellio.app.ui.framework.components;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -98,6 +102,7 @@ public class MetadataFieldFactory implements Serializable {
 		boolean required = metadata.isRequired();
 
 		MetadataInputType metadataInputType = metadata.getMetadataInputType();
+		MetadataDisplayType metadataDisplayType = metadata.getMetadataDisplayType();
 		MetadataValueType metadataValueType = metadata.getType();
 
 		if (metadataInputType == MetadataInputType.HIDDEN) {
@@ -117,9 +122,9 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case RADIO_BUTTONS:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 					} else {
 						field = null;
 					}
@@ -162,13 +167,13 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case RADIO_BUTTONS:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 						if (firstSchemaCode != null) {
-							field = new RecordOptionGroup(firstSchemaCode);
+							field = new RecordOptionGroup(firstSchemaCode, metadataDisplayType);
 						} else {
 							field = null;
 						}
@@ -246,6 +251,7 @@ public class MetadataFieldFactory implements Serializable {
 		StructureFactory structureFactory = metadata.getStructureFactory();
 
 		MetadataInputType metadataInputType = metadata.getMetadataInputType();
+		MetadataDisplayType metadataDisplayType = metadata.getMetadataDisplayType();
 		MetadataValueType metadataValueType = metadata.getType();
 
 		if (metadataInputType == MetadataInputType.HIDDEN) {
@@ -265,10 +271,10 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case CHECKBOXES:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 						((EnumWithSmallCodeOptionGroup) field).setMultiSelect(true);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 						((TaxonomyOptionGroup) field).setMultiSelect(true);
 					} else {
 						field = null;
@@ -312,14 +318,14 @@ public class MetadataFieldFactory implements Serializable {
 					break;
 				case CHECKBOXES:
 					if (enumClass != null) {
-						field = new EnumWithSmallCodeOptionGroup(enumClass);
+						field = new EnumWithSmallCodeOptionGroup(enumClass, metadataDisplayType);
 					} else if (firstTaxonomyCode != null) {
-						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode);
+						field = new TaxonomyOptionGroup(firstTaxonomyCode, schemaTypeCode, metadataDisplayType);
 						((TaxonomyOptionGroup) field).setMultiSelect(true);
 					} else if (allowedReferences != null) {
 						String firstSchemaCode = getFirstSchemaCode(allowedReferences, collection);
 						if (firstSchemaCode != null) {
-							field = new RecordOptionGroup(firstSchemaCode);
+							field = new RecordOptionGroup(firstSchemaCode, metadataDisplayType);
 							((RecordOptionGroup) field).setMultiSelect(true);
 						} else {
 							field = null;

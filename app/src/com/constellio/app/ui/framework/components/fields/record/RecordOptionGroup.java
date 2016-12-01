@@ -2,7 +2,9 @@ package com.constellio.app.ui.framework.components.fields.record;
 
 import java.util.List;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -14,6 +16,8 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 	private RecordIdToCaptionConverter captionConverter = new RecordIdToCaptionConverter();
 	
 	private RecordOptionFieldPresenter presenter;
+
+	private MetadataDisplayType metadataDisplayType;
 	
 	public RecordOptionGroup(String schemaCode) {
 		super();
@@ -21,8 +25,16 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 		this.presenter.forSchemaCode(schemaCode);
 	}
 
+	public RecordOptionGroup(String schemaCode, MetadataDisplayType metadataDisplayType) {
+		super();
+		this.metadataDisplayType = metadataDisplayType;
+		this.presenter = new RecordOptionFieldPresenter(this);
+		this.presenter.forSchemaCode(schemaCode);
+	}
+
 	@Override
 	public void setDataProvider(RecordVODataProvider dataProvider) {
+		initStyleName();
 		int size = dataProvider.size();
 		List<RecordVO> records = dataProvider.listRecordVOs(0, size);
 		for (RecordVO recordVO : records) {
@@ -37,5 +49,14 @@ public class RecordOptionGroup extends ListOptionGroup implements RecordOptionFi
 	public SessionContext getSessionContext() {
 		return ConstellioUI.getCurrentSessionContext();
 	}
+
+	public void initStyleName() {
+		if(metadataDisplayType != null && metadataDisplayType.equals(MetadataDisplayType.HORIZONTAL)) {
+			this.addStyleName("horizontal");
+		}
+		else {
+			this.addStyleName("vertical");
+		}
+	};
 
 }

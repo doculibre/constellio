@@ -1,45 +1,68 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
 
-import java.util.List;
+/**
+* Created by Constelio on 2016-11-25.
+*/
 
-import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
-import static java.util.Arrays.asList;
+import com.constellio.app.entities.modules.MigrationHelper;
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.tasks.TasksEmailTemplates;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.model.services.emails.EmailTemplatesManager;
+import org.apache.commons.io.IOUtils;
 
-public class RMMigrationTo6_5_34 implements MigrationScript {
+import java.io.IOException;
+import java.io.InputStream;
 
-	@Override
-	public String getVersion() {
-		return "6.5.34";
-	}
+public class RMMigrationTo6_5_34 extends MigrationHelper implements MigrationScript {
 
-	@Override
-	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
-			throws Exception {
-		setupRoles(collection, appLayerFactory.getModelLayerFactory().getRolesManager(), provider);
+    private String collection;
 
-	}
+    private MigrationResourcesProvider migrationResourcesProvider;
 
-	private void setupRoles(String collection, RolesManager manager, MigrationResourcesProvider provider) {
-		List<Role> roleList = manager.getAllRoles(collection);
-		for(Role role: roleList) {
-			manager.updateRole(role.withNewPermissions(asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)));
-		}
-	}
+    private AppLayerFactory appLayerFactory;
 
+    @Override
+    public String getVersion() {
+        return "6.5.34";
+    }
+
+    @Override
+    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+            throws Exception {
+        this.collection = collection;
+        this.migrationResourcesProvider = migrationResourcesProvider;
+        this.appLayerFactory = appLayerFactory;
+
+        reloadEmailTemplates();
+    }
+
+    private void reloadEmailTemplates() {
+        if(appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0).equals("en")) {
+            reloadEmailTemplate("alertAvailableTemplate_en.html", RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+        }
+        else {
+            reloadEmailTemplate("alertAvailableTemplate.html", RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
+        }
+    }
+
+    private void reloadEmailTemplate(final String templateFileName, final String templateId) {
+        final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
+
+        try {
+            appLayerFactory.getModelLayerFactory().getEmailTemplatesManager().replaceCollectionTemplate(templateId, collection, templateInputStream);
+        } catch (IOException | OptimisticLockingConfiguration e) {
+            throw new RuntimeException(e);
+        } finally {
+            IOUtils.closeQuietly(templateInputStream);
+        }
+    }
 }

@@ -2,7 +2,7 @@ package com.constellio.app.ui.framework.components.fields.comment;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.ui.framework.components.converters.CommentToStringConverter;
-import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.server.ErrorMessage;
@@ -13,17 +13,18 @@ public class CommentField extends CustomField<Comment> {
 	
 	private CommentToStringConverter converter = new CommentToStringConverter();
 	
-	private BaseRichTextArea richTextArea;
+	private BaseTextArea textArea;
 	
 	public CommentField() {
-		richTextArea = new BaseRichTextArea();
-		richTextArea.setConverter(converter);
-		richTextArea.setImmediate(false);
+		textArea = new BaseTextArea();
+		textArea.setConverter(converter);
+		textArea.setImmediate(false);
+		textArea.setWidth("100%");
 	}
 
 	@Override
 	protected Component initContent() {
-		return richTextArea;
+		return textArea;
 	}
 
 	@Override
@@ -33,74 +34,74 @@ public class CommentField extends CustomField<Comment> {
 
 	@SuppressWarnings("rawtypes")
 	public Property getPropertyDataSource() {
-		return richTextArea.getPropertyDataSource();
+		return textArea.getPropertyDataSource();
 	}
 
 	@SuppressWarnings("rawtypes")
 	public void setPropertyDataSource(Property newDataSource) {
-		richTextArea.setPropertyDataSource(newDataSource);
+		textArea.setPropertyDataSource(newDataSource);
 	}
 	
 	public void setValue(Comment newValue)
 			throws com.vaadin.data.Property.ReadOnlyException {
 		super.setValue(newValue);
-		richTextArea.setValue(converter.convertToPresentation(newValue, String.class, getLocale()));
+		textArea.setValue(converter.convertToPresentation(newValue, String.class, getLocale()));
 	}
 
 	public void addStyleName(String style) {
-		richTextArea.addStyleName(style);
+		textArea.addStyleName(style);
 	}
 
 	public void focus() {
-		richTextArea.focus();
+		textArea.focus();
 	}
 
 	public String getRequiredError() {
-		return richTextArea.getRequiredError();
+		return textArea.getRequiredError();
 	}
 
 	@Override
 	public void setRequiredError(String requiredMessage) {
-		richTextArea.setRequiredError(requiredMessage);
+		textArea.setRequiredError(requiredMessage);
 	}
 
 	@Override
 	public String getConversionError() {
-		return richTextArea.getConversionError();
+		return textArea.getConversionError();
 	}
 
 	@Override
 	public void setConversionError(String valueConversionError) {
-		richTextArea.setConversionError(valueConversionError);
+		textArea.setConversionError(valueConversionError);
 	}
 
 	@Override
 	public ErrorMessage getComponentError() {
-		return richTextArea.getComponentError();
+		return textArea.getComponentError();
 	}
 
 	@Override
 	public void setComponentError(ErrorMessage componentError) {
-		richTextArea.setComponentError(componentError);
+		textArea.setComponentError(componentError);
 	}
 
 	public void commit()
 			throws SourceException, InvalidValueException {
-		richTextArea.commit();
+		textArea.commit();
 	}
 
 	public void discard()
 			throws SourceException {
-		richTextArea.discard();
+		textArea.discard();
 	}
 
 	public boolean isValid() {
-		return richTextArea.isValid();
+		return textArea.isValid();
 	}
 
 	public void validate()
 			throws InvalidValueException {
-		richTextArea.validate();
+		textArea.validate();
 	}
 	
 }

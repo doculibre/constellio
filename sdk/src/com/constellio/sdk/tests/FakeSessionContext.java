@@ -134,7 +134,7 @@ public class FakeSessionContext implements SessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false);
 	}
 
 	private static MetadataVO lastNameMetadata(MetadataSchemaVO userSchema) {
@@ -144,7 +144,7 @@ public class FakeSessionContext implements SessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false);
 	}
 
 	private static MetadataVO firstNameMetadata(MetadataSchemaVO userSchema) {
@@ -154,7 +154,7 @@ public class FakeSessionContext implements SessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false);
 	}
 
 	private static MetadataVO userNameMetadata(MetadataSchemaVO userSchema) {
@@ -164,7 +164,7 @@ public class FakeSessionContext implements SessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, false);
+				null, null, null, null, null, null, null, false);
 	}
 
 	@Override

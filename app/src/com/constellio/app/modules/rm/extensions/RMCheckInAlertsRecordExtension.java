@@ -5,6 +5,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,12 +46,15 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 
 	RecordServices recordServices;
 
+	ConstellioEIMConfigs eimConfigs;
+
 	public RMCheckInAlertsRecordExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.collection = collection;
 		this.rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
+		this.eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -68,10 +73,13 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 	private void alertUsers(String schemaType, Record record) {
 		try {
 			RMObject rmObject;
+			String displayURL;
 			if (schemaType.equals(Folder.SCHEMA_TYPE)) {
 				rmObject = rmSchemasRecordsServices.wrapFolder(record);
+				displayURL = RMNavigationConfiguration.DISPLAY_FOLDER;
 			} else if (schemaType.equals(Document.SCHEMA_TYPE)) {
 				rmObject = rmSchemasRecordsServices.wrapDocument(record);
+				displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 			} else {
 				throw new UnsupportedOperationException("Invalid schemaType");
 			}
@@ -89,12 +97,18 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					LocalDateTime returnDate = TimeProvider.getLocalDateTime();
 					emailToSend.setTo(toAddress);
 					emailToSend.setSendOn(returnDate);
-					emailToSend.setSubject($("RMObject.alertWhenAvailableSubject", schemaType) + " " + rmObject.getTitle());
+                    final String subject = $("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle();
+					emailToSend.setSubject(subject);
 					emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 					List<String> parameters = new ArrayList<>();
+					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
 					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + returnDate);
 					String rmObjectTitle = rmObject.getTitle();
 					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+					String constellioUrl = eimConfigs.getConstellioUrl();
+					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
+					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
+					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase());
 					emailToSend.setParameters(parameters);
 					transaction.add(emailToSend);
 				}

@@ -26,8 +26,10 @@ import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -43,6 +45,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 					.getSchemaTypes(zeCollection);
 			if (metadataSchemaTypes.hasType(RetentionRule.SCHEMA_TYPE)) {
 				whenMigratingToCurrentVersionThenValidSchemas();
+				whenMigratingToCurrentVersionThenValidSystemCollectionSchemas();
 				whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
 				whenMigratingToCurrentVersionThenHasValueListWithDefaultItems();
 				whenMigratingToCurrentVersionThenHasEssentialMetadatas();
@@ -130,6 +133,18 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
 
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
+
+	}
+
+	private void whenMigratingToCurrentVersionThenValidSystemCollectionSchemas()
+			throws Exception {
+
+		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(
+				Collection.SYSTEM_COLLECTION);
+
+		assertThat(metadataSchemaTypes.getSchema(SolrUserCredential.DEFAULT_SCHEMA)
+				.getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
+
 	}
 
 	private List<String> allSchemaTypesWithSecurity() {

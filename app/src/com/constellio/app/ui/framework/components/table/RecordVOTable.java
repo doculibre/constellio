@@ -200,18 +200,22 @@ public class RecordVOTable extends BaseTable {
 				metadataDisplay = new Label("");
 			}
 			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE_CODE)) {
-				MetadataSchemaVO recordSchemaVO = recordVO.getSchema();
+				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
+				MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
 				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
-				if (StringUtils.isNotBlank(prefix)) {
-					Label titleLabel = (Label) metadataDisplay;
-					titleLabel.setValue(prefix + " " + titleLabel.getValue());
-				}
+				Label titleLabel = (Label) metadataDisplay;
+				String titleForRecordVO = getTitleForRecordVO(titleRecordVO, prefix, titleLabel.getValue());
+				titleLabel.setValue(titleForRecordVO);
 			}
 			containerProperty = new ObjectProperty<>(metadataDisplay, Component.class);
 		} else {
 			containerProperty = super.getContainerProperty(itemId, propertyId);
 		}
 		return containerProperty;
+	}
+	
+	protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
+		return StringUtils.isNotBlank(prefix) ? prefix + " " + title : title; 
 	}
 
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {

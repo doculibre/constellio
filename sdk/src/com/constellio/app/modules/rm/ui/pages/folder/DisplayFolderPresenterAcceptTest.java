@@ -620,14 +620,22 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTo()).hasSize(1);
 		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
-		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le folder est disponible " + folderC30.getTitle());
+		final String subject = "Alerte lorsque le dossier est disponible: " + folderC30.getTitle();
+		assertThat(emailToSend.getSubject()).isEqualTo(subject);
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).hasSize(2);
-		assertThat(emailToSend.getParameters().get(0)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock);
-		assertThat(emailToSend.getParameters().get(1))
+		assertThat(emailToSend.getParameters()).hasSize(6);
+		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+		assertThat(emailToSend.getParameters().get(1)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock);
+		assertThat(emailToSend.getParameters().get(2))
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + folderC30.getTitle());
+		assertThat(emailToSend.getParameters().get(3))
+				.isEqualTo("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/");
+		assertThat(emailToSend.getParameters().get(4))
+				.isEqualTo("recordURL" + EmailToSend.PARAMETER_SEPARATOR + "http://localhost:8080/constellio/#!displayFolder/C30");
+		assertThat(emailToSend.getParameters().get(5))
+				.isEqualTo("recordType" + EmailToSend.PARAMETER_SEPARATOR + "dossier");
 	}
 
 	@Test

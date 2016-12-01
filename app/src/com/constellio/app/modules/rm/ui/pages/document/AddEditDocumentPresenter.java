@@ -12,6 +12,7 @@ import java.util.Map;
 import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -216,11 +217,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		contentVersionVO.setHash(null);
 		contentVersionVO.setVersion(null);
 
-		String filename = contentVersion.getFilename();
-		String extension = FilenameUtils.getExtension(filename);
+		String fileName = contentVersion.getFilename();
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		if ("eml".equals(extension) || "msg".equals(extension)) {
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
-			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
+			Email email = rmSchemasRecordsServices.newEmail(fileName, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
 		} else {
@@ -308,7 +309,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (documentVO.getContent() != null) {
 			String currentTitle = document.getTitle();
 			String currentContentFilename = documentVO.getContent().getFileName();
-			String extension = FilenameUtils.getExtension(currentContentFilename);
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(currentContentFilename));
 			if (currentTitle.endsWith("." + extension)) {
 				document.getContent().renameCurrentVersion(currentTitle);
 			}
@@ -473,14 +474,17 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
 				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
-					Object metadataValue = documentVO.get(metadataVO);
-					Object defaultValue = metadataVO.getDefaultValue();
-					if (metadataValue instanceof ContentVersionVO) {
+					Object voMetadataValue = documentVO.get(metadataVO);
+					Object defaultValue = matchingMetadata.getDefaultValue();
+					Object voDefaultValue = metadataVO.getDefaultValue();
+					if (voMetadataValue instanceof ContentVersionVO) {
 						// Special case dealt with later
-						metadataValue = null;
-						document.getWrappedRecord().set(matchingMetadata, metadataValue);
-					} else if (metadataValue == null || !metadataValue.equals(defaultValue)) {
-						document.getWrappedRecord().set(matchingMetadata, metadataValue);
+						voMetadataValue = null;
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue == null && defaultValue == null) {
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
