@@ -367,4 +367,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public boolean hasCurrentUserPermissionToUseCart() {
 		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
+
+	public boolean hasCurrentUserPermissionToPublishOnCurrentDocument() {
+		return getCurrentUser().has(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)
+				.on(getRecord(presenterUtils.getDocumentVO().getId()));
+	}
 }

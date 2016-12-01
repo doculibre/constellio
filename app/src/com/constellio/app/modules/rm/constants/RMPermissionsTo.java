@@ -75,6 +75,8 @@ public class RMPermissionsTo {
 
 	public static final String RETURN_OTHER_USERS_DOCUMENTS = permission(DOCUMENT_GROUP, "returnOtherUsersDocuments");
 
+	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
+
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
 

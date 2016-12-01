@@ -132,6 +132,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				this.enableCorrectFields(value, inherited, editMode);
 			}
 
+			inputMask.setEnabled(MetadataValueType.STRING.equals(value));
 			this.setValueFields(value);
 		}
 	}
@@ -188,8 +189,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			break;
 		}
-
-		inputMask.setEnabled(MetadataValueType.STRING.equals(value));
 	}
 
 	private void setValueFields(MetadataValueType value) {

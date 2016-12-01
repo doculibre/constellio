@@ -112,7 +112,7 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (CmisRuntimeException ex) {
 			assertThat(ex.getMessage()).isEqualTo(
-					"L'utilisateur chuck n'a pas la permission CMIS CAN_UPDATE_PROPERTIES sur l'enregistrement zeCollection - null");
+					"L'utilisateur chuck n'a pas la permission CMIS CAN_UPDATE_PROPERTIES sur l'enregistrement zeCollection - zeCollection");
 		}
 	}
 

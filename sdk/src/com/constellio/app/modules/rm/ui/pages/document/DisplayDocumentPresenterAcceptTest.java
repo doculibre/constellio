@@ -1,8 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -10,9 +11,13 @@ import java.util.List;
 import java.util.Locale;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
+import com.constellio.model.entities.Permissions;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -230,6 +235,13 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		presenter = new DisplayDocumentPresenter(displayDocumentView);
 	}
 
+	private void connectAsSasquatch() {
+		sessionContext = FakeSessionContext.sasquatchInCollection(zeCollection);
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+		when(displayDocumentView.getSessionContext()).thenReturn(sessionContext);
+		presenter = new DisplayDocumentPresenter(displayDocumentView);
+	}
+
 	private void connectAsAlice() {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -311,4 +323,25 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		return getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 	}
 
+	@Test
+	public void givenDocumentThenPublishAndUnpublishButtonsOnlyShowWhenUserHasTheRightPermission()
+			throws Exception {
+		RolesManager manager = getModelLayerFactory().getRolesManager();
+		Role zeNewRole = new Role(zeCollection, "zeNewRoleWithPublishPermission", asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
+		manager.addRole(zeNewRole);
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices.update(users.sasquatchIn(zeCollection).setUserRoles(asList("zeNewRoleWithPublishPermission")));
+
+		assertThat(users.sasquatchIn(zeCollection).getAllRoles()).containsOnly("zeNewRoleWithPublishPermission");
+
+		connectAsSasquatch();
+		presenter.forParams(rmRecords.document_A19);
+		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isTrue();
+
+		manager.updateRole(zeNewRole.withPermissions(new ArrayList<String>()));
+		assertThat(manager.getRole(zeCollection, "zeNewRoleWithPublishPermission").hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
+		connectAsSasquatch();
+		presenter.forParams(rmRecords.document_A19);
+		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();
+	}
 }

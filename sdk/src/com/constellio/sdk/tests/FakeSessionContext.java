@@ -53,6 +53,11 @@ public class FakeSessionContext implements SessionContext {
 		return new FakeSessionContext(userVO, collection);
 	}
 
+	public static SessionContext sasquatchInCollection(String collection) {
+		UserVO userVO = newUserVO(collection, "sasquatch", "Big", "Foot", "sasquatch@doculibre.com");
+		return new FakeSessionContext(userVO, collection);
+	}
+
 	public static SessionContext aliceInCollection(String collection) {
 		UserVO userVO = newUserVO(collection, "alice", "Alice", "Wonderland", "alice.wonderland@doculibre.com");
 		return new FakeSessionContext(userVO, collection);

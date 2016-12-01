@@ -46,6 +46,7 @@ import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.security.AuthorizationDetails;
@@ -515,6 +516,66 @@ public class TestUtils {
 			return assertThat(values);
 		}
 
+		private Object getMetadataValue(Record record, String metadataLocalCode) {
+			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
+			Metadata metadata = schema.getMetadata(metadataLocalCode);
+			if (metadata.isMultivalue()) {
+				return record.getList(metadata);
+			} else {
+				return record.get(metadata);
+			}
+		}
+
+		public ListAssert<Tuple> extractingMetadatas(String... metadatas) {
+			List<Tuple> values = new ArrayList<>();
+
+			for (Object record : actual) {
+				Object[] objects = new Object[metadatas.length];
+
+				if (record instanceof Record) {
+
+					for (int i = 0; i < metadatas.length; i++) {
+						String metadata = metadatas[i];
+						String refMetadata = null;
+						if (metadata.contains(".")) {
+							refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+						}
+						objects[i] = getMetadataValue(((Record) record), metadatas[i]);
+
+						if (refMetadata != null && objects[i] != null) {
+							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+									.getDocumentById((String) objects[i]);
+							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						}
+					}
+				} else if (record instanceof RecordWrapper) {
+					for (int i = 0; i < metadatas.length; i++) {
+						String metadata = metadatas[i];
+						String refMetadata = null;
+						if (metadata.contains(".")) {
+							refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+						}
+
+						objects[i] = ((RecordWrapper) record).get(metadata);
+
+						if (refMetadata != null && objects[i] != null) {
+							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+									.getDocumentById((String) objects[i]);
+							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						}
+					}
+				} else {
+					throw new RuntimeException("Unsupported object of class '" + record.getClass());
+				}
+				values.add(new Tuple(objects));
+			}
+
+			return assertThat(values);
+		}
 	}
 
 	public static class RecordWrapperAssert extends ObjectAssert<RecordWrapper> {
@@ -558,6 +619,7 @@ public class TestUtils {
 
 			}
 		}
+
 	}
 
 	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationRuntimeException e, String... parameters) {
