@@ -232,7 +232,7 @@ public class AzureAdClient implements AutoCloseable {
                                 final JSONArray groupMembersJsonArray = new JSONObject(responseText).getJSONArray("value");
 
                                 for (int userIndex = 0, groupMembersJsonArrayLength = groupMembersJsonArray.length(); userIndex < groupMembersJsonArrayLength; userIndex++) {
-                                    final String groupMemberUrl = groupMembersJsonArray.getJSONObject(groupIndex).optString("url");
+                                    final String groupMemberUrl = groupMembersJsonArray.getJSONObject(userIndex).optString("url");
 
                                     if (groupMemberUrl.endsWith("Microsoft.DirectoryServices.User")) {
                                         response = getObjectResponseByUrl(groupMemberUrl);
