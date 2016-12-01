@@ -22,6 +22,10 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurationView>{
 
@@ -46,7 +50,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 				if (type != null) {
 					for(MetadataSchema schema:type.getAllSchemas()){
 						for (Metadata meta : schema.getMetadatas()) {
-							if (!meta.isSystemReserved() && metadataLocalCodeSet.add(meta.getLocalCode())) {
+							if ((!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) && metadataLocalCodeSet.add(meta.getLocalCode())) {
 								MetadataVO metadataVO = voBuilder.build(meta, view.getSessionContext());
 								if(AllowedMetadataUtil.isAllowedMetadata(metadataVO)){
 									schemaVOs.add(metadataVO);
@@ -58,6 +62,11 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 				return schemaVOs;
 			}
 		};
+	}
+
+	public boolean isSystemReservedAllowedInReport(Metadata meta) {
+		List<String> allowedMetadatas = Arrays.asList(Schemas.IDENTIFIER.getLocalCode());
+		return allowedMetadatas.contains(meta.getLocalCode());
 	}
 
 	private String getSelectedReport() {
