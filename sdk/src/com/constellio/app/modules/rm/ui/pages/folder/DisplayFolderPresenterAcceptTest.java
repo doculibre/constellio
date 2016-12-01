@@ -627,7 +627,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
 		assertThat(emailToSend.getParameters()).hasSize(6);
 		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
-		assertThat(emailToSend.getParameters().get(1)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock);
+		assertThat(emailToSend.getParameters().get(1)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
 		assertThat(emailToSend.getParameters().get(2))
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + folderC30.getTitle());
 		assertThat(emailToSend.getParameters().get(3))
