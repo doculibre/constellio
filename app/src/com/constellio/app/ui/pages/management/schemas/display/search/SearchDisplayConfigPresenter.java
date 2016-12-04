@@ -91,7 +91,7 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 
 		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
 
-		return result;
+		return result && metadataVO.isEnabled();
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> schemaVOs) {

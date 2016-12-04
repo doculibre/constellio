@@ -87,7 +87,7 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
 
-		return !localCodes.contains(metadata.getLocalCode());
+		return !localCodes.contains(metadata.getLocalCode()) && metadata.isEnabled();
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> schemaVOs) {
