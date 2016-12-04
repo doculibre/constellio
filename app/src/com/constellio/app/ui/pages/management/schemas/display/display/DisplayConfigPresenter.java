@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.management.schemas.display.display;
 
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +60,16 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
 		}
+
+		final String language = view.getSessionContext().getCurrentLocale().getLanguage();
+		Collections.sort(formMetadataVOs, new Comparator<FormMetadataVO>() {
+			@Override
+			public int compare(FormMetadataVO o1, FormMetadataVO o2) {
+				String s1 = removeAccents(o1.getLabel(language).toLowerCase());
+				String s2 = removeAccents(o2.getLabel(language).toLowerCase());
+				return s1.compareTo(s2);
+			}
+		});
 
 		return formMetadataVOs;
 	}
