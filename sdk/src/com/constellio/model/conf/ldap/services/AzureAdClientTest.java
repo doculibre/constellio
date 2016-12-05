@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  */
@@ -34,7 +34,6 @@ public class AzureAdClientTest extends ConstellioTest {
             throws Exception {
         when(ldapServerConfiguration.getClientId()).thenReturn("69ab5806-25cf-4d80-a818-5b7cb7df1681");
         when(ldapServerConfiguration.getTenantName()).thenReturn("adgrics.onmicrosoft.com");
-
         when(ldapUserSyncConfiguration.getClientId()).thenReturn("bec3eab8-7c58-4263-b439-71ae66faa656");
         when(ldapUserSyncConfiguration.getClientSecret()).thenReturn("keAVWBUg69oq5pVEKXw1IrPsFuQD8GU4J1D2XGj0Bx0=");
 
@@ -66,34 +65,46 @@ public class AzureAdClientTest extends ConstellioTest {
 
     @Test
     public void testGetGroupsAndTheirUsers() throws Exception {
-        AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
-        azureAdClient.init();
+        AzureAdClient.maxResults = 1;
+
+        AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
+
+        azureAdClientSpy.init();
 
         final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
         final Map<String, LDAPUser> ldapUsers = new HashMap<>();
 
-        azureAdClient.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
+        azureAdClientSpy.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
 
         assertThat(ldapGroups).isNotEmpty();
         assertThat(ldapGroups.size()).isEqualTo(2);
         assertThat(ldapUsers).isNotEmpty();
-        assertThat(ldapUsers.size()).isEqualTo(2);
+        assertThat(ldapUsers.size()).isEqualTo(3);
+
+        verify(azureAdClientSpy, atLeast(2)).getAllGroupsResponse(any(String.class));
+        verify(azureAdClientSpy, atLeast(2)).getGroupMembersResponse(any(String.class), any(String.class));
     }
 
     @Test
     public void testGetUsersAndTheirGroups() throws Exception {
-        AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
-        azureAdClient.init();
+        AzureAdClient.maxResults = 1;
+
+        AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
+
+        azureAdClientSpy.init();
 
         final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
         final Map<String, LDAPUser> ldapUsers = new HashMap<>();
 
-        azureAdClient.getUsersAndTheirGroups(ldapGroups, ldapUsers);
+        azureAdClientSpy.getUsersAndTheirGroups(ldapGroups, ldapUsers);
 
         assertThat(ldapGroups).isNotEmpty();
         assertThat(ldapGroups.size()).isEqualTo(2);
         assertThat(ldapUsers).isNotEmpty();
         assertThat(ldapUsers.size()).isEqualTo(4);
+
+        verify(azureAdClientSpy, atLeast(4)).getAllUsersResponse(any(String.class));
+        verify(azureAdClientSpy, atLeast(2)).getUserGroupsResponse(any(String.class), any(String.class));
     }
 
     @Test
