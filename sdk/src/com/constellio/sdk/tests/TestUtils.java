@@ -620,6 +620,15 @@ public class TestUtils {
 			}
 		}
 
+		public void exist() {
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			try {
+				modelLayerFactory.newRecordServices().getDocumentById(actual.getId());
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does not exist");
+			}
+		}
+
 	}
 
 	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationRuntimeException e, String... parameters) {

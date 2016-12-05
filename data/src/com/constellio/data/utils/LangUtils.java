@@ -1,13 +1,17 @@
 package com.constellio.data.utils;
 
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +24,18 @@ public class LangUtils {
 
 	public static <T, V extends T, D extends T> T valueOrDefault(V value, D defaultValue) {
 		return value != null ? value : defaultValue;
+	}
+
+	public static Comparator<Entry<String, String>> mapStringStringEntryValueComparator() {
+		return new Comparator<Entry<String, String>>() {
+
+			@Override
+			public int compare(Entry<String, String> o1, Entry<String, String> o2) {
+				String s1 = removeAccents(o1.getValue());
+				String s2 = removeAccents(o2.getValue());
+				return s1.compareTo(s2);
+			}
+		};
 	}
 
 	public static LocalDate max(LocalDate date1, LocalDate date2) {
@@ -186,8 +202,8 @@ public class LangUtils {
 	}
 
 	public static int compareStrings(String value1, String value2) {
-		String normalizedValue1 = AccentApostropheCleaner.removeAccents(value1);
-		String normalizedValue2 = AccentApostropheCleaner.removeAccents(value2);
+		String normalizedValue1 = removeAccents(value1);
+		String normalizedValue2 = removeAccents(value2);
 		return normalizedValue1.compareTo(normalizedValue2);
 	}
 
