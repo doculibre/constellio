@@ -108,6 +108,8 @@ public class AzureAdClient implements AutoCloseable {
     }
 
     public Set<String> getUserNameList() {
+        LOGGER.info("Getting user name list - start");
+
         Set<String> results = new HashSet<>();
 
         if (accessToken != null) {
@@ -150,6 +152,8 @@ public class AzureAdClient implements AutoCloseable {
             });
         }
 
+        LOGGER.info("Getting user name list - end");
+
         return results;
     }
 
@@ -187,6 +191,8 @@ public class AzureAdClient implements AutoCloseable {
     }
 
     public Set<String> getGroupNameList() {
+        LOGGER.info("Getting group name list - start");
+
         Set<String> results = new HashSet<>();
 
         if (accessToken != null) {
@@ -229,6 +235,8 @@ public class AzureAdClient implements AutoCloseable {
             });
         }
 
+        LOGGER.info("Getting group name list - end");
+
         return results;
     }
 
@@ -258,6 +266,8 @@ public class AzureAdClient implements AutoCloseable {
     }
 
     public void getGroupsAndTheirUsers(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
+        LOGGER.info("Getting groups and their members - start");
+
         if (accessToken != null) {
             Response response = getAllGroupsResponse("");
 
@@ -301,6 +311,8 @@ public class AzureAdClient implements AutoCloseable {
 
             getGroupMembers(ldapGroups, ldapUsers);
         }
+
+        LOGGER.info("Getting groups and their members - end");
     }
 
     private String getSkipToken(final String responseText) {
@@ -441,6 +453,8 @@ public class AzureAdClient implements AutoCloseable {
     }
 
     public void getUsersAndTheirGroups(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
+        LOGGER.info("Getting users and their memberships - start");
+
         if (accessToken != null) {
             Response response = getAllUsersResponse("");
 
@@ -484,6 +498,8 @@ public class AzureAdClient implements AutoCloseable {
 
             getUserGroups(ldapGroups, ldapUsers);
         }
+
+        LOGGER.info("Getting users and their memberships - end");
     }
 
     private void getUserGroups(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
