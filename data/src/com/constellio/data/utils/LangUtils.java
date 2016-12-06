@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 public class LangUtils {
 
@@ -49,6 +50,26 @@ public class LangUtils {
 	}
 
 	public static LocalDate min(LocalDate date1, LocalDate date2) {
+		if (date1 == null) {
+			return date2;
+		}
+		if (date2 == null) {
+			return date1;
+		}
+		return date1.isAfter(date2) ? date2 : date1;
+	}
+
+	public static LocalDateTime max(LocalDateTime date1, LocalDateTime date2) {
+		if (date1 == null) {
+			return date2;
+		}
+		if (date2 == null) {
+			return date1;
+		}
+		return date1.isBefore(date2) ? date2 : date1;
+	}
+
+	public static LocalDateTime min(LocalDateTime date1, LocalDateTime date2) {
 		if (date1 == null) {
 			return date2;
 		}
