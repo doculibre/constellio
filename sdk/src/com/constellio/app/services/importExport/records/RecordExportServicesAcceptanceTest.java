@@ -70,8 +70,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		exportThenImportInAnotherCollection(options.setExportValueLists(true));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
-		assertThatRecords(rm.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "linkedSchema").containsOnly(
-				tuple(DocumentType.EMAIL_DOCUMENT_TYPE, "Email", "document_email")
+		assertThatRecords(rm.searchDocumentTypes(ALL)).extractingMetadatas("code", "title", "linkedSchema").containsOnly(
+				tuple(DocumentType.EMAIL_DOCUMENT_TYPE, "Ze email", "document_email")
 		);
 
 	}

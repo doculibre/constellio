@@ -543,7 +543,7 @@ public class TestUtils {
 							refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
 							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
 						}
-						objects[i] = getMetadataValue(((Record) record), metadatas[i]);
+						objects[i] = getMetadataValue(((Record) record), metadata);
 
 						if (refMetadata != null && objects[i] != null) {
 							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()

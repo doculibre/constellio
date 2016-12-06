@@ -4,9 +4,14 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 public class ImportRecordOfSameCollectionWriter {
 
 	File outputFolder;
+
+	Map<String, ImportDataOptions> options = new HashMap<>();
 
 	Map<String, ImportRecordOfSameTypeWriter> writers = new HashMap<>();
 
@@ -23,14 +28,27 @@ public class ImportRecordOfSameCollectionWriter {
 			throw new RuntimeException("Schema type is required!");
 		}
 
-		ImportRecordOfSameTypeWriter collectionWriter = writers.get(importRecord.getSchemaType());
-		if (collectionWriter == null) {
+		ImportRecordOfSameTypeWriter schemaTypeRecordsWriter = writers.get(importRecord.getSchemaType());
+		if (schemaTypeRecordsWriter == null) {
 			File typefile = new File(outputFolder, importRecord.getSchemaType() + ".xml");
-			collectionWriter = new ImportRecordOfSameTypeWriter(typefile);
-			writers.put(importRecord.getSchemaType(), collectionWriter);
+			schemaTypeRecordsWriter = new ImportRecordOfSameTypeWriter(typefile);
+			writers.put(importRecord.getSchemaType(), schemaTypeRecordsWriter);
 		}
 
-		collectionWriter.write(importRecord);
+		schemaTypeRecordsWriter.write(importRecord);
+	}
+
+	public void setOptions(String schemaType, ImportDataOptions options) {
+		ImportRecordOfSameTypeWriter schemaTypeRecordsWriter = writers.get(schemaType);
+		if (schemaTypeRecordsWriter == null) {
+			File typefile = new File(outputFolder, schemaType + ".xml");
+			schemaTypeRecordsWriter = new ImportRecordOfSameTypeWriter(typefile);
+			writers.put(schemaType, schemaTypeRecordsWriter);
+			schemaTypeRecordsWriter.write(options);
+		} else {
+			throw new ImpossibleRuntimeException("Cannot set options twice or once a record has been writen");
+		}
+
 	}
 
 	public void close() {

@@ -14,6 +14,8 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
 
@@ -24,6 +26,8 @@ public class ImportRecordOfSameTypeWriter {
 	IndentingXMLStreamWriter writer;
 
 	OutputStream outputStream;
+
+	boolean tooLateToWriteOptions;
 
 	public ImportRecordOfSameTypeWriter(File outputFile) {
 
@@ -45,6 +49,7 @@ public class ImportRecordOfSameTypeWriter {
 	}
 
 	public void write(ModifiableImportRecord importRecord) {
+		tooLateToWriteOptions = true;
 		try {
 			writer.writeStartElement("record");
 			writer.writeAttribute("id", importRecord.getPreviousSystemId());
@@ -170,6 +175,22 @@ public class ImportRecordOfSameTypeWriter {
 			writer.flush();
 			writer.close();
 
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void write(ImportDataOptions options) {
+		if (tooLateToWriteOptions) {
+			throw new ImpossibleRuntimeException("Too late to write options");
+		}
+		try {
+			if (!options.isImportAsLegacyId()) {
+				writer.writeAttribute("importAsLegacyId", "false");
+			}
+			if (options.isMergeExistingRecordWithSameUniqueMetadata()) {
+				writer.writeAttribute("mergeExistingRecordWithSameUniqueMetadata", "true");
+			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

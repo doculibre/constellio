@@ -15,6 +15,7 @@ import com.constellio.app.services.importExport.records.RecordExportServicesRunt
 import com.constellio.app.services.importExport.records.writers.ImportRecordOfSameCollectionWriter;
 import com.constellio.app.services.importExport.records.writers.ImportRecordWriter;
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
@@ -61,15 +62,24 @@ public class RecordExportServices {
 
 	private void writeRecords(ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		//TODO Jonathan
-		//Étape 1 : Itérer sur les types à exporter, les écrire en utilisant le writer
 
 		if (options.isExportValueLists()) {
+
+			//Très import de définir cette ligne pour les domaines de valeurs et taxonomies (espaces virtuels)
+			writer.setOptions(DocumentType.SCHEMA_TYPE,
+					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true));
+
 			//Un exemple de ce qu'il ne faut PAS faire : utiliser directements des classes d'un module dans un service du coeur de l'application
 			writer.write(new ModifiableImportRecord("zeCollection", DocumentType.SCHEMA_TYPE, "777")
-					.addField(CODE, DocumentType.EMAIL_DOCUMENT_TYPE).addField(TITLE, "Email"));
+					.addField(CODE, DocumentType.EMAIL_DOCUMENT_TYPE).addField(TITLE, "Ze email"));
 		}
 
 		if (options.isExportTaxonomies()) {
+
+			//Très import de définir cette ligne pour les domaines de valeurs et taxonomies (espaces virtuels)
+			writer.setOptions(DocumentType.SCHEMA_TYPE,
+					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true));
+
 			//Un exemple de ce qu'il ne faut PAS faire : utiliser directements des classes d'un module dans un service du coeur de l'application
 			writer.write(new ModifiableImportRecord("zeCollection", AdministrativeUnit.SCHEMA_TYPE, "42")
 					.addField(CODE, "10").addField(TITLE, "Unité 10"));
