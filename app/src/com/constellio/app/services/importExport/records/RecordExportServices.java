@@ -1,21 +1,20 @@
 package com.constellio.app.services.importExport.records;
 
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.CODE;
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.PARENT;
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.SCHEMA_TYPE;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.ExportOptions;
 import com.constellio.app.services.importExport.records.RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords;
 import com.constellio.app.services.importExport.records.writers.ImportRecordOfSameCollectionWriter;
-import com.constellio.app.services.importExport.records.writers.ImportRecordWriter;
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -23,16 +22,15 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RecordExportServices {
 
@@ -73,7 +71,7 @@ public class RecordExportServices {
 
 	}
 
-	private void writeRecords(String collection ,ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
+	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		//TODO Jonathan
 
 		writer.setOptions(DocumentType.SCHEMA_TYPE,
@@ -83,40 +81,57 @@ public class RecordExportServices {
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
 
-
 		// From type options;
 
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 
-		Record record;
-
-		MetadataSchema metadataSchema;
-
 		for (String exportedSchemaType : options.getExportedSchemaTypes()) {
-			modelLayerFactory.getMetadataSchemasManager();
 
 			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).returnAll());
-
 			SearchResponseIterator<Record> recordSearchResponseIterator = searchServices.recordsIterator(logicalSearchQuery);
 
-			while(recordSearchResponseIterator.hasNext()) {
-				record = recordSearchResponseIterator.next();
+			while (recordSearchResponseIterator.hasNext()) {
+				Record record = recordSearchResponseIterator.next();
 
-				metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
 
-				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType, record.getId());
+				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
+						record.getId());
 
-				for(Metadata metadata : metadataSchema.getMetadatas()) {
-					if (!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				for (Metadata metadata : metadataSchema.getMetadatas()) {
+					if (!metadata.isSystemReserved()
+							&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+							&& metadata.getType() != MetadataValueType.STRUCTURE) {
 						Object object = record.get(metadata);
 
 						if (object != null) {
-							modifiableImportRecord.addField(metadata.getType().name(), object);
+							modifiableImportRecord.addField(metadata.getLocalCode(), object);
 						}
 					}
 				}
+
+				if (RetentionRule.SCHEMA_TYPE.equals(exportedSchemaType)) {
+
+					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+					RetentionRule retentionRule = rm.wrapRetentionRule(record);
+
+					List<Map<String, String>> importedCopyRetentionRules = new ArrayList<>();
+					for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+						//copyRetentionRule.etc
+
+						List<String> mediumTypesCodes = new ArrayList<>();
+						for (String mediumTypeId : copyRetentionRule.getMediumTypeIds()) {
+							mediumTypesCodes.add(rm.getMediumType(mediumTypeId).getCode());
+						}
+
+					}
+					modifiableImportRecord.addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
+
+					//TODO
+				}
+
+				writer.write(modifiableImportRecord);
 			}
 		}
 
