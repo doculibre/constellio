@@ -104,14 +104,15 @@ public class ConservationRulesReportPresenter {
 			if (retentionRule != null) {
 				try {
 					ConservationRulesReportModel_Rule conservationRulesReportModel_Rule = new ConservationRulesReportModel_Rule();
-
 					String code = StringUtils.defaultString(retentionRule.getCode());
 					String title = StringUtils.defaultString(retentionRule.getTitle());
 					String description = StringUtils.defaultString(retentionRule.getDescription());
+					String juridicReference = StringUtils.defaultString(retentionRule.getJuridicReference());
 
 					conservationRulesReportModel_Rule.setRuleNumber(code);
 					conservationRulesReportModel_Rule.setTitle(title);
 					conservationRulesReportModel_Rule.setDescription(description);
+					conservationRulesReportModel_Rule.setJuridicReference(juridicReference);
 
 					conservationRulesReportModel_Rule.setPrincipalsHolders(getPrincipalsHolders(retentionRule));
 					conservationRulesReportModel_Rule.setPrincipalsCopies(getPrincipalCopies(retentionRule));
