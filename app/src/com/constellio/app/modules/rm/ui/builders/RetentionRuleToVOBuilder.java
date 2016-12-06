@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -95,7 +96,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		for (Record categoryRecord : categoryRecords) {
 			categories.add(rm.wrapCategory(categoryRecord));
 		}
-		categories.sort(new AbstractTextComparator<Category>() {
+		Collections.sort(categories, new AbstractTextComparator<Category>() {
 			@Override
 			protected String getText(Category object) {
 				return object.getCode();
@@ -133,7 +134,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		Set<String> references = new HashSet<>();
 		references.add(referencedSchema);
 
-		String typeCode = new SchemaUtils().getSchemaTypeCode(schema.getCode());
+		String typeCode = SchemaUtils.getSchemaTypeCode(schema.getCode());
 
 		Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode)
 				.getMetadataGroup();
