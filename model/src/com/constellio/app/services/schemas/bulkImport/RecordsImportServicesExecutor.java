@@ -349,7 +349,7 @@ public class RecordsImportServicesExecutor {
 
 		if (typeImportContext.hasContents) {
 			batchSize = (int) Math.ceil(batchSize / 2.0);
-			threads = (int) Math.ceil(threads / 2.0);
+			threads = 1;//(int) Math.ceil(threads / 4.0);
 		}
 
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
