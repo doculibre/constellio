@@ -29,7 +29,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 
 	public void onViewAssembled() {
 		User user = getCurrentUser();
-		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, modelLayerFactory);
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		view.setDecommissioningButtonVisible(securityServices.hasAccessToDecommissioningMainPage(user));
 		view.setNewContainerButtonVisible(securityServices.canCreateContainers(user));
 		view.setContainersButtonVisible(securityServices.hasAccessToManageContainersPage(user));
@@ -38,7 +38,7 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, modelLayerFactory);
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		return securityServices.hasAccessToDecommissioningMainPage(user) || securityServices.hasAccessToManageContainersPage(user) || hasAccessToManageReportsPage();
 	}
 	

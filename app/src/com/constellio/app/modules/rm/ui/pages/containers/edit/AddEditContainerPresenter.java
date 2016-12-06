@@ -75,7 +75,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, modelLayerFactory);
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		return securityServices.canCreateContainers(user);
 	}
 

@@ -119,8 +119,8 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	public List<String> getRetentionRules(String conceptId, SessionContextProvider sessionContextProvider) {
-		ModelLayerFactory modelLayerFactory = sessionContextProvider.getConstellioFactories().getModelLayerFactory();
-		DecommissioningService decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+		AppLayerFactory appLayerFactory = sessionContextProvider.getConstellioFactories().getAppLayerFactory();
+		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		return new RecordUtils().toWrappedRecordIdsList(decommissioningService.getRetentionRulesForAdministrativeUnit(conceptId));
 	}
 

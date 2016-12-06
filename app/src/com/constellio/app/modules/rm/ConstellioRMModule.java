@@ -182,7 +182,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		setupModelLayerExtensions(collection, appLayerFactory.getModelLayerFactory());
+		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 
@@ -243,7 +243,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
 	}
 
-	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
+	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 
 		extensions.recordExtensions.add(new RMSchemasLogicalDeleteExtension(collection, modelLayerFactory));
@@ -252,7 +253,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMOldSchemasBlockageRecordExtension());
 		extensions.recordExtensions.add(new RMCheckInAlertsRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
-		extensions.recordExtensions.add(new RMDocumentExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));

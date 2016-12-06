@@ -65,7 +65,7 @@ public class ESNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_CONNECTORS).globally());
 			}
 		});

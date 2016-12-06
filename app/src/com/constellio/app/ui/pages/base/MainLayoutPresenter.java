@@ -30,7 +30,7 @@ public class MainLayoutPresenter implements Serializable {
 	}
 
 	public ComponentState getStateFor(NavigationItem item) {
-		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getModelLayerFactory());
+		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getAppLayerFactory());
 	}
 
 	public List<NavigationItem> getNavigationItems() {
