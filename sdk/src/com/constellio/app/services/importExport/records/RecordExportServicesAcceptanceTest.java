@@ -18,7 +18,6 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -42,9 +41,8 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenExportingTaxonomiesThenExported()
+	public void whenExportingWithTwoSchemaThenAssert()
 			throws Exception {
-
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -56,7 +54,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				tuple("10", "Unité 10", null),
 				tuple("10-A", "Unité 10-A", "10")
 		);
-
 	}
 
 	@Test
@@ -92,5 +89,39 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		} catch (ValidationException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void exportThen(RecordExportOptions options) {
+		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
+
+		ImportDataProvider importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		User user = userServices.getUserInCollection("admin", "anotherCollection");
+		BulkImportParams importParams = BulkImportParams.STRICT();
+		LoggerBulkImportProgressionListener listener = new LoggerBulkImportProgressionListener();
+		try {
+			new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
+		} catch (ValidationException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Test
+	public void whenExportingTaxonomiesThenExported()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+
+
+		exportThenImportInAnotherCollection(options.setExportTaxonomies(true));
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
+		assertThatRecords(rm.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code").containsOnly(
+				tuple("10", "Unité 10", null),
+				tuple("10-A", "Unité 10-A", "10")
+		);
 	}
 }

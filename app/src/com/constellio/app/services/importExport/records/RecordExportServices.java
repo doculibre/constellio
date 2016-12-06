@@ -2,12 +2,14 @@ package com.constellio.app.services.importExport.records;
 
 import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.CODE;
 import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.PARENT;
+import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.SCHEMA_TYPE;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 import static java.util.Arrays.asList;
 
 import java.io.File;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.ExportOptions;
@@ -16,10 +18,21 @@ import com.constellio.app.services.importExport.records.writers.ImportRecordOfSa
 import com.constellio.app.services.importExport.records.writers.ImportRecordWriter;
 import com.constellio.app.services.importExport.records.writers.ModifiableImportRecord;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RecordExportServices {
 
@@ -43,7 +56,7 @@ public class RecordExportServices {
 		try {
 
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
-			writeRecords(writer, options);
+			writeRecords(collection, writer, options);
 			writer.close();
 			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
 			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
@@ -60,9 +73,54 @@ public class RecordExportServices {
 
 	}
 
-	private void writeRecords(ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
+	private void writeRecords(String collection ,ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		//TODO Jonathan
 
+		writer.setOptions(DocumentType.SCHEMA_TYPE,
+				new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true));
+
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
+
+
+		// From type options;
+
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
+
+		Record record;
+
+		MetadataSchema metadataSchema;
+
+		for (String exportedSchemaType : options.getExportedSchemaTypes()) {
+			modelLayerFactory.getMetadataSchemasManager();
+
+			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).returnAll());
+
+			SearchResponseIterator<Record> recordSearchResponseIterator = searchServices.recordsIterator(logicalSearchQuery);
+
+			while(recordSearchResponseIterator.hasNext()) {
+				record = recordSearchResponseIterator.next();
+
+				metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+
+				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType, record.getId());
+
+				for(Metadata metadata : metadataSchema.getMetadatas()) {
+					if (!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+						Object object = record.get(metadata);
+
+						if (object != null) {
+							modifiableImportRecord.addField(metadata.getType().name(), object);
+						}
+					}
+				}
+			}
+		}
+
+/*
 		if (options.isExportValueLists()) {
 
 			//Très import de définir cette ligne pour les domaines de valeurs et taxonomies (espaces virtuels)
@@ -87,7 +145,7 @@ public class RecordExportServices {
 			writer.write(new ModifiableImportRecord("zeCollection", AdministrativeUnit.SCHEMA_TYPE, "666")
 					.addField(CODE, "10-A").addField(TITLE, "Unité 10-A").addField(PARENT, "42"));
 		}
-
+*/
 	}
 
 }
