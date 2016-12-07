@@ -113,22 +113,28 @@ public class RecordUtils {
 			}
 			return sortedRecords;
 		} else {
-			return unsortedRecords;
+			return new ArrayList<>(unsortedRecords);
 		}
 	}
 
 	private boolean hasRecordDependingOnAnother(MetadataSchemaType schemaType, List<Record> unsortedRecords) {
+
+		if (unsortedRecords.isEmpty()) {
+			return false;
+		}
+
 		List<Metadata> metadatas = new ArrayList<>();
 		for (MetadataSchema schema : schemaType.getAllSchemas()) {
 			for (Metadata metadata : schema.getMetadatas()) {
-				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().isAllowed(schemaType)) {
+				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().isAllowed(schemaType)
+						&& metadata.getInheritance() == null) {
 					metadatas.add(metadata);
 				}
 			}
 		}
 
 		if (metadatas.isEmpty()) {
-			return false;
+			return true;
 		}
 
 		List<String> ids = toIdList(unsortedRecords);
@@ -136,7 +142,6 @@ public class RecordUtils {
 		for (Record unsortedRecord : unsortedRecords) {
 			for (Metadata metadata : metadatas) {
 				if (metadata.isMultivalue()) {
-
 					for (String anId : unsortedRecord.<String>getList(metadata)) {
 						if (ids.contains(anId)) {
 							return true;
