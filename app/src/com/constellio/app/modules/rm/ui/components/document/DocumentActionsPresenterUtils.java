@@ -39,6 +39,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.EventFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
 
@@ -259,7 +260,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
 			Content content = document.getContent();
-			content.deleteVersion(contentVersionVO.getVersion(), presenterUtils.getCurrentUser());
+			content.deleteVersion(contentVersionVO.getVersion(), presenterUtils.getCurrentUser(), getModelLayerFactory());
 
 			try {
 				presenterUtils.recordServices().update(record);

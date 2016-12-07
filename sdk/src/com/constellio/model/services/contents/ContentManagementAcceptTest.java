@@ -2035,7 +2035,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		public RecordPreparation deleteVersion(String versionLabel, User user) {
 			Content content = record.get(zeSchema.contentMetadata());
-			content.deleteVersion(versionLabel, user);
+			content.deleteVersion(versionLabel, user, getModelLayerFactory());
 			return this;
 		}
 
