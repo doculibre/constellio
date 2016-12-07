@@ -37,6 +37,7 @@ public class DocumentExpectedDepositDateCalculatorTest extends ConstellioTest {
 		when(parameters.get(calculator.numberOfYearWhenInactiveVariableDelayParam)).thenReturn(1);
 		when(parameters.get(calculator.numberOfYearWhenSemiActiveVariableDelayParam)).thenReturn(1);
 		when(parameters.get(calculator.requiredDaysBeforeYearEndParam)).thenReturn(90);
+		when(parameters.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(true);
 
 		assertThat(calculator.calculate(parameters)).isEqualTo(localDate);
 	}
