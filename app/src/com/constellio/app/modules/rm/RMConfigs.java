@@ -53,7 +53,7 @@ public class RMConfigs {
 			WORKFLOWS_ENABLED,
 			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
 			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
-			CALCULATE_OPEN_DATE_BASED_ON_FIRST_TIMERANGE_PART;
+			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART;
 	;
 
 	// Category configs
@@ -216,8 +216,8 @@ public class RMConfigs {
 				.withDefaultValue(AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED)
 				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
 
-		add(CALCULATE_OPEN_DATE_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
-				.createBooleanTrueByDefault("calculateOpenDateBasedOnFirstTimerangePart"));
+		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
+				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -387,6 +387,6 @@ public class RMConfigs {
 	}
 
 	public boolean isCalculateOpenDateBasedOnFirstTimerangePart() {
-		return manager.getValue(CALCULATE_OPEN_DATE_BASED_ON_FIRST_TIMERANGE_PART);
+		return manager.getValue(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART);
 	}
 }
