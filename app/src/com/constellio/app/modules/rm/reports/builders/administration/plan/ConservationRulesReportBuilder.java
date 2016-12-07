@@ -107,17 +107,23 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		PdfPTable subTable = new PdfPTable(COLUMN_NUMBER);
 
 		subTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
-		pdfTableUtils.addLeftPhraseCell(subTable, rule.getRuleNumber(), TITLE_FONT_SIZE, 5);
-		pdfTableUtils.addLeftPhraseRow(subTable, rule.getTitle(), TITLE_FONT_SIZE, COLUMN_NUMBER);
+		pdfTableUtils.addBoldLeftPhraseCell(subTable, rule.getRuleNumber(), TITLE_FONT_SIZE, 5);
+		pdfTableUtils.addBoldLeftPhraseRow(subTable, rule.getTitle(), TITLE_FONT_SIZE, COLUMN_NUMBER);
 		pdfTableUtils.addEmptyCells(subTable, 5, 1);
 		pdfTableUtils.addLeftPhraseRow(subTable, rule.getDescription(), TITLE_FONT_SIZE, COLUMN_NUMBER);
 		pdfTableUtils.addEmptyCells(subTable, 5, 1);
-		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.principalHolders"), TITLE_FONT_SIZE, 10);
-		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.copies"), TITLE_FONT_SIZE, 4);
-		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.supportTypes"), TITLE_FONT_SIZE, 4);
-		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.active"), TITLE_FONT_SIZE, 2);
-		pdfTableUtils.addLeftPhraseCell(subTable, $("ConservationRulesReport.semiActive"), TITLE_FONT_SIZE, 3);
-		pdfTableUtils.addLeftPhraseRow(subTable, $("ConservationRulesReport.inactive"), TITLE_FONT_SIZE, 2);
+		if(rule.getJuridicReference() != null && !rule.getJuridicReference().trim().isEmpty()) {
+			pdfTableUtils.addBoldLeftPhraseRow(subTable, $("ConservationRulesReport.juridicReference") + ": ", TITLE_FONT_SIZE, COLUMN_NUMBER);
+			pdfTableUtils.addEmptyCells(subTable, 5, 1);
+			pdfTableUtils.addLeftPhraseRow(subTable, rule.getJuridicReference(), TITLE_FONT_SIZE, COLUMN_NUMBER);
+			pdfTableUtils.addEmptyCells(subTable, 5, 1);
+		}
+		pdfTableUtils.addBoldLeftPhraseCell(subTable, $("ConservationRulesReport.principalHolders"), TITLE_FONT_SIZE, 10);
+		pdfTableUtils.addBoldLeftPhraseCell(subTable, $("ConservationRulesReport.copies"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addBoldLeftPhraseCell(subTable, $("ConservationRulesReport.supportTypes"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addBoldLeftPhraseCell(subTable, $("ConservationRulesReport.active"), TITLE_FONT_SIZE, 2);
+		pdfTableUtils.addBoldLeftPhraseCell(subTable, $("ConservationRulesReport.semiActive"), TITLE_FONT_SIZE, 3);
+		pdfTableUtils.addBoldLeftPhraseRow(subTable, $("ConservationRulesReport.inactive"), TITLE_FONT_SIZE, 2);
 
 		pdfTableUtils.addEmptyCells(subTable, 5, 1);
 		PdfPCell principalHoldersCell = new PdfPCell();
@@ -139,7 +145,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 		copiesCell.setBorder(Rectangle.NO_BORDER);
 		PdfPTable copiesTable = new PdfPTable(15);
 		copiesTable.setWidthPercentage(100);
-		pdfTableUtils.addLeftPhraseCell(copiesTable, $("ConservationRulesReport.principal"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addBoldLeftPhraseCell(copiesTable, $("ConservationRulesReport.principal"), TITLE_FONT_SIZE, 4);
 		int principalsCopiesNumber = rule.getPrincipalsCopies().size();
 		for (int i = 0; i < principalsCopiesNumber; i++) {
 			//for (ConservationRulesReportModel_Copy principalCopy : rule.getPrincipalsCopies()) {
@@ -164,7 +170,7 @@ public class ConservationRulesReportBuilder implements ReportBuilder {
 			}
 		}
 
-		pdfTableUtils.addLeftPhraseCell(copiesTable, $("ConservationRulesReport.secondary"), TITLE_FONT_SIZE, 4);
+		pdfTableUtils.addBoldLeftPhraseCell(copiesTable, $("ConservationRulesReport.secondary"), TITLE_FONT_SIZE, 4);
 		//TODO verify null
 		ConservationRulesReportModel_Copy secondaryCopy = rule.getSecondaryCopy();
 		int quantity = secondaryCopy.getSupportTypes().size();
