@@ -28,10 +28,10 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 			eventParameters.put(EventViewParameters.BY_ID_EVENT_PARAMETER, view.getEventId());
 		}
 		if (view.getEventStartDate() != null) {
-			eventParameters.put(EventViewParameters.EVENT_START_DATE, LocalDateTime.fromDateFields(view.getEventStartDate()));
+			eventParameters.put(EventViewParameters.EVENT_START_DATE, LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0,0,0,0));
 		}
 		if (view.getEventEndDate() != null) {
-			eventParameters.put(EventViewParameters.EVENT_END_DATE, LocalDateTime.fromDateFields(view.getEventEndDate()));
+			eventParameters.put(EventViewParameters.EVENT_END_DATE, LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(0,0,0,0));
 		}
 		/*switch (eventCategory){
 		case CURRENTLY_BORROWED_FOLDERS:
@@ -51,8 +51,8 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		String username = currentUser.getUsername();
 		LocalDateTime startDate = (view.getEventStartDate() == null) ?
 				null :
-				LocalDateTime.fromDateFields(view.getEventStartDate());
-		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate());
+				LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0,0,0,0);
+		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(0,0,0,0);
 		return EventsListDataProviderFactory
 				.getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, username,
 						startDate, endDate, view.getEventId());
