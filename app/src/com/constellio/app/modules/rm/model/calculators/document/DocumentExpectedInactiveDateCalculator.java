@@ -208,6 +208,10 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(String yearEnd) {
 			String metadata = copy.getSemiActiveDateMetadata();
 
+			if (metadata.startsWith("folder_")) {
+				return null;
+			}
+
 			LocalDate date = datesAndDateTimesParam
 					.getDate(metadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
 			if (date == null) {
