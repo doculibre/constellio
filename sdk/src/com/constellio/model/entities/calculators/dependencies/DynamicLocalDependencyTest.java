@@ -30,8 +30,8 @@ public class DynamicLocalDependencyTest {
 			throws Exception {
 		String zMeta = "zMeta";
 		when(values.getValue(zMeta)).thenReturn("2000-2010");
-		LocalDate date = dynamicLocalDependency.getDate(zMeta, values, "1/12");
-		assertThat(date).isEqualTo(new LocalDate(2010, 1, 12));
+		LocalDate date = dynamicLocalDependency.getDate(zMeta, values, "1/12", true);
+		assertThat(date).isEqualTo(new LocalDate(2000, 1, 12));
 	}
 
 	@Test
@@ -40,7 +40,7 @@ public class DynamicLocalDependencyTest {
 		String zMeta = "zMeta";
 		Number number = 1985.5;
 		when(values.getValue(zMeta)).thenReturn(number);
-		LocalDate date = dynamicLocalDependency.getDate(zMeta, values, "02/28");
+		LocalDate date = dynamicLocalDependency.getDate(zMeta, values, "02/28", true);
 		assertThat(date).isEqualTo(new LocalDate(1985, 2, 28));
 	}
 
@@ -48,9 +48,9 @@ public class DynamicLocalDependencyTest {
 	public void givenDateMetadataWhenGetDateThanOk()
 			throws Exception {
 		String zMeta = "zMeta";
-		LocalDate date = new LocalDate(1980, 10,11);
+		LocalDate date = new LocalDate(1980, 10, 11);
 		when(values.getValue(zMeta)).thenReturn(date);
-		assertThat(dynamicLocalDependency.getDate(zMeta, values, "02/28")).isEqualTo(date);
+		assertThat(dynamicLocalDependency.getDate(zMeta, values, "02/28", true)).isEqualTo(date);
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class DynamicLocalDependencyTest {
 		String zMeta = "zMeta";
 		LocalDateTime date = new LocalDateTime();
 		when(values.getValue(zMeta)).thenReturn(date);
-		assertThat(dynamicLocalDependency.getDate(zMeta, values, "02/28")).isEqualTo(date.toLocalDate());
+		assertThat(dynamicLocalDependency.getDate(zMeta, values, "02/28", true)).isEqualTo(date.toLocalDate());
 	}
 
 	@Test
@@ -68,8 +68,24 @@ public class DynamicLocalDependencyTest {
 		String zMeta = "zMeta";
 		List<Object> listOfObjects = new ArrayList();
 		listOfObjects.add("2000-2010");
-		listOfObjects.add( new LocalDate(1980, 10,11));
+		listOfObjects.add(new LocalDate(1980, 10, 11));
 		when(values.getValue(zMeta)).thenReturn(listOfObjects);
-		assertThat(dynamicLocalDependency.getDate(zMeta, values, "1/12")).isEqualTo(new LocalDate(2010, 1, 12));
+		assertThat(dynamicLocalDependency.getDate(zMeta, values, "1/12", true)).isEqualTo(new LocalDate(2000, 1, 12));
+	}
+
+	@Test
+	public void givenBasedOnFirstPartOfTimerangesThenOK()
+			throws Exception {
+		String zMeta = "zMeta";
+		when(values.getValue(zMeta)).thenReturn("2000-2010");
+		assertThat(dynamicLocalDependency.getDate(zMeta, values, "1/12", true)).isEqualTo(new LocalDate(2000, 1, 12));
+	}
+
+	@Test
+	public void givenBasedOnLastPartOfTimerangesThenOK()
+			throws Exception {
+		String zMeta = "zMeta";
+		when(values.getValue(zMeta)).thenReturn("2000-2010");
+		assertThat(dynamicLocalDependency.getDate(zMeta, values, "1/12", false)).isEqualTo(new LocalDate(2010, 1, 12));
 	}
 }
