@@ -118,8 +118,8 @@ public class RecordUtils {
 			Set<String> ids = new HashSet<>();
 			List<Record> sortedRecordsById = new ArrayList<>();
 
+			for (int i =  unsortedRecords.size()-1; i>=0 ; i--) {
 			//for (int i = 0; i < unsortedRecords.size(); i++) {
-			for (int i = unsortedRecords.size() - 1; i >= 0; i--) {
 				if (!ids.contains(unsortedRecords.get(i).getId())) {
 					ids.add(unsortedRecords.get(i).getId());
 					sortedRecordsById.add(unsortedRecords.get(i));
