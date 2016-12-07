@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.lang.annotation.Retention;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
@@ -70,10 +71,13 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
+		// GetCopyRetentionRule.
+		// Save avec une transaction.
+
 		// Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE
 		exportThenImportInAnotherCollection(
 				options.setExportedSchemaTypes(
-						asList(AdministrativeUnit.SCHEMA_TYPE)));
+						asList(AdministrativeUnit.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE)));
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 		assertThatRecords(rm.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code").containsOnly(
@@ -105,24 +109,34 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {
 		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
-
-		ImportDataProvider importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);
-
-		UserServices userServices = getModelLayerFactory().newUserServices();
-		User user = userServices.getUserInCollection("admin", "anotherCollection");
-		BulkImportParams importParams = BulkImportParams.STRICT();
-		LoggerBulkImportProgressionListener listener = new LoggerBulkImportProgressionListener();
+		ImportDataProvider importDataProvider = null;
 		try {
-			new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
-		} catch (ValidationException e) {
+			System.out.println(zipFile.getAbsolutePath());
+			importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);
 
-			fail(StringUtils.join(i18n.asListOfMessages(e.getValidationErrors()), "\n"));
+			UserServices userServices = getModelLayerFactory().newUserServices();
+			User user = userServices.getUserInCollection("admin", "anotherCollection");
+			BulkImportParams importParams = BulkImportParams.STRICT();
+			LoggerBulkImportProgressionListener listener = new LoggerBulkImportProgressionListener();
+			try {
+				new RecordsImportServices(getModelLayerFactory()).bulkImport(importDataProvider, listener, user, importParams);
+			} catch (ValidationException e) {
 
+				fail(StringUtils.join(i18n.asListOfMessages(e.getValidationErrors()), "\n"));
+
+			}
+		} finally {
+			getIOLayerFactory().newIOServices().deleteQuietly(zipFile);
+			if (importDataProvider != null){
+				importDataProvider.close();
+			}
 		}
 	}
 
 	private void exportThen(RecordExportOptions options) {
 		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(zeCollection, SDK_STREAM, options);
+		System.out.println(zipFile.getAbsolutePath());
+
 
 		ImportDataProvider importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);
 
