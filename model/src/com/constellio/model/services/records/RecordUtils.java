@@ -4,8 +4,10 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -113,7 +115,60 @@ public class RecordUtils {
 			}
 			return sortedRecords;
 		} else {
-			return new ArrayList<>(unsortedRecords);
+			Set<String> ids = new HashSet<>();
+			List<Record> sortedRecordsById = new ArrayList<>();
+
+			//for (int i = 0; i < unsortedRecords.size(); i++) {
+			for (int i = unsortedRecords.size() - 1; i >= 0; i--) {
+				if (!ids.contains(unsortedRecords.get(i).getId())) {
+					ids.add(unsortedRecords.get(i).getId());
+					sortedRecordsById.add(unsortedRecords.get(i));
+				} else {
+					System.out.println("Same record added twice in a collection");
+				}
+			}
+//
+			//			Collections.sort(sortedRecordsById, new Comparator<Record>() {
+			//				@Override
+			//				public int compare(Record o1, Record o2) {
+			//					return o1.getId().compareTo(o2.getId());
+			//				}
+			//			});
+			//
+			//			Set<String> ids = new HashSet<>();
+			//			Iterator<Record> recordIterator = sortedRecordsById.iterator();
+			//			while(recordIterator.hasNext()) {
+			//				Record record = recordIterator.next();
+			//				if (ids.contains(record.getId())) {
+			//					recordIterator.remove();
+			//				} else {
+			//
+			//				}
+			//			}
+			//
+			//			List<Record> sortedRecords = new ArrayList<>();
+			//
+			//			List<Metadata> referenceMetadatas = schemaType.getAllParentReferences();
+			//
+			//			Map<String, Set<String>> dependencyMap = new HashMap<>();
+			//			for (Record record : unsortedRecords) {
+			//				String parentDependencyId = record.getNonNullValueIn(referenceMetadatas);
+			//				dependencyMap.put(record.getId(), Collections.singleton(parentDependencyId));
+			//			}
+			//			List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap);
+			//			Map<String, Record> idRecordMap = toIdRecordMap(unsortedRecords);
+			//			for (String recordId : sortedIds) {
+			//				sortedRecords.add(idRecordMap.get(recordId));
+			//			}
+			//
+			//			List<String> idsOfSortedByIds = toIdList(sortedRecordsById);
+			//			List<String> idsOfSorted = toIdList(sortedRecords);
+			//
+			//			if (!idsOfSortedByIds.equals(idsOfSorted)) {
+			//				System.out.println("bobo!");
+			//			}
+
+			return sortedRecordsById;
 		}
 	}
 
@@ -134,7 +189,7 @@ public class RecordUtils {
 		}
 
 		if (metadatas.isEmpty()) {
-			return true;
+			return false;
 		}
 
 		List<String> ids = toIdList(unsortedRecords);
