@@ -5,10 +5,13 @@ import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
@@ -31,6 +34,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
+
 
 public class RecordExportServices {
 
@@ -51,11 +56,16 @@ public class RecordExportServices {
 	public File exportRecords(String collection, String resourceKey, RecordExportOptions options) {
 
 		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
+		System.out.println("Temp folder is " + tempFolder.getAbsolutePath());
 		try {
 
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
-			writeRecords(collection, writer, options);
-			writer.close();
+			try {
+				writeRecords(collection, writer, options);
+			} finally {
+				writer.close();
+			}
+
 			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
 			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
 				throw new ExportServicesRuntimeException_NoRecords();
@@ -66,7 +76,7 @@ public class RecordExportServices {
 		} catch (ZipServiceException e) {
 			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(collection, e);
 		} finally {
-			ioServices.deleteQuietly(tempFolder);
+			ioServices.deleteDirectoryWithoutExpectableIOException(tempFolder);
 		}
 
 	}
@@ -74,8 +84,7 @@ public class RecordExportServices {
 	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		//TODO Jonathan
 
-		writer.setOptions(DocumentType.SCHEMA_TYPE,
-				new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true));
+
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
@@ -117,23 +126,47 @@ public class RecordExportServices {
 					RetentionRule retentionRule = rm.wrapRetentionRule(record);
 
 					List<Map<String, String>> importedCopyRetentionRules = new ArrayList<>();
+
 					for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
 						//copyRetentionRule.etc
+
+						Map<String, String> map = new HashMap<>();
+
 
 						List<String> mediumTypesCodes = new ArrayList<>();
 						for (String mediumTypeId : copyRetentionRule.getMediumTypeIds()) {
 							mediumTypesCodes.add(rm.getMediumType(mediumTypeId).getCode());
 						}
 
-					}
-					modifiableImportRecord.addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
+						map.put(RetentionRuleImportExtension.MEDIUM_TYPES, StringUtils.join(mediumTypesCodes, ','));
+						map.put(RetentionRuleImportExtension.CODE, copyRetentionRule.getCode());
+						map.put(RetentionRuleImportExtension.TITLE, copyRetentionRule.getTitle());
+						map.put(RetentionRuleImportExtension.COPY_TYPE, copyTypeToString(copyRetentionRule.getCopyType()));
+						map.put(RetentionRuleImportExtension.DESCRIPTION, copyRetentionRule.getDescription());
+						map.put(RetentionRuleImportExtension.CONTENT_TYPES_COMMENT, copyRetentionRule.getContentTypesComment());
+						map.put(RetentionRuleImportExtension.ACTIVE_RETENTION_PERIOD, Integer.toString(copyRetentionRule.getActiveRetentionPeriod().getValue()));
+						map.put(RetentionRuleImportExtension.SEMI_ACTIVE_RETENTION_PERIOD_COMMENT, copyRetentionRule.getSemiActiveRetentionComment());
+						map.put(RetentionRuleImportExtension.SEMI_ACTIVE_RETENTION_PERIOD, Integer.toString(copyRetentionRule.getSemiActiveRetentionPeriod().getValue()));
+						map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_COMMENT, copyRetentionRule.getInactiveDisposalComment());
+						map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, copyRetentionRule.getInactiveDisposalType().getCode());
+						//map.put(RetentionRuleImportExtension.TYPE_ID, copyRetentionRule.getId());
+						map.put(RetentionRuleImportExtension.SEMI_ACTIVE_DATE_METADATA, copyRetentionRule.getSemiActiveDateMetadata());
+						map.put(RetentionRuleImportExtension.ACTIVE_DATE_METADATA, copyRetentionRule.getActiveDateMetadata());
+						map.put(RetentionRuleImportExtension.OPEN_ACTIVE_RETENTION_PERIOD, copyRetentionRule.getActiveDateMetadata());
+						map.put(RetentionRuleImportExtension.REQUIRED_COPYRULE_FIELD, Boolean.toString(copyRetentionRule.isEssential()));
+						//map.put(RetentionRuleImportExtension.ACTIVE_RETE, Boolean.toString(copyRetentionRule.isIgnoreActivePeriod()));
+						map.put(RetentionRuleImportExtension.COPY_RETENTION_RULE_ID, copyRetentionRule.getId());
 
-					//TODO
+						importedCopyRetentionRules.add(map);
+					}
+
+					modifiableImportRecord.addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
 				}
 
 				writer.write(modifiableImportRecord);
 			}
 		}
+	}
 
 /*
 		if (options.isExportValueLists()) {
@@ -160,7 +193,24 @@ public class RecordExportServices {
 			writer.write(new ModifiableImportRecord("zeCollection", AdministrativeUnit.SCHEMA_TYPE, "666")
 					.addField(CODE, "10-A").addField(TITLE, "Unité 10-A").addField(PARENT, "42"));
 		}
+
+	}
 */
+
+	public static String copyTypeToString(CopyType copyType)
+	{
+		String copyTypeStr = "NOTHING";
+
+		if(copyType == CopyType.PRINCIPAL)
+		{
+			copyTypeStr = "P";
+		}
+		else if(copyType == CopyType.SECONDARY)
+		{
+			copyTypeStr = "S";
+		}
+
+		return copyTypeStr;
 	}
 
 }
