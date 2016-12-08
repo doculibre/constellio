@@ -128,12 +128,12 @@ public class RecordUtils {
 				}
 			}
 			//
-			//			Collections.sort(sortedRecordsById, new Comparator<Record>() {
-			//				@Override
-			//				public int compare(Record o1, Record o2) {
-			//					return o1.getId().compareTo(o2.getId());
-			//				}
-			//			});
+						Collections.sort(sortedRecordsById, new Comparator<Record>() {
+							@Override
+							public int compare(Record o1, Record o2) {
+								return o1.getId().compareTo(o2.getId());
+							}
+						});
 			//
 			//			Set<String> ids = new HashSet<>();
 			//			Iterator<Record> recordIterator = sortedRecordsById.iterator();
