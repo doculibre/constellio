@@ -83,7 +83,7 @@ public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 		SmbConnectorContextServices contextServices = new SmbConnectorContextServices(es);
 		context = contextServices.createContext(connectorInstance.getId());
 
-		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater, context);
+		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater);
 	}
 
 	@Test

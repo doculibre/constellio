@@ -1,5 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb;
 
+import com.constellio.app.modules.es.connectors.http.ConnectorHttpContext;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDelete;
 import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
 import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
@@ -105,22 +106,20 @@ public class ConnectorSmb extends Connector {
 		updater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
 		contextServices = new SmbConnectorContextServices(es);
 
-		try {
-			context = contextServices.createContext(connectorId);
-
-		} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
-			contextServices.deleteContext(connectorId);
-			context = contextServices.createContext(connectorId);
-		}
-
 		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
-				updater, context);
+				updater);
 	}
 
 	@Override
 	public void start() {
 		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
+		try {
+			context = contextServices.createContext(connectorId);
+		} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
+			contextServices.deleteContext(connectorId);
+			context = contextServices.createContext(connectorId);
+		}
 
 		jobsQueue.clear();
 		String resumeUrl = connectorInstance.getResumeUrl();
@@ -297,5 +296,9 @@ public class ConnectorSmb extends Connector {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public SmbConnectorContext getContext() {
+		return this.context;
 	}
 }
