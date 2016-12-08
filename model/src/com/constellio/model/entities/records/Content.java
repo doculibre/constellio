@@ -3,7 +3,6 @@ package com.constellio.model.entities.records;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.model.services.factories.ModelLayerFactory;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.model.entities.records.wrappers.User;
@@ -68,7 +67,7 @@ public interface Content extends ModifiableStructure {
 
 	ContentVersion getVersion(String version);
 
-	Content deleteVersion(String versionLabel, User user, ModelLayerFactory modelLayerFactory);
+	Content deleteVersion(String versionLabel, User user);
 
 	Content deleteVersion(String versionLabel);
 

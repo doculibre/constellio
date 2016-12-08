@@ -93,9 +93,7 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.modifyTask");
 		} else if (eventType.equals(EventType.DELETE_TASK)) {
 			return $("ListEventsView.deleteTask");
-		} else if (eventType.equals(EventType.DELETE_VERSION_DOCUMENT)) {
-			return $("ListEventsView.deleteVersionDocument");
-		}else {
+		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
 	}
@@ -132,8 +130,6 @@ public class EventTypeUtils implements Serializable {
 				Metadata reasonMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(reasonMetadata.getCode());
 			}
-		} else if (isContentVersionEvent(eventType)) {
-			metadataCodes.addAll(getContentVersionMetadata(metadataSchema));
 		} else if (isUserEvent(eventType) ||
 				isGroupEvent(eventType)) {
 			metadataCodes.addAll(getEventUserMetadata(metadataSchema));
@@ -173,14 +169,6 @@ public class EventTypeUtils implements Serializable {
 				isTaskEvent(eventType) ||
 				isContainerEvent(eventType) ||
 				eventType.equals(EventType.PDF_A_GENERATION);
-	}
-
-	public static boolean isContentVersionEvent(String eventType) {
-		if (EventType.DELETE_VERSION_DOCUMENT.equals(eventType)) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	private static boolean isContainerEvent(String eventType) {
@@ -237,15 +225,6 @@ public class EventTypeUtils implements Serializable {
 		metadataCodes.add(permissionDatesMetadata.getCode());
 		metadataCodes.add(permissionRolesMetadata.getCode());
 		metadataCodes.add(permissionUsersMetadata.getCode());
-		return metadataCodes;
-	}
-
-	private static List<String> getContentVersionMetadata(MetadataSchema metadataSchema) {
-		List<String> metadataCodes = new ArrayList<>();
-		Metadata idMetadata = metadataSchema.getMetadata(Event.RECORD_ID);
-		Metadata usernameMetadata = metadataSchema.getMetadata(Event.USERNAME);
-		metadataCodes.add(idMetadata.getCode());
-		metadataCodes.add(usernameMetadata.getCode());
 		return metadataCodes;
 	}
 

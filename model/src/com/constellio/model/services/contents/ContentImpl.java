@@ -8,14 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.logging.EventFactory;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -504,28 +496,12 @@ public class ContentImpl implements Content {
 	}
 
 	@Override
-	public Content deleteVersion(String versionLabel, User user, ModelLayerFactory modelLayerFactory) {
+	public Content deleteVersion(String versionLabel, User user) {
 		if (!user.has(CorePermissions.DELETE_CONTENT_VERSION).globally()) {
 			throw new ContentImplRuntimeException_UserHasNoDeleteVersionPermission(user);
 		}
 
-		ensureHistoryIsLoaded();
-		int oldTotalVersions = history.size();
-		Content content = deleteVersion(versionLabel);
-		if(history.size() < oldTotalVersions) {
-			SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
-			Event event = schemasRecords.newEvent();
-			event.setRecordId(id);
-			event.setType(EventType.DELETE_VERSION_DOCUMENT);
-			event.setUsername(user.getUsername());
-			event.setTitle(versionLabel);
-			try {
-				modelLayerFactory.newRecordServices().add(event);
-			} catch (RecordServicesException e) {
-				e.printStackTrace();
-			}
-		}
-		return content;
+		return deleteVersion(versionLabel);
 	}
 
 	@Override
