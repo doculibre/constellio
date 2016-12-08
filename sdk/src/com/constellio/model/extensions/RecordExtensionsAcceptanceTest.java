@@ -28,6 +28,8 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEven
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -213,6 +215,10 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenLogicallyDeletingARecordThenListenersCalled()
 			throws Exception {
+
+//		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
+		//		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE_AND_REWRITE);
+
 		ArgumentCaptor<RecordLogicalDeletionEvent> argumentCaptor = ArgumentCaptor.forClass(RecordLogicalDeletionEvent.class);
 		recordServices.logicallyDelete(existingZeSchemaRecord, User.GOD);
 
@@ -222,10 +228,13 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		inOrder.verify(recordExtension1).recordLogicallyDeleted(argumentCaptor.capture());
 		inOrder.verify(recordExtension2).recordLogicallyDeleted(argumentCaptor.capture());
 
-		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId()).isEqualTo(existingZeSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(2).getRecord().getId()).isEqualTo(existingZeSchemaChildRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(3).getRecord().getId()).isEqualTo(existingZeSchemaChildRecord.getId());
+		assertThat(argumentCaptor.getAllValues()).extracting("record.id").containsOnly(
+				existingZeSchemaRecord.getId(),
+				existingZeSchemaRecord.getId(),
+				existingZeSchemaChildRecord.getId(),
+				existingZeSchemaChildRecord.getId()
+		);
+
 	}
 
 	@Test
