@@ -2979,6 +2979,7 @@ public final class GeneratedRMMigrationCombo {
 		folder_retentionRuleEntered.defineReferencesTo(retentionRuleSchemaType);
 		MetadataBuilder folder_ruleAdminUnit = folderSchema.create("ruleAdminUnit").setType(MetadataValueType.REFERENCE);
 		folder_ruleAdminUnit.setMultivalue(true);
+		folder_ruleAdminUnit.setMarkedForDeletion(true);
 		folder_ruleAdminUnit.setUndeletable(true);
 		folder_ruleAdminUnit.setEnabled(false);
 		folder_ruleAdminUnit.defineReferencesTo(administrativeUnitSchemaType);
@@ -3012,6 +3013,7 @@ public final class GeneratedRMMigrationCombo {
 		folder_shareTokens.setEssential(true);
 		folder_shareTokens.defineValidators().add(ManualTokenValidator.class);
 		MetadataBuilder folder_timerange = folderSchema.create("timerange").setType(MetadataValueType.STRING);
+		folder_timerange.setInputMask("9999-9999");
 		folder_timerange.setEnabled(false);
 		MetadataBuilder folder_title = folderSchema.get("title");
 		folder_title.setDefaultRequirement(true);
@@ -4086,7 +4088,7 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "document").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(
-						resourcesProvider.getLanguageMap(asList("classifiedInGroupLabel", "default:defaultGroupLabel"))));
+						resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel", "classifiedInGroupLabel"))));
 		transaction.add(manager.getSchema(collection, "document_email").withFormMetadataCodes(
 				asList("document_email_folder", "document_email_type", "document_email_title",
 						"document_email_mainCopyRuleIdEntered", "document_email_content", "document_email_keywords",
@@ -4277,7 +4279,7 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "folder").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(
-						resourcesProvider.getLanguageMap(asList("classifiedInGroupLabel", "default:defaultGroupLabel"))));
+						resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel", "classifiedInGroupLabel"))));
 		transaction.add(manager.getSchema(collection, "folder_default").withFormMetadataCodes(
 				asList("folder_default_type", "folder_default_title", "folder_default_parentFolder",
 						"folder_default_categoryEntered", "folder_default_uniformSubdivisionEntered",

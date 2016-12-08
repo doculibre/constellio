@@ -1,6 +1,8 @@
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +152,15 @@ public class SchemasDisplayWriter {
 
 	private String labelToSemiColonStringSeparated(Map<Language, String> labels) {
 		StringBuilder stringBuilder = new StringBuilder();
-		for (Entry<Language, String> entry : labels.entrySet()) {
+		List<Entry<Language, String>> entries = new ArrayList<>(labels.entrySet());
+		Collections.sort(entries, new Comparator<Entry<Language, String>>() {
+			@Override
+			public int compare(Entry<Language, String> o1, Entry<Language, String> o2) {
+				return o1.getKey().getCode().compareTo(o2.getKey().getCode());
+			}
+		});
+
+		for (Entry<Language, String> entry : entries) {
 			stringBuilder.append(entry.getKey().getCode() + "=" + entry.getValue() + LABEL_SEPARATOR);
 		}
 		return stringBuilder.toString();

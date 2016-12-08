@@ -93,7 +93,7 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 
 	@Override
 	public boolean isFastMigrationsEnabled() {
-		return true;
+		return getBoolean("fastMigrations.enabled", true);
 	}
 
 }

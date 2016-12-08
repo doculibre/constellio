@@ -443,7 +443,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.build();
 
 		File dest = new File(getFoldersLocator().getAppProject()
-				+ "/src/com/constellio/app/modules/complementary/migrations/GeneratedTasksMigrationCombo.java");
+				+ "/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedTasksMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -938,6 +938,14 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isMultivalue()) {
 			method.addStatement("$L.setMultivalue(true)", variable);
+		}
+
+		if (metadata.getInputMask() != null) {
+			method.addStatement("$L.setInputMask($S)", variable, metadata.getInputMask());
+		}
+
+		if (metadata.isMarkedForDeletion()) {
+			method.addStatement("$L.setMarkedForDeletion(true)", variable);
 		}
 
 		if (metadata.isDefaultRequirement()) {

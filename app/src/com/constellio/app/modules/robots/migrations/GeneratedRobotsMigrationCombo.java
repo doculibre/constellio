@@ -502,7 +502,7 @@ public final class GeneratedRobotsMigrationCombo {
 				.withTableMetadataCodes(asList("actionParameters_default_title", "actionParameters_default_modifiedOn")));
 		transaction.add(manager.getType(collection, "robot").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
-						asList("init.robot.tabs.action", "init.robot.tabs.criteria", "default:init.robot.tabs.definition"))));
+						asList("init.robot.tabs.criteria", "default:init.robot.tabs.definition", "init.robot.tabs.action"))));
 		transaction.add(manager.getSchema(collection, "robot_default").withFormMetadataCodes(
 				asList("robot_default_code", "robot_default_title", "robot_default_parent", "robot_default_schemaFilter",
 						"robot_default_description", "robot_default_searchCriteria", "robot_default_action",
