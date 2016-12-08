@@ -2,7 +2,6 @@ package com.constellio.model.conf.ldap.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
@@ -44,7 +43,6 @@ public class AzureAdClientTest extends ConstellioTest {
     @Test
     public void testGetUserNameList() throws Exception {
         AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
-        azureAdClient.init();
 
         final Set<String> results = azureAdClient.getUserNameList();
 
@@ -55,7 +53,6 @@ public class AzureAdClientTest extends ConstellioTest {
     @Test
     public void testGetGroupNameList() throws Exception {
         AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
-        azureAdClient.init();
 
         final Set<String> results = azureAdClient.getGroupNameList();
 
@@ -65,11 +62,9 @@ public class AzureAdClientTest extends ConstellioTest {
 
     @Test
     public void testGetGroupsAndTheirUsers() throws Exception {
-        AzureAdClient.maxResults = 1;
+        AzureAdClient.RequestHelper.maxResults = 1;
 
         AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
-
-        azureAdClientSpy.init();
 
         final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
         final Map<String, LDAPUser> ldapUsers = new HashMap<>();
@@ -80,18 +75,13 @@ public class AzureAdClientTest extends ConstellioTest {
         assertThat(ldapGroups.size()).isEqualTo(2);
         assertThat(ldapUsers).isNotEmpty();
         assertThat(ldapUsers.size()).isEqualTo(3);
-
-        verify(azureAdClientSpy, atLeast(2)).getAllGroupsResponse(any(String.class));
-        verify(azureAdClientSpy, atLeast(2)).getGroupMembersResponse(any(String.class), any(String.class));
     }
 
     @Test
     public void testGetUsersAndTheirGroups() throws Exception {
-        AzureAdClient.maxResults = 1;
+        AzureAdClient.RequestHelper.maxResults = 1;
 
         AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration));
-
-        azureAdClientSpy.init();
 
         final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
         final Map<String, LDAPUser> ldapUsers = new HashMap<>();
@@ -102,13 +92,10 @@ public class AzureAdClientTest extends ConstellioTest {
         assertThat(ldapGroups.size()).isEqualTo(2);
         assertThat(ldapUsers).isNotEmpty();
         assertThat(ldapUsers.size()).isEqualTo(4);
-
-        verify(azureAdClientSpy, atLeast(4)).getAllUsersResponse(any(String.class));
-        verify(azureAdClientSpy, atLeast(2)).getUserGroupsResponse(any(String.class), any(String.class));
     }
 
     @Test
     public void testAuthenticiate() throws Exception {
-        new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration).authenticiate("user1@adgrics.onmicrosoft.com", "Comu12980");
+        new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration).authenticate("user1@adgrics.onmicrosoft.com", "Comu12980");
     }
 }
