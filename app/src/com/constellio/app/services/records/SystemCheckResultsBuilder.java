@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class SystemCheckResultsBuilder {
@@ -108,6 +109,10 @@ public class SystemCheckResultsBuilder {
 
 	public Map<String, Object> getResultsInfos() {
 		return results.getResultsInfos();
+	}
+
+	public void addNewValidationError(RecordServicesException.ValidationException validationException) {
+		results.errors.addAll(validationException.getErrors().getValidationErrors());
 	}
 
 	public <T> T get(String key) {

@@ -39,7 +39,6 @@ public class MigrationResourcesProvider {
 		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, version);
 		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, version);
 
-
 	}
 
 	public String get(String key) {
@@ -66,6 +65,10 @@ public class MigrationResourcesProvider {
 		File file = new File(propertiesFolder, key);
 		String streamName = "MigrationResourcesProvider-" + module + "-" + version + "-" + key;
 		return ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(file, streamName);
+	}
+
+	public File getFile(String key) {
+		return new File(propertiesFolder, key);
 	}
 
 	public String getString(String key, Locale locale) {

@@ -15,6 +15,7 @@ public class TaxonomiesSearchOptions {
 	//Only supported in the "visible" services
 	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
+	private boolean hasChildrenFlagCalculated = true;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -29,6 +30,7 @@ public class TaxonomiesSearchOptions {
 
 	public TaxonomiesSearchOptions(TaxonomiesSearchOptions cloned) {
 		super();
+		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
 		this.rows = cloned.rows;
 		this.startRow = cloned.startRow;
 		this.includeStatus = cloned.includeStatus;
@@ -38,6 +40,15 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
 		super();
 		this.includeStatus = includeLogicallyDeleted;
+	}
+
+	public boolean isHasChildrenFlagCalculated() {
+		return hasChildrenFlagCalculated;
+	}
+
+	public TaxonomiesSearchOptions setHasChildrenFlagCalculated(boolean hasChildrenFlagCalculated) {
+		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
+		return this;
 	}
 
 	public int getRows() {

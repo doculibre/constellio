@@ -14,11 +14,13 @@ import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +46,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 				if (type != null) {
 					for(MetadataSchema schema:type.getAllSchemas()){
 						for (Metadata meta : schema.getMetadatas()) {
-							if (!meta.isSystemReserved()) {
+							if (!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) {
 								MetadataVO metadataVO = voBuilder.build(meta, view.getSessionContext());
 								if(AllowedMetadataUtil.isAllowedMetadata(metadataVO)){
 									schemaVOs.add(metadataVO);
@@ -56,6 +58,11 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 				return schemaVOs;
 			}
 		};
+	}
+
+	public boolean isSystemReservedAllowedInReport(Metadata meta) {
+		List<String> allowedMetadatas = Arrays.asList(Schemas.IDENTIFIER.getLocalCode());
+		return allowedMetadatas.contains(meta.getLocalCode());
 	}
 
 	private String getSelectedReport() {

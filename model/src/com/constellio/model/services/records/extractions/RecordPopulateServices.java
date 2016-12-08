@@ -61,7 +61,7 @@ public class RecordPopulateServices {
 
 		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
-		List<Metadata> contentMetadatas = schema.getMetadatas().onlyWithType(CONTENT).sortedUsing(new ContentsComparator());
+		List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
 
 		if (!record.isSaved()) {
 			String category = getCategory(parsedContentProvider, contentMetadatas, record);
@@ -69,24 +69,20 @@ public class RecordPopulateServices {
 
 		}
 		schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-		MetadataList populatedMetadatas = schema.getMetadatas().onlyPopulated();
 		Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
-
-		if (!populatedMetadatas.containsMetadataWithLocalCode(Schemas.TITLE_CODE)) {
-			populatedMetadatas = new MetadataList(populatedMetadatas);
-			populatedMetadatas.add(schema.get(Schemas.TITLE_CODE));
-		}
 
 		MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
 		TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
-		for (Metadata metadata : populatedMetadatas) {
-			RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
-					titlePriority, schema);
-			if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
-				Object currentPopulatedValue = populator.populate(record, contentMetadatas);
+		for (Metadata metadata : schema.getMetadatas()) {
+			if (!metadata.getPopulateConfigs().isEmpty() || Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+				RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
+						titlePriority, schema);
+				if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
+					Object currentPopulatedValue = populator.populate(record, contentMetadatas);
 
-				if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-					record.set(metadata, currentPopulatedValue);
+					if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+						record.set(metadata, currentPopulatedValue);
+					}
 				}
 			}
 		}
@@ -470,30 +466,6 @@ public class RecordPopulateServices {
 		}
 
 		return contents;
-	}
-
-	public static class ContentsComparator implements Comparator<Metadata> {
-		@Override
-		public int compare(Metadata m1, Metadata m2) {
-			if (m1.isDefaultRequirement() && !m2.isDefaultRequirement()) {
-				return -1;
-
-			} else if (!m1.isDefaultRequirement() && m2.isDefaultRequirement()) {
-				return 1;
-
-			} else if (m1.isMultivalue() && !m2.isMultivalue()) {
-				return 1;
-
-			} else if (!m1.isMultivalue() && m2.isMultivalue()) {
-				return -1;
-
-			} else {
-				String code1 = m1.getLocalCode();
-				String code2 = m2.getLocalCode();
-				return code1.compareTo(code2);
-			}
-
-		}
 	}
 
 }
