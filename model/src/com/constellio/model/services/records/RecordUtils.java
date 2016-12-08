@@ -128,12 +128,12 @@ public class RecordUtils {
 				}
 			}
 			//
-						Collections.sort(sortedRecordsById, new Comparator<Record>() {
-							@Override
-							public int compare(Record o1, Record o2) {
-								return o1.getId().compareTo(o2.getId());
-							}
-						});
+			Collections.sort(sortedRecordsById, new Comparator<Record>() {
+				@Override
+				public int compare(Record o1, Record o2) {
+					return o1.getId().compareTo(o2.getId());
+				}
+			});
 			//
 			//			Set<String> ids = new HashSet<>();
 			//			Iterator<Record> recordIterator = sortedRecordsById.iterator();
@@ -173,45 +173,47 @@ public class RecordUtils {
 	}
 
 	public boolean hasRecordDependingOnAnother(MetadataSchemaType schemaType, List<Record> unsortedRecords) {
+		//
+		//		if (unsortedRecords.isEmpty()) {
+		//			return false;
+		//		}
+		//
+		//		List<Metadata> metadatas = new ArrayList<>();
+		//		for (MetadataSchema schema : schemaType.getAllSchemas()) {
+		//			for (Metadata metadata : schema.getMetadatas()) {
+		//				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().isAllowed(schemaType)
+		//						&& metadata.getInheritance() == null) {
+		//					metadatas.add(metadata);
+		//				}
+		//			}
+		//		}
+		//
+		//		if (metadatas.isEmpty()) {
+		//			return false;
+		//		}
+		//
+		//		List<String> ids = toIdList(unsortedRecords);
+		//
+		//		for (Record unsortedRecord : unsortedRecords) {
+		//			for (Metadata metadata : metadatas) {
+		//				if (metadata.isMultivalue()) {
+		//					for (String anId : unsortedRecord.<String>getList(metadata)) {
+		//						if (ids.contains(anId)) {
+		//							return true;
+		//						}
+		//					}
+		//
+		//				} else {
+		//					if (ids.contains(unsortedRecord.get(metadata))) {
+		//						return true;
+		//					}
+		//				}
+		//			}
+		//		}
+		//
+		//		return false;
 
-		if (unsortedRecords.isEmpty()) {
-			return false;
-		}
-
-		List<Metadata> metadatas = new ArrayList<>();
-		for (MetadataSchema schema : schemaType.getAllSchemas()) {
-			for (Metadata metadata : schema.getMetadatas()) {
-				if (metadata.getType() == MetadataValueType.REFERENCE && metadata.getAllowedReferences().isAllowed(schemaType)
-						&& metadata.getInheritance() == null) {
-					metadatas.add(metadata);
-				}
-			}
-		}
-
-		if (metadatas.isEmpty()) {
-			return false;
-		}
-
-		List<String> ids = toIdList(unsortedRecords);
-
-		for (Record unsortedRecord : unsortedRecords) {
-			for (Metadata metadata : metadatas) {
-				if (metadata.isMultivalue()) {
-					for (String anId : unsortedRecord.<String>getList(metadata)) {
-						if (ids.contains(anId)) {
-							return true;
-						}
-					}
-
-				} else {
-					if (ids.contains(unsortedRecord.get(metadata))) {
-						return true;
-					}
-				}
-			}
-		}
-
-		return false;
+		return true;
 	}
 
 	public List<String> getModifiedMetadatasDataStoreCodes(List<Record> records) {
