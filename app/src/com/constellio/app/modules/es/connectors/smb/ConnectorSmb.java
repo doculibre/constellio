@@ -30,6 +30,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
@@ -224,6 +225,12 @@ public class ConnectorSmb extends Connector {
 
 		connectorInstance.setTraversalCode(newTraversalCode);
 		connectorInstance.setResumeUrl("");
+
+		try {
+			es.getRecordServices().update(connectorInstance);
+		} catch (RecordServicesException e) {
+			logger.errorUnexpected(e);
+		}
 
 		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + connectorInstance.getId() +
 				" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
