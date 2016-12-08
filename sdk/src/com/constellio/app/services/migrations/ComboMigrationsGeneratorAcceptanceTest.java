@@ -462,7 +462,12 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	protected void generateI18n(File moduleFolder)
 			throws IOException {
 
-		String module = moduleFolder.getName();
+		generateI18n(moduleFolder, moduleFolder.getName());
+	}
+
+	protected void generateI18n(File moduleFolder, String module)
+			throws IOException {
+
 		File comboFolder = new File(moduleFolder, "combo");
 		FileUtils.deleteQuietly(comboFolder);
 		FileUtils.forceMkdir(comboFolder);
