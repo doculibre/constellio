@@ -341,6 +341,16 @@ public class DecommissioningList extends RecordWrapper {
 		return setContainerDetails(details);
 	}
 
+	public DecommissioningList removeContainerDetail(String containerId) {
+		List<DecomListContainerDetail> details = new ArrayList<>();
+		for (DecomListContainerDetail detail : getContainerDetails()) {
+			if (!containerId.equals(detail.getContainerRecordId())) {
+				details.add(detail);
+			}
+		}
+		return setContainerDetails(details);
+	}
+
 	public DecommissioningList setContainerDetailsFrom(List<ContainerRecord> containers) {
 		List<DecomListContainerDetail> details = new ArrayList<>();
 		for (ContainerRecord container : containers) {
