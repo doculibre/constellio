@@ -25,15 +25,19 @@ public class SearchResultReportWriterFactory implements NewReportWriterFactory<S
 	@Override
 	public ReportWriter getReportBuilder(SearchResultReportParameters parameters) {
 		FoldersLocator folderLocator = appLayerFactory.getModelLayerFactory().getFoldersLocator();
-		Locale locale =ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-		SearchResultReportPresenter searchResultPresenter = new SearchResultReportPresenter(appLayerFactory.getModelLayerFactory(), parameters.getSelectedRecords(),
-				parameters.getSchemaType(), parameters.getCollection(), parameters.getUsername(), parameters.getReportTitle(), parameters.getSearchQuery(), locale);
-		return new SearchResultReportWriter(searchResultPresenter.buildModel(appLayerFactory.getModelLayerFactory()), folderLocator,locale);
+		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+		SearchResultReportPresenter searchResultPresenter = new SearchResultReportPresenter(appLayerFactory,
+				parameters.getSelectedRecords(),
+				parameters.getSchemaType(), parameters.getCollection(), parameters.getUsername(), parameters.getReportTitle(),
+				parameters.getSearchQuery(), locale);
+		return new SearchResultReportWriter(searchResultPresenter.buildModel(appLayerFactory.getModelLayerFactory()),
+				folderLocator, locale);
 	}
 
 	@Override
 	public String getFilename(SearchResultReportParameters parameters) {
-		return parameters.getReportTitle() + "." + new SearchResultReportWriter(new SearchResultReportModel(), null, null).getFileExtension();
+		return parameters.getReportTitle() + "." + new SearchResultReportWriter(new SearchResultReportModel(), null, null)
+				.getFileExtension();
 	}
 
 }
