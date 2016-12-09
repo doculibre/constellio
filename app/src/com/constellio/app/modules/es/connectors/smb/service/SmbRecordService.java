@@ -31,7 +31,7 @@ public class SmbRecordService {
 		this.smbUtils = new ConnectorSmbUtils();
 	}
 
-	public String getSafeId(ConnectorSmbFolder folder) {
+	public static String getSafeId(ConnectorSmbFolder folder) {
 		String folderId = null;
 		if (folder != null) {
 			folderId = folder.getId();
@@ -43,31 +43,6 @@ public class SmbRecordService {
 		return es.searchConnectorSmbDocuments(es.fromConnectorSmbDocumentWhereConnectorIs(connectorInstance)
 				.andWhere(es.connectorSmbDocument.url())
 				.isEqualTo(url));
-	}
-
-	public static boolean isDocumentModified(ConnectorSmbDocument document, String url, SmbService.SmbModificationIndicator modificationIndicator) {
-		if (document.getParent() == null) {
-			return true;
-		}
-
-		LocalDateTime locaDateTime = document.getLastModified();;
-		String permissionHash = document.getPermissionsHash();;
-		double size = document.getSize();
-
-		if (StringUtils.equals(modificationIndicator.getPermissionsHash(), permissionHash)) {
-			if (modificationIndicator.getSize() == size) {
-				if ((Math.abs(modificationIndicator.getLastModified() - locaDateTime.toDateTime()
-						.getMillis())) <= 1) {
-					return false;
-				} else {
-					return true;
-				}
-			} else {
-				return true;
-			}
-		} else {
-			return true;
-		}
 	}
 
 	private List<ConnectorSmbFolder> getFolders(String url) {

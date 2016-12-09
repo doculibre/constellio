@@ -12,8 +12,11 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -57,6 +60,7 @@ import org.mockito.stubbing.Answer;
 
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
@@ -139,7 +143,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	Map<String, List<ImportDataBuilder>> data = new HashMap<>();
 
 	ContentManager contentManager;
-	ImportDataProvider importDataProvider;
+	DummyImportDataProvider importDataProvider;
 	RecordsImportServices services;
 
 	ModelLayerExtensions extensions;
@@ -1645,6 +1649,58 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			);
 		}
 
+	}
+
+	@Test
+	public void givenAnImportedRecordHaveSameUniqueMetadataThanOtherExistingRecordWhenImportingWithMergeModeThenMerged()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadata(whichIsUnique)
+				.withAnotherSchemaStringMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType(thirdSchema.typeCode()).getDefaultSchema().create("refToZeSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType(zeSchema.typeCode()));
+					}
+				}));
+
+		recordServices
+				.add(new TestRecord(anotherSchema).set(TITLE, "existing record Z").set(anotherSchema.stringMetadata(), "v3"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record A").set(zeSchema.stringMetadata(), "v1"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record B").set(zeSchema.stringMetadata(), "v2"));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record C").set(zeSchema.stringMetadata(), "v4"));
+
+		anotherSchemaTypeRecords
+				.add(defaultSchemaData().setId("41").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField("stringMetadata", "v1"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField("stringMetadata", "v2"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField("stringMetadata", "v3"));
+
+		thirdSchemaTypeRecords.add(defaultSchemaData().setId("42ref").addField("title", "t1").addField("refToZeSchema", "42"));
+		thirdSchemaTypeRecords.add(defaultSchemaData().setId("43ref").addField("title", "t2").addField("refToZeSchema", "43"));
+		thirdSchemaTypeRecords.add(defaultSchemaData().setId("44ref").addField("title", "t3").addField("refToZeSchema", "44"));
+		thirdSchemaTypeRecords
+				.add(defaultSchemaData().setId("45ref").addField("title", "t4").addField("refToZeSchema", "stringMetadata:v4"));
+
+		importDataProvider.dataOptionsMap
+				.put(zeSchema.typeCode(), new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true));
+		bulkImport(importDataProvider, progressionListener, admin, new BulkImportParams());
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("stringMetadata", "title", "legacyIdentifier").containsOnly(
+				tuple("v1", "Record 1", "42"),
+				tuple("v2", "Record 2", "43"),
+				tuple("v3", "Record 3", "44"),
+				tuple("v4", "existing record C", null)
+		);
+
+		assertThatRecords(searchServices.search(query(from(thirdSchema.type()).returnAll())))
+				.extractingMetadatas("refToZeSchema.stringMetadata", "title", "legacyIdentifier").containsOnly(
+				tuple("v1", "t1", "42ref"),
+				tuple("v2", "t2", "43ref"),
+				tuple("v3", "t3", "44ref"),
+				tuple("v4", "t4", "45ref")
+		);
 	}
 
 	@Test

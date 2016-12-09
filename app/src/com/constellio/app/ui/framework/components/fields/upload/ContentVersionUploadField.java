@@ -116,6 +116,7 @@ public class ContentVersionUploadField extends BaseUploadField {
 
 		private void setMajorVersionFieldVisible(boolean visible) {
 			majorVersionField.setVisible(visible);
+			majorVersionField.setRequired(visible);
 		}
 
 	}

@@ -81,7 +81,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 		}
 	}*/
 
-	public LocalDate getDate(String metadata, DynamicDependencyValues values, String yearEnd) {
+	public LocalDate getDate(String metadata, DynamicDependencyValues values, String yearEnd, boolean takeFirstPartOfRange) {
 		if (metadata == null || values == null) {
 			return null;
 		} else {
@@ -92,11 +92,11 @@ public abstract class DynamicLocalDependency implements Dependency {
 				LOGGER.warn("Cannot get value of forbidden metadata '" + metadata + "'");
 				dateOrDateTime = null;
 			}
-			return convert(metadata, dateOrDateTime, yearEnd);
+			return convert(metadata, dateOrDateTime, yearEnd, takeFirstPartOfRange);
 		}
 	}
 
-	private LocalDate convert(String metadata, Object date, String yearEnd) {
+	private LocalDate convert(String metadata, Object date, String yearEnd, boolean takeFirstPartOfRange) {
 		if (date == null) {
 			return null;
 		}
@@ -105,7 +105,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 		} else if (date instanceof LocalDateTime) {
 			return ((LocalDateTime) date).toLocalDate();
 		} else if (date instanceof String) {
-			return dateFromString(metadata, (String) date, yearEnd);
+			return dateFromString(metadata, (String) date, yearEnd, takeFirstPartOfRange);
 		}
 		if (date instanceof Number) {
 			return asDate(((Number) date).intValue(), yearEnd);
@@ -113,7 +113,7 @@ public abstract class DynamicLocalDependency implements Dependency {
 			List<Object> list = (List) date;
 			for (Object item : list) {
 				if (item != null) {
-					return convert(metadata, item, yearEnd);
+					return convert(metadata, item, yearEnd, takeFirstPartOfRange);
 				}
 			}
 			return null;
@@ -124,17 +124,23 @@ public abstract class DynamicLocalDependency implements Dependency {
 		}
 	}
 
-	private LocalDate dateFromString(String metadata, String dateAsString, String yearEnd) {
+	private LocalDate dateFromString(String metadata, String dateAsString, String yearEnd, boolean takeFirstPartOfRange) {
 
 		if (dateAsString.length() != 9) {
 			throw new RuntimeException("Invalid range date format " + dateAsString + " for metadata " + metadata);
 		}
 		try {
-			int year = Integer.valueOf((dateAsString).substring(5, 9));
+			int year;
+			if (takeFirstPartOfRange) {
+				year = Integer.valueOf((dateAsString).substring(0, 4));
+			} else {
+				year = Integer.valueOf((dateAsString).substring(5, 9));
+			}
 			return asDate(year, yearEnd);
 		} catch (NumberFormatException e) {
 			throw new RuntimeException(
-					"Invalid range date format " + dateAsString + " should follow pattern ?????9999" + " for metadata " + metadata);
+					"Invalid range date format " + dateAsString + " should follow pattern 9999-9999" + " for metadata "
+							+ metadata);
 		}
 	}
 

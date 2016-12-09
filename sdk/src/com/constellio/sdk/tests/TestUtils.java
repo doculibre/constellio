@@ -543,7 +543,7 @@ public class TestUtils {
 							refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
 							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
 						}
-						objects[i] = getMetadataValue(((Record) record), metadatas[i]);
+						objects[i] = getMetadataValue(((Record) record), metadata);
 
 						if (refMetadata != null && objects[i] != null) {
 							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
@@ -617,6 +617,15 @@ public class TestUtils {
 				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does exist");
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 
+			}
+		}
+
+		public void exist() {
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			try {
+				modelLayerFactory.newRecordServices().getDocumentById(actual.getId());
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does not exist");
 			}
 		}
 

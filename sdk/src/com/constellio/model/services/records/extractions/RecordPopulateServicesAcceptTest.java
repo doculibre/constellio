@@ -21,11 +21,11 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.extractions.RecordPopulateServices.ContentsComparator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder.ContentsComparator;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -637,7 +637,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		schemas.refresh();
 
 		assertThat(zeSchemas.type().getAllMetadatas().onlyWithType(MetadataValueType.CONTENT)
-				.sortedUsing(new ContentsComparator()).toLocalCodesList()).isEqualTo(asList(
+				.sortedUsing(new MetadataSchemaBuilder.ContentsComparator()).toLocalCodesList()).isEqualTo(asList(
 				zeSchemas.requiredContent().getLocalCode(), zeSchemas.requiredContents().getLocalCode(),
 				zeSchemas.facultativeContent().getLocalCode(), zeSchemas.facultativeContents().getLocalCode()
 		));

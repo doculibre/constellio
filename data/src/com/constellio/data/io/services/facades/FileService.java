@@ -193,6 +193,19 @@ public class FileService {
 		FileUtils.deleteQuietly(file);
 	}
 
+	public File newTemporaryFile(String resourceName, String extension) {
+		final String name = resourceName + "_" + UUIDV1Generator.newRandomId() + "." + extension;
+		File file = new File(tempFolder, name) {
+			@Override
+			public String toString() {
+				return name + "[" + getPath() + "]";
+			}
+
+		};
+		OpenedResourcesWatcher.onOpen(file);
+		return file;
+	}
+
 	public File newTemporaryFile(String resourceName) {
 		final String name = resourceName + "_" + UUIDV1Generator.newRandomId();
 		File file = new File(tempFolder, name) {
@@ -223,7 +236,8 @@ public class FileService {
 		if (indexOfLastSlash == -1) {
 			tempFilePath = "." + filePath;
 		} else {
-			tempFilePath = filePath.substring(0, indexOfLastSlash) + File.separator + "." + filePath.substring(indexOfLastSlash + 1);
+			tempFilePath =
+					filePath.substring(0, indexOfLastSlash) + File.separator + "." + filePath.substring(indexOfLastSlash + 1);
 		}
 		return new File(tempFilePath);
 	}

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,56 +21,35 @@ public class AzureADServices implements LDAPServices {
 	@Override
 	public void authenticateUser(LDAPServerConfiguration ldapServerConfiguration, String user, String password)
 			throws CouldNotConnectUserToLDAP {
-		new AzureAdClient(ldapServerConfiguration, null).authenticiate(user, password);
+		new AzureAdClient(ldapServerConfiguration, null).authenticate(user, password);
 	}
 
 	@Override
 	public List<String> getTestSynchronisationUsersNames(final LDAPServerConfiguration ldapServerConfiguration,
 														 final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		Set<String> results = new HashSet<>();
-
-		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
-			azureAdClient.init();
-
-			results = azureAdClient.getUserNameList();
-		} catch (final Throwable t) {
-			LOGGER.error("Unexpected error in users synchronization dry run", t);
-		}
-
-		return new ArrayList<>(results);
+		return new ArrayList<>(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration).getUserNameList());
 	}
 
 	@Override
 	public List<String> getTestSynchronisationGroups(final LDAPServerConfiguration ldapServerConfiguration,
 													 final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
-		Set<String> results = new HashSet<>();
-
-		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
-			azureAdClient.init();
-
-			results = azureAdClient.getGroupNameList();
-		} catch (final Throwable t) {
-			LOGGER.error("Unexpected error in groups synchronization dry run", t);
-		}
-
-		return new ArrayList<>(results);
+		return new ArrayList<>(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration).getGroupNameList());
 	}
 
 	@Override
 	public LDAPUsersAndGroups importUsersAndGroups(final LDAPServerConfiguration ldapServerConfiguration,
-												   final LDAPUserSyncConfiguration ldapUserSyncConfiguration, final String url) {
+												   final LDAPUserSyncConfiguration ldapUserSyncConfiguration,
+                                                   final String url) {
 		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
 		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
 
-		try (final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration)) {
-			azureAdClient.init();
+        final AzureAdClient azureAdClient = new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration);
 
-			azureAdClient.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
+        azureAdClient.getGroupsAndTheirUsers(ldapGroups, ldapUsers);
 
-			azureAdClient.getUsersAndTheirGroups(ldapGroups, ldapUsers);
-		}
+        azureAdClient.getUsersAndTheirGroups(ldapGroups, ldapUsers);
 
-		return new LDAPUsersAndGroups(new HashSet<>(ldapUsers.values()), new HashSet<>(ldapGroups.values()));
+        return new LDAPUsersAndGroups(new HashSet<>(ldapUsers.values()), new HashSet<>(ldapGroups.values()));
 	}
 
 }
