@@ -62,7 +62,7 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 			throws ValidationException {
 		ImportedSettings settings = services.exportSettings(asList(zeCollection));
 		assertThat(settings).isNotNull();
-		assertThat(settings.getConfigs()).isNotEmpty().hasSize(61);
+			assertThat(settings.getConfigs()).isNotEmpty().hasSize(62);
 	}
 
 	//--------------------------------------------------------------------

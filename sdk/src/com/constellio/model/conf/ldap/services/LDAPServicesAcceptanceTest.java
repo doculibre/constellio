@@ -64,7 +64,7 @@ public class LDAPServicesAcceptanceTest {
 		LdapContext ldapContext = getValidContext();
 		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
 		List<String> users = new LDAPServicesImpl()
-				.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users);
+				.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users, LDAPTestConfig.getUserFilterGroupsList());
 		assertThat(users.size()).isEqualTo(3001);
 	}
 

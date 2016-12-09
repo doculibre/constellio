@@ -15,10 +15,15 @@ import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class CollectionRepositoryTypesDefinitionBuilder {
 
@@ -28,10 +33,15 @@ public class CollectionRepositoryTypesDefinitionBuilder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionRepositoryTypesDefinitionBuilder.class);
 
+	AppLayerFactory appLayerFactory;
 	MetadataSchemaTypes types;
 	TypeDefinitionFactory typeDefinitionFactory;
+	TaxonomiesManager taxonomiesManager;
 
-	public CollectionRepositoryTypesDefinitionBuilder(MetadataSchemaTypes types, TypeDefinitionFactory typeDefinitionFactory) {
+	public CollectionRepositoryTypesDefinitionBuilder(MetadataSchemaTypes types, TypeDefinitionFactory typeDefinitionFactory,
+			AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
+		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
 		this.types = types;
 		this.typeDefinitionFactory = typeDefinitionFactory;
 	}
@@ -68,29 +78,39 @@ public class CollectionRepositoryTypesDefinitionBuilder {
 		taxoType.setDescription(TAXONOMY);
 		typeDefinitions.put(taxoType.getId(), taxoType);
 
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
 		for (MetadataSchemaType schemaType : types.getSchemaTypes()) {
-			for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
-				MutableFolderTypeDefinition folder = typeDefinitionFactory.createFolderTypeDefinition(CmisVersion.CMIS_1_1,
-						baseFolderType.getId());
-				//TODO Francis ACL
-				folder.setIsControllableAcl(true);
-				folder.setId(metadataSchema.getCode());
-				folder.setLocalName(metadataSchema.getCode());
-				folder.setDisplayName(metadataSchema.getCode());
-				folder.setQueryName(metadataSchema.getCode());
-				folder.setDescription(metadataSchema.getCode());
-				// folder.setParentTypeId(schemaType.getLocalCode());
+			Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(schemaType.getCollection(), schemaType.getCode());
+			boolean isPrincipalTaxonomy = taxonomy != null && taxonomy.hasSameCode(principalTaxonomy);
 
-				PropertyDefinition<?> propertiesSchema = PropertyBuilderFactory
-						.newStringProperty(metadataSchema.getCode()).setName(metadataSchema.getCode())
-						.setMultivalue(false).setRequired(true).setUpdatability(true).build();
-				folder.addPropertyDefinition(propertiesSchema);
+			boolean supported = schemaType.getCode().equals(Collection.SCHEMA_TYPE)
+					|| appLayerFactory.getExtensions().forCollection(schemaType.getCollection())
+					.isSchemaTypeSupported(new IsSchemaTypeSupportedParams(schemaType), taxonomy != null);
+			if (supported) {
+				for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
 
-				for (Metadata metadata : metadataSchema.getMetadatas()) {
-					PropertyDefinition<?> propertiesMetadata = PropertyBuilderFactory.getPropertyFor(metadata);
-					folder.addPropertyDefinition(propertiesMetadata);
+					MutableFolderTypeDefinition folder = typeDefinitionFactory.createFolderTypeDefinition(CmisVersion.CMIS_1_1,
+							baseFolderType.getId());
+
+					folder.setIsControllableAcl(isPrincipalTaxonomy || schemaType.hasSecurity());
+					folder.setId(metadataSchema.getCode());
+					folder.setLocalName(metadataSchema.getCode());
+					folder.setDisplayName(metadataSchema.getCode());
+					folder.setQueryName(metadataSchema.getCode());
+					folder.setDescription(metadataSchema.getCode());
+					// folder.setParentTypeId(schemaType.getLocalCode());
+
+					PropertyDefinition<?> propertiesSchema = PropertyBuilderFactory
+							.newStringProperty(metadataSchema.getCode()).setName(metadataSchema.getCode())
+							.setMultivalue(false).setRequired(true).setUpdatability(true).build();
+					folder.addPropertyDefinition(propertiesSchema);
+
+					for (Metadata metadata : metadataSchema.getMetadatas()) {
+						PropertyDefinition<?> propertiesMetadata = PropertyBuilderFactory.getPropertyFor(metadata);
+						folder.addPropertyDefinition(propertiesMetadata);
+					}
+					typeDefinitions.put(folder.getId(), folder);
 				}
-				typeDefinitions.put(folder.getId(), folder);
 			}
 		}
 		return typeDefinitions;

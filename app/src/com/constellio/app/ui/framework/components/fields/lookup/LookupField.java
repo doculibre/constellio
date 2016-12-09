@@ -157,6 +157,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		HorizontalLayout mainLayout = new HorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
 		mainLayout.setExpandRatio(autoCompleteField, 1);
 		mainLayout.setSpacing(true);
+		mainLayout.setWidth("100%");
 
 		return mainLayout;
 	}
@@ -562,4 +563,5 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private interface SerializableQuery extends Query, Serializable {
 
 	}
+	
 }

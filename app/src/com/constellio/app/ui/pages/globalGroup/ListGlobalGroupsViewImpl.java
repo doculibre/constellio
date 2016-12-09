@@ -190,8 +190,8 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 
 					}
 				};
-				editButton.setEnabled(presenter.canAddOrModify());
-				editButton.setVisible(presenter.canAddOrModify());
+				editButton.setEnabled(entity.isLocallyCreated());
+				editButton.setVisible(entity.isLocallyCreated());
 				return editButton;
 			}
 		});
@@ -205,8 +205,8 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 						presenter.deleteButtonClicked(entity);
 					}
 				};
-				deleteButton.setVisible(entity.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
-				deleteButton.setEnabled(entity.getStatus() == GlobalGroupStatus.ACTIVE && presenter.canAddOrModify());
+				deleteButton.setVisible(entity.getStatus() == GlobalGroupStatus.ACTIVE && entity.isLocallyCreated());
+				deleteButton.setEnabled(entity.getStatus() == GlobalGroupStatus.ACTIVE && entity.isLocallyCreated());
 				return deleteButton;
 			}
 		});

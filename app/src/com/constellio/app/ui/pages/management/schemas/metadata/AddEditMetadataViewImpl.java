@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -40,6 +41,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private CheckBox multivalueType;
 	@PropertyId("input")
 	private ComboBox inputType;
+	@PropertyId("displayType")
+	private ComboBox displayType;
 	@PropertyId("reference")
 	private ComboBox refType;
 	@PropertyId("required")
@@ -126,6 +129,24 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			for (MetadataInputType type : types) {
 				inputType.addItem(type);
 				inputType.setItemCaption(type, $(MetadataInputType.getCaptionFor(type)));
+			}
+
+			displayType.setEnabled(false);
+			displayType.removeAllItems();
+			displayType.setEnabled(true);
+			List<MetadataDisplayType> displayTypes = MetadataDisplayType.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
+			for (MetadataDisplayType type : displayTypes) {
+				displayType.addItem(type);
+				displayType.setItemCaption(type, $(MetadataDisplayType.getCaptionFor(type)));
+			}
+			if(displayTypes.size() < 2) {
+				displayType.setEnabled(false);
+				displayType.setVisible(false);
+				displayType.setValue(displayType.getItemIds().iterator().next());
+			}
+			else {
+				displayType.setEnabled(true);
+				displayType.setVisible(true);
 			}
 
 			if (!inherited) {
@@ -290,6 +311,14 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputType.setEnabled(false);
 		inputType.setNullSelectionAllowed(false);
 
+		displayType = new ComboBox();
+		displayType.setCaption($("AddEditMetadataView.displayType"));
+		displayType.setRequired(true);
+		displayType.setId("displayType");
+		displayType.addStyleName("displayType");
+		displayType.setEnabled(false);
+		displayType.setNullSelectionAllowed(false);
+
 		metadataGroup = new OptionGroup($("AddEditMetadataView.metadataGroup"), presenter.getMetadataGroupList());
 		metadataGroup.setRequired(true);
 		metadataGroup.setId("metadataGroup");
@@ -404,7 +433,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField) {
+				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField, displayType) {//, displayedHorizontallyField) {
 
 			@Override
 			public void reload() {

@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportP
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
 import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -495,5 +496,9 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		}
 		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
 				collection, report, getCurrentUser(), getSearchQuery());
+	}
+
+	public boolean hasCurrentUserPermissionToUseCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 }

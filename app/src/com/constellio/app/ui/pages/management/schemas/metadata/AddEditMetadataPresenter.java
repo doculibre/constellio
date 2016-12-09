@@ -9,10 +9,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -197,9 +196,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			boolean editMode) {
 		SchemasDisplayManager displayManager = schemasDisplayManager();
 		MetadataInputType type = formMetadataVO.getInput();
+		MetadataDisplayType displayType = formMetadataVO.getDisplayType();
 
 		if (type == null) {
 			type = MetadataInputType.FIELD;
+		}
+		if (displayType == null) {
+			displayType = MetadataDisplayType.VERTICAL;
 		}
 
 		MetadataDisplayConfig displayConfig;
@@ -207,11 +210,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		displayConfig = displayManager.getMetadata(collection, code);
 		if (displayConfig == null) {
 			displayConfig = new MetadataDisplayConfig(collection, code, formMetadataVO.isAdvancedSearch(),
-					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup());
+					type, formMetadataVO.isHighlight(), formMetadataVO.getMetadataGroup(), displayType);
 		} else {
 			displayConfig = displayConfig.withHighlightStatus(formMetadataVO.isHighlight())
 					.withVisibleInAdvancedSearchStatus(formMetadataVO.isAdvancedSearch()).withInputType(type)
-					.withMetadataGroup(formMetadataVO.getMetadataGroup());
+					.withDisplayType(displayType).withMetadataGroup(formMetadataVO.getMetadataGroup());
 		}
 
 		displayManager.saveMetadata(displayConfig);
@@ -316,6 +319,10 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		}
 	}
 
+	public void displayTypeValueChanged() {
+			view.reloadForm();
+	}
+
 	public void valueTypeValueChanged() {
 		view.reloadForm();
 	}
@@ -336,12 +343,16 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		try {
 			MetadataInputType inputType = formMetadataVO.getInput();
+			MetadataDisplayType displayType = formMetadataVO.getDisplayType();
 			if (formMetadataVO.getValueType() == MetadataValueType.REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
 			}
+			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)){
+				displayType = MetadataDisplayType.VERTICAL;
+			}
 			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
-					new HashMap<Locale, String>(), null, new String[] {}, formMetadataVO.getReference(), inputType,
+					new HashMap<Locale, String>(), null, new String[] {}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false);
 			return metadataVO;

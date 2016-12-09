@@ -7,6 +7,7 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.MutableProperties;
 import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.solr.client.solrj.SolrClient;
@@ -39,6 +41,8 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisSinglevalueContentManagementAcceptTest;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -279,10 +283,80 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 				tuple("categoryId_X110", "category_default", "X110"),
 				tuple("categoryId_X120", "category_default", "X120")
 		);
+
+		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices.add(tasks.newTask().setTitle("Ze task").set(RMTask.ADMINISTRATIVE_UNIT, records.unitId_11b));
+
+		as(admin).assertThatChildrensOf(folder(records.unitId_11b)).containsOnly(
+				tuple("B31", "folder_default", "Orange"),
+				tuple("B01", "folder_default", "Abricot"),
+				tuple("B05", "folder_default", "Fraise"),
+				tuple("B09", "folder_default", "Melon"),
+				tuple("B07", "folder_default", "Kiwi"),
+				tuple("B03", "folder_default", "Citron")
+		);
 	}
 
-	private Folder folder(String path) {
-		return (Folder) session.getObjectByPath(path);
+	@Test
+	public void whenGetObjectByIdThenOnlyWorkWithSupportedTypes()
+			throws Exception {
+
+		//		try {
+		//			as(admin).session.getObject(records.containerId_bac06);
+		//			fail("Exception expected");
+		//		} catch (CmisRuntimeException e) {
+		//			assertThat(e.getMessage()).isEqualTo("todo");
+		//		}
+
+		try {
+			as(admin).session.getObject(records.list_04);
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("Unknown type: decommissioningList_default");
+		}
+
+		try {
+			as(admin).session.getObject(records.documentTypeId_4);
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("Unknown type: ddvDocumentType_default");
+		}
+
+		try {
+			as(admin).session.getObject(records.ruleId_3);
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("Unknown type: retentionRule_default");
+		}
+
+		try {
+			as(admin).session.getObject(records.subdivId_1);
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("Unknown type: uniformSubdivision_default");
+		}
+
+		try {
+			as(admin).session.getObject(records.getAlice().getId());
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("Unknown type: user_default");
+		}
+
+		try {
+			as(admin).session.getObject(records.getLegends().getId());
+			fail("Exception expected");
+		} catch (CmisRuntimeException e) {
+			assertThat(e.getMessage()).isEqualTo("Unknown type: group_default");
+		}
+	}
+
+	private Folder folder(String pathOrId) {
+		if (pathOrId.startsWith("/")) {
+			return (Folder) session.getObjectByPath(pathOrId);
+		} else {
+			return (Folder) session.getObject(pathOrId);
+		}
 	}
 
 	private RMNavigationAcceptanceTest as(String user) {

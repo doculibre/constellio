@@ -4,6 +4,7 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -51,5 +52,17 @@ public class UserAcceptanceTest extends ConstellioTest {
 		recordServices.refresh(admin);
 		assertThat(admin.isVisibleTableColumnsConfiguredFor("otherTable")).isFalse();
 
+	}
+
+	@Test
+	public void givenUserThenHavePersonalEmailsMetadata()
+			throws Exception {
+
+		User admin = users.adminIn(zeCollection);
+		admin.setPersonalEmails(Arrays.asList("admin@gmail.com"));
+		recordServices.update(admin);
+
+		admin = users.adminIn(zeCollection);
+		assertThat(admin.getPersonalEmails()).isEqualTo(Arrays.asList("admin@gmail.com"));
 	}
 }

@@ -1,0 +1,1 @@
+$wnd.com_constellio_app_ui_application_widgetset_AppWidgetset.runAsyncCallback2('ugb(1692,1,uee);_.xc=function toc(){H7b((!A7b&&(A7b=new M7b),A7b),this.a.d)};k7d(_h)(2);\n//# sourceURL=com.constellio.app.ui.application.widgetset.AppWidgetset-2.js\n')

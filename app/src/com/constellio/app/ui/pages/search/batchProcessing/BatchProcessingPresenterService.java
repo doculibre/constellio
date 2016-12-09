@@ -8,6 +8,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.*;
 import java.util.*;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
 import com.constellio.app.modules.rm.wrappers.RMObject;
@@ -152,12 +153,12 @@ public class BatchProcessingPresenterService {
 				return new MetadataToVOBuilder() {
 					@Override
 					protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode,
-							MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
-							boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-							Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-							MetadataInputType metadataInputType, AllowedReferences allowedReferences, boolean enabled,
-							StructureFactory structureFactory, String metadataGroup, Object defaultValue,
-							String inputMask) {
+							   MetadataValueType type, String collection, MetadataSchemaVO schemaVO, boolean required,
+							   boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+							   Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+							   MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
+							   StructureFactory structureFactory, String metadataGroup, Object defaultValue,
+							   String inputMask) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -172,7 +173,7 @@ public class BatchProcessingPresenterService {
 						return isMetadataModifiable(metadataCode, user, selectedRecordIds) ?
 								super.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 										readOnly,
-										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences,
+										labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 										enabled,
 										structureFactory, metadataGroup, defaultValue, inputMask) :
 								null;

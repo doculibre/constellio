@@ -109,16 +109,6 @@ public class CollectionsManager implements StatefulService {
 
 		disableCollectionsWithoutSchemas();
 
-		UserCredentialAndGlobalGroupsMigration migration = new UserCredentialAndGlobalGroupsMigration(modelLayerFactory);
-		if (migration.isMigrationRequired()) {
-			migration.migrateUserAndGroups();
-		}
-		try {
-			modelLayerFactory.newUserServices().getUser("admin");
-		} catch (UserServicesRuntimeException_NoSuchUser e) {
-			createAdminUser();
-		}
-
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
 			for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
@@ -129,8 +119,10 @@ public class CollectionsManager implements StatefulService {
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
 
-		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
+		if (schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
+			cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
+		}
 
 	}
 
@@ -159,38 +151,6 @@ public class CollectionsManager implements StatefulService {
 	private void initializeSystemCollection() {
 		for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
 			listener.systemCollectionCreated();
-		}
-	}
-
-	private void createAdminUser() {
-		//String serviceKey = "adminkey";
-		String password = "password";
-		String username = "admin";
-		String firstName = "System";
-		String lastName = "Admin";
-		String email = "admin@organization.com";
-		UserCredentialStatus status = UserCredentialStatus.ACTIVE;
-		String domain = "";
-		List<String> globalGroups = new ArrayList<>();
-		List<String> collections = new ArrayList<>();
-		boolean isSystemAdmin = true;
-
-		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredentials = userServices.createUserCredential(
-				username, firstName, lastName, email, null, isSystemAdmin, globalGroups, collections,
-				new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
-		userServices.addUpdateUserCredential(adminCredentials);
-		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
-		if (authenticationService.supportPasswordChange()) {
-			authenticationService.changePassword("admin", password);
-		}
-
-		if (modelLayerFactory.getCollectionsListManager().getCollections().size() == 1) {
-			dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64_URL_ENCODED);
-			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
-		} else {
-			dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64);
-			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(TWO_DIGITS);
 		}
 	}
 

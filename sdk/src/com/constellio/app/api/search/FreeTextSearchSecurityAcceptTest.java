@@ -1,5 +1,6 @@
 package com.constellio.app.api.search;
 
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
@@ -27,6 +28,8 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.ModificationImpactCalculatorAcceptSetup.AnotherSchemaMetadatas;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -35,6 +38,7 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
@@ -49,6 +53,7 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	ZeSchemaMetadatas anotherCollectionSchema = anotherCollectionSetup.new ZeSchemaMetadatas();
 	TestsSchemasSetup zeCollectionSetup = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeCollectionSchema = zeCollectionSetup.new ZeSchemaMetadatas();
+	TestsSchemasSetup.AnotherSchemaMetadatas zeCollectionUnsecuredSchema = zeCollectionSetup.new AnotherSchemaMetadatas();
 	RecordServices recordServices;
 	UserServices userServices;
 
@@ -62,6 +67,8 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 
 	String zeCollectionRecord1 = "zeCollectionRecord1";
 	String zeCollectionRecord2 = "zeCollectionRecord2";
+	String zeCollectionNonSecuredRecord1 = "zeCollectionNonSecuredRecord1";
+	String zeCollectionNonSecuredRecord2 = "zeCollectionNonSecuredRecord2";
 	String anotherCollectionRecord1 = "anotherCollectionRecord1";
 	String anotherCollectionRecord2 = "anotherCollectionRecord2";
 
@@ -82,8 +89,15 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 		//		givenCollection(zeCollection, asList("fr", "en"));
 		//		givenCollection(anotherCollection, asList("fr"));
 
-		defineSchemasManager().using(zeCollectionSetup.withAStringMetadata(whichIsMultivalue).withAContentMetadata());
-		defineSchemasManager().using(anotherCollectionSetup.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
+		defineSchemasManager().using(zeCollectionSetup.withSecurityFlag(true)
+				.withAStringMetadata(whichIsMultivalue).withAContentMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType("anotherSchemaType").setSecurity(false);
+					}
+				}));
+		defineSchemasManager().using(anotherCollectionSetup.withSecurityFlag(true)
+				.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
 
 		setupUsers();
 		assertThatUserIsInCollection(users.alice().getUsername(), "zeCollection");
@@ -97,7 +111,8 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(findAllRecordsVisibleBy(userWithZeCollectionReadAccess))
-				.containsOnly(zeCollectionRecord1, zeCollectionRecord2);
+				.containsOnly(zeCollectionRecord1, zeCollectionRecord2, zeCollectionNonSecuredRecord1,
+						zeCollectionNonSecuredRecord2);
 		assertThat(findAllRecordsVisibleBy(userWithAnotherCollectionReadAccess))
 				.containsOnly(anotherCollectionRecord1, anotherCollectionRecord2);
 	}
@@ -106,7 +121,8 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	public void givenUserInBothCollectionWithReadAccessWhenSearchingWithFreeTextUsingWildcardThenSeeAllRecordsOfBothCollection()
 			throws Exception {
 		assertThat(findAllRecordsVisibleBy(userWithBothCollectionReadAccess))
-				.containsOnly(zeCollectionRecord1, zeCollectionRecord2, anotherCollectionRecord1, anotherCollectionRecord2);
+				.containsOnly(zeCollectionRecord1, zeCollectionRecord2, anotherCollectionRecord1, anotherCollectionRecord2,
+						zeCollectionNonSecuredRecord1, zeCollectionNonSecuredRecord2);
 	}
 
 	@Test
@@ -128,6 +144,84 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(findAllRecordsVisibleBy(userWithSomeRecordAccess)).containsOnly(zeCollectionRecord1, anotherCollectionRecord1);
+	}
+
+	@Test
+	public void whenCheckingIfSecurityEnabledThenBasedOnCollectionAndSchema()
+			throws Exception {
+
+		FreeTextSearchServices searchServices = new FreeTextSearchServices(getModelLayerFactory());
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.add("q", "*:*");
+		params.add("fq", "collection_s:zeCollection");
+		params.add("fq", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isFalse();
+
+		params = new ModifiableSolrParams();
+		params.add("q", "*:*");
+		params.add("fq", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
+
+		params = new ModifiableSolrParams();
+		params.add("q", "*:*");
+		params.add("fq", "collection_s:zeCollection");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
+
+		params = new ModifiableSolrParams();
+		params.add("q", "*:*");
+		params.add("fq", "collection_s:zeCollection");
+		params.add("fq", "schema_s:zeSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
+
+		params = new ModifiableSolrParams();
+		params.add("q", "collection_s:zeCollection");
+		params.add("fq", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isFalse();
+
+		params = new ModifiableSolrParams();
+		params.add("q", "collection_s:zeCollection");
+		params.add("fq", "schema_s:zeSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
+
+		params = new ModifiableSolrParams();
+		params.add("fq", "collection_s:zeCollection");
+		params.add("q", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isFalse();
+
+		params = new ModifiableSolrParams();
+		params.add("fq", "collection_s:zeCollection");
+		params.add("q", "schema_s:zeSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
+
+	}
+
+	@Test
+	public void givenUserWithSomeAccessWhenSearchingUsingWebServiceWithOnNonSecuredSchemaThenSeeAllResults()
+			throws SolrServerException {
+
+		assertThatUserIsInCollection(users.alice().getUsername(), "zeCollection");
+		assertThat(findAllRecordsVisibleByUsingWebService(userWithZeCollectionReadAccess))
+				.containsOnly(zeCollectionRecord1, zeCollectionRecord2);
+		assertThat(findAllRecordsVisibleByUsingWebService(userWithAnotherCollectionReadAccess))
+				.containsOnly(anotherCollectionRecord1, anotherCollectionRecord2);
+		assertThat(findAllRecordsVisibleByUsingWebService(userWithBothCollectionReadAccess))
+				.containsOnly(zeCollectionRecord1, zeCollectionRecord2, anotherCollectionRecord1, anotherCollectionRecord2);
+
+		assertThat(findAllRecordsVisibleByUsingWebService(userInBothCollectionWithoutAnyAccess)).isEmpty();
+
+		assertThat(findAllRecordsVisibleByUsingWebService(userInNoCollection)).isEmpty();
+
+		assertThat(findAllRecordsVisibleByUsingWebService(userWithSomeRecordAccess))
+				.containsOnly(zeCollectionRecord1, anotherCollectionRecord1);
+
+		assertThat(findAllRecordsVisibleOfNonSecuredSchemaByUsingWebService(userWithSomeRecordAccess))
+				.containsOnly(zeCollectionNonSecuredRecord1, zeCollectionNonSecuredRecord2);
+
+		whenSearchingWithAvalidServiceKeyFromAnotherUserThenException();
+		whenSearchingWithInvalidTokenThenException();
+		whenSearchingWithNoTokenThenException();
+		whenSearchingWithNoServiceKeyThenException();
 	}
 
 	@Test
@@ -183,11 +277,13 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 				anotherCollection);
 
 		String title = "Au secours, je suis perdu";
-		recordServices.add(new TestRecord(zeCollectionSchema, zeCollectionRecord1).set(Schemas.TITLE, title), zeCollectionUser);
-		recordServices.add(new TestRecord(zeCollectionSchema, zeCollectionRecord2).set(Schemas.TITLE, title), zeCollectionUser);
-		recordServices.add(new TestRecord(anotherCollectionSchema, anotherCollectionRecord1).set(Schemas.TITLE, title),
+		recordServices.add(new TestRecord(zeCollectionSchema, zeCollectionRecord1).set(TITLE, title), zeCollectionUser);
+		recordServices.add(new TestRecord(zeCollectionSchema, zeCollectionRecord2).set(TITLE, title), zeCollectionUser);
+		recordServices.add(new TestRecord(zeCollectionUnsecuredSchema, zeCollectionNonSecuredRecord1).set(TITLE, title));
+		recordServices.add(new TestRecord(zeCollectionUnsecuredSchema, zeCollectionNonSecuredRecord2).set(TITLE, title));
+		recordServices.add(new TestRecord(anotherCollectionSchema, anotherCollectionRecord1).set(TITLE, title),
 				anotherCollectionUser);
-		recordServices.add(new TestRecord(anotherCollectionSchema, anotherCollectionRecord2).set(Schemas.TITLE, title),
+		recordServices.add(new TestRecord(anotherCollectionSchema, anotherCollectionRecord2).set(TITLE, title),
 				anotherCollectionUser);
 	}
 
@@ -282,8 +378,26 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 	private List<String> findAllRecordsVisibleByUsingWebService(UserCredential user)
 			throws SolrServerException {
 		SolrClient solrServer = newSearchClient();
-		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "search_txt_fr:perdu");
+		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:zeSchemaType*");
 
+		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(user.getUsername()));
+		String token = userServices.getToken(serviceKey, user.getUsername(), "youshallnotpass");
+		solrParams.set("serviceKey", serviceKey);
+		solrParams.set("token", token);
+		List<String> records = new ArrayList<>();
+		QueryResponse response = solrServer.query(solrParams);
+		for (SolrDocument result : response.getResults()) {
+			records.add((String) result.getFieldValue("id"));
+		}
+
+		return records;
+	}
+
+	private List<String> findAllRecordsVisibleOfNonSecuredSchemaByUsingWebService(UserCredential user)
+			throws SolrServerException {
+		SolrClient solrServer = newSearchClient();
+		ModifiableSolrParams solrParams = new ModifiableSolrParams().set("q", "schema_s:anotherSchemaType*");
+		solrParams.add("fq", "collection_s:zeCollection");
 		String serviceKey = userServices.giveNewServiceToken(userServices.getUserCredential(user.getUsername()));
 		String token = userServices.getToken(serviceKey, user.getUsername(), "youshallnotpass");
 		solrParams.set("serviceKey", serviceKey);

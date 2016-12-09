@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -129,6 +130,7 @@ public class ContentManagerTest extends ConstellioTest {
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock DataLayerConfiguration dataLayerConfiguration;
+	@Mock ConstellioEIMConfigs constellioEIMConfigs;
 
 	@Before
 	public void setUp()
@@ -140,6 +142,7 @@ public class ContentManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.newFileParser()).thenReturn(fileParser);
+		when(modelLayerFactory.getSystemConfigs()).thenReturn(constellioEIMConfigs);
 
 		when(dataLayerFactory.newRecordDao()).thenReturn(recordDao);
 		when(dataLayerFactory.getContentsDao()).thenReturn(contentDao);

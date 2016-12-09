@@ -5,10 +5,10 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.RichTextArea;
+import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("unchecked")
-public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, RichTextArea> {
+public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, BaseRichTextArea> {
 
 	@Override
 	protected Component initContent() {
@@ -20,8 +20,8 @@ public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, RichTe
 	}
 
 	@Override
-	protected RichTextArea newAddEditField() {
-		RichTextArea richTextArea = new BaseRichTextArea();
+	protected BaseRichTextArea newAddEditField() {
+		BaseRichTextArea richTextArea = new BaseRichTextArea();
 		richTextArea.setImmediate(false);
 		return richTextArea;
 	}
@@ -30,6 +30,11 @@ public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, RichTe
 		Label captionLabel = new Label(caption);
 		captionLabel.setContentMode(ContentMode.HTML);
 		return captionLabel;
+	}
+
+	@Override
+	protected void setMainLayoutWidth(VerticalLayout mainLayout) {
+		mainLayout.setWidth("100%");
 	}
 
 }

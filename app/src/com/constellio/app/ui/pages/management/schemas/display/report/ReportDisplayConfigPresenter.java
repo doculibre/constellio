@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -7,6 +8,7 @@ import com.constellio.app.ui.framework.builders.ReportToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.User;
@@ -19,6 +21,7 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,12 +44,13 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, getSchemaTypeCode()){
 			@Override
 			public List<MetadataVO> buildList() {
+				Set<String> metadataLocalCodeSet = new HashSet<>();
 				List<MetadataVO> schemaVOs = new ArrayList<>();
 				MetadataSchemaType type = schemaType(getSchemaTypeCode());
 				if (type != null) {
 					for(MetadataSchema schema:type.getAllSchemas()){
 						for (Metadata meta : schema.getMetadatas()) {
-							if (!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) {
+							if ((!meta.isSystemReserved() || isSystemReservedAllowedInReport(meta)) && metadataLocalCodeSet.add(meta.getLocalCode())) {
 								MetadataVO metadataVO = voBuilder.build(meta, view.getSessionContext());
 								if(AllowedMetadataUtil.isAllowedMetadata(metadataVO)){
 									schemaVOs.add(metadataVO);
@@ -144,5 +148,13 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 
 		}
 		return returnMetadataVOs;
+	}
+
+	public String getSchemaName(String metadataCode) {
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+		MetadataSchemasManager metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		int index = metadataCode.lastIndexOf("_");
+		return metadataSchemasManager.getSchemaTypes(collection).getSchema(metadataCode.substring(0, index))
+				.getLabel(language);
 	}
 }

@@ -54,7 +54,7 @@ public class ListCollectionUserViewAcceptTest extends ConstellioTest {
 
 		userServices = getModelLayerFactory().newUserServices();
 		userServices.addUpdateGlobalGroup(userServices.createGlobalGroup(
-				GROUP_CODE, GROUP_NAME, Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE));
+				GROUP_CODE, GROUP_NAME, Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true));
 		rolesManager = getModelLayerFactory().getRolesManager();
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));

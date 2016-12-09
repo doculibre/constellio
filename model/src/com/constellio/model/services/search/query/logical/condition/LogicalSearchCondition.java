@@ -47,8 +47,8 @@ public abstract class LogicalSearchCondition {
 				LogicalOperator.AND, this, LogicalOperator.OR);
 	}
 
-	public OngoingLogicalSearchConditionWithDataStoreFields orWhereAny(List<DataStoreField> dataStoreFields) {
-		return new OngoingLogicalSearchConditionWithDataStoreFields(filters, dataStoreFields,
+	public OngoingLogicalSearchConditionWithDataStoreFields orWhereAny(List<?> dataStoreFields) {
+		return new OngoingLogicalSearchConditionWithDataStoreFields(filters, (List) dataStoreFields,
 				LogicalOperator.OR,
 				this, LogicalOperator.OR);
 	}

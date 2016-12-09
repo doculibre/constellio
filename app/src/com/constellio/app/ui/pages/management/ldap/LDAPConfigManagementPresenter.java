@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.EmptyDomainsRuntimeException;
 import com.constellio.model.conf.ldap.EmptyUrlsRuntimeException;
 import com.constellio.model.conf.ldap.InvalidUrlRuntimeException;
@@ -53,7 +52,12 @@ public class LDAPConfigManagementPresenter extends
 				.getLdapConfigurationManager();
 		try {
 			ldapConfigManager.saveLDAPConfiguration(ldapServerConfigurationVO, ldapUserSyncConfigurationVO);
-			view.showMessage($("ldap.config.saved"));
+
+			if (ldapConfigManager.getNextUsersSyncFireTime() == null) {
+                view.showMessage($("ldap.config.saved"));
+            } else {
+				view.showMessage($("ldap.config.saved") + " " + $("ldap.config.nextUserSyncFireTime", ldapConfigManager.getNextUsersSyncFireTime()));
+			}
 		} catch (TooShortDurationRuntimeException e) {
 			view.showErrorMessage($("ldap.TooShortDurationRuntimeException"));
 		} catch (EmptyDomainsRuntimeException e) {
@@ -151,9 +155,9 @@ public class LDAPConfigManagementPresenter extends
 	}
 
 	public boolean isForceSynchVisible() {
-		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing() && getLDAPServerConfiguration()
-				.getLdapAuthenticationActive()
-				&& getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null;
+		return !modelLayerFactory.getLdapUserSyncManager().isSynchronizing()
+				&& getLDAPServerConfiguration().getLdapAuthenticationActive()
+				&& (getLDAPUserSyncConfiguration().getDurationBetweenExecution() != null || getLDAPUserSyncConfiguration().getScheduleTime() != null);
 	}
 
 	private class ForceSynchThread implements Runnable {

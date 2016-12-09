@@ -141,8 +141,10 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Button addToCart = buildAddToCartButton();
-			selectionActions.add(addToCart);
+			if(presenter.hasCurrentUserPermissionToUseCart()) {
+				Button addToCart = buildAddToCartButton();
+				selectionActions.add(addToCart);
+			}
 		}
 
 		Button switchViewMode = buildSwitchViewMode();

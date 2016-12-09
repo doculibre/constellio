@@ -4,6 +4,7 @@ import static com.constellio.model.services.records.reindexing.ReindexationMode.
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,8 +110,7 @@ public class ReindexingServicesOneSchemaWithPopulatedFieldsAcceptanceTest extend
 
 	private List<String> autocompleteSearch(String terms) {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		ConditionTemplate conditionTemplate = ConditionTemplateFactory.autocompleteFieldMatching(terms);
-		LogicalSearchCondition condition = from(zeSchema.instance()).where(conditionTemplate);
+		LogicalSearchCondition condition = from(zeSchema.instance()).where(autocompleteFieldMatching(terms));
 		return searchServices.searchRecordIds(new LogicalSearchQuery(condition));
 	}
 
