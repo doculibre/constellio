@@ -127,7 +127,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			addView = true;
 		} else {
 			Folder folder = new RMSchemasRecordsServices(collection, appLayerFactory).getFolder(parentId);
-			record = new DecommissioningService(collection, modelLayerFactory).newSubFolderIn(folder).getWrappedRecord();
+			record = new DecommissioningService(collection, appLayerFactory).newSubFolderIn(folder).getWrappedRecord();
 			addView = true;
 		}
 
@@ -765,7 +765,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private DecommissioningService decommissioningService() {
-		return new DecommissioningService(collection, modelLayerFactory);
+		return new DecommissioningService(collection, appLayerFactory);
 	}
 
 	private RMSchemasRecordsServices rmSchemas() {

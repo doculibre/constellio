@@ -168,7 +168,7 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	}
 
 	public ComponentState getStateFor(NavigationItem item) {
-		return item.getStateFor(getCurrentUser(), modelLayerFactory);
+		return item.getStateFor(getCurrentUser(), appLayerFactory);
 	}
 
 	protected abstract boolean hasPageAccess(String params, User user);

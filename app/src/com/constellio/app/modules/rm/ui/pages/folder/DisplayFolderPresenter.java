@@ -576,7 +576,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private DecommissioningService decommissioningService() {
-		return new DecommissioningService(getCurrentUser().getCollection(), modelLayerFactory);
+		return new DecommissioningService(getCurrentUser().getCollection(), appLayerFactory);
 	}
 
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {

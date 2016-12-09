@@ -2,6 +2,7 @@ package com.constellio.app.entities.navigation;
 
 import java.io.Serializable;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
@@ -19,7 +20,7 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 
 	void activate(Navigation navigate);
 
-	ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory);
+	ComponentState getStateFor(User user, AppLayerFactory appLayerFactory);
 
 	abstract class BaseNavigationItem implements NavigationItem {
 		@Override
@@ -114,7 +115,7 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		}
 
 		@Override
-		public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+		public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 			return ComponentState.DISABLED;
 		}
 	}

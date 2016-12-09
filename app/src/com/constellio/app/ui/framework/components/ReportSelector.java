@@ -7,7 +7,6 @@ import java.util.List;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.AbstractSelect;
@@ -16,6 +15,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
 
 public class ReportSelector extends HorizontalLayout {
 	private final NewReportPresenter presenter;
@@ -66,8 +66,12 @@ public class ReportSelector extends HorizontalLayout {
 			@Override
 			protected Component buildWindowContent() {
 				NewReportWriterFactory factory = presenter.getReport(getSelectedReport());
-				return new ReportViewer(factory.getReportBuilder(presenter.getReportParameters(getSelectedReport())),
-						factory.getFilename(presenter.getReportParameters(getSelectedReport())));
+				if (factory == null) {
+					return new Label($("ReportViewer.noReportFactoryAvailable"));
+				} else {
+					return new ReportViewer(factory.getReportBuilder(presenter.getReportParameters(getSelectedReport())),
+							factory.getFilename(presenter.getReportParameters(getSelectedReport())));
+				}
 			}
 
 			@Override

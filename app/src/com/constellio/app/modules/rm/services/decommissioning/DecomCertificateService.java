@@ -54,16 +54,18 @@ public class DecomCertificateService {
 	private final User user;
 	boolean contentsProcessed = false;
 	Content documentsContent, foldersContent;
+	AppLayerFactory appLayerFactory;
 
 	public DecomCertificateService(RMSchemasRecordsServices rm,
 			SearchServices searchServices, ContentManager contentManager, FileService fileService,
-			User user, DecommissioningList decommissioningList) {
+			User user, DecommissioningList decommissioningList, AppLayerFactory appLayerFactory) {
 		this.rm = rm;
 		this.decommissioningList = decommissioningList;
 		this.searchServices = searchServices;
 		this.contentManager = contentManager;
 		this.fileService = fileService;
 		this.user = user;
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	public void computeContents() {
@@ -75,13 +77,8 @@ public class DecomCertificateService {
 		}
 	}
 
-	AppLayerFactory appLayerFactory() {
-		//TODO Remove this bad singleton!
-		return ConstellioFactories.getInstance().getAppLayerFactory();
-	}
-
 	RMReportBuilderFactories reportBuilderFactories() {
-		AppLayerCollectionExtensions extensions = appLayerFactory().getExtensions().forCollection(rm.getCollection());
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(rm.getCollection());
 		RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
 		return rmModuleExtensions.getReportBuilderFactories();
 	}

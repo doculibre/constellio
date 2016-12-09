@@ -179,7 +179,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
 		});
@@ -190,7 +190,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
 		});
@@ -262,7 +262,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
@@ -278,7 +278,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
 			}
 		});
@@ -289,7 +289,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS).globally());
 			}
 		});
@@ -300,15 +300,15 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally());
 			}
 		});
 		config.replace(AdminView.COLLECTION_SECTION,
 				new NavigationItem.Decorator(getTaxonomyItem(config)) {
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-						return visibleIf(item.getStateFor(user, modelLayerFactory).isVisible() ||
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return visibleIf(item.getStateFor(user, appLayerFactory).isVisible() ||
 								user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
 					}
 
@@ -334,9 +334,9 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
-								user.getCollection(), modelLayerFactory);
+								user.getCollection(), appLayerFactory);
 						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
 								user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething() ||
 								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
@@ -354,7 +354,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});
@@ -370,7 +370,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
 			}
 		});
@@ -386,7 +386,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).globally());
 			}
 		});
@@ -402,7 +402,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});

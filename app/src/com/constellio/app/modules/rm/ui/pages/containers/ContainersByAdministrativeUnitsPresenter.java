@@ -105,7 +105,7 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, modelLayerFactory);
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
 		return securityServices.hasAccessToManageContainersPage(user);
 	}
 

@@ -166,11 +166,11 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	DecommissioningListQueryFactory queryFactory() {
-		return new DecommissioningListQueryFactory(collection, modelLayerFactory);
+		return new DecommissioningListQueryFactory(collection, appLayerFactory);
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 
 	String getDeleteConfirmMessage(RecordVO entity) {

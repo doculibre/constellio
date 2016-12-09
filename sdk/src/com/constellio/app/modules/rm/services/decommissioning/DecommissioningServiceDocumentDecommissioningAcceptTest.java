@@ -39,7 +39,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		service = new DecommissioningService(zeCollection, getModelLayerFactory());
+		service = new DecommissioningService(zeCollection, getAppLayerFactory());
 	}
 
 	@Test
