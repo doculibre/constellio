@@ -174,6 +174,7 @@ public class ImportRecordOfSameTypeWriter {
 			writer.writeEndDocument();
 			writer.flush();
 			writer.close();
+			outputStream.close();
 
 		} catch (Exception e) {
 			throw new RuntimeException(e);
