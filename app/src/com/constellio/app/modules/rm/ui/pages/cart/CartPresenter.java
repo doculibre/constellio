@@ -255,11 +255,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			if(document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(document)) {
 				return false;
 			}
-			if(document.getBorrowed() && !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)) {
+			if(getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)) {
 				return false;
 			}
 		}
 		return true;
+	}
+
+	private String getCurrentBorrowerOf(Document document) {
+		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
 	List<Folder> getCartFolders() {
