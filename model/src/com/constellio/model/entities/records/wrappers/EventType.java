@@ -84,6 +84,8 @@ public class EventType {
 
 	public static final String DELETE_PERMISSION_DOCUMENT = "delete_permission_document";
 
+	public static final String DELETE_VERSION_DOCUMENT = "delete_version_document";
+
 	//decommissiong
 	public static final String DECOMMISSIONING_LIST = "decommissioningList";
 
