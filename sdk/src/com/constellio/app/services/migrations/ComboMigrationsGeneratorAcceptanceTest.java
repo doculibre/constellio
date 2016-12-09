@@ -1,26 +1,5 @@
 package com.constellio.app.services.migrations;
 
-import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.lang.model.element.Modifier;
-
-import org.apache.commons.io.FileUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Test;
-
-import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -47,13 +26,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -80,6 +53,19 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
 import com.steadystate.css.util.LangUtils;
+import org.apache.commons.io.FileUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Test;
+
+import javax.lang.model.element.Modifier;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
 
 @InDevelopmentTest
 public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
@@ -816,6 +802,19 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				for (Metadata metadata : schema.getMetadatas()) {
+					String variable = variableOf(metadata);
+					if(metadata.getInheritance() != null) {
+						main.addStatement("$T $L = $L.get($S)",
+								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
+						configureInheritedMetadata(main, variable, metadata);
+					}
+				}
+			}
+		}
+
+		for (MetadataSchemaType type : metadataSchemaTypes) {
 
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
@@ -978,11 +977,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			method.addStatement("$L.setEnabled(false)", variable);
 		}
 
-		if (metadata.getInheritance() != null && metadata.isDefaultRequirement() && !metadata.getInheritance()
-				.isDefaultRequirement()) {
-			method.addStatement("$L.setEnabled(true)", variable);
-		}
-
 		if (metadata.isEssential()) {
 			method.addStatement("$L.setEssential(true)", variable);
 		}
@@ -1079,6 +1073,22 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		}
 
+	}
+
+	protected void configureInheritedMetadata(Builder method, String variable, Metadata metadata) {
+		if (metadata.getInputMask() != null) {
+			method.addStatement("$L.setInputMask($S)", variable, metadata.getInputMask());
+		}
+
+		if (metadata.getInheritance() != null && metadata.isDefaultRequirement() != metadata.getInheritance()
+				.isDefaultRequirement()) {
+			method.addStatement("$L.setDefaultRequirement($L)", variable, String.valueOf(metadata.isDefaultRequirement()));
+		}
+
+		if (metadata.getInheritance() != null && metadata.isEnabled() != metadata.getInheritance()
+				.isEnabled()) {
+			method.addStatement("$L.setEnabled($L)", variable, String.valueOf(metadata.isEnabled()));
+		}
 	}
 
 }
