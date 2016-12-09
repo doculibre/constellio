@@ -513,7 +513,8 @@ public class BigVaultRecordDao implements RecordDao {
 	private void verifyIndexForReferencesInMultivalueField(TransactionDTO transaction,
 			Object collection, Entry<String, Object> field, Map<Object, SolrInputDocument> activeReferencesCheck) {
 		for (Object referenceId : (List) field.getValue()) {
-			if (!activeReferencesCheck.containsKey(referenceId)
+			if (referenceId != null
+					&& !activeReferencesCheck.containsKey(referenceId)
 					&& !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
 				activeReferencesCheck.put(referenceId, setVersion1ToDocument((String) referenceId, collection));
 			}
