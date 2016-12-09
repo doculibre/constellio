@@ -170,4 +170,7 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 		return new RoleAuthVO(roleAuth.getDetail().getId(), firstRecord, roleAuth.getDetail().getRoles());
 	}
 
+	boolean isTargetFieldVisible() {
+		return modelLayerFactory.getTaxonomiesManager().getPrincipalTaxonomy(collection) != null;
+	}
 }
