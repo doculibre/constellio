@@ -95,7 +95,11 @@ public class AzureAdClient {
         }
 
         private void acquireAccessToken() {
-            if (authenticationResult == null || authenticationResult.getAccessToken() == null) {
+            acquireAccessToken(authenticationResult == null || authenticationResult.getAccessToken() == null);
+        }
+
+        private void acquireAccessToken(boolean ignoreCurrent) {
+            if (ignoreCurrent) {
                 String authority = AUTHORITY_BASE_URL + tenantName;
                 ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -122,7 +126,7 @@ public class AzureAdClient {
 
         private void refreshAccessToken() {
             if (authenticationResult == null || authenticationResult.getRefreshToken() == null) {
-                acquireAccessToken();
+                acquireAccessToken(true);
             } else {
                 String authority = AUTHORITY_BASE_URL + tenantName;
                 ExecutorService executorService = Executors.newSingleThreadExecutor();
