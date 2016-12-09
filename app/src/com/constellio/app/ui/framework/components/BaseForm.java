@@ -297,9 +297,14 @@ public abstract class BaseForm<T> extends CustomComponent {
 			}
 		} else {
 			Field<?> firstFieldWithError = null;
+			StringBuilder missingRequiredFields = new StringBuilder();
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
+					if(missingRequiredFields.length() != 0) {
+						missingRequiredFields.append("<br/>");
+					}
+					missingRequiredFields.append($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
@@ -307,6 +312,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			}
 			if (firstFieldWithError != null) {
 				firstFieldWithError.focus();
+				showErrorMessage(missingRequiredFields.toString());
 			}
 		}
 	}

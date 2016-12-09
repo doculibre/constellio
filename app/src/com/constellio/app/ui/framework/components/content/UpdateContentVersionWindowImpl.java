@@ -93,6 +93,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 				}
 			}
 		});
+		uploadField.setRequired(true);
 		
 		majorVersionField = new OptionGroup();
 		majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
