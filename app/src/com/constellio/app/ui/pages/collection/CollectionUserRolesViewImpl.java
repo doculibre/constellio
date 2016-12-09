@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.vaadin.ui.*;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.entities.RecordVO;
@@ -25,15 +26,9 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.VerticalLayout;
 
 public class CollectionUserRolesViewImpl extends BaseViewImpl implements CollectionUserRolesView {
 	public static final String USER_ROLES = User.DEFAULT_SCHEMA + "_" + User.ROLES;
@@ -44,7 +39,7 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 	private final CollectionUserRolesPresenter presenter;
 	private RecordVO user;
 	@PropertyId("roles") private OptionGroup availableRolesField;
-	@PropertyId("target") private LookupRecordField targetField;
+	@PropertyId("target") private Field targetField;
 
 	private Table inheritedRolesTable;
 	private Table specificRolesTable;
@@ -152,8 +147,14 @@ public class CollectionUserRolesViewImpl extends BaseViewImpl implements Collect
 			@Override
 			protected Component buildWindowContent() {
 
-				targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
-				targetField.setCaption($("CollectionUserRolesView.targetField"));
+				if (presenter.isTargetFieldVisible()) {
+					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
+					targetField.setCaption($("CollectionUserRolesView.targetField"));
+				} else {
+					targetField = new TextField();
+					targetField.setVisible(false);
+				}
+
 
 				return new BaseForm<RoleAuthVO>(presenter.newRoleAuthVO(), CollectionUserRolesViewImpl.this, availableRolesField,
 						targetField) {

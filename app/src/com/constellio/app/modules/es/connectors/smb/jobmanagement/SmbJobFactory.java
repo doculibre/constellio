@@ -6,10 +6,5 @@ import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 public interface SmbJobFactory {
 
 	// Check for thread safety
-	public ConnectorJob get(SmbJobCategory jobType, String url, String parentUrl);
-
-	// Check for thread safety
-	public void reset();
-
-	public void updateResumeUrl(String resumeUrl);
+	public SmbConnectorJob get(SmbJobCategory jobType, String url, String parentUrl);
 }
