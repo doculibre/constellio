@@ -6,6 +6,7 @@ import java.util.Collection;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -21,6 +22,7 @@ public class FilingSpaceWithContainersCountContainer extends ContainerAdapter {
 	public static final String TRANSFER_PREFIX = "transfer";
 	public static final String WITH_STORAGE_SPACE_SUFFIX = "WithStorageSpace";
 
+	transient AppLayerFactory appLayerFactory;
 	transient ModelLayerFactory modelLayerFactory;
 	String collection;
 	private String currentUserId;
@@ -38,16 +40,18 @@ public class FilingSpaceWithContainersCountContainer extends ContainerAdapter {
 	}
 
 	public FilingSpaceWithContainersCountContainer(Container adapted, String collection, String currentUserId, String tabName,
-			String adminUnitId, ModelLayerFactory modelLayerFactory) {
+			String adminUnitId, AppLayerFactory appLayerFactory) {
 		this(adapted, collection, currentUserId, tabName, adminUnitId);
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		init();
 	}
 
 	public void init() {
-		if (modelLayerFactory == null) {
-			modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		if (appLayerFactory == null) {
+			appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		}
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
 	}
 
 	@Override
@@ -77,7 +81,7 @@ public class FilingSpaceWithContainersCountContainer extends ContainerAdapter {
 			@Override
 			public Long getValue() {
 				DecommissioningSearchConditionFactory searchConditionFactory = new DecommissioningSearchConditionFactory(
-						collection, modelLayerFactory);
+						collection, appLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();
 				parameters.setAdminUnitId(adminUnitId);
 				if (tabName.startsWith(DEPOSIT_PREFIX)) {

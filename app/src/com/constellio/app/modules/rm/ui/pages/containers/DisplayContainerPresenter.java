@@ -222,7 +222,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}

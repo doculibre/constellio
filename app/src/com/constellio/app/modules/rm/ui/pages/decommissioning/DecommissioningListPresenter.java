@@ -293,7 +293,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}
@@ -345,7 +345,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 
 	public boolean canValidate() {

@@ -15,6 +15,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -28,11 +29,11 @@ public class DecommissioningSearchConditionFactory {
 	SearchServices searchServices;
 	DecommissioningService decommissioningService;
 
-	public DecommissioningSearchConditionFactory(String collection, ModelLayerFactory modelLayerFactory) {
-		this.schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		this.searchServices = modelLayerFactory.newSearchServices();
-		this.decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+	public DecommissioningSearchConditionFactory(String collection, AppLayerFactory appLayerFactory) {
+		this.schemas = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		this.taxonomiesSearchServices = appLayerFactory.getModelLayerFactory().newTaxonomiesSearchService();
+		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
 	public static List<SearchType> availableCriteriaForFoldersWithoutPlanifiedDate() {

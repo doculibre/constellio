@@ -36,7 +36,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 
 	public DisplayRetentionRulePresenter(DisplayRetentionRuleView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
-		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
 	public void forParams(String params) {

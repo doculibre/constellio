@@ -78,7 +78,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = getModelLayerFactory().newTaxonomiesSearchService();
-		decommissioningService = new DecommissioningService(zeCollection, getModelLayerFactory());
+		decommissioningService = new DecommissioningService(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
@@ -87,7 +87,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		manager = getModelLayerFactory().getMetadataSchemasManager();
 
-		DecommissioningService service = new DecommissioningService(zeCollection, getModelLayerFactory());
+		DecommissioningService service = new DecommissioningService(zeCollection, getAppLayerFactory());
 
 		Folder subfolder = service.newSubFolderIn(records.getFolder_A16());
 		subfolder.setTitle("Sous-dossier");
