@@ -17,6 +17,7 @@ public class Event extends RecordWrapper {
 	public static final String PERMISSION_ROLES = "permissionRoles";
 	public static final String PERMISSION_USERS = "permissionUsers";
 	public static final String REASON = "reason";
+	public static final String RECORD_VERSION = "recordVersion";
 	
 	public Event(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -119,6 +120,15 @@ public class Event extends RecordWrapper {
 
 	public Event setReason(String reason) {
 		set(REASON, reason);
+		return this;
+	}
+
+	public String getRecordVersion() {
+		return get(RECORD_VERSION);
+	}
+
+	public Event setRecordVersion(String recordVersion) {
+		set(RECORD_VERSION, recordVersion);
 		return this;
 	}
 }
