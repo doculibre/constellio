@@ -467,6 +467,12 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	protected void generateI18n(File moduleFolder, String module)
 			throws IOException {
+		generateI18n(moduleFolder, module, new HashMap<String, String>(), new HashMap<String, String>());
+	}
+
+	protected void generateI18n(File moduleFolder, String module, Map<String, String> extraFrenchLabels,
+			Map<String, String> extraEnglishLabels)
+			throws IOException {
 
 		File comboFolder = new File(moduleFolder, "combo");
 		FileUtils.deleteQuietly(comboFolder);
@@ -499,9 +505,12 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				}
 			}
 
-			CombinePropertyFilesServices.combine(properties, new File(comboFolder, module + "_combo.properties"));
-			CombinePropertyFilesServices.combine(enProperties, new File(comboFolder, module + "_combo_en.properties"));
-			CombinePropertyFilesServices.combine(frProperties, new File(comboFolder, module + "_combo_fr.properties"));
+			CombinePropertyFilesServices
+					.combine(properties, new File(comboFolder, module + "_combo.properties"), extraFrenchLabels);
+			CombinePropertyFilesServices
+					.combine(enProperties, new File(comboFolder, module + "_combo_en.properties"), extraEnglishLabels);
+			CombinePropertyFilesServices
+					.combine(frProperties, new File(comboFolder, module + "_combo_fr.properties"), new HashMap<String, String>());
 
 			for (File resourceFile : resourcesFiles) {
 				FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getName()));
@@ -967,6 +976,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (!metadata.isEnabled()) {
 			method.addStatement("$L.setEnabled(false)", variable);
+		}
+
+		if (metadata.getInheritance() != null && metadata.isDefaultRequirement() && !metadata.getInheritance()
+				.isDefaultRequirement()) {
+			method.addStatement("$L.setEnabled(true)", variable);
 		}
 
 		if (metadata.isEssential()) {
