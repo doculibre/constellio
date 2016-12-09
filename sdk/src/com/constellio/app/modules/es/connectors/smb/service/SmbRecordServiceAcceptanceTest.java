@@ -3,6 +3,8 @@ package com.constellio.app.modules.es.connectors.smb.service;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
+import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +23,7 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
 	private RecordServices recordService;
+	private SmbConnectorContext context;
 
 	@Before
 	public void setup()
@@ -47,6 +50,10 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 
 		es.getConnectorManager()
 				.createConnector(connectorInstance);
+
+
+		SmbConnectorContextServices contextServices = new SmbConnectorContextServices(es);
+		context = contextServices.createContext(connectorInstance.getId());
 	}
 
 	@Test
@@ -69,182 +76,6 @@ public class SmbRecordServiceAcceptanceTest extends ConstellioTest {
 		recordService.flush();
 
 		assertThat(smbRecordService.getDocument(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE)).isNotNull();
-	}
-
-	@Test
-	public void givenSizeModifiedDocumentWhenVerifyingIfModifiedThenTrue()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		String FILE_URL = SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE;
-		String permissionsHash = "someHash";
-		long size = 10;
-		long lastModified = System.currentTimeMillis();
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		document.setUrl(FILE_URL);
-		document.setPermissionsHash(permissionsHash);
-		document.setSize(size);
-		document.setLastModified(new LocalDateTime(lastModified));
-
-		LocalDateTime ldt = new LocalDateTime();
-		document.setLastModified(ldt);
-
-		recordService.update(document.getWrappedRecord());
-		recordService.flush();
-
-		boolean result = smbRecordService.isDocumentModified(document, FILE_URL, new SmbService.SmbModificationIndicator(permissionsHash, 12, lastModified));
-
-		assertThat(result).isTrue();
-	}
-
-	@Test
-	public void givenPermissionsModifiedDocumentWhenVerifyingIfModifiedThenTrue()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		String FILE_URL = SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE;
-		String permissionsHash = "someHash";
-		long size = 10;
-		long lastModified = System.currentTimeMillis();
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		document.setUrl(FILE_URL);
-		document.setPermissionsHash(permissionsHash);
-		document.setSize(size);
-		document.setLastModified(new LocalDateTime(lastModified));
-
-		LocalDateTime ldt = new LocalDateTime();
-		document.setLastModified(ldt);
-
-		recordService.update(document.getWrappedRecord());
-		recordService.flush();
-
-		boolean result = smbRecordService.isDocumentModified(document, FILE_URL, new SmbService.SmbModificationIndicator("modifiedHash", size, lastModified));
-
-		assertThat(result).isTrue();
-	}
-
-	@Test
-	public void givenLastModifiedModifiedDocumentWhenVerifyingIfModifiedThenTrue()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		String FILE_URL = SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE;
-		String permissionsHash = "someHash";
-		long size = 10;
-		long lastModified = System.currentTimeMillis();
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		document.setUrl(FILE_URL);
-		document.setPermissionsHash(permissionsHash);
-		document.setSize(size);
-		document.setLastModified(new LocalDateTime(lastModified));
-
-		recordService.update(document.getWrappedRecord());
-		recordService.flush();
-
-		// TODO Benoit. With lastModified + 1 the test fails. Should be investigated.
-		boolean result = smbRecordService.isDocumentModified(document, FILE_URL, new SmbService.SmbModificationIndicator(permissionsHash, size, lastModified + 2));
-
-		assertThat(result).isTrue();
-	}
-
-	@Test
-	public void givenNonModifiedDocumentWhenVerifyingIfModifiedThenFalse()
-			throws RecordServicesException {
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		recordService.update(folder);
-		recordService.flush();
-
-		String FILE_URL = SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE;
-		String permissionsHash = "someHash";
-		long size = 10;
-		long lastModified = System.currentTimeMillis();
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance);
-		document.setUrl(FILE_URL);
-		document.setPermissionsHash(permissionsHash);
-		document.setSize(size);
-		document.setLastModified(new LocalDateTime(lastModified));
-		document.setParent(folder.getId());
-
-		LocalDateTime ldt = new LocalDateTime();
-		document.setLastModified(ldt);
-
-		recordService.update(document.getWrappedRecord());
-		recordService.flush();
-
-		boolean result = smbRecordService.isDocumentModified(document, FILE_URL, new SmbService.SmbModificationIndicator(permissionsHash, size, lastModified));
-
-		assertThat(result).isFalse();
-	}
-
-	@Test
-	public void givenExistingRecordAndModificationsWhenVerifyingForModificationThenTrue()
-			throws RecordServicesException {
-		long lastModified = 321;
-		String permissionHash = "permissionsHash";
-		long size = 321;
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE);
-		es.getRecordServices()
-				.update(document.getWrappedRecord());
-		es.getRecordServices()
-				.flush();
-
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		boolean result = smbRecordService.isDocumentModified(document, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, new SmbService.SmbModificationIndicator(permissionHash, size, lastModified));
-
-		assertThat(result).isTrue();
-	}
-
-	@Test
-	public void givenExistingRecordAndNoModificationsWhenVerifyingForModificationThenFalse()
-			throws RecordServicesException {
-		long lastModified = 321;
-		String permissionsHash = "permissionsHash";
-		long size = 321;
-
-		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE);
-
-		recordService.update(folder);
-		recordService.flush();
-
-		ConnectorSmbDocument document = es.newConnectorSmbDocument(connectorInstance)
-				.setUrl(SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE)
-				.setSize(size)
-				.setPermissionsHash(permissionsHash)
-				.setLastModified(new LocalDateTime(lastModified))
-				.setParent(folder.getId());
-		es.getRecordServices()
-				.update(document.getWrappedRecord());
-		es.getRecordServices()
-				.flush();
-
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-
-		boolean result = smbRecordService.isDocumentModified(document, SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, new SmbService.SmbModificationIndicator(permissionsHash, size, lastModified));
-		assertThat(result).isFalse();
-	}
-
-	@Test
-	public void givenNonExistingRecordWhenVerifyingForModificationThenTrue() {
-		long lastModified = 321;
-		String permissionsHash = "permissionsHash";
-		long size = 321;
-		SmbRecordService smbRecordService = new SmbRecordService(es, connectorInstance);
-		SmbService.SmbModificationIndicator indicator = new SmbService.SmbModificationIndicator(permissionsHash, size, lastModified);
-		assertThat(smbRecordService
-				.isDocumentModified(es.newConnectorSmbDocument(connectorInstance), SmbTestParams.EXISTING_SHARE + SmbTestParams.EXISTING_FILE, indicator))
-				.isTrue();
 	}
 
 	@Test
