@@ -72,6 +72,8 @@ public class RMPermissionsTo {
 
 	public static final String DELETE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteSemiActiveDocuments");
 	public static final String DELETE_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteInactiveDocuments");
+	public static final String DELETE_BORROWED_DOCUMENT = permission(DOCUMENT_GROUP, "deleteBorrowedDocuments");
+	public static final String DELETE_PUBLISHED_DOCUMENT = permission(DOCUMENT_GROUP, "deletePublishedDocuments");
 
 	public static final String RETURN_OTHER_USERS_DOCUMENTS = permission(DOCUMENT_GROUP, "returnOtherUsersDocuments");
 

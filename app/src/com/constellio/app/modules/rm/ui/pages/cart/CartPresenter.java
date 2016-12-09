@@ -29,6 +29,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
@@ -250,6 +251,12 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				if (!user.has(RMPermissionsTo.DELETE_INACTIVE_DOCUMENT).on(document)) {
 					return false;
 				}
+			}
+			if(document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(document)) {
+				return false;
+			}
+			if(document.getBorrowed() && !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)) {
+				return false;
 			}
 		}
 		return true;
