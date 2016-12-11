@@ -280,7 +280,7 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTo()).hasSize(1);
 		assertThat(emailToSend.getTo().get(0).getName()).isEqualTo(users.bobIn(zeCollection).getTitle());
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(users.bobIn(zeCollection).getEmail());
-		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est disponible " + documentWithContentA19
+		assertThat(emailToSend.getSubject()).isEqualTo("Alerte lorsque le document est disponible: " + documentWithContentA19
 				.getTitle());
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();

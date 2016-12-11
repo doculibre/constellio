@@ -229,7 +229,9 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
-		metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
+		if (config.getDisplayType() != null) {
+			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
+		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
 		metadata.setAttribute(METADATA_GROUP,
 				StringUtils.isBlank(config.getMetadataGroupCode()) ? "" : config.getMetadataGroupCode());
