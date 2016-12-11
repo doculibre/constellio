@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.records.RecordServicesException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,6 +104,11 @@ public class SystemCheckManager implements StatefulService {
 				while (allRecords.hasNext()) {
 					Record record = allRecords.next();
 					boolean recordsRepaired = findBrokenLinksInRecord(ids, references, record, repair, builder);
+					try {
+						recordServices.validateRecord(record);
+					} catch(RecordServicesException.ValidationException e) {
+						builder.addNewValidationError(e);
+					}
 					if (recordsRepaired) {
 
 						try {

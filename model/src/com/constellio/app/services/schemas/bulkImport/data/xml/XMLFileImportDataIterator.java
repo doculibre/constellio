@@ -30,6 +30,7 @@ import com.google.common.base.Strings;
 public class XMLFileImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
 
 	public static final String IMPORT_AS_LEGACY_ID = "importAsLegacyId";
+	public static final String MERGE_EXISTING_RECORD_WITH_SAME_UNIQUE_METADATA = "mergeExistingRecordWithSameUniqueMetadata";
 
 	public static final String RECORDS_TAG = "records";
 	public static final String RECORD_TAG = "record";
@@ -117,6 +118,8 @@ public class XMLFileImportDataIterator extends LazyIterator<ImportData> implemen
 					patterns.put(DATE_PATTERN, xmlReader.getAttributeValue("", DATE_PATTERN));
 
 					options.setImportAsLegacyId(!"false".equals(xmlReader.getAttributeValue("", IMPORT_AS_LEGACY_ID)));
+					options.setMergeExistingRecordWithSameUniqueMetadata(
+							"true".equals(xmlReader.getAttributeValue("", MERGE_EXISTING_RECORD_WITH_SAME_UNIQUE_METADATA)));
 
 					break;
 				case RECORD_TAG:

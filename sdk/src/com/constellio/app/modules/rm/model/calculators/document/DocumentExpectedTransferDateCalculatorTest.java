@@ -36,6 +36,7 @@ public class DocumentExpectedTransferDateCalculatorTest extends ConstellioTest {
 		when(parameters.get(calculator.expectedTransferDateParam)).thenReturn(localDate);
 		when(parameters.get(calculator.numberOfYearWhenSemiActiveVariableDelayParam)).thenReturn(1);
 		when(parameters.get(calculator.requiredDaysBeforeYearEndParam)).thenReturn(90);
+		when(parameters.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(true);
 
 		assertThat(calculator.calculate(parameters)).isEqualTo(localDate);
 	}

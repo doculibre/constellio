@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
@@ -24,20 +25,28 @@ public class RMMetadataDisplayFactory extends MetadataDisplayFactory {
 		MetadataVO metadataVO = metadataValue.getMetadata();
 		if (metadataVO.codeMatches(Folder.KEYWORDS) || metadataVO.codeMatches(Document.KEYWORDS)) {
 			StringBuilder sb = new StringBuilder();
-			List<String> keywords = metadataValue.getValue();
-			for (String keyword : keywords) {
-				if (sb.length() > 0) {
-					sb.append(", ");
+			List<String> keywords = new ArrayList<>();
+			if(metadataValue.getValue() != null && metadataValue.getValue() instanceof String) {
+				keywords.add(metadataValue.getValue().toString());
+			}
+			else {
+				keywords = metadataValue.getValue();
+			}
+			if (keywords != null) {
+				for (String keyword : keywords) {
+					if (sb.length() > 0) {
+						sb.append(", ");
+					}
+					sb.append(keyword);
 				}
-				sb.append(keyword);
 			}
 			if (sb.length() > 0) {
-	 			displayComponent = new Label(sb.toString());
+				displayComponent = new Label(sb.toString());
 			} else {
-	 			displayComponent = null;
+				displayComponent = null;
 			}
 		} else {
-			displayComponent = super.build(recordVO, metadataValue); 
+			displayComponent = super.build(recordVO, metadataValue);
 		}
 		return displayComponent;
 	}

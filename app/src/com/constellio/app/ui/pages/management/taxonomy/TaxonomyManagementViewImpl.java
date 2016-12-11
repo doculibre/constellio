@@ -7,15 +7,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.buttons.CleanAdministrativeUnitButton;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -317,10 +317,19 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					presenter.deleteButtonClicked(presenter.getCurrentConcept());
 				}
 			});
+			if(presenter.hasCurrentUserAccessToCurrentConcept()) {
+				actionMenuButtons.add(new CleanAdministrativeUnitButton($("TaxonomyManagementView.cleanAdministrativeUnit")) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.cleanAdministrativeUnitButtonClicked();
+					}
+				});
+			}
 			if (presenter.isSequenceTable(currentConcept)) {
 				actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
 			}
 		}
+
 		return actionMenuButtons;
 	}
 

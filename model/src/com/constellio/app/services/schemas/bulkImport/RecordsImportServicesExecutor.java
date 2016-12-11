@@ -5,6 +5,7 @@ import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.Im
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -124,6 +125,7 @@ public class RecordsImportServicesExecutor {
 		String schemaType;
 		AtomicInteger addUpdateCount;
 		boolean recordsBeforeImport;
+		boolean hasContents;
 	}
 
 	private static class TypeBatchImportContext {
@@ -211,6 +213,7 @@ public class RecordsImportServicesExecutor {
 					.toLocalCodesList();
 			int previouslySkipped = 0;
 			context.addUpdateCount = new AtomicInteger();
+			context.hasContents = !types.getSchemaType(schemaType).getAllMetadatas().onlyWithType(CONTENT).isEmpty();
 			boolean typeImportFinished = false;
 
 			while (!typeImportFinished) {
@@ -341,10 +344,18 @@ public class RecordsImportServicesExecutor {
 
 		final AtomicInteger skipped = new AtomicInteger();
 
-		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, params.getBatchSize());
+		int batchSize = params.getBatchSize();
+		int threads = params.getThreads();
+
+		if (typeImportContext.hasContents) {
+			batchSize = (int) Math.ceil(batchSize / 2.0);
+			threads = 1;//(int) Math.ceil(threads / 4.0);
+		}
+
+		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
 		final ImportDataOptions options = importDataIterator.getOptions();
 		try {
-			iterateOverRunningTaskInParallel(importDataBatches, params.threads, new IteratorElementTask<List<ImportData>>() {
+			iterateOverRunningTaskInParallel(importDataBatches, threads, new IteratorElementTask<List<ImportData>>() {
 				@Override
 				public void executeTask(List<ImportData> value)
 						throws Exception {
@@ -574,10 +585,24 @@ public class RecordsImportServicesExecutor {
 			record = modelLayerFactory.newSearchServices()
 					.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
 		} else {
-			if (typeBatchImportContext.options.isImportAsLegacyId()) {
-				record = recordServices.newRecordWithSchema(newSchema);
-			} else {
-				record = recordServices.newRecordWithSchema(newSchema, legacyId);
+			record = null;
+			if (typeBatchImportContext.options.isMergeExistingRecordWithSameUniqueMetadata()) {
+				for (String uniqueMetadataCode : typeImportContext.uniqueMetadatas) {
+					Metadata uniqueMetadata = newSchema.getMetadata(uniqueMetadataCode);
+
+					record = recordServices.getRecordByMetadata(uniqueMetadata, (String) toImport.getValue(uniqueMetadataCode));
+					if (record != null) {
+						break;
+					}
+				}
+			}
+
+			if (record == null) {
+				if (typeBatchImportContext.options.isImportAsLegacyId()) {
+					record = recordServices.newRecordWithSchema(newSchema);
+				} else {
+					record = recordServices.newRecordWithSchema(newSchema, legacyId);
+				}
 			}
 		}
 

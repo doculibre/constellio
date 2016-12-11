@@ -296,6 +296,11 @@ public class MetadataSchemaXMLWriter3 {
 		if (metadata.isDuplicable()) {
 			metadataElement.setAttribute("duplicable", writeBoolean(metadata.isDuplicable()));
 		}
+		// TODO VALIDER SI CORRECT
+		if (metadata.getCustomAttributes() != null && !metadata.getCustomAttributes().isEmpty()) {
+			List<String> attributesList = new ArrayList<String>(metadata.getCustomAttributes());
+			metadataElement.setAttribute("customAttributes", toCommaSeparatedString(attributesList));
+		}
 	}
 
 	private boolean writeGlobalMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
@@ -339,6 +344,13 @@ public class MetadataSchemaXMLWriter3 {
 			metadataElement.setAttribute("essential", writeBoolean(metadata.isEssential()));
 			different = true;
 		}
+		// TODO VALIDER POUR SAVOIR SI CORRECT
+		if (!globalMetadataInCollection.getCustomAttributes().containsAll(metadata.getCustomAttributes())) {
+			List<String> attributesList = new ArrayList<String>(metadata.getCustomAttributes());
+			metadataElement.setAttribute("customAttributes", toCommaSeparatedString(attributesList));
+			different = true;
+		}
+
 		if (globalMetadataInCollection.isEssentialInSummary() != metadata.isEssentialInSummary()) {
 			metadataElement.setAttribute("essentialInSummary", writeBoolean(metadata.isEssentialInSummary()));
 			different = true;

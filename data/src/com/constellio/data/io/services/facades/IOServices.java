@@ -357,6 +357,10 @@ public class IOServices {
 		return fileServices.newTemporaryFile(resourceName);
 	}
 
+	public File newTemporaryFile(String resourceName, String extension) {
+		return fileServices.newTemporaryFile(resourceName, extension);
+	}
+
 	public void touch(File file) {
 		try {
 			FileUtils.touch(file);

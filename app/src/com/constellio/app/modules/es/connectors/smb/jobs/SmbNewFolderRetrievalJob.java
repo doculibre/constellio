@@ -1,73 +1,80 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
-import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrFolderUpdater;
-import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobType;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
+import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
-import com.constellio.app.modules.es.connectors.smb.service.SmbService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
-import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 
-public class SmbNewFolderRetrievalJob extends ConnectorJob implements SmbConnectorJob {
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+
+public class SmbNewFolderRetrievalJob extends SmbConnectorJob {
 	private static final String jobName = SmbNewFolderRetrievalJob.class.getSimpleName();
-	private final ConnectorEventObserver eventObserver;
-	private final SmbDocumentOrFolderUpdater updater;
-	private final SmbRecordService smbRecordService;
-	private final String url;
-	private final SmbService smbService;
-	private final String parentUrl;
-	private final SmbJobFactory jobFactory;
+	private final JobParams jobParams;;
 
-	public SmbNewFolderRetrievalJob(Connector connector, String url, SmbService smbService, ConnectorEventObserver eventObserver,
-			SmbRecordService smbRecordService, SmbDocumentOrFolderUpdater updater, String parentUrl, SmbJobFactory jobFactory) {
-		super(connector, jobName);
-		this.eventObserver = eventObserver;
-		this.updater = updater;
-		this.smbRecordService = smbRecordService;
-		this.url = url;
-		this.smbService = smbService;
-		this.parentUrl = parentUrl;
-		this.jobFactory = jobFactory;
+	public SmbNewFolderRetrievalJob(JobParams jobParams) {
+		super(jobParams.getConnector(), jobName);
+		this.jobParams = jobParams;
 	}
 
 	@Override
 	public void execute(Connector connector) {
-		this.connector.getLogger()
-				.debug("Executing " + toString(), "", new LinkedHashMap<String, String>());
+		String url = jobParams.getUrl();
 
-		SmbFileDTO smbObject = smbService.getSmbFileDTO(url);
+		SmbFileDTO smbFileDTO = jobParams.getSmbShareService().getSmbFileDTO(url);
 
-		switch (smbObject.getStatus()) {
+		switch (smbFileDTO.getStatus()) {
 		case FULL_DTO:
-			ConnectorDocument fullFolder = smbRecordService.newConnectorSmbFolder(url);
-			String parentId = smbRecordService.getRecordIdForFolder(parentUrl);
-			updater.updateDocumentOrFolder(smbObject, fullFolder, parentId);
-			eventObserver.push(Arrays.asList(fullFolder));
-			smbRecordService.updateResumeUrl(url);
+			try {
+				ConnectorSmbFolder fullFolder = jobParams.getSmbRecordService().getFolder(url);
+				if (fullFolder == null) {
+					fullFolder = jobParams.getSmbRecordService().newConnectorSmbFolder(url);
+				}
+				String parentId = jobParams.getConnector().getContext().getParentId(url);
+				if (parentId == null && jobParams.getParentUrl() != null) {
+					ConnectorSmbFolder parentFolder = jobParams.getSmbRecordService().getFolder(jobParams.getParentUrl());
+					parentId = SmbRecordService.getSafeId(parentFolder);
+				}
+				jobParams.getUpdater().updateDocumentOrFolder(smbFileDTO, fullFolder, parentId);
+				jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) fullFolder));
+				jobParams.getSmbRecordService().updateResumeUrl(url);
+				jobParams.getConnector().getContext().traverseModified(url, new SmbModificationIndicator(smbFileDTO), parentId, jobParams.getConnectorInstance().getTraversalCode());
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
+			}
 			break;
 		case FAILED_DTO:
-			ConnectorDocument failedFolder = smbRecordService.newConnectorSmbFolder(url);
-			String failedFolderParentId = smbRecordService.getRecordIdForFolder(parentUrl);
-			updater.updateFailedDocumentOrFolder(smbObject, failedFolder, failedFolderParentId);
-			eventObserver.push(Arrays.asList(failedFolder));
+			try {
+				ConnectorSmbFolder fullFolder = jobParams.getSmbRecordService().getFolder(url);
+				if (fullFolder == null) {
+					fullFolder = jobParams.getSmbRecordService().newConnectorSmbFolder(url);
+				}
+				String parentId = jobParams.getConnector().getContext().getParentId(url);
+				if (parentId == null && jobParams.getParentUrl() != null) {
+					ConnectorSmbFolder parentFolder = jobParams.getSmbRecordService().getFolder(jobParams.getParentUrl());
+					parentId = SmbRecordService.getSafeId(parentFolder);
+				}
+				jobParams.getUpdater().updateFailedDocumentOrFolder(smbFileDTO, fullFolder, parentId);
+				jobParams.getEventObserver().push(Arrays.asList((ConnectorDocument) fullFolder));
+				jobParams.getConnector().getContext().traverseModified(url, new SmbModificationIndicator(smbFileDTO), parentId, jobParams.getConnectorInstance().getTraversalCode());
+			} catch (Exception e) {
+				this.connector.getLogger().errorUnexpected(e);
+			}
 			break;
 		case DELETE_DTO:
 			try {
 				ConnectorSmb connectorSmb = (ConnectorSmb) connector;
-				ConnectorJob deleteJob = jobFactory.get(SmbJobCategory.DELETE, url, parentUrl);
+				SmbConnectorJob deleteJob = jobParams.getJobFactory().get(SmbJobCategory.DELETE, url, jobParams.getParentUrl());
 				connectorSmb.queueJob(deleteJob);
 			} catch (Exception e) {
-				this.connector.getLogger()
-						.errorUnexpected(e);
+				this.connector.getLogger().errorUnexpected(e);
 			}
 			break;
 		default:
@@ -79,7 +86,7 @@ public class SmbNewFolderRetrievalJob extends ConnectorJob implements SmbConnect
 
 	@Override
 	public String getUrl() {
-		return url;
+		return jobParams.getUrl();
 	}
 
 	@Override
@@ -89,6 +96,6 @@ public class SmbNewFolderRetrievalJob extends ConnectorJob implements SmbConnect
 
 	@Override
 	public String toString() {
-		return jobName + '@' + Integer.toHexString(hashCode()) + " - " + url;
+		return jobName + '@' + Integer.toHexString(hashCode()) + " - " + jobParams.getUrl();
 	}
 }

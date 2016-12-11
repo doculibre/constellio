@@ -23,17 +23,17 @@ public class RMTask extends Task {
 		return get(ADMINISTRATIVE_UNIT);
 	}
 
-	public RMTask getAdministrativeUnit(String administrativeUnitId) {
+	public RMTask setAdministrativeUnit(String administrativeUnitId) {
 		set(ADMINISTRATIVE_UNIT, administrativeUnitId);
 		return this;
 	}
 
-	public RMTask getAdministrativeUnit(Record administrativeUnit) {
+	public RMTask setAdministrativeUnit(Record administrativeUnit) {
 		set(ADMINISTRATIVE_UNIT, administrativeUnit);
 		return this;
 	}
 
-	public RMTask getAdministrativeUnit(AdministrativeUnit administrativeUnit) {
+	public RMTask setAdministrativeUnit(AdministrativeUnit administrativeUnit) {
 		set(ADMINISTRATIVE_UNIT, administrativeUnit);
 		return this;
 	}

@@ -16,6 +16,7 @@ import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -58,7 +59,6 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	private final Acl removeAces;
 	private final AclPropagation aclPropagation;
 	private final ExtensionsData extension;
-	private final CallContext context;
 	private final AuthorizationsServices authorizationsServices;
 	private final RecordServices recordServices;
 	private final String collection;
@@ -66,8 +66,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
 			String repositoryId, String objectId, Acl addAces, Acl removeAces, AclPropagation aclPropagation,
 			ExtensionsData extension) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
 		this.aces = null;
@@ -82,8 +81,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 	public ApplyAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
 			String repositoryId, String objectId, Acl aces, AclPropagation aclPropagation) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
 		this.addAces = null;
@@ -101,29 +99,29 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 	 */
 	@Override
 	public Acl process() {
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
-
 		validateAces(aces);
 		validateAces(addAces);
 		validateAces(removeAces);
 
+		Record record = recordServices.getDocumentById(objectId);
+		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_APPLY_ACL);
 		if (hasCommandToRemoveAllInheritedAuthorizations()) {
-			Record record = recordServices.getDocumentById(objectId);
+
 			for (Authorization auth : getInheritedObjectAuthorizationsWithPermission(objectId)) {
 				authorizationsServices.removeAuthorizationOnRecord(auth, record, DETACH);
 			}
 
 		}
 
-		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, objectId).process().getAces();
+		List<Ace> currentAces = new GetAclRequest(repository, appLayerFactory, callContext, objectId).process().getAces();
 
 		List<Ace> acesToAdd = getAcesToAdd(currentAces);
 		List<Ace> acesToRemove = getAcesToRemove(currentAces);
 
-		createNewAuthorizations(user, acesToAdd);
-		removeAuthorizations(user, acesToRemove);
+		createNewAuthorizations(acesToAdd);
+		removeAuthorizations(acesToRemove);
 
-		return new GetAclRequest(repository, appLayerFactory, objectId).process();
+		return new GetAclRequest(repository, appLayerFactory, callContext, objectId).process();
 	}
 
 	private void validateAces(Acl acl) {
@@ -167,7 +165,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		return false;
 	}
 
-	private void removeAuthorizations(User user, List<Ace> acesToRemove) {
+	private void removeAuthorizations(List<Ace> acesToRemove) {
 		Set<String> authorizationsPotentiallyEmpty = new HashSet<>();
 		for (Ace ace : acesToRemove) {
 			List<String> permissions = toConstellioPermissions(ace.getPermissions());
@@ -183,6 +181,8 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
+
+
 		}
 		for (String auth : authorizationsPotentiallyEmpty) {
 			Authorization authorization = authorizationsServices.getAuthorization(collection, auth);
@@ -190,9 +190,10 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 				authorizationsServices.delete(authorization.getDetail(), user);
 			}
 		}
+
 	}
 
-	private void createNewAuthorizations(User user, List<Ace> acesToAdd) {
+	private void createNewAuthorizations(List<Ace> acesToAdd) {
 		for (Ace ace : acesToAdd) {
 			if (!REMOVE_INHERITANCE_COMMAND.equals(ace.getPrincipalId())) {
 				List<String> permissions = toConstellioPermissions(ace.getPermissions());
@@ -208,7 +209,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 					authorizations.add(authorizationDetails.getId());
 					principal.set(Schemas.AUTHORIZATIONS, authorizations);
 					try {
-						modelLayerFactory.newRecordServices().updateAsync(principal);
+						recordServices.updateAsync(principal);
 					} catch (RecordServicesException e) {
 						throw new RuntimeException(e);
 					}

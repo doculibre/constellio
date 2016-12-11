@@ -113,6 +113,19 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichHasCustomAttributes(final String... attributes) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				for (String attribute : attributes) {
+					builder.addCustomAttribute(attribute);
+				}
+			}
+
+		};
+	}
+
 	public static MetadataBuilderConfigurator whichIsEssentialInSummary = new MetadataBuilderConfigurator() {
 
 		@Override

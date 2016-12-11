@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +35,7 @@ public class MetadataSchemaTypes {
 	private final List<String> schemaTypesSortedByDependency;
 	private List<String> referenceDefaultValues;
 	private MetadataList searchableMetadatas;
+	private final Set<String> typeParentOfOtherTypes;
 
 	private final List<Language> languages;
 
@@ -51,7 +53,29 @@ public class MetadataSchemaTypes {
 		this.searchableMetadatas = getAllMetadatas().onlySearchable();
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
 		this.languages = Collections.unmodifiableList(languages);
+		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.metadataNetwork = metadataNetwork;
+	}
+
+	private Set<String> buildTypeParentOfOtherTypes(List<MetadataSchemaType> schemaTypes) {
+
+		Set<String> typeParentOfOtherTypes = new HashSet<>();
+
+		for (MetadataSchemaType type : schemaTypes) {
+			secondFor:
+			for (MetadataSchemaType anotherType : schemaTypes) {
+				for (Metadata metadata : anotherType.getAllMetadatas()) {
+					if (metadata.getType() == REFERENCE && metadata.isChildOfRelationship()
+							&& metadata.getAllowedReferences().isAllowed(type)) {
+						typeParentOfOtherTypes.add(type.getCode());
+						break secondFor;
+					}
+				}
+			}
+		}
+
+		return Collections.unmodifiableSet(typeParentOfOtherTypes);
+
 	}
 
 	private Map<String, MetadataSchemaType> toUnmodifiableMap(List<MetadataSchemaType> schemaTypes) {
@@ -272,4 +296,7 @@ public class MetadataSchemaTypes {
 		return false;
 	}
 
+	public Set<String> getTypeParentOfOtherTypes() {
+		return typeParentOfOtherTypes;
+	}
 }

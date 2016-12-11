@@ -1,5 +1,7 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_IN;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +12,9 @@ import org.apache.chemistry.opencmis.commons.data.Acl;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -24,10 +29,14 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
@@ -53,7 +62,6 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 	Acl addAces;
 	org.apache.chemistry.opencmis.commons.data.Acl removeAces;
 	ExtensionsData extension;
-	CallContext context;
 
 	public CheckInRequest(ConstellioCollectionRepository repository, CallContext context,
 			AppLayerFactory appLayerFactory,
@@ -61,8 +69,7 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 			Holder<String> objectId, Boolean major,
 			Properties properties, ContentStream contentStream, String checkinComment, List<String> policies,
 			Acl addAces, Acl removeAces, ExtensionsData extension) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
 		this.major = major;
@@ -79,13 +86,13 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 	protected Boolean process()
 			throws ConstellioCmisException {
 
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
-
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		ContentManager contentManager = modelLayerFactory.getContentManager();
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(repository.getCollection());
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		ContentCmisDocument contentCmisDocument = CmisContentUtils.getContent(objectId.getValue(), recordServices, types);
 		Content content = contentCmisDocument.getContent();
+
+		ensureUserHasAllowableActionsOnRecord(contentCmisDocument.getRecord(), Action.CAN_CHECK_IN);
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 
@@ -107,6 +114,8 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 					throw new ConstellioCmisException_ContentAlreadyCheckedOut();
 				}
 				recordServices.update(contentCmisDocument.getRecord(), user);
+				CheckInParams params = new CheckInParams(user, contentCmisDocument.getRecord());
+				appLayerFactory.getExtensions().forCollection(collection).onCheckIn(params);
 			} catch (IOException e) {
 				throw new ConstellioCmisException_IOError(e);
 			} catch (RecordServicesException e) {
@@ -129,6 +138,8 @@ public class CheckInRequest extends CmisCollectionRequest<Boolean> {
 			}
 			try {
 				recordServices.update(contentCmisDocument.getRecord(), user);
+				CheckInParams params = new CheckInParams(user, contentCmisDocument.getRecord());
+				appLayerFactory.getExtensions().forCollection(collection).onCheckIn(params);
 			} catch (RecordServicesException e) {
 				throw new ConstellioCmisException_RecordServicesError(e);
 			}

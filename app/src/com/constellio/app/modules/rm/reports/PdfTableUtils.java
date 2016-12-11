@@ -7,6 +7,13 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+
 public class PdfTableUtils {
 
 	public static final float ROW_HEIGHT = 20f;
@@ -59,13 +66,31 @@ public class PdfTableUtils {
 		table.addCell(cell);
 	}
 
+	public void addUncompleteBoldLeftPhraseRow(PdfPTable table, String phrase, int fontSize, int colspan) {
+		addBoldLeftPhraseCell(table, phrase, fontSize, colspan);
+	}
+
 	public void addLeftPhraseRow(PdfPTable table, String phrase, int fontSize, int colspan) {
 		addLeftPhraseCell(table, phrase, fontSize, colspan);
 		table.completeRow();
 	}
 
+	public void addBoldLeftPhraseRow(PdfPTable table, String phrase, int fontSize, int colspan) {
+		addBoldLeftPhraseCell(table, phrase, fontSize, colspan);
+		table.completeRow();
+	}
+
 	public void addLeftPhraseCell(PdfPTable table, String text, int fontSize, int colspan) {
 		Phrase pdfPhrase = newPhrase(text, fontSize);
+		PdfPCell cell = new PdfPCell(pdfPhrase);
+		cell.setBorder(Rectangle.NO_BORDER);
+		cell.setColspan(colspan);
+		cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+		table.addCell(cell);
+	}
+
+	public void addBoldLeftPhraseCell(PdfPTable table, String text, int fontSize, int colspan) {
+		Phrase pdfPhrase = newBoldPhrase(text, fontSize);
 		PdfPCell cell = new PdfPCell(pdfPhrase);
 		cell.setBorder(Rectangle.NO_BORDER);
 		cell.setColspan(colspan);
@@ -89,9 +114,20 @@ public class PdfTableUtils {
 		return new Phrase(text, getFont(fontSize));
 	}
 
+	public Phrase newBoldPhrase(String text, int fontSize) {
+		return new Phrase(text, getBoldFont(fontSize));
+	}
+
 	private Font getFont(float fontSize) {
 		Font font = new Font();
 		font.setSize(fontSize);
+		return font;
+	}
+
+	private Font getBoldFont(float fontSize) {
+		Font font = new Font();
+		font.setSize(fontSize);
+		font.setStyle(Font.BOLD);
 		return font;
 	}
 }

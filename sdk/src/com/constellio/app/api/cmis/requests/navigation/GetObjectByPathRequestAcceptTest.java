@@ -60,14 +60,13 @@ public class GetObjectByPathRequestAcceptTest extends ConstellioTest {
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = givenAdminSessionOnZeCollection();
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
 	public void givenRootPathThenReturnTheCollectionRecord()
 			throws Exception {
 		CmisObject objectData = cmisSession.getObjectByPath("/");
-
-		// assertThat(objectData.getProperties().getProperties().get("cmis:path").getFirstValue()).isEqualTo("/");
 
 		assertThat(objectData).has(property("cmis:path", "/"));
 	}

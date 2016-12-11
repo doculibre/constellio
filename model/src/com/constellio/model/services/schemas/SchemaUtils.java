@@ -107,7 +107,7 @@ public class SchemaUtils {
 		return underscoreSplitWithCache(metadata.getCode())[0];
 	}
 
-	public String getSchemaTypeCode(String schema) {
+	public static String getSchemaTypeCode(String schema) {
 		return underscoreSplitWithCache(schema)[0];
 	}
 

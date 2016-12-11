@@ -28,6 +28,15 @@ public class Role {
 
 	public static final Role DELETE_ROLE = new Role(DELETE);
 
+	public Role(String collection, String code,  List<String> operationPermissions) {
+		this.collection = collection;
+		this.code = code;
+		this.title = code;
+		List<String> allPermissionsList = new ArrayList<>(operationPermissions);
+		Collections.sort(allPermissionsList);
+		this.operationPermissions = Collections.unmodifiableList(allPermissionsList);
+	}
+
 	public Role(String collection, String code, String title, List<String> operationPermissions) {
 		this.collection = collection;
 		this.code = code;

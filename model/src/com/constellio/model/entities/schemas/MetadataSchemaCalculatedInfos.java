@@ -9,12 +9,15 @@ public class MetadataSchemaCalculatedInfos {
 	List<RecordPreparationStep> recordPreparationSteps;
 
 	List<Metadata> automaticMetadatas;
+	private List<Metadata> contentMetadatasForPopulate;
 
 	public MetadataSchemaCalculatedInfos(
 			List<RecordPreparationStep> recordPreparationSteps,
-			List<Metadata> automaticMetadatas) {
+			List<Metadata> automaticMetadatas,
+			List<Metadata> contentMetadatasForPopulate) {
 		this.recordPreparationSteps = recordPreparationSteps;
 		this.automaticMetadatas = automaticMetadatas;
+		this.contentMetadatasForPopulate = contentMetadatasForPopulate;
 	}
 
 	public List<RecordPreparationStep> getRecordPreparationSteps() {
@@ -23,5 +26,9 @@ public class MetadataSchemaCalculatedInfos {
 
 	public List<Metadata> getAutomaticMetadatas() {
 		return automaticMetadatas;
+	}
+
+	public List<Metadata> getContentMetadatasForPopulate() {
+		return contentMetadatasForPopulate;
 	}
 }

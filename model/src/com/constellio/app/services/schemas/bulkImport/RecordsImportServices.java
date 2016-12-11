@@ -58,6 +58,7 @@ public class RecordsImportServices implements ImportServices {
 		return bulkImport(importDataProvider, bulkImportProgressionListener, user, collections, new BulkImportParams());
 	}
 
+	@Override
 	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
 			final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user, List<String> collections, BulkImportParams params)

@@ -61,6 +61,7 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = givenAdminSessionOnZeCollection();
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
@@ -83,6 +84,17 @@ public class GetFolderParentRequestAcceptTest extends ConstellioTest {
 				.getFolderParent(cmisSession.getRepositoryInfo().getId(), record.getId(), null, null);
 
 		assertThat(objectDataParent.getId()).isEqualTo(zeCollectionRecords.taxo1_category2.getId());
+	}
+
+	@Test
+	public void whenGetParentOfTaxonomyThenRootIsReturned()
+			throws Exception {
+		Record record = zeCollectionRecords.taxo1_category2;
+
+		ObjectData objectDataParent = cmisSession.getBinding().getNavigationService()
+				.getFolderParent(cmisSession.getRepositoryInfo().getId(), "taxo_taxo1", null, null);
+
+		assertThat(objectDataParent.getId()).isEqualTo("zeCollection");
 	}
 
 	@Test

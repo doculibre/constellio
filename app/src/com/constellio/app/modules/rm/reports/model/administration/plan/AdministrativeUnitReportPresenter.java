@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.constellio.app.services.factories.AppLayerFactory;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -110,6 +111,7 @@ public class AdministrativeUnitReportPresenter {
 		List<AdministrativeUnitReportModel_AdministrativeUnit> children = new ArrayList<>();
 
 		if (parentRecord != null) {
+
 			List<TaxonomySearchRecord> childTaxonomySearchRecords = searchService.getLinkableChildConcept(User.GOD,
 					parentRecord, RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
@@ -180,7 +182,7 @@ public class AdministrativeUnitReportPresenter {
 
 	private void init() {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
+		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all()).setRows(1000);
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();

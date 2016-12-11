@@ -5,8 +5,10 @@ import static com.constellio.model.entities.schemas.entries.AgregationType.SUM;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -265,6 +267,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEssential(readBooleanWithDefaultValue(essentialStringValue, false));
 		}
 
+		String customAttributes = metadataElement.getAttributeValue("customAttributes");
+		if (inheriteGlobalMetadata && customAttributes == null) {
+			metadataBuilder.setCustomAttributes(globalMetadataInCollectionSchema.getCustomAttributes());
+		} else {
+			metadataBuilder.setCustomAttributes(parseCustomAttributes(customAttributes));
+		}
+
 		String essentialInSummaryStringValue = metadataElement.getAttributeValue("essentialInSummary");
 		if (inheriteGlobalMetadata && essentialInSummaryStringValue == null) {
 			metadataBuilder.setEssentialInSummary(globalMetadataInCollectionSchema.isEssentialInSummary());
@@ -500,6 +509,20 @@ public class MetadataSchemaXMLReader3 {
 			return new ArrayList<>();
 		}
 
+	}
+
+	private Set<String> parseCustomAttributes(String customAttributes) {
+		if (customAttributes != null && !customAttributes.isEmpty()) {
+			String[] elements = customAttributes.split(",");
+
+			Set<String> customAttributesSet = new HashSet<>();
+			for (String element : elements) {
+				customAttributesSet.add(element);
+			}
+
+			return customAttributesSet;
+		}
+		return new HashSet<>();
 	}
 
 	private boolean isInheriting(Element element) {

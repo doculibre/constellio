@@ -23,7 +23,6 @@ public class BulkUpdatePropertiesRequest extends CmisCollectionRequest<List<Bulk
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private final UpdatePropertiesRequest updatePropertiesRequest;
-	private final CallContext context;
 	private final List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken;
 	private final Properties properties;
 	private final ObjectInfoHandler objectInfos;
@@ -31,9 +30,8 @@ public class BulkUpdatePropertiesRequest extends CmisCollectionRequest<List<Bulk
 	public BulkUpdatePropertiesRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			UpdatePropertiesRequest updatePropertiesRequest, CallContext context,
 			List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties, ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
+		super(context, repository, appLayerFactory);
 		this.updatePropertiesRequest = updatePropertiesRequest;
-		this.context = context;
 		this.objectIdAndChangeToken = objectIdAndChangeToken;
 		this.properties = properties;
 		this.objectInfos = objectInfos;

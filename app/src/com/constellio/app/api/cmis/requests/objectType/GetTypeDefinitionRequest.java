@@ -13,14 +13,12 @@ import com.constellio.app.services.factories.AppLayerFactory;
 public class GetTypeDefinitionRequest extends CmisCollectionRequest<TypeDefinition> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private CallContext callContext;
 	private String typeId;
 
 	public GetTypeDefinitionRequest(ConstellioCollectionRepository constellioCollectionRepository,
 			AppLayerFactory appLayerFactory, CallContext callContext, String typeId) {
-		super(constellioCollectionRepository, appLayerFactory);
+		super(callContext, constellioCollectionRepository, appLayerFactory);
 
-		this.callContext = callContext;
 		this.typeId = typeId;
 	}
 

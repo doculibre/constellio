@@ -26,6 +26,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider implements DataProvider {
+	
 	SerializableSearchCache queryCache = new SerializableSearchCache();
 	transient LogicalSearchQuery query;
 	transient Integer size = null;
@@ -86,6 +87,7 @@ public abstract class RecordVODataProvider implements DataProvider {
 	}
 
 	public void fireDataRefreshEvent() {
+		query = getQuery();
 		size = null;
 		cache.clear();
 		queryCache.clear();

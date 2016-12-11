@@ -70,7 +70,7 @@ public class AllowedReferences implements Serializable {
 	}
 
 	public boolean isAllowed(MetadataSchemaType type) {
-		return type.getCode().equals(allowedSchemaType);
+		return type.getCode().equals(getTypeWithAllowedSchemas());
 	}
 
 	@Override

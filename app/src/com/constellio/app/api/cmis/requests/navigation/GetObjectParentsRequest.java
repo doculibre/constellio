@@ -1,5 +1,7 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,24 +19,20 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.CmisUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectParentData>> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final Set<String> filter;
 	private final String objectId;
 	private final Boolean includeAllowableActions;
@@ -44,8 +42,7 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 	public GetObjectParentsRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, String objectId, String filter, Boolean includeAllowableActions,
 			Boolean includeRelativePathSegment, ObjectInfoHandler objectInfo) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		if (filter != null) {
 			this.filter = CmisUtils.splitFilter(filter);
 		} else {
@@ -61,51 +58,70 @@ public class GetObjectParentsRequest extends CmisCollectionRequest<List<ObjectPa
 	protected List<ObjectParentData> process()
 			throws ConstellioCmisException {
 
-		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(repository.getCollection());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
+		ObjectParentData parent;
+
 		if (objectId.startsWith("content_")) {
-			ObjectData objectData = getObjectDataDocument(types);
-			return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(objectData));
+			parent = new ObjectParentDataImpl(buildContentObjectData());
+
+		} else if (objectId.startsWith("taxo_")) {
+			Record record = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
+			parent = new ObjectParentDataImpl(newObjectDataBuilder().build(record, filter, false, false, objectInfo));
+
 		} else {
-			ObjectData objectData = getObjectDataFolder(types, recordServices, user);
-			return Collections.<ObjectParentData>singletonList(new ObjectParentDataImpl(objectData));
+			Record record = recordServices.getDocumentById(objectId);
+			List<ObjectParentData> parentDatas = new ArrayList<>();
+			for (ObjectData objectData : buildRecordObjectData(record)) {
+				parentDatas.add(new ObjectParentDataImpl(objectData));
+			}
+			return parentDatas;
+
 		}
+		return Collections.<ObjectParentData>singletonList(parent);
 	}
 
-	private ObjectData getObjectDataDocument(MetadataSchemaTypes types) {
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types);
-
-		return newObjectDataBuilder().build(context, content.getRecord(), filter, false, false, objectInfo);
+	private ObjectData buildContentObjectData() {
+		ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types());
+		return newObjectDataBuilder().build(content.getRecord(), filter, false, false, objectInfo);
 	}
 
-	private ObjectData getObjectDataFolder(MetadataSchemaTypes types, RecordServices recordServices, User user) {
-		Record record = recordServices.getDocumentById(objectId, user);
-		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+	private List<ObjectData> buildRecordObjectData(Record record) {
+
+		Taxonomy taxonomyOfRecord = taxonomiesManager.getTaxonomyOf(record);
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(collection);
+		MetadataSchema schema = types().getSchema(record.getSchemaCode());
 		List<Metadata> parentReferencesMetadatas = schema.getParentReferences();
-		List<Metadata> referencesMetadatas = schema.getTaxonomyRelationshipReferences(Arrays.asList(modelLayerFactory
-				.getTaxonomiesManager().getPrincipalTaxonomy(record.getCollection())));
-
+		List<Metadata> referencesMetadatas = schema.getTaxonomyRelationshipReferences(asList(principalTaxonomy));
 		List<Metadata> allReferencesMetadatas = new ArrayList<>();
 		allReferencesMetadatas.addAll(parentReferencesMetadatas);
 		allReferencesMetadatas.addAll(referencesMetadatas);
 
-		Record parentRecord = null;
+		List<ObjectData> parents = new ArrayList<>();
 		for (Metadata referenceMetadata : allReferencesMetadatas) {
 			if (record.get(referenceMetadata) != null) {
 				String parentId = record.get(referenceMetadata);
-				parentRecord = recordServices.getDocumentById(parentId, user);
-				break;
+				Record parentRecord = recordServices.getDocumentById(parentId);
+				parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
 			}
 		}
-		if (parentRecord == null) {
-			return null;
-			//return newObjectDataBuilder().build(context, record, filter, false, false, objectInfo);
-		} else {
-			return newObjectDataBuilder().build(context, parentRecord, filter, false, false, objectInfo);
+
+		for (Taxonomy taxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
+			if (!taxonomy.hasSameCode(taxonomiesManager.getPrincipalTaxonomy(record.getCollection()))) {
+				List<Metadata> taxonomyReferencesMetadatas = schema.getTaxonomyRelationshipReferences(asList(taxonomy));
+				for (Metadata referenceMetadata : taxonomyReferencesMetadatas) {
+					if (record.get(referenceMetadata) != null) {
+						String parentId = record.get(referenceMetadata);
+						Record parentRecord = recordServices.getDocumentById(parentId);
+						parents.add(newObjectDataBuilder().build(parentRecord, filter, false, false, objectInfo));
+					}
+				}
+			}
 		}
+
+		if (parents.isEmpty() && taxonomyOfRecord != null) {
+			parents.add(newTaxonomyObjectBuilder().build(taxonomyOfRecord, objectInfo));
+		}
+
+		return parents;
 
 	}
 

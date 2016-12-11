@@ -20,6 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.joda.time.LocalDate.now;
 
+import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -46,6 +52,8 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup setup = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeSchema = setup.new ZeSchemaMetadatas();
 	AnotherSchemaMetadatas anotherSchema = setup.new AnotherSchemaMetadatas();
+
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Before
 	public void setUp()
@@ -216,6 +224,32 @@ public class SystemCheckManagerAcceptanceTest extends ConstellioTest {
 		assertThat(systemCheckResults.errors.getValidationErrors()).isEmpty();
 		assertThat(systemCheckResults.errors.getValidationWarnings()).isEmpty();
 
+	}
+
+	@Test
+	public void givenRecordWithInvalidMetadataThenValidationErrorMessageIsSent()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withConstellioESModule().withAllTestUsers()
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+		);
+		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+
+		givenDisabledAfterTestValidations();
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).get("title").setInputMask("AAAA-AAAA");
+			}
+		});
+
+		SystemCheckManager systemCheckManager = new SystemCheckManager(getAppLayerFactory());
+		SystemCheckResults systemCheckResults = systemCheckManager.runSystemCheck(false);
+		assertThat(frenchMessages(systemCheckResults.errors)).contains(
+				"La valeur «Framboise» de la métadonnée «Titre» ne respecte pas le format «AAAA-AAAA»"
+		);
 	}
 
 	@Test

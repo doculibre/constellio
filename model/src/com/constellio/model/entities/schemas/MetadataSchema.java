@@ -184,4 +184,8 @@ public class MetadataSchema {
 	public List<RecordPreparationStep> getPreparationSteps() {
 		return calculatedInfos.getRecordPreparationSteps();
 	}
+
+	public List<Metadata> getContentMetadatasForPopulate() {
+		return calculatedInfos.getContentMetadatasForPopulate();
+	}
 }

@@ -20,15 +20,13 @@ public class GetPropertiesOfLatestVersionRequest extends CmisCollectionRequest<P
 	String versionSeriesId;
 	Boolean major;
 	String filter;
-	CallContext callContext;
 	ExtensionsData extension;
 
 	public GetPropertiesOfLatestVersionRequest(ConstellioCollectionRepository repository,
 			AppLayerFactory appLayerFactory,
 			CallContext callContext, String objectId, String versionSeriesId, Boolean major, String filter,
 			ExtensionsData extension) {
-		super(repository, appLayerFactory);
-		this.callContext = callContext;
+		super(callContext, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.versionSeriesId = versionSeriesId;
 		this.major = major;
