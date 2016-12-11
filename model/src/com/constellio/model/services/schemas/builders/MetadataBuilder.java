@@ -713,8 +713,8 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes);
-				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, increasedDependencyLevel);
+				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
+				increasedDependencyLevel);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 

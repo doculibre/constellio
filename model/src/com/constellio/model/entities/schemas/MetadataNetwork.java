@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.data.utils.KeySetMap;
-import com.itextpdf.text.Meta;
 
 public class MetadataNetwork {
 

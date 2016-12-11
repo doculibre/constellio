@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -16,13 +17,16 @@ import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils.RecordsAssert;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
@@ -105,23 +109,187 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAgregatedSumMetadataWhenCreateInputRecordThenSum()
+	public void givenAgregatedSumMetadataWhenAddingRecordsInSameTransactionThenGoodSums()
 			throws Exception {
-		records.setup(schemas, getModelLayerFactory());
+		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
-		assertThatZeSchemaRecords().containsOnly(
-				tuple("zeSchemaRecord1", 1.0, 0.0),
-				tuple("zeSchemaRecord2", 2.0, 0.0),
-				tuple("zeSchemaRecord3", 3.0, 0.0),
-				tuple("zeSchemaRecord4", 4.0, 0.0)
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.1),
+				tuple("zeSchemaRecord2", 2.0, 0.2),
+				tuple("zeSchemaRecord3", 3.0, 0.3),
+				tuple("zeSchemaRecord4", 4.0, 0.4)
 		);
 
-		assertThatAnotherSchemasRecords().containsOnly(
-				tuple("anotherSchemaRecord1", null, null, null),
-				tuple("anotherSchemaRecord2", null, null, null)
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 3.0, 30.0, 10.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 10.0)
 		);
 
-		assertThatThirdSchemasRecords().containsOnly(
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 10.0, 100.0),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+	}
+
+	@Test
+	public void givenAgregatedSumMetadataWhenAddingRecordsInMultipleTransactionsThenGoodSums()
+			throws Exception {
+		records.setupInMultipleTransaction(schemas, getModelLayerFactory());
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.1),
+				tuple("zeSchemaRecord2", 2.0, 0.2),
+				tuple("zeSchemaRecord3", 3.0, 0.3),
+				tuple("zeSchemaRecord4", 4.0, 0.4)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 3.0, 30.0, 10.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 10.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 10.0, 100.0),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+	}
+
+	@Test
+	public void givenModifiedRecordNumberMetadatasThenUpdateSums()
+			throws Exception {
+		records.setupInOneTransaction(schemas, getModelLayerFactory());
+
+		Transaction transaction = new Transaction();
+		transaction.add(records.zeSchemaRecord1().set(zeSchema.metadata("number"), 11.0));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 11.0, 0.55),
+				tuple("zeSchemaRecord2", 2.0, 0.1),
+				tuple("zeSchemaRecord3", 3.0, 0.15),
+				tuple("zeSchemaRecord4", 4.0, 0.2)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 13.0, 130.0, 20.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 20.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 20.0, 200.0),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+	}
+
+	@Test
+	public void givenRemovedRecordNumberMetadatasThenUpdateSums()
+			throws Exception {
+		records.setupInOneTransaction(schemas, getModelLayerFactory());
+
+		Transaction transaction = new Transaction();
+		transaction.add(records.zeSchemaRecord2().set(zeSchema.metadata("number"), null));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.125),
+				tuple("zeSchemaRecord2", null, null),
+				tuple("zeSchemaRecord3", 3.0, 0.375),
+				tuple("zeSchemaRecord4", 4.0, 0.5)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0, 10.0, 8.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 8.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 8.0, 80.0),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+	}
+
+	@Test
+	public void givenModifiedRecordReferenceMetadatasThenUpdateSums()
+			throws Exception {
+		records.setupInOneTransaction(schemas, getModelLayerFactory());
+
+		Transaction transaction = new Transaction();
+		transaction.add(records.zeSchemaRecord2().set(zeSchema.metadata("ref"), "anotherSchemaRecord2"));
+		transaction.add(records.anotherSchemaRecord1().set(anotherSchema.metadata("ref"), "aThirdSchemaRecord2"));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.1),
+				tuple("zeSchemaRecord2", 2.0, 0.2),
+				tuple("zeSchemaRecord3", 3.0, 0.3),
+				tuple("zeSchemaRecord4", 4.0, 0.4)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0, 10.0, 1.0),
+				tuple("anotherSchemaRecord2", 9.0, 90.0, 9.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 9.0, 90.0),
+				tuple("aThirdSchemaRecord2", 1.0, 10.0)
+		);
+
+	}
+
+	@Test
+	public void givenRemovedRecordReferenceMetadatasThenUpdateSums()
+			throws Exception {
+		records.setupInOneTransaction(schemas, getModelLayerFactory());
+
+		Transaction transaction = new Transaction();
+		transaction.add(records.zeSchemaRecord2().set(zeSchema.metadata("ref"), null));
+		transaction.add(records.anotherSchemaRecord1().set(anotherSchema.metadata("ref"), null));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.125),
+				tuple("zeSchemaRecord2", 2.0, null),
+				tuple("zeSchemaRecord3", 3.0, 0.375),
+				tuple("zeSchemaRecord4", 4.0, 0.5)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0, 10.0, 7.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 7.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 8.0, 80.0),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+		transaction = new Transaction();
+		transaction.add(records.anotherSchemaRecord1().set(anotherSchema.metadata("ref"), null));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, null),
+				tuple("zeSchemaRecord2", 2.0, null),
+				tuple("zeSchemaRecord3", 3.0, null),
+				tuple("zeSchemaRecord4", 4.0, null)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0, 10.0, null),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, null)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", null, null),
 				tuple("aThirdSchemaRecord2", null, null)
 		);
@@ -150,28 +318,4 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		return tuples;
 	}
 
-	private ListAssert<Tuple> assertThatZeSchemaRecords() {
-		return assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll()))).extractingMetadatas(
-				Schemas.IDENTIFIER,
-				zeSchema.metadata("number"),
-				zeSchema.metadata("pct")
-		);
-	}
-
-	private ListAssert<Tuple> assertThatAnotherSchemasRecords() {
-		return assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll()))).extractingMetadatas(
-				Schemas.IDENTIFIER,
-				anotherSchema.metadata("sum"),
-				anotherSchema.metadata("sumX10"),
-				anotherSchema.metadata("copiedThirdSchemaTypeSum")
-		);
-	}
-
-	private ListAssert<Tuple> assertThatThirdSchemasRecords() {
-		return assertThatRecords(searchServices.search(query(from(thirdSchema.type()).returnAll()))).extractingMetadatas(
-				Schemas.IDENTIFIER,
-				thirdSchema.metadata("sum"),
-				thirdSchema.metadata("sumX10")
-		);
-	}
 }

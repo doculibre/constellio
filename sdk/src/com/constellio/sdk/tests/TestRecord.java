@@ -11,12 +11,16 @@ import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
 public class TestRecord extends RecordImpl {
 
+	SchemaShortcuts schemaShortcuts;
+
 	public TestRecord(SchemaShortcuts schema) {
 		super(schema.code(), schema.collection(), "TestRecord_" + UUID.randomUUID().toString());
+		this.schemaShortcuts = schema;
 	}
 
 	public TestRecord(SchemaShortcuts schema, String id) {
 		super(schema.code(), schema.collection(), id);
+		this.schemaShortcuts = schema;
 	}
 
 	public TestRecord(String schema, String collection, String id) {
@@ -41,6 +45,15 @@ public class TestRecord extends RecordImpl {
 
 	public TestRecord withTitle(String title) {
 		set(Schemas.TITLE, title);
+		return this;
+	}
+
+	public TestRecord set(String localCode, Object value) {
+		if (schemaShortcuts == null) {
+			throw new IllegalStateException("Must use constructor with SchemaShortcuts to use this method");
+		}
+
+		set(schemaShortcuts.instance().get(localCode), value);
 		return this;
 	}
 

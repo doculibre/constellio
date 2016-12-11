@@ -19,45 +19,54 @@ public class RecordServicesAgregatedMetadatasAcceptTestRecords {
 	RecordServices recordServices;
 	ModelLayerFactory modelLayerFactory;
 
-	public void setup(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory) {
+	private void initialize(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.schemas = schemas;
 		this.zeSchema = schemas.new ZeSchemaMetadatas();
 		this.anotherSchema = schemas.new AnotherSchemaMetadatas();
 		this.thirdSchema = schemas.new ThirdSchemaMetadatas();
+	}
+
+	public void setupInOneTransaction(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)
+			throws Exception {
+		initialize(schemas, modelLayerFactory);
 
 		Transaction transaction = new Transaction();
-		Record zeSchemaRecord1 = transaction.add(new TestRecord(zeSchema, "zeSchemaRecord1"));
-		zeSchemaRecord1.set(zeSchema.metadata("ref"), "anotherSchemaRecord1");
-		zeSchemaRecord1.set(zeSchema.metadata("number"), 1);
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord1").set("ref", "anotherSchemaRecord1").set("number", 1));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord2").set("ref", "anotherSchemaRecord1").set("number", 2));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord3").set("ref", "anotherSchemaRecord2").set("number", 3));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord4").set("ref", "anotherSchemaRecord2").set("number", 4));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1").set("ref", "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2").set("ref", "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord2"));
 
-		Record zeSchemaRecord2 = transaction.add(new TestRecord(zeSchema, "zeSchemaRecord2"));
-		zeSchemaRecord2.set(zeSchema.metadata("ref"), "anotherSchemaRecord1");
-		zeSchemaRecord2.set(zeSchema.metadata("number"), 2);
+		recordServices.execute(transaction);
+		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+	}
 
-		Record zeSchemaRecord3 = transaction.add(new TestRecord(zeSchema, "zeSchemaRecord3"));
-		zeSchemaRecord3.set(zeSchema.metadata("ref"), "anotherSchemaRecord2");
-		zeSchemaRecord3.set(zeSchema.metadata("number"), 3);
+	public void setupInMultipleTransaction(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)
+			throws Exception {
+		initialize(schemas, modelLayerFactory);
 
-		Record zeSchemaRecord4 = transaction.add(new TestRecord(zeSchema, "zeSchemaRecord4"));
-		zeSchemaRecord4.set(zeSchema.metadata("ref"), "anotherSchemaRecord2");
-		zeSchemaRecord4.set(zeSchema.metadata("number"), 4);
+		Transaction transaction = new Transaction();
+		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord2"));
+		recordServices.execute(transaction);
 
-		Record anotherSchemaRecord1 = transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1"));
-		anotherSchemaRecord1.set(anotherSchema.metadata("ref"), "aThirdSchemaRecord1");
+		transaction = new Transaction();
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord1").set("ref", "aThirdSchemaRecord1"));
+		transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2").set("ref", "aThirdSchemaRecord1"));
+		recordServices.execute(transaction);
 
-		Record anotherSchemaRecord2 = transaction.add(new TestRecord(anotherSchema, "anotherSchemaRecord2"));
-		anotherSchemaRecord2.set(anotherSchema.metadata("ref"), "aThirdSchemaRecord1");
+		transaction = new Transaction();
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord1").set("ref", "anotherSchemaRecord1").set("number", 1));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord2").set("ref", "anotherSchemaRecord1").set("number", 2));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord3").set("ref", "anotherSchemaRecord2").set("number", 3));
+		transaction.add(new TestRecord(zeSchema, "zeSchemaRecord4").set("ref", "anotherSchemaRecord2").set("number", 4));
+		recordServices.execute(transaction);
 
-		Record aThirdSchemaRecord1 = transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord1"));
-		Record aThirdSchemaRecord2 = transaction.add(new TestRecord(thirdSchema, "aThirdSchemaRecord2"));
-
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
 		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
 	}
 

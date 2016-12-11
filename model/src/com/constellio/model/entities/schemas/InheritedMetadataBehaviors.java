@@ -30,8 +30,7 @@ public class InheritedMetadataBehaviors {
 	public InheritedMetadataBehaviors(boolean undeletable, boolean multivalue, boolean systemReserved, boolean unmodifiable,
 			boolean uniqueValue, boolean childOfRelationship, boolean taxonomyRelationship, boolean sortable,
 			boolean searchable, boolean schemaAutocomplete, boolean essential, boolean encrypted, boolean essentialInSummary,
-			boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes) {
-			boolean multiLingual, boolean markedForDeletion, boolean reverseDependency) {
+			boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes, boolean reverseDependency) {
 		this.undeletable = undeletable;
 		this.multivalue = multivalue;
 		this.systemReserved = systemReserved;

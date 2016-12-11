@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
@@ -38,6 +39,11 @@ public class RecordUtilsAcceptanceTestSchemasSetup extends TestsSchemasSetup {
 			return "zeCollection";
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata title() {
 			return getMetadata(code() + "_title");
 		}
@@ -45,6 +51,7 @@ public class RecordUtilsAcceptanceTestSchemasSetup extends TestsSchemasSetup {
 		public Metadata parent() {
 			return getMetadata(code() + "_parent");
 		}
+
 	}
 
 	public class DocumentSchema implements SchemaShortcuts {
@@ -58,6 +65,11 @@ public class RecordUtilsAcceptanceTestSchemasSetup extends TestsSchemasSetup {
 
 		public String collection() {
 			return "zeCollection";
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {

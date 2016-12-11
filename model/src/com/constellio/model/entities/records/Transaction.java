@@ -73,8 +73,6 @@ public class Transaction {
 		}
 		this.user = transaction.user;
 		this.recordUpdateOptions = transaction.recordUpdateOptions;
-		this.skippingRequiredValuesValidation = transaction.isSkippingRequiredValuesValidation();
-		this.skippingReferenceToLogicallyDeletedValidation = transaction.isSkippingReferenceToLogicallyDeletedValidation();
 		this.idsToReindex.addAll(transaction.getIdsToReindex());
 		this.recordUpdateOptions = new RecordUpdateOptions(transaction.recordUpdateOptions);
 	}
