@@ -12,6 +12,7 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	ModelLayerFactory modelLayerFactory;
 	BackgroundThreadsManager backgroundThreadsManager;
+	RecordsReindexingBackgroundAction recordsReindexingBackgroundAction;
 
 	public ModelLayerBackgroundThreadsManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -20,13 +21,18 @@ public class ModelLayerBackgroundThreadsManager implements StatefulService {
 
 	@Override
 	public void initialize() {
-		BackgroundReindexingCommand reindexingCommand = new BackgroundReindexingCommand(modelLayerFactory);
-		backgroundThreadsManager.configure(repeatingAction("reindexingCommand", reindexingCommand)
+		recordsReindexingBackgroundAction = new RecordsReindexingBackgroundAction(modelLayerFactory);
+		backgroundThreadsManager.configure(repeatingAction("recordsReindexingBackgroundAction",
+				recordsReindexingBackgroundAction)
 				.executedEvery(standardSeconds(10)).handlingExceptionWith(CONTINUE));
 	}
 
 	@Override
 	public void close() {
 
+	}
+
+	public RecordsReindexingBackgroundAction getRecordsReindexingBackgroundAction() {
+		return recordsReindexingBackgroundAction;
 	}
 }

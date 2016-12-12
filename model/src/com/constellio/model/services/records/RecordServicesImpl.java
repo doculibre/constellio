@@ -92,6 +92,7 @@ import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.AutocompleteFieldPopulator;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
+import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -463,13 +464,18 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 					}
 				}
+
 				if (transaction.getRecordUpdateOptions().getTransactionRecordsReindexation().isReindexAll() &&
-						schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())) {
+						schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
+						&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
+						&& !transaction.getIdsToReindex().contains(record.getId())) {
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
 				}
 			}
 
 		}
+
+		new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
 
 		for (Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
@@ -551,11 +557,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 		List<Record> recordsToInsert = new ArrayList<>();
 		for (Record record : records) {
 			RecordImpl recordImpl = (RecordImpl) record;
-			long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
-			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			Long version = transactionResponseDTO.getNewDocumentVersion(record.getId());
+			if (version != null) {
+				MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
-			recordImpl.markAsSaved(version, schema);
-			recordsToInsert.add(record);
+				recordImpl.markAsSaved(version, schema);
+				recordsToInsert.add(record);
+			}
 		}
 		recordsCaches.insert(collection, recordsToInsert);
 
@@ -690,7 +698,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 			}
 		};
 
-		Set<String> ids = new HashSet<>();
+		List<String> ids = transaction.getRecordIds();
+		Set<String> markedForReindexing = new HashSet<>();
+		for (String id : transaction.getIdsToReindex()) {
+			if (!ids.contains(id)) {
+				markedForReindexing.add(id);
+			} else {
+				transaction.getRecord(id).set(Schemas.MARKED_FOR_REINDEXING, true);
+			}
+		}
+
 		for (Record record : modifiedOrUnsavedRecords) {
 			MetadataSchema schema = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 					.getSchema(record.getSchemaCode());
@@ -703,14 +720,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 				} else if (transaction.getRecordUpdateOptions().isFullRewrite()) {
 					addedRecords.add(((RecordImpl) record).toDocumentDTO(schema, fieldsPopulators));
 				}
-			}
-			ids.add(record.getId());
-		}
-
-		Set<String> markedForReindexing = new HashSet<>();
-		for (String id : transaction.getIdsToReindex()) {
-			if (!ids.contains(id)) {
-				markedForReindexing.add(id);
 			}
 		}
 
@@ -754,7 +763,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	public RecordAutomaticMetadataServices newAutomaticMetadataServices() {
 		return new RecordAutomaticMetadataServices(modelFactory.getMetadataSchemasManager(), modelFactory.getTaxonomiesManager(),
-				modelFactory.getSystemConfigurationsManager(), modelFactory.getModelLayerLogger());
+				modelFactory.getSystemConfigurationsManager(), modelFactory.getModelLayerLogger(),
+				modelFactory.newSearchServices());
 	}
 
 	public RecordValidationServices newRecordValidationServices(RecordProvider recordProvider) {

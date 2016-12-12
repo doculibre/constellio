@@ -2,31 +2,26 @@ package com.constellio.model.services.records;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestUtils.RecordsAssert;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
@@ -46,7 +41,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
+		givenBackgroundThreadsEnabled();
 		defineSchemasManager().using(schemas.with(new MetadataSchemaTypesConfigurator() {
 			@Override
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
@@ -113,12 +108,51 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 			throws Exception {
 		records.setupInOneTransaction(schemas, getModelLayerFactory());
 
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 10.0, 100.0),
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 3.0, 30.0, 10.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 10.0)
+		);
+
 		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
 				tuple("zeSchemaRecord1", 1.0, 0.1),
 				tuple("zeSchemaRecord2", 2.0, 0.2),
 				tuple("zeSchemaRecord3", 3.0, 0.3),
 				tuple("zeSchemaRecord4", 4.0, 0.4)
 		);
+
+	}
+
+	@Test
+	public void givenAgregatedSumMetadataWhenReindexingThenGoodValues()
+			throws Exception {
+		records.setupWithNothingComputed(schemas, getModelLayerFactory());
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", null, null, null),
+				tuple("anotherSchemaRecord2", null, null, null)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", null, null),
+				tuple("aThirdSchemaRecord2", null, null)
+		);
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, null),
+				tuple("zeSchemaRecord2", 2.0, null),
+				tuple("zeSchemaRecord3", 3.0, null),
+				tuple("zeSchemaRecord4", 4.0, null)
+		);
+
+		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
+		//waitForBatchProcess();
 
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
 				tuple("anotherSchemaRecord1", 3.0, 30.0, 10.0),
@@ -127,7 +161,14 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 10.0, 100.0),
-				tuple("aThirdSchemaRecord2", null, null)
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
+		);
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.1),
+				tuple("zeSchemaRecord2", 2.0, 0.2),
+				tuple("zeSchemaRecord3", 3.0, 0.3),
+				tuple("zeSchemaRecord4", 4.0, 0.4)
 		);
 
 	}
@@ -151,7 +192,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 10.0, 100.0),
-				tuple("aThirdSchemaRecord2", null, null)
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
 	}
@@ -180,7 +221,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 20.0, 200.0),
-				tuple("aThirdSchemaRecord2", null, null)
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
 	}
@@ -209,7 +250,7 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 8.0, 80.0),
-				tuple("aThirdSchemaRecord2", null, null)
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
 	}
@@ -225,13 +266,6 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 
-		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
-				tuple("zeSchemaRecord1", 1.0, 0.1),
-				tuple("zeSchemaRecord2", 2.0, 0.2),
-				tuple("zeSchemaRecord3", 3.0, 0.3),
-				tuple("zeSchemaRecord4", 4.0, 0.4)
-		);
-
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
 				tuple("anotherSchemaRecord1", 1.0, 10.0, 1.0),
 				tuple("anotherSchemaRecord2", 9.0, 90.0, 9.0)
@@ -240,6 +274,13 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 9.0, 90.0),
 				tuple("aThirdSchemaRecord2", 1.0, 10.0)
+		);
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 1.0),
+				tuple("zeSchemaRecord2", 2.0, 0.2222222222222222),
+				tuple("zeSchemaRecord3", 3.0, 0.3333333333333333),
+				tuple("zeSchemaRecord4", 4.0, 0.4444444444444444)
 		);
 
 	}
@@ -251,25 +292,24 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.add(records.zeSchemaRecord2().set(zeSchema.metadata("ref"), null));
-		transaction.add(records.anotherSchemaRecord1().set(anotherSchema.metadata("ref"), null));
 		recordServices.execute(transaction);
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 
-		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
-				tuple("zeSchemaRecord1", 1.0, 0.125),
-				tuple("zeSchemaRecord2", 2.0, null),
-				tuple("zeSchemaRecord3", 3.0, 0.375),
-				tuple("zeSchemaRecord4", 4.0, 0.5)
-		);
-
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
-				tuple("anotherSchemaRecord1", 1.0, 10.0, 7.0),
-				tuple("anotherSchemaRecord2", 7.0, 70.0, 7.0)
+				tuple("anotherSchemaRecord1", 1.0, 10.0, 8.0),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 8.0)
 		);
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
 				tuple("aThirdSchemaRecord1", 8.0, 80.0),
-				tuple("aThirdSchemaRecord2", null, null)
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
+		);
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.125),
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.375),
+				tuple("zeSchemaRecord4", 4.0, 0.5)
 		);
 
 		transaction = new Transaction();
@@ -278,10 +318,32 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
 
 		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
-				tuple("zeSchemaRecord1", 1.0, null),
-				tuple("zeSchemaRecord2", 2.0, null),
-				tuple("zeSchemaRecord3", 3.0, null),
-				tuple("zeSchemaRecord4", 4.0, null)
+				tuple("zeSchemaRecord1", 1.0, 0.0),
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.42857142857142855),
+				tuple("zeSchemaRecord4", 4.0, 0.5714285714285714)
+		);
+
+		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
+				tuple("anotherSchemaRecord1", 1.0, 10.0, null),
+				tuple("anotherSchemaRecord2", 7.0, 70.0, 7.0)
+		);
+
+		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
+				tuple("aThirdSchemaRecord1", 7.0, 70.0),
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
+		);
+
+		transaction = new Transaction();
+		transaction.add(records.anotherSchemaRecord2().set(anotherSchema.metadata("ref"), null));
+		recordServices.execute(transaction);
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+
+		assertThatAllRecordsOf(zeSchema).extractingMetadatas("id", "number", "pct").containsOnly(
+				tuple("zeSchemaRecord1", 1.0, 0.0),
+				tuple("zeSchemaRecord2", 2.0, 0.0),
+				tuple("zeSchemaRecord3", 3.0, 0.0),
+				tuple("zeSchemaRecord4", 4.0, 0.0)
 		);
 
 		assertThatAllRecordsOf(anotherSchema).extractingMetadatas("id", "sum", "sumX10", "copiedThirdSchemaTypeSum").containsOnly(
@@ -290,8 +352,8 @@ public class RecordServicesAgregatedMetadatasAcceptTest extends ConstellioTest {
 		);
 
 		assertThatAllRecordsOf(thirdSchema).extractingMetadatas("id", "sum", "sumX10").containsOnly(
-				tuple("aThirdSchemaRecord1", null, null),
-				tuple("aThirdSchemaRecord2", null, null)
+				tuple("aThirdSchemaRecord1", 0.0, 0.0),
+				tuple("aThirdSchemaRecord2", 0.0, 0.0)
 		);
 
 	}

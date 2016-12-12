@@ -206,6 +206,22 @@ public class ReindexingServices {
 				LOGGER.info("Indexing '" + typeCode + "'");
 				reindexCollectionType(bulkTransactionHandler, types, typeCode);
 			}
+
+//			int currentLevel = 1;
+			//			boolean reindexedSomething = true;
+			//			while (reindexedSomething) {
+			//				modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+			//				for (String typeCode : types.getSchemaTypesSortedByDependency()) {
+			//					reindexedSomething = false;
+			//					if (types.getMetadataNetwork().getMaxLevelOf(typeCode) >= currentLevel) {
+			//						LOGGER.info("Level " + currentLevel + " Indexing '" + typeCode + "'");
+			//						reindexCollectionType(bulkTransactionHandler, types, typeCode);
+			//						reindexedSomething = false;
+			//					}
+			//				}
+			//				currentLevel++;
+			//			}
+
 		} finally {
 			bulkTransactionHandler.closeAndJoin();
 		}

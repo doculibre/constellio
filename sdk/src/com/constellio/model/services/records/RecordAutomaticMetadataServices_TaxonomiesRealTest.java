@@ -133,7 +133,8 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 		document.set(documentSchema.parent(), subFolderWithTaxonomy);
 
 		services = new RecordAutomaticMetadataServices(schemaManager, getModelLayerFactory().getTaxonomiesManager(),
-				getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getModelLayerLogger());
+				getModelLayerFactory().getSystemConfigurationsManager(), getModelLayerFactory().getModelLayerLogger(),
+				getModelLayerFactory().newSearchServices());
 
 		records.mockRecordProviderToReturnRecordsById(recordProvider);
 		records.mockRecordProviderToReturnRecordById(recordProvider, rootFolderWithTaxonomy);

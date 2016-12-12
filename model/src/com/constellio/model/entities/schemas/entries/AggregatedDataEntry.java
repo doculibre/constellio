@@ -3,23 +3,19 @@ package com.constellio.model.entities.schemas.entries;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType;
 
-public class AgregatedDataEntry implements DataEntry {
+public class AggregatedDataEntry implements DataEntry {
 
 	private String inputMetadata;
 
 	private String referenceMetadata;
 
-	private AgregationType agregationType;
+	private AggregationType agregationType;
 
-	public AgregatedDataEntry(String inputMetadata, String referenceMetadata, AgregationType agregationType) {
+	public AggregatedDataEntry(String inputMetadata, String referenceMetadata, AggregationType agregationType) {
 		this.inputMetadata = inputMetadata;
 		this.referenceMetadata = referenceMetadata;
 		this.agregationType = agregationType;
@@ -48,12 +44,12 @@ public class AgregatedDataEntry implements DataEntry {
 		return referenceMetadata;
 	}
 
-	public AgregationType getAgregationType() {
+	public AggregationType getAgregationType() {
 		return agregationType;
 	}
 
 	@Override
 	public DataEntryType getType() {
-		return DataEntryType.AGREGATED;
+		return DataEntryType.AGGREGATED;
 	}
 }

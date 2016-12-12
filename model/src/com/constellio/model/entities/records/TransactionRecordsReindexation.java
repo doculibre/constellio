@@ -50,6 +50,12 @@ public class TransactionRecordsReindexation {
 		return reindexation;
 	}
 
+	public static TransactionRecordsReindexation NOTHING() {
+		TransactionRecordsReindexation reindexation = new TransactionRecordsReindexation();
+		reindexation.reindexAllMetadatas = false;
+		return reindexation;
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);

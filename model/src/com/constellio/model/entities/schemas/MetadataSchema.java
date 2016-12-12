@@ -94,9 +94,13 @@ public class MetadataSchema {
 	}
 
 	public boolean hasMetadataWithCode(String metadataCode) {
-		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
+		try {
+			String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
 
-		return indexByLocalCode.get(localCode) != null;
+			return indexByLocalCode.get(localCode) != null;
+		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType e) {
+			return false;
+		}
 	}
 
 	public Metadata get(String metadataCode) {

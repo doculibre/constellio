@@ -24,7 +24,7 @@ public interface SearchQuery {
 
 	SearchQuery filteredWithUser(User user, String access);
 
-	SearchQuery computeStatsOnField(String metadata);
+	SearchQuery computeStatsOnField(DataStoreField metadata);
 
 	public SearchQuery sortAsc(DataStoreField metadata);
 

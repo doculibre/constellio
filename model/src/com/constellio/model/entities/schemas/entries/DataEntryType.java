@@ -2,6 +2,6 @@ package com.constellio.model.entities.schemas.entries;
 
 public enum DataEntryType {
 
-	MANUAL, COPIED, CALCULATED, SEQUENCE, AGREGATED;
+	MANUAL, COPIED, CALCULATED, SEQUENCE, AGGREGATED;
 
 }

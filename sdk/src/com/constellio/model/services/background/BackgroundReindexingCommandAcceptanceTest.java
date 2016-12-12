@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsingPattern;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -18,14 +19,14 @@ import org.apache.solr.common.SolrInputDocument;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -81,7 +82,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		markForReindexing(idsMarkedForReindexing);
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(0);
 
-		BackgroundReindexingCommand command = new BackgroundReindexingCommand(getModelLayerFactory());
+		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory());
 
 		command.run();
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(1000);
@@ -100,7 +101,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAutomaticaLockingWhenExecutingTransactionThenNothingChanged()
+	public void givenOptimisticLockingWhenExecutingTransactionThenNothingChanged()
 			throws Exception {
 
 		List<String> idsMarkedForReindexing = new ArrayList<>();
@@ -116,7 +117,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 
 		markForReindexing(idsMarkedForReindexing);
 
-		BackgroundReindexingCommand command = new BackgroundReindexingCommand(getModelLayerFactory()) {
+		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory()) {
 
 			@Override
 			void executeTransaction(Transaction transaction) {
@@ -142,6 +143,66 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		}
 		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(0);
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(100);
+
+	}
+
+	@Test
+	public void givenOptimisticLockingWithTwoTransactionsSettingFlagToDifferentValuesWhenExecutingSecondTransactionThenResolvedBySettingToTrue()
+			throws Exception {
+
+		List<String> idsMarkedForReindexing = new ArrayList<>();
+		Record record = new TestRecord(zeSchema).set(zeSchema.stringMetadata(), "pomme");
+		idsMarkedForReindexing.add(record.getId());
+		recordServices.add(record);
+
+		setNumberMetadataToABadValueTo(asList(record));
+		recordServices.refresh(record);
+
+		markForReindexing(idsMarkedForReindexing);
+
+		record.set(Schemas.TITLE, "New title!");
+		record.set(Schemas.MARKED_FOR_REINDEXING, true);
+
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(1);
+		new RecordsReindexingBackgroundAction(getModelLayerFactory()).run();
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(0);
+
+		Transaction transaction = new Transaction();
+		//transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+		transaction.add(record);
+		transaction.addRecordToReindex(record.getId());
+		recordServices.execute(transaction);
+
+		assertThat(searchServices.getResultsCount(whereNumberIsFive)).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(1);
+
+	}
+
+	@Test
+	public void givenRecordsMarkedForReindexingWhenDoingFullCollectionReindexingThenUnmarked()
+			throws Exception {
+		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
+		List<String> idsMarkedForReindexing = new ArrayList<>();
+		Record record = new TestRecord(zeSchema).set(zeSchema.stringMetadata(), "pomme");
+		idsMarkedForReindexing.add(record.getId());
+		recordServices.add(record);
+
+		setNumberMetadataToABadValueTo(asList(record));
+
+		markForReindexing(idsMarkedForReindexing);
+
+		recordServices.refresh(record);
+
+		record.set(Schemas.TITLE, "New title!");
+		record.set(Schemas.MARKED_FOR_REINDEXING, true);
+
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(1);
+
+		reindexingServices.reindexCollection(zeCollection, ReindexationMode.REWRITE);
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(1);
+
+		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
+		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(MARKED_FOR_REINDEXING).isTrue())).isEqualTo(0);
 
 	}
 
@@ -176,7 +237,7 @@ public class BackgroundReindexingCommandAcceptanceTest extends ConstellioTest {
 		setRefMetadataToABadValueTo(firstTransaction.getRecords());
 		markForReindexing(idsMarkedForReindexing);
 
-		BackgroundReindexingCommand command = new BackgroundReindexingCommand(getModelLayerFactory());
+		RecordsReindexingBackgroundAction command = new RecordsReindexingBackgroundAction(getModelLayerFactory());
 
 		command.run();
 		assertThat(searchServices.getResultsCount(from(zeSchema.type()).where(zeSchema.metadata("calculatedRef"))

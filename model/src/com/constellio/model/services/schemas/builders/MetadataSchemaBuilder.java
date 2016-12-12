@@ -29,6 +29,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Can
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
@@ -495,6 +496,12 @@ public class MetadataSchemaBuilder {
 		}
 
 		List<Metadata> sortedMetadatas = new ArrayList<>();
+
+		for (Metadata metadata : metadatas) {
+			if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+				sortedMetadatas.add(metadata);
+			}
+		}
 
 		for (String sortedMetadataCode : sortedMetadataCodes) {
 			for (Metadata metadata : metadatas) {

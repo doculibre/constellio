@@ -10,9 +10,8 @@ import java.util.List;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AgregationType;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -78,8 +77,8 @@ public class DataEntryBuilder {
 			metadata.setType(number.getType());
 		}
 
-		metadata.dataEntry = new AgregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),
-				AgregationType.SUM);
+		metadata.dataEntry = new AggregatedDataEntry(number.getCode(), referenceToAgregatingSchemaType.getCode(),
+				AggregationType.SUM);
 		return metadata;
 	}
 

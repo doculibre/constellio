@@ -26,12 +26,24 @@ public class MetadataNetwork {
 		return links;
 	}
 
+	public List<MetadataNetworkLink> getLinksFrom(String metadataCode) {
+		List<MetadataNetworkLink> links = linksFromMetadata.get(metadataCode);
+		return links == null ? Collections.<MetadataNetworkLink>emptyList() : Collections.unmodifiableList(links);
+	}
+
 	public List<MetadataNetworkLink> getLinksFrom(Metadata metadata) {
-		return Collections.unmodifiableList(linksFromMetadata.get(metadata));
+		List<MetadataNetworkLink> links = linksFromMetadata.get(metadata.getCode());
+		return links == null ? Collections.<MetadataNetworkLink>emptyList() : Collections.unmodifiableList(links);
+	}
+
+	public List<MetadataNetworkLink> getLinksTo(String metadataCode) {
+		List<MetadataNetworkLink> links = linksToMetadata.get(metadataCode);
+		return links == null ? Collections.<MetadataNetworkLink>emptyList() : Collections.unmodifiableList(links);
 	}
 
 	public List<MetadataNetworkLink> getLinksTo(Metadata metadata) {
-		return Collections.unmodifiableList(linksToMetadata.get(metadata));
+		List<MetadataNetworkLink> links = linksToMetadata.get(metadata.getCode());
+		return links == null ? Collections.<MetadataNetworkLink>emptyList() : Collections.unmodifiableList(links);
 	}
 
 	public static MetadataNetwork EMPTY() {
@@ -39,5 +51,16 @@ public class MetadataNetwork {
 				Collections.<String, List<MetadataNetworkLink>>emptyMap(),
 				Collections.<String, List<MetadataNetworkLink>>emptyMap()
 		);
+	}
+
+	public int getMaxLevelOf(String typeCode) {
+		int max = 0;
+
+		for (MetadataNetworkLink link : links) {
+			if (link.getFromMetadata().getCode().startsWith(typeCode + "_")) {
+				max = Math.max(max, link.getLevel());
+			}
+		}
+		return max;
 	}
 }

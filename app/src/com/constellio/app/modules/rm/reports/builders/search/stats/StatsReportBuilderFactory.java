@@ -20,9 +20,8 @@ public class StatsReportBuilderFactory implements ReportBuilderFactory {
 	public StatsReportBuilderFactory(String collection, ModelLayerFactory modelLayerFactory, LogicalSearchQuery query) {
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		DataStoreField folderLinearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		query.computeStatsOnField(folderLinearSizeMetadata.getDataStoreCode());
-		statistics = modelLayerFactory.newSearchServices().query(query)
-				.getStatValues(folderLinearSizeMetadata.getDataStoreCode());
+		query.computeStatsOnField(folderLinearSizeMetadata);
+		statistics = modelLayerFactory.newSearchServices().query(query).getStatValues(folderLinearSizeMetadata);
 	}
 
 	@Override

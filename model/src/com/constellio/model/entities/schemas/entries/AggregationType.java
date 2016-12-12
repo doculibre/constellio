@@ -1,6 +1,6 @@
 package com.constellio.model.entities.schemas.entries;
 
-public enum AgregationType {
+public enum AggregationType {
 
 	SUM;
 

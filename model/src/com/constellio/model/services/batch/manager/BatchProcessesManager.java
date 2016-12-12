@@ -1,11 +1,15 @@
 package com.constellio.model.services.batch.manager;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javafx.scene.layout.Background;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.jdom2.Document;
@@ -24,9 +28,12 @@ import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -38,11 +45,14 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	private final ConfigManager configManager;
 	private final SearchServices searchServices;
 	private final List<BatchProcessesListUpdatedEventListener> listeners = new ArrayList<>();
+	private final ModelLayerFactory modelLayerFactory;
 
-	public BatchProcessesManager(SearchServices searchServices, ConfigManager configManager) {
+	public BatchProcessesManager(ModelLayerFactory modelLayerFactory) {
 		super();
-		this.searchServices = searchServices;
-		this.configManager = configManager;
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
+		this.modelLayerFactory = modelLayerFactory;
+
 	}
 
 	@Override
@@ -342,12 +352,24 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	}
 
 	public void waitUntilAllFinished() {
-		for (BatchProcess batchProcess : getAllNonFinishedBatchProcesses()) {
-			waitUntilFinished(batchProcess);
+		for (int i = 0; i < 10; i++) {
+			for (BatchProcess batchProcess : getAllNonFinishedBatchProcesses()) {
+				waitUntilFinished(batchProcess);
+			}
+
+			RecordsReindexingBackgroundAction recordsReindexingBackgroundAction = modelLayerFactory
+					.getModelLayerBackgroundThreadsManager().getRecordsReindexingBackgroundAction();
+
+			if (recordsReindexingBackgroundAction != null) {
+				while (searchServices.hasResults(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue())) {
+					recordsReindexingBackgroundAction.run();
+				}
+			}
 		}
 	}
 
 	public void waitUntilFinished(BatchProcess batchProcess) {
+
 		while (get(batchProcess.getId()).getStatus() != BatchProcessStatus.FINISHED) {
 			try {
 				Thread.sleep(10);

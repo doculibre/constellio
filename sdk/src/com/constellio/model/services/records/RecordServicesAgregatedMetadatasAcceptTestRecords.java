@@ -1,5 +1,15 @@
 package com.constellio.model.services.records;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.common.SolrInputDocument;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -44,6 +54,46 @@ public class RecordServicesAgregatedMetadatasAcceptTestRecords {
 
 		recordServices.execute(transaction);
 		modelLayerFactory.getBatchProcessesManager().waitUntilAllFinished();
+	}
+
+	public void setupWithNothingComputed(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)
+			throws Exception {
+		setupInOneTransaction(schemas, modelLayerFactory);
+
+		SolrClient client = modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		List<SolrInputDocument> inputDocuments = new ArrayList<>();
+		for (String id : asList("zeSchemaRecord1", "zeSchemaRecord2", "zeSchemaRecord3", "zeSchemaRecord4")) {
+			SolrInputDocument solrInputDocument = new SolrInputDocument();
+			solrInputDocument.addField("id", id);
+			solrInputDocument.addField("pct_d", setNull());
+			inputDocuments.add(solrInputDocument);
+		}
+
+		for (String id : asList("anotherSchemaRecord1", "anotherSchemaRecord2")) {
+			SolrInputDocument solrInputDocument = new SolrInputDocument();
+			solrInputDocument.addField("id", id);
+			solrInputDocument.addField("sum_d", setNull());
+			solrInputDocument.addField("sumX10_d", setNull());
+			solrInputDocument.addField("copiedThirdSchemaTypeSum_d", setNull());
+			inputDocuments.add(solrInputDocument);
+		}
+
+		for (String id : asList("aThirdSchemaRecord1", "aThirdSchemaRecord2")) {
+			SolrInputDocument solrInputDocument = new SolrInputDocument();
+			solrInputDocument.addField("id", id);
+			solrInputDocument.addField("sum_d", setNull());
+			solrInputDocument.addField("sumX10_d", setNull());
+			inputDocuments.add(solrInputDocument);
+		}
+
+		client.add(inputDocuments);
+		client.commit();
+	}
+
+	private Object setNull() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("set", null);
+		return map;
 	}
 
 	public void setupInMultipleTransaction(TestsSchemasSetup schemas, ModelLayerFactory modelLayerFactory)

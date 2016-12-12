@@ -1,10 +1,8 @@
 package com.constellio.model.entities.records;
 
-import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
-import static java.lang.Boolean.TRUE;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,9 +19,7 @@ import com.constellio.model.entities.records.TransactionRuntimeException.Records
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
 
 public class Transaction {
 
@@ -86,7 +82,7 @@ public class Transaction {
 		return this;
 	}
 
-	public Transaction addAllRecordsToReindex(List<String> ids) {
+	public Transaction addAllRecordsToReindex(Collection<String> ids) {
 		idsToReindex.addAll(ids);
 		return this;
 	}

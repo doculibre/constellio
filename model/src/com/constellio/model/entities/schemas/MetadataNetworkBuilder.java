@@ -14,7 +14,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -49,7 +49,7 @@ public class MetadataNetworkBuilder {
 			MetadataNetworkLink finalLink = new MetadataNetworkLink(link.fromMetadata, link.toMetadata, link.level);
 			links.add(finalLink);
 			linksFromMetadata.add(finalLink.getFromMetadata().getCode(), finalLink);
-			linksFromMetadata.add(finalLink.getToMetadata().getCode(), finalLink);
+			linksToMetadata.add(finalLink.getToMetadata().getCode(), finalLink);
 		}
 
 		return new MetadataNetwork(
@@ -94,7 +94,7 @@ public class MetadataNetworkBuilder {
 
 		for (Metadata to : tos) {
 			ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, to, level);
-//			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
+			//			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
 			//			if (message.contains("ze") || message.contains("another") || message.contains("aThird")) {
 			//				System.out.println(message);
 			//			}
@@ -190,8 +190,8 @@ public class MetadataNetworkBuilder {
 				builder.addNetworkLink(metadata, asList(sequenceInputMetadata), false);
 			}
 
-		} else if (DataEntryType.AGREGATED == metadata.getDataEntry().getType()) {
-			AgregatedDataEntry dataEntry = (AgregatedDataEntry) metadata.getDataEntry();
+		} else if (DataEntryType.AGGREGATED == metadata.getDataEntry().getType()) {
+			AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 			List<Metadata> metadatas = asList(builder.metadata(dataEntry.getReferenceMetadata()),
 					builder.metadata(dataEntry.getInputMetadata()));
 			builder.addNetworkLink(metadata, metadatas, true);

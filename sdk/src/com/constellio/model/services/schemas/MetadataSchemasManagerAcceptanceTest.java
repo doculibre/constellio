@@ -6,7 +6,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.AGREGATED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -75,8 +75,8 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.entries.AgregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AgregationType;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -86,10 +86,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
-import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException;
-import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas;
 import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
-import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_MetadatasMustBeOfSameSchemaType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
 import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
@@ -755,11 +752,11 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			}
 		}));
 
-		AgregatedDataEntry dataEntry = (AgregatedDataEntry) zeSchema.metadata("sum").getDataEntry();
-		assertThat(dataEntry.getType()).isEqualTo(AGREGATED);
+		AggregatedDataEntry dataEntry = (AggregatedDataEntry) zeSchema.metadata("sum").getDataEntry();
+		assertThat(dataEntry.getType()).isEqualTo(AGGREGATED);
 		assertThat(dataEntry.getInputMetadata()).isEqualTo("anotherSchemaType_default_number");
 		assertThat(dataEntry.getReferenceMetadata()).isEqualTo("anotherSchemaType_default_ref");
-		assertThat(dataEntry.getAgregationType()).isEqualTo(AgregationType.SUM);
+		assertThat(dataEntry.getAgregationType()).isEqualTo(AggregationType.SUM);
 	}
 
 	@Test

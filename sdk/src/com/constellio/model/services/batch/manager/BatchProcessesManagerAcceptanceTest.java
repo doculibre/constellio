@@ -79,8 +79,7 @@ public class BatchProcessesManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	private BatchProcessesManager newBatchProcessManager(String computer, int partsSize) {
-		BatchProcessesManager batchProcessesManager = spy(new BatchProcessesManager(
-				getModelLayerFactory().newSearchServices(), getDataLayerFactory().getConfigManager()));
+		BatchProcessesManager batchProcessesManager = spy(new BatchProcessesManager(getModelLayerFactory()));
 		batchProcessesManager.initialize();
 		return batchProcessesManager;
 	}
