@@ -1,5 +1,7 @@
 package com.constellio.app.modules.robots.migrations;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,12 +9,15 @@ import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.security.roles.RolesManager;
 
 public class RobotsMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -48,6 +53,7 @@ public class RobotsMigrationCombo implements ComboMigrationScript {
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
+
 	}
 
 	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,

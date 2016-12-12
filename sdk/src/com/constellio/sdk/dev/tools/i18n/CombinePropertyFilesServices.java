@@ -20,6 +20,10 @@ public class CombinePropertyFilesServices {
 	File output;
 
 	public static void combine(List<File> inputFiles, File output) {
+		combine(inputFiles, output, new HashMap<String, String>());
+	}
+
+	public static void combine(List<File> inputFiles, File output, Map<String, String> extra) {
 
 		try {
 			FileUtils.deleteQuietly(output);
@@ -36,6 +40,8 @@ public class CombinePropertyFilesServices {
 			for (File inputFile : inputFiles) {
 				properties.putAll(PropertyFileUtils.loadKeyValues(inputFile));
 			}
+
+			properties.putAll(extra);
 
 			List<String> keys = new ArrayList<>(properties.keySet());
 

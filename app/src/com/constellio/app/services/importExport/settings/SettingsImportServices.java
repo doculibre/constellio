@@ -43,6 +43,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedValueList
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -839,19 +840,28 @@ public class SettingsImportServices {
 	private void importGlobalConfigurations(ImportedSettings settings) {
 		for (ImportedConfig importedConfig : settings.getConfigs()) {
 			SystemConfiguration config = systemConfigurationsManager.getConfigurationWithCode(importedConfig.getKey());
+
 			if (config != null) {
+				Object convertedValue;
 				if (config.getType() == SystemConfigurationType.BOOLEAN) {
-					Object value = Boolean.valueOf(importedConfig.getValue());
-					systemConfigurationsManager.setValue(config, value);
+					convertedValue = Boolean.valueOf(importedConfig.getValue());
 				} else if (config.getType() == SystemConfigurationType.INTEGER) {
 					int value = Integer.parseInt(importedConfig.getValue());
-					systemConfigurationsManager.setValue(config, value);
+					convertedValue = value;
 				} else if (config.getType() == SystemConfigurationType.STRING) {
-					systemConfigurationsManager.setValue(config, importedConfig.getValue().trim());
+					convertedValue = importedConfig.getValue().trim();
 				} else if (config.getType() == SystemConfigurationType.ENUM) {
-					Object result = Enum.valueOf((Class<? extends Enum>) config.getEnumClass(), importedConfig.getValue());
-					systemConfigurationsManager.setValue(config, result);
+					convertedValue = Enum.valueOf((Class<? extends Enum>) config.getEnumClass(), importedConfig.getValue());
+				} else {
+					throw new ImpossibleRuntimeException("Unsupported config import : " + config.getType().name());
 				}
+
+				if (config.getDefaultValue() != null && config.getDefaultValue().equals(convertedValue)) {
+					systemConfigurationsManager.reset(config);
+				} else {
+					systemConfigurationsManager.setValue(config, convertedValue);
+				}
+
 			}
 		}
 	}

@@ -1,5 +1,7 @@
 package com.constellio.app.services.migrations;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -357,7 +359,15 @@ public class MigrationServices {
 			@Override
 			public void alter(Map<String, String> properties) {
 				String completedMigrations = properties.get(propertyKey);
-				properties.put(propertyKey, completedMigrations + "," + migration.getMigrationId());
+				List<String> migrations = new ArrayList<String>();
+
+				if (StringUtils.isNotBlank(completedMigrations)) {
+					migrations.addAll(asList(completedMigrations.split(",")));
+				}
+				migrations.add(migration.getMigrationId());
+				Collections.sort(migrations);
+
+				properties.put(propertyKey, StringUtils.join(migrations, ","));
 			}
 		});
 	}

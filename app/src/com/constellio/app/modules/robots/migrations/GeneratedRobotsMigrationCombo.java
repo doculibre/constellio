@@ -96,6 +96,9 @@ public final class GeneratedRobotsMigrationCombo {
 		MetadataBuilder actionParameters_detachedauthorizations = actionParametersSchema.get("detachedauthorizations");
 		actionParameters_detachedauthorizations.setSystemReserved(true);
 		actionParameters_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder actionParameters_errorOnPhysicalDeletion = actionParametersSchema.get("errorOnPhysicalDeletion");
+		actionParameters_errorOnPhysicalDeletion.setSystemReserved(true);
+		actionParameters_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder actionParameters_followers = actionParametersSchema.get("followers");
 		actionParameters_followers.setMultivalue(true);
 		actionParameters_followers.setSystemReserved(true);
@@ -120,6 +123,9 @@ public final class GeneratedRobotsMigrationCombo {
 		actionParameters_legacyIdentifier.setSearchable(true);
 		actionParameters_legacyIdentifier.setUniqueValue(true);
 		actionParameters_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder actionParameters_logicallyDeletedOn = actionParametersSchema.get("logicallyDeletedOn");
+		actionParameters_logicallyDeletedOn.setSystemReserved(true);
+		actionParameters_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder actionParameters_manualTokens = actionParametersSchema.get("manualTokens");
 		actionParameters_manualTokens.setMultivalue(true);
 		actionParameters_manualTokens.setSystemReserved(true);
@@ -226,6 +232,9 @@ public final class GeneratedRobotsMigrationCombo {
 		MetadataBuilder robot_detachedauthorizations = robotSchema.get("detachedauthorizations");
 		robot_detachedauthorizations.setSystemReserved(true);
 		robot_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder robot_errorOnPhysicalDeletion = robotSchema.get("errorOnPhysicalDeletion");
+		robot_errorOnPhysicalDeletion.setSystemReserved(true);
+		robot_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder robot_excludeProcessedByChildren = robotSchema.create("excludeProcessedByChildren")
 				.setType(MetadataValueType.BOOLEAN);
 		robot_excludeProcessedByChildren.setDefaultRequirement(true);
@@ -256,6 +265,9 @@ public final class GeneratedRobotsMigrationCombo {
 		robot_legacyIdentifier.setSearchable(true);
 		robot_legacyIdentifier.setUniqueValue(true);
 		robot_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder robot_logicallyDeletedOn = robotSchema.get("logicallyDeletedOn");
+		robot_logicallyDeletedOn.setSystemReserved(true);
+		robot_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder robot_manualTokens = robotSchema.get("manualTokens");
 		robot_manualTokens.setMultivalue(true);
 		robot_manualTokens.setSystemReserved(true);
@@ -361,6 +373,9 @@ public final class GeneratedRobotsMigrationCombo {
 		MetadataBuilder robotLog_detachedauthorizations = robotLogSchema.get("detachedauthorizations");
 		robotLog_detachedauthorizations.setSystemReserved(true);
 		robotLog_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder robotLog_errorOnPhysicalDeletion = robotLogSchema.get("errorOnPhysicalDeletion");
+		robotLog_errorOnPhysicalDeletion.setSystemReserved(true);
+		robotLog_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder robotLog_followers = robotLogSchema.get("followers");
 		robotLog_followers.setMultivalue(true);
 		robotLog_followers.setSystemReserved(true);
@@ -385,6 +400,9 @@ public final class GeneratedRobotsMigrationCombo {
 		robotLog_legacyIdentifier.setSearchable(true);
 		robotLog_legacyIdentifier.setUniqueValue(true);
 		robotLog_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder robotLog_logicallyDeletedOn = robotLogSchema.get("logicallyDeletedOn");
+		robotLog_logicallyDeletedOn.setSystemReserved(true);
+		robotLog_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder robotLog_manualTokens = robotLogSchema.get("manualTokens");
 		robotLog_manualTokens.setMultivalue(true);
 		robotLog_manualTokens.setSystemReserved(true);
@@ -484,7 +502,7 @@ public final class GeneratedRobotsMigrationCombo {
 				.withTableMetadataCodes(asList("actionParameters_default_title", "actionParameters_default_modifiedOn")));
 		transaction.add(manager.getType(collection, "robot").withSimpleSearchStatus(false).withAdvancedSearchStatus(false)
 				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
-						asList("init.robot.tabs.action", "init.robot.tabs.criteria", "default:init.robot.tabs.definition"))));
+						asList("init.robot.tabs.criteria", "default:init.robot.tabs.definition", "init.robot.tabs.action"))));
 		transaction.add(manager.getSchema(collection, "robot_default").withFormMetadataCodes(
 				asList("robot_default_code", "robot_default_title", "robot_default_parent", "robot_default_schemaFilter",
 						"robot_default_description", "robot_default_searchCriteria", "robot_default_action",
@@ -537,6 +555,7 @@ public final class GeneratedRobotsMigrationCombo {
 						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
 						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
 						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
-						"core.manageTrash", "core.manageValueList", "core.viewEvents", "robots.manageRobots")));
+						"core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents",
+						"robots.manageRobots")));
 	}
 }

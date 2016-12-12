@@ -129,6 +129,9 @@ public final class GeneratedTasksMigrationCombo {
 		MetadataBuilder ddvTaskStatus_detachedauthorizations = ddvTaskStatusSchema.get("detachedauthorizations");
 		ddvTaskStatus_detachedauthorizations.setSystemReserved(true);
 		ddvTaskStatus_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvTaskStatus_errorOnPhysicalDeletion = ddvTaskStatusSchema.get("errorOnPhysicalDeletion");
+		ddvTaskStatus_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvTaskStatus_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvTaskStatus_followers = ddvTaskStatusSchema.get("followers");
 		ddvTaskStatus_followers.setMultivalue(true);
 		ddvTaskStatus_followers.setSystemReserved(true);
@@ -153,6 +156,9 @@ public final class GeneratedTasksMigrationCombo {
 		ddvTaskStatus_legacyIdentifier.setSearchable(true);
 		ddvTaskStatus_legacyIdentifier.setUniqueValue(true);
 		ddvTaskStatus_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder ddvTaskStatus_logicallyDeletedOn = ddvTaskStatusSchema.get("logicallyDeletedOn");
+		ddvTaskStatus_logicallyDeletedOn.setSystemReserved(true);
+		ddvTaskStatus_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvTaskStatus_manualTokens = ddvTaskStatusSchema.get("manualTokens");
 		ddvTaskStatus_manualTokens.setMultivalue(true);
 		ddvTaskStatus_manualTokens.setSystemReserved(true);
@@ -259,6 +265,9 @@ public final class GeneratedTasksMigrationCombo {
 		MetadataBuilder ddvTaskType_detachedauthorizations = ddvTaskTypeSchema.get("detachedauthorizations");
 		ddvTaskType_detachedauthorizations.setSystemReserved(true);
 		ddvTaskType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvTaskType_errorOnPhysicalDeletion = ddvTaskTypeSchema.get("errorOnPhysicalDeletion");
+		ddvTaskType_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvTaskType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvTaskType_followers = ddvTaskTypeSchema.get("followers");
 		ddvTaskType_followers.setMultivalue(true);
 		ddvTaskType_followers.setSystemReserved(true);
@@ -284,6 +293,9 @@ public final class GeneratedTasksMigrationCombo {
 		ddvTaskType_legacyIdentifier.setUniqueValue(true);
 		ddvTaskType_legacyIdentifier.setUnmodifiable(true);
 		MetadataBuilder ddvTaskType_linkedSchema = ddvTaskTypeSchema.create("linkedSchema").setType(MetadataValueType.STRING);
+		MetadataBuilder ddvTaskType_logicallyDeletedOn = ddvTaskTypeSchema.get("logicallyDeletedOn");
+		ddvTaskType_logicallyDeletedOn.setSystemReserved(true);
+		ddvTaskType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvTaskType_manualTokens = ddvTaskTypeSchema.get("manualTokens");
 		ddvTaskType_manualTokens.setMultivalue(true);
 		ddvTaskType_manualTokens.setSystemReserved(true);
@@ -409,6 +421,9 @@ public final class GeneratedTasksMigrationCombo {
 		userTask_dueDate.setUndeletable(true);
 		MetadataBuilder userTask_endDate = userTaskSchema.create("endDate").setType(MetadataValueType.DATE);
 		userTask_endDate.setUndeletable(true);
+		MetadataBuilder userTask_errorOnPhysicalDeletion = userTaskSchema.get("errorOnPhysicalDeletion");
+		userTask_errorOnPhysicalDeletion.setSystemReserved(true);
+		userTask_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder userTask_followers = userTaskSchema.get("followers");
 		userTask_followers.setMultivalue(true);
 		userTask_followers.setSystemReserved(true);
@@ -434,6 +449,9 @@ public final class GeneratedTasksMigrationCombo {
 		userTask_legacyIdentifier.setSearchable(true);
 		userTask_legacyIdentifier.setUniqueValue(true);
 		userTask_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder userTask_logicallyDeletedOn = userTaskSchema.get("logicallyDeletedOn");
+		userTask_logicallyDeletedOn.setSystemReserved(true);
+		userTask_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder userTask_manualTokens = userTaskSchema.get("manualTokens");
 		userTask_manualTokens.setMultivalue(true);
 		userTask_manualTokens.setSystemReserved(true);
@@ -577,6 +595,9 @@ public final class GeneratedTasksMigrationCombo {
 		MetadataBuilder workflow_detachedauthorizations = workflowSchema.get("detachedauthorizations");
 		workflow_detachedauthorizations.setSystemReserved(true);
 		workflow_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder workflow_errorOnPhysicalDeletion = workflowSchema.get("errorOnPhysicalDeletion");
+		workflow_errorOnPhysicalDeletion.setSystemReserved(true);
+		workflow_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder workflow_followers = workflowSchema.get("followers");
 		workflow_followers.setMultivalue(true);
 		workflow_followers.setSystemReserved(true);
@@ -601,6 +622,9 @@ public final class GeneratedTasksMigrationCombo {
 		workflow_legacyIdentifier.setSearchable(true);
 		workflow_legacyIdentifier.setUniqueValue(true);
 		workflow_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder workflow_logicallyDeletedOn = workflowSchema.get("logicallyDeletedOn");
+		workflow_logicallyDeletedOn.setSystemReserved(true);
+		workflow_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder workflow_manualTokens = workflowSchema.get("manualTokens");
 		workflow_manualTokens.setMultivalue(true);
 		workflow_manualTokens.setSystemReserved(true);
@@ -689,6 +713,9 @@ public final class GeneratedTasksMigrationCombo {
 		MetadataBuilder workflowInstance_detachedauthorizations = workflowInstanceSchema.get("detachedauthorizations");
 		workflowInstance_detachedauthorizations.setSystemReserved(true);
 		workflowInstance_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder workflowInstance_errorOnPhysicalDeletion = workflowInstanceSchema.get("errorOnPhysicalDeletion");
+		workflowInstance_errorOnPhysicalDeletion.setSystemReserved(true);
+		workflowInstance_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder workflowInstance_extraFields = workflowInstanceSchema.create("extraFields")
 				.setType(MetadataValueType.STRUCTURE);
 		workflowInstance_extraFields.defineStructureFactory(MapStringListStringStructureFactory.class);
@@ -716,6 +743,9 @@ public final class GeneratedTasksMigrationCombo {
 		workflowInstance_legacyIdentifier.setSearchable(true);
 		workflowInstance_legacyIdentifier.setUniqueValue(true);
 		workflowInstance_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder workflowInstance_logicallyDeletedOn = workflowInstanceSchema.get("logicallyDeletedOn");
+		workflowInstance_logicallyDeletedOn.setSystemReserved(true);
+		workflowInstance_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder workflowInstance_manualTokens = workflowInstanceSchema.get("manualTokens");
 		workflowInstance_manualTokens.setMultivalue(true);
 		workflowInstance_manualTokens.setSystemReserved(true);
@@ -838,8 +868,8 @@ public final class GeneratedTasksMigrationCombo {
 				.withInputType(MetadataInputType.DROPDOWN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getType(collection, "userTask").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
-						asList("init.userTask.followersTab", "init.userTask.assignment", "default:init.userTask.definition",
-								"init.userTask.details", "init.userTask.remindersTab"))));
+						asList("default:init.userTask.definition", "init.userTask.remindersTab", "init.userTask.assignment",
+								"init.userTask.details", "init.userTask.followersTab"))));
 		transaction.add(manager.getSchema(collection, "userTask_default").withFormMetadataCodes(
 				asList("userTask_default_title", "userTask_default_type", "userTask_default_assignee",
 						"userTask_default_assigneeGroupsCandidates", "userTask_default_assigneeUsersCandidates",
@@ -916,6 +946,7 @@ public final class GeneratedTasksMigrationCombo {
 						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
 						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
 						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
-						"core.manageTrash", "core.manageValueList", "core.viewEvents", "tasks.manageWorkflows")));
+						"core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents",
+						"tasks.manageWorkflows")));
 	}
 }

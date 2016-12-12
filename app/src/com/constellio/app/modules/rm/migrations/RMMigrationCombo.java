@@ -39,33 +39,38 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 public class RMMigrationCombo implements ComboMigrationScript {
 	@Override
 	public List<MigrationScript> getVersions() {
-		List<MigrationScript> scripts = new ArrayList<>();
-		scripts.add(new RMMigrationTo5_0_1());
-		scripts.add(new RMMigrationTo5_0_2());
-		scripts.add(new RMMigrationTo5_0_3());
-		scripts.add(new RMMigrationTo5_0_4());
-		scripts.add(new RMMigrationTo5_0_4_1());
-		scripts.add(new RMMigrationTo5_0_5());
-		scripts.add(new RMMigrationTo5_0_6());
-		scripts.add(new RMMigrationTo5_0_7());
-		scripts.add(new RMMigrationTo5_1_0_3());
-		scripts.add(new RMMigrationTo5_1_0_4());
-		scripts.add(new RMMigrationTo5_1_0_6());
-		scripts.add(new RMMigrationTo5_1_2());
-		scripts.add(new RMMigrationTo5_1_2_2());
-		scripts.add(new RMMigrationTo5_1_3());
-		scripts.add(new RMMigrationTo5_1_3());
-		scripts.add(new RMMigrationTo5_1_4_1());
-		scripts.add(new RMMigrationTo5_1_5());
-		scripts.add(new RMMigrationTo5_1_7());
-		scripts.add(new RMMigrationTo5_1_9());
-		scripts.add(new RMMigrationTo6_1());
-		scripts.add(new RMMigrationTo6_1_4());
-		scripts.add(new RMMigrationTo6_2());
-		scripts.add(new RMMigrationTo6_2_0_7());
-		scripts.add(new RMMigrationTo6_3());
-		scripts.add(new RMMigrationTo6_4());
-		return scripts;
+		return asList(
+				new RMMigrationTo5_0_1(),
+				new RMMigrationTo5_0_2(),
+				new RMMigrationTo5_0_3(),
+				new RMMigrationTo5_0_4(),
+				new RMMigrationTo5_0_4_1(),
+				new RMMigrationTo5_0_5(),
+				new RMMigrationTo5_0_6(),
+				new RMMigrationTo5_0_7(),
+				new RMMigrationTo5_1_0_3(),
+				new RMMigrationTo5_1_0_4(),
+				new RMMigrationTo5_1_0_6(),
+				new RMMigrationTo5_1_2(),
+				new RMMigrationTo5_1_2_2(),
+				new RMMigrationTo5_1_3(),
+				new RMMigrationTo5_1_3(),
+				new RMMigrationTo5_1_4_1(),
+				new RMMigrationTo5_1_5(),
+				new RMMigrationTo5_1_7(),
+				new RMMigrationTo5_1_9(),
+				new RMMigrationTo6_1(),
+				new RMMigrationTo6_1_4(),
+				new RMMigrationTo6_2(),
+				new RMMigrationTo6_2_0_7(),
+				new RMMigrationTo6_3(),
+				new RMMigrationTo6_4(),
+				new RMMigrationTo6_5(),
+				new RMMigrationTo6_5_1(),
+				new RMMigrationTo6_5_7(),
+				new RMMigrationTo6_5_20(),
+				new RMMigrationTo6_5_33()
+		);
 	}
 
 	@Override
