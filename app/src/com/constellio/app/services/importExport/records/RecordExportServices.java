@@ -127,7 +127,6 @@ public class RecordExportServices {
 			mergeExportValueLists(metadataSchemaTypes, schemaTypeList);
 		}
 
-		// Set here to avoid
 		for (String schemaTypeCode : schemaTypeList) {
 			writer.setOptions(schemaTypeCode,
 					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true));
@@ -222,13 +221,6 @@ public class RecordExportServices {
 		{
 			map.put(RetentionRuleImportExtension.TYPE_ID, rm.getFolderType(copyRetentionRule.getTypeId()).getCode());
 		}
-
-		// À Tester
-
-
-		// A la fin
-		// TODO META_DATA
-		// Type_Id Ajouter une troisième CopyRetentionRule pour qu'il y est TYPE_ID demander a francis pour valeur.
 
 		return map;
 	}
