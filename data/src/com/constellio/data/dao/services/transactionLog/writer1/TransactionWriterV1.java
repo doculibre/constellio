@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.solr.common.SolrDocumentBase;
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -83,8 +84,14 @@ public class TransactionWriterV1 {
 		}
 	}
 
-	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrInputDocument document) {
-		String id = (String) document.getFieldValue("id");
+	protected void appendAddUpdateSolrDocument(StringBuilder stringBuilder, SolrDocumentBase document) {
+		Object id = null;
+		try {
+			id = document.getFieldValue("id");
+		} catch (ClassCastException e) {
+			id = document.getFieldValue("id");
+			e.printStackTrace();
+		}
 		Object version = document.getFieldValue("_version_");
 
 		String schema_s;
@@ -104,7 +111,9 @@ public class TransactionWriterV1 {
 		stringBuilder.append(" ");
 		stringBuilder.append(version == null ? "-1" : version);
 		stringBuilder.append("\n");
-		for (String name : document.getFieldNames()) {
+
+		Collection<String> fieldNames = document.getFieldNames();
+		for (String name : fieldNames) {
 			if (!name.equals("id") && !name.equals("_version_") && isLogged(name, schema_s, collection_s)) {
 				Collection<Object> value = removeEmptyStrings(document.getFieldValues(name));
 

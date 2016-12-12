@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentBase;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -40,11 +41,8 @@ public class RecoveryTransactionWriter extends TransactionWriterV1 {
 		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
 
 		for (Object document : documents) {
-			if (document instanceof SolrInputDocument) {
-				appendAddUpdateSolrDocument(stringBuilder, (SolrInputDocument) document);
-			} else if (document instanceof SolrDocument) {
-				Map<String, SolrInputField> fields = (Map<String, SolrInputField>) document;
-				appendAddUpdateSolrDocument(stringBuilder, new SolrInputDocument(fields));
+			if (document instanceof SolrDocumentBase) {
+				appendAddUpdateSolrDocument(stringBuilder, (SolrDocumentBase) document);
 			} else {
 				throw new RuntimeException("Expecting solr document or solr input document : " + document.getClass().getName());
 			}
