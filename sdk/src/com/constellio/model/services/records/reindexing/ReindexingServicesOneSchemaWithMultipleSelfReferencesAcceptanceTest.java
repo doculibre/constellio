@@ -88,60 +88,6 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 	}
 
 	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run1()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run2()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run3()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run4()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run5()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run6()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run7()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run8()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent1_run9()
-			throws Exception {
-		whenReindexingThenReindexChildRecordsAfterTheParent1();
-	}
-
-	@Test
 	public void whenReindexingThenReindexChildRecordsAfterTheParent1()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));

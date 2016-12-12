@@ -39,6 +39,8 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 	int confiRequiredDaysBeforeYearEnd = 0;
 	String configYearEnd;
 
+	boolean calculatedMetadatasBasedOnFirstTimerangePartParam = true;
+
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	@Test
@@ -157,6 +159,17 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		assertThat(calculateFor(1, copy("3-888-T"))).isEqualTo(new LocalDate(2005, 4, 5));
 	}
 
+	@Test
+	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingThenReturnNotNullDate()
+			throws Exception {
+		inactiveConfigNumberOfYearWhenVariableDelay = 7;
+		archivisticStatus = FolderStatus.SEMI_ACTIVE;
+		decommissioningDate = new LocalDate(1998, 4, 5);
+		copyRulesExpectedTransferDate = asList(new LocalDate(1995, 4, 5), new LocalDate(1997, 4, 5));
+
+		assertThat(calculateFor(1, copy("3-888-T"))).isEqualTo(new LocalDate(2005, 4, 5));
+	}
+
 	private CopyRetentionRule copy(String delays) {
 		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
@@ -171,6 +184,7 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
@@ -188,6 +202,7 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}

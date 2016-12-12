@@ -105,4 +105,22 @@ public class SchemaTypeDisplayConfig {
 		groups.putAll(newGroup);
 		return withMetadataGroup(groups);
 	}
+
+	public String getGroupLabel(String group, Language language) {
+		if ("".equals(group)) {
+			return getDefaultGroup(language);
+		} else {
+			Map<Language, String> map = metadataGroup.get(group);
+			return map == null ? null : map.get(language);
+		}
+	}
+
+	public String getDefaultGroup(Language language) {
+		for (Map.Entry<String, Map<Language, String>> entry : metadataGroup.entrySet()) {
+			if (entry.getKey().startsWith("default:")) {
+				return entry.getValue().get(language);
+			}
+		}
+		return null;
+	}
 }

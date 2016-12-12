@@ -49,6 +49,11 @@ public class i18n {
 
 	public static void setLocale(Locale locale) {
 		i18n.locale = locale;
+		try {
+			ConstellioUI.getCurrentSessionContext().setCurrentLocale(locale);
+		} catch (Throwable e) {
+			//LOGGER.warn("error when trying to set session locale", e);
+		}
 	}
 
 	public static String $(String key) {
@@ -271,6 +276,19 @@ public class i18n {
 	public static List<String> asListOfMessages(ValidationErrors errors) {
 		List<String> messages = new ArrayList<>();
 		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+
+		for (ValidationError error : errors.getValidationWarnings()) {
+			messages.add($(error));
+		}
+		return messages;
+	}
+
+	public static List<String> asListOfMessages(List<ValidationError> errors) {
+		List<String> messages = new ArrayList<>();
+
+		for (ValidationError error : errors) {
 			messages.add($(error));
 		}
 		return messages;

@@ -9,6 +9,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
@@ -18,10 +21,17 @@ import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.utils.GradleFileVersionParser;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
+
 	public UpdateManagerPresenter(UpdateManagerView view) {
 		super(view);
 	}
@@ -99,11 +109,21 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public void restartAndReindex() {
-		appLayerFactory.newApplicationService().markForReindexing();
-		try {
-			appLayerFactory.newApplicationService().restart();
-		} catch (AppManagementServiceException ase) {
-			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+		FoldersLocator foldersLocator = new FoldersLocator();
+		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			//Application is started from a test, it cannot be restarted
+			LOGGER.info("Reindexing started");
+			ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
+			reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+			LOGGER.info("Reindexing finished");
+
+		} else {
+			appLayerFactory.newApplicationService().markForReindexing();
+			try {
+				appLayerFactory.newApplicationService().restart();
+			} catch (AppManagementServiceException ase) {
+				view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+			}
 		}
 	}
 
@@ -170,7 +190,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public UpdateNotRecommendedReason getUpdateNotRecommendedReason() {
-		if (modelLayerFactory.getBatchProcessesManager().getCurrentBatchProcess() != null && !modelLayerFactory.getBatchProcessesManager().getPendingBatchProcesses().isEmpty()) {
+		if (modelLayerFactory.getBatchProcessesManager().getCurrentBatchProcess() != null && !modelLayerFactory
+				.getBatchProcessesManager().getPendingBatchProcesses().isEmpty()) {
 			return BATCH_PROCESS_IN_PROGRESS;
 		} else {
 			return null;

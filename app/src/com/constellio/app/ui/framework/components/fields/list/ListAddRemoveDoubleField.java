@@ -1,14 +1,14 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
+import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.fields.number.BaseDoubleField;
-import com.vaadin.data.util.converter.StringToDoubleConverter;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveDoubleField extends ListAddRemoveField<Double, BaseDoubleField> {
 
 	public ListAddRemoveDoubleField() {
 		super();
-		setItemConverter(new StringToDoubleConverter());
+		setItemConverter(new BaseStringToDoubleConverter());
 	}
 
 	@Override

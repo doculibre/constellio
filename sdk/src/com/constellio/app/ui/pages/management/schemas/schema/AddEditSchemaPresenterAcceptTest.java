@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,6 +38,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	AddEditSchemaPresenter presenter;
 	MetadataSchemasManager metadataSchemasManager;
+	SchemasDisplayManager metadataSchemasDisplayManager;
 	Map<String, String> parameters;
 	@Mock AddEditSchemaView view;
 	MockedNavigation navigator;
@@ -55,6 +58,8 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 						.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
 						.withADateMetadata(whichIsEnabled));
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		metadataSchemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
@@ -147,7 +152,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		parameters.put("schemaCode", zeSchema.code());
 		presenter.setParameters(parameters);
-		
+
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), zeCollection, new HashMap<String, String>());
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 		presenter.setSchemaVO(formMetadataSchemaVO);
@@ -157,6 +162,35 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		assertThat(metadataSchemasManager.getSchemaTypes(zeCollection).getSchema(zeSchema.code()).getLabel(Language.French))
 				.isEqualTo(
 						"new schema Label");
+		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
+		verify(view.navigate().to()).listSchema(params);
+	}
+
+
+	@Test
+	public void givenEditModeWhenSaveButtonClickedThenCustomSchemaTypeDisplay()
+			throws Exception {
+
+		parameters.put("schemaCode", zeSchema.code());
+		parameters.put("schemaTypeCode", zeSchema.type().getCode());
+		presenter.setParameters(parameters);
+
+		assertThat(metadataSchemasDisplayManager.getType(zeCollection, zeSchema.type().getCode()).isAdvancedSearch())
+				.isEqualTo(
+						Boolean.FALSE);
+
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), zeCollection, new HashMap<String, String>());
+		formMetadataSchemaVO.setAdvancedSearch(true);
+		presenter.setSchemaVO(formMetadataSchemaVO);
+
+		presenter.saveButtonClicked();
+
+		SchemaTypeDisplayConfig schemaTypeDisplayConfig = metadataSchemasDisplayManager.getType(zeCollection, zeSchema.type().getCode());
+
+		assertThat(metadataSchemasDisplayManager.getType(zeCollection, zeSchema.type().getCode()).isAdvancedSearch())
+				.isEqualTo(
+						Boolean.TRUE);
+
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
 		verify(view.navigate().to()).listSchema(params);
 	}

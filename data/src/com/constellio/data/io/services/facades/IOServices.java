@@ -141,7 +141,7 @@ public class IOServices {
 		try {
 			return streamsServices.newBufferedFileInputStream(file, uniqueIdWith(name));
 		} catch (FileNotFoundException e) {
-			throw new ImpossibleRuntimeException(e);
+			throw new ImpossibleRuntimeException("File does not exist: " + file.getAbsolutePath(), e);
 		}
 	}
 
@@ -355,6 +355,10 @@ public class IOServices {
 
 	public File newTemporaryFile(String resourceName) {
 		return fileServices.newTemporaryFile(resourceName);
+	}
+
+	public File newTemporaryFile(String resourceName, String extension) {
+		return fileServices.newTemporaryFile(resourceName, extension);
 	}
 
 	public void touch(File file) {

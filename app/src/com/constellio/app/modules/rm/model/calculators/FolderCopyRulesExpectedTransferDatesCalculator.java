@@ -30,11 +30,13 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 
 	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
+	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
+			.dependency();
 
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
 		return Arrays.asList(decommissioningDateParam, actualTransferDateParam, datesAndDateTimesParam,
-				configNumberOfYearWhenVariableDelayPeriodParam, statusParam);
+				configNumberOfYearWhenVariableDelayPeriodParam, statusParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	@Override
@@ -67,6 +69,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 		LocalDate actualTransferDate;
 		DynamicDependencyValues datesAndDateTimes;
 		Integer numberOfYearWhenVariableDelayPeriod;
+		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			super(parameters);
@@ -74,12 +77,14 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 			this.actualTransferDate = parameters.get(actualTransferDateParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 			this.numberOfYearWhenVariableDelayPeriod = parameters.get(configNumberOfYearWhenVariableDelayPeriodParam);
+			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
 		public LocalDate getAdjustedBaseDateFromActiveDelay(CopyRetentionRule copy, String yearEnd) {
 			String metadata = copy.getActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
+			LocalDate date = datesAndDateTimesParam
+					.getDate(metadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
 			return date == null ? null : adjustToFinancialYear(date);
 		}
 	}

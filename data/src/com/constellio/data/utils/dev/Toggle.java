@@ -10,6 +10,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class Toggle {
 
+	public static AvailableToggle USE_LATEST_BATCH_INSTEAD_OF_EXCEPTION = newToggle();
+
 	public static AvailableToggle NEW_USERCREDENTIAL_SERVICES = newToggle();
 	public static AvailableToggle AGREGATED_METADATAS = newToggle();
 	public static AvailableToggle ADD_EXISTING_TASK = newToggle();

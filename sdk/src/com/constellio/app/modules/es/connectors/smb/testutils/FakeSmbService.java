@@ -1,11 +1,12 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
+import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
+import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
+
 import java.util.List;
 
-import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
-import com.constellio.app.modules.es.connectors.smb.service.SmbService;
-
-public class FakeSmbService implements SmbService {
+public class FakeSmbService implements SmbShareService {
 	private List<String> childrenUrls;
 	private SmbFileDTO smbFileDTO;
 

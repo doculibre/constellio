@@ -1,6 +1,8 @@
 package com.constellio.app.api.cmis.requests.acl;
 
 import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +19,8 @@ public class GetAclRequest extends CmisCollectionRequest<Acl> {
 	private final String objectId;
 
 	public GetAclRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			String objectId) {
-		super(repository, appLayerFactory);
+			CallContext callContext, String objectId) {
+		super(callContext, repository, appLayerFactory);
 		this.objectId = objectId;
 	}
 
@@ -27,7 +29,9 @@ public class GetAclRequest extends CmisCollectionRequest<Acl> {
 	 */
 	@Override
 	public Acl process() {
+
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId);
+		ensureUserHasAllowableActionsOnRecord(record, Action.CAN_GET_ACL);
 		return new AclBuilder(repository, modelLayerFactory).build(record);
 	}
 

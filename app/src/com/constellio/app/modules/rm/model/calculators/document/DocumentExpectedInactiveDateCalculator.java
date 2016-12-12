@@ -63,6 +63,9 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 
 	ConfigDependency<Boolean> documentRetentionRulesEnabledParam = RMConfigs.DOCUMENT_RETENTION_RULES.dependency();
 
+	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
+			.dependency();
+
 	DocumentDecomDatesDynamicLocalDependency datesAndDateTimesParam = new DocumentDecomDatesDynamicLocalDependency();
 
 	@Override
@@ -88,16 +91,20 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 				transferDate = input.expectedTransferDate;
 			}
 
-			LocalDate baseDateFromSemiActiveDelay = input.getAdjustedBaseDateFromSemiActiveDelay(parameters.get(yearEndParam));
-
-			if (!input.copy.isIgnoreActivePeriod()) {
-				baseDateFromSemiActiveDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
-						baseDateFromSemiActiveDelay, input.numberOfYearWhenSemiActiveVariableDelay);
+			LocalDate baseDate;
+			if (input.copy.getSemiActiveRetentionPeriod().isZero()) {
+				baseDate = getBaseAjustedDate(input);
+				baseDate = input.calculateInactiveBasedOn(baseDate);
+				return max(transferDate, baseDate);
+			} else {
+				LocalDate baseDateFromDelay = input.getAdjustedBaseDateFromSemiActiveDelay(parameters.get(yearEndParam));
+				if (!input.copy.isIgnoreActivePeriod()) {
+					baseDateFromDelay = CalculatorUtils.calculateExpectedTransferDate(input.copy,
+							baseDateFromDelay, input.numberOfYearWhenSemiActiveVariableDelay);
+				}
+				baseDate = max(transferDate, baseDateFromDelay);
+				return input.calculateInactiveBasedOn(baseDate);
 			}
-
-			LocalDate baseDate = max(transferDate, baseDateFromSemiActiveDelay);
-
-			return input.calculateInactiveBasedOn(baseDate);
 		}
 	}
 
@@ -134,7 +141,8 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 				requiredDaysBeforeYearEndParam, folderExpectedDestructionDateParam, folderExpectedDepositDateParam,
 				expectedTransferDateParam, documentRetentionRulesEnabledParam, archivisticTypeParam, actualDepositDateParam,
 				actualDestructionDateParam, numberOfYearWhenSemiActiveVariableDelayParam,
-				numberOfYearWhenInactiveVariableDelayParam, datesAndDateTimesParam);
+				numberOfYearWhenInactiveVariableDelayParam, datesAndDateTimesParam,
+				calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	private class CalculatorInput {
@@ -157,6 +165,7 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 		DisposalType disposalType;
 		FolderStatus archivisticType;
 		DynamicDependencyValues datesAndDateTimes;
+		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			this.expectedTransferDate = parameters.get(expectedTransferDateParam);
@@ -177,14 +186,11 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 			this.actualDepositDate = parameters.get(actualDepositDateParam);
 			this.actualDestructionDate = parameters.get(actualDestructionDateParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
+			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
 		LocalDate calculateInactiveBasedOn(LocalDate baseDate) {
 			return CalculatorUtils.calculateExpectedInactiveDate(copy, baseDate, numberOfYearWhenInactiveVariableDelay);
-		}
-
-		LocalDate calculateSemiActiveBasedOn(LocalDate baseDate) {
-			return CalculatorUtils.calculateExpectedTransferDate(copy, baseDate, numberOfYearWhenSemiActiveVariableDelay);
 		}
 
 		LocalDate adjustToFinancialYear(LocalDate date) {
@@ -202,7 +208,12 @@ public abstract class DocumentExpectedInactiveDateCalculator implements Metadata
 		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(String yearEnd) {
 			String metadata = copy.getSemiActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
+			if (metadata != null && metadata.startsWith("folder_")) {
+				return null;
+			}
+
+			LocalDate date = datesAndDateTimesParam
+					.getDate(metadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
 			if (date == null) {
 				return null;
 			} else {

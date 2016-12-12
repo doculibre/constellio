@@ -1,6 +1,12 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE;
+
 public class BulkImportParams {
+
+	boolean warningsForInvalidFacultativeMetadatas = false;
+
+	boolean warningsForRequiredUSRMetadatasWithoutValue = false;
 
 	ImportErrorsBehavior importErrorsBehavior = ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
 
@@ -9,6 +15,15 @@ public class BulkImportParams {
 	int batchSize = 500;
 
 	int threads = 1;
+
+	public boolean isWarningsForRequiredUSRMetadatasWithoutValue() {
+		return warningsForRequiredUSRMetadatasWithoutValue;
+	}
+
+	public BulkImportParams setWarningsForRequiredUSRMetadatasWithoutValue(boolean warningsForRequiredUSRMetadatasWithoutValue) {
+		this.warningsForRequiredUSRMetadatasWithoutValue = warningsForRequiredUSRMetadatasWithoutValue;
+		return this;
+	}
 
 	public int getThreads() {
 		return threads;
@@ -25,6 +40,15 @@ public class BulkImportParams {
 
 	public BulkImportParams setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
+		return this;
+	}
+
+	public boolean isWarningsForInvalidFacultativeMetadatas() {
+		return warningsForInvalidFacultativeMetadatas;
+	}
+
+	public BulkImportParams setWarningsForInvalidFacultativeMetadatas(boolean warningsForInvalidFacultativeMetadatas) {
+		this.warningsForInvalidFacultativeMetadatas = warningsForInvalidFacultativeMetadatas;
 		return this;
 	}
 
@@ -52,5 +76,15 @@ public class BulkImportParams {
 		STOP_ON_FIRST_ERROR,
 		CONTINUE_FOR_RECORD_OF_SAME_TYPE,
 		CONTINUE
+	}
+
+	public static BulkImportParams PERMISSIVE() {
+		return new BulkImportParams().setWarningsForInvalidFacultativeMetadatas(true).setImportErrorsBehavior(CONTINUE)
+				.setImportValidationErrorsBehavior(ImportValidationErrorsBehavior.EXCLUDE_THOSE_RECORDS)
+				.setWarningsForRequiredUSRMetadatasWithoutValue(true);
+	}
+
+	public static BulkImportParams STRICT() {
+		return new BulkImportParams();
 	}
 }

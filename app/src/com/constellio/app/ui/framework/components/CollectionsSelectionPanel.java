@@ -1,13 +1,24 @@
 package com.constellio.app.ui.framework.components;
 
-import com.vaadin.ui.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CollectionsSelectionPanel extends Panel {
-    List<CheckBox> collectionCheckBoxes = new ArrayList<>();
+	
+    Map<CheckBox, String> collectionCheckBoxes = new LinkedHashMap<>();
+    
+    private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
+    
     public CollectionsSelectionPanel(String title, List<String> collections) {
         this(title, collections, new ArrayList<String>());
     }
@@ -24,19 +35,20 @@ public class CollectionsSelectionPanel extends Panel {
     }
 
     private void addCollectionCheckBox(Layout layout, String collection, List<String> selectedCollections) {
-        CheckBox checkBox = new CheckBox(collection);
+        CheckBox checkBox = new CheckBox();
         if(selectedCollections.contains(collection)){
             checkBox.setValue(true);
         }
-        collectionCheckBoxes.add(checkBox);
+        checkBox.setCaption(collectionCodeToLabelConverter.getCollectionCaption(collection));
+        collectionCheckBoxes.put(checkBox, collection);
         layout.addComponent(checkBox);
     }
 
     public List<String> getSelectedCollections() {
         List<String> selectedCollections = new ArrayList<>();
-        for (CheckBox collectionCheckBox: collectionCheckBoxes){
-            if(collectionCheckBox.getValue()){
-                selectedCollections.add(collectionCheckBox.getCaption());
+        for (CheckBox collectionCheckBox: collectionCheckBoxes.keySet()){
+            if (collectionCheckBox.getValue()){
+                selectedCollections.add(collectionCheckBoxes.get(collectionCheckBox));
             }
         }
         return selectedCollections;

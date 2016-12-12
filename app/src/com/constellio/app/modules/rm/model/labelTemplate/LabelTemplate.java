@@ -15,6 +15,7 @@ public class LabelTemplate implements Serializable {
 	private final int columns;
 	private final int lines;
 	private final List<LabelTemplateField> fields;
+	private boolean printBorders;
 
 	public LabelTemplate() {
 		this.key = "";
@@ -24,6 +25,7 @@ public class LabelTemplate implements Serializable {
 		this.lines = 1;
 		this.fields = new ArrayList<>();
 		this.labelsReportLayout = LabelsReportLayout.AVERY_5159;
+		this.printBorders = false;
 
 	}
 
@@ -37,6 +39,19 @@ public class LabelTemplate implements Serializable {
 		this.lines = lines;
 		this.fields = fields;
 		this.labelsReportLayout = labelsReportLayout;
+		this.printBorders = false;
+	}
+
+	public LabelTemplate(String key, String name, LabelsReportLayout labelsReportLayout, String schemaType, int columns,
+			int lines, List<LabelTemplateField> fields, boolean printBorders) {
+		this.key = key;
+		this.name = name;
+		this.schemaType = schemaType;
+		this.columns = columns;
+		this.lines = lines;
+		this.fields = fields;
+		this.labelsReportLayout = labelsReportLayout;
+		this.printBorders = printBorders;
 	}
 
 	public String getName() {
@@ -65,5 +80,9 @@ public class LabelTemplate implements Serializable {
 
 	public String getSchemaType() {
 		return schemaType;
+	}
+
+	public boolean isPrintBorders() {
+		return printBorders;
 	}
 }

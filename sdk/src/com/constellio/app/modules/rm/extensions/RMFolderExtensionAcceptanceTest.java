@@ -143,18 +143,42 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 				folderWithRuleUnitsAndAdminUnit10_WithCreatorInAdminUnit10AndOthers);
 		assertThatFolderIsPrincipalCopy(folderWithRuleUnitsAndAdminUnit10_WithCreatorInAdminUnit10AndOthers);
 		try {
-			saveAndReloadFolder(
-					folderWithRuleResponsible_WithCreatorInNoAdminUnit);
+			saveAndReloadFolder(folderWithRuleResponsible_WithCreatorInNoAdminUnit);
 		} catch (ValidationException e) {
 			assertErrorIsOnCopyStatus(e);
 		}
+	}
+
+	@Test
+	public void givenFolderWithParentAndEnteredFieldsThenEnteredFieldsDeleted()
+			throws Exception {
+		Folder folder = newFolder("Test").setOpenDate(aDate()).setRetentionRuleEntered(records.getRule1())
+				.setAdministrativeUnitEntered(records.getUnit10a()).setCategoryEntered(records.categoryId_X13)
+				.setParentFolder(records.folder_A06).setCopyStatusEntered(CopyType.PRINCIPAL);
+		recordServices.add(folder);
+
+		assertThat(folder.getAdministrativeUnitEntered()).isNull();
+		assertThat(folder.getCategoryEntered()).isNull();
+		assertThat(folder.getRetentionRuleEntered()).isNull();
+		assertThat(folder.getCopyStatusEntered()).isNull();
+
+		folder.setOpenDate(aDate()).setRetentionRuleEntered(records.getRule1())
+				.setAdministrativeUnitEntered(records.getUnit10a()).setCategoryEntered(records.categoryId_X13)
+				.setParentFolder(records.folder_A06).setCopyStatusEntered(CopyType.PRINCIPAL);
+		recordServices.update(folder);
+
+		assertThat(folder.getAdministrativeUnitEntered()).isNull();
+		assertThat(folder.getCategoryEntered()).isNull();
+		assertThat(folder.getRetentionRuleEntered()).isNull();
+		assertThat(folder.getCopyStatusEntered()).isNull();
+
 	}
 
 	private void assertErrorIsOnCopyStatus(ValidationException e) {
 		List<ValidationError> errors = e.getErrors()
 				.getValidationErrors();
 		assertThat(errors.size()).isEqualTo(1);
-		assertThat((String)errors.get(0).getParameters().get(METADATA_CODE)).endsWith("_" + Folder.COPY_STATUS);
+		assertThat((String) errors.get(0).getParameters().get(METADATA_CODE)).endsWith("_" + Folder.COPY_STATUS);
 	}
 
 	private void assertThatFolderIsPrincipalCopy(Folder folder) {

@@ -1,6 +1,7 @@
 package com.constellio.model.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import org.junit.Test;
 
@@ -30,7 +31,37 @@ public class MaskUtilsTest {
 		assertThat(MaskUtils.isValid("A9A 9A9", "G1N 209")).isFalse();
 		assertThat(MaskUtils.isValid("A9A 9A9", "G1N 2c9")).isTrue();
 		assertThat(MaskUtils.isValid("A9A 9A9", "G1N 2CY")).isFalse();
+	}
 
+	@Test
+	public void whenStrictValidateValidValueThenTrue() {
+		assertThat(MaskUtils.strictValidate("A9A 9A9", "G1N2C9"));
+
+		assertThat(MaskUtils.strictValidate("999-999-9999", "1236664242")).isTrue();
+		assertThat(MaskUtils.strictValidate("999-999-9999", "123666424")).isFalse();
+		assertThat(MaskUtils.strictValidate("999-999-9999", "12366642424")).isFalse();
+
+		assertThat(MaskUtils.strictValidate("(999) 999-9999", "1236664242")).isTrue();
+		assertThat(MaskUtils.strictValidate("(999) 999-9999", "123666424A")).isFalse();
+
+		assertThat(MaskUtils.strictValidate("(AAA) 999-9999", "BCD6664240")).isTrue();
+		assertThat(MaskUtils.strictValidate("(AAA) 999-9999", "123666424A")).isFalse();
+
+		assertThat(MaskUtils.strictValidate("(AAA) AAA-AAAA", "BCDHGFEDCB")).isTrue();
+		assertThat(MaskUtils.strictValidate("(AAA) AAA-AAAA", "BCDHG9EDCB")).isFalse();
+	}
+
+	@Test
+	public void whenStrictFormatValidValueThenTrue() throws MaskUtilsException {
+		assertThat(MaskUtils.strictFormat("999-999-9999", "1236664242")).isEqualTo("123-666-4242");
+		assertThat(MaskUtils.strictFormat("(999) 999-9999", "1236664242")).isEqualTo("(123) 666-4242");
+		assertThat(MaskUtils.strictFormat("(AAA) 999-9999", "BCD6664240")).isEqualTo("(BCD) 666-4240");
+		assertThat(MaskUtils.strictFormat("(AAA) AAA-AAAA", "BCDEFGHILH")).isEqualTo("(BCD) EFG-HILH");
+	}
+
+	@Test(expected = MaskUtilsException.MaskUtilsException_InvalidValue.class)
+	public void whenStrictFormatInvalidValueThenException() throws MaskUtilsException {
+			assertThat(MaskUtils.strictFormat("999-999-9999", "1"));
 	}
 
 	@Test
@@ -39,6 +70,16 @@ public class MaskUtilsTest {
 
 		assertThat(MaskUtils.format("99999", "1")).isEqualTo("00001");
 		assertThat(MaskUtils.format("99999", "42")).isEqualTo("00042");
+	}
+
+
+
+	@Test
+	public void whenNoMaskThenValid()
+			throws Exception {
+
+		assertThat(MaskUtils.isValid("", "zeString")).isTrue();
+		assertThat(MaskUtils.isValid(null, "zeOtherString")).isTrue();
 
 	}
 

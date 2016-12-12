@@ -18,4 +18,6 @@ public interface ImportFileView extends BaseView, AdminViewGroup {
 
 	List<String> getSelectedCollections();
 
+	ImportFileMode getImportFileMode();
+
 }

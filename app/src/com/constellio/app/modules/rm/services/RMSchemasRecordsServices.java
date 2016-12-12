@@ -22,10 +22,12 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.apache.poi.hsmf.datatypes.ByteChunk;
 import org.apache.poi.hsmf.datatypes.Chunk;
 import org.apache.poi.hsmf.datatypes.ChunkGroup;
@@ -34,14 +36,12 @@ import org.apache.poi.hsmf.datatypes.MAPIProperty;
 import org.apache.poi.hsmf.datatypes.StringChunk;
 import org.apache.poi.hsmf.parsers.POIFSChunkParser;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -58,7 +58,6 @@ import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
@@ -71,10 +70,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
+	
+	private static final Logger LOGGER = Logger.getLogger(RMSchemasRecordsServices.class);
 
 	public static final String EMAIL_MIME_TYPES = "mimeTypes";
 	public static final String EMAIL_ATTACHMENTS = "attachments";
@@ -133,7 +135,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public ContainerRecordType getContainerRecordType(String id) {
-		return new ContainerRecordType(get(id), getTypes());
+		try {
+			return new ContainerRecordType(get(id), getTypes());
+		} catch (NoSuchRecordWithId e) {
+			return null;
+		}
 	}
 
 	public ContainerRecordType newContainerRecordType() {
@@ -819,14 +825,19 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				MimeMultipart mimeMultipart = (MimeMultipart) messageContent;
 				int partCount = mimeMultipart.getCount();
 				for (int i = 0; i < partCount; i++) {
-					BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-					String partFileName = bodyPart.getFileName();
-					Object partContent = bodyPart.getContent();
-					if (partContent instanceof InputStream) {
-						InputStream inputAttachment = (InputStream) partContent;
-						attachments.put(partFileName, inputAttachment);
-						mimeTypes.put(partFileName, bodyPart.getContentType());
-						attachmentFileNames.add(partFileName);
+					try {
+						BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+						String partFileName = bodyPart.getFileName();
+						Object partContent = bodyPart.getContent();
+						if (partContent instanceof InputStream) {
+							partFileName = MimeUtility.decodeText(partFileName);
+							InputStream inputAttachment = (InputStream) partContent;
+							attachments.put(partFileName, inputAttachment);
+							mimeTypes.put(partFileName, bodyPart.getContentType());
+							attachmentFileNames.add(partFileName);
+						}
+					} catch (Throwable t) {
+						LOGGER.warn("Error while parsing message content", t);
 					}
 				}
 			}

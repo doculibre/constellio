@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.wrappers;
 
 import java.util.List;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Record;
@@ -23,6 +24,9 @@ public class Category extends RecordWrapper {
 	public static final String KEYWORDS = "keywords";
 
 	public static final String COMMENTS = "comments";
+	public static final String DEFAULT_COPY_RULE_ID = "defaultCopyRuleIdentifier";
+	public static final String DEFAULT_COPY_RULE = "defaultCopyRule";
+	public static final String DEFAULT_RETENTION_RULE = "defaultRetentionRule";
 	public static final String RETENTION_RULES = "retentionRules";
 	public static final String LEVEL = "level";
 	public static final String COPY_RETENTION_RULES_ON_DOCUMENT_TYPES = "copyRetentionRulesOnDocumentTypes";
@@ -54,6 +58,28 @@ public class Category extends RecordWrapper {
 	public Category setParent(String category) {
 		set(PARENT, category);
 		return this;
+	}
+
+	public String getDefaultCopyRuleId() {
+		return get(DEFAULT_COPY_RULE_ID);
+	}
+
+	public Category setDefaultCopyRuleId(CopyRetentionRule copy) {
+		set(DEFAULT_COPY_RULE_ID, copy == null ? null : copy.getId());
+		return this;
+	}
+
+	public Category setDefaultCopyRuleId(String id) {
+		set(DEFAULT_COPY_RULE_ID, id);
+		return this;
+	}
+
+	public String getDefaultRetentionRule() {
+		return get(DEFAULT_RETENTION_RULE);
+	}
+
+	public CopyRetentionRule getDefaultCopyRule() {
+		return get(DEFAULT_COPY_RULE);
 	}
 
 	public String getCode() {

@@ -3,15 +3,15 @@ package com.constellio.app.modules.es.connectors.smb.queue;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 
-// TODO Benoit. Check thread safety
 public class SmbJobQueueSimpleImpl implements SmbJobQueue {
-	private Queue<ConnectorJob> jobsQueue;
+	private Queue<SmbConnectorJob> jobsQueue;
 
 	@Override
 	public void init() {
-		jobsQueue = new ConcurrentLinkedQueue<ConnectorJob>();
+		jobsQueue = new ConcurrentLinkedQueue<SmbConnectorJob>();
 	}
 
 	@Override
@@ -25,12 +25,12 @@ public class SmbJobQueueSimpleImpl implements SmbJobQueue {
 	}
 
 	@Override
-	public ConnectorJob poll() {
+	public SmbConnectorJob poll() {
 		return jobsQueue.poll();
 	}
 
 	@Override
-	public boolean add(ConnectorJob job) {
+	public boolean add(SmbConnectorJob job) {
 		return jobsQueue.add(job);
 	}
 

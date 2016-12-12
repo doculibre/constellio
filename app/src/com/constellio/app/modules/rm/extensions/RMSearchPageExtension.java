@@ -9,14 +9,16 @@ import com.constellio.app.ui.framework.components.SearchResultDisplay;
 
 public class RMSearchPageExtension extends SearchPageExtension {
 
+	AppLayerFactory appLayerFactory;
+
 	public RMSearchPageExtension(AppLayerFactory appLayerFactory) {
-		super(appLayerFactory);
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
 	public SearchResultDisplay getCustomResultDisplayFor(GetCustomResultDisplayParam param) {
 		if (param.getSchemaType().equals(Document.SCHEMA_TYPE)) {
-			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), getAppLayerFactory());
+			return new DocumentSearchResultDisplay(param.getSearchResultVO(), param.getComponentFactory(), appLayerFactory);
 		}
 		return super.getCustomResultDisplayFor(param);
 	}

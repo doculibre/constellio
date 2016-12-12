@@ -66,6 +66,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModifications;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
@@ -401,6 +402,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						} catch (RuntimeException e) {
 							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
 						}
+						validationServices.validateAccess(record, transaction);
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
 						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
 							updateCreationModificationUsersAndDates(record, transaction, types.getSchema(record.getSchemaCode()));
@@ -421,9 +423,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 								Metadata metadataProvidingSequenceCode = schema
 										.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
 
-								if (record.isModified(metadataProvidingSequenceCode)) {
+								if (record.isModified(metadataProvidingSequenceCode) && !record.isModified(metadata)) {
 									String sequenceCode = record.get(metadataProvidingSequenceCode);
-									String value = format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
+									String value = sequenceCode == null ?
+											null :
+											format(metadata.getInputMask(), "" + sequencesManager.next(sequenceCode));
 									record.set(metadata, sequenceCode == null ? null : value);
 								}
 							}
@@ -732,7 +736,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				modelFactory.newSearchServices(), modelFactory.newAuthorizationsServices());
 	}
 
-	ConfigProvider newConfigProvider() {
+	public ConfigProvider newConfigProvider() {
 		return new ConfigProvider() {
 
 			@Override

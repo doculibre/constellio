@@ -1,20 +1,24 @@
 package com.constellio.app.modules.es.connectors.smb.jobs;
 
-import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobType;
-import com.constellio.app.modules.es.connectors.smb.service.SmbService;
-import com.constellio.app.modules.es.connectors.spi.Connector;
 
 public class SmbSeedJob extends SmbDispatchJob {
 	private static final String jobName = SmbSeedJob.class.getSimpleName();
+	private final JobParams jobParams;
 
-	public SmbSeedJob(Connector connector, String url, SmbService smbService, SmbJobFactory jobFactory, String parentUrl) {
-		super(connector, url, smbService, jobFactory, parentUrl, jobName);
+	public SmbSeedJob(JobParams jobParams) {
+		super(jobParams);
+		this.jobParams = jobParams;
 	}
-	
+
+	@Override
+	public String getUrl() {
+		return jobParams.getUrl();
+	}
+
 	@Override
 	public String toString() {
-		return jobName + '@' + Integer.toHexString(hashCode()) + " - " + url;
+		return jobName + '@' + Integer.toHexString(hashCode()) + " - " + jobParams.getUrl();
 	}
 
 	@Override

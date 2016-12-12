@@ -38,17 +38,18 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
 
 	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
+	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
+			.dependency();
 
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
 		return Arrays.asList(decommissioningDateParam, archivisticStatusParam, datesAndDateTimesParam,
 				copyRulesExpectedTransferDateParam, configSemiActiveNumberOfYearWhenVariableDelayPeriodParam,
-				configInactiveNumberOfYearWhenVariableDelayPeriodParam);
+				configInactiveNumberOfYearWhenVariableDelayPeriodParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	@Override
 	protected LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters) {
-
 		CalculatorInput input = new CalculatorInput(parameters);
 
 		if (input.archivisticStatus.isInactive()) {
@@ -77,6 +78,8 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
+			} else if (expectedTransferDate == null && input.inactiveNumberOfYearWhenVariableDelayPeriod != -1) {
+				baseTransferDate = input.decommissioningDate;
 			} else {
 				baseTransferDate = expectedTransferDate;
 			}
@@ -109,6 +112,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 		Integer semiActiveNumberOfYearWhenVariableDelayPeriod, inactiveNumberOfYearWhenVariableDelayPeriod;
 		DynamicDependencyValues datesAndDateTimes;
+		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			super(parameters);
@@ -120,6 +124,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			this.inactiveNumberOfYearWhenVariableDelayPeriod = parameters
 					.get(configInactiveNumberOfYearWhenVariableDelayPeriodParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
+			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
 		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {
@@ -129,7 +134,8 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 				return null;
 
 			} else {
-				LocalDate date = datesAndDateTimesParam.getDate(semiActiveMetadata, datesAndDateTimes, yearEnd);
+				LocalDate date = datesAndDateTimesParam
+						.getDate(semiActiveMetadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
 				if (date == null) {
 					return null;
 				} else {

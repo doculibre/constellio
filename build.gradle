@@ -25,7 +25,9 @@ allprojects {
     }
 
     tasks.withType(Javadoc) {
-        options.encoding = 'UTF-8'
+        task ->
+            enabled = false;
+            options.encoding = 'UTF-8'
     }
 
     repositories {
@@ -109,15 +111,16 @@ allprojects {
     }
 
     jar {
-        version = '6.5.6'
+        version = '6.5.50.5'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "6.5.6"
+    version = "6.5.50.5"
 
     webInf {
+
         from("resources_i18n/") {
             into("resources_i18n")
         }

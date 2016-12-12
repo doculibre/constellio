@@ -11,7 +11,11 @@ public class TaxonomiesSearchOptions {
 	private int rows = 100;
 	private int startRow = 0;
 	private StatusFilter includeStatus = StatusFilter.ACTIVES;
+
+	//Only supported in the "visible" services
+	private boolean alwaysReturnTaxonomyConceptsWithReadAccess = false;
 	private String requiredAccess = Role.READ;
+	private boolean hasChildrenFlagCalculated = true;
 
 	public TaxonomiesSearchOptions() {
 		super();
@@ -26,6 +30,7 @@ public class TaxonomiesSearchOptions {
 
 	public TaxonomiesSearchOptions(TaxonomiesSearchOptions cloned) {
 		super();
+		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
 		this.rows = cloned.rows;
 		this.startRow = cloned.startRow;
 		this.includeStatus = cloned.includeStatus;
@@ -35,6 +40,15 @@ public class TaxonomiesSearchOptions {
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
 		super();
 		this.includeStatus = includeLogicallyDeleted;
+	}
+
+	public boolean isHasChildrenFlagCalculated() {
+		return hasChildrenFlagCalculated;
+	}
+
+	public TaxonomiesSearchOptions setHasChildrenFlagCalculated(boolean hasChildrenFlagCalculated) {
+		this.hasChildrenFlagCalculated = hasChildrenFlagCalculated;
+		return this;
 	}
 
 	public int getRows() {
@@ -85,6 +99,16 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
+	public boolean isAlwaysReturnTaxonomyConceptsWithReadAccess() {
+		return alwaysReturnTaxonomyConceptsWithReadAccess;
+	}
+
+	public TaxonomiesSearchOptions setAlwaysReturnTaxonomyConceptsWithReadAccess(
+			boolean alwaysReturnTaxonomyConceptsWithReadAccess) {
+		this.alwaysReturnTaxonomyConceptsWithReadAccess = alwaysReturnTaxonomyConceptsWithReadAccess;
+		return this;
+	}
+
 	public TaxonomiesSearchOptions cloneAddingReturnedField(Metadata metadata) {
 		TaxonomiesSearchOptions clonedOptions = new TaxonomiesSearchOptions(this);
 		clonedOptions.setReturnedMetadatasFilter(returnedMetadatasFilter.withIncludedMetadata(metadata));
@@ -92,6 +116,7 @@ public class TaxonomiesSearchOptions {
 		clonedOptions.setRequiredAccess(requiredAccess);
 		clonedOptions.setRows(rows);
 		clonedOptions.setStartRow(startRow);
+		clonedOptions.setAlwaysReturnTaxonomyConceptsWithReadAccess(alwaysReturnTaxonomyConceptsWithReadAccess);
 		return clonedOptions;
 
 	}

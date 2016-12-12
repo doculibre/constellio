@@ -67,6 +67,10 @@ public class MigrationResourcesProvider {
 		return ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(file, streamName);
 	}
 
+	public File getFile(String key) {
+		return new File(propertiesFolder, key);
+	}
+
 	public String getString(String key, Locale locale) {
 		ensureBundles();
 		ResourceBundle bundle = bundles.getBundle(locale);

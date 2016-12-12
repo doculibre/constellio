@@ -32,7 +32,12 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		notAUnitItest = true;
-		sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+		givenTransactionLogIsEnabled();
+		sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
+				getDataLayerFactory().getSecondTransactionLogManager());
 		client = getDataLayerFactory().newRecordDao().getBigVaultServer().getNestedSolrServer();
 	}
 
@@ -51,9 +56,9 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 			threads.add(new Thread() {
 				@Override
 				public void run() {
-					SequencesManager sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+					SequencesManager sequencesManager = new SolrSequencesManager(getDataLayerFactory().newRecordDao(), null);
 					List<Long> ids = new ArrayList<Long>();
-					for (int j = 0; j < 1000; j++) {
+					for (int j = 0; j < 200; j++) {
 						try {
 							ids.add(sequencesManager.next("zeSequence"));
 							total.incrementAndGet();
@@ -69,15 +74,15 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 
 		threads.startAll();
 
-		while (total.get() < 95000) {
-			System.out.println(total.get());
-			Thread.sleep(500);
+		while (total.get() < 18000) {
+			System.out.println(total.get() + "/20000");
+			Thread.sleep(2000);
 		}
 
 		threads.joinAll();
 
-		assertThat(concurrentList.size()).isEqualTo(100000);
-		assertThat(concurrentSet.size()).isEqualTo(100000);
+		assertThat(concurrentList.size()).isEqualTo(20000);
+		assertThat(concurrentSet.size()).isEqualTo(20000);
 	}
 
 	@Test
@@ -128,8 +133,10 @@ public class SolrSequencesManagerAcceptTest extends ConstellioTest {
 	public void whenCallNextSetAndLastSequenceValueThenCorrectAnswers()
 			throws Exception {
 
-		SequencesManager sequencesManager1 = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
-		SequencesManager sequencesManager2 = new SolrSequencesManager(getDataLayerFactory().newRecordDao());
+		SequencesManager sequencesManager1 = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
+				getDataLayerFactory().getSecondTransactionLogManager());
+		SequencesManager sequencesManager2 = new SolrSequencesManager(getDataLayerFactory().newRecordDao(),
+				getDataLayerFactory().getSecondTransactionLogManager());
 
 		assertThat(sequencesManager1.next("seq1")).isEqualTo(1L);
 		assertThat(sequencesManager1.getLastSequenceValue("seq1")).isEqualTo(1L);

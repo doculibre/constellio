@@ -138,7 +138,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	}
 
 	private class AzurAuthenticationTab extends VerticalLayout {
-		private Field clientId, authorityUrl, authorityTenantId;
+		private Field clientId, authorityTenantId;
 		private Field userField;
 		private Field passwordField;
 
@@ -151,11 +151,9 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			clientId.setCaption($("LDAPConfigManagementView.clientId"));
 			addComponent(clientId);
 
-			authorityUrl = createStringField(ldapServerConfiguration.getAuthorityUrl(), true);
-			authorityUrl.setCaption($("LDAPConfigManagementView.authorityUrl"));
 			authorityTenantId = createStringField(ldapServerConfiguration.getTenantName(), true);
 			authorityTenantId.setCaption($("LDAPConfigManagementView.authorityTenantId"));
-			HorizontalLayout authority = new HorizontalLayout(authorityUrl, authorityTenantId);
+			HorizontalLayout authority = new HorizontalLayout(authorityTenantId);
 			addComponent(authority);
 
 			userField = new TextField($("LDAPConfigManagementView.testAuthenticationUser"));
@@ -163,10 +161,6 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 			passwordField = new PasswordField($("LDAPConfigManagementView.testAuthenticationPassword"));
 			addComponent(passwordField);
-		}
-
-		public String getAuthorityUrl() {
-			return (String) authorityUrl.getValue();
 		}
 
 		public String getAuthorityTenantId() {
@@ -188,7 +182,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
 			AzureADServerConfig serverConfig = new AzureADServerConfig()
 					.setAuthorityTenantId(azurAuthenticationTab.getAuthorityTenantId())
-					.setAuthorityUrl(azurAuthenticationTab.getAuthorityUrl()).setClientId(azurAuthenticationTab.getClientId());
+					.setClientId(azurAuthenticationTab.getClientId());
 			return new LDAPServerConfiguration(serverConfig, ldapAuthenticationActive.getValue());
 		}
 	}

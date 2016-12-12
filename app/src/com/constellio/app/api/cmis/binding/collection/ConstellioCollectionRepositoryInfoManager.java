@@ -1,5 +1,10 @@
 package com.constellio.app.api.cmis.binding.collection;
 
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_ALL;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -27,12 +32,11 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryCapabili
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 
+import com.constellio.app.api.cmis.builders.object.AclBuilder;
+
 public class ConstellioCollectionRepositoryInfoManager {
 
 	private static final String ROOT_ID = "@root@";
-	private static final String CMIS_READ = "cmis:read";
-	private static final String CMIS_WRITE = "cmis:write";
-	private static final String CMIS_ALL = "cmis:all";
 
 	private final String collection;
 	private final String constellioVersion;
@@ -118,6 +122,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		List<PermissionDefinition> permissions = new ArrayList<PermissionDefinition>();
 		permissions.add(createPermission(CMIS_READ, "Read"));
 		permissions.add(createPermission(CMIS_WRITE, "Write"));
+		permissions.add(createPermission(CMIS_DELETE, "Delete"));
 		permissions.add(createPermission(CMIS_ALL, "All"));
 		aclCapability.setPermissionDefinitionData(permissions);
 

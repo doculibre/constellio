@@ -1,6 +1,7 @@
 package com.constellio.model.services.contents;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.fail;
@@ -51,6 +52,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 	File contentImportFile;
 	File toImport;
 	File errorsEmpty;
+	File filesExceedingParsingFileSizeLimit;
 	File errorsUnparsable;
 	File indexProperties;
 
@@ -76,6 +78,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		errorsEmpty = new File(contentImportFile, "errors-empty");
 		errorsUnparsable = new File(contentImportFile, "errors-unparsable");
 		indexProperties = new File(contentImportFile, "filename-sha1-index.properties");
+		filesExceedingParsingFileSizeLimit = new File(contentImportFile, "files-exceeding-parsing-size-limit.txt");
 		contentImportFile.delete();
 
 		assertThat(contentImportFile).doesNotExist();
@@ -99,6 +102,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(toImport).exists();
 		assertThat(errorsEmpty).exists();
 		assertThat(errorsUnparsable).exists();
+		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 		assertThat(indexProperties).doesNotExist();
 
 	}
@@ -269,6 +273,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(errorsEmpty.list()).containsOnly("file2.html", "folder1");
 		assertThat(new File(errorsEmpty, "folder1").list()).containsOnly("file3.html");
 		assertThat(errorsUnparsable.list()).isEmpty();
+		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 	}
 
 	@Test
@@ -304,6 +309,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(errorsEmpty.list()).isEmpty();
 		assertThat(errorsUnparsable.list()).containsOnly("file2.pdf", "folder1");
 		assertThat(new File(errorsUnparsable, "folder1").list()).containsOnly("file3.pdf");
+		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 	}
 
 	@Test
@@ -340,8 +346,12 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 				.hasContentEqualTo(getTestResourceInputStream("testFileWithLargePictureOfEdouard.pptx"));
 
 		assertThat(errorsEmpty.list()).isEmpty();
-		assertThat(errorsUnparsable.list()).containsOnly("file2.pptx", "folder1");
-		assertThat(new File(errorsUnparsable, "folder1").list()).containsOnly("file3.pptx");
+		assertThat(errorsEmpty.list()).isEmpty();
+		assertThat(errorsUnparsable.list()).isEmpty();
+		assertThat(FileUtils.readLines(filesExceedingParsingFileSizeLimit)).containsOnly(
+				"folder1/file3.pptx",
+				"file2.pptx"
+		);
 	}
 
 	@Test
@@ -381,6 +391,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 
 		assertThat(errorsEmpty.list()).isEmpty();
 		assertThat(errorsUnparsable.list()).isEmpty();
+		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 	}
 
 	private Map<String, ContentVersionDataSummary> factorize(Map<String, Factory<ContentVersionDataSummary>> importedFilesMap) {
@@ -447,6 +458,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(toImport.list()).isEmpty();
 		assertThat(errorsEmpty.list()).isEmpty();
 		assertThat(errorsUnparsable.list()).isEmpty();
+		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 	}
 
 	@Test
@@ -483,6 +495,7 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(errorsUnparsable.list()).containsOnly("fileWithErrors.bigf");
 		assertThat(new File(errorsUnparsable, "fileWithErrors.bigf").list())
 				.containsOnly("ContentManagerAcceptanceTest-passwordProtected.pdf");
+		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 	}
 
 	private String htmlWithBody(String body) {

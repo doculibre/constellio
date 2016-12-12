@@ -204,7 +204,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
-					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty();
+					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
 					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
 					startPosition.clear();
 					startPosition.removeAllItems();

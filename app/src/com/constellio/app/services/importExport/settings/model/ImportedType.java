@@ -132,4 +132,13 @@ public class ImportedType {
 		this.defaultSchema = schema;
 		return defaultSchema;
 	}
+
+	public List<ImportedMetadata> getAllMetadata() {
+		List<ImportedMetadata> importedMetadatas = new ArrayList<>();
+		importedMetadatas.addAll(defaultSchema.getAllMetadata());
+		for (ImportedMetadataSchema customSchema : customSchemata) {
+			importedMetadatas.addAll(customSchema.getAllMetadata());
+		}
+		return importedMetadatas;
+	}
 }

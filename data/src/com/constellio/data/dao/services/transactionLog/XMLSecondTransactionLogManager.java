@@ -39,6 +39,7 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_CouldNotFlushTransaction;
@@ -544,6 +545,39 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 		transactionFiles = getFlushedTransactionsSortedByName();
 		if (!transactionFiles.isEmpty()) {
 			throw new SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException(transactionFiles);
+		}
+	}
+
+	@Override
+	public void setSequence(String sequenceId, long value) {
+		ensureStarted();
+		ensureNoExceptionOccured();
+		String transactionId = UUIDV1Generator.newRandomId();
+		File file = new File(getUnflushedFolder(), transactionId);
+
+		try {
+			ioServices.replaceFileContent(file, newReadWriteServices().toSetSequenceLogEntry(sequenceId, value));
+			doFlush(transactionId);
+		} catch (IOException e) {
+			exceptionOccured = true;
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	@Override
+	public void nextSequence(String sequenceId) {
+		ensureStarted();
+		ensureNoExceptionOccured();
+		String transactionId = UUIDV1Generator.newRandomId();
+		File file = new File(getUnflushedFolder(), transactionId);
+
+		try {
+			ioServices.replaceFileContent(file, newReadWriteServices().toNextSequenceLogEntry(sequenceId));
+			doFlush(transactionId);
+		} catch (IOException e) {
+			exceptionOccured = true;
+			throw new RuntimeException(e);
 		}
 	}
 }

@@ -62,7 +62,7 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 		});
 	}
 
-	private String zeroPaddedNumber(long seq) {
+	public static String zeroPaddedNumber(long seq) {
 		String zeroPaddedSeq = ("0000000000" + seq);
 		return zeroPaddedSeq.substring(zeroPaddedSeq.length() - 11);
 	}

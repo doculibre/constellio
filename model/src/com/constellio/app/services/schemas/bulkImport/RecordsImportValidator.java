@@ -4,14 +4,15 @@ import static com.constellio.app.services.schemas.bulkImport.RecordsImportServic
 import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import org.joda.time.LocalDateTime;
 
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -75,10 +77,11 @@ public class RecordsImportValidator {
 	ProgressionHandler progressionHandler;
 	Language language;
 	SkippedRecordsImport skippedRecordsImport;
+	BulkImportParams params;
 
 	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler, ImportDataProvider importDataProvider,
 			MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
-			Language language, SkippedRecordsImport skippedRecordsImport) {
+			Language language, SkippedRecordsImport skippedRecordsImport, BulkImportParams params) {
 		this.schemaType = schemaType;
 		this.importDataProvider = importDataProvider;
 		this.extensions = extensions;
@@ -88,6 +91,7 @@ public class RecordsImportValidator {
 		this.progressionHandler = progressionHandler;
 		this.language = language;
 		this.skippedRecordsImport = skippedRecordsImport;
+		this.params = params;
 	}
 
 	public void validate(ValidationErrors errors)
@@ -181,19 +185,35 @@ public class RecordsImportValidator {
 	private void validateAllReferencesResolved(ValidationErrors errors) {
 		for (MetadataSchemaType schemaType : resolverCache.getCachedSchemaTypes())
 			for (Metadata uniqueValueMetadata : schemaType.getAllMetadatas().onlyUniques()) {
-				List<String> unresolved = new ArrayList<>(
+				KeySetMap<String, String> unresolved = new KeySetMap<>(
 						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata.getLocalCode()));
-				Collections.sort(unresolved);
+
 				if (!unresolved.isEmpty()) {
-					for (String value : unresolved) {
-						Map<String, Object> parameters = new HashMap<>();
-						parameters.put("metadata", uniqueValueMetadata.getLocalCode());
-						parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
-						parameters.put("referencedSchemaType", schemaType.getCode());
-						parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
-						parameters.put("unresolvedValue", value);
-						parameters.put("prefix", schemaType.getLabel(language) + " : ");
-						errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+					for (Map.Entry<String, Set<String>> entry : unresolved.getMapEntries()) {
+						for (String usedBy : entry.getValue()) {
+							String usedByMetadata = StringUtils.substringBefore(usedBy, ":");
+							String usedBySchemaTypeCode = StringUtils.substringBefore(usedByMetadata, "_");
+							MetadataSchemaType usedBySchemaType = types.getSchemaType(usedBySchemaTypeCode);
+							String usedBySchemaTypeLabel = usedBySchemaType.getLabel(language);
+							String usedById = StringUtils.substringAfter(usedBy, ":");
+							Map<String, Object> parameters = new HashMap<>();
+							parameters.put("legacyId", usedById);
+							parameters.put("metadata", uniqueValueMetadata.getLocalCode());
+							parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
+							parameters.put("referencedSchemaType", schemaType.getCode());
+							parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
+							parameters.put("value", entry.getKey());
+							if (usedById != null) {
+								parameters.put("prefix", usedBySchemaTypeLabel + " " + usedById + " : ");
+							} else {
+								parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
+							}
+							if (params.isWarningsForInvalidFacultativeMetadatas()) {
+								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+							} else {
+								errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+							}
+						}
 					}
 				}
 			}
@@ -246,7 +266,11 @@ public class RecordsImportValidator {
 			Object fieldValue = importData.getFields().get(requiredMetadata.getLocalCode());
 
 			if (fieldValue == null || (fieldValue instanceof List && ((List) fieldValue).isEmpty())) {
-				errors.add(RecordsImportServices.class, REQUIRED_VALUE, toMetadataParameters(requiredMetadata));
+				if (requiredMetadata.getLocalCode().startsWith("USR") && params.isWarningsForRequiredUSRMetadatasWithoutValue()) {
+					errors.addWarning(RecordsImportServices.class, REQUIRED_VALUE, toMetadataParameters(requiredMetadata));
+				} else {
+					errors.add(RecordsImportServices.class, REQUIRED_VALUE, toMetadataParameters(requiredMetadata));
+				}
 			}
 		}
 
@@ -294,8 +318,7 @@ public class RecordsImportValidator {
 			//return SYSTEM_RESERVED_METADATA_CODE;
 		} else if (!metadata.isEnabled()) {
 			//return DISABLED_METADATA_CODE;
-		} else if (metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
-
+		} else if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
 			errors.add(RecordsImportServices.class, AUTOMATIC_METADATA_CODE, toMetadataParameters(metadata));
 		}
 	}
@@ -309,7 +332,8 @@ public class RecordsImportValidator {
 			errors.add(RecordsImportServices.class, INVALID_RESOLVER_METADATA_CODE, asMap("resolverMetadata", resolver.metadata));
 		}
 
-		resolverCache.markUniqueValueAsRequired(schemaType, resolver.metadata, resolver.value);
+		resolverCache.markUniqueValueAsRequired(schemaType, resolver.metadata, resolver.value, metadata.getCode(),
+				importData.getLegacyId());
 	}
 
 	private void validateValueType(Metadata metadata, final Object value, ValidationErrors errors) {

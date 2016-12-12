@@ -107,7 +107,7 @@ public class SchemaUtils {
 		return underscoreSplitWithCache(metadata.getCode())[0];
 	}
 
-	public String getSchemaTypeCode(String schema) {
+	public static String getSchemaTypeCode(String schema) {
 		return underscoreSplitWithCache(schema)[0];
 	}
 
@@ -373,5 +373,18 @@ public class SchemaUtils {
 
 		throw new ImpossibleRuntimeException("getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship - No such metadata!");
 
+	}
+
+	public static List<String> localCodes(List<String> codes) {
+		List<String> localCodes = new ArrayList<>();
+		for (String code : codes) {
+			localCodes.add(SchemaUtils.toLocalCode(code));
+		}
+		return localCodes;
+	}
+
+	private static String toLocalCode(String code) {
+		String[] parts = new SchemaUtils().underscoreSplitWithCache(code);
+		return parts[2];
 	}
 }

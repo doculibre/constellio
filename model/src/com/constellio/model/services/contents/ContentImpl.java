@@ -159,21 +159,11 @@ public class ContentImpl implements Content {
 					throw new ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(version, currentVersionLabel);
 				}
 			}
-			BigDecimal bigDecimal = new BigDecimal(Double.valueOf(version));
-
-			// setScale is immutable
-			bigDecimal = bigDecimal.setScale(1, BigDecimal.ROUND_HALF_UP);
-			double newVersion = bigDecimal.doubleValue();
-//
-//			if (currentVersionLabel != null) {
-//				double currentVersion = Double.valueOf(currentVersionLabel);
-//
-//				if ((!empty && bigDecimal.doubleValue() <= currentVersion) || (bigDecimal.doubleValue() < currentVersion)) {
-//					throw new ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(version, currentVersionLabel);
-//				}
-//			}
-
-			return "" + newVersion;
+			Double.valueOf(version);
+			if (version.indexOf(".") == -1) {
+				version += ".0";
+			}
+			return version;
 		} catch (NumberFormatException e) {
 			throw new ContentImplRuntimeException_InvalidArgument("version");
 		}

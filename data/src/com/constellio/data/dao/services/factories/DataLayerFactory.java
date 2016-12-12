@@ -298,6 +298,6 @@ public class DataLayerFactory extends LayerFactory {
 	}
 
 	public SequencesManager getSequencesManager() {
-		return new SolrSequencesManager(newRecordDao());
+		return new SolrSequencesManager(newRecordDao(), secondTransactionLogManager);
 	}
 }

@@ -25,6 +25,8 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenPushingLotsOfDocumentsUsingMultipleThreadsThenAllSaved()
 			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
 
 		Map<String, Object> map = new HashMap<>();
 		map.put("inc", "1.0");
@@ -32,8 +34,11 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 		SolrClient solrClient = getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
 		QueuedSolrClient client = QueuedSolrClient.createAndStart(solrClient, 100, 5);
 
-		for (int i = 1; i <= 100000; i++) {
-			System.out.println("Adding - " + i);
+		System.out.println("Adding documents...");
+		for (int i = 1; i <= 10000; i++) {
+			if (i % 2000 == 0) {
+				System.out.println("Adding - " + i);
+			}
 			SolrInputDocument solrInputDocument = new SolrInputDocument();
 			solrInputDocument.setField("id", "doc" + i);
 			solrInputDocument.setField("value_s", "test" + i);
@@ -41,8 +46,8 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 			client.addAsync(solrInputDocument);
 		}
 
-		for (int i = 1; i <= 100000; i++) {
-			System.out.println("Updating - " + i);
+		System.out.println("Updating documents...");
+		for (int i = 1; i <= 10000; i++) {
 			SolrInputDocument solrInputDocument = new SolrInputDocument();
 			solrInputDocument.setField("id", "doc" + i);
 			solrInputDocument.setField("_version_", "1");
@@ -58,8 +63,10 @@ public class QueuedSolrClientAcceptanceTest extends ConstellioTest {
 
 		client.close();
 
-		for (int i = 1; i <= 100000; i++) {
-			System.out.println("Validating - " + i);
+		for (int i = 1; i <= 10000; i++) {
+			if ((i + 1) % 250 == 0) {
+				System.out.println("Validating - " + (i + 1) + "/10000");
+			}
 			SolrDocument solrDocument = solrClient.query(byId("doc" + i)).getResults().get(0);
 			assertThat(solrDocument.getFieldValue("count_d")).isEqualTo(2.0);
 			assertThat(solrDocument.getFieldValue("value_s")).isEqualTo("test" + i);

@@ -436,6 +436,11 @@ public class RecordImpl implements Record {
 		return schemaCode;
 	}
 
+	@Override
+	public String getTypeCode() {
+		return SchemaUtils.getSchemaTypeCode(schemaCode);
+	}
+
 	public RecordDTO getRecordDTO() {
 		return recordDTO;
 	}
@@ -780,6 +785,11 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public boolean isDisconnected() {
+		return disconnected;
+	}
+
+	@Override
 	public List<String> getFollowers() {
 		if (modifiedValues.containsKey("followers_ss")) {
 			followers = (List<String>) modifiedValues.get("followers_ss");
@@ -850,7 +860,7 @@ public class RecordImpl implements Record {
 
 	@Override
 	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
-		System.out.println("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);

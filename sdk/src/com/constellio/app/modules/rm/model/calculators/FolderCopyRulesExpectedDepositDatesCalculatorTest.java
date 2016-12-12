@@ -38,6 +38,7 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 
 	List<CopyRetentionRule> applicableCopyRules;
 	int confiRequiredDaysBeforeYearEnd = 0;
+	boolean calculatedMetadatasBasedOnFirstTimerangePartParam = true;
 	String configYearEnd;
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
@@ -169,6 +170,7 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 				.thenReturn(configSemiActiveNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		//when(params.get(any(DynamicLocalDependency.class))).thenReturn(dynamicDependencyValues);
 		doReturn(dynamicDependencyValues).when(params).get(any(DynamicLocalDependency.class));
 
@@ -195,6 +197,7 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		//when(params.get(any(DynamicLocalDependency.class))).thenReturn(dynamicDependencyValues);
 		doReturn(dynamicDependencyValues).when(params).get(any(DynamicLocalDependency.class));
 

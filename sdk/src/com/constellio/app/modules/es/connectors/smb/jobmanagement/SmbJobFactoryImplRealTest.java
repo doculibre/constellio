@@ -1,22 +1,12 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
+import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
+import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
-import com.constellio.app.modules.es.connectors.smb.service.SmbService;
-import com.constellio.app.modules.es.connectors.smb.service.SmbServiceSimpleImpl;
+import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
+import com.constellio.app.modules.es.connectors.smb.service.SmbShareServiceSimpleImpl;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbServiceTestUtils;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
@@ -31,12 +21,23 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.io.IOException;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SmbJobFactoryImplRealTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;
 	private ESSchemasRecordsServices es;
 	private ConnectorSmbInstance connectorInstance;
-	@Mock private SmbService smbService;
+	@Mock private SmbShareService smbService;
 	private ConnectorLogger logger;
 	private TestConnectorEventObserver eventObserver;
 	private ConnectorSmbUtils smbUtils;
@@ -83,7 +84,11 @@ public class SmbJobFactoryImplRealTest extends ConstellioTest {
 	public void givenWorstCaseOfSlowRetrievalOfModificationIndicatorsWhenUsingFactoryThenAverageFactoryLockTimeIsLessThan1Second()
 			throws RecordServicesException, IOException, InterruptedException {
 		testUtils = new SmbServiceTestUtils();
-		smbService = new SmbServiceSimpleImpl(testUtils.getValidCredentials(), testUtils.getFetchValidShare(), smbUtils, logger, es);
+		smbService = new SmbShareServiceSimpleImpl(testUtils.getValidCredentials(), testUtils.getFetchValidShare(), smbUtils, logger, es);
+
+		SmbConnectorContextServices contextServices = new SmbConnectorContextServices(es);
+		SmbConnectorContext context = contextServices.createContext(connectorInstance.getId());
+
 		jobFactory = new SmbJobFactoryImpl(connector, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService, updater);
 
 		ConnectorSmbFolder folder = es.newConnectorSmbFolder(connectorInstance)

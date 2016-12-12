@@ -9,6 +9,7 @@ import static com.constellio.model.services.schemas.builders.ClassListBuilder.co
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -89,7 +90,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual, false);
+				false, false, false, false, false, false, multiLingual, false, new HashSet<String>());
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -346,6 +347,10 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isSchemaAutocomplete();
 	}
 
+	public Set<String> getCustomAttributes() {
+		return getInheritedMetadataBehaviors().getCustomAttributes();
+	}
+
 	public StringSortFieldNormalizer getSortFieldNormalizer() {
 		return hasNormalizedSortField() ? new DefaultStringSortFieldNormalizer() : null;
 	}
@@ -418,6 +423,16 @@ public class Metadata implements DataStoreField {
 	public boolean isSameLocalCodeThanAny(Metadata... metadatas) {
 		for (Metadata metadata : metadatas) {
 			if (localCode.equals(metadata.getLocalCode())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean isSameLocalCodeIn(String... metadatasLocalCodes) {
+		for (String metadataLocalCode : metadatasLocalCodes) {
+			if (localCode.equals(metadataLocalCode)) {
 				return true;
 			}
 		}

@@ -38,6 +38,7 @@ import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecor
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Schemas;
@@ -62,6 +63,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	Record record;
 	RecordValidationServices services;
 	@Mock Transaction transaction;
+	@Mock RecordUpdateOptions recordUpdateOptions;
 	@Mock ConfigProvider configProvider;
 
 	LocalDateTime january1_2010 = new LocalDateTime(2010, 1, 1, 0, 0);
@@ -93,7 +95,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newCachelessRecordServices();
 		recordProvider = getModelLayerFactory().newCachelessRecordServices().newRecordProvider(null, new Transaction());
-
+		when(transaction.getRecordUpdateOptions()).thenReturn(recordUpdateOptions);
 	}
 
 	@Test

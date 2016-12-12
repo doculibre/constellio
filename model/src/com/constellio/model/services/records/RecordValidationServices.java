@@ -16,6 +16,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.validators.AllowedReferencesValidator;
@@ -102,14 +103,6 @@ public class RecordValidationServices {
 	public void validateSchemaUsingCustomSchemaValidator(Record record, RecordProvider recordProvider, Transaction transaction)
 			throws RecordServicesException.ValidationException {
 		this.validateUsingCustomSchemaValidators(record, recordProvider);
-
-		if (hasSecurityOnSchema(record)) {
-			ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
-			if (!validationErrors.getValidationErrors().isEmpty()) {
-				throw new RecordServicesException.ValidationException(record, validationErrors);
-			}
-		}
-
 	}
 
 	public void validateUsingCustomSchemaValidators(Record record, RecordProvider recordProvider)
@@ -168,15 +161,23 @@ public class RecordValidationServices {
 		}
 		new MetadataValueTypeValidator(metadatas).validate(record, validationErrors);
 		if (!transaction.isSkippingRequiredValuesValidation()) {
-			new ValueRequirementValidator(metadatas).validate(record, validationErrors);
+			boolean skipUSRMetadatas = transaction.getRecordUpdateOptions().isSkipUSRMetadatasRequirementValidations();
+			new ValueRequirementValidator(metadatas, skipUSRMetadatas).validate(record, validationErrors);
 		}
 		new MetadataUnmodifiableValidator(metadatas).validate(record, validationErrors);
 		if (transaction.getRecordUpdateOptions() == null || transaction.getRecordUpdateOptions().isUnicityValidationsEnabled()) {
 			new MetadataUniqueValidator(metadatas, schemaTypes, searchService).validate(record, validationErrors);
 		}
 		new MetadataChildOfValidator(metadatas, schemaTypes).validate(record, validationErrors);
-		new MaskedMetadataValidator(metadatas).validate(record, validationErrors);
+		if (transaction.getRecordUpdateOptions() == null || !transaction.getRecordUpdateOptions()
+				.isSkipMaskedMetadataValidations()) {
+			newMaskedMetadataValidator(metadatas).validate(record, validationErrors);
+		}
 		return validationErrors;
+	}
+
+	public MaskedMetadataValidator newMaskedMetadataValidator(List<Metadata> metadatas) {
+		return new MaskedMetadataValidator(metadatas);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -245,5 +246,15 @@ public class RecordValidationServices {
 				configProvider, recordProvider);
 
 		validator.validate(params);
+	}
+
+	public void validateAccess(Record record, Transaction transaction)
+			throws ValidationException {
+		if (hasSecurityOnSchema(record)) {
+			ValidationErrors validationErrors = validateUsingSecurityValidatorsReturningErrors(record, transaction);
+			if (!validationErrors.getValidationErrors().isEmpty()) {
+				throw new RecordServicesException.ValidationException(record, validationErrors);
+			}
+		}
 	}
 }

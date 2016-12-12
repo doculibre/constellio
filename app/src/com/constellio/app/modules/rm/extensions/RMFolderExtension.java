@@ -61,6 +61,11 @@ public class RMFolderExtension extends RecordExtension {
 		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
 			folderInCreation(rmSchema.wrapFolder(event.getRecord()), event.getTransactionUser());
 		}
+
+		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
+			Folder folder = rmSchema.wrapFolder(event.getRecord());
+			deleteRootFolderMetadatasIfSubFolder(folder);
+		}
 	}
 
 	@Override
@@ -80,18 +85,24 @@ public class RMFolderExtension extends RecordExtension {
 	@Override
 	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
 			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
-		if (event.isSchemaType(Folder.SCHEMA_TYPE) && event.getRecord().get(rmSchema.folder.parentFolder()) != null) {
+		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
-			folder.setAdministrativeUnitEntered((String) null);
-			folder.setCategoryEntered((String) null);
-			folder.setRetentionRuleEntered((String) null);
-			folder.setCopyStatusEntered(null);
+			deleteRootFolderMetadatasIfSubFolder(folder);
 		}
 	}
 
 	private void setFolderPermissionStatus(Record record) {
 		Folder folder = rmSchema.wrapFolder(record);
 		folder.setPermissionStatus(folder.getArchivisticStatus());
+	}
+
+	private void deleteRootFolderMetadatasIfSubFolder(Folder folder) {
+		if (folder.getParentFolder() != null) {
+			folder.setAdministrativeUnitEntered((String) null);
+			folder.setCategoryEntered((String) null);
+			folder.setRetentionRuleEntered((String) null);
+			folder.setCopyStatusEntered(null);
+		}
 	}
 
 	private void folderInCreation(Folder folder, User user) {
@@ -146,7 +157,8 @@ public class RMFolderExtension extends RecordExtension {
 
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema()).returnAll();
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema())
+				.returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));
 		for (Record record : results) {

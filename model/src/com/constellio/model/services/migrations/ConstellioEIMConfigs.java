@@ -142,7 +142,7 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(DATE_TIME_FORMAT);
 	}
 
-	public Integer getTrashPurgeDelai(){
+	public Integer getTrashPurgeDelai() {
 		return manager.getValue(TRASH_PURGE_DELAI);
 	}
 
@@ -152,6 +152,10 @@ public class ConstellioEIMConfigs {
 
 	public SearchSortType getSearchSortType() {
 		return manager.getValue(SEARCH_SORT_TYPE);
+	}
+
+	public Boolean isCmisNeverReturnAcl() {
+		return manager.getValue(CMIS_NEVER_RETURN_ACL);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {

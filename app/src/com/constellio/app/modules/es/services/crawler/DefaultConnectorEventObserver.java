@@ -114,17 +114,11 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	public void push(List<ConnectorDocument> documents) {
 		List<Record> documentRecords = new ArrayList<>();
 		for (ConnectorDocument document : documents) {
-			//			if (document.isFetched()) {
-			//				LOGGER.info("**** Received fetched document '" + document.getWrappedRecord().getIdTitle() + "'");
-			//			} else {
-			//				LOGGER.info("**** Received document to fetch  : '" + document.getId() + "'");
-			//			}
 			Map<String, ConnectorField> fieldDeclarations = applyMappedPropertiesToMetadata(document);
 			addFieldDeclarations(document.getConnector(), fieldDeclarations);
 			documentRecords.add(document.getWrappedRecord());
 		}
 
-		Transaction transaction = new Transaction(documentRecords);
 		boolean flushNow = false;
 		for (Record record : documentRecords) {
 			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())

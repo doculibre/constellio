@@ -5,11 +5,13 @@ import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.Im
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.io.File.separator;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,9 +23,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.BatchBuilderIterator;
@@ -41,16 +44,20 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.LangUtils.StringReplacer;
 import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
+import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -61,6 +68,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.BulkUploader;
 import com.constellio.model.services.contents.BulkUploaderRuntimeException;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.ContentImport;
@@ -70,6 +78,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 
@@ -84,7 +93,9 @@ public class RecordsImportServicesExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordsImportServices.class);
 	private static final String CYCLIC_DEPENDENCIES_ERROR = "cyclicDependencies";
 	private static final String CONTENT_NOT_FOUND_ERROR = "contentNotFound";
+	private static final String HASH_NOT_FOUND_IN_VAULT = "hashNotFoundInVault";
 	private static final String CONTENT_NOT_IMPORTED_ERROR = "contentNotImported";
+	private static final String RECORD_PREPARATION_ERROR = "recordPreparationError";
 
 	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemasManager schemasManager;
@@ -106,6 +117,7 @@ public class RecordsImportServicesExecutor {
 	private BulkImportResults importResults;
 	private Map<String, Factory<ContentVersionDataSummary>> importedFilesMap;
 	private SkippedRecordsImport skippedRecordsImport;
+	private ConfigProvider configProvider;
 	ResolverCache resolverCache;
 
 	private static class TypeImportContext {
@@ -113,6 +125,7 @@ public class RecordsImportServicesExecutor {
 		String schemaType;
 		AtomicInteger addUpdateCount;
 		boolean recordsBeforeImport;
+		boolean hasContents;
 	}
 
 	private static class TypeBatchImportContext {
@@ -120,10 +133,12 @@ public class RecordsImportServicesExecutor {
 		Transaction transaction;
 		ImportDataOptions options;
 		BulkUploader bulkUploader;
+		Map<String, Long> sequences = new HashMap<>();
 	}
 
 	//
-	public RecordsImportServicesExecutor(ModelLayerFactory modelLayerFactory, URLResolver urlResolver,
+	public RecordsImportServicesExecutor(final ModelLayerFactory modelLayerFactory, RecordServices recordServices,
+			URLResolver urlResolver,
 			ImportDataProvider importDataProvider, final BulkImportProgressionListener bulkImportProgressionListener,
 			final User user, List<String> collections, BulkImportParams params) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -132,8 +147,9 @@ public class RecordsImportServicesExecutor {
 		this.user = user;
 		this.collections = collections;
 		this.params = params;
+		this.recordServices = recordServices;
 		schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		recordServices = modelLayerFactory.newRecordServices();
+
 		searchServices = modelLayerFactory.newSearchServices();
 		contentManager = modelLayerFactory.getContentManager();
 		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
@@ -142,6 +158,13 @@ public class RecordsImportServicesExecutor {
 		this.progressionHandler = new ProgressionHandler(bulkImportProgressionListener);
 		this.collection = user.getCollection();
 		this.importResults = new BulkImportResults();
+		this.configProvider = new ConfigProvider() {
+
+			@Override
+			public <T> T get(SystemConfiguration config) {
+				return modelLayerFactory.getSystemConfigurationsManager().getValue(config);
+			}
+		};
 	}
 
 	public BulkImportResults bulkImport()
@@ -181,6 +204,7 @@ public class RecordsImportServicesExecutor {
 		}
 		for (String schemaType : getImportedSchemaTypes()) {
 
+			DecoratedValidationsErrors typeImportErrors = new DecoratedValidationsErrors(errors);
 			TypeImportContext context = new TypeImportContext();
 			context.schemaType = schemaType;
 			context.recordsBeforeImport = searchServices.hasResults(from(types.getSchemaType(schemaType)).returnAll());
@@ -189,6 +213,7 @@ public class RecordsImportServicesExecutor {
 					.toLocalCodesList();
 			int previouslySkipped = 0;
 			context.addUpdateCount = new AtomicInteger();
+			context.hasContents = !types.getSchemaType(schemaType).getAllMetadatas().onlyWithType(CONTENT).isEmpty();
 			boolean typeImportFinished = false;
 
 			while (!typeImportFinished) {
@@ -196,19 +221,20 @@ public class RecordsImportServicesExecutor {
 				ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 				int skipped;
 				if (params.getThreads() == 1) {
-					skipped = bulkImport(context, importDataIterator, errors);
+					skipped = bulkImport(context, importDataIterator, typeImportErrors);
 				} else {
-					skipped = bulkImportInParallel(context, importDataIterator, errors);
+					skipped = bulkImportInParallel(context, importDataIterator, typeImportErrors);
 				}
 				if (skipped > 0 && skipped == previouslySkipped) {
 
-					if (errors.isEmpty()) {
+					if (!typeImportErrors.hasDecoratedErrors()) {
 						Set<String> cyclicDependentIds = resolverCache.getNotYetImportedLegacyIds(schemaType);
-						addCyclicDependenciesValidationError(errors, types.getSchemaType(schemaType), cyclicDependentIds);
+						addCyclicDependenciesValidationError(typeImportErrors, types.getSchemaType(schemaType),
+								cyclicDependentIds);
 
 					}
 
-					throwIfNonEmpty(errors);
+					throwIfNonEmpty(typeImportErrors);
 				}
 				if (skipped == 0) {
 					typeImportFinished = true;
@@ -217,7 +243,9 @@ public class RecordsImportServicesExecutor {
 			}
 			if (params.importErrorsBehavior == STOP_ON_FIRST_ERROR
 					|| params.importErrorsBehavior == CONTINUE_FOR_RECORD_OF_SAME_TYPE) {
-				throwIfNonEmpty(errors);
+				if (typeImportErrors.hasDecoratedErrors()) {
+					throwIfNonEmpty(typeImportErrors);
+				}
 			}
 		}
 
@@ -269,6 +297,8 @@ public class RecordsImportServicesExecutor {
 						importDataIterator.getOptions(), importDataBatches.next());
 				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
+				incrementSequences(typeBatchImportContext);
+
 			} catch (RecordServicesException e) {
 				while (importDataBatches.hasNext()) {
 					importDataBatches.next();
@@ -281,12 +311,26 @@ public class RecordsImportServicesExecutor {
 		return skipped;
 	}
 
+	private void incrementSequences(TypeBatchImportContext typeBatchImportContext) {
+		SequencesManager sequencesManager = modelLayerFactory.getDataLayerFactory().getSequencesManager();
+		for (Map.Entry<String, Long> highestSequenceValue : typeBatchImportContext.sequences.entrySet()) {
+			long currentSystemValue = sequencesManager.getLastSequenceValue(highestSequenceValue.getKey());
+			if (currentSystemValue < highestSequenceValue.getValue()) {
+				sequencesManager.set(highestSequenceValue.getKey(), highestSequenceValue.getValue());
+			}
+		}
+	}
+
 	private TypeBatchImportContext newTypeBatchImportContext(TypeImportContext typeImportContext,
 			ImportDataOptions options, List<ImportData> batch) {
 		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext();
 		typeBatchImportContext.batch = batch;
 		typeBatchImportContext.transaction = new Transaction();
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
+		typeBatchImportContext.transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
+		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipMaskedMetadataValidations(true);
+		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(
+				params.isWarningsForRequiredUSRMetadatasWithoutValue());
 		typeBatchImportContext.options = options;
 		if (!typeImportContext.recordsBeforeImport) {
 			typeBatchImportContext.transaction.getRecordUpdateOptions().setUnicityValidationsEnabled(false);
@@ -300,10 +344,18 @@ public class RecordsImportServicesExecutor {
 
 		final AtomicInteger skipped = new AtomicInteger();
 
-		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, params.getBatchSize());
+		int batchSize = params.getBatchSize();
+		int threads = params.getThreads();
+
+		if (typeImportContext.hasContents) {
+			batchSize = (int) Math.ceil(batchSize / 2.0);
+			threads = 1;//(int) Math.ceil(threads / 4.0);
+		}
+
+		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
 		final ImportDataOptions options = importDataIterator.getOptions();
 		try {
-			iterateOverRunningTaskInParallel(importDataBatches, params.threads, new IteratorElementTask<List<ImportData>>() {
+			iterateOverRunningTaskInParallel(importDataBatches, threads, new IteratorElementTask<List<ImportData>>() {
 				@Override
 				public void executeTask(List<ImportData> value)
 						throws Exception {
@@ -381,7 +433,7 @@ public class RecordsImportServicesExecutor {
 
 		progressionHandler.afterRecordImports(firstId, lastId, batch.size(), errorsCount);
 
-		contentManager.deleteUnreferencedContents(RecordsFlushing.LATER());
+		contentManager.deleteUnreferencedContents(RecordsFlushing.NOW());
 		return skipped;
 	}
 
@@ -405,10 +457,22 @@ public class RecordsImportServicesExecutor {
 				try {
 					recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
 
+				} catch (ContentManagerRuntimeException_NoSuchContent e) {
+					Map<String, Object> params = new HashMap<>();
+					params.put("hash", e.getId());
+					errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
 				} catch (RecordServicesException.ValidationException e) {
 					for (ValidationError error : e.getErrors().getValidationErrors()) {
 						errors.add(error, error.getParameters());
 					}
+
+				} catch (Throwable t) {
+					String stack = ExceptionUtils.getStackTrace(t);
+					Map<String, Object> params = new HashMap<>();
+					params.put("message", t.getMessage());
+					params.put("stacktrace", stack);
+					errors.add(RecordsImportServices.class, RECORD_PREPARATION_ERROR, params);
+
 				}
 
 				if (errors.hasDecoratedErrors()) {
@@ -428,12 +492,35 @@ public class RecordsImportServicesExecutor {
 							resolverCache.mapIds(typeImportContext.schemaType, uniqueMetadata, value, record.getId());
 						}
 					}
+
+					findHigherSequenceValues(typeImportContext, typeBatchImportContext, record);
 				}
 
 			} catch (SkippedBecauseOfFailedDependency e) {
 				skippedRecordsImport.markAsSkippedBecauseOfDependencyFailure(typeImportContext.schemaType, legacyId);
 			}
 			progressionHandler.incrementProgression();
+		}
+	}
+
+	private void findHigherSequenceValues(TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
+			Record record) {
+
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		for (Metadata metadata : schema.getMetadatas().onlySequence()) {
+			if (record.get(metadata) != null) {
+				SequenceDataEntry sequenceDataEntry = (SequenceDataEntry) metadata.getDataEntry();
+				String key = sequenceDataEntry.getFixedSequenceCode();
+				if (key == null) {
+					key = record.get(schema.getMetadata(sequenceDataEntry.getMetadataProvidingSequenceCode()));
+				}
+
+				long value = Long.valueOf(record.<String>get(metadata));
+				Long currentHighestValue = typeBatchImportContext.sequences.get(key);
+				if (isNotBlank(key) && (currentHighestValue == null || currentHighestValue.longValue() < value)) {
+					typeBatchImportContext.sequences.put(key, value);
+				}
+			}
 		}
 	}
 
@@ -498,10 +585,24 @@ public class RecordsImportServicesExecutor {
 			record = modelLayerFactory.newSearchServices()
 					.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
 		} else {
-			if (typeBatchImportContext.options.isImportAsLegacyId()) {
-				record = recordServices.newRecordWithSchema(newSchema);
-			} else {
-				record = recordServices.newRecordWithSchema(newSchema, legacyId);
+			record = null;
+			if (typeBatchImportContext.options.isMergeExistingRecordWithSameUniqueMetadata()) {
+				for (String uniqueMetadataCode : typeImportContext.uniqueMetadatas) {
+					Metadata uniqueMetadata = newSchema.getMetadata(uniqueMetadataCode);
+
+					record = recordServices.getRecordByMetadata(uniqueMetadata, (String) toImport.getValue(uniqueMetadataCode));
+					if (record != null) {
+						break;
+					}
+				}
+			}
+
+			if (record == null) {
+				if (typeBatchImportContext.options.isImportAsLegacyId()) {
+					record = recordServices.newRecordWithSchema(newSchema);
+				} else {
+					record = recordServices.newRecordWithSchema(newSchema, legacyId);
+				}
 			}
 		}
 
@@ -516,13 +617,44 @@ public class RecordsImportServicesExecutor {
 				Object value = field.getValue();
 				Object convertedValue =
 						value == null ? null : convertValue(typeBatchImportContext, metadata, value, errors);
-				record.set(metadata, convertedValue);
+
+				boolean setValue = true;
+
+				DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(new ValidationErrors());
+
+				for (RecordMetadataValidator validator : metadata.getValidators()) {
+					validator.validate(metadata, convertedValue, configProvider, decoratedErrors);
+				}
+
+				if (metadata.getInputMask() != null) {
+					validateMask(metadata, convertedValue, decoratedErrors);
+				}
+
+				if (decoratedErrors.hasDecoratedErrorsOrWarnings()) {
+					if (params.isWarningsForInvalidFacultativeMetadatas()) {
+						setValue = false;
+						errors.addAllWarnings(decoratedErrors.getValidationErrors());
+						errors.addAllWarnings(decoratedErrors.getValidationWarnings());
+					} else {
+						errors.addAll(decoratedErrors.getValidationErrors());
+						errors.addAllWarnings(decoratedErrors.getValidationWarnings());
+					}
+				}
+
+				if (setValue) {
+					record.set(metadata, convertedValue);
+				}
+
 			}
 		}
 
 		extensions.callRecordImportBuild(typeImportContext.schemaType, new BuildParams(record, types, toImport));
 
 		return record;
+	}
+
+	public void validateMask(Metadata metadata, Object convertedValue, DecoratedValidationsErrors decoratedErrors) {
+		MaskedMetadataValidator.validate(decoratedErrors, metadata, convertedValue);
 	}
 
 	Object convertScalarValue(TypeBatchImportContext typeBatchImportContext, Metadata metadata, Object value,
@@ -700,7 +832,7 @@ public class RecordsImportServicesExecutor {
 		List<String> importedSchemaTypes = getImportedSchemaTypes();
 		for (String schemaType : importedSchemaTypes) {
 			new RecordsImportValidator(schemaType, progressionHandler, importDataProvider, types, resolverCache, extensions,
-					language, skippedRecordsImport).validate(errors);
+					language, skippedRecordsImport, params).validate(errors);
 
 			if (params.getImportValidationErrorsBehavior() == ImportValidationErrorsBehavior.STOP_IMPORT) {
 				errors.throwIfNonEmpty();

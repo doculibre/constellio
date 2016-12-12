@@ -88,6 +88,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.bob(), zeCollection);
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true).getWrappedRecord());
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

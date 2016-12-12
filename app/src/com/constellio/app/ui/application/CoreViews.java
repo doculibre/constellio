@@ -476,4 +476,9 @@ public class CoreViews {
 		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_EMAIL_ATTACHMENTS_TO_FOLDER, params);
 		navigator.navigateTo(viewPath);
 	}
+
+	public void systemCheck() {
+		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
+	}
+	
 }
