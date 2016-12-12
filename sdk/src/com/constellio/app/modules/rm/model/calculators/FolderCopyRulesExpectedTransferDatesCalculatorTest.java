@@ -152,13 +152,6 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		assertThat(calculateFor(4, copy("888-0-C"))).isNull();
 	}
 
-	@Test
-	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingExpectedTransferDateThenReturnNull()
-			throws Exception {
-
-		assertThat(calculateFor(4, copy("888-0-C"))).isNull();
-	}
-
 	private CopyRetentionRule copy(String delays) {
 		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
@@ -174,7 +167,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
-		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
+				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
@@ -190,7 +184,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
-		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam)).thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
+				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}
