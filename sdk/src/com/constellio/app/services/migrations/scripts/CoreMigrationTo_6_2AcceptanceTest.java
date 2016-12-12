@@ -200,9 +200,9 @@ public class CoreMigrationTo_6_2AcceptanceTest extends ConstellioTest {
 				tuple("alice1", "Alice", "Wonderland", "alice@email.com", ACTIVE),
 				tuple("alice2", "Alice", "Wonderland", "alice@email.com", ACTIVE),
 				tuple("chuck", null, null, null, ACTIVE),
-				tuple("gandalf", "gandalf", "leblanc", "gandalf.leblanc@gmail.com", ACTIVE)
-		).doesNotContain(
 				tuple("gandalf", "gandalf", "legris", "gandalf.legris@gmail.com", ACTIVE)
+		).doesNotContain(
+				tuple("gandalf", "gandalf", "leblanc", "gandalf.leblanc@gmail.com", ACTIVE)
 		);
 
 	}
