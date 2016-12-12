@@ -110,6 +110,10 @@ public abstract class LogicalSearchCondition {
 		return filters;
 	}
 
+	public boolean isCollectionSearch() {
+		return filters != null;
+	}
+
 	public String getCollection() {
 		return ((CollectionFilters) filters).getCollection();
 	}

@@ -56,8 +56,19 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(
 						metadataSchemaTypes);
 				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
+				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
 			}
 		}
+	}
+
+	private void whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(
+			final MetadataSchemaTypes metadataSchemaTypes) {
+
+		for (MetadataSchemaType type : metadataSchemaTypes.getSchemaTypes()) {
+			assertThat(type.getDefaultSchema().get(Schemas.ALL_REFERENCES.getLocalCode())).isNotNull();
+			assertThat(type.getDefaultSchema().get(Schemas.MARKED_FOR_REINDEXING.getLocalCode())).isNotNull();
+		}
+
 	}
 
 	private void whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted() {

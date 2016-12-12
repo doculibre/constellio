@@ -176,6 +176,10 @@ public class BigVaultRecordDao implements RecordDao {
 					recordDTO);
 		}
 
+		for (String id : transaction.getMarkedForReindexing()) {
+			updatedDocuments.add(newMarkedForReindexingInputDocument(id));
+		}
+
 		if (!transaction.isSkippingReferenceToLogicallyDeletedValidation()) {
 			for (SolrInputDocument activeReferenceCheck : activeReferencesCheck.values()) {
 				updatedDocuments.add(activeReferenceCheck);
@@ -188,6 +192,16 @@ public class BigVaultRecordDao implements RecordDao {
 				transaction), recordsAncestors, transaction.getNewRecords()));
 		updatedDocuments
 				.addAll(incrementReferenceCountersOutOfTransactionInSolr(recordsOutOfTransactionRefCounts, recordsAncestors));
+	}
+
+	private SolrInputDocument newMarkedForReindexingInputDocument(String id) {
+		SolrInputDocument solrInputDocument = new SolrInputDocument();
+		solrInputDocument.addField("id", id);
+		solrInputDocument.addField("_version_", "1");
+		Map<String, String> setToTrue = new HashMap<>();
+		setToTrue.put("set", "__TRUE__");
+		solrInputDocument.addField("markedForReindexing_s", setToTrue);
+		return solrInputDocument;
 	}
 
 	private Object getCollection(TransactionDTO transaction) {

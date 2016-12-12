@@ -1,6 +1,8 @@
 package com.constellio.sdk.tests;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -47,6 +49,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.security.AuthorizationDetails;
@@ -60,6 +63,8 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
 public class TestUtils {
@@ -770,6 +775,20 @@ public class TestUtils {
 		i18n.setLocale(originalLocale);
 
 		return messages;
+	}
+
+	public static RecordsAssert assertThatAllRecordsOf(MetadataSchemaType type) {
+		SearchServices searchServices = ConstellioFactories.getInstance().getModelLayerFactory().newSearchServices();
+		return assertThatRecords(searchServices.search(query(from(type).returnAll())));
+	}
+
+	public static RecordsAssert assertThatAllRecordsOf(SchemaShortcuts schemaShortcuts) {
+		SearchServices searchServices = ConstellioFactories.getInstance().getModelLayerFactory().newSearchServices();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaShortcuts.code());
+		MetadataSchemaType type = ConstellioFactories.getInstance().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(schemaShortcuts.collection()).getSchemaType(schemaTypeCode);
+
+		return assertThatRecords(searchServices.search(query(from(type).returnAll())));
 	}
 
 	public static void assumeWindows() {

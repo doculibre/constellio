@@ -175,9 +175,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata)
 				.isEqualTo(container.getId());
 		DataStoreField linearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata.getDataStoreCode());
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata);
 		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
-		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata.getDataStoreCode());
+		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata);
 		if (linearSizeStats == null) {
 			if (result.getNumFound() > 0) {
 				//no folder with linearSize

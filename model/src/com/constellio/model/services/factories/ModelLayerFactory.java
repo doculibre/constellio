@@ -24,6 +24,7 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
@@ -118,6 +119,8 @@ public class ModelLayerFactory extends LayerFactory {
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
 
+	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
+
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
 			Delayed<ConstellioModulesManager> modulesManagerDelayed) {
@@ -138,7 +141,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
 		this.collectionsListManager = add(new CollectionsListManager(configManager));
-		this.batchProcessesManager = add(new BatchProcessesManager(newSearchServices(), configManager));
+		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
 						recordsCaches));
@@ -188,6 +191,8 @@ public class ModelLayerFactory extends LayerFactory {
 		this.searchBoostManager = add(
 				new SearchBoostManager(configManager, collectionsListManager));
 		this.trashQueueManager = add(new TrashQueueManager(this));
+
+		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
 	}
 
@@ -436,5 +441,9 @@ public class ModelLayerFactory extends LayerFactory {
 
 	public TrashQueueManager getTrashQueueManager() {
 		return trashQueueManager;
+	}
+
+	public ModelLayerBackgroundThreadsManager getModelLayerBackgroundThreadsManager() {
+		return modelLayerBackgroundThreadsManager;
 	}
 }

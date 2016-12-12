@@ -6,6 +6,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
@@ -74,6 +75,8 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -83,6 +86,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
 import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
@@ -111,6 +115,7 @@ import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
@@ -128,6 +133,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	ZeSchemaMetadatas zeSchema;
 	ZeCustomSchemaMetadatas zeCustomSchema;
 	AnotherSchemaMetadatas anotherSchema;
+	ThirdSchemaMetadatas thirdSchema;
 
 	DataStoreTypesFactory typesFactory;
 	CollectionsListManager collectionsListManager;
@@ -150,6 +156,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		zeSchema = defaultSchema.new ZeSchemaMetadatas();
 		zeCustomSchema = defaultSchema.new ZeCustomSchemaMetadatas();
 		anotherSchema = defaultSchema.new AnotherSchemaMetadatas();
+		thirdSchema = defaultSchema.new ThirdSchemaMetadatas();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		searchServices = getModelLayerFactory().newSearchServices();
 		typesFactory = getDataLayerFactory().newTypesFactory();
@@ -726,6 +733,90 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(((CopiedDataEntry) dataEntry).getCopiedMetadata()).isEqualTo(anotherSchema.stringMetadata().getCode());
 		assertThat(((CopiedDataEntry) dataEntry).getReferenceMetadata()).isEqualTo(
 				zeSchema.firstReferenceToAnotherSchema().getCode());
+	}
+
+	@Test
+	public void whenSavingAgregatedMetadatasThenDataTypeAndParametersConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+
+				MetadataSchemaBuilder anotherSchemaBuilder = schemaTypes.getSchema("anotherSchemaType_default");
+
+				schemaTypes.getSchema(anotherSchema.code()).create("ref")
+						.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+				schemaTypes.getSchema(anotherSchema.code()).create("number").setType(MetadataValueType.NUMBER);
+				schemaTypes.getSchema(zeSchema.code()).create("sum").setType(STRING).defineDataEntry()
+						.asSum(anotherSchemaBuilder.get("ref"), anotherSchemaBuilder.get("number"));
+			}
+		}));
+
+		AggregatedDataEntry dataEntry = (AggregatedDataEntry) zeSchema.metadata("sum").getDataEntry();
+		assertThat(dataEntry.getType()).isEqualTo(AGGREGATED);
+		assertThat(dataEntry.getInputMetadata()).isEqualTo("anotherSchemaType_default_number");
+		assertThat(dataEntry.getReferenceMetadata()).isEqualTo("anotherSchemaType_default_ref");
+		assertThat(dataEntry.getAgregationType()).isEqualTo(AggregationType.SUM);
+	}
+
+	@Test
+	public void whenCreateAgregatedMetadataWithIncompleteMetadataCodesOrCodeOfMetadataInCustomSchema()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(anotherSchema.code()).create("ref")
+						.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+				schemaTypes.getSchema(anotherSchema.code()).create("number").setType(MetadataValueType.NUMBER);
+				schemaTypes.getSchema(thirdSchema.code()).create("number").setType(MetadataValueType.NUMBER);
+				schemaTypes.getSchemaType(anotherSchema.typeCode()).createCustomSchema("custom1");
+
+				schemaTypes.getSchemaType(zeSchema.typeCode()).createCustomSchema("custom2");
+			}
+		}));
+
+		MetadataSchemaTypesBuilder builder = schemasManager.modify(zeCollection);
+
+		MetadataBuilder metadataBuilder = builder.getSchema("zeSchemaType_default").create("zeMeta");
+		MetadataBuilder numberMetadata = builder.getSchema("anotherSchemaType_default").get("number");
+		MetadataBuilder refMetadata = builder.getSchema("anotherSchemaType_default").get("ref");
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(numberMetadata, builder.getSchema("anotherSchemaType_custom1").get("ref"));
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(builder.getSchema("anotherSchemaType_custom1").get("number"), refMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(refMetadata, refMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(numberMetadata, numberMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(builder.getSchema(thirdSchema.code()).get("number"), refMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		metadataBuilder.defineDataEntry().asSum(refMetadata, numberMetadata);
 	}
 
 	@Test

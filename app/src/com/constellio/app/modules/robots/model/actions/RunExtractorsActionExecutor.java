@@ -30,7 +30,7 @@ public class RunExtractorsActionExecutor implements ActionExecutor {
 		// Parameters will always be null, not use them
 		Transaction transaction = new Transaction();
 		transaction.setSkippingRequiredValuesValidation(true);
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.addUpdate(records);
 		return transaction;
 	}

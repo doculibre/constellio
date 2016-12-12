@@ -6,6 +6,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentia
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDuplicable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForDeletion;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIncreaseDependencyLevel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -110,7 +111,28 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 		});
 
 		assertThat(zeSchema.stringMetadata().isEssentialInSummary()).isTrue();
-		assertThat(zeSchema.anotherStringMetadata().isEncrypted()).isFalse();
+		assertThat(zeSchema.anotherStringMetadata().isEssentialInSummary()).isFalse();
+	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveReversedDependencyInSummaryFlag()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata().withAnotherStringMetadata(whichIncreaseDependencyLevel));
+
+		assertThat(zeSchema.stringMetadata().isIncreasedDependencyLevel()).isFalse();
+		assertThat(zeSchema.anotherStringMetadata().isIncreasedDependencyLevel()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode()).setIncreasedDependencyLevel(true);
+				types.getSchema(zeSchema.code()).get(zeSchema.anotherStringMetadata().getLocalCode())
+						.setIncreasedDependencyLevel(false);
+			}
+		});
+
+		assertThat(zeSchema.stringMetadata().isIncreasedDependencyLevel()).isTrue();
+		assertThat(zeSchema.anotherStringMetadata().isIncreasedDependencyLevel()).isFalse();
 	}
 
 	@Test
