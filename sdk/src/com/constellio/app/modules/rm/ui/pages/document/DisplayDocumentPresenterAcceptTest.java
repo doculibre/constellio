@@ -19,6 +19,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,10 +54,10 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	RMSchemasRecordsServices schemasRecordsServices;
 	DisplayDocumentPresenter presenter;
 	SessionContext sessionContext;
-	@Mock UIContext uiContext;	
+	@Mock UIContext uiContext;
 	RecordServices recordServices;
 	LocalDateTime now = new LocalDateTime();
-	LocalDateTime shishOClock = new LocalDateTime().plusDays(1);
+	LocalDateTime shishOClock = new LocalDateTime(2016, 4, 3, 1, 2, 3);
 
 	MetadataSchemasManager metadataSchemasManager;
 	SearchServices searchServices;
@@ -285,10 +286,9 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getTemplate()).isEqualTo(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
-		assertThat(emailToSend.getParameters()).hasSize(2);
-		assertThat(emailToSend.getParameters().get(0)).isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock);
-		assertThat(emailToSend.getParameters().get(1))
-				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + documentWithContentA19.getTitle());
+		assertThat(emailToSend.getParameters()).containsOnly("subject:Alerte lorsque le document est disponible: Chevreuil.odt",
+				"returnDate:2016-04-03  01:02:03", "title:Chevreuil.odt", "constellioURL:http://localhost:8080/constellio/",
+				"recordURL:http://localhost:8080/constellio/#!displayDocument/docA19", "recordType:document");
 
 		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
 	}
@@ -328,7 +328,8 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 	public void givenDocumentThenPublishAndUnpublishButtonsOnlyShowWhenUserHasTheRightPermission()
 			throws Exception {
 		RolesManager manager = getModelLayerFactory().getRolesManager();
-		Role zeNewRole = new Role(zeCollection, "zeNewRoleWithPublishPermission", asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
+		Role zeNewRole = new Role(zeCollection, "zeNewRoleWithPublishPermission",
+				asList(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS));
 		manager.addRole(zeNewRole);
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		recordServices.update(users.sasquatchIn(zeCollection).setUserRoles(asList("zeNewRoleWithPublishPermission")));
@@ -340,7 +341,8 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isTrue();
 
 		manager.updateRole(zeNewRole.withPermissions(new ArrayList<String>()));
-		assertThat(manager.getRole(zeCollection, "zeNewRoleWithPublishPermission").hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
+		assertThat(manager.getRole(zeCollection, "zeNewRoleWithPublishPermission")
+				.hasOperationPermission(RMPermissionsTo.PUBLISH_AND_UNPUBLISH_DOCUMENTS)).isFalse();
 		connectAsSasquatch();
 		presenter.forParams(rmRecords.document_A19);
 		assertThat(presenter.hasCurrentUserPermissionToPublishOnCurrentDocument()).isFalse();
