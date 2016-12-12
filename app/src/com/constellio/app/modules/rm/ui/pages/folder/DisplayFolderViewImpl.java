@@ -138,6 +138,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 
 		Component disabled = new CustomComponent();
+		disabled.ad
 		tabSheet.addTab(disabled, $("DisplayFolderView.tabs.logs"));
 		tabSheet.getTab(disabled).setEnabled(false);
 
@@ -410,6 +411,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return layout;
 			}
 		};
+	}
+
+	public void setEvents() {
+		Table table = new RecordVOTable(null, null);
+		table.setSizeFull();
+		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		//		table.setPageLength(Math.min(15, dataProvider.size()));
+		tabSheet.replaceComponent(documentsComponent, table);
+		documentsComponent = table;
 	}
 
 	@Override

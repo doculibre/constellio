@@ -1,11 +1,9 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -18,12 +16,9 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-/**
- * Created by Constellio on 2016-12-12.
- */
-public class RecordEventsDataProvider {
+public class RecordEventsDataProvider implements EventsCategoryDataProvider {
 
-    transient List<Event> events;
+    transient List<EventStatistics> events;
 
     private String collection;
 
@@ -31,9 +26,11 @@ public class RecordEventsDataProvider {
 
     private String recordID;
 
-    public RecordEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection, String currentUserName) {
+    public RecordEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection,
+                                                        String currentUserName, String recordID) {
         this.collection = collection;
         this.currentUserName = currentUserName;
+        this.recordID = recordID;
         init(modelLayerFactory);
     }
 
@@ -47,26 +44,13 @@ public class RecordEventsDataProvider {
         SearchServices searchServices = modelLayerFactory.newSearchServices();
         RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
         events = new ArrayList<>();
-        EventStatistics foldersCreation = new EventStatistics();
-        foldersCreation.setLabel($("ListEventsView.foldersCreation"));
+        EventStatistics eventStatistics = new EventStatistics();
+        eventStatistics.setLabel($("ListEventsView.foldersCreation"));
         User currentUser = modelLayerFactory.newUserServices().getUserInCollection(currentUserName, collection);
-        LogicalSearchQuery query = rmSchemasRecordsServices.newFindEventByRecordIDQuery(currentUser, recordID);
-        for(Record event: searchServices.search(query)) {
-            events.add();
-        }
-        EventStatistics documentsCreation = new EventStatistics();
-        documentsCreation.setLabel($("ListEventsView.documentsCreation"));
-        query = rmSchemasRecordsServices
-                .newFindCreatedDocumentsByDateRangeQuery(currentUser, startDate, endDate);
-        documentsCreation.setValue((float) searchServices.getResultsCount(query));
-        events.add(documentsCreation);
-
-        EventStatistics tasksCreation = new EventStatistics();
-        tasksCreation.setLabel($("ListEventsView.createTask"));
-        query = rmSchemasRecordsServices
-                .newFindEventByDateRangeQuery(currentUser, EventType.CREATE_TASK, startDate, endDate);
-        tasksCreation.setValue((float) searchServices.getResultsCount(query));
-        events.add(tasksCreation);
+        LogicalSearchQuery query = rmSchemasRecordsServices
+                .newFindEventByRecordIDQuery(currentUser, recordID);
+        eventStatistics.setValue((float) searchServices.getResultsCount(query));
+        events.add(eventStatistics);
     }
 
     @Override

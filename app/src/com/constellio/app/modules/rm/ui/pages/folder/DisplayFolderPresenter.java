@@ -15,6 +15,12 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
+import com.constellio.app.ui.framework.data.event.EventTypeUtils;
+import com.constellio.app.ui.pages.events.EventCategory;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -825,5 +831,74 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public RecordVODataProvider getEventDataProvider() {
+			voBuilder = getRecordToVOBuilderToBorrowedFolders();
+
+			MetadataSchema folderDefaultSchema = schemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
+
+			Metadata borrowUserEnteredMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_USER_ENTERED);
+			Metadata borrowDateMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_DATE);
+			Metadata borrowPreviewReturnDateMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_PREVIEW_RETURN_DATE);
+			Metadata folderIdentifierMetadata = folderDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
+			Metadata titleMetadata = folderDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
+
+			metadataCodes = new ArrayList<>();
+			metadataCodes.add(borrowUserEnteredMetadata.getCode());
+			metadataCodes.add(borrowDateMetadata.getCode());
+			metadataCodes.add(borrowPreviewReturnDateMetadata.getCode());
+			metadataCodes.add(folderIdentifierMetadata.getCode());
+			metadataCodes.add(titleMetadata.getCode());
+
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+
+		} else {
+			voBuilder = new RecordToVOBuilder();
+		}
+		if (metadataCodes == null) {
+			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
+		}
+		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
+				view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return buildQueryFromParameters();
+			}
+		};
+		return eventsDataProvider;
+	}
+
+	private RecordToVOBuilder getRecordToVOBuilderToBorrowedFolders() {
+		RecordToVOBuilder voBuilder;
+		voBuilder = new RecordToVOBuilder() {
+			transient RMSchemasRecordsServices schemas;
+
+			@Override
+			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
+								  SessionContext sessionContext) {
+
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().eventSchema())
+						.where(schemas().eventSchema().get(Event.RECORD_ID)).isEqualTo()
+						.andWhere(borrowDateMetadata).isEqualTo(
+								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
+
+				SearchServices searchServices = modelLayerFactory.newSearchServices();
+				Record eventRecord = searchServices.searchSingleResult(logicalSearchCondition);
+
+				return super.build(eventRecord, viewMode, schemaVO, sessionContext);
+			}
+
+			private RMSchemasRecordsServices schemas() {
+				if (schemas == null) {
+					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+				}
+				return schemas;
+			}
+		};
+		return voBuilder;
 	}
 }
