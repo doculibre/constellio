@@ -147,6 +147,15 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingExpectedTransferDateThenReturnNull()
 			throws Exception {
 
+		decommissioningDate = new LocalDate(2012, 1, 15);
+
+		assertThat(calculateFor(4, copy("888-0-C"))).isNull();
+	}
+
+	@Test
+	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingExpectedTransferDateThenReturnNull()
+			throws Exception {
+
 		assertThat(calculateFor(4, copy("888-0-C"))).isNull();
 	}
 

@@ -160,6 +160,17 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 	}
 
 	@Test
+	public void givenNullExpectedTransferDateWhenCalculatingThenReturnNotNullDate()
+			throws Exception {
+		inactiveConfigNumberOfYearWhenVariableDelay = 7;
+		archivisticStatus = FolderStatus.SEMI_ACTIVE;
+		decommissioningDate = new LocalDate(1998, 4, 5);
+		copyRulesExpectedTransferDate = asList(null, null);
+
+		assertThat(calculateFor(1, copy("3-0-D"))).isEqualTo(new LocalDate(2001, 4, 5));
+	}
+
+	@Test
 	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingThenReturnNotNullDate()
 			throws Exception {
 		inactiveConfigNumberOfYearWhenVariableDelay = 7;

@@ -99,6 +99,16 @@ public class CalculatorUtils {
 
 		if (baseDate == null) {
 			return null;
+		} else if (copyRule.getSemiActiveRetentionPeriod().isZero()) {
+			if (copyRule.getActiveRetentionPeriod().isVariablePeriod()) {
+				if (numberOfYearWhenVariableDelayPeriod == -1) {
+					return null;
+				} else {
+					return baseTransferDate.plusYears(numberOfYearWhenVariableDelayPeriod);
+				}
+			} else {
+				return baseTransferDate.plusYears(copyRule.getActiveRetentionPeriod().getFixedPeriod());
+			}
 		} else if (copyRule.getSemiActiveRetentionPeriod().isVariablePeriod()) {
 			if (numberOfYearWhenVariableDelayPeriod == -1) {
 				return null;
