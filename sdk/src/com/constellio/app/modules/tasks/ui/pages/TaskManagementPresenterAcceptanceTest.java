@@ -1,38 +1,32 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import com.constellio.sdk.tests.setups.Users;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.setups.Users;
 import org.mockito.Mockito;
-import org.mockito.Spy;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -92,10 +86,11 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenWorkflowsAreActivatedThenOnlyUsersWithNeededPermissionCanSeeTheTab()
 			throws Exception {
+		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
+		when(view.getSessionContext()).thenReturn(sessionContext);
 		TaskManagementPresenter presenter = Mockito.spy(new TaskManagementPresenter(view));
 		doReturn(true).when(presenter).areWorkflowsEnabled();
 
-		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		assertThat(presenter.getTabs()).contains(presenter.WORKFLOWS_STARTED);
 
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
