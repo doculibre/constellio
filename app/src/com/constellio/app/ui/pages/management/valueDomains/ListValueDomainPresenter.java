@@ -46,6 +46,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 					.modify(view.getCollection());
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).addLabel(language, newLabel);
+			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).getDefaultSchema().addLabel(language, newLabel);
 
 			try {
 				modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(metadataSchemaTypesBuilder);
