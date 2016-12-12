@@ -1,22 +1,7 @@
 package com.constellio.app.ui.pages.profile;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-import java.util.Arrays;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
@@ -29,6 +14,15 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.InputStream;
+import java.util.Arrays;
+
+import static org.mockito.Mockito.*;
 
 public class ModifyProfilePresenterTest extends ConstellioTest {
 	MockedNavigation navigator;
@@ -87,26 +81,6 @@ public class ModifyProfilePresenterTest extends ConstellioTest {
 		presenter = spy(new ModifyProfilePresenter(view));
 
 		presenter.setParameters("url1/url2/url3");
-	}
-
-	@Test
-	public void whenSaveButtonClickedThenUpdateUserCredentialAndUser()
-			throws Exception {
-
-		//		when(profilVO.getImage()).thenReturn(contentVersionVO);
-		doNothing().when(presenter).changePhoto(contentVersionVO);
-
-		presenter.saveButtonClicked(profileVO);
-
-		verify(userServices).addUpdateUserCredential(userCredentialWithPersonalEmails);
-		verify(bob).setPhone("3333333");
-		verify(bob).setStartTab(RMNavigationConfiguration.LAST_VIEWED_FOLDERS);
-		verify(bob).setDefaultTaxonomy("taxo1");
-		verify(bob).setLoginLanguageCode("fr");
-		verify(bob).setPersonalEmails(Arrays.asList("bob@doculibre.com", "bob@gmail.com"));
-		verify(recordServices).update(bobRecord);
-		verify(view.navigate().to()).url(presenter.getParameters());
-
 	}
 
 	@Test
