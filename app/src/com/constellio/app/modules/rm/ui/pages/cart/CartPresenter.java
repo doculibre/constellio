@@ -31,6 +31,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
@@ -254,8 +255,18 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 					return false;
 				}
 			}
+			if(document.isPublished() && !user.has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(document)) {
+				return false;
+			}
+			if(getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)) {
+				return false;
+			}
 		}
 		return true;
+	}
+
+	private String getCurrentBorrowerOf(Document document) {
+		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
 	List<Folder> getCartFolders() {
