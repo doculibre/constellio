@@ -14,17 +14,17 @@ import java.util.Map;
  */
 public class StatsReportParameters {
 
-    private final Map<String, Object> statistics;
+	private final Map<String, Object> statistics;
 
-    public StatsReportParameters(String collection, AppLayerFactory appLayerFactory, LogicalSearchQuery query) {
-        RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-        DataStoreField folderLinearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-        query.computeStatsOnField(folderLinearSizeMetadata.getDataStoreCode());
-        statistics = appLayerFactory.getModelLayerFactory().newSearchServices().query(query)
-                .getStatValues(folderLinearSizeMetadata.getDataStoreCode());
-    }
+	public StatsReportParameters(String collection, AppLayerFactory appLayerFactory, LogicalSearchQuery query) {
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+		DataStoreField folderLinearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
+		query.computeStatsOnField(folderLinearSizeMetadata);
+		statistics = appLayerFactory.getModelLayerFactory().newSearchServices().query(query)
+				.getStatValues(folderLinearSizeMetadata);
+	}
 
-    public Map<String, Object> getStatistics() {
-        return statistics;
-    }
+	public Map<String, Object> getStatistics() {
+		return statistics;
+	}
 }
