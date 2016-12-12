@@ -132,13 +132,13 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 		when(searchServices.getLanguage(any(LogicalSearchQuery.class))).thenReturn("en");
 		when(searchServices.addSolrModifiableParams(any(LogicalSearchQuery.class))).thenCallRealMethod();
-	}
-
-	private void createManager() {
 
 		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
+	}
+
+	private void createManager() {
 
 		manager = spy(new BatchProcessesManager(modelLayerFactory));
 		doReturn(currentDate).doReturn(newCurrentDate).when(manager).getCurrentTime();
@@ -507,7 +507,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 		final AtomicInteger markAllStandbyAsPending = new AtomicInteger();
 
-		BatchProcessesManager manager = spy(new BatchProcessesManager(getModelLayerFactory()) {
+		BatchProcessesManager manager = spy(new BatchProcessesManager(modelLayerFactory) {
 
 			@Override
 			public void markAllStandbyAsPending() {

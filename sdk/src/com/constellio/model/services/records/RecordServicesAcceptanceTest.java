@@ -1125,11 +1125,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
 				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
 				tuple("newTitleOfRecord1", null),
-				tuple("newTitleOfRecord2", null),
+				tuple("newTitleOfRecord2", true),
 				tuple("record3", null),
 				tuple("record4", true),
 				tuple("record5", true),
-				tuple("record6", null)
+				tuple("record6", true)
 		);
 
 	}

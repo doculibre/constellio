@@ -2,6 +2,9 @@ package com.constellio.sdk.tests;
 
 import java.util.UUID;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -55,6 +58,16 @@ public class TestRecord extends RecordImpl {
 
 		set(schemaShortcuts.instance().get(localCode), value);
 		return this;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return super.equals(obj);
 	}
 
 }

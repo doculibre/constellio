@@ -60,7 +60,10 @@ public class MetadataNetworkBuilder {
 	}
 
 	private Metadata idMetadataOfType(String code) {
-		return type(code).getDefaultSchema().getMetadata(IDENTIFIER.getCode());
+
+		MetadataSchemaType type = type(code);
+
+		return type == null ? null : type.getDefaultSchema().getMetadata(IDENTIFIER.getCode());
 	}
 
 	private MetadataSchemaType type(String code) {
@@ -79,13 +82,15 @@ public class MetadataNetworkBuilder {
 
 		for (Metadata to : tos) {
 			int metadataLevel = 0;
-			for (ModifiableMetadataNetworkLink link : linksFromMetadata.get(to.getCode())) {
-				metadataLevel = Math.max(metadataLevel, link.level);
+			if (linksFromMetadata != null && to != null && linksFromMetadata.contains(to.getCode())) {
+				for (ModifiableMetadataNetworkLink link : linksFromMetadata.get(to.getCode())) {
+					metadataLevel = Math.max(metadataLevel, link.level);
+				}
+
+				String toSchemaType = schemaUtils.getSchemaTypeCode(to);
+
+				level = Math.max(metadataLevel, level);
 			}
-
-			String toSchemaType = schemaUtils.getSchemaTypeCode(to);
-
-			level = Math.max(metadataLevel, level);
 		}
 
 		if (increasingLevel || from.isIncreasedDependencyLevel()) {
@@ -93,14 +98,16 @@ public class MetadataNetworkBuilder {
 		}
 
 		for (Metadata to : tos) {
-			ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, to, level);
-			//			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
-			//			if (message.contains("ze") || message.contains("another") || message.contains("aThird")) {
-			//				System.out.println(message);
-			//			}
-			links.add(link);
-			linksFromMetadata.add(from.getCode(), link);
-			linksToMetadata.add(to.getCode(), link);
+			if (to != null) {
+				ModifiableMetadataNetworkLink link = new ModifiableMetadataNetworkLink(from, to, level);
+				//			String message = "Adding " + link.fromMetadata.getCode() + "->" + link.toMetadata.getCode() + " [" + level + "]";
+				//			if (message.contains("ze") || message.contains("another") || message.contains("aThird")) {
+				//				System.out.println(message);
+				//			}
+				links.add(link);
+				linksFromMetadata.add(from.getCode(), link);
+				linksToMetadata.add(to.getCode(), link);
+			}
 		}
 
 		ajustingMetadatasLevel(from, level);
@@ -151,7 +158,12 @@ public class MetadataNetworkBuilder {
 		}
 
 		if (metadata.getType() == MetadataValueType.REFERENCE) {
-			builder.addNetworkLink(metadata, asList(builder.idMetadataOfType(metadata.getReferencedSchemaType())), false);
+
+			Metadata toMetadata = builder.idMetadataOfType(metadata.getReferencedSchemaType());
+
+			if (metadata != null) {
+				builder.addNetworkLink(metadata, asList(toMetadata), false);
+			}
 
 		} else if (DataEntryType.COPIED == metadata.getDataEntry().getType()) {
 			CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();

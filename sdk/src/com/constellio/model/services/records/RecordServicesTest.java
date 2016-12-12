@@ -619,6 +619,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.KEEP_OLDER);
+		transaction.add(record);
 
 		recordServices.handleOptimisticLocking(mock(TransactionDTO.class), transaction, recordModificationImpactHandler,
 				optimisticLockingException, 0);
@@ -635,6 +636,9 @@ public class RecordServicesTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
+		transaction.add(record);
+		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
 
 		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
 		doNothing().when(recordServices).executeWithImpactHandler(any(Transaction.class),
@@ -654,8 +658,12 @@ public class RecordServicesTest extends ConstellioTest {
 
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
+		transaction.add(record);
+		doNothing().when(recordServices).refreshRecordsAndCaches(anyString(), anyList(), any(TransactionResponseDTO.class),
+				any(MetadataSchemaTypes.class));
 
-		doNothing().when(recordServices).mergeRecords(eq(transaction), anyString());
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
+
 		doNothing().when(recordServices).execute(any(Transaction.class));
 
 		recordServices
@@ -935,6 +943,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
 
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 
@@ -956,6 +965,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
 		Transaction transaction = new Transaction(zeRecord);
+		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
 
 		doThrow(RecordDaoException.OptimisticLocking.class).when(recordDao).execute(any(TransactionDTO.class));
 

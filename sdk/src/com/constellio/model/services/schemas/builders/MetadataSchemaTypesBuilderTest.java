@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -642,16 +643,19 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
 
-		assertThat(metadatas).hasSize(9);
-		assertThat(metadatas.get(0).getLocalCode()).isEqualTo("inheritedauthorizations");
-		assertThat(metadatas.get(1).getLocalCode()).isEqualTo("m2");
-		assertThat(metadatas.get(2).getLocalCode()).isEqualTo("parentpath");
-		assertThat(metadatas.get(3).getLocalCode()).isEqualTo("allauthorizations");
-		assertThat(metadatas.get(4).getLocalCode()).isEqualTo("m1");
-		assertThat(metadatas.get(5).getLocalCode()).isEqualTo("path");
-		assertThat(metadatas.get(6).getLocalCode()).isEqualTo("pathParts");
-		assertThat(metadatas.get(7).getLocalCode()).isEqualTo("principalpath");
-		assertThat(metadatas.get(8).getLocalCode()).isEqualTo("tokens");
+		assertThat(metadatas).extracting("localCode").isEqualTo(asList("allReferences", "inheritedauthorizations", "m2",
+				"parentpath", "allauthorizations", "m1", "path", "pathParts", "principalpath", "tokens"));
+
+		//		assertThat(metadatas).hasSize(9);
+		//		assertThat(metadatas.get(0).getLocalCode()).isEqualTo("inheritedauthorizations");
+		//		assertThat(metadatas.get(1).getLocalCode()).isEqualTo("m2");
+		//		assertThat(metadatas.get(2).getLocalCode()).isEqualTo("parentpath");
+		//		assertThat(metadatas.get(3).getLocalCode()).isEqualTo("allauthorizations");
+		//		assertThat(metadatas.get(4).getLocalCode()).isEqualTo("m1");
+		//		assertThat(metadatas.get(5).getLocalCode()).isEqualTo("path");
+		//		assertThat(metadatas.get(6).getLocalCode()).isEqualTo("pathParts");
+		//		assertThat(metadatas.get(7).getLocalCode()).isEqualTo("principalpath");
+		//		assertThat(metadatas.get(8).getLocalCode()).isEqualTo("tokens");
 
 	}
 
