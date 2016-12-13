@@ -1,32 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
-import com.constellio.app.ui.framework.data.event.EventTypeUtils;
-import com.constellio.app.ui.pages.events.EventCategory;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -69,12 +43,9 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.RecordServices;
@@ -85,12 +56,26 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider subFoldersDataProvider;
+	private RecordVODataProvider eventsDataProvider;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private FolderToVOBuilder folderVOBuilder;
 	private DocumentToVOBuilder documentVOBuilder;
@@ -199,6 +184,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				return query;
 			}
 		};
+
+		eventsDataProvider = getEventsDataProvider();
 	}
 
 	public void selectInitialTabForUser() {
@@ -492,6 +479,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setDocuments(documentsDataProvider);
 		view.setSubFolders(subFoldersDataProvider);
 		view.setTasks(tasksDataProvider);
+		view.setEvents(eventsDataProvider);
 
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Folder folder = schemas.wrapFolder(toRecord(folderVO));
@@ -833,72 +821,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	public RecordVODataProvider getEventDataProvider() {
-			voBuilder = getRecordToVOBuilderToBorrowedFolders();
-
-			MetadataSchema folderDefaultSchema = schemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
-
-			Metadata borrowUserEnteredMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_USER_ENTERED);
-			Metadata borrowDateMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_DATE);
-			Metadata borrowPreviewReturnDateMetadata = folderDefaultSchema.getMetadata(Folder.BORROW_PREVIEW_RETURN_DATE);
-			Metadata folderIdentifierMetadata = folderDefaultSchema.getMetadata(CommonMetadataBuilder.ID);
-			Metadata titleMetadata = folderDefaultSchema.getMetadata(CommonMetadataBuilder.TITLE);
-
-			metadataCodes = new ArrayList<>();
-			metadataCodes.add(borrowUserEnteredMetadata.getCode());
-			metadataCodes.add(borrowDateMetadata.getCode());
-			metadataCodes.add(borrowPreviewReturnDateMetadata.getCode());
-			metadataCodes.add(folderIdentifierMetadata.getCode());
-			metadataCodes.add(titleMetadata.getCode());
-
-			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
-
-		} else {
-			voBuilder = new RecordToVOBuilder();
-		}
-		if (metadataCodes == null) {
-			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
-			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
-		}
-		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
-				view.getSessionContext()) {
+	private RecordVODataProvider getEventsDataProvider() {
+		final MetadataSchemaVO eventSchemaVO = schemaVOBuilder
+				.build(rmSchemasRecordsServices.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(eventSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return buildQueryFromParameters();
+				return new LogicalSearchQuery(
+						from(rmSchemasRecordsServices.eventSchema()).where(rmSchemasRecordsServices.eventSchema().getMetadata(Event.RECORD_ID))
+								.isEqualTo(folderVO.getId())).sortDesc(Schemas.CREATED_ON);
 			}
 		};
-		return eventsDataProvider;
-	}
-
-	private RecordToVOBuilder getRecordToVOBuilderToBorrowedFolders() {
-		RecordToVOBuilder voBuilder;
-		voBuilder = new RecordToVOBuilder() {
-			transient RMSchemasRecordsServices schemas;
-
-			@Override
-			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
-								  SessionContext sessionContext) {
-
-				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().eventSchema())
-						.where(schemas().eventSchema().get(Event.RECORD_ID)).isEqualTo()
-						.andWhere(borrowDateMetadata).isEqualTo(
-								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
-
-				SearchServices searchServices = modelLayerFactory.newSearchServices();
-				Record eventRecord = searchServices.searchSingleResult(logicalSearchCondition);
-
-				return super.build(eventRecord, viewMode, schemaVO, sessionContext);
-			}
-
-			private RMSchemasRecordsServices schemas() {
-				if (schemas == null) {
-					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-				}
-				return schemas;
-			}
-		};
-		return voBuilder;
 	}
 }

@@ -12,6 +12,8 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setRecord(RecordVO recordVO);
 
+	void setEvents(RecordVODataProvider dataProvider);
+
 	void setDocuments(RecordVODataProvider dataProvider);
 
 	void setSubFolders(RecordVODataProvider dataProvider);

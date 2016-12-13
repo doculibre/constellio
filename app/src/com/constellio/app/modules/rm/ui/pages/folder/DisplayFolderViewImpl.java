@@ -73,6 +73,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	private Component documentsComponent;
 	private Component subFoldersComponent;
 	private Component tasksComponent;
+	private Component eventsComponent;
 	private DisplayFolderPresenter presenter;
 	private boolean dragNDropAllowed;
 	private Button deleteFolderButton, duplicateFolderButton, editFolderButton, addSubFolderButton, addDocumentButton,
@@ -137,10 +138,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		tabSheet.addTab(subFoldersComponent, $("DisplayFolderView.tabs.subFolders", presenter.getSubFolderCount()));
 		tabSheet.addTab(tasksComponent, $("DisplayFolderView.tabs.tasks", presenter.getTaskCount()));
 
-		Component disabled = new CustomComponent();
-		disabled.ad
-		tabSheet.addTab(disabled, $("DisplayFolderView.tabs.logs"));
-		tabSheet.getTab(disabled).setEnabled(false);
+		eventsComponent = new CustomComponent();
+		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
+		tabSheet.getTab(eventsComponent).setEnabled(true);
 
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
@@ -413,13 +413,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		};
 	}
 
-	public void setEvents() {
-		Table table = new RecordVOTable(null, null);
+	@Override
+	public void setEvents(final RecordVODataProvider dataProvider) {
+		Table table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
 		table.setSizeFull();
-		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-		//		table.setPageLength(Math.min(15, dataProvider.size()));
-		tabSheet.replaceComponent(documentsComponent, table);
-		documentsComponent = table;
+		tabSheet.replaceComponent(eventsComponent, table);
+		eventsComponent = table;
 	}
 
 	@Override

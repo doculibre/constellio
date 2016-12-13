@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -41,6 +27,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -51,6 +38,14 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.InputStream;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
 
@@ -59,6 +54,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	protected DocumentActionsPresenterUtils<DisplayDocumentView> presenterUtils;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	private RecordVODataProvider tasksDataProvider;
+	private RecordVODataProvider eventsDataProvider;
 	private RMSchemasRecordsServices rm;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view) {
@@ -109,6 +105,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				return query;
 			}
 		};
+		eventsDataProvider = getEventsDataProvider();
 	}
 
 	public int getTaskCount() {
@@ -161,6 +158,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void viewAssembled() {
 		presenterUtils.updateActionsComponent();
 		view.setTasks(tasksDataProvider);
+		view.setEvents(eventsDataProvider);
 		view.setPublishButtons(presenterUtils.isDocumentPublished());
 	}
 
@@ -361,5 +359,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private RecordVODataProvider getEventsDataProvider() {
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		final MetadataSchemaVO eventSchemaVO = schemaVOBuilder
+				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(eventSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(
+						from(rm.eventSchema()).where(rm.eventSchema().getMetadata(Event.RECORD_ID))
+								.isEqualTo(presenterUtils.getDocumentVO().getId())).sortDesc(Schemas.CREATED_ON);
+			}
+		};
 	}
 }
