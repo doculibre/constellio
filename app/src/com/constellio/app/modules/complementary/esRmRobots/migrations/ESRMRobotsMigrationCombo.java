@@ -68,8 +68,8 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 		recordServices.execute(createRecordTransaction(collection, migrationResourcesProvider, appLayerFactory, types));
 
 		RolesManager rolesManager = modelLayerFactory.getRolesManager();
-		rolesManager.updateRole(
-				rolesManager.getRole(collection, RMRoles.RGD).withNewPermissions(asList(RobotsPermissionsTo.MANAGE_ROBOTS)));
+//		rolesManager.updateRole(
+		//				rolesManager.getRole(collection, RMRoles.RGD).withNewPermissions(asList(RobotsPermissionsTo.MANAGE_ROBOTS)));
 	}
 
 	private void applySchemasDisplay2(String collection, MigrationResourcesProvider migrationResourcesProvider,

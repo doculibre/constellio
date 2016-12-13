@@ -154,20 +154,20 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	@Test
-	public void validateCoreTasksRobotsRMESMigrationHighway()
-			throws Exception {
-
-		validate(new SetupScript() {
-			@Override
-			public void setupCollection() {
-				givenCollection(zeCollection).withMockedAvailableModules(false).withTaskModule().withRobotsModule()
-						.withConstellioRMModule()
-						.withConstellioESModule();
-			}
-		});
-
-	}
+//	@Test
+	//	public void validateCoreTasksRobotsRMESMigrationHighway()
+	//			throws Exception {
+	//
+	//		validate(new SetupScript() {
+	//			@Override
+	//			public void setupCollection() {
+	//				givenCollection(zeCollection).withMockedAvailableModules(false).withTaskModule().withRobotsModule()
+	//						.withConstellioRMModule()
+	//						.withConstellioESModule();
+	//			}
+	//		});
+	//
+	//	}
 
 	//	@Test
 	//	public void validateCoreESMigrationHighway()

@@ -83,7 +83,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		}
 	}
 
-	private void createAdminUser(ModelLayerFactory modelLayerFactory) {
+	public void createAdminUser(ModelLayerFactory modelLayerFactory) {
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		//String serviceKey = "adminkey";
 		String password = "password";

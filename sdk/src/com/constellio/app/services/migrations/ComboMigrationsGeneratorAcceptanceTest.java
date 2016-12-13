@@ -53,12 +53,14 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.MethodSpec.Builder;
 import com.squareup.javapoet.TypeSpec;
 import com.steadystate.css.util.LangUtils;
+
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
 import javax.lang.model.element.Modifier;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -69,6 +71,8 @@ import static java.util.Arrays.asList;
 
 @InDevelopmentTest
 public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
+
+	String collection = zeCollection;
 
 	@Test
 	public void generateCoreMigrations()
@@ -88,7 +92,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		givenCollection(zeCollection);
+		givenCollection(collection);
 
 		System.out.println(" ------ Migration script ------");
 
@@ -122,6 +126,58 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void generateSystemCoreMigrations()
+			throws Exception {
+
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
+			}
+		});
+
+		givenCollection(collection);
+		collection = "_system_";
+
+		System.out.println(" ------ Migration script ------");
+
+		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
+
+		//generateI18n(new File(migrationsResources, "system"));
+
+		MethodSpec constructor = generateConstructor();
+
+		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedSystemMigrationCombo")
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethod(generateTypes(null))
+				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
+				.addMethod(generateRoles(new ArrayList<Role>()))
+				.addMethod(generateConstructor())
+				.build();
+
+		JavaFile file = JavaFile.builder("com.constellio.app.services.migrations", generatedClassSpec)
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
+
+		File dest = new File(
+				getFoldersLocator().getAppProject()
+						+ "/src/com/constellio/app/services/migrations/GeneratedSystemMigrationCombo.java");
+		FileUtils.writeStringToFile(dest, file.toString());
+	}
+
+	@Test
 	public void generateRMMigrations()
 			throws Exception {
 
@@ -139,19 +195,19 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		givenCollection(zeCollection);
+		givenCollection(collection);
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new TaskModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new TaskModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new TaskModule());
 
-		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.rewriteInOrderAndGetCodes(zeCollection);
-		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+				.rewriteInOrderAndGetCodes(collection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRMModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioRMModule());
 
 		System.out.println(" ------ Migration script ------");
 
@@ -201,17 +257,17 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		givenCollection(zeCollection);
+		givenCollection(collection);
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
 
-		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.rewriteInOrderAndGetCodes(zeCollection);
-		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+				.rewriteInOrderAndGetCodes(collection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new TaskModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new TaskModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new TaskModule());
 
 		System.out.println(" ------ Migration script ------");
 
@@ -261,17 +317,17 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		givenCollection(zeCollection);
+		givenCollection(collection);
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
 
-		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.rewriteInOrderAndGetCodes(zeCollection);
-		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+				.rewriteInOrderAndGetCodes(collection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRobotsModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRobotsModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioRobotsModule());
 
 		System.out.println(" ------ Migration script ------");
 
@@ -321,17 +377,17 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		givenCollection(zeCollection);
+		givenCollection(collection);
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
 
-		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.rewriteInOrderAndGetCodes(zeCollection);
-		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+				.rewriteInOrderAndGetCodes(collection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioESModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioESModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioESModule());
 
 		System.out.println(" ------ Migration script ------");
 
@@ -359,7 +415,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.build();
 
 		File dest = new File(getFoldersLocator().getAppProject()
-				+ "/src/com/constellio/app/modules/es/migrations/GeneratedTasksMigrationCombo.java");
+				+ "/src/com/constellio/app/modules/es/migrations/GeneratedESMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -381,27 +437,27 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		givenCollection(zeCollection);
+		givenCollection(collection);
 		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
 
 		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).unregisterModule(new ESRMRobotsModule());
 
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioESModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioESModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioESModule());
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRMModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioRMModule());
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRobotsModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ConstellioRobotsModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioRobotsModule());
 
-		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(zeCollection);
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
 		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.rewriteInOrderAndGetCodes(zeCollection);
-		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+				.rewriteInOrderAndGetCodes(collection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		((JSPFConstellioPluginManager) getAppLayerFactory().getPluginManager()).registerModule(new ESRMRobotsModule());
 		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ESRMRobotsModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(zeCollection, new ESRMRobotsModule());
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ESRMRobotsModule());
 
 		System.out.println(" ------ Migration script ------");
 
@@ -429,7 +485,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.build();
 
 		File dest = new File(getFoldersLocator().getAppProject()
-				+ "/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedTasksMigrationCombo.java");
+				+ "/src/com/constellio/app/modules/complementary/esRmRobots/migrations/GeneratedESRMRobotsMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, file.toString());
 	}
 
@@ -511,10 +567,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addParameter(SchemasDisplayManager.class, "manager")
 				.returns(void.class);
 
-		List<String> codes = manager.rewriteInOrderAndGetCodes(zeCollection);
+		List<String> codes = manager.rewriteInOrderAndGetCodes(collection);
 
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(zeCollection);
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		SchemaTypesDisplayConfig typesDisplay = manager.getTypes(collection);
 		main.addStatement("SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection)");
 		main.addStatement("SchemaTypesDisplayConfig typesConfig = manager.getTypes(collection)");
 
@@ -524,7 +580,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
-			SchemaTypeDisplayConfig typeDisplay = manager.getType(zeCollection, type.getCode());
+			SchemaTypeDisplayConfig typeDisplay = manager.getType(collection, type.getCode());
 			if (codes.contains(typeDisplay.getSchemaType()) && !codesBefore.contains(typeDisplay.getSchemaType())) {
 				main.addStatement("transaction.add(manager.getType(collection, $S).withSimpleSearchStatus($L)"
 								+ ".withAdvancedSearchStatus($L).withManageableStatus($L)"
@@ -534,7 +590,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 
 			for (MetadataSchema schema : type.getAllSchemas()) {
-				SchemaDisplayConfig schemaDisplay = manager.getSchema(zeCollection, schema.getCode());
+				SchemaDisplayConfig schemaDisplay = manager.getSchema(collection, schema.getCode());
 				if (codes.contains(schemaDisplay.getSchemaCode()) && !codesBefore.contains(schemaDisplay.getSchemaCode())) {
 					main.addStatement("transaction.add(manager.getSchema(collection, $S).withFormMetadataCodes($L)"
 									+ ".withDisplayMetadataCodes($L).withSearchResultsMetadataCodes($L).withTableMetadataCodes($L))"
@@ -545,7 +601,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				}
 
 				for (Metadata metadata : schema.getMetadatas()) {
-					MetadataDisplayConfig metadataDisplay = manager.getMetadata(zeCollection, metadata.getCode());
+					MetadataDisplayConfig metadataDisplay = manager.getMetadata(collection, metadata.getCode());
 
 					if (codes.contains(metadataDisplay.getMetadataCode()) && !codesBefore
 							.contains(metadataDisplay.getMetadataCode())) {
@@ -575,7 +631,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.returns(void.class);
 
 		main.addStatement("RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();");
-		for (Role role : rolesManager.getAllRoles(zeCollection)) {
+		for (Role role : rolesManager.getAllRoles(collection)) {
 
 			boolean roleWithSameCode = false;
 			for (Role roleBefore : rolesBefore) {
@@ -609,19 +665,19 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		List<Record> records = searchServices.search(new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll()));
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+		List<Record> records = searchServices.search(new LogicalSearchQuery(fromAllSchemasIn(collection).returnAll()));
 		Map<String, Integer> mapping = new HashMap<>();
 		int i = 0;
 		for (Record record : records) {
-			if (!record.getId().contains(zeCollection) && !record.getId().contains(SYSTEM_COLLECTION)) {
+			if (!record.getId().contains(collection) && !record.getId().contains(SYSTEM_COLLECTION)) {
 				mapping.put(record.getId(), i++);
 				main.addStatement("records.add(recordServices.newRecordWithSchema(types.getSchema($S)))", record.getId());
 			}
 		}
 		i = 0;
 		for (Record record : records) {
-			if (!record.getId().contains(zeCollection) && !record.getId().contains(SYSTEM_COLLECTION)) {
+			if (!record.getId().contains(collection) && !record.getId().contains(SYSTEM_COLLECTION)) {
 				main.addStatement("records.get($L)$L", i, toEntriesMethodCalls(types, record, mapping));
 			}
 		}
@@ -720,7 +776,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 	}
 
 	protected MethodSpec generateTypes(MetadataSchemaTypes typesBeforeMigration) {
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		Builder main = MethodSpec.methodBuilder("applyGeneratedSchemaAlteration")
 				.addModifiers(Modifier.PUBLIC)
@@ -805,7 +861,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					String variable = variableOf(metadata);
-					if(metadata.getInheritance() != null) {
+					if (metadata.getInheritance() != null) {
 						main.addStatement("$T $L = $L.get($S)",
 								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
 						configureInheritedMetadata(main, variable, metadata);
@@ -1038,7 +1094,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		if (metadata.getType() == MetadataValueType.REFERENCE && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
-			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 			if (metadata.getAllowedReferences().getAllowedSchemas().isEmpty()) {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();
 				String referencedTypeVariable = variableOf(types.getSchemaType(referencedType));

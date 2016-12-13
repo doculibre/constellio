@@ -69,7 +69,12 @@ public class RMMigrationCombo implements ComboMigrationScript {
 				new RMMigrationTo6_5_1(),
 				new RMMigrationTo6_5_7(),
 				new RMMigrationTo6_5_20(),
-				new RMMigrationTo6_5_33()
+				new RMMigrationTo6_5_21(),
+				new RMMigrationTo6_5_33(),
+				new RMMigrationTo6_5_34(),
+				new RMMigrationTo6_5_36(),
+				new RMMigrationTo6_5_37(),
+				new RMMigrationTo6_5_50()
 		);
 	}
 

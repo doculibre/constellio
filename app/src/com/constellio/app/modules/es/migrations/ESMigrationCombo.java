@@ -5,6 +5,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -36,14 +37,13 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 public class ESMigrationCombo implements ComboMigrationScript {
 	@Override
 	public List<MigrationScript> getVersions() {
-		List<MigrationScript> scripts = new ArrayList<>();
-
-		scripts.add(new ESMigrationTo5_1_6());
-		scripts.add(new ESMigrationTo6_1());
-		scripts.add(new ESMigrationTo6_2());
-		scripts.add(new ESMigrationTo6_4());
-
-		return scripts;
+		return Arrays.asList(
+				new ESMigrationTo5_1_6(),
+				new ESMigrationTo6_1(),
+				new ESMigrationTo6_2(),
+				new ESMigrationTo6_4(),
+				new ESMigrationTo6_5_42()
+		);
 	}
 
 	@Override

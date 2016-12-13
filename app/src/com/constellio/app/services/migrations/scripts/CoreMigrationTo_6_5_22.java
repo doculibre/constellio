@@ -58,22 +58,7 @@ public class CoreMigrationTo_6_5_22 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory) {
-		appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-				.modify(collection, new MetadataSchemaTypesAlteration() {
-					@Override
-					public void alter(MetadataSchemaTypesBuilder types) {
-						Map<Language, String> labels = new HashMap<>();
-						labels.put(Language.French, "Courriels personnels");
-						labels.put(Language.English, "Personal emails");
-						types.getDefaultSchema(User.SCHEMA_TYPE)
-								.create(User.PERSONAL_EMAILS).
-								setType(MetadataValueType.STRING).
-								setMultivalue(true).
-								setEnabled(true).
-								setLabels(labels).
-								setEssential(false);
-					}
-				});
+		new CoreSchemaAlterationFor6_5_22(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
@@ -85,17 +70,21 @@ public class CoreMigrationTo_6_5_22 implements MigrationScript {
 		displayManager.saveMetadata(displayConfig);
 	}
 
-	private class CoreSchemaAlterationFor6_0 extends MetadataSchemasAlterationHelper {
-		public CoreSchemaAlterationFor6_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
+	private class CoreSchemaAlterationFor6_5_22 extends MetadataSchemasAlterationHelper {
+		public CoreSchemaAlterationFor6_5_22(String collection, MigrationResourcesProvider migrationResourcesProvider,
 				AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaBuilder credentialsSchemaBuilder = builder.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
-			credentialsSchemaBuilder.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
-					.setMultivalue(true);
+
+			builder.getDefaultSchema(User.SCHEMA_TYPE)
+					.create(User.PERSONAL_EMAILS).
+					setType(MetadataValueType.STRING).
+					setMultivalue(true).
+					setEnabled(true).
+					setEssential(false);
 		}
 
 	}
