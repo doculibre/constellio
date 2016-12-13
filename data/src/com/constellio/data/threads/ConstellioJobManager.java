@@ -1,6 +1,9 @@
 package com.constellio.data.threads;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import org.joda.time.DateTime;
 import org.quartz.JobDetail;
 import org.quartz.impl.StdSchedulerFactory;
@@ -12,78 +15,88 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-
 /**
  *
  */
 public class ConstellioJobManager implements StatefulService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioJobManager.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConstellioJobManager.class);
 
-    private Scheduler scheduler;
+	private Scheduler scheduler;
 
-    @Override
-    public void initialize() {
-        try {
-            scheduler = new StdSchedulerFactory().getScheduler();
+	private DataLayerConfiguration dataLayerConfiguration;
 
-            scheduler.start();
-        } catch (final SchedulerException e) {
-            throw new RuntimeException(e);
-        }
-    }
+	public ConstellioJobManager(DataLayerConfiguration dataLayerConfiguration) {
+		this.dataLayerConfiguration = dataLayerConfiguration;
+	}
 
-    @Override
-    public void close() {
-        if (scheduler != null) {
-            //
-            try {
-                scheduler.shutdown(true);
-            } catch (final SchedulerException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+	@Override
+	public void initialize() {
+		if (dataLayerConfiguration.isBackgroundThreadsEnabled()) {
+			try {
+				scheduler = new StdSchedulerFactory().getScheduler();
 
-    public Date addJob(final ConstellioJob job, final boolean cleanPreviousTriggers) {
-        //
-        final Set<Trigger> triggers = job.buildIntervalTriggers();
-        triggers.addAll(job.buildCronTriggers());
+				scheduler.start();
+			} catch (final SchedulerException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
-        //
-        if (triggers.isEmpty()) {
-            LOGGER.warn(job.name() + " has no trigger");
-        } else {
-            try {
-                //
-                final JobDetail jobDetail = job.buildJobDetail();
+	@Override
+	public void close() {
+		if (scheduler != null) {
+			//
+			try {
+				scheduler.shutdown(true);
+			} catch (final SchedulerException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
 
-                //
-                if (cleanPreviousTriggers) {
-                    scheduler.deleteJob(jobDetail.getKey());
-                }
+	public Date addJob(final ConstellioJob job, final boolean cleanPreviousTriggers) {
+		if (scheduler == null) {
+			throw new IllegalStateException("Scheduler is not available - background threads must be enabled");
+		}
+		//
+		final Set<Trigger> triggers = job.buildIntervalTriggers();
+		triggers.addAll(job.buildCronTriggers());
 
-                //
-                scheduler.scheduleJob(jobDetail, triggers, true);
+		//
+		if (triggers.isEmpty()) {
+			LOGGER.warn(job.name() + " has no trigger");
+		} else {
+			try {
+				//
+				final JobDetail jobDetail = job.buildJobDetail();
 
-                //
-                LOGGER.info(job.name() + " successfully scheduled");
+				//
+				if (cleanPreviousTriggers) {
+					scheduler.deleteJob(jobDetail.getKey());
+				}
 
-                //
-                final List<Date> nextFireTimes = new ArrayList<>();
-                for (final Trigger trigger : triggers) {
-                    nextFireTimes.add(trigger.getFireTimeAfter(DateTime.now().toDate()));
-                }
-                Collections.sort(nextFireTimes);
+				//
+				scheduler.scheduleJob(jobDetail, triggers, true);
 
-                //
-                return nextFireTimes.get(0);
-            } catch (final SchedulerException e) {
-                LOGGER.error(job.name() + " can't be scheduled", e);
-            }
+				//
+				LOGGER.info(job.name() + " successfully scheduled");
 
-        }
+				//
+				final List<Date> nextFireTimes = new ArrayList<>();
+				for (final Trigger trigger : triggers) {
+					nextFireTimes.add(trigger.getFireTimeAfter(DateTime.now().toDate()));
+				}
+				Collections.sort(nextFireTimes);
 
-        return null;
-    }
+				//
+				return nextFireTimes.get(0);
+			} catch (final SchedulerException e) {
+				LOGGER.error(job.name() + " can't be scheduled", e);
+			}
+
+		}
+
+		return null;
+	}
 }
