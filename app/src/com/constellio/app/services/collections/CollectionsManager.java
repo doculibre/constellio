@@ -47,6 +47,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -210,6 +211,7 @@ public class CollectionsManager implements StatefulService {
 		Record record = recordServices.newRecordWithSchema(collectionSchema(code));
 		record.set(collectionCodeMetadata(code), code);
 		record.set(collectionNameMetadata(code), name);
+		record.set(Schemas.TITLE, name);
 		record.set(collectionLanguages(code), languages);
 		try {
 			recordServices.add(record);

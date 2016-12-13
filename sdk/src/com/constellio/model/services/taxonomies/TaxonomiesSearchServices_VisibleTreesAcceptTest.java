@@ -345,39 +345,39 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		recordServices.refresh(robin);
 		waitForBatchProcess();
 		//Sasquatch
-		//		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
-		//				.has(recordsInOrder(records.unitId_10, records.unitId_20))
-		//				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
-		//				.has(numFoundAndListSize(2));
-		//
-		//		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
-		//				.has(recordsInOrder(records.unitId_12))
-		//				.has(recordsWithChildren(records.unitId_12))
-		//				.has(numFoundAndListSize(1));
-		//
-		//		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12, options)
-		//				.has(recordsInOrder(records.unitId_12b))
-		//				.has(recordsWithChildren(records.unitId_12b))
-		//				.has(numFoundAndListSize(1));
-		//
-		//		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12b, options)
-		//				.has(recordsInOrder("B06"))
-		//				.has(recordsWithChildren("B06"))
-		//				.has(numFoundAndListSize(1));
-		//
-		//		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12c, options)
-		//				.has(numFoundAndListSize(0));
-		//
-		//		//Robin
-		//		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
-		//				.has(recordsInOrder(records.unitId_10, records.unitId_30))
-		//				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
-		//				.has(numFoundAndListSize(2));
-		//
-		//		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
-		//				.has(recordsInOrder(records.unitId_12))
-		//				.has(recordsWithChildren(records.unitId_12))
-		//				.has(numFoundAndListSize(1));
+		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
+				.has(recordsInOrder(records.unitId_10, records.unitId_20))
+				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_12))
+				.has(recordsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12, options)
+				.has(recordsInOrder(records.unitId_12b))
+				.has(recordsWithChildren(records.unitId_12b))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12b, options)
+				.has(recordsInOrder("B06"))
+				.has(recordsWithChildren("B06"))
+				.has(numFoundAndListSize(1));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12c, options)
+				.has(numFoundAndListSize(0));
+
+		//Robin
+		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
+				.has(recordsInOrder(records.unitId_10, records.unitId_30))
+				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
+				.has(numFoundAndListSize(2));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_12))
+				.has(recordsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1));
 
 		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12, options)
 				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))

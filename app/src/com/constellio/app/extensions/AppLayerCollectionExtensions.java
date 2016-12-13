@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.taxonomies.*;
+import org.apache.chemistry.opencmis.commons.impl.jaxb.CheckOut;
+
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -22,22 +25,19 @@ import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
-import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
-import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
-import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
-import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
-import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
-import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
+import com.constellio.app.extensions.api.cmis.params.AllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
 import com.constellio.app.extensions.api.cmis.params.CheckInParams;
 import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
+import com.constellio.app.extensions.api.cmis.params.CreateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.CreateFolderParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteContentParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
-import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateFolderParams;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
@@ -49,7 +49,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
-import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.utils.Provider;
@@ -141,7 +140,7 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
-	public void buildAllowableActions(BuildAllowableActionsParams params) {
+	public void buildAllowableActions(AllowableActionsParams params) {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.buildAllowableActions(params);
 		}
@@ -151,15 +150,6 @@ public class AppLayerCollectionExtensions {
 		for (CmisExtension extension : cmisExtensions) {
 			extension.onGetObject(params);
 		}
-	}
-
-	public boolean isSchemaTypeSupported(final IsSchemaTypeSupportedParams params, boolean defaultValue) {
-		return ExtensionUtils.getBooleanValue(cmisExtensions, defaultValue, new BooleanCaller<CmisExtension>() {
-			@Override
-			public ExtensionBooleanResult call(CmisExtension extension) {
-				return extension.isSchemaTypeSupported(params);
-			}
-		});
 	}
 	//
 	//	public void onCreateCMISFolder(CreateFolderParams params) {

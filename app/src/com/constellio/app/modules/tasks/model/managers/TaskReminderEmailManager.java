@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 public class TaskReminderEmailManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TaskReminderEmailManager.class);
 	static int RECORDS_BATCH = 1000;
-	private static final long TWENTY_SECONDS = 20 * 1000l;
+	private static final long TWENTY_SECONDS = 60 * 1000l;
 	private static final Duration DURATION_BETWEEN_EXECUTION = new Duration(TWENTY_SECONDS);
 	public static final String ID = "taskReminderEmailManager";
 	private final BackgroundThreadsManager backgroundThreadsManager;

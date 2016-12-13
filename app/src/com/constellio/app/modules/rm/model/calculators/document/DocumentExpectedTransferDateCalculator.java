@@ -52,6 +52,9 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 
 	ConfigDependency<Boolean> documentRetentionRulesEnabledParam = RMConfigs.DOCUMENT_RETENTION_RULES.dependency();
 
+	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
+			.dependency();
+
 	DocumentDecomDatesDynamicLocalDependency datesAndDateTimesParam = new DocumentDecomDatesDynamicLocalDependency();
 
 	@Override
@@ -102,7 +105,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		return asList(expectedTransferDateParam, folderOpenDateParam, folderCloseDateParam, actualTransferDateParam, copyParam,
 				decommissioningDateBasedOnParam, numberOfYearWhenSemiActiveVariableDelayParam, yearEndParam,
 				requiredDaysBeforeYearEndParam, documentRetentionRulesEnabledParam, folderExpectedTransferDateParam,
-				datesAndDateTimesParam);
+				datesAndDateTimesParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	private class CalculatorInput {
@@ -119,6 +122,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		boolean documentRetentionRulesEnabled;
 		LocalDate folderExpectedTransferDate;
 		DynamicDependencyValues datesAndDateTimes;
+		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			this.expectedTransferDate = parameters.get(expectedTransferDateParam);
@@ -133,6 +137,7 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 			this.documentRetentionRulesEnabled = parameters.get(documentRetentionRulesEnabledParam);
 			this.folderExpectedTransferDate = parameters.get(folderExpectedTransferDateParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
+			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
 		LocalDate calculateSemiActiveBasedOn(LocalDate baseDate) {
@@ -146,7 +151,8 @@ public class DocumentExpectedTransferDateCalculator implements MetadataValueCalc
 		public LocalDate getAdjustedBaseDateFromActiveDelay(String yearEnd) {
 			String metadata = copy.getActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes, yearEnd);
+			LocalDate date = datesAndDateTimesParam
+					.getDate(metadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
 			return date == null ? null : adjustToFinancialYear(date);
 		}
 	}

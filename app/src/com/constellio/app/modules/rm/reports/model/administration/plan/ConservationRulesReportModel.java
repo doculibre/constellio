@@ -52,6 +52,8 @@ public class ConservationRulesReportModel {
 
 		String description;
 
+		String juridicReference;
+
 		Map<String, String> administrativeUnits;
 
 		List<ConservationRulesReportModel_Copy> principalsCopies;
@@ -80,6 +82,14 @@ public class ConservationRulesReportModel {
 
 		public void setDescription(String description) {
 			this.description = description;
+		}
+
+		public String getJuridicReference() {
+			return juridicReference;
+		}
+
+		public void setJuridicReference(String juridicReference) {
+			this.juridicReference = juridicReference;
 		}
 
 		public Map<String, String> getAdministrativeUnits() {

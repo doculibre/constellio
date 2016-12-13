@@ -10,7 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class OngoingAddMetadatasToSchemas {
 
-	enum OngoingAddMetadatasToSchemasMode {FORM, DISPLAY, SEARCH}
+	enum OngoingAddMetadatasToSchemasMode {FORM, DISPLAY, SEARCH, TABLE}
 
 	SchemaTypesDisplayTransactionBuilder transaction;
 	OngoingAddMetadatasToSchemasMode mode;
@@ -162,6 +162,9 @@ public class OngoingAddMetadatasToSchemas {
 		case SEARCH:
 			return new ArrayList<>(schemaDisplayConfig.getSearchResultsMetadataCodes());
 
+		case TABLE:
+			return new ArrayList<>(schemaDisplayConfig.getTableMetadataCodes());
+
 		}
 		return null;
 	}
@@ -177,6 +180,9 @@ public class OngoingAddMetadatasToSchemas {
 
 		case SEARCH:
 			return schemaDisplayConfig.withSearchResultsMetadataCodes(newValue);
+
+		case TABLE:
+			return schemaDisplayConfig.withTableMetadataCodes(newValue);
 
 		}
 		return null;

@@ -105,6 +105,11 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return (W) this;
 	}
 
+	public <T, W extends RecordWrapper> W set(Metadata metadata, T value) {
+		ensureConnected();
+		return set(metadata.getLocalCode(), value);
+	}
+
 	protected boolean getBooleanWithDefaultValue(String param, boolean defaultValue) {
 		Boolean value = get(param);
 		return value == null ? defaultValue : value;
