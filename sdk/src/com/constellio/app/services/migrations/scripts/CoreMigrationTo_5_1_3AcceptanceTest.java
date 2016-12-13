@@ -12,6 +12,7 @@ import org.jdom2.output.XMLOutputter;
 import org.junit.Test;
 
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.services.emails.OldSmtpServerTestConfig;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -38,50 +39,6 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		serverConfiguration = getModelLayerFactory().getEmailConfigurationsManager().getEmailConfiguration("ff", true);
 		assertThat(serverConfiguration.getPassword()).isEqualTo(expectedConfig.getPassword());
 
-	}
-
-	@Test
-	public void givenSystemWithTokensWhenMigrationTo5_1_3ThenEncrypted()
-			throws OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-
-		givenSystemAtVersion5_1_2withTokens();
-		//		assertThat(new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml")
-		//				.getDocument())).doesNotContain("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
-
-		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokenKeys();
-		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
-		assertThat(bobTokens).isEmpty();
-
-		String newBobToken = getModelLayerFactory().newUserServices().generateToken("bob");
-
-		//		assertThat(new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml")
-		//				.getDocument())).doesNotContain("6f9b7e63-a6c1-4783-9143-1e69edf34b4c").doesNotContain(newBobToken);
-		adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokenKeys();
-		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
-		assertThat(bobTokens).containsOnly(newBobToken);
-	}
-
-	@Test
-	public void givenSystemWithEncryptedTokensWhenReadingUsersTokensThenTokensDecrypted()
-			throws OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-
-		givenSystemWithEncryptedTokens();
-
-		String validToken = "c84e2c14-f933-4399-aed2-95c538b2b7dd";
-		assertThat(
-				new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml.old")
-						.getDocument())).doesNotContain(validToken);
-
-		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		assertThat(adminTokens).contains(validToken);
-		assertThat(adminTokens).doesNotContain("invalidkey");
-		String serviceKey = getModelLayerFactory().getUserCredentialsManager().getServiceKeyByToken(validToken);
-		String userServiceKey = "adminkey";
-		assertThat(serviceKey).isEqualTo(userServiceKey);
-		boolean authenticated = getModelLayerFactory().newUserServices().isAuthenticated(userServiceKey, validToken);
-		assertThat(authenticated).isTrue();
 	}
 
 	private void givenSystemWithEncryptedTokens() {

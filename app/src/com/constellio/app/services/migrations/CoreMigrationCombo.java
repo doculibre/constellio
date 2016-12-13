@@ -45,10 +45,13 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
+import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigration;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
 public class CoreMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -95,7 +98,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
 			throws Exception {
-
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		generatedFastCoreMigration = new GeneratedCoreMigrationCombo(collection, appLayerFactory,
 				migrationResourcesProvider);
 		generatedSystemMigrationCombo = new GeneratedSystemMigrationCombo(collection, appLayerFactory,
@@ -121,7 +124,17 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 
-			new CoreMigrationTo_6_0().createAdminUser(appLayerFactory.getModelLayerFactory());
+			UserCredentialAndGlobalGroupsMigration migration = new UserCredentialAndGlobalGroupsMigration(modelLayerFactory);
+			if (migration.isMigrationRequired()) {
+				migration.migrateUserAndGroups();
+			}
+			try {
+				appLayerFactory.getModelLayerFactory().newUserServices().getUser("admin");
+			} catch (UserServicesRuntimeException_NoSuchUser e) {
+				new CoreMigrationTo_6_0().createAdminUser(modelLayerFactory);
+			}
+
+			new CoreMigrationTo_6_0().createAdminUser(modelLayerFactory);
 			//appLayerFactory.getModelLayerFactory().newAuthenticationService().changePassword("admin", "password");
 
 		} else {
