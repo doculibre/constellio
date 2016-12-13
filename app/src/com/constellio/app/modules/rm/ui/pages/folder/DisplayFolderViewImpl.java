@@ -22,6 +22,8 @@ import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -429,7 +431,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setEvents(final RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
+		RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new EventVOTableColumnsManager();
+			}
+		};
 		table.setSizeFull();
 		tabSheet.replaceComponent(eventsComponent, table);
 		eventsComponent = table;

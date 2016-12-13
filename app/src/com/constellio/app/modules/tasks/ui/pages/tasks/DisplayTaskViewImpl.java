@@ -11,6 +11,8 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -192,7 +194,12 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 
 	@Override
 	public void setEvents(RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayTaskView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
+		RecordVOTable table = new RecordVOTable($("DisplayTaskView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new EventVOTableColumnsManager();
+			}
+		};
 		table.setSizeFull();
 		tabSheet.replaceComponent(eventsComponent, table);
 		eventsComponent = table;

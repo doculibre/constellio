@@ -363,7 +363,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	private RecordVODataProvider getEventsDataProvider() {
+	public RecordVODataProvider getEventsDataProvider() {
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaVO eventSchemaVO = schemaVOBuilder
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());

@@ -823,7 +823,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	private RecordVODataProvider getEventsDataProvider() {
+	public RecordVODataProvider getEventsDataProvider() {
 		final MetadataSchemaVO eventSchemaVO = schemaVOBuilder
 				.build(rmSchemasRecordsServices.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {

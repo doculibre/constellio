@@ -16,6 +16,8 @@ import com.constellio.app.ui.framework.components.content.UpdateContentVersionWi
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.components.viewers.ContentViewer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -225,8 +227,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setEvents(RecordVODataProvider dataProvider) {
-		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
+		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new EventVOTableColumnsManager();
+			}
+		};
 		table.setSizeFull();
+
 		tabSheet.replaceComponent(eventsComponent, table);
 		eventsComponent = table;
 	}

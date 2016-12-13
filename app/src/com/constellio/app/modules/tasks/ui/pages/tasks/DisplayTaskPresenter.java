@@ -270,7 +270,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		return subTaskDataProvider.size();
 	}
 
-	private RecordVODataProvider getEventsDataProvider() {
+	public RecordVODataProvider getEventsDataProvider() {
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaVO eventSchemaVO = new MetadataSchemaToVOBuilder()
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
