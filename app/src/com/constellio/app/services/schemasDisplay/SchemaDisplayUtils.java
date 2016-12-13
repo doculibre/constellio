@@ -36,7 +36,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class SchemaDisplayUtils {
 
 	public static MetadataList getRequiredMetadatasInSchemaForm(MetadataSchema schema) {
-		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle();
+		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle().onlyManuals();
 	}
 
 	public static MetadataList getAvailableMetadatasInSchemaForm(MetadataSchema schema) {

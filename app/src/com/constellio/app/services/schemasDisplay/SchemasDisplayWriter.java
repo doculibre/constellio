@@ -1,6 +1,8 @@
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.model.entities.Language;
 
 public class SchemasDisplayWriter {
@@ -151,7 +154,15 @@ public class SchemasDisplayWriter {
 
 	private String labelToSemiColonStringSeparated(Map<Language, String> labels) {
 		StringBuilder stringBuilder = new StringBuilder();
-		for (Entry<Language, String> entry : labels.entrySet()) {
+		List<Entry<Language, String>> entries = new ArrayList<>(labels.entrySet());
+		Collections.sort(entries, new Comparator<Entry<Language, String>>() {
+			@Override
+			public int compare(Entry<Language, String> o1, Entry<Language, String> o2) {
+				return o1.getKey().getCode().compareTo(o2.getKey().getCode());
+			}
+		});
+
+		for (Entry<Language, String> entry : entries) {
 			stringBuilder.append(entry.getKey().getCode() + "=" + entry.getValue() + LABEL_SEPARATOR);
 		}
 		return stringBuilder.toString();
@@ -229,7 +240,7 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
-		if (config.getDisplayType() != null) {
+		if (config.getDisplayType() != null && config.getDisplayType() != MetadataDisplayType.VERTICAL) {
 			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
 		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);

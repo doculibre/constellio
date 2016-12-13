@@ -166,7 +166,7 @@ public class CollectionsManager implements StatefulService {
 		modelLayerFactory.newUserServices().addGlobalGroupsInCollection(code);
 	}
 
-	Record createCollectionRecordWithCode(String code, String name, List<String> languages) {
+	public Record createCollectionRecordWithCode(String code, String name, List<String> languages) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		Record record = recordServices.newRecordWithSchema(collectionSchema(code));
 		record.set(collectionCodeMetadata(code), code);

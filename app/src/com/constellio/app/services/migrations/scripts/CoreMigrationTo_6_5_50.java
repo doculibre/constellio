@@ -2,16 +2,20 @@ package com.constellio.app.services.migrations.scripts;
 
 import static com.constellio.app.services.migrations.CoreRoles.ADMINISTRATOR;
 import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 
+import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import org.slf4j.Logger;
@@ -36,25 +40,28 @@ public class CoreMigrationTo_6_5_50 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
 			throws Exception {
+		new CoreSchemaAlterationFor6_5_50(collection, provider, appLayerFactory).migrate();
 		modifyEvents(collection, appLayerFactory.getModelLayerFactory().getMetadataSchemasManager(), appLayerFactory);
 	}
 
 	private void modifyEvents(final String collection, MetadataSchemasManager manager, AppLayerFactory appLayerFactory) {
-		manager.modify(collection, new MetadataSchemaTypesAlteration() {
-			@Override
-			public void alter(MetadataSchemaTypesBuilder types) {
-				Map<Language, String> labels = new HashMap<>();
-				labels.put(Language.French, "Version");
-				labels.put(Language.English, "Version");
-				types.getDefaultSchema(Event.SCHEMA_TYPE).create(Event.RECORD_VERSION).setType(MetadataValueType.STRING)
-						.setLabels(labels).setMultivalue(false);
-			}
-		});
-
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		schemasDisplayManager
 				.saveMetadata(new MetadataDisplayConfig(collection, Event.DEFAULT_SCHEMA + "_" + Event.RECORD_VERSION, true,
 						MetadataInputType.FIELD, true, "default", null));
+	}
+
+	private class CoreSchemaAlterationFor6_5_50 extends MetadataSchemasAlterationHelper {
+		public CoreSchemaAlterationFor6_5_50(String collection, MigrationResourcesProvider migrationResourcesProvider,
+				AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder builder) {
+			builder.getDefaultSchema(Event.SCHEMA_TYPE).create(Event.RECORD_VERSION).setType(STRING).setMultivalue(false);
+		}
+
 	}
 
 }
