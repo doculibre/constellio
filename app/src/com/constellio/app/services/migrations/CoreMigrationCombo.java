@@ -124,16 +124,6 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 
-			UserCredentialAndGlobalGroupsMigration migration = new UserCredentialAndGlobalGroupsMigration(modelLayerFactory);
-			if (migration.isMigrationRequired()) {
-				migration.migrateUserAndGroups();
-			}
-			try {
-				appLayerFactory.getModelLayerFactory().newUserServices().getUser("admin");
-			} catch (UserServicesRuntimeException_NoSuchUser e) {
-				new CoreMigrationTo_6_0().createAdminUser(modelLayerFactory);
-			}
-
 			new CoreMigrationTo_6_0().createAdminUser(modelLayerFactory);
 			//appLayerFactory.getModelLayerFactory().newAuthenticationService().changePassword("admin", "password");
 
