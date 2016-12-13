@@ -95,22 +95,9 @@ public class RecordExportServices {
 	}
 
 
-	private static List<String> mergeTaxonomieList(List<String> schemaList, List<Taxonomy> listTaxonomy)
-	{
-		for(Taxonomy taxonomies : listTaxonomy) {
-			for (String schemaType : taxonomies.getSchemaTypes()) {
-				if (!isSchemaCodePresent(schemaList, schemaType)) {
-					schemaList.add(schemaType);
-				}
-			}
-		}
-
-		return schemaList;
-	}
 
 	private void writeRecordSchema(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
 		// From type options;
