@@ -6,7 +6,6 @@ import java.util.List;
 public class RecordExportOptions {
 
 	boolean exportValueLists;
-	boolean exportTaxonomies;
 
 	List<String> exportedSchemaTypes = new ArrayList<>();
 
@@ -28,12 +27,4 @@ public class RecordExportOptions {
 		return this;
 	}
 
-	public boolean isExportTaxonomies() {
-		return exportTaxonomies;
-	}
-
-	public RecordExportOptions setExportTaxonomies(boolean exportTaxonomies) {
-		this.exportTaxonomies = exportTaxonomies;
-		return this;
-	}
 }
