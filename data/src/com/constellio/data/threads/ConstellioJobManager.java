@@ -56,47 +56,46 @@ public class ConstellioJobManager implements StatefulService {
 	}
 
 	public Date addJob(final ConstellioJob job, final boolean cleanPreviousTriggers) {
-		if (scheduler == null) {
-			throw new IllegalStateException("Scheduler is not available - background threads must be enabled");
-		}
-		//
-		final Set<Trigger> triggers = job.buildIntervalTriggers();
-		triggers.addAll(job.buildCronTriggers());
+		if (scheduler != null) {
 
-		//
-		if (triggers.isEmpty()) {
-			LOGGER.warn(job.name() + " has no trigger");
-		} else {
-			try {
-				//
-				final JobDetail jobDetail = job.buildJobDetail();
+			//
+			final Set<Trigger> triggers = job.buildIntervalTriggers();
+			triggers.addAll(job.buildCronTriggers());
 
-				//
-				if (cleanPreviousTriggers) {
-					scheduler.deleteJob(jobDetail.getKey());
+			//
+			if (triggers.isEmpty()) {
+				LOGGER.warn(job.name() + " has no trigger");
+			} else {
+				try {
+					//
+					final JobDetail jobDetail = job.buildJobDetail();
+
+					//
+					if (cleanPreviousTriggers) {
+						scheduler.deleteJob(jobDetail.getKey());
+					}
+
+					//
+					scheduler.scheduleJob(jobDetail, triggers, true);
+
+					//
+					LOGGER.info(job.name() + " successfully scheduled");
+
+					//
+					final List<Date> nextFireTimes = new ArrayList<>();
+					for (final Trigger trigger : triggers) {
+						nextFireTimes.add(trigger.getFireTimeAfter(DateTime.now().toDate()));
+					}
+					Collections.sort(nextFireTimes);
+
+					//
+					return nextFireTimes.get(0);
+				} catch (final SchedulerException e) {
+					LOGGER.error(job.name() + " can't be scheduled", e);
 				}
 
-				//
-				scheduler.scheduleJob(jobDetail, triggers, true);
-
-				//
-				LOGGER.info(job.name() + " successfully scheduled");
-
-				//
-				final List<Date> nextFireTimes = new ArrayList<>();
-				for (final Trigger trigger : triggers) {
-					nextFireTimes.add(trigger.getFireTimeAfter(DateTime.now().toDate()));
-				}
-				Collections.sort(nextFireTimes);
-
-				//
-				return nextFireTimes.get(0);
-			} catch (final SchedulerException e) {
-				LOGGER.error(job.name() + " can't be scheduled", e);
 			}
-
 		}
-
 		return null;
 	}
 }

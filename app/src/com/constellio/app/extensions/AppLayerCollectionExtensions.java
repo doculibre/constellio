@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.api.extensions.taxonomies.*;
-import org.apache.chemistry.opencmis.commons.impl.jaxb.CheckOut;
-
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
@@ -17,12 +14,14 @@ import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
@@ -95,6 +94,8 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<SystemCheckExtension> systemCheckExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<RecordExportExtension> recordExportExtensions = new VaultBehaviorsList<>();
+
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
 	}
@@ -114,6 +115,12 @@ public class AppLayerCollectionExtensions {
 		}
 
 		return availableSequences;
+	}
+
+	public void onWriteRecord(OnWriteRecordParams params) {
+		for (RecordExportExtension recordExportExtension : recordExportExtensions) {
+			recordExportExtension.onWriteRecord(params);
+		}
 	}
 
 	public void buildRecordVO(BuildRecordVOParams params) {

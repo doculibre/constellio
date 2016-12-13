@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.records;
 
+import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -23,6 +24,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -33,7 +35,6 @@ import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
-
 
 public class RecordExportServices {
 
@@ -78,23 +79,18 @@ public class RecordExportServices {
 
 	}
 
-	private static boolean isSchemaCodePresent(List<String> schemaCodeList, String schemaCode)
-	{
+	private static boolean isSchemaCodePresent(List<String> schemaCodeList, String schemaCode) {
 		boolean isSchemaCodePresent = false;
 
-		for(String currentSchemaCode : schemaCodeList)
-		{
+		for (String currentSchemaCode : schemaCodeList) {
 			isSchemaCodePresent = schemaCode.equals(currentSchemaCode);
-			if(isSchemaCodePresent)
-			{
+			if (isSchemaCodePresent) {
 				break;
 			}
 		}
 
 		return isSchemaCodePresent;
 	}
-
-
 
 	private void writeRecordSchema(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
@@ -110,7 +106,7 @@ public class RecordExportServices {
 		// Add exportedSchemaType.
 		schemaTypeList.addAll(options.getExportedSchemaTypes());
 
-		if(options.isExportValueLists()) {
+		if (options.isExportValueLists()) {
 			mergeExportValueLists(metadataSchemaTypes, schemaTypeList);
 		}
 
@@ -144,23 +140,8 @@ public class RecordExportServices {
 					}
 				}
 
-				if (RetentionRule.SCHEMA_TYPE.equals(exportedSchemaType)) {
-
-					RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-					RetentionRule retentionRule = rm.wrapRetentionRule(record);
-
-					List<Map<String, String>> importedCopyRetentionRules = new ArrayList<>();
-
-					for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
-						//copyRetentionRule.etc
-
-						Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule);
-
-						importedCopyRetentionRules.add(map);
-					}
-
-					modifiableImportRecord.addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
-				}
+				appLayerFactory.getExtensions().forCollection(collection)
+						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
 
 				writer.write(modifiableImportRecord);
 			}
@@ -179,62 +160,12 @@ public class RecordExportServices {
 		}
 	}
 
-	private Map<String, String> writeCopyRetentionRule(RMSchemasRecordsServices rm, CopyRetentionRule copyRetentionRule) {
-		Map<String, String> map = new HashMap<>();
-
-		List<String> mediumTypesCodes = new ArrayList<>();
-		for (String mediumTypeId : copyRetentionRule.getMediumTypeIds()) {
-			mediumTypesCodes.add(rm.getMediumType(mediumTypeId).getCode());
-		}
-
-		map.put(RetentionRuleImportExtension.CODE, copyRetentionRule.getCode());
-		map.put(RetentionRuleImportExtension.TITLE, copyRetentionRule.getTitle());
-		map.put(RetentionRuleImportExtension.COPY_TYPE, copyTypeToString(copyRetentionRule.getCopyType()));
-		map.put(RetentionRuleImportExtension.DESCRIPTION, copyRetentionRule.getDescription());
-		map.put(RetentionRuleImportExtension.CONTENT_TYPES_COMMENT, copyRetentionRule.getContentTypesComment());
-		map.put(RetentionRuleImportExtension.ACTIVE_RETENTION_PERIOD, Integer.toString(copyRetentionRule.getActiveRetentionPeriod().getValue()));
-		map.put(RetentionRuleImportExtension.SEMI_ACTIVE_RETENTION_PERIOD_COMMENT, copyRetentionRule.getSemiActiveRetentionComment());
-		map.put(RetentionRuleImportExtension.SEMI_ACTIVE_RETENTION_PERIOD, Integer.toString(copyRetentionRule.getSemiActiveRetentionPeriod().getValue()));
-		map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_COMMENT, copyRetentionRule.getInactiveDisposalComment());
-		map.put(RetentionRuleImportExtension.INACTIVE_DISPOSAL_TYPE, copyRetentionRule.getInactiveDisposalType().getCode());
-		map.put(RetentionRuleImportExtension.OPEN_ACTIVE_RETENTION_PERIOD, Integer.toString(copyRetentionRule.getActiveRetentionPeriod().getValue()));
-		map.put(RetentionRuleImportExtension.REQUIRED_COPYRULE_FIELD, Boolean.toString(copyRetentionRule.isEssential()));
-		map.put(RetentionRuleImportExtension.COPY_RETENTION_RULE_ID, copyRetentionRule.getId());
-		map.put(RetentionRuleImportExtension.MEDIUM_TYPES, StringUtils.join(mediumTypesCodes, ','));
-		map.put(RetentionRuleImportExtension.IGNORE_ACTIVE_PERIOD, Boolean.toString(copyRetentionRule.isIgnoreActivePeriod()));
-
-
-		if (copyRetentionRule.getTypeId() != null)
-		{
-			map.put(RetentionRuleImportExtension.TYPE_ID, rm.getFolderType(copyRetentionRule.getTypeId()).getCode());
-		}
-
-		return map;
-	}
-
 	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options) {
 		options.getExportedSchemaTypes();
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
 
 		writeRecordSchema(collection, writer, options);
-	}
-
-
-	public static String copyTypeToString(CopyType copyType)
-	{
-		String copyTypeStr = "NOTHING";
-
-		if(copyType == CopyType.PRINCIPAL)
-		{
-			copyTypeStr = "P";
-		}
-		else if(copyType == CopyType.SECONDARY)
-		{
-			copyTypeStr = "S";
-		}
-
-		return copyTypeStr;
 	}
 
 }

@@ -22,6 +22,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.taskdefs.Copy;
 import org.assertj.core.groups.Tuple;
@@ -51,7 +52,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	RecordExportOptions options = new RecordExportOptions();
 	Users users = new Users();
 
-
 	@Test(expected = RecordExportServicesRuntimeException.ExportServicesRuntimeException_NoRecords.class)
 	public void givenEmptyCollectionWhenExportRecordsThenExceptionThrown()
 			throws Exception {
@@ -60,15 +60,12 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
 
-
 		exportThenImportInAnotherCollection(options);
 
 	}
 
-
 	@Test
-	public void whenExportingSpecificExportValueLists()
-	{
+	public void whenExportingSpecificExportValueLists() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioRMModule().withAllTest(users).withRMTest(records),
 				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
@@ -78,11 +75,15 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
-		assertThatRecords(rmAnotherCollection.searchDocumentTypes(ALL)).extractingMetadatas("legacyIdentifier", "code", "title").contains(
-				tuple("documentTypeId_1", "1", "Livre de recettes"), tuple("documentTypeId_2", "2", "Typologie"), tuple("documentTypeId_3", "3", "Petit guide"),tuple("documentTypeId_4", "4", "Histoire"),
-				tuple("documentTypeId_5", "5", "Calendrier des réunions"), tuple("documentTypeId_6", "6", "Dossier de réunion : avis de convocation, ordre du jour, procès-verbal, extraits de procès-verbaux, résolutions, documents déposés, correspondance"),
-				tuple("documentTypeId_7", "7", "Notes de réunion"),tuple("documentTypeId_8", "8", "Dossiers des administrateurs : affirmations solennelles, serments de discrétion"),
-				tuple("documentTypeId_9", "9", "Contrat"), tuple("documentTypeId_10", "10", "Procès-verbal"));
+		assertThatRecords(rmAnotherCollection.searchDocumentTypes(ALL)).extractingMetadatas("legacyIdentifier", "code", "title")
+				.contains(
+						tuple("documentTypeId_1", "1", "Livre de recettes"), tuple("documentTypeId_2", "2", "Typologie"),
+						tuple("documentTypeId_3", "3", "Petit guide"), tuple("documentTypeId_4", "4", "Histoire"),
+						tuple("documentTypeId_5", "5", "Calendrier des réunions"), tuple("documentTypeId_6", "6",
+								"Dossier de réunion : avis de convocation, ordre du jour, procès-verbal, extraits de procès-verbaux, résolutions, documents déposés, correspondance"),
+						tuple("documentTypeId_7", "7", "Notes de réunion"), tuple("documentTypeId_8", "8",
+								"Dossiers des administrateurs : affirmations solennelles, serments de discrétion"),
+						tuple("documentTypeId_9", "9", "Contrat"), tuple("documentTypeId_10", "10", "Procès-verbal"));
 
 	}
 
@@ -103,7 +104,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		final String CODE = "CODE1";
 		final String DESCRIPTION = "DESCRIPTION1";
 		final String CONTENT_TYPES_COMMENT = "CONTENT_TYPES_COMMENT1";
-		final String ACTIVE_RETENTION_COMMENT =  "ACTIVE_RETENTION_COMMENT";
+		final String ACTIVE_RETENTION_COMMENT = "ACTIVE_RETENTION_COMMENT";
 		final RetentionPeriod ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
 		final String SEMI_ACTIVE_RETENTION_COMMENT = "SEMI_ACTIVE_RETENTION_COMMENT";
 		final RetentionPeriod SEMI_ACTIVE_RETENTION_PERIOD = RetentionPeriod.OPEN_888;
@@ -114,27 +115,38 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		final String SET_ID = "ID1";
 		final List<String> MEDIUM_TYPE = records.PA_MD;
 
-
 		ArrayList<CopyRetentionRule> arrayList = new ArrayList<CopyRetentionRule>();
 
-
-		CopyRetentionRule copyRetentionRule1 = new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE).setTitle(TITLE)
-				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT).setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
-				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT).setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
-				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE).setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
+		CopyRetentionRule copyRetentionRule1 = new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE)
+				.setTitle(TITLE)
+				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
+				.setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
+				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
+				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
+				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
+				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
 				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE).setIgnoreActivePeriod(false);
 
-		CopyRetentionRule copyRetentionRule2 = new CopyRetentionRule().setCopyType(CopyType.SECONDARY).setCode(CODE).setTitle(TITLE)
-				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT).setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
-				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT).setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
-				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE).setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
+		CopyRetentionRule copyRetentionRule2 = new CopyRetentionRule().setCopyType(CopyType.SECONDARY).setCode(CODE)
+				.setTitle(TITLE)
+				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
+				.setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
+				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
+				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
+				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
+				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
 				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE).setIgnoreActivePeriod(true);
 
-		CopyRetentionRule copyRetentionRule3 = new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE).setTitle(TITLE)
-				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT).setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
-				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT).setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
-				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE).setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
-				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE).setTypeId(records.folderTypeEmploye()).setIgnoreActivePeriod(false);
+		CopyRetentionRule copyRetentionRule3 = new CopyRetentionRule().setCopyType(CopyType.PRINCIPAL).setCode(CODE)
+				.setTitle(TITLE)
+				.setDescription(DESCRIPTION).setContentTypesComment(CONTENT_TYPES_COMMENT)
+				.setActiveRetentionComment(ACTIVE_RETENTION_COMMENT)
+				.setActiveRetentionPeriod(ACTIVE_RETENTION_PERIOD).setSemiActiveRetentionComment(SEMI_ACTIVE_RETENTION_COMMENT)
+				.setSemiActiveRetentionPeriod(SEMI_ACTIVE_RETENTION_PERIOD)
+				.setInactiveDisposalComment(INACTIVE_DISPOSAL_COMMENT).setInactiveDisposalType(INACTIVE_DISPOSAL_TYPE)
+				.setOpenActiveRetentionPeriod(OPEN_ACTIVE_RETENTION_PERIOD)
+				.setEssential(REQUIRED_COPYRULE_FIELD).setId(SET_ID).setMediumTypeIds(MEDIUM_TYPE)
+				.setTypeId(records.folderTypeEmploye()).setIgnoreActivePeriod(false);
 
 		arrayList.add(copyRetentionRule1);
 		arrayList.add(copyRetentionRule2);
@@ -185,7 +197,6 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(currentCopyRetentionRule.getTypeId()).isNull();
 		assertThat(currentCopyRetentionRule.isIgnoreActivePeriod()).isFalse();
 
-
 		// Test secondary rententionRule.
 		currentCopyRetentionRule = retentionRuleList.get(1);
 
@@ -210,22 +221,22 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		currentCopyRetentionRule = retentionRuleList.get(2);
 
-		assertThat(rm.getFolderType(currentCopyRetentionRule.getTypeId()).getCode()).isEqualTo(records.folderTypeEmploye().getCode());
+		assertThat(rm.getFolderType(currentCopyRetentionRule.getTypeId()).getCode())
+				.isEqualTo(records.folderTypeEmploye().getCode());
 
 		transaction.add(retentionRule);
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
-		assertThatRecords(rmAnotherCollection.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code").containsOnly(
-				tuple("10A", "Unité 10-A", "10"), tuple("11B", "Unité 11-B", "11"), tuple("11", "Unité 11", "10"),
-				tuple("12", "Unité 12", "10"), tuple("20", "Unité 20", null), tuple("30", "Unité 30", null),
-				tuple("10", "Unité 10", null), tuple("30C", "Unité 30-C", "30"), tuple("12B", "Unité 12-B", "12"),
-				tuple("12C", "Unité 12-C", "12"), tuple("20D", "Unité 20-D", "20"), tuple("20E", "Unité 20-E", "20")
-		);
-
+		assertThatRecords(rmAnotherCollection.searchAdministrativeUnits(ALL)).extractingMetadatas("code", "title", "parent.code")
+				.containsOnly(
+						tuple("10A", "Unité 10-A", "10"), tuple("11B", "Unité 11-B", "11"), tuple("11", "Unité 11", "10"),
+						tuple("12", "Unité 12", "10"), tuple("20", "Unité 20", null), tuple("30", "Unité 30", null),
+						tuple("10", "Unité 10", null), tuple("30C", "Unité 30-C", "30"), tuple("12B", "Unité 12-B", "12"),
+						tuple("12C", "Unité 12-C", "12"), tuple("20D", "Unité 20-D", "20"), tuple("20E", "Unité 20-E", "20")
+				);
 
 	}
-
 
 	// ----------------------------------------------------
 
