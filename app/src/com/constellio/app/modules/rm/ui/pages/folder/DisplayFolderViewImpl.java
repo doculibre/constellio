@@ -140,7 +140,21 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayFolderView.tabs.logs"));
-		tabSheet.getTab(eventsComponent).setEnabled(true);
+		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+			tabSheet.getTab(eventsComponent).setEnabled(true);
+		}
+		else {
+			tabSheet.getTab(eventsComponent).setEnabled(false);
+		}
+
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
+					presenter.refreshEvents();
+				}
+			}
+		});
 
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
@@ -415,7 +429,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setEvents(final RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
+		RecordVOTable table = new RecordVOTable($("DisplayFolderView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
 		table.setSizeFull();
 		tabSheet.replaceComponent(eventsComponent, table);
 		eventsComponent = table;
@@ -485,10 +499,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		//		table.setPageLength(Math.min(15, dataProvider.size()));
 		tabSheet.replaceComponent(documentsComponent, table);
 		documentsComponent = table;
-	}
-
-	public void setEvent() {
-
 	}
 
 	@Override

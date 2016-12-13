@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
@@ -32,6 +33,7 @@ import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -40,10 +42,10 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.structures.EmailAddress;
@@ -824,13 +826,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private RecordVODataProvider getEventsDataProvider() {
 		final MetadataSchemaVO eventSchemaVO = schemaVOBuilder
 				.build(rmSchemasRecordsServices.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(eventSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(
-						from(rmSchemasRecordsServices.eventSchema()).where(rmSchemasRecordsServices.eventSchema().getMetadata(Event.RECORD_ID))
-								.isEqualTo(folderVO.getId())).sortDesc(Schemas.CREATED_ON);
+				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
+				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), folderVO.getId());
 			}
 		};
+	}
+
+	protected boolean hasCurrentUserPermissionToViewEvents() {
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(toRecord(folderVO));
+	}
+
+	public void refreshEvents() {
+		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		view.setEvents(getEventsDataProvider());
 	}
 }

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -12,14 +13,13 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -30,7 +30,6 @@ import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
@@ -275,13 +274,21 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaVO eventSchemaVO = new MetadataSchemaToVOBuilder()
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(eventSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(
-						from(rm.eventSchema()).where(rm.eventSchema().getMetadata(Event.RECORD_ID))
-								.isEqualTo(taskVO.getId())).sortDesc(Schemas.CREATED_ON);
+				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
+				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), taskVO.getId());
 			}
 		};
+	}
+
+	protected boolean hasCurrentUserPermissionToViewEvents() {
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(tasksSchemas.getTask(taskVO.getId()));
+	}
+
+	public void refreshEvents() {
+		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		view.setEvents(getEventsDataProvider());
 	}
 }

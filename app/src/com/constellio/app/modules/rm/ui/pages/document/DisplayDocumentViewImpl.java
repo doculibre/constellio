@@ -151,7 +151,21 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		eventsComponent = new CustomComponent();
 		tabSheet.addTab(eventsComponent, $("DisplayDocumentView.tabs.logs"));
-		tabSheet.getTab(eventsComponent).setEnabled(true);
+		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+			tabSheet.getTab(eventsComponent).setEnabled(true);
+		}
+		else {
+			tabSheet.getTab(eventsComponent).setEnabled(false);
+		}
+
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
+					presenter.refreshEvents();
+				}
+			}
+		});
 
 		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
 		
@@ -211,7 +225,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	public void setEvents(RecordVODataProvider dataProvider) {
-		Table table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
+		RecordVOTable table = new RecordVOTable($("DisplayDocumentView.tabs.logs"), new RecordVOLazyContainer(dataProvider));
 		table.setSizeFull();
 		tabSheet.replaceComponent(eventsComponent, table);
 		eventsComponent = table;

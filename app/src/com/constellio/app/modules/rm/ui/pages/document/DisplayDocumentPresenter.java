@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
@@ -19,15 +20,16 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
+import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -365,13 +367,21 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		final MetadataSchemaVO eventSchemaVO = schemaVOBuilder
 				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(eventSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(
-						from(rm.eventSchema()).where(rm.eventSchema().getMetadata(Event.RECORD_ID))
-								.isEqualTo(presenterUtils.getDocumentVO().getId())).sortDesc(Schemas.CREATED_ON);
+				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
+				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), presenterUtils.getDocumentVO().getId());
 			}
 		};
+	}
+
+	protected boolean hasCurrentUserPermissionToViewEvents() {
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(getRecord(presenterUtils.getDocumentVO().getId()));
+	}
+
+	public void refreshEvents() {
+		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		view.setEvents(getEventsDataProvider());
 	}
 }
