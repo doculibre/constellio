@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
@@ -165,9 +167,10 @@ public class MigrationServices {
 	private Set<String> migrateModules(String collection, String toVersion, boolean newModule)
 			throws OptimisticLockingConfiguration {
 		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
-
+		List<String> collectionCodes = collectionsManager.getCollectionCodesExcludingSystem();
 		boolean newCollection = isNewCollection(collection);
-		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled()) {
+		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled() &&
+				(!SYSTEM_COLLECTION.equals(collection) || collectionCodes.isEmpty())) {
 			migrateWithoutException(new CoreMigrationCombo(), null, collection);
 		}
 
