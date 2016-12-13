@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.constellio.data.threads.ConstellioJobManager;
+
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -92,7 +93,7 @@ public class DataLayerFactory extends LayerFactory {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
 
-		constellioJobManager = add(new ConstellioJobManager());
+		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
 
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
@@ -266,9 +267,9 @@ public class DataLayerFactory extends LayerFactory {
 		return backgroundThreadsManager;
 	}
 
-    public ConstellioJobManager getConstellioJobManager() {
-        return constellioJobManager;
-    }
+	public ConstellioJobManager getConstellioJobManager() {
+		return constellioJobManager;
+	}
 
 	public SecondTransactionLogManager getSecondTransactionLogManager() {
 		return secondTransactionLogManager;
