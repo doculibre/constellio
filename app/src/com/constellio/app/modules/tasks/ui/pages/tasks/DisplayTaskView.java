@@ -9,6 +9,8 @@ public interface DisplayTaskView extends BaseView, TasksViewGroup {
 
 	void setSubTasks(RecordVODataProvider dataProvider);
 
+	void setEvents(RecordVODataProvider tasksDataProvider);
+
 	void selectMetadataTab();
 
 	void selectTasksTab();
