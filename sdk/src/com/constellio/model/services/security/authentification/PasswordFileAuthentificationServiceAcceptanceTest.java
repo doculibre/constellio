@@ -35,6 +35,20 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 	}
 
 	@Test
+	public void givenMultipleUsernamesWithSimilarNamesThenDetectGoodPassword()
+			throws Exception {
+
+		passwordFileAuthenticationService.changePassword("adminconstellio", "password1");
+		passwordFileAuthenticationService.changePassword("adminCONSTELLIO", "password2");
+
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password1")).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password2")).isTrue();
+		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password1")).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password2")).isTrue();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password4")).isFalse();
+	}
+
+	@Test
 	public void givenPasswordHashPropertyWhenChangeOldPasswordThenItIsChanged()
 			throws Exception {
 
