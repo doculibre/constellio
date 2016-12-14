@@ -83,7 +83,10 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		layout.setComponentAlignment(edit, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(download, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(open, Alignment.TOP_RIGHT);
+		layout.setComponentAlignment(titleComponent, Alignment.BOTTOM_LEFT);
 		layout.setWidth("100%");
+		layout.setHeight("100%");
+		layout.addStyleName("document-search-result-display");
 
 		return layout;
 	}

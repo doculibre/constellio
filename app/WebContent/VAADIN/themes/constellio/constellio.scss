@@ -457,6 +457,7 @@ $popup-view-z-index: 3;
 
 	.xbreadcrumbs {
 		background-color: #FFFFFF;
+		height: auto;
 
 		.v-link a span,.xbreadcrumbbutton .v-button-caption {
 			font-size: 0.9em;
@@ -468,6 +469,7 @@ $popup-view-z-index: 3;
 
 		.xbreadcrumbbutton {
 		    height: auto;
+		    white-space: normal;
 		}
 	}
 
@@ -849,6 +851,11 @@ $popup-view-z-index: 3;
 						    	padding: 2px;
 						    	text-align: center;
 							}
+							
+							.reference-display {
+            					white-space: normal;
+            					height: inherit;
+							}
 
 							.copy-retention-rule-table-medium-types-field {
 								border: none;
@@ -1201,7 +1208,6 @@ $popup-view-z-index: 3;
 
 			.base-display {
 				.v-slot-display-value {
-            		padding-right: 260px;
 				}
 
 				.v-slot-list-add-remove-comment {
@@ -1273,13 +1279,18 @@ $popup-view-z-index: 3;
 			}
 
 			.base-display {
-				.v-slot-display-value {
+				.base-display-main-layout {
+					width:100%;
             		padding-right: 260px;
+            		
+					.v-slot-display-value {
+					}
+	
+					.v-slot-list-add-remove-comment {
+						width: 100%;
+					}
 				}
-
-				.v-slot-list-add-remove-comment {
-					width: 100%;
-				}
+			
 			}
         }
 
