@@ -627,14 +627,15 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEventsThenEventsDataProviderReturnValidEvents() {
-		presenter.forParams("C30");
-		presenter.deleteFolderButtonClicked("blabla");
+	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+		getDataLayerFactory().newEventsDao().flush();
+		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A01))).isEqualTo(2);
+		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.folder_A05))).isEqualTo(1);
 
-		presenter.refreshEvents();
+		presenter.forParams(rmRecords.folder_A01);
 		RecordVODataProvider provider = presenter.getEventsDataProvider();
 		List<RecordVO> eventList = provider.listRecordVOs(0, 100);
-		assertThat(eventList).hasSize(50);
+		assertThat(eventList).hasSize(2);
 	}
 
 	//

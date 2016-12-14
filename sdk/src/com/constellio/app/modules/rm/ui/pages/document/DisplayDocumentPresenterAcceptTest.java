@@ -1,27 +1,20 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-import java.util.Locale;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -31,6 +24,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 
@@ -272,6 +276,29 @@ public class DisplayDocumentPresenterAcceptTest extends ConstellioTest {
 				.isEqualTo("title" + EmailToSend.PARAMETER_SEPARATOR + documentWithContentA19.getTitle());
 
 		assertThat(rmRecords.getDocumentWithContent_A19().getAlertUsersWhenAvailable()).isEmpty();
+	}
+
+	@Test
+	public void givenEventsThenEventsDataProviderReturnValidEvents() throws Exception {
+		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
+		Transaction transaction = new Transaction();
+		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A19)
+				.setTitle(rmRecords.document_A19).setUsername(users.adminIn(zeCollection).getUsername()).setType(EventType.MODIFY_DOCUMENT)
+				.setCreatedOn(LocalDateTime.now()));
+		transaction.add(rmSchemasRecordsServices.newEvent().setRecordId(rmRecords.document_A49)
+				.setTitle(rmRecords.document_A49).setUsername(users.adminIn(zeCollection).getUsername()).setType(EventType.MODIFY_DOCUMENT)
+				.setCreatedOn(LocalDateTime.now()));
+		recordServices.execute(transaction);
+
+		getDataLayerFactory().newEventsDao().flush();
+		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19))).isEqualTo(1);
+		assertThat(searchServices.getResultsCount(rmEventsSearchServices.newFindEventByRecordIDQuery(users.adminIn(zeCollection), rmRecords.document_A19))).isEqualTo(1);
+
+		presenter.forParams(rmRecords.document_A19);
+		RecordVODataProvider provider = presenter.getEventsDataProvider();
+		List<RecordVO> eventList = provider.listRecordVOs(0, 100);
+		assertThat(eventList).hasSize(1);
 	}
 
 	//
