@@ -3,6 +3,7 @@ plugins {
 }
 
 vaadin {
+
     version '7.7.4'
     addon.title = "constellio"
 

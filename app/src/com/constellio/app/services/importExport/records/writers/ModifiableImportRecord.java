@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Schemas;
 
 public class ModifiableImportRecord {
@@ -71,11 +72,24 @@ public class ModifiableImportRecord {
 		return addField(metadataName, value);
 	}
 
-	public ModifiableImportRecord addField(String metadataName, Object value) {
-		if (metadataName == null) {
-			throw new RuntimeException("Metadata name is required");
+		public ModifiableImportRecord addField(String metadataName, Object value) {
+			if (metadataName == null) {
+				throw new RuntimeException("Metadata name is required");
+			}
+
+		if (value instanceof EnumWithSmallCode) {
+			this.fields.put(metadataName, ((EnumWithSmallCode) value).getCode());
 		}
-		this.fields.put(metadataName, value == null ? "" : value);
+		else if (Boolean.TRUE.equals(value))  {
+			this.fields.put(metadataName,"true");
+		} else if (Boolean.FALSE.equals(value))  {
+			this.fields.put(metadataName, "false");
+		} else {
+			this.fields.put(metadataName, value == null ? "" : value);
+		}
+
+
+
 
 		return this;
 	}
