@@ -96,6 +96,10 @@ public class ModifiableImportRecord {
 		return fields;
 	}
 
+	public <T> T get(String key) {
+		return (T) fields.get(key);
+	}
+
 	public String getSchema() {
 		return schema;
 	}

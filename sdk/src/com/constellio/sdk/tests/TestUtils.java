@@ -9,8 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,8 +23,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
-import javax.xml.stream.XMLOutputFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Condition;
@@ -59,7 +55,6 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
@@ -493,6 +488,61 @@ public class TestUtils {
 				}
 			});
 		}
+
+		private Object getMetadataValue(Record record, String metadataLocalCode) {
+			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
+			Metadata metadata = schema.getMetadata(metadataLocalCode);
+			if (metadata.isMultivalue()) {
+				return record.getList(metadata);
+			} else {
+				return record.get(metadata);
+			}
+		}
+
+		public ListAssert<Object> extracting(String... metadatas) {
+			Object[] objects = new Object[metadatas.length];
+
+			if (actual instanceof Record) {
+
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+					objects[i] = getMetadataValue(((Record) actual), metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else if (actual instanceof RecordWrapper) {
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+
+					objects[i] = ((RecordWrapper) actual).get(metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else {
+				throw new RuntimeException("Unsupported object of class '" + actual.getClass());
+			}
+			return assertThat(asList(objects));
+		}
 	}
 
 	public static class RecordsAssert extends ListAssert<Object> {
@@ -632,6 +682,61 @@ public class TestUtils {
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does not exist");
 			}
+		}
+
+		private Object getMetadataValue(Record record, String metadataLocalCode) {
+			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
+			Metadata metadata = schema.getMetadata(metadataLocalCode);
+			if (metadata.isMultivalue()) {
+				return record.getList(metadata);
+			} else {
+				return record.get(metadata);
+			}
+		}
+
+		public ListAssert<Object> extracting(String... metadatas) {
+			Object[] objects = new Object[metadatas.length];
+
+			if (actual instanceof Record) {
+
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+					objects[i] = getMetadataValue(((Record) actual), metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else if (actual instanceof RecordWrapper) {
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+
+					objects[i] = ((RecordWrapper) actual).get(metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else {
+				throw new RuntimeException("Unsupported object of class '" + actual.getClass());
+			}
+			return assertThat(asList(objects));
 		}
 
 	}
