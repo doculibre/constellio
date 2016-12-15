@@ -54,41 +54,6 @@ public class DependencyUtils<V> {
 		return sortByDependency(dependenciesMap, new DependencyUtilsParams());
 	}
 
-	public static List<Record> sortRecordByDependency(MetadataSchemaTypes types, List<Record> records) {
-
-		//Set<String> ids = new HashSet<>(new RecordUtils().toIdList(records));
-		Map<String, Set<String>> dependencies = new HashMap<>();
-		Map<String, Record> recordMap = new HashMap<>();
-		for (Record record : records) {
-			MetadataSchema schema = types.getSchema(record.getSchemaCode());
-			Set<String> dependentIds = new HashSet<>();
-			recordMap.put(record.getId(), record);
-			for (Metadata metadata : schema.getMetadatas()) {
-				if (metadata.getType() == MetadataValueType.REFERENCE) {
-					if (metadata.isMultivalue()) {
-						List<String> metadataIds = record.getList(metadata);
-						dependentIds.addAll(metadataIds);
-					} else {
-						String metadataId = record.get(metadata);
-						if (metadataId != null) {
-							dependentIds.add(metadataId);
-						}
-					}
-				}
-			}
-			dependencies.put(record.getId(), dependentIds);
-		}
-
-		List<Record> sorted = new ArrayList<>();
-		DependencyUtilsParams params = new DependencyUtilsParams().withToleratedCyclicDepencies()
-				.sortUsingDefaultComparator();
-		for (String recordId : new DependencyUtils<String>().sortByDependency(dependencies, params)) {
-			sorted.add(recordMap.get(recordId));
-		}
-
-		return records;
-	}
-
 	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap, DependencyUtilsParams params) {
 		Map<V, Set<V>> dependenciesMapCopy = copyInModifiableMap(dependenciesMap);
 		removeSelfDependencies(dependenciesMapCopy);

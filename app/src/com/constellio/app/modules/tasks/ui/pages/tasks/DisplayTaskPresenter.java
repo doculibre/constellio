@@ -1,14 +1,7 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
-import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
-import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.List;
-
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.TaskPresenterServices;
@@ -20,17 +13,29 @@ import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DUE_DATE;
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
+import static java.util.Arrays.asList;
+
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
 	TaskVO taskVO;
 	private RecordVODataProvider subTaskDataProvider;
+	private RecordVODataProvider eventsDataProvider;
 	transient TasksSearchServices tasksSearchServices;
 	transient private TasksSchemasRecordsServices tasksSchemas;
 	transient private TaskPresenterServices taskPresenterServices;
@@ -78,6 +83,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		Task task = tasksSchemas.getTask(id);
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		initSubTaskDataProvider();
+		eventsDataProvider = getEventsDataProvider();
 	}
 
 	@Override
@@ -245,6 +251,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	public void viewAssembled() {
 		view.setSubTasks(subTaskDataProvider);
+		view.setEvents(eventsDataProvider);
 	}
 
 	public void backButtonClicked() {
@@ -261,5 +268,27 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	public Object getSubTaskCount() {
 		return subTaskDataProvider.size();
+	}
+
+	public RecordVODataProvider getEventsDataProvider() {
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		final MetadataSchemaVO eventSchemaVO = new MetadataSchemaToVOBuilder()
+				.build(rm.eventSchema(), VIEW_MODE.TABLE, view.getSessionContext());
+		return new RecordVODataProvider(eventSchemaVO, new EventToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				RMEventsSearchServices rmEventsSearchServices = new RMEventsSearchServices(modelLayerFactory, collection);
+				return rmEventsSearchServices.newFindEventByRecordIDQuery(getCurrentUser(), taskVO.getId());
+			}
+		};
+	}
+
+	protected boolean hasCurrentUserPermissionToViewEvents() {
+		return getCurrentUser().has(CorePermissions.VIEW_EVENTS).on(tasksSchemas.getTask(taskVO.getId()));
+	}
+
+	public void refreshEvents() {
+		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		view.setEvents(getEventsDataProvider());
 	}
 }
