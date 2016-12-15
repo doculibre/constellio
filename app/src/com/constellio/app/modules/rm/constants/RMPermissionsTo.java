@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.constants;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.model.entities.Permissions;
+
+import java.util.List;
 
 public class RMPermissionsTo {
 	public static Permissions PERMISSIONS = new Permissions(ConstellioRMModule.ID);
@@ -90,10 +90,14 @@ public class RMPermissionsTo {
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
 
+	// Cart
+	private static final String CART_GROUP = "carts";
+
+	public static final String USE_CART = permission(CART_GROUP, "useCart");
+
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";
 
-	public static final String USE_CART = permission(RM_MANAGEMENT, "useCart");
 	public static final String MANAGE_UNIFORMSUBDIVISIONS = permission(RM_MANAGEMENT, "manageUniformSubdivisions");
 	public static final String MANAGE_RETENTIONRULE = permission(RM_MANAGEMENT, "manageRetentionRule");
 	public static final String MANAGE_CLASSIFICATION_PLAN = permission(RM_MANAGEMENT, "manageClassificationPlan");
