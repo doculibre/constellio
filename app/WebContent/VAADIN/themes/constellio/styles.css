@@ -12636,6 +12636,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .xbreadcrumbs {
 	background-color: #FFFFFF;
+	height: auto;
 }
 
 .constellio .xbreadcrumbs .v-link a span, .constellio .xbreadcrumbs .xbreadcrumbbutton .v-button-caption {
@@ -12648,6 +12649,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .xbreadcrumbs .xbreadcrumbbutton {
 	height: auto;
+	white-space: normal;
 }
 
 .constellio .v-window .popupContent {
@@ -13327,10 +13329,6 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
-.constellio .ui-with-top-menu[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-display-value {
-	padding-right: 260px;
-}
-
 .constellio .ui-with-top-menu[width-range~="1101px-"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
 	width: 100%;
 }
@@ -13383,11 +13381,12 @@ div.v-layout.v-horizontal.v-widget {
 	position: fixed;
 }
 
-.constellio .ui-with-top-menu[width-range~="801-1100px"] .action-menu-wrapper .base-display .v-slot-display-value {
+.constellio .ui-with-top-menu[width-range~="801-1100px"] .action-menu-wrapper .base-display .base-display-main-layout {
+	width: 100%;
 	padding-right: 260px;
 }
 
-.constellio .ui-with-top-menu[width-range~="801-1100px"] .action-menu-wrapper .base-display .v-slot-list-add-remove-comment {
+.constellio .ui-with-top-menu[width-range~="801-1100px"] .action-menu-wrapper .base-display .base-display-main-layout .v-slot-list-add-remove-comment {
 	width: 100%;
 }
 
