@@ -254,7 +254,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	private void validateCopyRuleIntegrity(CopyRetentionRule copyRetentionRule, ValidationErrors validationErrors) {
 
 		if (copyRetentionRule.getCopyType() == null) {
-			validationErrors.add(getClass(), INVALID_COPY_RETENTION_RULE_FIELD, requiredField("copyTypeToString"));
+			validationErrors.add(getClass(), INVALID_COPY_RETENTION_RULE_FIELD, requiredField("copyType"));
 		}
 		if (copyRetentionRule.getMediumTypeIds() == null || copyRetentionRule.getMediumTypeIds().isEmpty()) {
 			validationErrors.add(getClass(), INVALID_COPY_RETENTION_RULE_FIELD, requiredField("mediumTypes"));

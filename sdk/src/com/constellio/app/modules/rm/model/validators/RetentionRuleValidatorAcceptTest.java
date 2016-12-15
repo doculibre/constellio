@@ -371,9 +371,9 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
-						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy1", "1", "copyTypeToString", null, "required",
+						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy1", "1", "copyType", null, "required",
 								"copyRetentionRules"),
-						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy3", "3", "copyTypeToString", null, "required",
+						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy3", "3", "copyType", null, "required",
 								"copyRetentionRules")
 				);
 
@@ -404,7 +404,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 								"copyRetentionRules"),
 						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy3", "3",
 								"mediumTypes", null, "required", "copyRetentionRules"),
-						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy2", "2", "copyTypeToString", null, "required",
+						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy2", "2", "copyType", null, "required",
 								"copyRetentionRules")
 				);
 
@@ -517,7 +517,7 @@ public class RetentionRuleValidatorAcceptTest extends ConstellioTest {
 
 		assertThat(extractingSimpleCodeAndParameters(errors, "code", "index", "field", "value", "errorType", "metadata"))
 				.containsOnly(
-						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy3", "1", "copyTypeToString", null, "required",
+						tuple("RetentionRuleValidator_invalidCopyRuleField", "Copy3", "1", "copyType", null, "required",
 								"copyRetentionRules")
 				);
 
