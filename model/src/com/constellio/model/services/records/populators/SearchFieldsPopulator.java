@@ -1,5 +1,6 @@
 package com.constellio.model.services.records.populators;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,13 +15,16 @@ import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.records.FieldsPopulator;
+import com.constellio.model.services.records.RecordUtils;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -38,6 +42,29 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
+	}
+
+	@Override
+	public Map<String, Object> populateCopyfields(MetadataSchema schema, Record record) {
+		Map<String, Object> fields = super.populateCopyfields(schema, record);
+
+		Metadata idMetadata = schema.getMetadata("id");
+		if (idMetadata.isSearchable()) {
+			String id = record.getId();
+			String idWithoutZeros = RecordUtils.removeZerosInId(id);
+
+			List<String> searchableValues = new ArrayList<>();
+			searchableValues.add(id);
+			if (!idWithoutZeros.equals(id)) {
+				searchableValues.add(idWithoutZeros);
+			}
+
+			for (String collectionLanguage : collectionLanguages) {
+				fields.put("id_txt_" + collectionLanguage, searchableValues);
+			}
+		}
+
+		return fields;
 	}
 
 	@Override

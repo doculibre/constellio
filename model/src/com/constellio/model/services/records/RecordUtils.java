@@ -373,4 +373,21 @@ public class RecordUtils {
 
 		return schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
 	}
+
+	public static String removeZerosInId(String id) {
+		int lastZero = -1;
+		for (int i = 0; i < id.length(); i++) {
+			if (id.charAt(i) == '0') {
+				lastZero = i;
+			} else {
+				break;
+			}
+		}
+
+		if (lastZero == -1 || lastZero == id.length() - 1) {
+			return id;
+		} else {
+			return id.substring(lastZero + 1);
+		}
+	}
 }

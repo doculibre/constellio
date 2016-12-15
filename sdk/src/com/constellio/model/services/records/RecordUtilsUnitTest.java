@@ -78,4 +78,17 @@ public class RecordUtilsUnitTest extends ConstellioTest {
 				.isEqualTo("patate");
 
 	}
+
+	@Test
+	public void whenGetIdWithoutZerosThenOk()
+			throws Exception {
+
+		assertThat(RecordUtils.removeZerosInId("0000042")).isEqualTo("42");
+		assertThat(RecordUtils.removeZerosInId("000000")).isEqualTo("000000");
+		assertThat(RecordUtils.removeZerosInId("0")).isEqualTo("0");
+		assertThat(RecordUtils.removeZerosInId("101")).isEqualTo("101");
+		assertThat(RecordUtils.removeZerosInId("00000420")).isEqualTo("420");
+		assertThat(RecordUtils.removeZerosInId("hohoho")).isEqualTo("hohoho");
+
+	}
 }
