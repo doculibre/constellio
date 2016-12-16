@@ -1,6 +1,7 @@
 package com.constellio.data.conf;
 
 import java.io.File;
+import java.util.List;
 
 import org.joda.time.Duration;
 
@@ -26,11 +27,17 @@ public interface DataLayerConfiguration {
 
 	File getContentDaoFileSystemFolder();
 
+    void setContentDaoFileSystemFolder(File contentsFolder);
+
 	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
 
 	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
 
-	File getTempFolder();
+    List<String> getContentDaoReplicatedVaultMountPoints();
+
+    void setContentDaoReplicatedVaultMountPoints(List<String> replicatedVaultMountPoints);
+
+    File getTempFolder();
 
 	ConfigManagerType getSettingsConfigType();
 
