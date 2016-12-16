@@ -1,5 +1,10 @@
 package com.constellio.app.services.appManagement;
 
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -17,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +46,12 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
+import com.constellio.app.services.extensions.plugins.JSPFPluginServices;
+import com.constellio.app.services.extensions.plugins.PluginServices;
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
@@ -72,6 +83,7 @@ public class AppManagementService {
 	private static String SERVER_URL = "http://updatecenter.constellio.com:8080";
 	private static final int MAX_VERSION_TO_KEEP = 4;
 
+	private final PluginServices pluginServices;
 	private final ConstellioPluginManager pluginManager;
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
 	private final FileService fileService;
@@ -81,17 +93,17 @@ public class AppManagementService {
 	protected final ConstellioEIMConfigs eimConfigs;
 	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
 
-	public AppManagementService(IOServicesFactory ioServicesFactory, FoldersLocator foldersLocator,
-			SystemGlobalConfigsManager systemGlobalConfigsManager, ConstellioEIMConfigs eimConfigs,
-			ConstellioPluginManager pluginManager, UpgradeAppRecoveryService upgradeAppRecoveryService) {
-		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
-		this.pluginManager = pluginManager;
-		this.fileService = ioServicesFactory.newFileService();
-		this.zipService = ioServicesFactory.newZipService();
+	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
+
+		this.systemGlobalConfigsManager = appLayerFactory.getSystemGlobalConfigsManager();
+		this.pluginManager = appLayerFactory.getPluginManager();
+		this.fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
+		this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
 		this.foldersLocator = foldersLocator;
-		this.ioServices = ioServicesFactory.newIOServices();
-		this.eimConfigs = eimConfigs;
-		this.upgradeAppRecoveryService = upgradeAppRecoveryService;
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		this.eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		this.upgradeAppRecoveryService = appLayerFactory.newUpgradeAppRecoveryService();
+		this.pluginServices = new JSPFPluginServices(ioServices);
 	}
 
 	public void restart()
@@ -132,6 +144,12 @@ public class AppManagementService {
 				throw new RuntimeException(e);
 			}
 			String warVersion = findWarVersion(tempFolder);
+
+			File pluginsFolder = new File(tempFolder, "plugins");
+			if (pluginsFolder.exists()) {
+				updatePlugins(pluginsFolder);
+			}
+
 			String currentWarVersion = getWarVersion();
 			if (currentWarVersion == null || currentWarVersion.equals("5.0.5")) {
 				currentWarVersion = GradleFileVersionParser.getVersion();
@@ -191,6 +209,31 @@ public class AppManagementService {
 		}
 		progressInfo.setCurrentState(1);
 
+	}
+
+	private void updatePlugins(File pluginsFolder) {
+		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
+			Set<String> alreadyInstalledPlugins = new HashSet<>();
+
+			for (ConstellioPluginInfo info : pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)) {
+				alreadyInstalledPlugins.add(info.getCode());
+			}
+
+			for (File pluginFile : pluginsFolder.listFiles()) {
+				try {
+					ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
+
+					if (alreadyInstalledPlugins.contains(info.getCode())) {
+						pluginManager.prepareInstallablePlugin(pluginFile);
+					} else {
+						pluginFile.delete();
+					}
+
+				} catch (InvalidPluginJarException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
 	}
 
 	private void movePluginsToNewLib(File oldPluginsFolder, File newWebAppFolder)
