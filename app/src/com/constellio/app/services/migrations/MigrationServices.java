@@ -103,8 +103,21 @@ public class MigrationServices {
 		}
 
 		for (InstallableModule module : modules) {
-			if (newCollection && module instanceof ModuleWithComboMigration) {
+			boolean useComboMigration = newCollection && module instanceof ModuleWithComboMigration;
+			if (useComboMigration) {
+				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
 
+				List<String> completedMigrations = getCompletedMigrations(collection);
+				for (MigrationScript aMigrationScriptIncludedInCombo : comboMigrationScript.getVersions()) {
+
+					if (completedMigrations.contains(
+							new Migration(collection,module.getId(),aMigrationScriptIncludedInCombo).getMigrationId()))  {
+						useComboMigration = false;
+						break;
+					}
+				}
+			}
+			if (useComboMigration) {
 				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
 				migrations.add(new Migration(collection, module.getId(), comboMigrationScript));
 
@@ -352,6 +365,19 @@ public class MigrationServices {
 		} else {
 			addPropertiesFileWithVersion(collection, version, properties);
 		}
+	}
+
+	public List<String> getCompletedMigrations(String collection) {
+
+		Map<String, String> properties = dataLayerFactory.getConfigManager()
+				.getProperties(VERSION_PROPERTIES_FILE).getProperties();
+		String completedMigrations = properties.get(collection + "_completedMigrations");
+		if (StringUtils.isNotBlank(completedMigrations)) {
+			return asList(completedMigrations.split(","));
+		} else  {
+			return Collections.emptyList();
+		}
+
 	}
 
 	public void markMigrationAsCompleted(final Migration migration)
