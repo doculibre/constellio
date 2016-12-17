@@ -185,9 +185,7 @@ public class AppLayerFactory extends LayerFactory {
 
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
-		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
-				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager,
-				newUpgradeAppRecoveryService());
+		return new AppManagementService(this, foldersLocator);
 	}
 
 	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
