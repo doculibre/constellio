@@ -223,10 +223,9 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
             addComponent(new Label("<HR />", ContentMode.HTML));
 
-            if (CollectionUtils.isEmpty(ldapUserSyncConfiguration.getUserGroups())) {
-                userGroupsField = new TextArea("");
-            } else {
-                userGroupsField = new TextArea(Joiner.on("\n").join(ldapUserSyncConfiguration.getUserGroups()));
+            userGroupsField = new TextArea();
+            if (CollectionUtils.isNotEmpty(ldapUserSyncConfiguration.getUserGroups())) {
+                userGroupsField.setValue(Joiner.on("\n").join(ldapUserSyncConfiguration.getUserGroups()));
             }
             userGroupsField.setCaption($("LDAPConfigManagementView.userGroups"));
             userGroupsField.setSizeFull();
