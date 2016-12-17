@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -56,9 +57,9 @@ public class MetadataUniqueValidator implements Validator<Record> {
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String value, String errorCode, Metadata metadata) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL, metadata.getLabel());
+		parameters.put(METADATA_LABEL,metadata.getLabelsByLanguageCodes());
 		parameters.put(VALUE, value);
 		validationErrors.add(getClass(), errorCode, parameters);
 	}

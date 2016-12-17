@@ -1,5 +1,8 @@
 package com.constellio.sdk.tests;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -16,28 +19,47 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
 public class TestUtils {
@@ -287,9 +309,25 @@ public class TestUtils {
 
 	public static Metadata mockMetadata(String code) {
 		String localCode = code.split("_")[2];
-		Metadata metadata = mock(Metadata.class, code);
+		final Metadata metadata = mock(Metadata.class, code);
 		when(metadata.getCode()).thenReturn(code);
 		when(metadata.getLocalCode()).thenReturn(localCode);
+
+		when(metadata.getInheritanceCode()).thenAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation)
+					throws Throwable {
+				return metadata.computeInheritanceCode();
+			}
+		});
+
+		when(metadata.isGlobal()).thenAnswer(new Answer<Boolean>() {
+			@Override
+			public Boolean answer(InvocationOnMock invocation)
+					throws Throwable {
+				return metadata.computeIsGlobal();
+			}
+		});
 		return metadata;
 	}
 
@@ -369,6 +407,12 @@ public class TestUtils {
 		};
 	}
 
+	public static void printDocument(Document document) {
+		XMLOutputter xmlOutput = new XMLOutputter();
+		xmlOutput.setFormat(Format.getPrettyFormat());
+		System.out.println(xmlOutput.outputString(document));
+	}
+
 	public static class MapBuilder<K, V> {
 
 		Map<K, V> map = new HashMap<>();
@@ -399,7 +443,11 @@ public class TestUtils {
 		return new RecordWrapperAssert(recordWrapper);
 	}
 
-	public static RecordsAssert assertThatRecords(List<Record> actual) {
+	public static RecordsAssert assertThatRecords(RecordWrapper... actual) {
+		return assertThatRecords(asList(actual));
+	}
+
+	public static RecordsAssert assertThatRecords(List<?> actual) {
 		return new RecordsAssert(actual);
 	}
 
@@ -418,7 +466,7 @@ public class TestUtils {
 			return (RecordAssert) super.has(new Condition<Record>() {
 				@Override
 				public boolean matches(Record value) {
-					assertThat(actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					assertThat((Object) actual.get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
 					return true;
 				}
 			});
@@ -434,27 +482,88 @@ public class TestUtils {
 						assertThat(actual.getList(metadata)).as((metadata.getCode())).isEmpty();
 					} else {
 
-						assertThat(actual.get(metadata)).as((metadata.getCode())).isNull();
+						assertThat((Object) actual.get(metadata)).as((metadata.getCode())).isNull();
 					}
 					return true;
 				}
 			});
 		}
+
+		private Object getMetadataValue(Record record, String metadataLocalCode) {
+			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
+			Metadata metadata = schema.getMetadata(metadataLocalCode);
+			if (metadata.isMultivalue()) {
+				return record.getList(metadata);
+			} else {
+				return record.get(metadata);
+			}
+		}
+
+		public ListAssert<Object> extracting(String... metadatas) {
+			Object[] objects = new Object[metadatas.length];
+
+			if (actual instanceof Record) {
+
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+					objects[i] = getMetadataValue(((Record) actual), metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else if (actual instanceof RecordWrapper) {
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+
+					objects[i] = ((RecordWrapper) actual).get(metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else {
+				throw new RuntimeException("Unsupported object of class '" + actual.getClass());
+			}
+			return assertThat(asList(objects));
+		}
 	}
 
-	public static class RecordsAssert extends ListAssert<Record> {
+	public static class RecordsAssert extends ListAssert<Object> {
 
-		protected RecordsAssert(List<Record> actual) {
-			super(actual);
+		protected RecordsAssert(List<?> actual) {
+			super((List<Object>) actual);
 		}
 
 		public ListAssert<Tuple> extractingMetadatas(Metadata... metadatas) {
 			List<Tuple> values = new ArrayList<>();
 
-			for (Record record : actual) {
+			for (Object record : actual) {
 				Object[] objects = new Object[metadatas.length];
 				for (int i = 0; i < metadatas.length; i++) {
-					objects[i] = record.get(metadatas[i]);
+					if (record instanceof Record) {
+						objects[i] = ((Record) record).get(metadatas[i]);
+					} else if (record instanceof RecordWrapper) {
+						objects[i] = ((RecordWrapper) record).get(metadatas[i]);
+					} else {
+						throw new RuntimeException("Unsupported object of class '" + record.getClass());
+					}
 				}
 				values.add(new Tuple(objects));
 			}
@@ -462,6 +571,66 @@ public class TestUtils {
 			return assertThat(values);
 		}
 
+		private Object getMetadataValue(Record record, String metadataLocalCode) {
+			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
+			Metadata metadata = schema.getMetadata(metadataLocalCode);
+			if (metadata.isMultivalue()) {
+				return record.getList(metadata);
+			} else {
+				return record.get(metadata);
+			}
+		}
+
+		public ListAssert<Tuple> extractingMetadatas(String... metadatas) {
+			List<Tuple> values = new ArrayList<>();
+
+			for (Object record : actual) {
+				Object[] objects = new Object[metadatas.length];
+
+				if (record instanceof Record) {
+
+					for (int i = 0; i < metadatas.length; i++) {
+						String metadata = metadatas[i];
+						String refMetadata = null;
+						if (metadata.contains(".")) {
+							refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+						}
+						objects[i] = getMetadataValue(((Record) record), metadata);
+
+						if (refMetadata != null && objects[i] != null) {
+							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+									.getDocumentById((String) objects[i]);
+							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						}
+					}
+				} else if (record instanceof RecordWrapper) {
+					for (int i = 0; i < metadatas.length; i++) {
+						String metadata = metadatas[i];
+						String refMetadata = null;
+						if (metadata.contains(".")) {
+							refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+							metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+						}
+
+						objects[i] = ((RecordWrapper) record).get(metadata);
+
+						if (refMetadata != null && objects[i] != null) {
+							Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+									.getDocumentById((String) objects[i]);
+							objects[i] = getMetadataValue(referencedRecord, refMetadata);
+						}
+					}
+				} else {
+					throw new RuntimeException("Unsupported object of class '" + record.getClass());
+				}
+				values.add(new Tuple(objects));
+			}
+
+			return assertThat(values);
+		}
 	}
 
 	public static class RecordWrapperAssert extends ObjectAssert<RecordWrapper> {
@@ -476,7 +645,8 @@ public class TestUtils {
 			return (RecordWrapperAssert) super.has(new Condition<RecordWrapper>() {
 				@Override
 				public boolean matches(RecordWrapper value) {
-					assertThat(actual.getWrappedRecord().get(metadata)).as((metadata.getCode())).isEqualTo(expectedValue);
+					assertThat((Object) actual.getWrappedRecord().get(metadata)).as((metadata.getCode()))
+							.isEqualTo(expectedValue);
 					return true;
 				}
 			});
@@ -494,5 +664,239 @@ public class TestUtils {
 			//				}
 			//			});
 		}
+
+		public void doesNotExist() {
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			try {
+				modelLayerFactory.newRecordServices().getDocumentById(actual.getId());
+				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does exist");
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+
+			}
+		}
+
+		public void exist() {
+			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+			try {
+				modelLayerFactory.newRecordServices().getDocumentById(actual.getId());
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				fail("Record " + actual.getId() + "-" + actual.getTitle() + " does not exist");
+			}
+		}
+
+		private Object getMetadataValue(Record record, String metadataLocalCode) {
+			MetadataSchema schema = ConstellioFactories.getInstance().getModelLayerFactory()
+					.getMetadataSchemasManager().getSchemaTypes(((Record) record).getCollection())
+					.getSchema(((Record) record).getSchemaCode());
+			Metadata metadata = schema.getMetadata(metadataLocalCode);
+			if (metadata.isMultivalue()) {
+				return record.getList(metadata);
+			} else {
+				return record.get(metadata);
+			}
+		}
+
+		public ListAssert<Object> extracting(String... metadatas) {
+			Object[] objects = new Object[metadatas.length];
+
+			if (actual instanceof Record) {
+
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+					objects[i] = getMetadataValue(((Record) actual), metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else if (actual instanceof RecordWrapper) {
+				for (int i = 0; i < metadatas.length; i++) {
+					String metadata = metadatas[i];
+					String refMetadata = null;
+					if (metadata.contains(".")) {
+						refMetadata = org.apache.commons.lang3.StringUtils.substringAfter(metadata, ".");
+						metadata = org.apache.commons.lang3.StringUtils.substringBefore(metadata, ".");
+					}
+
+					objects[i] = ((RecordWrapper) actual).get(metadata);
+
+					if (refMetadata != null && objects[i] != null) {
+						Record referencedRecord = ConstellioFactories.getInstance().getModelLayerFactory().newRecordServices()
+								.getDocumentById((String) objects[i]);
+						objects[i] = getMetadataValue(referencedRecord, refMetadata);
+					}
+				}
+			} else {
+				throw new RuntimeException("Unsupported object of class '" + actual.getClass());
+			}
+			return assertThat(asList(objects));
+		}
+
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationRuntimeException e, String... parameters) {
+		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationException e, String... parameters) {
+		return extractingSimpleCodeAndParameters(e.getErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e,
+			String... parameters) {
+		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<String> extractingSimpleCode(ValidationErrors errors) {
+
+		List<String> codes = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			codes.add(StringUtils.substringAfterLast(error.getCode(), "."));
+		}
+
+		return codes;
+	}
+
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationException e, String... parameters) {
+		return extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationRuntimeException e, String... parameters) {
+		return extractingWarningsSimpleCodeAndParameters(e.getValidationErrors(), parameters);
+	}
+
+	public static List<Tuple> extractingWarningsSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
+
+		List<Tuple> tuples = new ArrayList<>();
+		for (ValidationError error : errors.getValidationWarnings()) {
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
+			for (String parameter : parameters) {
+				tuple.addData(error.getParameters().get(parameter));
+			}
+			tuples.add(tuple);
+		}
+
+		return tuples;
+	}
+
+	public static List<Tuple> extractingSimpleCodeAndParameters(ValidationErrors errors, String... parameters) {
+
+		List<Tuple> tuples = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
+			for (String parameter : parameters) {
+
+				tuple.addData(error.getParameters().get(parameter));
+			}
+			tuples.add(tuple);
+		}
+
+		return tuples;
+	}
+
+	public static List<String> frenchMessages(ValidationRuntimeException e) {
+		return frenchMessages(e.getValidationErrors());
+	}
+
+	public static List<String> frenchMessages(ValidationException e) {
+		return frenchMessages(e.getErrors());
+
+	}
+
+	public static List<String> frenchMessages(com.constellio.model.frameworks.validation.ValidationException e) {
+		return frenchMessages(e.getValidationErrors());
+
+	}
+
+	public static List<String> frenchMessages(List<ValidationError> errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+
+		for (ValidationError error : errors) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
+	}
+
+	public static List<String> frenchMessages(ValidationErrors errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+
+		for (ValidationError error : errors.getValidationWarnings()) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
+	}
+
+	public static String frenchMessage(String key, Map<String, Object> args) {
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.FRENCH);
+		String value = $(key, args);
+		i18n.setLocale(originalLocale);
+		return value;
+	}
+
+	public static String englishMessage(String key, Map<String, Object> args) {
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.ENGLISH);
+		String value = $(key, args);
+		i18n.setLocale(originalLocale);
+		return value;
+	}
+
+	public static List<String> englishMessages(ValidationErrors errors) {
+		List<String> messages = new ArrayList<>();
+
+		Locale originalLocale = i18n.getLocale();
+		i18n.setLocale(Locale.ENGLISH);
+
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error));
+		}
+
+		i18n.setLocale(originalLocale);
+
+		return messages;
+	}
+
+	public static RecordsAssert assertThatAllRecordsOf(MetadataSchemaType type) {
+		SearchServices searchServices = ConstellioFactories.getInstance().getModelLayerFactory().newSearchServices();
+		return assertThatRecords(searchServices.search(query(from(type).returnAll())));
+	}
+
+	public static RecordsAssert assertThatAllRecordsOf(SchemaShortcuts schemaShortcuts) {
+		SearchServices searchServices = ConstellioFactories.getInstance().getModelLayerFactory().newSearchServices();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaShortcuts.code());
+		MetadataSchemaType type = ConstellioFactories.getInstance().getModelLayerFactory().getMetadataSchemasManager()
+				.getSchemaTypes(schemaShortcuts.collection()).getSchemaType(schemaTypeCode);
+
+		return assertThatRecords(searchServices.search(query(from(type).returnAll())));
+	}
+
+	public static void assumeWindows() {
+		org.junit.Assume.assumeTrue(System.getProperty("os.name").startsWith("Windows"));
 	}
 }

@@ -3,12 +3,15 @@ package com.constellio.data.conf;
 import static com.constellio.data.conf.SolrServerType.HTTP;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.Duration;
 
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import com.constellio.data.utils.Factory;
 
 public class PropertiesDataLayerConfiguration extends PropertiesConfiguration implements DataLayerConfiguration {
 
@@ -22,13 +25,86 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	private boolean backgroundThreadsEnable = true;
 
-	private Boolean secondTransactionLogEnabled;
-
 	public PropertiesDataLayerConfiguration(Map<String, String> configs, File defaultTempFolder,
 			File defaultFileSystemBaseFolder, File constellioProperties) {
 		super(configs, constellioProperties);
 		this.defaultTempFolder = defaultTempFolder;
 		this.defaultFileSystemBaseFolder = defaultFileSystemBaseFolder;
+	}
+
+	public static class InMemoryDataLayerConfiguration extends PropertiesDataLayerConfiguration {
+
+		private SecondTransactionLogReplayFilter filter;
+		private IdGeneratorType idGeneratorType;
+		private String uniqueKeyToBeCreated;
+
+		public InMemoryDataLayerConfiguration(PropertiesDataLayerConfiguration nested) {
+			super(new HashMap<String, String>(nested.configs), nested.defaultTempFolder, nested.defaultFileSystemBaseFolder,
+					new File(""));
+		}
+
+		@Override
+		public void writeProperty(String key, String value) {
+			configs.put(key, value);
+		}
+
+		public void setSettingsFileSystemBaseFolder(File value) {
+			setFile("dao.settings.filesystem.baseFolder", value);
+		}
+
+		public void setTempFolder(File value) {
+			setFile("tempFolder", value);
+		}
+
+		public void setContentDaoFileSystemFolder(File value) {
+			setFile("dao.contents.filesystem.folder", value);
+		}
+
+		public void setInRollbackTestMode(boolean value) {
+			setBoolean("secondTransactionLog.checkRollback", value);
+		}
+
+		public void setSecondTransactionLogBaseFolder(File value) {
+			setFile("secondTransactionLog.folder", value);
+		}
+
+		public void setSecondTransactionLogEnabled(boolean value) {
+			setBoolean("secondTransactionLog.enabled", value);
+		}
+
+		public void setSecondTransactionLogReplayFilter(SecondTransactionLogReplayFilter filter) {
+			this.filter = filter;
+		}
+
+		public SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter() {
+			return filter == null ? super.getSecondTransactionLogReplayFilter() : filter;
+		}
+
+		public void setSecondTransactionLogBackupCount(int value) {
+			setInt("secondTransactionLog.backupCount", value);
+		}
+
+		public void setSecondTransactionLogMergeFrequency(Duration duration) {
+			setDuration("secondTransactionLog.mergeFrequency", duration);
+		}
+
+		public void setSecondaryIdGeneratorType(IdGeneratorType idGeneratorType) {
+			this.idGeneratorType = idGeneratorType;
+		}
+
+		@Override
+		public IdGeneratorType getSecondaryIdGeneratorType() {
+			return idGeneratorType == null ? super.getSecondaryIdGeneratorType() : idGeneratorType;
+		}
+
+		public void setUniqueKeyToBeCreated(String uniqueKeyToBeCreated) {
+			this.uniqueKeyToBeCreated = uniqueKeyToBeCreated;
+		}
+
+		@Override
+		public String createRandomUniqueKey() {
+			return this.uniqueKeyToBeCreated == null ? super.createRandomUniqueKey() : uniqueKeyToBeCreated;
+		}
 	}
 
 	public SolrServerType getRecordsDaoSolrServerType() {
@@ -63,6 +139,16 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredFile("dao.contents.filesystem.folder");
 	}
 
+	@Override
+	public DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode() {
+		return (DigitSeparatorMode) getEnum("dao.contents.filesystem.separatormode", DigitSeparatorMode.TWO_DIGITS);
+	}
+
+	@Override
+	public void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode) {
+		setString("dao.contents.filesystem.separatormode", mode == null ? null : mode.name());
+	}
+
 	public String getSettingsZookeeperAddress() {
 		return getRequiredString("dao.settings.server.address");
 	}
@@ -76,10 +162,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	}
 
 	@Override
+	public IdGeneratorType getSecondaryIdGeneratorType() {
+		return (IdGeneratorType) getEnum("secondaryIdGenerator.type", IdGeneratorType.UUID_V1);
+	}
+
+	@Override
 	public boolean isSecondTransactionLogEnabled() {
-		if (secondTransactionLogEnabled != null) {
-			return secondTransactionLogEnabled;
-		}
 		return getBoolean("secondTransactionLog.enabled", false);
 	}
 
@@ -108,12 +196,12 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public Duration getSecondTransactionLogMergeFrequency() {
-		return Duration.standardMinutes(15);
+		return getDuration("secondTransactionLog.mergeFrequency", Duration.standardMinutes(15));
 	}
 
 	@Override
 	public int getSecondTransactionLogBackupCount() {
-		return 2;
+		return getInt("secondTransactionLog.backupCount", 2);
 	}
 
 	@Override
@@ -142,10 +230,19 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		};
 	}
 
+	@Override
+	public boolean isWriteZZRecords() {
+		return getBoolean("writeZZRecords", false);
+	}
 
 	@Override
-	public void setSecondTransactionLogFolderEnabled(boolean enable) {
-		this.secondTransactionLogEnabled = enable;
+	public HashingEncoding getHashingEncoding() {
+		return (HashingEncoding) getEnum("hashing.encoding", HashingEncoding.BASE64);
+	}
+
+	@Override
+	public void setWriteZZRecords(boolean enable) {
+		setBoolean("writeZZRecords", enable);
 	}
 
 	@Override
@@ -157,10 +254,18 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 
 	@Override
 	public boolean isInRollbackTestMode() {
-		if (secondTransactionLogEnabled != null) {
-			return secondTransactionLogEnabled;
-		}
 		return getBoolean("secondTransactionLog.checkRollback", false);
+	}
+
+	@Override
+	public String createRandomUniqueKey() {
+		Random random = new Random();
+		return random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
+	}
+
+	@Override
+	public void setHashingEncoding(HashingEncoding encoding) {
+		setString("hashing.encoding", encoding == null ? null : encoding.name());
 	}
 
 }

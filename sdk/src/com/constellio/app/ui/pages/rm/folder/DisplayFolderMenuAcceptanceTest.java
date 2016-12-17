@@ -14,6 +14,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServicesException;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -21,7 +24,6 @@ import org.openqa.selenium.By;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.model.entities.security.Role;
@@ -53,7 +55,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-
+		recordServices.update(record(records.folder_A22).set(Schemas.LEGACY_ID,"legacyChouette"));
 	}
 
 	@Test
@@ -160,7 +162,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 	/** Dakota is a MANAGER
 	 *  Dakota can READ/WRITE/DELETE  in UA 10, 11, 12
 	 */
-	public void givenDakotaThenDisplayFolderMenuIsOk() {
+	public void givenDakotaThenDisplayFolderMenuIsOk() throws Exception {
 		logAs(dakota);
 
 		navigateToDestroyedFolderInUA10();
@@ -172,6 +174,9 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 
 		navigateToSemiActiveFolderInUA10();
 		assertThatOnlyAvailableActionsAre(DELETE, MANAGE_AUTHORIZATIONS, SHARE);
+
+		navigateToImportedFolderInUA10();
+		assertThatAllAreEnabled();
 	}
 
 	@Test
@@ -237,67 +242,72 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 
 	private void navigateToSemiActiveFolderInUA10() {
 		String id = recordIdWithTitleInCollection("Orange", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToSemiActiveFolderInUA11() {
 		String id = recordIdWithTitleInCollection("Poire", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToSemiActiveFolderInUA12() {
 		String id = recordIdWithTitleInCollection("Pomme", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToSemiActiveFolderInUA30() {
 		String id = recordIdWithTitleInCollection("Laitue", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToDestroyedFolderInUA30() {
 		String id = recordIdWithTitleInCollection("Epinard", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToDestroyedFolderInUA10() {
 		String id = recordIdWithTitleInCollection("Souris", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
+	}
+
+	private void navigateToImportedFolderInUA10() throws RecordServicesException {
+		String id = recordIdWithTitleInCollection("Chouette", zeCollection);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToDestroyedFolderInUA11() {
 		String id = recordIdWithTitleInCollection("Cerise", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToDestroyedFolderInUA12() {
 		String id = recordIdWithTitleInCollection("Avocat", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToDepositedFolderInUA30() {
 		String id = recordIdWithTitleInCollection("Pois", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToAFolderInUA10() {
 		String id = recordIdWithTitleInCollection("Abeille", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToAFolderInUA11() {
 		String id = recordIdWithTitleInCollection("Abricot", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToAFolderInUA12() {
 		String id = recordIdWithTitleInCollection("Banane", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void navigateToAFolderInUA30() {
 		String id = recordIdWithTitleInCollection("Chou", zeCollection);
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/" + id);
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	private void assertThatOnlyAvailableActionsAre(AddEditFolderAction... expectedActions) {

@@ -23,7 +23,7 @@ public class FolderAppliedRetentionRuleCalculator implements MetadataValueCalcul
 		String parentRetentionRule = parameters.get(parentRetentionRuleParam);
 		String enteredRetentionRule = parameters.get(enteredRetentionRuleParam);
 
-		if (enteredRetentionRule == null) {
+		if (parentRetentionRule != null) {
 			return parentRetentionRule;
 		} else {
 			return enteredRetentionRule;

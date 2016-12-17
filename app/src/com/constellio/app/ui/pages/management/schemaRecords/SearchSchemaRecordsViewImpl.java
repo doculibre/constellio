@@ -105,7 +105,7 @@ public class SearchSchemaRecordsViewImpl extends BaseViewImpl implements SearchS
 		});
 		recordsContainer = buttonsContainer;
 
-		Table table = new RecordVOTable(
+		RecordVOTable table = new RecordVOTable(
 				$("ListSchemaRecordsView.tableTitle", dataProvider.size(), dataProvider.getSchema().getLabel(
 						getSessionContext().getCurrentLocale())),
 				recordsContainer);

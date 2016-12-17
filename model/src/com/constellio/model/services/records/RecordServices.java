@@ -20,123 +20,127 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public interface RecordServices {
 
-	public void add(Record record)
+	void add(Record record)
 			throws RecordServicesException;
 
-	public void add(Record record, User user)
+	void add(Record record, User user)
 			throws RecordServicesException;
 
-	public void add(RecordWrapper wrapper)
+	void add(RecordWrapper wrapper)
 			throws RecordServicesException;
 
-	public void add(RecordWrapper wrapper, User user)
+	void add(RecordWrapper wrapper, User user)
 			throws RecordServicesException;
 
-	public List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
+	List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
 			throws RecordServicesException;
 
-	public void execute(Transaction transaction)
+	void execute(Transaction transaction)
 			throws RecordServicesException;
 
-	public void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
+	void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException;
 
-	public Record toRecord(RecordDTO recordDTO, boolean fullyLoaded);
+	Record toRecord(RecordDTO recordDTO, boolean fullyLoaded);
 
-	public List<Record> toRecords(List<RecordDTO> recordDTOs, boolean fullyLoaded);
+	List<Record> toRecords(List<RecordDTO> recordDTOs, boolean fullyLoaded);
 
-	public long documentsCount();
+	long documentsCount();
 
-	public void update(RecordWrapper wrapper)
+	void update(RecordWrapper wrapper)
 			throws RecordServicesException;
 
-	public void update(Record record)
+	void update(Record record)
 			throws RecordServicesException;
 
-	public void update(Record record, RecordUpdateOptions options)
+	void update(Record record, RecordUpdateOptions options)
 			throws RecordServicesException;
 
-	public void update(RecordWrapper wrapper, User user)
+	void update(RecordWrapper wrapper, User user)
 			throws RecordServicesException;
 
-	public void update(Record record, User user)
+	void update(Record record, User user)
 			throws RecordServicesException;
 
-	public void update(Record record, RecordUpdateOptions options, User user)
+	void update(Record record, RecordUpdateOptions options, User user)
 			throws RecordServicesException;
 
-	public void update(List<Record> records, User user)
+	void update(List<Record> records, User user)
 			throws RecordServicesException;
 
-	public Record getRecordByMetadata(Metadata metadata, String value);
+	Record getRecordByMetadata(Metadata metadata, String value);
 
-	public Record getDocumentById(String id);
+	Record getDocumentById(String id);
 
-	public Record getDocumentById(String id, User user);
+	Record getDocumentById(String id, User user);
 
-	public List<Record> getRecordsById(String collection, List<String> ids);
+	List<Record> getRecordsById(String collection, List<String> ids);
 
-	public void validateRecordInTransaction(Record record, Transaction transaction)
+	void validateTransaction(Transaction transaction)
 			throws ValidationException;
 
-	public void validateRecord(Record record)
+	void validateRecordInTransaction(Record record, Transaction transaction)
+			throws ValidationException;
+
+	void validateRecord(Record record)
 			throws RecordServicesException.ValidationException;
 
-	public Record newRecordWithSchema(MetadataSchema schema, String id);
+	Record newRecordWithSchema(MetadataSchema schema, String id);
 
-	public Record newRecordWithSchema(MetadataSchema schema);
+	Record newRecordWithSchema(MetadataSchema schema);
 
-	public void refresh(Record... records);
+	void refresh(Record... records);
 
-	public void refresh(RecordWrapper... recordWrappers);
+	void refresh(RecordWrapper... recordWrappers);
 
-	public void refresh(List<?> records);
+	void refresh(List<?> records);
 
-	public List<String> getRecordTitles(String collection, List<String> recordIds);
+	List<String> getRecordTitles(String collection, List<String> recordIds);
 
-	public List<BatchProcess> updateAsync(Record record)
+	List<BatchProcess> updateAsync(Record record)
 			throws RecordServicesException;
 
-	public List<BatchProcess> updateAsync(Record record, RecordUpdateOptions options)
+	List<BatchProcess> updateAsync(Record record, RecordUpdateOptions options)
 			throws RecordServicesException;
 
-	public List<ModificationImpact> calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
+	List<ModificationImpact> calculateImpactOfModification(Transaction transaction, TaxonomiesManager taxonomiesManager,
 			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction);
 
-	public RecordsCaches getRecordsCaches();
+	RecordsCaches getRecordsCaches();
 
-	public boolean isRestorable(Record record, User user);
+	boolean isRestorable(Record record, User user);
 
-	public void restore(Record record, User user);
+	void restore(Record record, User user);
 
-	public boolean isPhysicallyDeletable(Record record, User user);
+	boolean isPhysicallyDeletable(Record record, User user);
 
-	public void physicallyDelete(Record record, User user);
+	void physicallyDelete(Record record, User user);
 
-	public boolean isLogicallyDeletable(Record record, User user);
+	void physicallyDelete(Record record, User user, RecordPhysicalDeleteOptions options);
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user);
+	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options);
 
-	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user);
+	boolean isLogicallyDeletable(Record record, User user);
 
-	public boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record, User user);
+	boolean isLogicallyThenPhysicallyDeletable(Record record, User user);
 
-	public void logicallyDelete(Record record, User user);
+	boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user);
 
-	public void logicallyDeletePrincipalConceptIncludingRecords(Record record, User user);
+	boolean isPrincipalConceptLogicallyDeletableIncludingContent(Record record, User user);
 
-	public void logicallyDeletePrincipalConceptExcludingRecords(Record record, User user);
+	void logicallyDelete(Record record, User user);
 
-	public List<Record> getVisibleRecordsWithReferenceTo(Record record, User user);
+	void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options);
 
-	public boolean isReferencedByOtherRecords(Record record);
+	List<Record> getVisibleRecordsWithReferenceTo(Record record, User user);
 
-	public void flush();
+	boolean isReferencedByOtherRecords(Record record);
 
-	public void removeOldLocks();
+	void flush();
 
-	public void recalculate(RecordWrapper recordWrapper);
+	void removeOldLocks();
 
-	public void recalculate(Record record);
+	void recalculate(RecordWrapper recordWrapper);
 
+	void recalculate(Record record);
 }

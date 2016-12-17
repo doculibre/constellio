@@ -18,14 +18,45 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
+import com.constellio.app.modules.rm.ui.pages.agent.AgentRequestViewImpl;
+import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
+import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
+import com.constellio.app.modules.rm.ui.pages.cart.CartsListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrativeUnitViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
+import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
+import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
+import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
+import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRuleViewImpl;
+import com.constellio.app.modules.rm.ui.pages.retentionRule.DisplayRetentionRuleViewImpl;
+import com.constellio.app.modules.rm.ui.pages.retentionRule.ListRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.retentionRule.SearchRetentionRulesViewImpl;
+import com.constellio.app.modules.rm.ui.pages.userDocuments.ListUserDocumentsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.AgentViewGroup;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenu;
 import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
@@ -66,16 +97,81 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String USER_DOCUMENTS = "userDocuments";
 	public static final String AGENT = "agent";
 	public static final String CART = "cart";
+	public static final String LIST_CARTS = "listCarts";
 	public static final String LOGS = "logs";
+	public static final String REPORTS = "reports";
+	public static final String REQUEST_AGENT = "requestAgent";
+	public static final String AGENT_SETUP = "agentSetup";
+	public static final String LIST_AGENT_LOGS = "listAgentLogs";
+	public static final String EDIT_CONTAINER = "editContainer";
+	public static final String CONTAINERS_BY_ADMIN_UNITS = "containersByAdminUnits";
+	public static final String DISPLAY_ADMIN_UNIT_WITH_CONTAINERS = "displayAdminUnitWithContainers";
+	public static final String DISPLAY_FILING_SPACE_WITH_CONTAINERS = "displayFilingSpaceWithContainers";
+	public static final String DISPLAY_CONTAINER = "displayContainer";
+	public static final String DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER = "searchContainerForDecommissioningList";
+	public static final String DECOMMISSIONING_LIST_ADD_NEW_CONTAINER = "createContainerForDecommissioningList";
+	public static final String DECOMMISSIONING_LIST_BUILDER = "decommissioningListBuilder";
+	public static final String DECOMMISSIONING_LIST_DISPLAY = "decommissioningList";
+	public static final String DECOMMISSIONING = "decommissioning";
+	public static final String DOCUMENT_DECOMMISSIONING_LIST_DISPLAY = "documentDecommissioningList";
+	public static final String DECOMMISSIONING_LIST_EDIT = "editDecommissioningList";
+	public static final String EDIT_DOCUMENT = "editDocument";
+	public static final String DUPLICATE_FOLDER = "duplicateFolder";
+	public static final String DISPLAY_DOCUMENT = "displayDocument";
+	public static final String ADD_EMAIL_ATTACHMENTS_TO_FOLDER = "addEmailAttachmentsToFolder";
+	public static final String EDIT_FOLDER = "editFolder";
+	public static final String DISPLAY_FOLDER = "displayFolder";
+	public static final String ADD_RETENTION_RULE = "addRetentionRule";
+	public static final String EDIT_RETENTION_RULE = "editRetentionRule";
+	public static final String DISPLAY_RETENTION_RULE = "displayRetentionRule";
+	public static final String LIST_RETENTION_RULES = "listRetentionRules";
+	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
+	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
 
-	public void configureNavigation(NavigationConfig config) {
+	public static void configureNavigation(NavigationConfig config) {
 		configureHomeActionMenu(config);
 		configureHomeFragments(config);
 		configureCollectionAdmin(config);
 		configureMainLayoutNavigation(config);
 	}
 
-	private void configureHomeActionMenu(NavigationConfig config) {
+	public static void configureNavigation(NavigatorConfigurationService service) {
+		service.register(REPORTS, RMReportsViewImpl.class);
+		service.register(REQUEST_AGENT, AgentRequestViewImpl.class);
+		service.register(AGENT_SETUP, AgentSetupViewImpl.class);
+		service.register(LIST_AGENT_LOGS, ListAgentLogsViewImpl.class);
+		service.register(CART, CartViewImpl.class);
+		service.register(LIST_CARTS, CartsListViewImpl.class);
+		service.register(EDIT_CONTAINER, AddEditContainerViewImpl.class);
+		service.register(CONTAINERS_BY_ADMIN_UNITS, ContainersByAdministrativeUnitsViewImpl.class);
+		service.register(DISPLAY_ADMIN_UNIT_WITH_CONTAINERS, ContainersInAdministrativeUnitViewImpl.class);
+		service.register(DISPLAY_FILING_SPACE_WITH_CONTAINERS, ContainersInFilingSpaceViewImpl.class);
+		service.register(DISPLAY_CONTAINER, DisplayContainerViewImpl.class);
+		service.register(DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER, AddExistingContainerViewImpl.class);
+		service.register(DECOMMISSIONING_LIST_ADD_NEW_CONTAINER, AddNewContainerViewImpl.class);
+		service.register(DECOMMISSIONING_LIST_BUILDER, DecommissioningBuilderViewImpl.class);
+		service.register(DECOMMISSIONING_LIST_DISPLAY, DecommissioningListViewImpl.class);
+		service.register(DECOMMISSIONING, DecommissioningMainViewImpl.class);
+		service.register(DOCUMENT_DECOMMISSIONING_LIST_DISPLAY, DocumentDecommissioningListViewImpl.class);
+		service.register(DECOMMISSIONING_LIST_EDIT, EditDecommissioningListViewImpl.class);
+		service.register(ADD_DOCUMENT, AddEditDocumentViewImpl.class);
+		service.register(EDIT_DOCUMENT, AddEditDocumentViewImpl.class);
+		service.register(DISPLAY_DOCUMENT, DisplayDocumentViewImpl.class);
+		service.register(ADD_EMAIL_ATTACHMENTS_TO_FOLDER, AddEmailAttachmentsToFolderViewImpl.class);
+		service.register(ADD_FOLDER, AddEditFolderViewImpl.class);
+		service.register(EDIT_FOLDER, AddEditFolderViewImpl.class);
+		service.register(DUPLICATE_FOLDER, AddEditFolderViewImpl.class);
+		service.register(DISPLAY_FOLDER, DisplayFolderViewImpl.class);
+		service.register(ARCHIVES_MANAGEMENT, ArchiveManagementViewImpl.class);
+		service.register(ADD_RETENTION_RULE, AddEditRetentionRuleViewImpl.class);
+		service.register(EDIT_RETENTION_RULE, AddEditRetentionRuleViewImpl.class);
+		service.register(DISPLAY_RETENTION_RULE, DisplayRetentionRuleViewImpl.class);
+		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
+		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
+		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+	}
+
+	private static void configureHomeActionMenu(NavigationConfig config) {
 		config.add(HomeView.ACTION_MENU, new NavigationItem.Active(ADD_FOLDER) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -83,7 +179,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_FOLDERS).onSomething());
 			}
 		});
@@ -94,39 +190,41 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return enabledIf(user.has(RMPermissionsTo.CREATE_DOCUMENTS).onSomething());
 			}
 		});
 	}
 
-	private void configureHomeFragments(NavigationConfig config) {
+	private static void configureHomeFragments(NavigationConfig config) {
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_FOLDERS) {
 			@Override
-			public List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(modelLayerFactory, sessionContext, Folder.SCHEMA_TYPE, "view_folder").getItems();
+			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Folder.SCHEMA_TYPE,
+						"view_folder").getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecentItemTable(LAST_VIEWED_DOCUMENTS) {
 			@Override
-			public List<RecentItem> getItems(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-				return new RecentItemProvider(modelLayerFactory, sessionContext, Document.SCHEMA_TYPE, "view_document")
+			public List<RecentItem> getItems(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+				return new RecentItemProvider(appLayerFactory.getModelLayerFactory(), sessionContext, Document.SCHEMA_TYPE,
+						"view_document")
 						.getItems();
 			}
 		});
 		config.add(HomeView.TABS, new RecordTable(CHECKED_OUT_DOCUMENTS) {
 			@Override
-			public RecordVODataProvider getDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext) {
-				return new CheckedOutDocumentsTable(modelLayerFactory, sessionContext).getDataProvider();
+			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
 		RecordTree taxonomyTree = new RecordTree(TAXONOMIES) {
 			private int defaultTab;
 
 			@Override
-			public List<RecordLazyTreeDataProvider> getDataProviders(ModelLayerFactory modelLayerFactory,
+			public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
 					SessionContext sessionContext) {
-				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(modelLayerFactory, sessionContext);
+				TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 				defaultTab = tabSheet.getDefaultTab();
 				return tabSheet.getDataProviders();
 			}
@@ -151,7 +249,7 @@ public class RMNavigationConfiguration implements Serializable {
 		}
 	}
 
-	private void configureCollectionAdmin(NavigationConfig config) {
+	private static void configureCollectionAdmin(NavigationConfig config) {
 		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(ADMINISTRATIVE_UNIT, ADMINISTRATIVE_UNIT_ICON) {
 			@Override
 			public void activate(Navigation navigate) {
@@ -164,7 +262,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
@@ -180,7 +278,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
 			}
 		});
@@ -191,7 +289,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_UNIFORMSUBDIVISIONS).globally());
 			}
 		});
@@ -202,15 +300,15 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally());
 			}
 		});
 		config.replace(AdminView.COLLECTION_SECTION,
 				new NavigationItem.Decorator(getTaxonomyItem(config)) {
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-						return visibleIf(item.getStateFor(user, modelLayerFactory).isVisible() ||
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return visibleIf(item.getStateFor(user, appLayerFactory).isVisible() ||
 								user.has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally());
 					}
 
@@ -222,7 +320,7 @@ public class RMNavigationConfiguration implements Serializable {
 		);
 	}
 
-	private void configureMainLayoutNavigation(NavigationConfig config) {
+	private static void configureMainLayoutNavigation(NavigationConfig config) {
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
 				new NavigationItem.Active(ARCHIVES_MANAGEMENT, ArchivesManagementViewGroup.class) {
 					@Override
@@ -236,9 +334,9 @@ public class RMNavigationConfiguration implements Serializable {
 					}
 
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						DecommissioningSecurityService service = new DecommissioningSecurityService(
-								user.getCollection(), modelLayerFactory);
+								user.getCollection(), appLayerFactory);
 						return visibleIf(service.hasAccessToDecommissioningMainPage(user) ||
 								user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething() ||
 								user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething());
@@ -256,14 +354,14 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});
-		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(CART, CartViewGroup.class) {
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LIST_CARTS, CartViewGroup.class) {
 			@Override
 			public void activate(Navigation navigate) {
-				navigate.to(RMViews.class).cart();
+				navigate.to(RMViews.class).listCarts();
 			}
 
 			@Override
@@ -272,8 +370,8 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				return ComponentState.ENABLED;
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(RMPermissionsTo.USE_CART).globally());
 			}
 		});
 		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION, new NavigationItem.Active(LOGS, LogsViewGroup.class) {
@@ -288,7 +386,7 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.VIEW_EVENTS).globally());
 			}
 		});
@@ -304,13 +402,13 @@ public class RMNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});
 	}
 
-	private NavigationItem getTaxonomyItem(NavigationConfig config) {
+	private static NavigationItem getTaxonomyItem(NavigationConfig config) {
 		return config.getNavigationItem(AdminView.COLLECTION_SECTION, CoreNavigationConfiguration.TAXONOMIES);
 	}
 }

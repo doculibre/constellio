@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.junit.Before;
@@ -126,7 +125,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		collectionsManager.createCollectionConfigs("collection1");
 		collectionsListManager.addCollection("collection1", Arrays.asList("fr"));
 		try {
-			migrationServices.migrate("collection1", null);
+			migrationServices.migrate("collection1", null, false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
@@ -134,7 +133,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		collectionsManager.createCollectionConfigs("collection2");
 		collectionsListManager.addCollection("collection2", Arrays.asList("fr"));
 		try {
-			migrationServices.migrate("collection2", null);
+			migrationServices.migrate("collection2", null, false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
@@ -178,7 +177,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 
-		migrationServices.migrate(zeCollection, "1.1.0");
+		migrationServices.migrate(zeCollection, "1.1.0", false);
 		inOrder.verify(coreMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
@@ -203,7 +202,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 
-		migrationServices.migrate(zeCollection, "1.1.0");
+		migrationServices.migrate(zeCollection, "1.1.0", false);
 
 		inOrder.verify(coreMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
@@ -253,7 +252,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 				.thenReturn(Arrays.asList(moduleA, moduleB, moduleC, moduleD, moduleE, moduleF));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
-		migrationServices.migrate(zeCollection, "1.1.0");
+		migrationServices.migrate(zeCollection, "1.1.0", false);
 
 		inOrder.verify(coreMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));

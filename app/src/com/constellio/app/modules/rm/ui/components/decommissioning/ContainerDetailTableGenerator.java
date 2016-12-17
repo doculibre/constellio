@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningLis
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.ui.framework.components.BooleanLabel;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.CheckBox;
@@ -24,7 +25,7 @@ public class ContainerDetailTableGenerator implements ColumnGenerator {
 		this.presenter = presenter;
 	}
 
-	public Table attachTo(Table table) {
+	public BaseTable attachTo(BaseTable table) {
 		table.addGeneratedColumn(IDENTIFIER, this);
 		table.setColumnHeader(IDENTIFIER, $("DecommissioningListView.containerDetails.id"));
 		table.setColumnExpandRatio(IDENTIFIER, 1);

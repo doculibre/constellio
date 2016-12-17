@@ -37,14 +37,7 @@
 
     <inherits name="org.vaadin.peter.contextmenu.ContextmenuWidgetset" />
 
-    
-    
-    
-    
-
     <inherits name="com.lexaden.breadcrumb.gwt.BreadcrumbWidgetset" />
 
-    
-
-    <inherits name="org.vaadin.addons.maskedtextfield.MaskedTextFieldWidgetset" />
+    <inherits name="org.vaadin.openesignforms.ckeditor.widgetset.VaadinCKEditorWidgetset" />
 </module>

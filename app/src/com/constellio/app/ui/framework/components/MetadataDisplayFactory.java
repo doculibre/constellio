@@ -1,18 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -33,10 +20,20 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
+import com.vaadin.server.ExternalResource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class MetadataDisplayFactory implements Serializable {
@@ -56,6 +53,8 @@ public class MetadataDisplayFactory implements Serializable {
 		String metadataCode = metadataVO.getCode();
 		StructureFactory structureFactory = metadataVO.getStructureFactory();
 
+		MetadataValueType metadataValueType = metadataVO.getType();
+
 		if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
 			displayComponent = new RecordCommentsEditorImpl(recordVO, metadataCode);
 			displayComponent.setWidthUndefined();
@@ -65,6 +64,8 @@ public class MetadataDisplayFactory implements Serializable {
 			Collection<?> collectionDisplayValue = (Collection<?>) displayValue;
 			if (collectionDisplayValue.isEmpty()) {
 				displayComponent = null;
+			} else if (MetadataValueType.STRING.equals(metadataValueType)) {
+				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
 				for (Object elementDisplayValue : collectionDisplayValue) {
@@ -152,8 +153,17 @@ public class MetadataDisplayFactory implements Serializable {
 			case STRING:
 				if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
 					displayComponent = null;
+				} else if (MetadataInputType.URL.equals(metadataInputType)) {
+					String url = displayValue.toString();
+					if(!url.startsWith("http://")) {
+						url = "http://" + url;
+					}
+					Link link = new Link(url, new ExternalResource(url));
+					link.setTargetName("_blank");
+					displayComponent = link;
 				} else {
-					displayComponent = new Label(displayValue.toString());
+					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+					displayComponent = new Label(stringValue, ContentMode.HTML);
 				}
 				break;
 			case TEXT:
@@ -205,6 +215,17 @@ public class MetadataDisplayFactory implements Serializable {
 			}
 		}
 		return displayComponent;
+	}
+	
+	protected Component newStringCollectionValueDisplayComponent(Collection<String> stringCollectionValue) {
+		StringBuilder sb = new StringBuilder();
+		for (String stringValue : stringCollectionValue) {
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append(stringValue);
+		}
+		return new Label(sb.toString());
 	}
 
 	//	protected Component newContentVersionDisplayComponent(RecordVO recordVO, ContentVersionVO contentVersionVO) {

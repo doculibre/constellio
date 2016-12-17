@@ -29,8 +29,10 @@ import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
+import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
+import com.constellio.app.services.records.SystemCheckManager;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -94,6 +96,8 @@ public class AppLayerFactory extends LayerFactory {
 	private final Map<String, StatefulService> moduleManagers = new HashMap<>();
 	final private NavigatorConfigurationService navigatorConfigService;
 
+	private final SystemCheckManager systemCheckManager;
+
 	public AppLayerFactory(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator) {
 		super(modelLayerFactory, statefullServiceDecorator);
@@ -111,7 +115,8 @@ public class AppLayerFactory extends LayerFactory {
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager()));
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
+		pluginManager = add(new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(),
+				appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
 				new ConstellioPluginConfigurationManager(dataLayerFactory.getConfigManager())));
 		pluginManager.registerModule(new ConstellioRMModule());
 
@@ -129,12 +134,13 @@ public class AppLayerFactory extends LayerFactory {
 				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
-			newMigrationServices().migrate(null);
+			newMigrationServices().migrate(null, false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 		labelTemplateManager = new LabelTemplateManager(dataLayerFactory.getConfigManager());
 		this.navigatorConfigService = new NavigatorConfigurationService();
+		this.systemCheckManager = add(new SystemCheckManager(this));
 	}
 
 	private void setDefaultLocale() {
@@ -151,15 +157,25 @@ public class AppLayerFactory extends LayerFactory {
 
 	}
 
+	public void registerSystemWideManager(String module, String id, StatefulService manager) {
+		String key = module + "-" + id;
+		add(manager);
+		moduleManagers.put(key, manager);
+	}
+
 	public void registerManager(String collection, String module, String id, StatefulService manager) {
 		String key = collection + "-" + module + "-" + id;
 		add(manager);
 		moduleManagers.put(key, manager);
-		manager.initialize();
 	}
 
 	public <T> T getRegisteredManager(String collection, String module, String id) {
 		String key = collection + "-" + module + "-" + id;
+		return (T) moduleManagers.get(key);
+	}
+
+	public <T> T getSystemWideRegisteredManager(String module, String id) {
+		String key = module + "-" + id;
 		return (T) moduleManagers.get(key);
 	}
 
@@ -169,14 +185,16 @@ public class AppLayerFactory extends LayerFactory {
 
 	public AppManagementService newApplicationService() {
 		IOServicesFactory ioServicesFactory = dataLayerFactory.getIOServicesFactory();
-		return new AppManagementService(ioServicesFactory, foldersLocator, systemGlobalConfigsManager,
-				new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()), pluginManager,
-				newUpgradeAppRecoveryService());
+		return new AppManagementService(this, foldersLocator);
 	}
 
 	public UpgradeAppRecoveryService newUpgradeAppRecoveryService() {
 		return new UpgradeAppRecoveryServiceImpl(this,
 				dataLayerFactory.getIOServicesFactory().newIOServices());
+	}
+
+	public SystemCheckManager getSystemCheckManager() {
+		return systemCheckManager;
 	}
 
 	@Override
@@ -241,13 +259,15 @@ public class AppLayerFactory extends LayerFactory {
 
 		try {
 			collectionsManager.initializeModulesResources();
-			invalidPlugins.addAll(newMigrationServices().migrate(null));
+			invalidPlugins.addAll(newMigrationServices().migrate(null, false));
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 
-		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
+		LOGGER.info("initializeCollectionsAndGetInvalidModules");
 
+		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
+		getModulesManager().enableComplementaryModules();
 		if (systemGlobalConfigsManager.isMarkedForReindexing()) {
 			modelLayerFactory.newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 			systemGlobalConfigsManager.setMarkedForReindexing(false);
@@ -338,4 +358,9 @@ public class AppLayerFactory extends LayerFactory {
 	public AppLayerConfiguration getAppLayerConfiguration() {
 		return appLayerConfiguration;
 	}
+
+	public AppSchemasServices newSchemasServices() {
+		return new AppSchemasServices(this);
+	}
+
 }

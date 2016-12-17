@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,7 +25,6 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -42,7 +43,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	@Mock ConnectorReportView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	SessionContext sessionContext;
 	RecordServices recordServices;
 	ConnectorInstance connectorInstance;
@@ -69,7 +70,7 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
@@ -103,8 +104,8 @@ public class ConnectorReportPresenterAcceptTest extends ConstellioTest {
 		presenter = new ConnectorReportPresenter(view);
 		Map<String, String> params = new HashMap<>();
 		params.put(ConnectorReportView.CONNECTOR_ID, connectorInstance.getId());
-		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXATION);
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.CONNECTOR_REPORT, params);
+		params.put(ConnectorReportView.REPORT_MODE, ConnectorReportView.INDEXING);
+		String viewPath = ParamUtils.addParams(ESNavigationConfiguration.CONNECTOR_REPORT, params);
 		presenter.forParams(viewPath);
 		dataProvider = presenter.getDataProvider();
 	}

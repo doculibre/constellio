@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -92,8 +93,8 @@ public class DocumentViewer extends CustomComponent {
 			Resource contentResource;
 			if (recordVO != null) {
 				String version = contentVersionVO.getVersion();
-				String filename = contentVersionVO.getFileName();
-				String extension = FilenameUtils.getExtension(filename);
+				String fileName = contentVersionVO.getFileName();
+				String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 
 				File documentViewerFile;
 				if (useCache) {
@@ -105,7 +106,7 @@ public class DocumentViewer extends CustomComponent {
 							InputStream in = null;
 							try {
 								in = contentManager.getContentInputStream(hash, getClass() + ".documentConversionFile");
-								documentViewerFile = conversionManager.convertToPDF(in, filename);
+								documentViewerFile = conversionManager.convertToPDF(in, fileName);
 								cache.put(hash, documentViewerFile);
 							} finally {
 								IOUtils.closeQuietly(in);
@@ -123,12 +124,12 @@ public class DocumentViewer extends CustomComponent {
 					boolean preview = Arrays.asList(CONVERSION_EXTENSIONS).contains(extension);
 					if (preview) {
 						if (ConstellioResourceHandler.hasContentPreview(recordVO.getId(), metadataCode, version)) {
-							contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename + ".pdf", true);
+							contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName + ".pdf", true);
 						} else {
 							contentResource = null;
 						}
 					} else {
-						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, filename, false);
+						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName, false);
 					}
 				}
 			} else if (file != null) {
@@ -150,8 +151,8 @@ public class DocumentViewer extends CustomComponent {
 		}
 	}
 	
-	public static boolean isSupported(String filename) {
-		String extension = FilenameUtils.getExtension(filename);
+	public static boolean isSupported(String fileName) {
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		return Arrays.asList(SUPPORTED_EXTENSIONS).contains(extension);
 	}
 

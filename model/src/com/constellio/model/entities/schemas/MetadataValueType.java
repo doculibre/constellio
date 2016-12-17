@@ -13,6 +13,10 @@ public enum MetadataValueType {
 		return this == STRUCTURE || this == CONTENT;
 	}
 
+	public boolean isIntegerOrFloatingPoint() {
+		return this == INTEGER || this == NUMBER;
+	}
+
 	public static String getCaptionFor(MetadataValueType type) {
 		String caption = "";
 

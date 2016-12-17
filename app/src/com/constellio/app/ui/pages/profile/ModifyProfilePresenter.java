@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.profile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.entities.navigation.PageItem;
@@ -12,6 +13,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,6 +24,8 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserPhotosServicesRuntimeException.UserPhotosServicesRuntimeException_UserHasNoPhoto;
 import com.constellio.model.services.users.UserServices;
+import com.google.common.base.Joiner;
+import org.apache.commons.collections.CollectionUtils;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
@@ -63,6 +67,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			user.setDefaultTabInFolderDisplay(entity.getDefaultTabInFolderDisplay().getCode());
 		}
 		user.setDefaultTaxonomy(entity.getDefaultTaxonomy());
+		user.setLoginLanguageCode(entity.getLoginLanguageCode());
 
 		try {
 			if (entity.getPassword() != null && entity.getPassword().equals(entity.getConfirmPassword())) {
@@ -71,23 +76,33 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 			recordServices.update(user.getWrappedRecord());
 
-			ContentVersionVO image = entity.getImage();
+			changePhoto(entity.getImage());
 
-			changePhoto(image);
-
-			UserCredential userCredential = userServices.getUserCredential(entity.getUsername());
-			userCredential = userCredential.withFirstName(entity.getFirstName())
-					.withLastName(entity.getLastName())
-					.withEmail(entity.getEmail());
-			userServices.addUpdateUserCredential(userCredential);
+            updateUserCredential(entity);
 
 			view.updateUI();
 		} catch (RecordServicesException e) {
+			e.printStackTrace();
 			return;
 		}
 		navigateToBackPage();
 
 	}
+
+    private void updateUserCredential(final ProfileVO entity) {
+        UserCredential userCredential = userServices.getUserCredential(entity.getUsername());
+
+        userCredential = userCredential.
+                withFirstName(entity.getFirstName())
+                .withLastName(entity.getLastName())
+                .withEmail(entity.getEmail());
+
+        if (entity.getPersonalEmails() != null) {
+            userCredential = userCredential.withPersonalEmails(Arrays.asList(entity.getPersonalEmails().split("\n")));
+        }
+
+        userServices.addUpdateUserCredential(userCredential);
+    }
 
 	private String getDefaultHomepageTab() {
 		List<String> tabs = getAvailableHomepageTabs();
@@ -105,9 +120,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		String firstName = userCredential.getFirstName();
 		String lastName = userCredential.getLastName();
 		String email = userCredential.getEmail();
+		List<String> personalEmails = userCredential.getPersonalEmails();
 
 		User user = userServices.getUserInCollection(username, view.getCollection());
 		String phone = user.getPhone();
+		String loginLanguage = user.getLoginLanguageCode();
 		String startTab = user.getStartTab();
 		if (startTab == null) {
 			startTab = getDefaultHomepageTab();
@@ -126,14 +143,20 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		}
 		String defaultTaxonomy = user.getDefaultTaxonomy();
 
-		ProfileVO profileVO = newProfilVO(username, firstName, lastName, email, phone, startTab, defaultTabInFolderDisplay,
+		ProfileVO profileVO = newProfilVO(username, firstName, lastName, email, personalEmails, phone, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy);
+		profileVO.setLoginLanguageCode(loginLanguage);
 		return profileVO;
 	}
 
-	ProfileVO newProfilVO(String username, String firstName, String lastName, String email, String phone,
+	ProfileVO newProfilVO(String username, String firstName, String lastName, String email, List<String> personalEmails, String phone,
 			String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy) {
-		return new ProfileVO(username, firstName, lastName, email, phone, startTab, defaultTabInFolderDisplay,
+        String personalEmailsPresentation = null;
+        if (!CollectionUtils.isEmpty(personalEmails)) {
+            personalEmailsPresentation = Joiner.on("\n").join(personalEmails);
+        }
+
+		return new ProfileVO(username, firstName, lastName, email, personalEmailsPresentation, phone, startTab, defaultTabInFolderDisplay,
 				defaultTaxonomy, null, null, null);
 	}
 
@@ -185,7 +208,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	}
 
 	void navigateToBackPage() {
-		view.navigateTo().url(parameters);
+		view.navigate().to().url(parameters);
 	}
 
 	public boolean canModify() {
@@ -222,5 +245,9 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		init();
+	}
+
+	public List<String> getCurrentCollectionLanguagesCodes() {
+		return modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collection);
 	}
 }

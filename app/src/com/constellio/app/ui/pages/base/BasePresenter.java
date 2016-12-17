@@ -1,11 +1,16 @@
 package com.constellio.app.ui.pages.base;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +19,7 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.AppLayerSystemExtensions;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -36,6 +42,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BasePresenter<T extends BaseView> implements Serializable {
@@ -66,7 +74,7 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 			public void afterInit(String params) {
 				if (!isViewVisibleToCurrentUser(params)) {
 					LOGGER.warn("Error does not have access to the page");
-					view.navigateTo().home();
+					view.navigate().to().home();
 				}
 			}
 		});
@@ -160,7 +168,7 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 	}
 
 	public ComponentState getStateFor(NavigationItem item) {
-		return item.getStateFor(getCurrentUser(), modelLayerFactory);
+		return item.getStateFor(getCurrentUser(), appLayerFactory);
 	}
 
 	protected abstract boolean hasPageAccess(String params, User user);
@@ -221,6 +229,10 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 		return presenterUtils.schemasDisplayManager();
 	}
 
+	protected final CollectionsManager collectionsManager() {
+		return presenterUtils.getCollectionManager();
+	}
+
 	public String buildString(List<String> list) {
 		return presenterUtils.buildString(list);
 	}
@@ -250,4 +262,15 @@ public abstract class BasePresenter<T extends BaseView> implements Serializable 
 		}
 		return config;
 	}
+
+	public RMReportBuilderFactories getRmReportBuilderFactories() {
+		final AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		final RMModuleExtensions rmModuleExtensions = extensions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories();
+	}
+
+    public ContentVersionDataSummary uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
+		return presenterUtils.uploadContent(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+	}
+
 }

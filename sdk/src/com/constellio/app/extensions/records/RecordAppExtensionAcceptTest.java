@@ -1,10 +1,24 @@
 package com.constellio.app.extensions.records;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 import java.util.Locale;
 
+import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
+import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
+import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.app.ui.pages.search.SimpleSearchPresenter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -30,6 +44,8 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.mockito.Mockito;
+import org.mockito.Spy;
 
 /**
  * Created by Patrick on 2015-11-19.
@@ -39,6 +55,9 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 	RecordToVOBuilder voBuilder = new RecordToVOBuilder();
 	@Mock AddEditFolderView view;
 	@Mock CoreViews navigator;
+	@Mock RecordAppExtension recordAppExtension1;
+	@Mock RecordAppExtension recordAppExtension2;
+	@Mock DisplayFolderView displayFolderView;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SessionContext sessionContext;
 	RMSchemasRecordsServices rmSchemasRecordsServices;
@@ -64,7 +83,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
@@ -194,5 +213,29 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 
 		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/task/task.png").isEqualTo(iconPath);
 		assertThat(recordVO.getExtension()).isEqualTo("task");
+	}
+
+	@Test
+	public void givenAFolderIsDeletedThenIsNotified() {
+		MockedNavigation navigator = new MockedNavigation();
+
+		UIContext uiContext = mock(UIContext.class);
+		when(uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
+		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
+		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
+		when(displayFolderView.getUIContext()).thenReturn(uiContext);
+		when(displayFolderView.getCollection()).thenReturn(zeCollection);
+		when(displayFolderView.navigate()).thenReturn(navigator);
+		Folder folder = rmSchemasRecordsServices.searchFolders(where(rmSchemasRecordsServices.folder.title()).isContainingText("Avocat")).get(0);
+
+		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
+		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
+
+		DisplayFolderPresenter displayFolderPresenter = new DisplayFolderPresenter(displayFolderView);
+		displayFolderPresenter.forParams(folder.getId());
+
+		displayFolderPresenter.deleteFolderButtonClicked("No reason");
+		verify(recordAppExtension1, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
+		verify(recordAppExtension2, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
 	}
 }

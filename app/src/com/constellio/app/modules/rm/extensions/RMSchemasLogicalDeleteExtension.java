@@ -2,19 +2,26 @@ package com.constellio.app.modules.rm.extensions;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -50,8 +57,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		if (event.isSchemaType(RetentionRule.SCHEMA_TYPE)) {
 			Transaction transaction = new Transaction();
 
-			List<Category> categories = rm.wrapCategories(searchServices.search(new LogicalSearchQuery()
-					.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(deletedRule))));
+			List<Category> categories = rm.wrapCategorys(searchServices.search(new LogicalSearchQuery()
+					.setCondition(from(rm.category.schemaType()).where(rm.category.retentionRules()).isEqualTo(deletedRule))));
 			for (Category category : categories) {
 				List<String> rules = new ArrayList<>(category.getRententionRules());
 				rules.remove(deletedRule.getId());
@@ -60,8 +67,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 			}
 
 			List<UniformSubdivision> uniformSubdivisions = rm.wrapUniformSubdivisions(searchServices.search(
-					new LogicalSearchQuery().setCondition(from(rm.uniformSubdivisionSchemaType())
-							.where(rm.uniformSubdivisionRetentionRule()).isEqualTo(deletedRule))));
+					new LogicalSearchQuery().setCondition(from(rm.uniformSubdivision.schemaType())
+							.where(rm.uniformSubdivision.retentionRule()).isEqualTo(deletedRule))));
 			for (UniformSubdivision uniformSubdivision : uniformSubdivisions) {
 				List<String> rules = new ArrayList<>(uniformSubdivision.getRetentionRules());
 				rules.remove(deletedRule.getId());
@@ -88,10 +95,28 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		} else if (event.isSchemaType(FilingSpace.SCHEMA_TYPE)) {
 			return isFilingSpaceLogicallyDeletable(event);
 
+		} else if (event.isSchemaType(AdministrativeUnit.SCHEMA_TYPE)) {
+			return isAdministrativeUnitLogicallyDeletable(event);
+
+		} else if (event.isSchemaType(Category.SCHEMA_TYPE)) {
+			return isCategoryLogicallyDeletable(event);
+
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
 
+	}
+
+	private ExtensionBooleanResult isAdministrativeUnitLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
+				fromAllSchemasExcept(asList(rm.administrativeUnit.schemaType()))
+						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
+	}
+
+	private ExtensionBooleanResult isCategoryLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
+				fromAllSchemasExcept(asList(rm.category.schemaType()))
+						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
 	}
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
@@ -99,8 +124,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	}
 
 	private ExtensionBooleanResult isRetentionRuleLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folderSchemaType())
-				.where(rm.folderRetentionRule()).isEqualTo(event.getRecord()));
+		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folder.schemaType())
+				.where(rm.folder.retentionRule()).isEqualTo(event.getRecord()));
 
 		return ExtensionBooleanResult.forceTrueIf(logicallyDeletable);
 	}
@@ -111,8 +136,8 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		if (code.equals("888") || code.equals("999")) {
 			return ExtensionBooleanResult.FALSE;
 		} else {
-			long count = searchServices.getResultsCount(from(rm.retentionRuleSchemaType())
-					.where(rm.retentionRuleCopyRetentionRules()).is(variablePeriodCode(code)));
+			long count = searchServices.getResultsCount(from(rm.retentionRule.schemaType())
+					.where(rm.retentionRule.copyRetentionRules()).is(variablePeriodCode(code)));
 			return ExtensionBooleanResult.trueIf(count == 0);
 		}
 	}

@@ -5,7 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataNetwork;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -52,7 +54,8 @@ public abstract class SchemasSetup {
 				MetadataSchemaTypes types = manager.getSchemaTypes(setup.collection);
 				if (collectionsManager == null && types == null) {
 					types = new MetadataSchemaTypes(setup.collection, 0, new ArrayList<MetadataSchemaType>(),
-							new ArrayList<String>(), new ArrayList<String>());
+							new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French),
+							MetadataNetwork.EMPTY());
 				}
 
 				setup.typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());

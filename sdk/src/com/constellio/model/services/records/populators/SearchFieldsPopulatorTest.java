@@ -20,6 +20,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.parser.LanguageDetectionManager;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -59,14 +60,14 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 	String oldElvishTextContentCurrentVersionFilename = "oldElvishTextContentCurrentVersionFilename";
 	String contentWithoutParsedContentCurrentVersionFilename = "contentWithoutParsedContentCurrentVersionFilename";
 
-	@Mock ContentManager contentManager;
+	@Mock ParsedContentProvider parsedContentProvider;
 	@Mock MetadataSchemaTypes types;
 
 	@Before
 	public void setUp()
 			throws Exception {
 
-		populator = new SearchFieldsPopulator(types, false, contentManager, collectionLanguages);
+		populator = new SearchFieldsPopulator(types, false, parsedContentProvider, collectionLanguages);
 
 		when(languageDectionServices.tryDetectLanguage(oldElvishText)).thenReturn("elvish");
 		when(languageDectionServices.tryDetectLanguage(oldElvishText2)).thenReturn("elvish");
@@ -93,13 +94,13 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 		when(contentWithoutParsedContentCurrentVersion.getFilename())
 				.thenReturn(contentWithoutParsedContentCurrentVersionFilename);
 
-		when(contentManager.getParsedContentParsingIfNotYetDone(klingonIntimidationContent1Hash))
+		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(klingonIntimidationContent1Hash))
 				.thenReturn(klingonParsedContent(klingonIntimidation));
-		when(contentManager.getParsedContentParsingIfNotYetDone(klingonIntimidationContent2Hash))
+		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(klingonIntimidationContent2Hash))
 				.thenReturn(klingonParsedContent(klingonIntimidation2));
-		when(contentManager.getParsedContentParsingIfNotYetDone(oldElvishTextContentHash)).thenReturn(
+		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(oldElvishTextContentHash)).thenReturn(
 				elvishParsedContent(oldElvishText));
-		when(contentManager.getParsedContentParsingIfNotYetDone(contentWithoutParsedContentHash)).thenReturn(null);
+		when(parsedContentProvider.getParsedContentParsingIfNotYetDone(contentWithoutParsedContentHash)).thenReturn(null);
 	}
 
 	@Test

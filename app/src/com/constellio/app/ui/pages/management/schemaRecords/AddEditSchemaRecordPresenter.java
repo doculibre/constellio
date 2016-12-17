@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -51,7 +52,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		try {
 			Record record = toRecord(recordVO);
 			addOrUpdate(record);
-			view.navigateTo().listSchemaRecords(schemaCode);
+			view.navigate().to().listSchemaRecords(schemaCode);
 		} catch (Exception e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 			LOGGER.error(e.getMessage(), e);
@@ -60,7 +61,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 
 	public void cancelButtonClicked(RecordVO recordVO) {
 		String schemaCode = getSchemaCode();
-		view.navigateTo().listSchemaRecords(schemaCode);
+		view.navigate().to().listSchemaRecords(schemaCode);
 	}
 
 	@Override
@@ -87,7 +88,8 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		MetadataSchemaType type = types().getSchemaType(schemaTypeCode);
 		List<Choice> result = new ArrayList<>();
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			result.add(new Choice(schema.getCode(), schema.getLabel()));
+			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
+			result.add(new Choice(schema.getCode(), schema.getLabel(language)));
 		}
 		return result;
 	}

@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.converters.BaseStringToDoubleConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
@@ -24,6 +26,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -36,6 +39,7 @@ import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.DateField;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
@@ -189,20 +193,10 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildReferenceValueComponent(final Criterion criterion) {
-
 			MetadataVO metadata = presenter.getMetadataVO(criterion.getMetadataCode());
-			final LookupRecordField value = new LookupRecordField(metadata.getAllowedReferences().getAllowedSchemaType());
-			value.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
-			value.setWidth("100%");
-			value.setValue((String) criterion.getValue());
-			value.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(Property.ValueChangeEvent event) {
-					criterion.setValue(value.getValue());
-				}
-			});
+			
+			final Field<?> value = buildReferenceEntryField(metadata.getAllowedReferences(), criterion);
 
-			//
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
 			operator.setNullSelectionAllowed(false);
 			operator.addValueChangeListener(new ValueChangeListener() {
@@ -218,6 +212,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					}
 				}
 			});
+
 			HorizontalLayout component = new HorizontalLayout(operator, value);
 			component.setComponentAlignment(value, Alignment.MIDDLE_RIGHT);
 			component.setExpandRatio(value, 1);
@@ -225,6 +220,24 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			component.setSpacing(true);
 
 			return component;
+		}
+
+		private Field<?> buildReferenceEntryField(AllowedReferences references, final Criterion criterion) {
+			String allowedSchemaType = references.getAllowedSchemaType();
+			Set<String> allowedSchemas = references.getAllowedSchemas();
+			String firstAllowedSchema = !allowedSchemas.isEmpty() ? allowedSchemas.iterator().next() : null; 
+			
+			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema);
+			field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX);
+			field.setWidth("100%");
+			field.setValue((String) criterion.getValue());
+			field.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(Property.ValueChangeEvent event) {
+					criterion.setValue(field.getValue());
+				}
+			});
+			return field;
 		}
 
 		private Component buildStringValueComponent(final Criterion criterion) {
@@ -362,6 +375,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					criterion.setValue(value.getValue());
 				}
 			});
+			//value.setVisible();
 
 			final SearchOperator searchOperator = criterion.getSearchOperator();
 			final ComboBox operator = buildIsEmptyIsNotEmptyComponent(criterion);
@@ -371,8 +385,11 @@ public class AdvancedSearchCriteriaComponent extends Table {
 					SearchOperator newOperator = (SearchOperator) operator.getValue();
 					if (newOperator != null) {
 						criterion.setSearchOperator(newOperator);
-						value.setVisible(
-								!newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL));
+						boolean visible = !newOperator.equals(SearchOperator.IS_NULL) && !newOperator.equals(SearchOperator.IS_NOT_NULL);
+						value.setVisible(visible);
+						if (!visible) {
+							criterion.setValue(null);
+						}
 					} else {
 						criterion.setSearchOperator(searchOperator);
 						value.setVisible(true);
@@ -408,7 +425,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField value = new TextField();
 			value.setWidth("100px");
 			value.setNullRepresentation("");
-			value.setConverter(new StringToDoubleConverter());
+			value.setConverter(new BaseStringToDoubleConverter());
 			value.setConvertedValue(criterion.getValue());
 			value.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -421,7 +438,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			final TextField endValue = new TextField();
 			endValue.setWidth("100px");
 			endValue.setNullRepresentation("");
-			endValue.setConverter(new StringToDoubleConverter());
+			endValue.setConverter(new BaseStringToDoubleConverter());
 			endValue.setConvertedValue(criterion.getValue());
 			endValue.addValueChangeListener(new ValueChangeListener() {
 				@Override

@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.reports.decommissioning;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 
@@ -53,15 +54,15 @@ public class ContainerRecordReportPresenter {
 	private DecommissioningType reportType;
 	private MetadataSchemaTypes types;
 
-	public ContainerRecordReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
+	public ContainerRecordReportPresenter(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
-		searchServices = modelLayerFactory.newSearchServices();
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
-		recordServices = modelLayerFactory.newRecordServices();
-		schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
-		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		decommissioningService = new DecommissioningService(collection, appLayerFactory);
+		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		schemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 	}
 
@@ -122,9 +123,9 @@ public class ContainerRecordReportPresenter {
 	}
 
 	private List<Folder> getFolders(String containerId) {
-		MetadataSchemaType folderSchemaType = rm.folderSchemaType();
+		MetadataSchemaType folderSchemaType = rm.folder.schemaType();
 
-		Metadata folderMetadata = rm.folderSchemaType().getDefaultSchema()
+		Metadata folderMetadata = rm.folder.schemaType().getDefaultSchema()
 				.getMetadata(Folder.CONTAINER);
 
 		LogicalSearchQuery foldersQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(folderSchemaType)

@@ -16,6 +16,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 
@@ -44,12 +45,13 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 	}
 
 	public MetadataSchemaVO build(MetadataSchema schema, VIEW_MODE viewMode, List<String> metadataCodes,
-			SessionContext sessionContext) {
+			SessionContext sessionContext, boolean addMetadataCodes) {
 		String code = schema.getCode();
 		String collection = schema.getCollection();
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
-		labels.put(sessionContext.getCurrentLocale(), schema.getLabel());
+		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+		labels.put(sessionContext.getCurrentLocale(), schema.getLabel(language));
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
@@ -63,6 +65,9 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 
 		if (viewMode == VIEW_MODE.FORM) {
 			if (metadataCodes != null) {
+				if(addMetadataCodes){
+					formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
+				}
 				formMetadataCodes.addAll(metadataCodes);
 			} else {
 				formMetadataCodes.addAll(schemaDisplayConfig.getFormMetadataCodes());
@@ -72,6 +77,9 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.DISPLAY) {
 			if (metadataCodes != null) {
+				if(addMetadataCodes){
+					displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
+				}
 				displayMetadataCodes.addAll(metadataCodes);
 			} else {
 				displayMetadataCodes.addAll(schemaDisplayConfig.getDisplayMetadataCodes());
@@ -81,6 +89,9 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
 		} else if (viewMode == VIEW_MODE.TABLE) {
 			if (metadataCodes != null) {
+				if(addMetadataCodes){
+					tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
+				}
 				tableMetadataCodes.addAll(metadataCodes);
 			} else {
 				tableMetadataCodes.addAll(schemaDisplayConfig.getTableMetadataCodes());
@@ -90,6 +101,9 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
 		} else if (viewMode == VIEW_MODE.SEARCH) {
 			if (metadataCodes != null) {
+				if(addMetadataCodes){
+					searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
+				}
 				searchMetadataCodes.addAll(metadataCodes);
 			} else {
 				searchMetadataCodes.addAll(schemaDisplayConfig.getSearchResultsMetadataCodes());
@@ -116,12 +130,17 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 			//				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 			//				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
 			//			}
-			//			if (!ignored && metadata.isEnabled()) {
+			//			if (!ignored && metadata.getEnabled()) {
 			metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
 			//			}
 		}
 
 		return schemaVO;
+	}
+
+	public MetadataSchemaVO build(MetadataSchema schema, VIEW_MODE viewMode, List<String> metadataCodes,
+			SessionContext sessionContext) {
+		return build(schema, viewMode, metadataCodes, sessionContext, false);
 	}
 
 	protected MetadataToVOBuilder newMetadataToVOBuilder() {

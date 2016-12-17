@@ -1,5 +1,7 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,10 +88,61 @@ public class SchemaDisplayConfig {
 		return withDisplayMetadataCodes(displayMetadataCodes);
 	}
 
+	public SchemaDisplayConfig withNewDisplayMetadataQueued(String metadataCode) {
+		List<String> displayMetadataCodes = new ArrayList<>();
+		displayMetadataCodes.addAll(this.displayMetadataCodes);
+		displayMetadataCodes.add(metadataCode);
+		return withDisplayMetadataCodes(displayMetadataCodes);
+	}
+
 	public SchemaDisplayConfig withNewFormMetadata(String metadataCode) {
 		List<String> formMetadatas = new ArrayList<>();
 		formMetadatas.addAll(this.formMetadataCodes);
 		formMetadatas.add(metadataCode);
+		return withFormMetadataCodes(formMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewFormAndDisplayMetadatas(String... metadataCodes) {
+
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.addAll(asList(metadataCodes));
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.addAll(asList(metadataCodes));
+		return withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(displayMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewFormMetadatas(String... metadataCodes) {
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.addAll(asList(metadataCodes));
+		return withFormMetadataCodes(formMetadatas);
+	}
+
+	public SchemaDisplayConfig withRemovedDisplayMetadatas(String... metadataCodes) {
+
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.removeAll(asList(metadataCodes));
+		return withDisplayMetadataCodes(displayMetadatas);
+	}
+
+	public SchemaDisplayConfig withRemovedTableMetadatas(String... metadataCodes) {
+
+		List<String> tableMetadatas = new ArrayList<>();
+		tableMetadatas.addAll(this.tableMetadataCodes);
+		tableMetadatas.removeAll(asList(metadataCodes));
+		return withTableMetadataCodes(tableMetadatas);
+	}
+
+	public SchemaDisplayConfig withRemovedFormMetadatas(String... metadataCodes) {
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.removeAll(asList(metadataCodes));
 		return withFormMetadataCodes(formMetadatas);
 	}
 
@@ -101,5 +154,31 @@ public class SchemaDisplayConfig {
 		return withFormMetadataCodes(formMetadatas);
 	}
 
-}
+	public SchemaDisplayConfig withNewTableMetadatas(String... metadataCodes) {
+		List<String> tableMetadatas = new ArrayList<>();
+		tableMetadatas.addAll(this.tableMetadataCodes);
+		tableMetadatas.addAll(asList(metadataCodes));
+		return withTableMetadataCodes(tableMetadatas);
+	}
 
+	public SchemaDisplayConfig withCode(String toCode) {
+
+		List<String> displayMetadataCodes = listForCode(this.displayMetadataCodes, toCode);
+		List<String> formMetadataCodes = listForCode(this.formMetadataCodes, toCode);
+		List<String> searchResultsMetadataCodes = listForCode(this.searchResultsMetadataCodes, toCode);
+		List<String> tableMetadataCodes = listForCode(this.tableMetadataCodes, toCode);
+
+		return new SchemaDisplayConfig(collection, toCode, displayMetadataCodes, formMetadataCodes, searchResultsMetadataCodes,
+				tableMetadataCodes);
+	}
+
+	private List<String> listForCode(List<String> codes, String toCode) {
+		List<String> returnedCodes = new ArrayList<>();
+		for (String code : codes) {
+			returnedCodes.add(code.replace(this.schemaCode, toCode));
+		}
+		return returnedCodes;
+	}
+
+
+}

@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -20,15 +21,15 @@ import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -40,9 +41,11 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 	protected void validateZeCollectionState()
 			throws Exception {
 		if (getModelLayerFactory().getCollectionsListManager().getCollections().contains(zeCollection)) {
-			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-			if (types.hasType(RetentionRule.SCHEMA_TYPE)) {
+			MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager()
+					.getSchemaTypes(zeCollection);
+			if (metadataSchemaTypes.hasType(RetentionRule.SCHEMA_TYPE)) {
 				whenMigratingToCurrentVersionThenValidSchemas();
+				whenMigratingToCurrentVersionThenValidSystemCollectionSchemas();
 				whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly();
 				whenMigratingToCurrentVersionThenHasValueListWithDefaultItems();
 				whenMigratingToCurrentVersionThenHasEssentialMetadatas();
@@ -50,8 +53,42 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 				whenMigratingToCurrentVersionThenConfigHasValidDefaultValue();
 				whenMigratingToCurrentVersionThenTaskModuleIsEnabledAndExtraRMMetadatasAreCreated();
 				whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3();
+				whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(
+						metadataSchemaTypes);
+				whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted();
+				whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(metadataSchemaTypes);
 			}
 		}
+	}
+
+	private void whenMigratingToCurrentVersionThenAllSchemaTypeHasNewCommonMetadatas(
+			final MetadataSchemaTypes metadataSchemaTypes) {
+
+		for (MetadataSchemaType type : metadataSchemaTypes.getSchemaTypes()) {
+			assertThat(type.getDefaultSchema().get(Schemas.ALL_REFERENCES.getLocalCode())).isNotNull();
+			assertThat(type.getDefaultSchema().get(Schemas.MARKED_FOR_REINDEXING.getLocalCode())).isNotNull();
+		}
+
+	}
+
+	private void whenMigratingToCurrentVersionThenEmailDocumentTypeIsNotLogicallyDeleted() {
+		DocumentType documentType = rm.emailDocumentType();
+		assertThat(documentType.isLogicallyDeletedStatus()).isFalse();
+	}
+
+	private void whenMigratingToCurrentVersionThenOnlyEnabledNonSystemReservedManuallyValuedMetadataAreDuplicable(
+			final MetadataSchemaTypes metadataSchemaTypes) {
+		final MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
+		assertThat(folderSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
+		assertThat(folderSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
+		assertThat(folderSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
+		assertThat(folderSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
+
+		final MetadataSchema documentSchema = metadataSchemaTypes.getSchema(Document.DEFAULT_SCHEMA);
+		assertThat(documentSchema.getMetadata(Folder.TITLE).isDuplicable()).isTrue();
+		assertThat(documentSchema.getMetadata(Folder.TYPE).isDuplicable()).isTrue();
+		assertThat(documentSchema.getMetadata(Schemas.IDENTIFIER.getCode()).isDuplicable()).isFalse();
+		assertThat(documentSchema.getMetadata(Schemas.PATH.getCode()).isDuplicable()).isFalse();
 	}
 
 	private void whenMigratingToCurrentVersionThenMarkedForReindexingIfVersionIsBefore5_1_3() {
@@ -86,7 +123,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(linkedDocumentsMetadata.getAllowedReferences().getAllowedSchemaType()).isEqualTo(Document.SCHEMA_TYPE);
 	}
 
-	public void whenMigratingToCurrentVersionThenValidSchemas()
+	private void whenMigratingToCurrentVersionThenValidSchemas()
 			throws Exception {
 
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
@@ -94,9 +131,12 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
 					ContainerRecord.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE);
+		} else {
+			assertThat(allSchemaTypesWithSecurity()).doesNotContain(Category.SCHEMA_TYPE);
 		}
 
-		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel()).isEqualTo("Date de l'événement");
+		assertThat(metadataSchemaTypes.getMetadata("event_default_createdOn").getLabel(Language.French))
+				.isEqualTo("Date de l'événement");
 
 		MetadataSchema filingSpaceSchema = metadataSchemaTypes.getSchema(FilingSpace.DEFAULT_SCHEMA);
 		MetadataSchema folderSchema = metadataSchemaTypes.getSchema(Folder.DEFAULT_SCHEMA);
@@ -104,6 +144,18 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchema retentionRuleSchema = metadataSchemaTypes.getSchema(RetentionRule.DEFAULT_SCHEMA);
 
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
+
+	}
+
+	private void whenMigratingToCurrentVersionThenValidSystemCollectionSchemas()
+			throws Exception {
+
+		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(
+				Collection.SYSTEM_COLLECTION);
+
+		assertThat(metadataSchemaTypes.getSchema(SolrUserCredential.DEFAULT_SCHEMA)
+				.getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
+
 	}
 
 	private List<String> allSchemaTypesWithSecurity() {
@@ -119,7 +171,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		return types;
 	}
 
-	public void whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly()
+	private void whenMigratingToCurrentVersionThenSchemasDisplayedCorrectly()
 			throws Exception {
 
 		SchemaDisplayConfig folderDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
@@ -160,7 +212,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 	}
 
-	public void whenMigratingToCurrentVersionThenHasValueListWithDefaultItems()
+	private void whenMigratingToCurrentVersionThenHasValueListWithDefaultItems()
 			throws Exception {
 
 		assertThat(rm.PA()).isNotNull();
@@ -168,17 +220,17 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(rm.FI()).isNotNull();
 	}
 
-	public void whenMigratingToCurrentVersionThenConfigHasValidDefaultValue()
+	private void whenMigratingToCurrentVersionThenConfigHasValidDefaultValue()
 			throws Exception {
 
 		SystemConfigurationsManager manager = getModelLayerFactory().getSystemConfigurationsManager();
 		assertThat(manager.getValue(RMConfigs.LINKABLE_CATEGORY_MUST_NOT_BE_ROOT)).isEqualTo(Boolean.FALSE);
 	}
 
-	public void whenMigratingToCurrentVersionThenHasEssentialMetadatas()
+	private void whenMigratingToCurrentVersionThenHasEssentialMetadatas()
 			throws Exception {
 
-		assertThat(rm.administrativeUnitFilingSpaces().isEssential()).isFalse();
+		assertThat(rm.administrativeUnit.filingSpaces().isEssential()).isFalse();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.CATEGORY_ENTERED).isEssential()).isTrue();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).isEssential()).isTrue();
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.RETENTION_RULE_ENTERED).isEssential()).isTrue();
@@ -186,7 +238,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(rm.defaultFolderSchema().getMetadata(Folder.PARENT_FOLDER).isEssential()).isTrue();
 	}
 
-	public void whenMigratingToCurrentVersionThenHasRolesWithRightPermissions() {
+	private void whenMigratingToCurrentVersionThenHasRolesWithRightPermissions() {
 		Role userRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.USER);
 		Role managerRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.MANAGER);
 		Role rgdRole = getModelLayerFactory().getRolesManager().getRole(zeCollection, RMRoles.RGD);
@@ -233,7 +285,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	public void setUp(boolean old)
+	protected void setUp(boolean old)
 			throws Exception {
 
 		givenDisabledAfterTestValidations();
@@ -247,10 +299,10 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 			givenTransactionLogIsEnabled();
 			File state = new File(getStatesFolder(old), testCase + ".zip");
 
-			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+			getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state).withFakeEncryptionServices();
 		}
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 	}
 
 	protected static File getStatesFolder(boolean old) {

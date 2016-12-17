@@ -27,7 +27,7 @@ public class EncodingServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEncodedValueWhenDecodingThenRawValueObtained() {
+	public void givenEncodedValueInBase64WhenDecodingThenRawValueObtained() {
 
 		String encoded1Ko = encodingService.encodeToBase64(bytes1ko);
 		String encoded10ko = encodingService.encodeToBase64(bytes10ko);
@@ -36,6 +36,30 @@ public class EncodingServiceAcceptanceTest extends ConstellioTest {
 		assertThat(encodingService.decodeStringToBase64Bytes(encoded1Ko)).isEqualTo(bytes1ko);
 		assertThat(encodingService.decodeStringToBase64Bytes(encoded10ko)).isEqualTo(bytes10ko);
 		assertThat(encodingService.decodeStringToBase64Bytes(encoded100ko)).isEqualTo(bytes100ko);
+	}
+
+	@Test
+	public void givenEncodedValueInBase32WhenDecodingThenRawValueObtained() {
+
+		String encoded1Ko = encodingService.encodeToBase32(bytes1ko);
+		String encoded10ko = encodingService.encodeToBase32(bytes10ko);
+		String encoded100ko = encodingService.encodeToBase32(bytes100ko);
+
+		assertThat(encodingService.decodeStringToBase32Bytes(encoded1Ko)).isEqualTo(bytes1ko);
+		assertThat(encodingService.decodeStringToBase32Bytes(encoded10ko)).isEqualTo(bytes10ko);
+		assertThat(encodingService.decodeStringToBase32Bytes(encoded100ko)).isEqualTo(bytes100ko);
+	}
+
+	@Test
+	public void givenEncodedValueInBase64UrlEncodedWhenDecodingThenRawValueObtained() {
+
+		String encoded1Ko = encodingService.encodeToBase64UrlEncoded(bytes1ko);
+		String encoded10ko = encodingService.encodeToBase64UrlEncoded(bytes10ko);
+		String encoded100ko = encodingService.encodeToBase64UrlEncoded(bytes100ko);
+
+		assertThat(encodingService.decodeStringToBase64UrlEncodedBytes(encoded1Ko)).isEqualTo(bytes1ko);
+		assertThat(encodingService.decodeStringToBase64UrlEncodedBytes(encoded10ko)).isEqualTo(bytes10ko);
+		assertThat(encodingService.decodeStringToBase64UrlEncodedBytes(encoded100ko)).isEqualTo(bytes100ko);
 	}
 
 }

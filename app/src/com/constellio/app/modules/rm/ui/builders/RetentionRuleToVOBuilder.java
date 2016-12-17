@@ -3,6 +3,8 @@ package com.constellio.app.modules.rm.ui.builders;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,7 +12,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -23,6 +27,8 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -33,17 +39,30 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
+	
+	private final RMSchemasRecordsServices rm;
 	private final SchemasDisplayManager schemasDisplayManager;
 	private final SearchServices searchServices;
-	private final MetadataSchema categories;
-	private final MetadataSchema subdivisions;
+	private final MetadataSchema categorySchema;
+	private final MetadataSchema subdivisionSchema;
 	private SessionContext sessionContext;
 
-	public RetentionRuleToVOBuilder(AppLayerFactory appLayerFactory, MetadataSchema categories, MetadataSchema subdivisions) {
-		this.categories = categories;
-		this.subdivisions = subdivisions;
+	public RetentionRuleToVOBuilder(AppLayerFactory appLayerFactory, MetadataSchema categorySchema, MetadataSchema subdivisionSchema) {
+		this.categorySchema = categorySchema;
+		this.subdivisionSchema = subdivisionSchema;
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		rm = new RMSchemasRecordsServices(categorySchema.getCollection(), appLayerFactory);
+	}
+
+	public RetentionRuleToVOBuilder(SessionContext sessionContext, AppLayerFactory appLayerFactory, MetadataSchema categorySchema,
+			MetadataSchema subdivisionSchema) {
+		this.categorySchema = categorySchema;
+		this.subdivisionSchema = subdivisionSchema;
+		this.sessionContext = sessionContext;
+		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		rm = new RMSchemasRecordsServices(categorySchema.getCollection(), appLayerFactory);
 	}
 
 	@Override
@@ -72,8 +91,23 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getCategories(String id) {
-		LogicalSearchCondition condition = from(categories).where(categories.getMetadata(Category.RETENTION_RULES)).isEqualTo(id);
-		return searchServices.searchRecordIds(new LogicalSearchQuery(condition));
+		LogicalSearchCondition condition = from(categorySchema).where(categorySchema.getMetadata(Category.RETENTION_RULES)).isEqualTo(id);
+		List<Record> categoryRecords = searchServices.search(new LogicalSearchQuery(condition));
+		List<Category> categories = new ArrayList<>();
+		for (Record categoryRecord : categoryRecords) {
+			categories.add(rm.wrapCategory(categoryRecord));
+		}
+		Collections.sort(categories, new AbstractTextComparator<Category>() {
+			@Override
+			protected String getText(Category object) {
+				return object.getCode();
+			}
+		});
+		List<String> categoryIds = new ArrayList<>();
+		for (Category category : categories) {
+			categoryIds.add(category.getId());
+		}
+		return categoryIds;
 	}
 
 	private MetadataVO getCategoriesMetadata(MetadataSchemaVO schema) {
@@ -81,8 +115,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	private List<String> getUniformSubdivisions(String id) {
-		LogicalSearchCondition condition = from(subdivisions)
-				.where(subdivisions.getMetadata(UniformSubdivision.RETENTION_RULE)).isEqualTo(id);
+		LogicalSearchCondition condition = from(subdivisionSchema)
+				.where(subdivisionSchema.getMetadata(UniformSubdivision.RETENTION_RULE)).isEqualTo(id);
 		return searchServices.searchRecordIds(new LogicalSearchQuery(condition));
 	}
 
@@ -101,15 +135,18 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		Set<String> references = new HashSet<>();
 		references.add(referencedSchema);
 
-		String typeCode = new SchemaUtils().getSchemaTypeCode(schema.getCode());
-		List<String> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode).getMetadataGroup();
-		String groupLabel = groups.get(0);
+		String typeCode = SchemaUtils.getSchemaTypeCode(schema.getCode());
+
+		Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(schema.getCollection(), typeCode)
+				.getMetadataGroup();
+		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+		String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
 
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getDisplayMetadataCodes());
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
-				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP,
+				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
 				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false);
 	}
 

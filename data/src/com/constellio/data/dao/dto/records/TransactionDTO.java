@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -21,6 +23,7 @@ public class TransactionDTO {
 	private List<SolrParams> deletedByQueries;
 	private Map<String, RecordDTO> newRecordsById;
 	private RecordsFlushing recordsFlushing;
+	private Set<String> markedForReindexing;
 	private boolean skippingReferenceToLogicallyDeletedValidation;
 	private boolean fullRewrite = false;
 
@@ -37,12 +40,13 @@ public class TransactionDTO {
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
 			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries) {
-		this(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries, false, false);
+		this(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				Collections.<String>emptySet(), false, false);
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
 			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries,
-			boolean skippingReferenceToLogicallyDeletedValidation, boolean fullRewrite) {
+			Set<String> markedForReindexing, boolean skippingReferenceToLogicallyDeletedValidation, boolean fullRewrite) {
 		this.transactionId = transactionId;
 		this.recordsFlushing = recordsFlushing;
 		this.newRecords = Collections.unmodifiableList(newRecords);
@@ -51,6 +55,7 @@ public class TransactionDTO {
 		this.deletedByQueries = Collections.unmodifiableList(deletedByQueries);
 		this.skippingReferenceToLogicallyDeletedValidation = skippingReferenceToLogicallyDeletedValidation;
 		this.fullRewrite = fullRewrite;
+		this.markedForReindexing = markedForReindexing;
 		newRecordsById = buildNewRecordsByIdMap();
 	}
 
@@ -85,7 +90,7 @@ public class TransactionDTO {
 		newRecords.addAll(records);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
+				markedForReindexing, skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withModifiedRecords(List<RecordDeltaDTO> records) {
@@ -94,7 +99,7 @@ public class TransactionDTO {
 		modifiedRecords.addAll(records);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
+				markedForReindexing, skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withDeletedRecords(List<RecordDTO> records) {
@@ -103,7 +108,7 @@ public class TransactionDTO {
 		deletedRecords.addAll(records);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
+				markedForReindexing, skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withDeletedByQueries(SolrParams... deletedByQueries) {
@@ -116,17 +121,22 @@ public class TransactionDTO {
 		queries.addAll(deletedByQueries);
 
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, queries,
-				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
+				markedForReindexing, skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withFullRewrite(boolean fullRewrite) {
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				skippingReferenceToLogicallyDeletedValidation, fullRewrite);
+				markedForReindexing, skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public TransactionDTO withSkippingReferenceToLogicallyDeletedValidation(boolean enabled) {
 		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
-				enabled, fullRewrite);
+				markedForReindexing, enabled, fullRewrite);
+	}
+
+	public TransactionDTO withMarkedForReindexing(Set<String> markedForReindexing) {
+		return new TransactionDTO(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
+				markedForReindexing, skippingReferenceToLogicallyDeletedValidation, fullRewrite);
 	}
 
 	public boolean hasRecord(String value) {
@@ -135,6 +145,10 @@ public class TransactionDTO {
 
 	public RecordsFlushing getRecordsFlushing() {
 		return recordsFlushing;
+	}
+
+	public Set<String> getMarkedForReindexing() {
+		return markedForReindexing;
 	}
 
 	private Map<String, RecordDTO> buildNewRecordsByIdMap() {
@@ -165,4 +179,5 @@ public class TransactionDTO {
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
 	}
+
 }

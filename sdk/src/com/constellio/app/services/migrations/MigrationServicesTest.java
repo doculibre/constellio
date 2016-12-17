@@ -95,7 +95,7 @@ public class MigrationServicesTest extends ConstellioTest {
 		doNothing().when(migrationServices).markMigrationAsCompleted(isA(Migration.class));
 		doReturn("0.9.9").when(migrationServices).getCurrentVersion("zeCollection");
 
-		migrationServices.migrate(zeCollection, "1.0.2");
+		migrationServices.migrate(zeCollection, "1.0.2", false);
 
 		InOrder inOrder = Mockito.inOrder(migrationTo100, aModuleMigrationTo100, aModuleMigration101To102);
 		inOrder.verify(migrationTo100)
@@ -113,7 +113,7 @@ public class MigrationServicesTest extends ConstellioTest {
 		doNothing().when(migrationServices).markMigrationAsCompleted(isA(Migration.class));
 		doReturn("0.9.9").when(migrationServices).getCurrentVersion("zeCollection");
 
-		migrationServices.migrate(zeCollection, "1.1.0");
+		migrationServices.migrate(zeCollection, "1.1.0", false);
 
 		InOrder inOrder = Mockito.inOrder(migrationTo100, aModuleMigrationTo100, aModuleMigration101To102,
 				migration102To103, migration103To110, aModuleMigration103To110);
@@ -138,7 +138,7 @@ public class MigrationServicesTest extends ConstellioTest {
 		doNothing().when(migrationServices).markMigrationAsCompleted(isA(Migration.class));
 		doReturn("0.9.9").when(migrationServices).getCurrentVersion("zeCollection");
 
-		migrationServices.migrate(zeCollection, "1.0.9");
+		migrationServices.migrate(zeCollection, "1.0.9", false);
 
 		InOrder inOrder = Mockito.inOrder(
 				migrationTo100, aModuleMigrationTo100, aModuleMigration101To102, migration102To103);
@@ -159,7 +159,7 @@ public class MigrationServicesTest extends ConstellioTest {
 		doNothing().when(migrationServices).markMigrationAsCompleted(isA(Migration.class));
 		doReturn(null).when(migrationServices).getCurrentVersion("zeCollection");
 
-		migrationServices.migrate(zeCollection, "1.0.2");
+		migrationServices.migrate(zeCollection, "1.0.2", false);
 
 		InOrder inOrder = Mockito.inOrder(migrationTo100, aModuleMigrationTo100, aModuleMigration101To102);
 		inOrder.verify(migrationTo100)

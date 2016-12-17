@@ -51,6 +51,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public EventPresenter(EventView view) {
 		super(view, Event.DEFAULT_SCHEMA);
+		recordServices().flush();
 	}
 
 	@Override
@@ -96,7 +97,8 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		}
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
-			schemaVO = new MetadataSchemaToVOBuilder().build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes);
+			schemaVO = new MetadataSchemaToVOBuilder()
+					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
 		RecordVODataProvider eventsDataProvider = new RecordVODataProvider(schemaVO, voBuilder, modelLayerFactory,
 				view.getSessionContext()) {
@@ -110,7 +112,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	private RMSchemasRecordsServices rmSchemasRecordsServices() {
 		if (rmSchemasRecordsServices == null) {
-			rmSchemasRecordsServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmSchemasRecordsServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmSchemasRecordsServices;
 	}
@@ -184,7 +186,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		parameters.put(EventViewParameters.EVENT_END_DATE, endDate);
 		parameters.put(EventViewParameters.BY_ID_EVENT_PARAMETER, id);
 		parameters.put(EventViewParameters.EVENT_CATEGORY, eventCategory);
-		view.navigateTo().showEventCategory(parameters);
+		view.navigate().to().showEventCategory(parameters);
 	}
 
 	public boolean isRecordIdMetadata(MetadataValueVO metadataValue) {
@@ -207,28 +209,27 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return eventCategory;
 	}
 
-	public String getRecordLinkTitle(MetadataValueVO metadataValue, RecordVO recordVO) {
-		String recordId = metadataValue.getValue().toString();
-		String title = recordVO.get(Schemas.TITLE.getLocalCode());
-		if (title == null) {
-			return recordId;
-		} else {
-			return recordId + " : " + title;
-		}
+	public RecordVO getLinkedRecordVO(RecordVO eventVO) {
+		String recordId = eventVO.get(Event.RECORD_ID);
+		Record linkedRecord = recordServices().getDocumentById(recordId);
+		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+		return voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
-	public void recordLinkClicked(MetadataValueVO metadataValue) {
-		String recordId = metadataValue.getValue().toString();
+	public void recordLinkClicked(RecordVO eventVO) {
+		String eventId = eventVO.get(Event.RECORD_ID);
+		Record linkedRecord = recordServices().getDocumentById(eventId);
+		String linkedRecordId = linkedRecord.getId();
 		try {
-			recordServices().getDocumentById(recordId);
+			recordServices().getDocumentById(linkedRecordId);
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-				view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
 			} else if (getEventType().contains("folder")) {
-				view.navigate().to(RMViews.class).displayFolder(recordId);
+				view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
 			} else if (getEventType().contains("document")) {
-				view.navigate().to(RMViews.class).displayDocument(recordId);
+				view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
 			} else {
-				view.navigate().to(TaskViews.class).displayTask(recordId);
+				view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
 			}
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			return;
@@ -243,7 +244,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			@Override
 			public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO,
 					SessionContext sessionContext) {
-				MetadataSchema folderSchema = schemas().defaultFolderSchema();
+				MetadataSchema folderSchema = schemas().folder.schema();
 				Metadata borrowDateMetadata = folderSchema.getMetadata(Folder.BORROW_DATE);
 				LocalDateTime eventTime = record.get(borrowDateMetadata);
 
@@ -255,7 +256,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 				Metadata borrowedMetadata = folderSchema.getMetadata(Folder.BORROWED);
 				LocalDateTime borrowDateValue = record.get(borrowDateMetadata);
 
-				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().defaultFolderSchema())
+				LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(schemas().folder.schema())
 						.where(borrowedMetadata).isTrue()
 						.andWhere(borrowDateMetadata).isEqualTo(
 								borrowDateValue).andWhere(recordIdMetadata).isEqualTo(recordId);
@@ -268,7 +269,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			private RMSchemasRecordsServices schemas() {
 				if (schemas == null) {
-					schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 				}
 				return schemas;
 			}
@@ -308,11 +309,12 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 			private RMSchemasRecordsServices schemas() {
 				if (schemas == null) {
-					schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+					schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 				}
 				return schemas;
 			}
 		};
 		return voBuilder;
 	}
+	
 }

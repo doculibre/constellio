@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folderSchemaType())
-				.where(rm.folderCategory()).isEqualTo(records.getCategory_Z112()));
+				.where(rm.folder.category()).isEqualTo(records.getCategory_Z112()));
 
 		RecordVODataProvider dataProvider = newDataProvider(query);
 
@@ -51,7 +52,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folderSchemaType())
-				.where(rm.folderCategory()).isEqualTo(records.getCategory_Z112()));
+				.where(rm.folder.category()).isEqualTo(records.getCategory_Z112()));
 
 		RecordVODataProvider dataProvider = newDataProvider(query.sortAsc(Schemas.TITLE));
 
@@ -68,7 +69,7 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(rm.folderSchemaType())
-				.where(rm.folderCategory()).isEqualTo(records.getCategory_Z112()));
+				.where(rm.folder.category()).isEqualTo(records.getCategory_Z112()));
 
 		RecordVODataProvider dataProvider = newDataProvider(query.sortAsc(Schemas.TITLE));
 
@@ -93,8 +94,9 @@ public class RecordVODataProviderAcceptTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus());
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 	}
 

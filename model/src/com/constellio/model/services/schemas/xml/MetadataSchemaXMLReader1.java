@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.xml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -9,6 +10,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
@@ -43,7 +45,7 @@ public class MetadataSchemaXMLReader1 {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider);
+				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French));
 
 		for (Element schemaTypeElement : rootElement.getChildren("schemaType")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
@@ -53,8 +55,8 @@ public class MetadataSchemaXMLReader1 {
 
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(getCodeValue(element), false).setLabel(
-				getLabelValue(element));
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(getCodeValue(element), false).addLabel(
+				Language.French, getLabelValue(element));
 		schemaTypeBuilder.setSecurity(getBooleanFlagValue(element, "security"));
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));
 		parseDefaultSchema(element, schemaTypeBuilder);
@@ -71,7 +73,7 @@ public class MetadataSchemaXMLReader1 {
 
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
-		schemaBuilder.setLabel(getLabelValue(schemaElement));
+		schemaBuilder.addLabel(Language.French, getLabelValue(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValue(schemaElement, "undeletable"));
 		for (Element metadataElement : schemaElement.getChildren("metadata")) {
 			parseMetadata(schemaBuilder, metadataElement);
@@ -94,10 +96,11 @@ public class MetadataSchemaXMLReader1 {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
 
-		metadataBuilder.setLabel(getLabelValue(metadataElement));
+		metadataBuilder.addLabel(Language.French, getLabelValue(metadataElement));
 		if (!metadataBuilder.isSystemReserved()) {
 			metadataBuilder.setEnabled(getBooleanFlagValue(metadataElement, "enabled"));
 			metadataBuilder.setDefaultRequirement(getBooleanFlagValue(metadataElement, "defaultRequirement"));
+			metadataBuilder.setDuplicable(false);
 		}
 
 		List<Element> validatorElements = parseValidators(metadataElement);
@@ -283,7 +286,7 @@ public class MetadataSchemaXMLReader1 {
 	private void parseDefaultSchema(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder) {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
-		defaultSchemaBuilder.setLabel(getLabelValue(defaultSchemaElement));
+		defaultSchemaBuilder.addLabel(Language.French, getLabelValue(defaultSchemaElement));
 		for (Element metadataElement : defaultSchemaElement.getChildren("metadata")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement);
 		}

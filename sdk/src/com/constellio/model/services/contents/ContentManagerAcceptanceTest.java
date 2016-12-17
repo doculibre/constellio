@@ -2,6 +2,7 @@ package com.constellio.model.services.contents;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.spy;
@@ -12,6 +13,8 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.InputStream;
 
+import com.constellio.model.services.contents.icap.IcapException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -191,6 +194,47 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.upload(contentStream);
 		verify(fileParser, times(1)).parse(any(StreamFactory.class), anyInt());
 		contentManager.getParsedContent(hash);
+	}
+
+    @Test
+	public void givenEmptyNonYetParsedContentWhenUploadedThenUploaded()
+			throws Exception {
+		// Given
+		getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent(""));
+
+		// When
+		ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(contentStream, "someFileName");
+
+		// Then
+        assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=")).isNotNull();
+        assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=").getLength()).isEqualTo(0);
+	}
+
+    @Test(expected = IcapException.CommunicationFailure.class)
+    public void givenInfectedNonYetParsedContentWhenUploadedThenCommunicationExceptionThrown()
+            throws Exception {
+        // Given
+        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://10.0.0.0:1344/squidclamav");
+        contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("any content"));
+
+        // When
+        contentManager.upload(contentStream, "someFileName");
+
+        // Then, the exception is thrown.
+    }
+
+	@Test(expected = IcapException.ThreatFoundException.class)
+	public void givenInfectedNonYetParsedContentWhenUploadedThenThreatFoundExceptionThrown()
+			throws Exception {
+		// Given
+        getModelLayerFactory().getSystemConfigurationsManager().setValue(ConstellioEIMConfigs.ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
+
+		// When
+		contentManager.upload(contentStream, "someFileName");
+
+		// Then, the exception is thrown.
 	}
 
 }

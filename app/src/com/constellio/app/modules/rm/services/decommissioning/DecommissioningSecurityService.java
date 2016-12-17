@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMai
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
@@ -22,11 +23,11 @@ public class DecommissioningSecurityService {
 	SearchServices searchServices;
 	DecommissioningService decommissioningService;
 
-	public DecommissioningSecurityService(String collection, ModelLayerFactory modelLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		this.searchServices = modelLayerFactory.newSearchServices();
-		this.decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+	public DecommissioningSecurityService(String collection, AppLayerFactory appLayerFactory) {
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.taxonomiesSearchServices = appLayerFactory.getModelLayerFactory().newTaxonomiesSearchService();
+		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
 	public boolean hasAccessToDecommissioningMainPage(User user) {
@@ -34,7 +35,7 @@ public class DecommissioningSecurityService {
 			return true;
 		}
 		return searchServices.hasResults(
-				from(rm.decommissioningListSchemaType()).where(rm.decommissioningListPendingValidations()).isEqualTo(user));
+				from(rm.decommissioningList.schemaType()).where(rm.decommissioningList.pendingValidations()).isEqualTo(user));
 	}
 
 	public boolean hasAccessToDecommissioningListPage(DecommissioningList list, User user) {
@@ -118,4 +119,13 @@ public class DecommissioningSecurityService {
 			return Arrays.asList(DecommissioningMainPresenter.TO_VALIDATE);
 		}
 	}
+	
+	public boolean canCreateContainers(User user) {
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	}
+	
+	public boolean hasAccessToManageContainersPage(User user) {
+		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+	}
+	
 }

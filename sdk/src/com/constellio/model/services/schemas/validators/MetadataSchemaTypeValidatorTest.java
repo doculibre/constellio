@@ -1,6 +1,9 @@
 package com.constellio.model.services.schemas.validators;
 
+import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -13,16 +16,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -40,7 +40,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	MetadataList customSchema2Metadatas;
 	private MetadataSchemaTypeValidator validator;
 	@Mock private ValidationErrors validationErrors;
-	@Mock private Map<String, String> parameters;
+	@Mock private Map<String, Object> parameters;
 	@Mock private MetadataSchemaType schemaType;
 	@Mock private MetadataSchema defaultSchema;
 	private MetadataList defaultMetadatas;
@@ -119,7 +119,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 		when(allowedReferences.getAllowedSchemas()).thenReturn(allowedSchemas);
 		when(aMetadata.getType()).thenReturn(MetadataValueType.REFERENCE);
 
-		doReturn(parameters).when(validator).createMapWithCodeAndLabel(aMetadata);
+		doReturn(parameters).when(validator).createMapWithCode(aMetadata);
 		validator.validateReferenceMetadata(aMetadata, validationErrors);
 
 		verify(validationErrors, times(1)).add(validator.getClass(), "NoAllowedReferencesInReferenceMetadata", parameters);
@@ -180,7 +180,9 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasLabelWhenValidatingLabelThenNoErrorAdded() {
-		when(aMetadata.getLabel()).thenReturn(aMetadataLabel);
+		Map<Language, String> labels = new HashMap<Language, String>();
+		labels.put(Language.French, aMetadataLabel);
+		when(aMetadata.getLabels()).thenReturn(labels);
 
 		validator.validateMetadataLabelNotNull(aMetadata, validationErrors);
 
@@ -189,7 +191,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasNoLabelWhenValidatingLabelThenCorrectErrorAdded() {
-		doReturn(parameters).when(validator).createMapWithCodeAndLabel(aMetadata);
+		doReturn(parameters).when(validator).createMapWithCode(aMetadata);
 
 		validator.validateMetadataLabelNotNull(aMetadata, validationErrors);
 
@@ -198,7 +200,7 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 
 	@Test
 	public void givenMetadataHasNoTypeWhenValidatingTypeThenCorrectErrorAdded() {
-		doReturn(parameters).when(validator).createMapWithCodeAndLabel(aMetadata);
+		doReturn(parameters).when(validator).createMapWithCode(aMetadata);
 
 		validator.validateMetadataTypeNotNull(aMetadata, validationErrors);
 
@@ -217,27 +219,29 @@ public class MetadataSchemaTypeValidatorTest extends ConstellioTest {
 	@Test
 	public void whenCreatingMapWithCodeAndLabelThenContentIsCorrect() {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
-		when(aMetadata.getLabel()).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabelsByLanguageCodes()).thenReturn(asMap("fr", aMetadataLabel));
 
-		Map<String, String> returnedMap = validator.createMapWithCodeAndLabel(aMetadata);
+		Map<String, Object> returnedMap = validator.createMapWithCode(aMetadata);
 
-		assertEquals(aMetadataCode, returnedMap.get("localCode"));
-		assertEquals(aMetadataLabel, returnedMap.get("label"));
-		assertEquals(2, returnedMap.size());
+		assertThat(returnedMap).containsOnly(
+				entry("localCode", aMetadataCode),
+				entry("label", asMap("fr", aMetadataLabel))
+		);
 	}
 
 	@Test
 	public void whenCreatingMapWithCodeLabelAndTypeThenContentIsCorrect() {
 		when(aMetadata.getLocalCode()).thenReturn(aMetadataCode);
-		when(aMetadata.getLabel()).thenReturn(aMetadataLabel);
+		when(aMetadata.getLabelsByLanguageCodes()).thenReturn(asMap("fr", aMetadataLabel));
 		when(aMetadata.getType()).thenReturn(MetadataValueType.STRING);
 
-		Map<String, String> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);
+		Map<String, Object> returnedMap = validator.createMapWithCodeLabelAndType(aMetadata);
 
-		assertEquals(aMetadataCode, returnedMap.get("localCode"));
-		assertEquals(aMetadataLabel, returnedMap.get("label"));
-		assertEquals("STRING", returnedMap.get("type"));
-		assertEquals(3, returnedMap.size());
+		assertThat(returnedMap).containsOnly(
+				entry("localCode", aMetadataCode),
+				entry("type", "STRING"),
+				entry("label", asMap("fr", aMetadataLabel))
+		);
 	}
 
 	private void configureSchemas() {

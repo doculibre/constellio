@@ -1,5 +1,8 @@
 package com.constellio.app.services.migrations;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,15 +11,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.Migration;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
 import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -27,6 +34,7 @@ import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
@@ -46,6 +54,7 @@ public class MigrationServices {
 	DataLayerFactory dataLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	ModuleResourcesLocator moduleResourcesLocator;
+	CollectionsManager collectionsManager;
 
 	public MigrationServices(ConstellioEIM constellioEIM, AppLayerFactory appLayerFactory,
 			ConstellioModulesManagerImpl constellioModulesManager, ConstellioPluginManager constellioPluginManager) {
@@ -58,6 +67,7 @@ public class MigrationServices {
 		this.constellioModulesManager = constellioModulesManager;
 		this.constellioPluginManager = constellioPluginManager;
 		this.configManager = dataLayerFactory.getConfigManager();
+		this.collectionsManager = appLayerFactory.getCollectionsManager();
 		this.moduleResourcesLocator = PropertiesLocatorFactory.get();
 	}
 
@@ -71,7 +81,7 @@ public class MigrationServices {
 		return propertiesConfiguration == null ? null : propertiesConfiguration.getProperties().get(collection + "_version");
 	}
 
-	private List<Migration> getAllMigrationsFor(String collection) {
+	private List<Migration> getAllMigrationsFor(boolean newCollection, String collection) {
 		ConstellioModulesManagerImpl modulesManager = getModulesManager();
 		List<Migration> migrations = new ArrayList<>();
 
@@ -93,12 +103,52 @@ public class MigrationServices {
 		}
 
 		for (InstallableModule module : modules) {
-			for (MigrationScript script : getMigrationScripts(module)) {
-				migrations.add(new Migration(collection, module.getId(), script));
+			boolean useComboMigration = newCollection && module instanceof ModuleWithComboMigration;
+			if (useComboMigration) {
+				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
+
+				List<String> completedMigrations = getCompletedMigrations(collection);
+				for (MigrationScript aMigrationScriptIncludedInCombo : comboMigrationScript.getVersions()) {
+
+					if (completedMigrations.contains(
+							new Migration(collection,module.getId(),aMigrationScriptIncludedInCombo).getMigrationId()))  {
+						useComboMigration = false;
+						break;
+					}
+				}
+			}
+			if (useComboMigration) {
+				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
+				migrations.add(new Migration(collection, module.getId(), comboMigrationScript));
+
+				for (MigrationScript migrationScript : getMigrationScripts(module)) {
+
+					boolean found = false;
+					for (MigrationScript migrationScriptInCombo : comboMigrationScript.getVersions()) {
+						if (migrationScriptInCombo.getClass().equals(migrationScript.getClass())) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						migrations.add(new Migration(collection, module.getId(), migrationScript));
+					}
+
+				}
+
+			} else {
+				for (MigrationScript script : getMigrationScripts(module)) {
+					migrations.add(new Migration(collection, module.getId(), script));
+				}
 			}
 		}
 
-		for (MigrationScript script : constellioEIM.getMigrationScripts()) {
+		for (
+				MigrationScript script
+				: constellioEIM.getMigrationScripts())
+
+		{
 			migrations.add(new Migration(collection, null, script));
 		}
 
@@ -116,46 +166,75 @@ public class MigrationServices {
 		return returnList;
 	}
 
-	public Set<String> migrate(String toVersion)
+	public Set<String> migrate(String toVersion, boolean newModule)
 			throws OptimisticLockingConfiguration {
 		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
 
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
 		for (String collection : collections) {
-			modulesNotMigratedCorrectly.addAll(migrate(collection, toVersion));
+			modulesNotMigratedCorrectly.addAll(migrate(collection, toVersion, newModule));
 		}
 		return modulesNotMigratedCorrectly;
 	}
 
-	private Set<String> migrateModules(String collection, String toVersion)
+	private Set<String> migrateModules(String collection, String toVersion, boolean newModule)
 			throws OptimisticLockingConfiguration {
 		Set<String> modulesNotMigratedCorrectly = new HashSet<>();
-		List<Migration> migrations = getAllMigrationsFor(collection);
+		List<String> collectionCodes = collectionsManager.getCollectionCodesExcludingSystem();
+		boolean newCollection = isNewCollection(collection);
+		if (newCollection && appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled() &&
+				(!SYSTEM_COLLECTION.equals(collection) || collectionCodes.isEmpty())) {
+			migrateWithoutException(new CoreMigrationCombo(), null, collection);
+		}
 
-		List<Migration> filteredMigrations = filterRunnedMigration(collection, migrations);
+		List<Migration> migrations;
 
 		boolean firstMigration = true;
+		boolean fastMigrationEnabled = appLayerFactory.getAppLayerConfiguration().isFastMigrationsEnabled();
+		while (modulesNotMigratedCorrectly.isEmpty() &&
+				!(migrations = filterRunnedMigration(collection,
+						getAllMigrationsFor(newModule && fastMigrationEnabled, collection))).isEmpty()) {
 
-		for (Migration migration : filteredMigrations) {
-			if (toVersion == null || VersionsComparator.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
+			LOGGER.info("Migrating collection " + collection + " : " + migrations);
+			for (Migration migration : migrations) {
+				if (toVersion == null || VersionsComparator
+						.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
 
-				if (firstMigration) {
-					ensureSchemasHaveCommonMetadata(collection);
-					firstMigration = false;
-				}
-				boolean exceptionWhenMigrating = migrateWithoutException(migration, collection);
-				if (exceptionWhenMigrating) {
-					modulesNotMigratedCorrectly.add(migration.getMigrationId());
+					if (firstMigration) {
+						ensureSchemasHaveCommonMetadata(collection);
+						firstMigration = false;
+					}
+
+					boolean exceptionWhenMigrating = migrateWithoutException(migration, collection);
+					if (exceptionWhenMigrating) {
+						modulesNotMigratedCorrectly.add(migration.getMigrationId());
+					}
 				}
 			}
 		}
 		return modulesNotMigratedCorrectly;
 	}
 
+	private boolean migrateWithoutException(ComboMigrationScript migration, String moduleId, String collection) {
+		boolean exceptionWhenMigrating = false;
+		try {
+			migrate(collection, moduleId, migration);
+		} catch (Throwable e) {
+			constellioPluginManager
+					.handleModuleNotMigratedCorrectly(moduleId, collection, e);
+			exceptionWhenMigrating = true;
+		}
+		return exceptionWhenMigrating;
+	}
+
 	private boolean migrateWithoutException(Migration migration, String collection) {
 		boolean exceptionWhenMigrating = false;
 		try {
-			migrate(migration);
+			if (migration.getScript() instanceof ComboMigrationScript) {
+				migrate(collection, migration.getModuleId(), (ComboMigrationScript) migration.getScript());
+			} else {
+				migrate(migration);
+			}
 		} catch (Throwable e) {
 			constellioPluginManager
 					.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
@@ -164,9 +243,19 @@ public class MigrationServices {
 		return exceptionWhenMigrating;
 	}
 
-	public Set<String> migrate(String collection, String toVersion)
+	public Set<String> migrate(String collection, String toVersion, boolean newModule)
 			throws OptimisticLockingConfiguration {
-		return migrateModules(collection, toVersion);
+		return migrateModules(collection, toVersion, newModule);
+	}
+
+	boolean isNewCollection(String collection) {
+		if (configManager.exist(VERSION_PROPERTIES_FILE)) {
+			String propertyKey = collection + "_completedMigrations";
+			String completedMigrations = configManager.getProperties(VERSION_PROPERTIES_FILE).getProperties().get(propertyKey);
+			return StringUtils.isBlank(completedMigrations);
+		} else {
+			return true;
+		}
 	}
 
 	List<Migration> filterRunnedMigration(String collection, List<Migration> migrations) {
@@ -213,7 +302,8 @@ public class MigrationServices {
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
 		String moduleId = migration.getModuleId() == null ? "core" : migration.getModuleId();
 		String version = migration.getVersion();
-		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language,
+		List<Language> languages = Language.withCodes(collectionsManager.getCollectionLanguages(migration.getCollection()));
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language, languages,
 				version, ioServices, moduleResourcesLocator);
 
 		try {
@@ -223,6 +313,46 @@ public class MigrationServices {
 		}
 		setCurrentDataVersion(migration.getCollection(), migration.getVersion());
 		markMigrationAsCompleted(migration);
+	}
+
+	String getHighestVersion(ComboMigrationScript script) {
+		List<String> versions = new ArrayList<>();
+
+		if (script.getVersions().isEmpty()) {
+			return "1.0";
+		}
+
+		for (MigrationScript migration : script.getVersions()) {
+			versions.add(migration.getVersion());
+		}
+
+		Collections.sort(versions, new VersionsComparator());
+		return versions.get(versions.size() - 1);
+	}
+
+	void migrate(String collectionId, String moduleId, ComboMigrationScript fastMigrationScript)
+			throws OptimisticLockingConfiguration {
+
+		String highestVersion = getHighestVersion(fastMigrationScript);
+		LOGGER.info("Running migration script '" + fastMigrationScript.getClass().getSimpleName() +
+				"' updating to version '" + highestVersion + "'");
+		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
+		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
+		List<Language> languages = Language.withCodes(collectionsManager.getCollectionLanguages(collectionId));
+		moduleId = moduleId == null ? "core" : moduleId;
+
+		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language, languages,
+				"combo", ioServices, moduleResourcesLocator);
+
+		try {
+			fastMigrationScript.migrate(collectionId, migrationResourcesProvider, appLayerFactory);
+		} catch (Exception e) {
+			throw new RuntimeException("Error when migrating collection '" + collectionId + "'", e);
+		}
+		setCurrentDataVersion(collectionId, highestVersion);
+		for (MigrationScript migrationScript : fastMigrationScript.getVersions()) {
+			markMigrationAsCompleted(new Migration(collectionId, moduleId, migrationScript));
+		}
 	}
 
 	public void setCurrentDataVersion(String collection, String version)
@@ -237,6 +367,19 @@ public class MigrationServices {
 		}
 	}
 
+	public List<String> getCompletedMigrations(String collection) {
+
+		Map<String, String> properties = dataLayerFactory.getConfigManager()
+				.getProperties(VERSION_PROPERTIES_FILE).getProperties();
+		String completedMigrations = properties.get(collection + "_completedMigrations");
+		if (StringUtils.isNotBlank(completedMigrations)) {
+			return asList(completedMigrations.split(","));
+		} else  {
+			return Collections.emptyList();
+		}
+
+	}
+
 	public void markMigrationAsCompleted(final Migration migration)
 			throws OptimisticLockingConfiguration {
 		final String propertyKey = migration.getCollection() + "_completedMigrations";
@@ -245,7 +388,15 @@ public class MigrationServices {
 			@Override
 			public void alter(Map<String, String> properties) {
 				String completedMigrations = properties.get(propertyKey);
-				properties.put(propertyKey, completedMigrations + "," + migration.getMigrationId());
+				List<String> migrations = new ArrayList<String>();
+
+				if (StringUtils.isNotBlank(completedMigrations)) {
+					migrations.addAll(asList(completedMigrations.split(",")));
+				}
+				migrations.add(migration.getMigrationId());
+				Collections.sort(migrations);
+
+				properties.put(propertyKey, StringUtils.join(migrations, ","));
 			}
 		});
 	}

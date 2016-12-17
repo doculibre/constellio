@@ -1,27 +1,12 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.UUID;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-
+import com.constellio.app.modules.es.connectors.http.ConnectorHttpContext;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmbRuntimeException.ConnectorSmbRuntimeException_CannotDelete;
+import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContext;
+import com.constellio.app.modules.es.connectors.smb.cache.SmbConnectorContextServices;
 import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
 import com.constellio.app.modules.es.connectors.smb.config.SmbSchemaDisplayConfiguration;
+import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbConnectorJob;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbDocumentOrFolderUpdater;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactory;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl;
@@ -30,11 +15,7 @@ import com.constellio.app.modules.es.connectors.smb.jobs.SmbNullJob;
 import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueue;
 import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueueSortedImpl;
 import com.constellio.app.modules.es.connectors.smb.security.Credentials;
-import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactory;
-import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactoryImpl;
-import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
-import com.constellio.app.modules.es.connectors.smb.service.SmbService;
-import com.constellio.app.modules.es.connectors.smb.service.SmbServiceSimpleImpl;
+import com.constellio.app.modules.es.connectors.smb.service.*;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -45,11 +26,33 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
+import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.records.RecordServicesException;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class ConnectorSmb extends Connector {
+
+	static {
+		System.setProperty("jcifs.smb.client.soTimeout","150000");
+		System.setProperty("jcifs.smb.client.responseTimeout","120000");
+		System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
+		System.setProperty("jcifs.smb.client.listSize","1200");
+		System.setProperty("jcifs.smb.client.listCount","15");
+		System.setProperty("jcifs.smb.client.dfs.strictView","true");
+	}
 
 	static final String START_OF_TRAVERSAL = "Start of traversal";
 	static final String RESUME_OF_TRAVERSAL = "Resume of traversal";
@@ -61,23 +64,28 @@ public class ConnectorSmb extends Connector {
 	private ConnectorSmbUtils smbUtils;
 	private SmbSchemaDisplayConfiguration schemaDisplayConfig;
 	private SmbJobQueue jobsQueue;
-	private SmbService smbService;
+	private SmbShareService smbShareService;
 	private SmbJobFactory smbJobFactory;
 	private SmbRecordService smbRecordService;
 	private SmbDocumentOrFolderUpdater updater;
 	private SmbUrlComparator urlComparator;
 
+	private String connectorId;
+	private SmbConnectorContext context;
+	private SmbConnectorContextServices contextServices;
+
 	public ConnectorSmb() {
 		urlComparator = new SmbUrlComparator();
 	}
 
-	public ConnectorSmb(SmbService smbService) {
-		this.smbService = smbService;
+	public ConnectorSmb(SmbShareService smbShareService) {
+		this.smbShareService = smbShareService;
 		urlComparator = new SmbUrlComparator();
 	}
 
 	@Override
 	protected void initialize(Record instanceRecord) {
+		this.connectorId = instanceRecord.getId();
 		this.connectorInstance = getEs().wrapConnectorSmbInstance(instanceRecord);
 		this.smbUtils = new ConnectorSmbUtils();
 		schemaDisplayConfig = new SmbSchemaDisplayConfiguration(getEs(), connectorInstance);
@@ -92,12 +100,14 @@ public class ConnectorSmb extends Connector {
 				connectorInstance.getExclusions(),
 				connectorInstance.isSkipShareAccessControl());
 
-		if (smbService == null) {
-			smbService = new SmbServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
+		if (smbShareService == null) {
+			smbShareService = new SmbShareServiceSimpleImpl(credentials, smbRetrievalConfiguration, smbUtils, logger, es);
 		}
 		smbRecordService = new SmbRecordService(es, connectorInstance);
 		updater = new SmbDocumentOrFolderUpdater(connectorInstance, smbRecordService);
-		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbService, smbUtils, smbRecordService,
+		contextServices = new SmbConnectorContextServices(es);
+
+		smbJobFactory = new SmbJobFactoryImpl(this, connectorInstance, eventObserver, smbShareService, smbUtils, smbRecordService,
 				updater);
 	}
 
@@ -105,9 +115,15 @@ public class ConnectorSmb extends Connector {
 	public void start() {
 		getLogger().info(START_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
+		try {
+			context = contextServices.createContext(connectorId);
+		} catch (ConfigManagerRuntimeException.ConfigurationAlreadyExists e) {
+			contextServices.deleteContext(connectorId);
+			context = contextServices.createContext(connectorId);
+		}
+
 		jobsQueue.clear();
 		String resumeUrl = connectorInstance.getResumeUrl();
-		smbJobFactory.updateResumeUrl(resumeUrl);
 		queueSeeds();
 	}
 
@@ -115,8 +131,8 @@ public class ConnectorSmb extends Connector {
 		List<String> sortedSeeds = new ArrayList(connectorInstance.getSeeds());
 		Collections.sort(sortedSeeds, urlComparator);
 		for (String seed : sortedSeeds) {
-			ConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.SEED, seed, "");
-			if (smbDispatchJob != SmbNullJob.getInstance(this)) {
+			SmbConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.SEED, seed, "");
+			if (!(smbDispatchJob instanceof SmbNullJob)) {
 				queueJob(smbDispatchJob);
 			}
 		}
@@ -126,9 +142,9 @@ public class ConnectorSmb extends Connector {
 	public void resume() {
 		getLogger().info(RESUME_OF_TRAVERSAL, "Current TraversalCode : " + connectorInstance.getTraversalCode(),
 				new LinkedHashMap<String, String>());
+		context = contextServices.loadContext(connectorId);
 		jobsQueue.clear();
 		String resumeUrl = connectorInstance.getResumeUrl();
-		smbJobFactory.updateResumeUrl(resumeUrl);
 		queueSeeds();
 	}
 
@@ -150,11 +166,12 @@ public class ConnectorSmb extends Connector {
 
 	@Override
 	public void afterJobs(List<ConnectorJob> jobs) {
+		contextServices.save(context);
 	}
 
 	@Override
 	public List<String> getReportMetadatas(String reportMode) {
-		if (ConnectorReportView.INDEXATION.equals(reportMode)) {
+		if (ConnectorReportView.INDEXING.equals(reportMode)) {
 			return Arrays.asList(ConnectorSmbDocument.URL, ConnectorSmbDocument.FETCHED_DATETIME);
 		} else if (ConnectorReportView.ERRORS.equals(reportMode)) {
 			return Arrays.asList(ConnectorSmbDocument.URL, ConnectorSmbDocument.ERROR_CODE, ConnectorSmbDocument.ERROR_MESSAGE,
@@ -178,28 +195,25 @@ public class ConnectorSmb extends Connector {
 		List<ConnectorJob> jobs = new ArrayList<>();
 
 		while (!jobsQueue.isEmpty() && jobs.size() < MAX_JOBS_PER_GET_JOBS_CALL) {
-			ConnectorJob queuedJob = jobsQueue.poll();
+			SmbConnectorJob queuedJob = jobsQueue.poll();
 			jobs.add(queuedJob);
 		}
 
 		if (jobsQueue.isEmpty() && jobs.isEmpty()) {
-			List<String> urlsOfDocumentsToDelete = smbRecordService.getRecordsWithDifferentTraversalCode();
+			List<String> urlsOfDocumentsToDelete = this.context.staleUrls(this.connectorInstance.getTraversalCode());
 			// Delete jobs are currently not limited to MAX_JOBS_PER_GET_JOBS_CALL
 			for (String url : urlsOfDocumentsToDelete) {
 				ConnectorJob deleteJob = smbJobFactory.get(SmbJobCategory.DELETE, url, "");
-				if (deleteJob != SmbNullJob.getInstance(this)) {
-					jobs.add(deleteJob);
-				}
+				jobs.add(deleteJob);
 			}
 
 			changeTraversalCodeToMarkEndOfTraversal();
-			smbJobFactory.reset();
 			queueSeeds();
 		}
 		return jobs;
 	}
 
-	public void queueJob(ConnectorJob job) {
+	public void queueJob(SmbConnectorJob job) {
 		logger.debug("Queueing job : ", job.toString(), new LinkedHashMap<String, String>());
 		jobsQueue.add(job);
 	}
@@ -211,10 +225,15 @@ public class ConnectorSmb extends Connector {
 
 		connectorInstance.setTraversalCode(newTraversalCode);
 		connectorInstance.setResumeUrl("");
-		smbJobFactory.updateResumeUrl("");
 
-		getLogger().info(END_OF_TRAVERSAL,
-				"Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
+		try {
+			es.getRecordServices().update(connectorInstance);
+		} catch (RecordServicesException e) {
+			logger.errorUnexpected(e);
+		}
+
+		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + connectorInstance.getId() +
+				" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
 				new LinkedHashMap<String, String>());
 	}
 
@@ -232,13 +251,11 @@ public class ConnectorSmb extends Connector {
 	}
 
 	public InputStream getInputStream(ConnectorSmbDocument document, String resourceName) {
-		if (Toggle.TESTING_ACTION_PAT.isEnabled()) {
-			try {
-				return new FileInputStream(new File("/Users/francisbaril/Workspaces/Mécanisme de cache des records V2.docx"));
-			} catch (FileNotFoundException e) {
-				throw new RuntimeException(e);
-			}
+		if (Toggle.SIMULATE_CONNECTOR_DOWNLOAD_CONTENT.isEnabled()) {
+			String dummyContent = "This is not the content you are looking for";
+			return new ByteArrayInputStream(dummyContent.getBytes());
 		}
+
 		SmbFile smbFile = getSmbFile(document);
 		try {
 			InputStream is = smbFile.getInputStream();
@@ -286,5 +303,9 @@ public class ConnectorSmb extends Connector {
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public SmbConnectorContext getContext() {
+		return this.context;
 	}
 }

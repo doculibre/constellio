@@ -1,38 +1,28 @@
 package com.constellio.model.services.schemas.xml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.extractions.DefaultMetadataPopulatorPersistenceManager;
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+import com.constellio.model.services.records.extractions.MetadataPopulatorPersistenceManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
+import com.constellio.model.services.schemas.builders.*;
+import com.constellio.model.utils.ClassProvider;
+import com.constellio.model.utils.InstanciationUtils;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.data.dao.services.DataStoreTypesFactory;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.RegexConfig;
-import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.StructureFactory;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
-import com.constellio.model.services.schemas.builders.MetadataBuilder;
-import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.utils.ClassProvider;
-import com.constellio.model.utils.InstanciationUtils;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class MetadataSchemaXMLReader2 {
 
@@ -41,6 +31,7 @@ public class MetadataSchemaXMLReader2 {
 	public static final String FORMAT_VERSION = "2";
 
 	ClassProvider classProvider;
+	private final MetadataPopulatorPersistenceManager metadataPopulatorXMLSerializer = new DefaultMetadataPopulatorPersistenceManager();
 
 	public MetadataSchemaXMLReader2(ClassProvider classProvider) {
 		this.classProvider = classProvider;
@@ -52,7 +43,7 @@ public class MetadataSchemaXMLReader2 {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider);
+				.createWithVersion(collection, version, classProvider, Arrays.asList(Language.French));
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseProfilType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
@@ -62,8 +53,11 @@ public class MetadataSchemaXMLReader2 {
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
-				.setLabel(getLabelValue(element));
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false);
+
+		for (Language language : typesBuilder.getLanguages()) {
+			schemaTypeBuilder = schemaTypeBuilder.addLabel(language, getLabelValue(element));
+		}
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
 				null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
@@ -86,7 +80,7 @@ public class MetadataSchemaXMLReader2 {
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement,
 			MetadataSchemaBuilder collectionSchema) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
-		schemaBuilder.setLabel(getLabelValue(schemaElement));
+		schemaBuilder.addLabel(Language.French, getLabelValue(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
@@ -108,7 +102,7 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder = schemaBuilder.create(codeValue);
 		}
 
-		metadataBuilder.setLabel(getLabelValue(metadataElement));
+		metadataBuilder.addLabel(Language.French, getLabelValue(metadataElement));
 
 		String localCode = metadataBuilder.getLocalCode();
 
@@ -149,6 +143,8 @@ public class MetadataSchemaXMLReader2 {
 			metadataBuilder.setDefaultValue(defaultValue);
 		}
 
+		metadataBuilder.setDuplicable(false);
+
 		setPopulateConfigs(metadataBuilder, metadataElement);
 	}
 
@@ -171,6 +167,7 @@ public class MetadataSchemaXMLReader2 {
 				metadataBuilder.setDefaultRequirement(readBoolean(defaultRequirementStringValue));
 			}
 
+			metadataBuilder.setDuplicable(false);
 		}
 
 		MetadataBuilder globalMetadataInCollectionSchema = null;
@@ -184,9 +181,9 @@ public class MetadataSchemaXMLReader2 {
 
 		String xmlLabel = getLabelValue(metadataElement);
 		if (inheriteGlobalMetadata && xmlLabel == null) {
-			metadataBuilder.setLabel(globalMetadataInCollectionSchema.getLabel());
+			metadataBuilder.setLabels(globalMetadataInCollectionSchema.getLabels());
 		} else {
-			metadataBuilder.setLabel(xmlLabel);
+			metadataBuilder.addLabel(Language.French, xmlLabel);
 		}
 
 		List<String> validatorsClassNames = parseValidators(metadataElement, globalMetadataInCollectionSchema);
@@ -342,6 +339,7 @@ public class MetadataSchemaXMLReader2 {
 		List<String> styles = new ArrayList<>();
 		List<String> properties = new ArrayList<>();
 		List<RegexConfig> regexes = new ArrayList<>();
+		List<MetadataPopulator> metadataPopulators = new ArrayList<>();
 
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
@@ -355,12 +353,28 @@ public class MetadataSchemaXMLReader2 {
 				Element regexConfigsElement = populateConfigsElement.getChild("regexConfigs");
 				addRegexConfigElementsToList(regexConfigsElement, regexes);
 			}
+			if (populateConfigsElement.getChild("metadataPopulators") != null){
+				Element metadataPopulatorsElement = populateConfigsElement.getChild("metadataPopulators");
+				addMetadataPopulateElementsToList(metadataPopulatorsElement, metadataPopulators);
+			}
+
 		}
 		MetadataPopulateConfigsBuilder metadataPopulateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
 		metadataPopulateConfigsBuilder.setStyles(styles);
 		metadataPopulateConfigsBuilder.setProperties(properties);
 		metadataPopulateConfigsBuilder.setRegexes(regexes);
+		metadataPopulateConfigsBuilder.setMetadataPopulators(metadataPopulators);
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
+	}
+
+	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement, List<MetadataPopulator> metadataPopulators) {
+		for (Element metadataPopulatorElement: metadataPopulatorsElement.getChildren()){
+			try {
+				metadataPopulators.add(metadataPopulatorXMLSerializer.fromXML(metadataPopulatorElement));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private void addRegexConfigElementsToList(Element element, List<RegexConfig> listToAdd) {
@@ -499,7 +513,7 @@ public class MetadataSchemaXMLReader2 {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
-		defaultSchemaBuilder.setLabel(getLabelValue(defaultSchemaElement));
+		defaultSchemaBuilder.addLabel(Language.French, getLabelValue(defaultSchemaElement));
 		//	new CommonMetadataBuilder().addCommonMetadataToExistingSchema(defaultSchemaBuilder, typesBuilder);
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);

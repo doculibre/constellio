@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -18,6 +19,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
@@ -68,6 +70,7 @@ public class MetadataToVOBuilder implements Serializable {
 
 		String[] taxonomyCodes;
 		MetadataInputType metadataInputType;
+		MetadataDisplayType metadataDisplayType;
 		String metadataGroup;
 
 		if (collection != null) {
@@ -102,31 +105,48 @@ public class MetadataToVOBuilder implements Serializable {
 			MetadataDisplayConfig metadataDisplayConfig = schemasDisplayManager.getMetadata(collection, metadataCode);
 
 			metadataInputType = metadataDisplayConfig.getInputType();
-			metadataGroup = metadataDisplayConfig.getMetadataGroup();
+			metadataDisplayType = metadataDisplayConfig.getDisplayType();
 
+			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+			metadataGroup = metadataDisplayConfig.getMetadataGroupCode();
+			String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
+			Map<String, Map<Language, String>> groups = schemasDisplayManager.getType(collection, typeCode)
+					.getMetadataGroup();
 			if (StringUtils.isBlank(metadataGroup)) {
-				String typeCode = new SchemaUtils().getSchemaTypeCode(metadataCode);
-				List<String> groups = schemasDisplayManager.getType(collection, typeCode).getMetadataGroup();
-				metadataGroup = groups.isEmpty() ? null : groups.get(0);
+				if (groups.keySet().isEmpty()) {
+					metadataGroup = null;
+				} else {
+					metadataGroup = groups.entrySet().iterator().next().getValue().get(language);
+					for (Map.Entry<String, Map<Language, String>> entry : groups.entrySet()) {
+						if (entry.getKey().startsWith("default")) {
+							metadataGroup = entry.getValue().get(language);
+						}
+					}
+				}
+			} else if (groups.get(metadataGroup) != null && !metadataGroup.equals(groups.get(metadataGroup).get(language))) {
+				metadataGroup = groups.get(metadataGroup).get(language);
 			}
 		} else {
 			taxonomyCodes = new String[0];
 			metadataInputType = null;
+			metadataDisplayType = null;
 			metadataGroup = null;
 		}
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
-		labels.put(sessionContext.getCurrentLocale(), metadata.getLabel());
+		labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
+				Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
-		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
-				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
+		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
+				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled, structureFactory,
 				metadataGroup, metadata.getDefaultValue(), metadata.getInputMask());
 	}
 
 	protected MetadataVO newMetadataVO(
 			String metadataCode,
+			String datastoreCode,
 			MetadataValueType type,
 			String collection,
 			MetadataSchemaVO schemaVO,
@@ -138,15 +158,16 @@ public class MetadataToVOBuilder implements Serializable {
 			String[] taxonomyCodes,
 			String schemaTypeCode,
 			MetadataInputType metadataInputType,
+			MetadataDisplayType metadataDisplayType,
 			AllowedReferences allowedReferences,
 			boolean enabled,
 			StructureFactory structureFactory,
 			String metadataGroup,
 			Object defaultValue,
-			boolean isWriteNullValues) {
-		return new MetadataVO(metadataCode, type, collection, schemaVO, required, multivalue, readOnly, labels, enumClass,
-				taxonomyCodes, schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory,
-				metadataGroup, defaultValue);
+			String inputMask) {
+		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, labels,
+				enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled, structureFactory,
+				metadataGroup, defaultValue, inputMask);
 	}
 
 }

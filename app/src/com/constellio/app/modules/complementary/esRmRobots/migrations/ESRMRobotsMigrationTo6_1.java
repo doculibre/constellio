@@ -11,6 +11,9 @@ import static com.constellio.app.modules.complementary.esRmRobots.model.Classify
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderInTaxonomyActionParameters.FOLDER_MAPPING;
 import static java.util.Arrays.asList;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -27,6 +30,7 @@ import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -140,11 +144,15 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 	private void configureClassifyInTaxonomyParametersForm(String collection,
 			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
 
-		String taxonomyTab = migrationResourcesProvider.get("tab.taxonomy");
-		String optionsTab = migrationResourcesProvider.get("tab.options");
-		String defaultValuesTab = migrationResourcesProvider.get("tab.defaultValues");
-		String mappingsTab = migrationResourcesProvider.get("tab.mappings");
-		String advancedTab = migrationResourcesProvider.get("tab.advanced");
+		Language language = migrationResourcesProvider.getLanguage();
+
+		Map<Language, String> labels = new HashMap<>();
+
+		String taxonomyTab = "default:tab.taxonomy";
+		String optionsTab = "tab.options";
+		String defaultValuesTab = "tab.defaultValues";
+		String mappingsTab = "tab.mappings";
+		String advancedTab = "tab.advanced";
 
 		String inFolderSchema = ClassifyConnectorFolderInParentFolderActionParameters.SCHEMA;
 		String inPlanSchema = ClassifyConnectorFolderDirectlyInThePlanActionParameters.SCHEMA;
@@ -152,8 +160,9 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = schemasDisplayManager.newTransactionBuilderFor(collection);
 
-		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE)
-				.withNewMetadataGroup(advancedTab));
+		transaction.add(schemasDisplayManager.getType(collection, ActionParameters.SCHEMA_TYPE).withNewMetadataGroup(
+				migrationResourcesProvider.getLanguageMap(
+						asList(taxonomyTab, optionsTab, defaultValuesTab, mappingsTab, advancedTab))));
 
 		transaction.add(schemasDisplayManager.getSchema(collection, inPlanSchema).withFormMetadataCodes(asList(
 				inPlanSchema + "_" + ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_ADMIN_UNIT,
@@ -207,6 +216,9 @@ public class ESRMRobotsMigrationTo6_1 implements MigrationScript {
 				.withMetadataGroup(advancedTab));
 		transaction.add(schemasDisplayManager.getMetadata(collection, inFolderSchema, ACTION_AFTER_CLASSIFICATION)
 				.withMetadataGroup(optionsTab));
+
+		transaction.add(schemasDisplayManager.getSchema(collection, "robotLog_default")
+				.withNewTableMetadatas("robotLog_default_count"));
 
 		schemasDisplayManager.execute(transaction.build());
 	}

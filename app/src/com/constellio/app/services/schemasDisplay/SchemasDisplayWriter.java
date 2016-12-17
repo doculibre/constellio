@@ -1,8 +1,12 @@
 package com.constellio.app.services.schemasDisplay;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -13,6 +17,8 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.model.entities.Language;
 
 public class SchemasDisplayWriter {
 	private static final String ROOT = "display";
@@ -32,12 +38,19 @@ public class SchemasDisplayWriter {
 	private static final String TABLE_METADATA_CODES = "TableMetadataCodes";
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
+	private static final String DISPLAY_TYPE = "DisplayType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUP_LABEL = "MetadataGroupLabel";
 	private static final String METADATA_GROUPS_LABELS = "MetadataGroupsLabels";
-	private static final String METADATA_GROUP_NAME = "name";
+	private static final String LABELS = "labels";
+	private static final String METADATA_GROUP_CODE = "code";
 	private static final String METADATA_GROUP = "metadataGroup";
+
+	public static final String FORMAT_ATTRIBUTE = "format";
+	public static final String FORMAT_VERSION = SchemasDisplayReader2.FORMAT_VERSION;
+
+	public static final String LABEL_SEPARATOR = ";;";
 
 	Document document;
 
@@ -48,6 +61,7 @@ public class SchemasDisplayWriter {
 	public void writeEmptyDocument() {
 		Element display = new Element(ROOT);
 		document.setRootElement(display);
+		document.getRootElement().setAttribute(FORMAT_ATTRIBUTE, FORMAT_VERSION);
 	}
 
 	public void saveTypes(SchemaTypesDisplayConfig config) {
@@ -127,6 +141,33 @@ public class SchemasDisplayWriter {
 		return newElement;
 	}
 
+	private Element createMetadataGroupLabel(Element rootElement, String codeValue, Map<Language, String> labelsValue) {
+		Element newElement;
+		newElement = new Element(METADATA_GROUP_LABEL);
+		if (StringUtils.isNotBlank(METADATA_GROUP_CODE)) {
+			newElement.setAttribute(METADATA_GROUP_CODE, codeValue != null ? codeValue : "");
+			newElement.setAttribute(LABELS, labelToSemiColonStringSeparated(labelsValue));
+		}
+		rootElement.addContent(newElement);
+		return newElement;
+	}
+
+	private String labelToSemiColonStringSeparated(Map<Language, String> labels) {
+		StringBuilder stringBuilder = new StringBuilder();
+		List<Entry<Language, String>> entries = new ArrayList<>(labels.entrySet());
+		Collections.sort(entries, new Comparator<Entry<Language, String>>() {
+			@Override
+			public int compare(Entry<Language, String> o1, Entry<Language, String> o2) {
+				return o1.getKey().getCode().compareTo(o2.getKey().getCode());
+			}
+		});
+
+		for (Entry<Language, String> entry : entries) {
+			stringBuilder.append(entry.getKey().getCode() + "=" + entry.getValue() + LABEL_SEPARATOR);
+		}
+		return stringBuilder.toString();
+	}
+
 	public void saveType(SchemaTypeDisplayConfig config) {
 		Element rootElement = document.getRootElement();
 
@@ -148,8 +189,8 @@ public class SchemasDisplayWriter {
 			metadataGroups.removeChildren(METADATA_GROUP_LABEL);
 		}
 
-		for (String group : config.getMetadataGroup()) {
-			createAndAddElement(metadataGroups, METADATA_GROUP_LABEL, METADATA_GROUP_NAME, group);
+		for (String code : config.getMetadataGroup().keySet()) {
+			createMetadataGroupLabel(metadataGroups, code, config.getMetadataGroup().get(code));
 		}
 	}
 
@@ -199,8 +240,12 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
+		if (config.getDisplayType() != null && config.getDisplayType() != MetadataDisplayType.VERTICAL) {
+			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
+		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
-		metadata.setAttribute(METADATA_GROUP, config.getMetadataGroup());
+		metadata.setAttribute(METADATA_GROUP,
+				StringUtils.isBlank(config.getMetadataGroupCode()) ? "" : config.getMetadataGroupCode());
 	}
 
 	public void resetSchema(String code) {
@@ -222,4 +267,5 @@ public class SchemasDisplayWriter {
 			}
 		}
 	}
+
 }

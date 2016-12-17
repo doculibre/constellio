@@ -76,7 +76,6 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	@Override
 	public void setValue(String newFieldValue)
 			throws ReadOnlyException, ConversionException {
-		System.out.println("Setting value to: " + newFieldValue);
 		value = newFieldValue;
 		super.setValue(newFieldValue);
 		table.refreshRowCache();
@@ -85,6 +84,12 @@ public class FolderRetentionRuleFieldImpl extends CustomField<String> implements
 	@Override
 	public void setFieldValue(Object value) {
 		setValue((String) value);
+	}
+
+	@Override
+	protected void setInternalValue(String newValue) {
+		super.setInternalValue(newValue);
+		this.value = newValue;
 	}
 
 	private List<Record> loadRetentionRules(List<String> options) {

@@ -133,6 +133,11 @@ public class CollectionManagementViewImpl extends BaseViewImpl
 	}
 
 	@Override
+	public void onCollectionDeleted(String collection) {
+		refreshTable();
+	}
+
+	@Override
 	protected ClickListener getBackButtonClickListener() {
 		return new ClickListener() {
 			@Override

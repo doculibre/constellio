@@ -21,8 +21,11 @@ public class ValueRequirementValidator implements Validator<Record> {
 
 	private final List<Metadata> metadatas;
 
-	public ValueRequirementValidator(List<Metadata> metadatas) {
+	private boolean skipUSRMetadatas;
+
+	public ValueRequirementValidator(List<Metadata> metadatas, boolean skipUSRMetadatas) {
 		this.metadatas = metadatas;
+		this.skipUSRMetadatas = skipUSRMetadatas;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -30,17 +33,20 @@ public class ValueRequirementValidator implements Validator<Record> {
 	public void validate(Record record, ValidationErrors validationErrors) {
 		for (Metadata metadata : metadatas) {
 			Object value = record.get(metadata);
-			if (metadata.isDefaultRequirement() && (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
+			if (metadata.isDefaultRequirement()
+					&& (!metadata.getLocalCode().startsWith("USR") || !skipUSRMetadatas)
+					&& (value == null || (metadata.isMultivalue() && ((List) value).size() == 0))
 					&& metadata.isEnabled()) {
-				addValidationErrors(validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
+				addValidationErrors(record.getId(), validationErrors, REQUIRED_VALUE_FOR_METADATA, metadata);
 			}
 		}
 	}
 
-	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Metadata metadata) {
-		Map<String, String> parameters = new HashMap<>();
+	private void addValidationErrors(String recordId, ValidationErrors validationErrors, String errorCode, Metadata metadata) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(RECORD, recordId);
 		parameters.put(METADATA_CODE, metadata.getCode());
-		parameters.put(METADATA_LABEL, metadata.getLabel());
+		parameters.put(METADATA_LABEL, metadata.getLabelsByLanguageCodes());
 		if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			List<String> basedOnMetadatas = new ArrayList<>();
 			CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();

@@ -2,6 +2,8 @@ package com.constellio.app.services.migrations.scripts;
 
 import static java.util.Arrays.asList;
 
+import java.util.Map;
+
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -9,6 +11,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -31,16 +34,20 @@ public class CoreMigrationTo_5_1_7 implements MigrationScript {
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
-		String configurationTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.configuration");
-		String valeursTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.values");
-		String queryTab = migrationResourcesProvider.getDefaultLanguageString("init.facetConfiguration.query");
+		String configurationTab = "default:init.facetConfiguration.configuration";
+		String valeursTab = "init.facetConfiguration.values";
+		String queryTab = "init.facetConfiguration.query";
+
+		Language language = migrationResourcesProvider.getLanguage();
+		Map<String, Map<Language, String>> groups = migrationResourcesProvider.getLanguageMap(
+				asList(configurationTab, valeursTab, queryTab));
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 		SchemaTypeDisplayConfig facetSchemaType = manager.getType(collection, Facet.SCHEMA_TYPE);
 
 		transaction.add(facetSchemaType
-				.withMetadataGroup(asList(configurationTab, valeursTab, queryTab)));
+				.withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, Facet.DEFAULT_SCHEMA, Facet.TITLE)
 				.withMetadataGroup(configurationTab));

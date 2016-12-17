@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.search;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -22,6 +17,10 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.*;
+
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
 public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<SearchDisplayConfigView> {
 
@@ -50,13 +49,24 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
-			FormMetadataVO metadataVO = builder.build(metadata, displayManager, parameters.get("schemaTypeCode"));
-			if (this.isAllowedMetadata(metadataVO)) {
+			FormMetadataVO metadataVO = builder
+					.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
+			if (this.isAllowedMetadata(metadataVO) && metadata.isEnabled()) {
 				formMetadataVOs.add(metadataVO);
 			}
 		}
+
+		final String language = view.getSessionContext().getCurrentLocale().getLanguage();
+		Collections.sort(formMetadataVOs, new Comparator<FormMetadataVO>() {
+			@Override
+			public int compare(FormMetadataVO o1, FormMetadataVO o2) {
+				String s1 = removeAccents(o1.getLabel(language).toLowerCase());
+				String s2 = removeAccents(o2.getLabel(language).toLowerCase());
+				return s1.compareTo(s2);
+			}
+		});
 
 		return formMetadataVOs;
 	}
@@ -67,10 +77,11 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 		List<String> codeList = displayManager.getSchema(collection, getSchemaCode()).getSearchResultsMetadataCodes();
 
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (String metadataCode : codeList) {
 			Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
-			formMetadataVOs.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode")));
+			formMetadataVOs
+					.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;
@@ -89,7 +100,7 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 
 		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
 
-		return result;
+		return result && metadataVO.isEnabled();
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> schemaVOs) {
@@ -109,11 +120,11 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 		manager.saveSchema(config);
 
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 
 	public void cancelButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 }

@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.schemas.MetadataList;
 
 public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
@@ -28,10 +29,10 @@ public class ReindexMetadatasBatchProcessAction implements BatchProcessAction {
 	}
 
 	@Override
-	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes) {
+	public Transaction execute(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		Transaction transaction = new Transaction();
 		MetadataList reindexedMetadatas = schemaTypes.getMetadatas(reindexedMetadataCodes);
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(new TransactionRecordsReindexation(reindexedMetadatas));
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(new TransactionRecordsReindexation(reindexedMetadatas));
 		transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		transaction.setSkippingRequiredValuesValidation(true);
 		transaction.addUpdate(batch);

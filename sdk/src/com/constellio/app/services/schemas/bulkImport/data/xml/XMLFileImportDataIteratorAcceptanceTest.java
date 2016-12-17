@@ -75,6 +75,22 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 	}
 
 	@Test
+	public void whenReadXMLFileThenValidOptions()
+			throws Exception {
+		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("data.xml"), ioServices);
+		assertThat(importDataIterator.getOptions().isImportAsLegacyId()).isTrue();
+		importDataIterator.close();
+
+		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("dataWithOptions1.xml"), ioServices);
+		assertThat(importDataIterator.getOptions().isImportAsLegacyId()).isFalse();
+		importDataIterator.close();
+
+		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("dataWithOptions2.xml"), ioServices);
+		assertThat(importDataIterator.getOptions().isImportAsLegacyId()).isTrue();
+		importDataIterator.close();
+	}
+
+	@Test
 	public void whenIteratingOnDataWithSubstructures()
 			throws FileNotFoundException {
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("calendrierConservationTest.xml"), ioServices);

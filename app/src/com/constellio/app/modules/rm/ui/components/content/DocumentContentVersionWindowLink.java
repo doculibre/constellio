@@ -18,7 +18,7 @@ public class DocumentContentVersionWindowLink extends WindowButton {
 	private VerticalLayout windowLayout;
 
 	public DocumentContentVersionWindowLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
-		super(caption, $("DownloadDocumentContentVersionLink.windowTitle"));
+		super(caption, $("DocumentContentVersionWindow.windowTitle"));
 		addStyleName(ValoTheme.BUTTON_LINK);
 		
 		this.recordVO = recordVO;

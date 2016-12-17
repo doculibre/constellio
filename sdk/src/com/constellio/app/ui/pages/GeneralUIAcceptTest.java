@@ -1,11 +1,11 @@
 package com.constellio.app.ui.pages;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -26,7 +26,7 @@ public class GeneralUIAcceptTest extends ConstellioTest {
 				withCollection("otherCollection").withConstellioRMModule().withAllTestUsers()
 		);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 
@@ -35,7 +35,7 @@ public class GeneralUIAcceptTest extends ConstellioTest {
 	@Test
 	@InDevelopmentTest
 	public void navigateToDisplayFolder() {
-		driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_FOLDER + "/C30");
+		driver.navigateTo().url(RMNavigationConfiguration.DISPLAY_FOLDER + "/C30");
 		waitUntilICloseTheBrowsers();
 	}
 }

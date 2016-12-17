@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +16,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -71,7 +71,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 		//filingSpaceFinder = filingSpaceFinderB;
 		retentionRule = "1";
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		getConfigurationManager().setValue(RMConfigs.COPY_RULE_PRINCIPAL_REQUIRED, false);
 
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -299,7 +299,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 	public void whenAddingFolderThenLinearSizeIsInvisible()
 			throws Exception {
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
-		driver.navigateTo().url(NavigatorConfigurationService.ADD_FOLDER);
+		driver.navigateTo().url(RMNavigationConfiguration.ADD_FOLDER);
 		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
 
 		assertThat(zeForm.isVisible("folder_default_linearSize")).isFalse();
@@ -407,7 +407,7 @@ public class CreateFolderAcceptanceTest extends ConstellioTest {
 
 	private void navigateToAddFolderFormLoggedAs(String user, String collection) {
 		driver = newWebDriver(loggedAsUserInCollection(user, collection));
-		driver.navigateTo().url(NavigatorConfigurationService.ADD_FOLDER);
+		driver.navigateTo().url(RMNavigationConfiguration.ADD_FOLDER);
 		zeForm = new RecordFormWebElement(driver.findElement(By.className(BaseForm.BASE_FORM)));
 	}
 

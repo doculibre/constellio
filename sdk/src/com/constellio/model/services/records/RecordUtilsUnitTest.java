@@ -58,24 +58,37 @@ public class RecordUtilsUnitTest extends ConstellioTest {
 			throws Exception {
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "patate", MetadataValueType.STRING, true)))
+				Metadata.newDummyMetadata("zeSchema_default", "patate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "USRpatate", MetadataValueType.STRING, true)))
+				Metadata.newDummyMetadata("zeSchema_default", "USRpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "MAPpatate", MetadataValueType.STRING, true)))
+				Metadata.newDummyMetadata("zeSchema_default", "MAPpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "USRMAPpatate", MetadataValueType.STRING, true)))
+				Metadata.newDummyMetadata("zeSchema_default", "USRMAPpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
 
 		assertThat(SchemaUtils.getMetadataLocalCodeWithoutPrefix(
-				Metadata.newDummyMetadata("zeSchema_default", "MAPUSRpatate", MetadataValueType.STRING, true)))
+				Metadata.newDummyMetadata("zeSchema_default", "MAPUSRpatate", MetadataValueType.STRING, true, false)))
 				.isEqualTo("patate");
+
+	}
+
+	@Test
+	public void whenGetIdWithoutZerosThenOk()
+			throws Exception {
+
+		assertThat(RecordUtils.removeZerosInId("0000042")).isEqualTo("42");
+		assertThat(RecordUtils.removeZerosInId("000000")).isEqualTo("000000");
+		assertThat(RecordUtils.removeZerosInId("0")).isEqualTo("0");
+		assertThat(RecordUtils.removeZerosInId("101")).isEqualTo("101");
+		assertThat(RecordUtils.removeZerosInId("00000420")).isEqualTo("420");
+		assertThat(RecordUtils.removeZerosInId("hohoho")).isEqualTo("hohoho");
 
 	}
 }

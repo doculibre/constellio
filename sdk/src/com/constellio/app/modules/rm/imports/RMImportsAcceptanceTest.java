@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
 import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
 import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
@@ -26,8 +27,8 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withAllTestUsers().withConstellioRMModule()
 		);
-		importServices = new RecordsImportServices(getModelLayerFactory(), 1);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		importServices = new RecordsImportServices(getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		ImportDataProvider importDataProvider = XMLImportDataProvider.forZipFile(
 				getModelLayerFactory(), getTestResourceFile("data.zip"));
@@ -36,9 +37,11 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
-		importServices.bulkImport(importDataProvider, progressionListener, admin);
+		BulkImportParams params = new BulkImportParams();
+		params.setBatchSize(1);
+		importServices.bulkImport(importDataProvider, progressionListener, admin, params);
 
-		RetentionRule rule1 = rm.getRetentionRuleByCode("111200");
+		RetentionRule rule1 = rm.getRetentionRuleWithCode("111200");
 		assertThat(rule1.getDocumentTypesDetails()).isNotEmpty();
 		assertThat(rule1.getDocumentTypes()).isNotEmpty();
 

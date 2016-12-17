@@ -32,6 +32,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
@@ -53,6 +54,7 @@ import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransactio
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -90,11 +92,13 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
-		String definitionTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.definition");
-		String filesTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
-		String assignmentTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.assignment");
-		String remindersTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.remindersTab");
-		String followersTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.followersTab");
+		Language language = migrationResourcesProvider.getLanguage();
+
+		String definitionTab = "default:init.userTask.definition";
+		String filesTab = "init.userTask.details";
+		String assignmentTab = "init.userTask.assignment";
+		String remindersTab = "init.userTask.remindersTab";
+		String followersTab = "init.userTask.followersTab";
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
@@ -102,7 +106,8 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		SchemaDisplayConfig taskSchema = manager.getSchema(collection, Task.DEFAULT_SCHEMA);
 
 		transaction.add(taskSchemaType
-				.withMetadataGroup(asList(definitionTab, filesTab, assignmentTab, remindersTab, followersTab))
+				.withMetadataGroup(migrationResourcesProvider.getLanguageMap(asList(
+						definitionTab, filesTab, assignmentTab, remindersTab, followersTab)))
 				.withAdvancedSearchStatus(true).withSimpleSearchStatus(true));
 
 		transaction.add(taskSchema
@@ -243,7 +248,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		private MetadataSchemaTypeBuilder createTaskStatusType() {
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 					.createValueListItemSchema(TaskStatus.SCHEMA_TYPE, "Statut",
-							ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE)
+							ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
@@ -274,7 +279,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			String label = migrationResourcesProvider.getDefaultLanguageString("init.ddvTaskType");
 			MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(typesBuilder)
 					.createValueListItemSchema(
-							TaskType.SCHEMA_TYPE, label, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE)
+							TaskType.SCHEMA_TYPE, label, ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique())
 					.setSecurity(false);
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 			schema.create(TaskType.LINKED_SCHEMA).setType(STRING);

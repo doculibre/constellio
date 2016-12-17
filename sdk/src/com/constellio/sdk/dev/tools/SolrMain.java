@@ -1,36 +1,99 @@
 package com.constellio.sdk.dev.tools;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 public class SolrMain {
 
+	static HttpSolrClient client;
+
 	public static void main(String argv[])
 			throws SolrServerException, IOException {
 
-		HttpSolrClient server = new HttpSolrClient("http://localhost:8983/solr/records");
-		server.commit();
+		client = new HttpSolrClient("http://localhost:8983/solr/records");
+		client.commit();
 		long start = new Date().getTime();
 
+		client.deleteById("seq");
+		client.commit();
+
+		SolrInputDocument doc = new SolrInputDocument();
+		doc.addField("id", "seq");
+		doc.addField("items_ss", atomicAdd("item1"));
+		client.add(doc);
+		client.commit();
+		printItems();
+
+		doc = new SolrInputDocument();
+		doc.addField("id", "seq");
+		doc.addField("items_ss", atomicAdd("item2"));
+		client.add(doc);
+		client.commit();
+		printItems();
+
+		doc = new SolrInputDocument();
+		doc.addField("id", "seq");
+		doc.addField("items_ss", atomicAdd("item3"));
+		client.add(doc);
+		client.commit();
+		printItems();
+
+		doc = new SolrInputDocument();
+		doc.addField("id", "seq");
+		doc.addField("items_ss", atomicAdd("item1"));
+		client.add(doc);
+		client.commit();
+		printItems();
+
+		doc = new SolrInputDocument();
+		doc.addField("id", "seq");
+		doc.addField("items_ss", atomicAdd("item4"));
+		client.add(doc);
+		client.commit();
+		printItems();
+
+		doc = new SolrInputDocument();
+		doc.addField("id", "seq");
+		doc.addField("items_ss", atomicReplace("item1", "item5"));
+		client.add(doc);
+		client.commit();
+		printItems();
+
+	}
+
+	private static void printItems() {
 		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", "pathParts_ss:taxo1_0_*");
-		params.set("group.facet", "true");
-		params.set("group.field", "pathParts_ss");
+		params.set("q", "id:seq");
+		try {
+			QueryResponse response = client.query(params);
+			System.out.println(response.getResults().get(0).getFieldValues("items_ss"));
+		} catch (SolrServerException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-		//			params.set("fq", "{!cache=true cost=0}id0_s:" + id.substring(10, 11));
-		//			params.set("fq", "id1_s:" + id.substring(9, 10));
-		//			params.set("fq", "id2_s:" + id.substring(8, 9));
-		//			params.set("fq", "id3_s:" + id.substring(7, 8));
-		//			params.set("fq", "id4_s:" + id.substring(6, 7));
+	private static Map<String, Object> atomicAdd(String value) {
+		return Collections.singletonMap("add", (Object) value);
+	}
 
-		System.out.println(server.query(params).getResults());
+	private static Map<String, Object> atomicRemove(String value) {
+		return Collections.singletonMap("remove", (Object) value);
+	}
 
+	private static Map<String, Object> atomicReplace(String value1, String value2) {
+		Map<String, Object> objectMap = new HashMap<>();
+		objectMap.put("remove", value1);
+		objectMap.put("add", value2);
+		return objectMap;
 	}
 
 	private static Map<String, Object> newSetMap(String value) {

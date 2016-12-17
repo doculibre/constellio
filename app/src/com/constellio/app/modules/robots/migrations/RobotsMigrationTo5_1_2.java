@@ -1,9 +1,9 @@
 package com.constellio.app.modules.robots.migrations;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
@@ -21,6 +21,7 @@ import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransactio
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
@@ -49,12 +50,14 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		SchemaDisplayManagerTransaction transaction = new SchemaDisplayManagerTransaction();
 
-		String definition = provider.getDefaultLanguageString("init.robot.tabs.definition");
-		String criteria = provider.getDefaultLanguageString("init.robot.tabs.criteria");
-		String action = provider.getDefaultLanguageString("init.robot.tabs.action");
+		Language language = provider.getLanguage();
+
+		String definition = "default:init.robot.tabs.definition";
+		String criteria = "init.robot.tabs.criteria";
+		String action = "init.robot.tabs.action";
 
 		SchemaTypeDisplayConfig type = manager.getType(collection, Robot.SCHEMA_TYPE);
-		transaction.add(type.withMetadataGroup(Arrays.asList(definition, criteria, action)));
+		transaction.add(type.withMetadataGroup(provider.getLanguageMap(asList(definition, criteria, action))));
 
 		transaction.add(manager.getMetadata(collection, Robot.DEFAULT_SCHEMA, Robot.PARENT)
 				.withInputType(MetadataInputType.HIDDEN));

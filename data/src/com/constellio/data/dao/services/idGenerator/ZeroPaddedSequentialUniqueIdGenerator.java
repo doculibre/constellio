@@ -12,29 +12,29 @@ import com.constellio.data.dao.managers.config.PropertiesAlteration;
 
 public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, UniqueIdGenerator {
 
-	private static final String CONFIG_PATH = "/sequence.properties";
-
 	private final ConfigManager configManager;
 	private final int reservedBatchSize;
+	private final String configPath;
 	private Iterator<Long> idReservedByInstance = Collections.emptyIterator();
 
-	public ZeroPaddedSequentialUniqueIdGenerator(ConfigManager configManager, int reservedBatchSize) {
+	public ZeroPaddedSequentialUniqueIdGenerator(ConfigManager configManager, String configPath) {
+		this(configManager, configPath, 1000);
+	}
+
+	public ZeroPaddedSequentialUniqueIdGenerator(ConfigManager configManager, String configPath, int reservedBatchSize) {
 		this.configManager = configManager;
 		this.reservedBatchSize = reservedBatchSize;
+		this.configPath = configPath;
 	}
 
 	@Override
 	public void initialize() {
-		configManager.createPropertiesDocumentIfInexistent(CONFIG_PATH, new PropertiesAlteration() {
+		configManager.createPropertiesDocumentIfInexistent(configPath, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
 				properties.put("next", "1");
 			}
 		});
-	}
-
-	public ZeroPaddedSequentialUniqueIdGenerator(ConfigManager configManager) {
-		this(configManager, 1000);
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 	}
 
 	private void reserve() {
-		configManager.updateProperties(CONFIG_PATH, new PropertiesAlteration() {
+		configManager.updateProperties(configPath, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
 				Long current = Long.valueOf(properties.get("next"));
@@ -62,7 +62,7 @@ public class ZeroPaddedSequentialUniqueIdGenerator implements StatefulService, U
 		});
 	}
 
-	private String zeroPaddedNumber(long seq) {
+	public static String zeroPaddedNumber(long seq) {
 		String zeroPaddedSeq = ("0000000000" + seq);
 		return zeroPaddedSeq.substring(zeroPaddedSeq.length() - 11);
 	}

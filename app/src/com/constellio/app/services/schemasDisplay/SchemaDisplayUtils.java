@@ -36,7 +36,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class SchemaDisplayUtils {
 
 	public static MetadataList getRequiredMetadatasInSchemaForm(MetadataSchema schema) {
-		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle();
+		return getAvailableMetadatasInSchemaForm(schema).onlyEssentialMetadatasAndCodeTitle().onlyManuals();
 	}
 
 	public static MetadataList getAvailableMetadatasInSchemaForm(MetadataSchema schema) {
@@ -74,7 +74,7 @@ public class SchemaDisplayUtils {
 			Integer priority2 = getPriority(metadata2);
 
 			if (priority1.equals(priority2)) {
-				return metadata1.getLabel().compareTo(metadata2.getLabel());
+				return metadata1.getCode().compareTo(metadata2.getCode());
 			} else {
 				return priority1.compareTo(priority2);
 			}
@@ -124,7 +124,7 @@ public class SchemaDisplayUtils {
 			Integer priority2 = getPriority(metadata2);
 
 			if (priority1.equals(priority2)) {
-				return metadata1.getLabel().compareTo(metadata2.getLabel());
+				return metadata1.getCode().compareTo(metadata2.getCode());
 			} else {
 				return priority1.compareTo(priority2);
 			}

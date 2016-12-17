@@ -13,6 +13,7 @@ public class SmbFileDTO {
 	};
 
 	public static final String URL = "url";
+	public static final String CREATE_TIME = "createTime";
 	public static final String LAST_MODIFIED = "lastModified";
 	public static final String IS_FILE = "isFile";
 	public static final String IS_DIRECTORY = "isDirectory";
@@ -28,6 +29,7 @@ public class SmbFileDTO {
 	public static final String DENY_SHARE_TOKENS = "denyShareTokens";
 
 	private String url = "";
+	private long createTime = -10;
 	private long lastModified = -10;
 	private LocalDateTime lastFetched = new LocalDateTime();
 	private long length = -10;
@@ -49,6 +51,7 @@ public class SmbFileDTO {
 
 	public SmbFileDTO() {
 		missingMetadatasAndErrorMessages.put(URL, "");
+		missingMetadatasAndErrorMessages.put(CREATE_TIME, "");
 		missingMetadatasAndErrorMessages.put(LAST_MODIFIED, "");
 		missingMetadatasAndErrorMessages.put(IS_FILE, "");
 		missingMetadatasAndErrorMessages.put(IS_DIRECTORY, "");
@@ -66,6 +69,15 @@ public class SmbFileDTO {
 
 	public SmbFileDTO setUrl(String url) {
 		this.url = url;
+		return this;
+	}
+
+	public long getCreateTime() {
+		return createTime;
+	}
+
+	public SmbFileDTO setCreateTime(long createTime) {
+		this.createTime = createTime;
 		return this;
 	}
 

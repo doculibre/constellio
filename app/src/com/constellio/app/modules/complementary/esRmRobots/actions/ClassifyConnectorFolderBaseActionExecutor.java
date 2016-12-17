@@ -31,7 +31,7 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records) {
+			List<Record> records, List<Record> processedRecords) {
 
 		String collection = actionParameters.getCollection();
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);
@@ -44,8 +44,8 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 
 			try {
 				new ClassifyConnectorRecordInTaxonomyExecutor(
-						record, params, appLayerFactory, user, robotId).execute();
-
+						record, params, appLayerFactory, user, robotId, processedRecords).execute();
+				processedRecords.add(record);
 			} catch (Throwable e) {
 				LOGGER.warn("Cannot classify record", e);
 				try {

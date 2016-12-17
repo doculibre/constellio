@@ -1,5 +1,6 @@
 package com.constellio.model.services.security.authentification;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -28,9 +29,23 @@ public class PasswordFileAuthentificationServiceAcceptanceTest extends Constelli
 	public void setup()
 			throws Exception {
 		configManager = getDataLayerFactory().getConfigManager();
-		hashingService = spy(getIOLayerFactory().newHashingService());
+		hashingService = spy(getIOLayerFactory().newHashingService(BASE64));
 		passwordFileAuthenticationService = getModelLayerFactory()
 				.getPasswordFileAuthenticationService();
+	}
+
+	@Test
+	public void givenMultipleUsernamesWithSimilarNamesThenDetectGoodPassword()
+			throws Exception {
+
+		passwordFileAuthenticationService.changePassword("adminconstellio", "password1");
+		passwordFileAuthenticationService.changePassword("adminCONSTELLIO", "password2");
+
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password1")).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password2")).isTrue();
+		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password1")).isFalse();
+		assertThat(passwordFileAuthenticationService.authenticate("adminCONSTELLIO", "password2")).isTrue();
+		assertThat(passwordFileAuthenticationService.authenticate("adminconstellio", "password4")).isFalse();
 	}
 
 	@Test

@@ -321,7 +321,6 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 			createExistingTaskAfterItem.addItemClickListener(new ContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					//TODO Thiago if reference, create after Reference ...create reference
 					if (selectedWorkflowTaskVO.getTaskVO() != null) {
 						presenter.createExistingTaskSelected(selectedWorkflowTaskVO);
 					}
@@ -512,7 +511,6 @@ public class DisplayWorkflowViewImpl extends BaseViewImpl implements DisplayWork
 			protected void buttonClick(ClickEvent event) {
 				WorkflowTaskVO selectedWorkflowTaskVO = (WorkflowTaskVO) workflowTaskVOField.getValue();
 				if (selectedWorkflowTaskVO != null) {
-					//TODO Thiago
 					presenter.addExistingTaskAfter(selectedWorkflowTaskVO, workflowTaskVO);
 				}
 			}

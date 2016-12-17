@@ -1,14 +1,16 @@
 package com.constellio.app.services.schemas.bulkImport.extensions;
 
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_CODE_VALUE;
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_ENUM_VALUE;
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_NUMBER_VALUE;
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.MISSING_METADATA;
-import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.REQUIRED_VALUE;
+import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_DOCUMENT_TYPE_CODE;
+import static com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension.INVALID_MEDIUM_TYPE_CODE;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
-import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_ENUM_VALUE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.INVALID_NUMBER_VALUE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.REQUIRED_VALUE;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.Mock;
 
@@ -21,7 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
-import com.constellio.app.services.schemas.bulkImport.ImportDataErrors;
 import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
@@ -55,47 +56,53 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRetentionRuleThenInvalidIdValueOnDocumentType() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenDocumentTypes(documentTypes).code("documentPapier").addField("archivisticStatus", "C").build();
 
-		retentionRuleExtension.validate(new ValidationParams(importErrors, importData));
-		List<ValidationError> errors = validationErrors.getValidationErrors();
+		retentionRuleExtension.validate(new ValidationParams(validationErrors, importData));
 
-		assertThat(errors).containsOnly(newValidationError(INVALID_CODE_VALUE,
-				asMap("code", "documentPapier", "documentTypeIndex", "0")));
+		assertThat(extractingSimpleCodeAndParameters(validationErrors, "index", "value")).containsOnly(
+				tuple("RetentionRuleImportExtension_invalidDocumentType", "0", "documentPapier")
+		);
+
+		assertThat(frenchMessages(validationErrors)).containsOnly(
+				"Le code «documentPapier» du type de document à la position 0 ne correspond à aucun enregistrement."
+		);
 	}
 
 	@Test
 	public void givenRetentionRuleThenInvalidCopyTypeOnCopyRetentionRule() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenCopyRetentionRule(copyRetentionRules).addField("copyType", "F'`,,,").addField("inactiveDisposalType", "S")
 				.addField("mediumType", "PA,FI");
 
-		retentionRuleExtension.prevalidate(new PrevalidationParams(importErrors, importData));
+		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
 		List<ValidationError> errors = validationErrors.getValidationErrors();
 
-		assertThat(errors.size()).isEqualTo(5);
-		assertThat(errors).contains(
-				newValidationError(INVALID_ENUM_VALUE, asMap("inactiveDisposalType", "S", "copyRetentionRuleIndex", "0")));
-		assertThat(errors)
-				.contains(newValidationError(INVALID_ENUM_VALUE, asMap("mediumTypes", "F'`,,,", "copyRetentionRuleIndex", "0")));
-		assertThat(errors)
-				.contains(newValidationError(MISSING_METADATA, asMap("value", "mediumTypes", "copyRetentionRuleIndex", "0")));
-		assertThat(errors).contains(
-				newValidationError(MISSING_METADATA, asMap("value", "activeRetentionPeriod", "copyRetentionRuleIndex", "0")));
-		assertThat(errors)
-				.contains(newValidationError(MISSING_METADATA,
-						asMap("value", "semiActiveRetentionPeriod", "copyRetentionRuleIndex", "0")));
+		assertThat(extractingSimpleCodeAndParameters(validationErrors, "index", "field", "value"))
+				.containsOnly(
+						tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "mediumTypes", null),
+						tuple("RetentionRuleImportExtension_invalidCopyRuleEnumField", "0", "inactiveDisposalType", "S"),
+						tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "activeRetentionPeriod", null),
+						tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "semiActiveRetentionPeriod", null),
+						tuple("RetentionRuleImportExtension_invalidCopyRuleEnumField", "0", "copyType", "F'`,,,")
+				);
+
+		assertThat(frenchMessages(validationErrors)).containsOnly(
+				"La valeur «F'`,,,» au champ «copyType» de l'exemplaire à la position 0 est invalide. Seules les valeurs «P, S» sont supportées.",
+				"La valeur «S» au champ «inactiveDisposalType» de l'exemplaire à la position 0 est invalide. Seules les valeurs «T, D, C» sont supportées.",
+				"Le champ «mediumTypes» est requis pour l'exemplaire à la position 0.",
+				"Le champ «activeRetentionPeriod» est requis pour l'exemplaire à la position 0.",
+				"Le champ «semiActiveRetentionPeriod» est requis pour l'exemplaire à la position 0."
+		);
+
 	}
 
 	@Test
 	public void givenALargeAmountOfScrapDataWhenValidateThenAFullStackOfError() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(2)).addField("copyType", "S")
 				.addField("inactiveDisposalType", "C")
@@ -118,18 +125,49 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 		givenDocumentTypes(documentTypes).addField("archivisticStatus", "D");
 		givenDocumentTypes(documentTypes).code("emailDocumentType").code(String.valueOf(1)).addField("archivisticStatus", "T");
 
-		retentionRuleExtension.prevalidate(new PrevalidationParams(importErrors, importData));
+		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
-		List<ValidationError> errors = validationErrors.getValidationErrors();
-		List<ValidationError> expectedErrors = fullSetOfExpectedErrors();
+		assertThat(extractingSimpleCodeAndParameters(validationErrors, "index", "field", "value")).containsOnly(
+				tuple("RetentionRuleImportExtension_invalidCopyRuleNumberField", "1", "activeRetentionPeriod", "-25"),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "2", "mediumTypes", null),
+				tuple("RetentionRuleImportExtension_invalidCopyRuleEnumField", "3", "copyType", "PRINCIPALE"),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "3", "code", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "3", "mediumTypes", null),
+				tuple("RetentionRuleImportExtension_invalidCopyRuleNumberField", "4", "activeRetentionPeriod", "awer"),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "4", "mediumTypes", null),
+				tuple("RetentionRuleImportExtension_invalidDocumentTypeEnumField", "0", "archivisticStatus", "CONSERVATION"),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "3", "semiActiveRetentionPeriod", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "semiActiveRetentionPeriod", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "1", "semiActiveRetentionPeriod", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "2", "semiActiveRetentionPeriod", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "activeRetentionPeriod", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "mediumTypes", null),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "4", "semiActiveRetentionPeriod", null)
+		);
 
-		assertThat(errors).containsOnly(expectedErrors.toArray(new ValidationError[0]));
+		assertThat(frenchMessages(validationErrors)).containsOnly(
+				"Le champ «semiActiveRetentionPeriod» est requis pour l'exemplaire à la position 3.",
+				"La valeur «CONSERVATION» au champ «archivisticStatus» du type de document à la position 0 est invalide. Seules les valeurs «a, s, d, v» sont supportées.",
+				"La valeur «-25» au champ «activeRetentionPeriod» de l'exemplaire à la position 1 n'est pas un nombre valide.",
+				"Le champ «semiActiveRetentionPeriod» est requis pour l'exemplaire à la position 2.",
+				"La valeur «awer» au champ «activeRetentionPeriod» de l'exemplaire à la position 4 n'est pas un nombre valide.",
+				"Le champ «semiActiveRetentionPeriod» est requis pour l'exemplaire à la position 4.",
+				"Le champ «mediumTypes» est requis pour l'exemplaire à la position 4.",
+				"Le champ «mediumTypes» est requis pour l'exemplaire à la position 3.",
+				"Le champ «semiActiveRetentionPeriod» est requis pour l'exemplaire à la position 1.",
+				"Le champ «semiActiveRetentionPeriod» est requis pour l'exemplaire à la position 0.",
+				"Le champ «code» est requis pour l'exemplaire à la position 3.",
+				"La valeur «PRINCIPALE» au champ «copyType» de l'exemplaire à la position 3 est invalide. Seules les valeurs «P, S» sont supportées.",
+				"Le champ «mediumTypes» est requis pour l'exemplaire à la position 0.",
+				"Le champ «activeRetentionPeriod» est requis pour l'exemplaire à la position 0.",
+				"Le champ «mediumTypes» est requis pour l'exemplaire à la position 2."
+		);
+
 	}
 
 	@Test
 	public void givenEmptyMetadatasWhenPrevalidateThenInvalidStringValueError() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		ImportDataErrors importErrors = new ImportDataErrors("retentionRule", validationErrors, importData);
 
 		givenCopyRetentionRule(copyRetentionRules).code(String.valueOf(1)).addField("copyType", "")
 				.addField("inactiveDisposalType", "")
@@ -138,71 +176,24 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
 		givenDocumentTypes(documentTypes).code("emailDocumentType").addField("archivisticStatus", "");
 
-		retentionRuleExtension.prevalidate(new PrevalidationParams(importErrors, importData));
+		retentionRuleExtension.prevalidate(new PrevalidationParams(validationErrors, importData));
 
-		List<ValidationError> expected = new ArrayList<>();
+		assertThat(extractingSimpleCodeAndParameters(validationErrors, "index", "field", "value", "acceptedValues")).containsOnly(
+				tuple("RetentionRuleImportExtension_invalidCopyRuleEnumField", "0", "copyType", "", "P, S"),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "mediumTypes", null, null),
+				tuple("RetentionRuleImportExtension_invalidDocumentTypeEnumField", "0", "archivisticStatus", "", "a, s, d, v"),
+				tuple("RetentionRuleImportExtension_requiredCopyRuleField", "0", "activeRetentionPeriod", null, null),
+				tuple("RetentionRuleImportExtension_invalidCopyRuleEnumField", "0", "inactiveDisposalType", "", "T, D, C")
+		);
 
-		expected.add(newValidationError(INVALID_ENUM_VALUE, asMap("documentTypeIndex", "0", "archivisticStatus", "")));
-		expected.add(newValidationError(INVALID_ENUM_VALUE, asMap("copyRetentionRuleIndex", "0", "inactiveDisposalType", "")));
-		expected.add(newValidationError(INVALID_ENUM_VALUE, asMap("mediumTypes", "", "copyRetentionRuleIndex", "0")));
-		expected.add(newValidationError(INVALID_CODE_VALUE, asMap("mediumTypes", "empty", "copyRetentionRuleIndex", "0")));
+		assertThat(frenchMessages(validationErrors)).containsOnly(
+				"La valeur «» au champ «archivisticStatus» du type de document à la position 0 est invalide. Seules les valeurs «a, s, d, v» sont supportées.",
+				"Le champ «mediumTypes» est requis pour l'exemplaire à la position 0.",
+				"La valeur «» au champ «copyType» de l'exemplaire à la position 0 est invalide. Seules les valeurs «P, S» sont supportées.",
+				"Le champ «activeRetentionPeriod» est requis pour l'exemplaire à la position 0.",
+				"La valeur «» au champ «inactiveDisposalType» de l'exemplaire à la position 0 est invalide. Seules les valeurs «T, D, C» sont supportées."
+		);
 
-		Map<String, String> values = new HashMap<>();
-		values.put("activeRetentionPeriod", "");
-		values.put("semiActiveRetentionPeriod", "");
-		values.put("mediumTypes", "");
-		values.put("copyType", "");
-		values.put("code", "1");
-		values.put("contentTypesComment", "");
-		values.put("inactiveDisposalType", "");
-
-		expected.add(newValidationError(REQUIRED_VALUE, values));
-
-		List<ValidationError> errors = validationErrors.getValidationErrors();
-
-		assertThat(errors).containsOnly(expected.toArray(new ValidationError[0]));
-
-	}
-
-	private List<ValidationError> fullSetOfExpectedErrors() {
-		ArrayList<ValidationError> expectedErrors = new ArrayList<>();
-
-		expectedErrors.add(newValidationError(INVALID_ENUM_VALUE,
-				asMap("documentTypeIndex", "0", "archivisticStatus", "CONSERVATION")));
-		expectedErrors
-				.add(newValidationError(INVALID_ENUM_VALUE, asMap("mediumTypes", "PRINCIPALE", "copyRetentionRuleIndex", "3")));
-
-		//		expectedErrors.add(newValidationError(INVALID_CODE_VALUE, asMap("mediumTypes", "MD", "copyRetentionRuleIndex", "1")));
-		//		expectedErrors.add(newValidationError(INVALID_CODE_VALUE, asMap("documentTypeIndex", "1", "code", "documentType")));
-		//		expectedErrors.add(newValidationError(INVALID_CODE_VALUE, asMap("documentTypeIndex", "2", "code", "3")));
-		//		expectedErrors.add(newValidationError(INVALID_CODE_VALUE, asMap("documentTypeIndex", "4", "code", "1")));
-
-		expectedErrors.add(newValidationError(MISSING_METADATA, asMap("documentTypeIndex", "3", "value", "code")));
-		expectedErrors.add(
-				newValidationError(MISSING_METADATA, asMap("value", "mediumTypes", "copyRetentionRuleIndex", "0")));
-		expectedErrors.add(newValidationError(MISSING_METADATA,
-				asMap("value", "activeRetentionPeriod", "copyRetentionRuleIndex", "0")));
-		expectedErrors.add(newValidationError(MISSING_METADATA,
-				asMap("value", "semiActiveRetentionPeriod", "copyRetentionRuleIndex", "0")));
-		expectedErrors.add(newValidationError(MISSING_METADATA,
-				asMap("value", "semiActiveRetentionPeriod", "copyRetentionRuleIndex", "1")));
-		expectedErrors.add(newValidationError(MISSING_METADATA,
-				asMap("value", "semiActiveRetentionPeriod", "copyRetentionRuleIndex", "2")));
-		expectedErrors.add(newValidationError(MISSING_METADATA,
-				asMap("value", "semiActiveRetentionPeriod", "copyRetentionRuleIndex", "3")));
-		expectedErrors.add(newValidationError(MISSING_METADATA,
-				asMap("value", "semiActiveRetentionPeriod", "copyRetentionRuleIndex", "4")));
-		expectedErrors.add(
-				newValidationError(MISSING_METADATA, asMap("value", "mediumTypes", "copyRetentionRuleIndex", "2")));
-		expectedErrors.add(
-				newValidationError(MISSING_METADATA, asMap("value", "mediumTypes", "copyRetentionRuleIndex", "3")));
-		expectedErrors.add(
-				newValidationError(MISSING_METADATA, asMap("value", "mediumTypes", "copyRetentionRuleIndex", "4")));
-
-		expectedErrors.add(newValidationError(INVALID_NUMBER_VALUE, asMap("copyRetentionRuleIndex", "1", "value", "-25")));
-		expectedErrors.add(newValidationError(INVALID_NUMBER_VALUE, asMap("copyRetentionRuleIndex", "4", "value", "awer")));
-
-		return expectedErrors;
 	}
 
 	//----------------------------
@@ -225,13 +216,6 @@ public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
-	}
-
-	private ValidationError newValidationError(String code, Map<String, String> parameters) {
-		parameters.put("index", "1");
-		parameters.put("legacyId", null);
-		parameters.put("schemaType", "retentionRule");
-		return new ValidationError(RecordsImportServices.class.getName() + "_" + code, parameters);
 	}
 
 	private StructureMapBuilder givenCopyRetentionRule(List<Object> copyRetentionRule) {

@@ -1,11 +1,7 @@
 package com.constellio.model.services.schemas.testimpl.problems;
 
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.ConfigProvider;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordValidatorParams;
 
 public class TestRecordValidatorWithoutDefaultConstructor implements RecordValidator {
 
@@ -13,8 +9,7 @@ public class TestRecordValidatorWithoutDefaultConstructor implements RecordValid
 	}
 
 	@Override
-	public void validate(Record record, MetadataSchemaTypes types, MetadataSchema schema, ConfigProvider configProvider,
-			ValidationErrors validationErrors) {
+	public void validate(RecordValidatorParams params) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

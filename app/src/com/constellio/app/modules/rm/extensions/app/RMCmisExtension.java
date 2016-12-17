@@ -6,24 +6,40 @@ import static org.apache.chemistry.opencmis.commons.PropertyIds.LAST_MODIFICATIO
 
 import org.joda.time.LocalDateTime;
 
+import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
 import com.constellio.app.api.cmis.builders.object.PropertiesBuilder;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.logging.LoggingServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RMCmisExtension extends CmisExtension {
 
 	RMSchemasRecordsServices rm;
+	LoggingServices loggingServices;
+	TaxonomiesManager taxonomiesManager;
 
 	public RMCmisExtension(String collection, AppLayerFactory appLayerFactory) {
-		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.loggingServices = new LoggingServices(appLayerFactory.getModelLayerFactory());
+		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
 	}
 
 	@Override
@@ -60,4 +76,88 @@ public class RMCmisExtension extends CmisExtension {
 			}
 		}
 	}
+
+	@Override
+	public void buildAllowableActions(BuildAllowableActionsParams params) {
+		User user = params.getUser();
+		Record record = params.getRecord();
+
+		if (user.hasWriteAccess().on(record) && user.hasDeleteAccess().on(record)
+				&& user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record)
+				&& record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+			params.getActions().addAll(AllowableActionsBuilder.MANAGE_SECURITY_ACTIONS);
+		}
+
+		if (user.hasWriteAccess().on(record) && user.hasDeleteAccess().on(record)
+				&& user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
+				&& record.getTypeCode().equals(Document.SCHEMA_TYPE)) {
+			params.getActions().addAll(AllowableActionsBuilder.MANAGE_SECURITY_ACTIONS);
+		}
+
+	}
+
+	@Override
+	public void onGetObject(GetObjectParams params) {
+		if (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.logRecordView(params.getRecord(), params.getUser());
+		}
+	}
+	//
+	//	@Override
+	//	public void onCreateCMISFolder(CreateFolderParams params) {
+	//
+	//	}
+	//
+	//	@Override
+	//	public void onCreateCMISDocument(CreateDocumentParams params) {
+	//		super.onCreateCMISDocument(params);
+	//	}
+	//
+	//	@Override
+	//	public void onUpdateCMISFolder(UpdateFolderParams params) {
+	//		super.onUpdateCMISFolder(params);
+	//	}
+	//
+	//	@Override
+	//	public void onUpdateCMISDocument(UpdateDocumentParams params) {
+	//		super.onUpdateCMISDocument(params);
+	//	}
+
+	@Override
+	public void onDeleteTree(DeleteTreeParams params) {
+		if (params.isOfType(Folder.SCHEMA_TYPE) || params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.logDeleteRecordWithJustification(params.getRecord(), params.getUser(), null);
+		}
+	}
+
+	@Override
+	public void onCheckIn(CheckInParams params) {
+		if (params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.borrowRecord(params.getRecord(), params.getUser());
+		}
+	}
+
+	@Override
+	public void onCheckOut(CheckOutParams params) {
+		if (params.isOfType(Document.SCHEMA_TYPE)) {
+			loggingServices.returnRecord(params.getRecord(), params.getUser());
+		}
+	}
+
+	//	@Override
+	//	public void onDeleteContent(DeleteContentParams params) {
+	//
+	//	}
+
+	@Override
+	public ExtensionBooleanResult isSchemaTypeSupported(IsSchemaTypeSupportedParams params) {
+		String schemaType = params.getSchemaType().getCode();
+
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
+			return ExtensionBooleanResult.FORCE_TRUE;
+		} else {
+			return ExtensionBooleanResult.NOT_APPLICABLE;
+		}
+	}
+
 }

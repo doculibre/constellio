@@ -3,12 +3,15 @@ package com.constellio.app.services.schemasDisplay;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.jdom2.Document;
+import org.jdom2.Element;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
@@ -16,7 +19,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -87,6 +94,7 @@ public class SchemasDisplayManager
 				}
 			});
 		}
+
 	}
 
 	private void validate(SchemaDisplayManagerTransaction transaction) {
@@ -106,9 +114,9 @@ public class SchemasDisplayManager
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(config.getCollection()).getSchema(config.getSchemaCode());
 		for (Metadata metadata : SchemaDisplayUtils.getRequiredMetadatasInSchemaForm(schema)) {
 			if (!config.getFormMetadataCodes().contains(metadata.getCode())) {
-				Map<String, String> params = new HashMap<>();
+				Map<String, Object> params = new HashMap<>();
 				params.put("code", metadata.getCode());
-				params.put("label", metadata.getLabel());
+				params.put("label", metadata.getLabelsByLanguageCodes());
 				errors.add(SchemasDisplayManager.class, REQUIRED_METADATA_IN_FORM_LIST, params);
 			}
 		}
@@ -162,6 +170,14 @@ public class SchemasDisplayManager
 
 	public MetadataDisplayConfig getMetadata(String collection, String schemaCode, String metadataLocalCode) {
 		return getMetadata(collection, schemaCode + "_" + metadataLocalCode);
+	}
+
+	public SchemaDisplayConfig getDisplayConfig(MetadataSchema schema) {
+		return getSchema(schema.getCollection(), schema.getCode());
+	}
+
+	public MetadataDisplayConfig getDisplayConfig(Metadata metadata) {
+		return getMetadata(metadata.getCollection(), metadata.getCode());
 	}
 
 	public MetadataDisplayConfig getMetadata(String collection, String metadataCode) {
@@ -232,9 +248,23 @@ public class SchemasDisplayManager
 		return new XMLConfigReader<SchemasDisplayManagerCache>() {
 			@Override
 			public SchemasDisplayManagerCache read(String collection, Document document) {
+
+				Element rootElement = document.getRootElement();
+				String formatVersion =
+						rootElement == null ? null : rootElement.getAttributeValue(SchemasDisplayWriter.FORMAT_ATTRIBUTE);
+
 				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-				SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types);
-				return reader.readSchemaTypesDisplay(collection);
+				List<Language> languages = Language
+						.withCodes(collectionsListManager.getCollectionLanguages(types.getCollection()));
+				if (formatVersion == null) {
+					SchemasDisplayReader1 reader = new SchemasDisplayReader1(document, types, languages);
+					return reader.readSchemaTypesDisplay(collection);
+				} else if (SchemasDisplayReader2.FORMAT_VERSION.equals(formatVersion)) {
+					SchemasDisplayReader2 reader = new SchemasDisplayReader2(document, types, languages);
+					return reader.readSchemaTypesDisplay(collection);
+				} else {
+					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
+				}
 			}
 		};
 	}
@@ -265,7 +295,7 @@ public class SchemasDisplayManager
 		transaction.getModifiedTypes().add(getType(collection, schemaType).withAdvancedSearchStatus(true));
 		List<MetadataValueType> restrictedTypes = asList(MetadataValueType.CONTENT, MetadataValueType.STRUCTURE);
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
-			if ("id" .equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
+			if ("id".equals(metadata.getLocalCode()) || (!metadata.getCode().toLowerCase().contains("entered")
 					&& !restrictedTypes
 					.contains(metadata.getType()) && !metadata
 					.isSystemReserved())) {
@@ -322,5 +352,108 @@ public class SchemasDisplayManager
 			}
 		}
 		return result;
+	}
+
+	public List<String> getDefinedMetadatasIn(String collection) {
+		List<String> definedMetadatas = new ArrayList<>();
+		XMLConfiguration initialConfig = configManager.getXML(oneXMLConfigPerCollectionManager.getConfigPath(collection));
+		Document document = initialConfig.getDocument();
+		Element element = document.getRootElement();
+		Element metadataDisplayConfigs = element.getChild("MetadataDisplayConfigs");
+		if (metadataDisplayConfigs != null) {
+			for (Element metadataElement : metadataDisplayConfigs.getChildren()) {
+				definedMetadatas.add(metadataElement.getName());
+			}
+		}
+
+		return definedMetadatas;
+	}
+
+	public List<String> rewriteInOrderAndGetCodes(final String collection) {
+
+		XMLConfiguration initialConfig = configManager.getXML(oneXMLConfigPerCollectionManager.getConfigPath(collection));
+
+		Document document = initialConfig.getDocument();
+		Element rootElement = document.detachRootElement();
+		sort(rootElement);
+		Document newDocument = new Document(rootElement);
+
+		try {
+			oneXMLConfigPerCollectionManager.update(collection, initialConfig.getHash(), newDocument);
+		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
+			throw new RuntimeException(optimisticLockingConfiguration);
+		}
+
+		return getCodesOfElements(newDocument);
+
+	}
+
+	public List<String> getCodesOfElements(Document newDocument) {
+		List<String> codes = new ArrayList<>();
+		getCodesOfElements(newDocument.getRootElement(), codes);
+		return codes;
+	}
+
+	private void getCodesOfElements(Element element, List<String> codes) {
+		String value = element.getAttributeValue("code");
+
+		if (value == null) {
+			value = element.getAttributeValue("SchemaCode");
+		}
+
+		if (value == null) {
+			value = element.getName();
+		}
+
+		codes.add(value);
+
+		if (!asList("SchemaTypesDisplayConfig", "DisplayMetadataCodes", "FormMetadataCodes", "SearchResultsMetadataCodes",
+				"TableMetadataCodes")
+				.contains(element.getName())) {
+			for (Element child : element.getChildren()) {
+				getCodesOfElements(child, codes);
+			}
+		}
+
+	}
+
+	private void sort(Element element) {
+
+		if (!asList("SchemaTypesDisplayConfig", "DisplayMetadataCodes", "FormMetadataCodes", "SearchResultsMetadataCodes",
+				"TableMetadataCodes").contains(element.getName())) {
+
+			List<Element> children = new ArrayList<Element>(element.getChildren());
+			element.removeContent();
+
+			Comparator<Element> comparator = new Comparator<Element>() {
+				public int compare(Element o1, Element o2) {
+					String n1 = o1.getAttributeValue("code");
+					String n2 = o2.getAttributeValue("code");
+
+					if (n1 == null) {
+						n1 = o1.getAttributeValue("SchemaCode");
+					}
+
+					if (n2 == null) {
+						n2 = o2.getAttributeValue("SchemaCode");
+					}
+
+					if (n1 == null) {
+						n1 = o1.getName();
+					}
+
+					if (n2 == null) {
+						n2 = o2.getName();
+					}
+
+					return n1.compareTo(n2);
+				}
+			};
+			Collections.sort(children, comparator);
+			for (Element child : children) {
+				sort(child);
+			}
+			element.addContent(children);
+		}
 	}
 }

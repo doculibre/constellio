@@ -15,6 +15,7 @@ import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -52,7 +53,12 @@ import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -61,6 +67,7 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.AuthorizationDetails;
 import com.constellio.model.entities.security.Role;
@@ -72,6 +79,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -133,6 +143,7 @@ public class RMTestRecords {
 	public final String ruleId_4 = "ruleId_4";
 	public final String ruleId_5 = "ruleId_5";
 	public final String ruleId_6 = "ruleId_6";
+	public String principal42_5_CId;
 
 	public final String storageSpaceId_S01 = "S01";
 	public final String storageSpaceId_S01_01 = "S01-01";
@@ -274,11 +285,11 @@ public class RMTestRecords {
 	public final String folder_C54 = "C54";
 	public final String folder_C55 = "C55";
 
-	public final String document_A19 = "doc_A19";
-	public final String document_A49 = "doc_A49";
-	public final String document_B30 = "doc_B30";
-	public final String document_B33 = "doc_B33";
-	public final String document_A79 = "doc_A79";
+	public final String document_A19 = "docA19";
+	public final String document_A49 = "docA49";
+	public final String document_B30 = "docB30";
+	public final String document_B33 = "docB33";
+	public final String document_A79 = "docA79";
 
 	public final String folder_A01_documentWithSameCopy = "doc_A01_same_copy";
 	public final String folder_A01_documentWithDifferentCopy = "A02";
@@ -327,6 +338,7 @@ public class RMTestRecords {
 	public final String list_36 = "list36";
 
 	private String collection;
+	private TasksSchemasRecordsServices tasks;
 	private RMSchemasRecordsServices rm;
 	private String alice_userWithNoWriteAccess;
 	private String admin_userIdWithAllAccess;
@@ -347,17 +359,20 @@ public class RMTestRecords {
 	private RMEventsSearchServices rmEventsSearchServices;
 	private ContentManager contentManager;
 	private ModelLayerFactory modelLayerFactory;
+	private AppLayerFactory appLayerFactory;
 
 	public RMTestRecords(String collection) {
 		this.collection = collection;
 	}
 
-	public RMTestRecords alreadySettedUp(ModelLayerFactory modelLayerFactory) {
-		this.modelLayerFactory = modelLayerFactory;
+	public RMTestRecords alreadySettedUp(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices);
 
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> userRecords = searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.userSchemaType()).returnAll())
@@ -415,12 +430,14 @@ public class RMTestRecords {
 		return this;
 	}
 
-	public RMTestRecords setup(ModelLayerFactory modelLayerFactory)
+	public RMTestRecords setup(AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		tasks = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
@@ -434,6 +451,8 @@ public class RMTestRecords {
 		MV = rm.FI();
 		PA_MD = asList(PA, MD);
 
+		systemConfigurationsManager.setValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
+
 		Transaction transaction = new Transaction();
 		setupUsers(transaction, userServices);
 		setupCategories(transaction);
@@ -441,6 +460,7 @@ public class RMTestRecords {
 		setupAdministrativeUnits(transaction);
 		setupDocumentTypes(transaction);
 		setupRetentionRules(transaction);
+		setupTypes(transaction);
 		recordServices.execute(transaction);
 
 		setupAdministrativeUnitsAuthorizations();
@@ -547,6 +567,63 @@ public class RMTestRecords {
 		createLoginEvents();
 		recordServices.flush();
 		return this;
+	}
+
+	private void setupTypes(Transaction transaction) {
+
+		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+
+				MetadataSchemaBuilder employeFolderSchema = types.getSchemaType("folder").createCustomSchema("employe");
+				MetadataSchemaBuilder meetingFolderSchema = types.getSchemaType("folder").createCustomSchema("meetingFolder");
+
+				MetadataSchemaBuilder formDocumentSchema = types.getSchemaType("document").createCustomSchema("form");
+				MetadataSchemaBuilder reportDocumentSchema = types.getSchemaType("document").createCustomSchema("report");
+
+				MetadataSchemaBuilder criticalTaskSchema = types.getSchemaType("userTask").createCustomSchema("criticalTask");
+				MetadataSchemaBuilder communicationTaskSchema = types.getSchemaType("userTask")
+						.createCustomSchema("communicationTask");
+
+				employeFolderSchema.create("subType").setType(STRING).setDefaultValue("Dossier d'employé général");
+				employeFolderSchema.create("hireDate").setType(MetadataValueType.DATE)
+						.setDefaultValue(new LocalDate(2010, 12, 20));
+
+				meetingFolderSchema.create("subType").setType(STRING).setDefaultValue("Meeting important");
+				meetingFolderSchema.create("meetingDateTime").setType(MetadataValueType.DATE_TIME)
+						.setDefaultValue(new LocalDateTime(2010, 12, 20, 1, 2, 3, 4));
+
+				formDocumentSchema.create("subType").setType(STRING).setDefaultValue("Permit A-38 Form");
+				formDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE)
+						.setDefaultValue(new LocalDate(2011, 12, 21));
+
+				reportDocumentSchema.create("subType").setType(STRING).setDefaultValue("Financial report");
+				reportDocumentSchema.create("receivedDate").setType(MetadataValueType.DATE)
+						.setDefaultValue(new LocalDate(2012, 12, 22));
+
+				criticalTaskSchema.create("subType").setType(STRING).setDefaultValue("Dû pour hier");
+
+				communicationTaskSchema.create("subType").setType(STRING).setDefaultValue("Envoie d'un courriel");
+				communicationTaskSchema.create("email").setType(STRING).setDefaultValue("dakota.indien@gmail.com");
+				communicationTaskSchema.create("phone").setType(STRING);
+
+			}
+		});
+
+		transaction.add(rm.newFolderType().setCode("employe").setTitle("Dossier employé").setLinkedSchema("folder_employe"));
+		transaction.add(rm.newFolderType().setCode("meetingFolder").setTitle("Réunion employé")
+				.setLinkedSchema("folder_meetingFolder"));
+		transaction.add(rm.newFolderType().setCode("other").setTitle("Autre"));
+
+		transaction.add(rm.newDocumentType().setCode("form").setTitle("Formulaire").setLinkedSchema("document_form"));
+		transaction.add(rm.newDocumentType().setCode("report").setTitle("Rapport").setLinkedSchema("document_report"));
+		transaction.add(rm.newDocumentType().setCode("other").setTitle("Autre"));
+
+		transaction.add(tasks.newTaskType().setCode("criticalTask").setTitle("Tâche critique")
+				.setLinkedSchema("userTask_criticalTask"));
+		transaction.add(tasks.newTaskType().setCode("communicationTask").setTitle("Communication")
+				.setLinkedSchema("userTask_communicationTask"));
+		transaction.add(tasks.newTaskType().setCode("other").setTitle("Autre"));
 	}
 
 	private void setupDocumentTypes(Transaction transaction) {
@@ -700,11 +777,13 @@ public class RMTestRecords {
 		transaction.add(period666);
 
 		CopyRetentionRule principal42_5_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "42-5-C");
+		principal42_5_CId = principal42_5_C.getId();
 		principal42_5_C.setActiveRetentionPeriod(RetentionPeriod.variable(period42));
 		principal42_5_C.setSemiActiveRetentionPeriod(RetentionPeriod.fixed(5));
 		principal42_5_C.setInactiveDisposalType(DisposalType.DEPOSIT);
 		principal42_5_C.setContentTypesComment("R1");
 		principal42_5_C.setActiveRetentionComment("R2");
+		//principal42_5_C.setCode("42-5-C");
 		CopyRetentionRule secondary888_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "888-0-D");
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
@@ -1524,19 +1603,17 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_A45).setTitle("Écureuil").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac12));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac12));
 
 		folders.add(rm.newFolderWithId(folder_A46).setTitle("Éléphant").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac12).setDescription("Babar"));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac12).setDescription("Babar"));
 
 		folders.add(rm.newFolderWithId(folder_A47).setTitle("Girafe").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31))
-				.setActualTransferDate(date(2006, 10, 31)).setContainer(containerId_bac12));
+				.setContainer(containerId_bac12));
 
 		folders.add(rm.newFolderWithId(folder_A48).setTitle("Gorille").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
@@ -1634,14 +1711,12 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_A83).setTitle("Orignal").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setActualDestructionDate(date(2007, 4, 14)));
+				.setCloseDateEntered(date(2001, 10, 31)).setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_A84).setTitle("Ours").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5))
-				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
-				.setActualDestructionDate(date(2008, 4, 14)));
+				.setCloseDateEntered(date(2002, 10, 31)).setActualDestructionDate(date(2008, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_A85).setTitle("Panda").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
@@ -1765,13 +1840,12 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_B31).setTitle("Orange").setAdministrativeUnitEntered(unitId_11b)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac09));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac09));
 
 		folders.add(rm.newFolderWithId(folder_B32).setTitle("Pêche").setAdministrativeUnitEntered(unitId_12b)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1).setCopyStatusEntered(SECONDARY)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
-				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac08));
+				.setContainer(containerId_bac08));
 
 		folders.add(rm.newFolderWithId(folder_B33).setTitle("Poire").setAdministrativeUnitEntered(unitId_11b)
 				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
@@ -1799,8 +1873,7 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_B51).setTitle("Cerise").setAdministrativeUnitEntered(unitId_11b)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setActualDestructionDate(date(2007, 4, 14)));
+				.setCloseDateEntered(date(2001, 10, 31)).setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_B52).setTitle("Avocat").setAdministrativeUnitEntered(unitId_12b)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
@@ -1875,13 +1948,12 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_C31).setTitle("Laitue").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac07));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac07));
 
 		folders.add(rm.newFolderWithId(folder_C32).setTitle("Maïs").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
-				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac07));
+				.setContainer(containerId_bac07));
 
 		folders.add(rm.newFolderWithId(folder_C33).setTitle("Navet").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
@@ -1910,8 +1982,7 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_C51).setTitle("Poivron").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setActualDestructionDate(date(2007, 4, 14)));
+				.setCloseDateEntered(date(2001, 10, 31)).setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_C52).setTitle("Pomme de terre")
 				.setAdministrativeUnitEntered(unitId_30c).setCategoryEntered(categoryId_X100)
@@ -2936,5 +3007,41 @@ public class RMTestRecords {
 		}
 
 		return ids;
+	}
+
+	public FolderType folderTypeEmploye() {
+		return rm.getFolderTypeWithCode("employe");
+	}
+
+	public FolderType folderTypeMeeting() {
+		return rm.getFolderTypeWithCode("meetingFolder");
+	}
+
+	public FolderType folderTypeOther() {
+		return rm.getFolderTypeWithCode("other");
+	}
+
+	public DocumentType documentTypeForm() {
+		return rm.getDocumentTypeByCode("form");
+	}
+
+	public DocumentType documentTypeReport() {
+		return rm.getDocumentTypeByCode("report");
+	}
+
+	public DocumentType documentTypeOther() {
+		return rm.getDocumentTypeByCode("other");
+	}
+
+	public TaskType taskTypeForm() {
+		return tasks.getTaskTypeByCode("criticalTask");
+	}
+
+	public TaskType taskTypeReport() {
+		return tasks.getTaskTypeByCode("communicationTask");
+	}
+
+	public TaskType taskTypeOther() {
+		return tasks.getTaskTypeByCode("other");
 	}
 }

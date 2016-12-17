@@ -29,4 +29,5 @@ public class SDKFoldersLocator extends FoldersLocator {
 	public File getSDKProperties() {
 		return new File(getSDKProject(), "sdk.properties");
 	}
+
 }

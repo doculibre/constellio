@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -57,6 +58,7 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(userVO.getUsername()).thenReturn(admin);
 		when(sessionContext.getCurrentUser()).thenReturn(userVO);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new TaxonomyManagementPresenter(view);
 	}
@@ -111,7 +113,8 @@ public class TaxonomyManagementPresenterAcceptTest extends ConstellioTest {
 		presenter.forParams(params);
 
 		List<TaxonomyManagementClassifiedType> classifiedTypes = presenter.getClassifiedTypes();
-		assertThat(classifiedTypes).extracting("countLabel").isEqualTo(asList("Nombre de dossiers"));
+		assertThat(classifiedTypes).extracting("countLabel").isEqualTo(asList("Nombre de dossiers",
+				"Nombre de règles de conservation"));
 		assertThat(classifiedTypes.get(0).getDataProvider().size()).isEqualTo(10);
 		assertThat(idsOf(classifiedTypes.get(0).getDataProvider())).containsExactly(
 				records.folder_B52, records.folder_B02, records.folder_B04, records.folder_B06, records.folder_B08,

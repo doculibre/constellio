@@ -120,7 +120,7 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 				metadataBuilder.getPopulateConfigsBuilder().setRegexes(regexConfigs);
 			}
 		});
-		view.navigateTo().listMetadataExtractors();
+		view.navigate().to().listMetadataExtractors();
 	}
 
 	private List<RegexConfig> voToRegexConfigs() {
@@ -137,11 +137,11 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().listMetadataExtractors();
+		view.navigate().to().listMetadataExtractors();
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listMetadataExtractors();
+		view.navigate().to().listMetadataExtractors();
 	}
 
 	public void schemaTypeSelected(MetadataSchemaTypeVO schemaTypeVO) {

@@ -1,11 +1,15 @@
 package com.constellio.app.conf;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.constellio.data.conf.PropertiesConfiguration;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration;
+import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class PropertiesAppLayerConfiguration extends PropertiesConfiguration implements AppLayerConfiguration {
 
@@ -20,6 +24,48 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 		this.foldersLocator = foldersLocator;
 	}
 
+	public static class InMemoryAppLayerConfiguration extends PropertiesAppLayerConfiguration {
+
+		private Factory<EncryptionServices> encryptionServicesFactory;
+
+		public InMemoryAppLayerConfiguration(PropertiesAppLayerConfiguration nested) {
+			super(new HashMap<String, String>(nested.configs), nested.modelLayerConfiguration, nested.foldersLocator,
+					new File(""));
+		}
+
+		@Override
+		public void writeProperty(String key, String value) {
+			configs.put(key, value);
+		}
+
+		public void setSetupProperties(File value) {
+			setFile("setupProperties.file", value);
+		}
+
+		public void setPluginsFolder(File value) {
+			setFile("plugins.folder", value);
+		}
+
+		public void setPluginsManagementOnStartupFile(File value) {
+			setFile("pluginsToMoveOnStartup.file", value);
+		}
+
+		public void setFastMigrationsEnabled(boolean value) {
+			setBoolean("fastMigrations.enabled", value);
+		}
+
+	}
+
+	public static PropertiesAppLayerConfiguration newVolatileConfiguration(PropertiesAppLayerConfiguration config) {
+		return new PropertiesAppLayerConfiguration(new HashMap<>(config.configs), config.modelLayerConfiguration,
+				config.foldersLocator, config.propertyFile) {
+			@Override
+			public void writeProperty(String key, String value) {
+				configs.put(key, value);
+			}
+		};
+	}
+
 	@Override
 	public void validate() {
 
@@ -32,17 +78,22 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 
 	@Override
 	public File getPluginsFolder() {
-		return new FoldersLocator().getPluginsJarsFolder();
+		return getFile("plugins.folder", new FoldersLocator().getPluginsJarsFolder());
 	}
 
 	@Override
 	public File getPluginsManagementOnStartupFile() {
-		return new FoldersLocator().getPluginsToMoveOnStartupFile();
+		return getFile("pluginsToMoveOnStartup.file", new FoldersLocator().getPluginsToMoveOnStartupFile());
 	}
 
 	@Override
 	public File getSetupProperties() {
-		return foldersLocator.getConstellioSetupProperties();
+		return getFile("setupProperties.file", foldersLocator.getConstellioSetupProperties());
+	}
+
+	@Override
+	public boolean isFastMigrationsEnabled() {
+		return getBoolean("fastMigrations.enabled", true);
 	}
 
 }

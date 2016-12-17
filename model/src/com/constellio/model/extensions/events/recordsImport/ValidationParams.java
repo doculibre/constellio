@@ -2,18 +2,19 @@ package com.constellio.model.extensions.events.recordsImport;
 
 import com.constellio.app.services.schemas.bulkImport.ImportDataErrors;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public class ValidationParams {
 
-	ImportDataErrors errors;
+	ValidationErrors errors;
 	ImportData importRecord;
 
-	public ValidationParams(ImportDataErrors errors, ImportData importRecord) {
+	public ValidationParams(ValidationErrors errors, ImportData importRecord) {
 		this.errors = errors;
 		this.importRecord = importRecord;
 	}
 
-	public ImportDataErrors getErrors() {
+	public ValidationErrors getErrors() {
 		return errors;
 	}
 

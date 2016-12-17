@@ -67,7 +67,7 @@ public class ImportGroupsFilePresenter extends BasePresenter<ImportFileView> imp
 
 	@Override
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public List<String> getAllCollections() {

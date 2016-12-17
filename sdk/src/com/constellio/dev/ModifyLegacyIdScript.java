@@ -37,7 +37,7 @@ public class ModifyLegacyIdScript {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(COLLECTION, modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(COLLECTION, appLayerFactory);
 
 		modelLayerFactory.getRecordsCaches().getCache(COLLECTION).removeCache(rm.documentSchemaType().getCode());
 
@@ -54,8 +54,6 @@ public class ModifyLegacyIdScript {
 
 		List<String> allSavedLegacyIds = new ArrayList<>();
 		Set<String> legacyIdsWithoutDuplicates = new HashSet<>();
-
-
 
 		int currentBatchStart = 0;
 		while (documentsBatchIterator.hasNext()) {
@@ -88,7 +86,6 @@ public class ModifyLegacyIdScript {
 			transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
 			transaction.getRecordUpdateOptions().setUpdateModificationInfos(false);
 			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
-			transaction.getRecordUpdateOptions().setExtractorsEnabled(false);
 			transaction.addUpdate(modifiedRecords);
 			transaction.setRecordFlushing(RecordsFlushing.WITHIN_MINUTES(5));
 
@@ -107,7 +104,6 @@ public class ModifyLegacyIdScript {
 		} else {
 
 			System.out.println("Finished!... Now detecting duplicate legacy ids");
-
 
 			for (String legacyId : legacyIdsWithoutDuplicates) {
 				allSavedLegacyIds.remove(legacyId);

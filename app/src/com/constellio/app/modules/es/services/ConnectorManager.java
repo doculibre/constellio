@@ -31,12 +31,14 @@ import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -165,7 +167,11 @@ public class ConnectorManager implements StatefulService {
 		Connector connector = instanciate(connectorInstance);
 
 		for (String schemaType : connector.getConnectorDocumentTypes()) {
-			typesBuilder.getSchemaType(schemaType).createCustomSchema(schema).setLabel(connectorInstance.getTitle());
+			List<Language> languages = metadataSchemasManager.getSchemaTypes(connectorInstance.getCollection()).getLanguages();
+			MetadataSchemaBuilder metadataSchemaBuilder = typesBuilder.getSchemaType(schemaType).createCustomSchema(schema);
+			for (Language language : languages) {
+				metadataSchemaBuilder.addLabel(language, connectorInstance.getTitle());
+			}
 		}
 
 		try {
@@ -185,7 +191,6 @@ public class ConnectorManager implements StatefulService {
 		if (crawler == null) {
 			ConnectorLogger connectorLogger = new ConsoleConnectorLogger();
 			String resourceName = "crawlerObserver-" + UUIDV1Generator.newRandomId() + "-" + es.getCollection();
-			System.out.println("Starting crawler '" + resourceName + "'");
 			ConnectorEventObserver connectorEventObserver = new DefaultConnectorEventObserver(es, connectorLogger, resourceName);
 			if (inParallel) {
 				this.crawler = ConnectorCrawler.runningJobsInParallel(es, connectorLogger, connectorEventObserver);
@@ -285,7 +290,8 @@ public class ConnectorManager implements StatefulService {
 		return Collections.unmodifiableList(registeredConnectors);
 	}
 
-	public ConnectorManager register(String connectorTypeCode, String connectorInstanceSchemaCode, ConnectorUtilsServices services) {
+	public ConnectorManager register(String connectorTypeCode, String connectorInstanceSchemaCode,
+			ConnectorUtilsServices services) {
 		registeredConnectors.add(new RegisteredConnector(connectorTypeCode, connectorInstanceSchemaCode, services));
 		return this;
 	}

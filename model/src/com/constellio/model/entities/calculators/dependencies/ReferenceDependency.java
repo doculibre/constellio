@@ -33,7 +33,7 @@ public class ReferenceDependency<T> implements Dependency {
 		this.groupedByReference = false;
 	}
 
-	private ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, boolean required, boolean multivalue,
+	public ReferenceDependency(String referenceMetadataCode, String dependentMetadataCode, boolean required, boolean multivalue,
 			MetadataValueType returnType, boolean groupedByReference) {
 		super();
 		this.referenceMetadataCode = referenceMetadataCode;

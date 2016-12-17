@@ -7,6 +7,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
@@ -24,17 +27,24 @@ import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionE
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_UnclosedParentheses;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class AddExistingContainerPresenter extends SearchPresenter<AddExistingContainerView>
 		implements SearchCriteriaPresenter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AddExistingContainerPresenter.class);
+
 	private transient LogicalSearchCondition condition;
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient RMConfigs rmConfigs;
 
 	String recordId;
 	String adminUnitId;
+	int pageNumber;
+	boolean displayResults;
 	DecommissioningType decommissioningType;
 
 	public AddExistingContainerPresenter(AddExistingContainerView view) {
@@ -43,13 +53,30 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	@Override
 	public AddExistingContainerPresenter forRequestParameters(String params) {
-		recordId = params;
+		String[] parts = params.split("/", 3);
+
+		if (parts.length > 1) {
+			recordId = parts[0];
+		} else {
+			recordId = params;
+		}
+
 		DecommissioningList decommissioningList = rmRecordServices().getDecommissioningList(recordId);
 		adminUnitId = decommissioningList.getAdministrativeUnit();
 		decommissioningType = decommissioningList.getDecommissioningListType().getDecommissioningType();
 		view.setCriteriaSchemaType(ContainerRecord.SCHEMA_TYPE);
-		view.addEmptyCriterion();
-		view.addEmptyCriterion();
+
+		if (parts.length > 1) {
+			SavedSearch search = getSavedSearch(parts[2]);
+			setSavedSearch(search);
+			this.displayResults = true;
+		} else {
+			view.addEmptyCriterion();
+			view.addEmptyCriterion();
+			this.displayResults = false;
+			pageNumber = 1;
+		}
+
 		return this;
 	}
 
@@ -60,7 +87,15 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		return Arrays.asList(params);
+		String[] parts = params.split("/", 3);
+		String restricted;
+		if (parts.length > 1) {
+			restricted = parts[0];
+		} else {
+			restricted = params;
+		}
+
+		return Arrays.asList(restricted);
 	}
 
 	@Override
@@ -70,12 +105,30 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	@Override
 	public boolean mustDisplayResults() {
-		return false;
+		return displayResults;
 	}
 
 	@Override
 	public int getPageNumber() {
-		return 1;
+		return pageNumber;
+	}
+
+	private void setSavedSearch(SavedSearch search) {
+		List<Criterion> criteria = search.getAdvancedSearch();
+		if (criteria.isEmpty()) {
+			view.addEmptyCriterion();
+			view.addEmptyCriterion();
+		} else {
+			view.setSearchCriteria(criteria);
+		}
+		this.pageNumber = search.getPageNumber();
+		this.setFacetSelections(search.getSelectedFacets());
+		this.setSelectedPageLength(search.getPageLength());
+	}
+
+	@Override
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
 	}
 
 	public void backButtonClicked() {
@@ -166,22 +219,22 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 
 	private LogicalSearchCondition selectByDecommissioningListProperties() {
 		if (rmConfigs().areMixedContainersAllowed()) {
-			return from(rmRecordServices().containerRecordSchemaType())
-					.where(rmRecordServices().containerDecommissioningType()).isEqualTo(decommissioningType);
+			return from(rmRecordServices().containerRecord.schemaType())
+					.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
-		return from(rmRecordServices().containerRecordSchemaType())
-				.where(rmRecordServices().containerAdministrativeUnit()).isEqualTo(adminUnitId)
-				.andWhere(rmRecordServices().containerDecommissioningType()).isEqualTo(decommissioningType);
+		return from(rmRecordServices().containerRecord.schemaType())
+				.where(rmRecordServices().containerRecord.administrativeUnit()).isEqualTo(adminUnitId)
+				.andWhere(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 	}
 
 	private LogicalSearchCondition selectByAdvancedSearchCriteria(List<Criterion> criteria)
 			throws ConditionException {
-		return new ConditionBuilder(rmRecordServices().containerRecordSchemaType()).build(criteria);
+		return new ConditionBuilder(rmRecordServices().containerRecord.schemaType()).build(criteria);
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {
 		if (rmRecordServices == null) {
-			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
 	}
@@ -191,5 +244,47 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		}
 		return rmConfigs;
+	}
+
+	protected void saveTemporarySearch(boolean refreshPage) {
+		Record tmpSearchRecord = getTemporarySearchRecord();
+		if (tmpSearchRecord == null) {
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		}
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporaryContainer")
+				.setSearchType(AddExistingContainerView.SEARCH_TYPE)
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setTemporary(true)
+				.setAdvancedSearch(view.getSearchCriteria())
+				.setPageNumber(pageNumber)
+				.setSelectedFacets(this.getFacetSelections().getNestedMap())
+				.setPageLength(getSelectedPageLength());
+		try {
+			recordServices().update(search);
+			if (refreshPage) {
+				view.navigate().to(RMViews.class).searchContainerForDecommissioningListReplay(recordId, search.getId());
+			}
+		} catch (RecordServicesException e) {
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		}
+	}
+
+	@Override
+	public Record getTemporarySearchRecord() {
+		MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		try {
+			return searchServices().searchSingleResult(from(schema)
+					.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser().getId())
+					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
+					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(AddExistingContainerView.SEARCH_TYPE));
+		} catch (Exception e) {
+			//TODO exception
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 }

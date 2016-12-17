@@ -1,10 +1,17 @@
 package com.constellio.app.entities.schemasDisplay;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.model.entities.Language;
 
 public class SchemaTypeDisplayConfig {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaTypeDisplayConfig.class);
 
 	private final String collection;
 
@@ -16,25 +23,25 @@ public class SchemaTypeDisplayConfig {
 
 	private final boolean simpleSearch;
 
-	private final List<String> metadataGroup;
+	private final Map<String, Map<Language, String>> metadataGroup;
 
 	public SchemaTypeDisplayConfig(String collection, String schemaType, boolean manageable, boolean advancedSearch,
-			boolean simpleSearch, List<String> metadataGroup) {
+			boolean simpleSearch, Map<String, Map<Language, String>> metadataGroup) {
 		this.collection = collection;
 		this.schemaType = schemaType;
 		this.manageable = manageable;
 		this.advancedSearch = advancedSearch;
 		this.simpleSearch = simpleSearch;
-		this.metadataGroup = Collections.unmodifiableList(metadataGroup);
+		this.metadataGroup = Collections.unmodifiableMap(metadataGroup);
 	}
 
-	public SchemaTypeDisplayConfig(String collection, String schemaType, List<String> metadataGroup) {
+	public SchemaTypeDisplayConfig(String collection, String schemaType, Map<String, Map<Language, String>> metadataGroup) {
 		this.collection = collection;
 		this.schemaType = schemaType;
 		this.manageable = false;
 		this.advancedSearch = false;
 		this.simpleSearch = false;
-		this.metadataGroup = Collections.unmodifiableList(metadataGroup);
+		this.metadataGroup = Collections.unmodifiableMap(metadataGroup);
 	}
 
 	public boolean isManageable() {
@@ -57,7 +64,7 @@ public class SchemaTypeDisplayConfig {
 		return schemaType;
 	}
 
-	public List<String> getMetadataGroup() {
+	public Map<String, Map<Language, String>> getMetadataGroup() {
 		return metadataGroup;
 	}
 
@@ -77,14 +84,43 @@ public class SchemaTypeDisplayConfig {
 		return new SchemaTypeDisplayConfig(collection, schemaType, manageable, advancedSearch, simpleSearch, metadataGroup);
 	}
 
-	public SchemaTypeDisplayConfig withMetadataGroup(List<String> metadataGroup) {
+	public SchemaTypeDisplayConfig withMetadataGroup(Map<String, Map<Language, String>> metadataGroup) {
+
+		boolean defaultTab = false;
+		for (String key : metadataGroup.keySet()) {
+			if (key.startsWith("default")) {
+				defaultTab = true;
+			}
+		}
+		if (!defaultTab) {
+			LOGGER.warn("It is recommended to have a metadata group starting with 'default'");
+		}
+
 		return new SchemaTypeDisplayConfig(collection, schemaType, manageable, advancedSearch, simpleSearch, metadataGroup);
 	}
 
-	public SchemaTypeDisplayConfig withNewMetadataGroup(String newGroup) {
-		List<String> groups = new ArrayList<>();
-		groups.addAll(metadataGroup);
-		groups.add(newGroup);
+	public SchemaTypeDisplayConfig withNewMetadataGroup(Map<String, Map<Language, String>> newGroup) {
+		Map<String, Map<Language, String>> groups = new HashMap<>();
+		groups.putAll(metadataGroup);
+		groups.putAll(newGroup);
 		return withMetadataGroup(groups);
+	}
+
+	public String getGroupLabel(String group, Language language) {
+		if ("".equals(group)) {
+			return getDefaultGroup(language);
+		} else {
+			Map<Language, String> map = metadataGroup.get(group);
+			return map == null ? null : map.get(language);
+		}
+	}
+
+	public String getDefaultGroup(Language language) {
+		for (Map.Entry<String, Map<Language, String>> entry : metadataGroup.entrySet()) {
+			if (entry.getKey().startsWith("default:")) {
+				return entry.getValue().get(language);
+			}
+		}
+		return null;
 	}
 }

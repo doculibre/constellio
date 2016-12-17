@@ -8,14 +8,21 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public abstract class IconButton extends BaseButton {
+	
 	public IconButton(Resource iconResource, String caption) {
 		this(iconResource, caption, iconResource != null);
 	}
 
 	public IconButton(Resource iconResource, String caption, boolean iconOnly) {
+		this(iconResource, caption, iconOnly, true);
+	}
+
+	public IconButton(Resource iconResource, String caption, boolean iconOnly, boolean borderless) {
 		super(caption);
 		setIcon(iconResource);
-		addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		if (borderless) {
+			addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		}
 		setCaption(caption);
 
 		if (iconOnly) {
@@ -25,6 +32,10 @@ public abstract class IconButton extends BaseButton {
 				addExtension(new NiceTitle(this, caption));
 			}
 		}
+	}
+	
+	protected boolean isBorderless() {
+		return true;
 	}
 
 }

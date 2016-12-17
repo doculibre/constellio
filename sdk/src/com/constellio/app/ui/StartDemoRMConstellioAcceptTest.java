@@ -3,22 +3,38 @@ package com.constellio.app.ui;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.extensions.sequence.AvailableSequence;
+import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
+import com.constellio.app.extensions.sequence.AvailableSequenceForSystemParams;
+import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
+import com.constellio.app.extensions.sequence.SystemSequenceExtension;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.dev.DevUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -27,7 +43,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestPagesComponentsExtensions;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -47,14 +62,14 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		givenBackgroundThreadsEnabled();
+		//givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withConstellioESModule().withRobotsModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList(),
-				withCollection("LaCollectionDeRida").withConstellioRMModule().withConstellioESModule().withRobotsModule()
-						.withAllTestUsers().withRMTest(records2)
+				withCollection("LaCollectionDeRida").withConstellioRMModule()
+						.withAllTestUsers()
 						.withFoldersAndContainersOfEveryStatus()
 		);
 		inCollection("LaCollectionDeRida").setCollectionTitleTo("Collection d'entreprise");
@@ -62,8 +77,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		AppLayerFactory appLayerFactory = getAppLayerFactory();
-		appLayerFactory.getExtensions().getSystemWideExtensions().pagesComponentsExtensions.add(
-				new TestPagesComponentsExtensions(appLayerFactory));
 
 		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
 		dataLayerFactory.getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
@@ -80,12 +93,55 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE).setLabel("Date metadata 1");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE).setLabel("Date metadata 2");
-				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME).setLabel("Datetime metadata");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta1").setType(DATE)
+						.addLabel(Language.French, "Date metadata 1");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateMeta2").setType(DATE)
+						.addLabel(Language.French, "Date metadata 2");
+				types.getSchema(Document.DEFAULT_SCHEMA).create("dateTimeMeta").setType(DATE_TIME)
+						.addLabel(Language.French, "Datetime metadata");
 			}
 		});
 
+		setupSequences();
+
+		DevUtils.addMetadataListingReferencesInAllSchemaTypes(getAppLayerFactory());
+
+	}
+
+	private void setupSequences() {
+		final AvailableSequence sequence1 = new AvailableSequence("sequenceRubrique1", asMap(Language.French, "Séquence 1"));
+		final AvailableSequence sequence2 = new AvailableSequence("sequenceRubrique2", asMap(Language.French, "Séquence 2"));
+		final AvailableSequence sequence3 = new AvailableSequence("seqTypeContenant1", asMap(Language.French, "Séquence 3"));
+		final AvailableSequence sequence4 = new AvailableSequence("seqTypeContenant2", asMap(Language.French, "Séquence 4"));
+		final AvailableSequence sequence5 = new AvailableSequence("sequence1", asMap(Language.French, "Ze séquence"));
+		final AvailableSequence sequence6 = new AvailableSequence("sequence2", asMap(Language.French, "Autre séquence"));
+
+		AppLayerExtensions extensions = getAppLayerFactory().getExtensions();
+		AppLayerSystemExtensions systemExtensions = extensions.getSystemWideExtensions();
+		AppLayerCollectionExtensions zeCollectionExtensions = extensions.forCollection(zeCollection);
+		AppLayerCollectionExtensions anotherCollectionExtensions = extensions.forCollection("anotherCollection");
+
+		systemExtensions.systemSequenceExtensions.add(new SystemSequenceExtension() {
+			@Override
+			public List<AvailableSequence> getAvailableSequences(AvailableSequenceForSystemParams params) {
+				return asList(sequence5, sequence6);
+			}
+		});
+
+		zeCollectionExtensions.collectionSequenceExtensions.add(new CollectionSequenceExtension() {
+			@Override
+			public List<AvailableSequence> getAvailableSequencesForRecord(AvailableSequenceForRecordParams params) {
+				if (params.isSchemaType(Category.SCHEMA_TYPE)) {
+					return asList(sequence1, sequence2);
+
+				} else if (params.isSchemaType(ContainerRecordType.SCHEMA_TYPE)) {
+					return asList(sequence3, sequence4);
+
+				} else {
+					return new ArrayList<AvailableSequence>();
+				}
+			}
+		});
 	}
 
 	@Test
@@ -95,6 +151,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		//getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(true);
 		//getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		setup();
+
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
 		waitUntilICloseTheBrowsers();
 	}
@@ -143,7 +200,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		schemaDisplayManager
 				.saveSchema(schemaDisplayManager.getSchema(zeCollection, "userTask_test2").withNewFormMetadata("toto"));
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSchemasRecordsServices tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		try {
 			Transaction transaction = new Transaction();

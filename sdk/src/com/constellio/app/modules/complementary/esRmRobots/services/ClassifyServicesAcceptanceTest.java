@@ -2,23 +2,29 @@ package com.constellio.app.modules.complementary.esRmRobots.services;
 
 import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
@@ -112,7 +118,7 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 
 		classifyServices = new SmbClassifyServices(zeCollection, getAppLayerFactory(), users.adminIn(zeCollection));
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 
@@ -292,7 +298,7 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 
 		ClassifyConnectorDocumentInFolderActionParameters parameters = ClassifyConnectorDocumentInFolderActionParameters
 				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE));
-		recordServices.add(parameters.setInFolder(records.folder_A01).setMajorVersions(false));
+		recordServices.add(parameters.setInFolder(records.folder_A01).setMajorVersions(false).setActionAfterClassification(ActionAfterClassification.EXCLUDE_DOCUMENTS));
 
 		recordServices.add(robotsSchemas.newRobot().setActionParameters(parameters)
 				.setSchemaFilter(ConnectorSmbDocument.SCHEMA_TYPE).setSearchCriteria(asList(
@@ -352,7 +358,7 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 		ClassifyConnectorDocumentInFolderActionParameters parameters = ClassifyConnectorDocumentInFolderActionParameters
 				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE));
 		recordServices.add(parameters.setInFolder(records.folder_A01).setMajorVersions(true)
-				.setDocumentType(rm.emailDocumentType()));
+				.setDocumentType(rm.emailDocumentType()).setActionAfterClassification(ActionAfterClassification.EXCLUDE_DOCUMENTS));
 
 		recordServices.add(robotsSchemas.newRobot().setActionParameters(parameters)
 				.setSchemaFilter(ConnectorSmbDocument.SCHEMA_TYPE).setSearchCriteria(asList(
@@ -573,4 +579,60 @@ public class ClassifyServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(transaction);
 	}
 
+	@Test
+	public void givenConnectorSmbDocumentsWhenClassifyUsingARobotThenReplaceDocumentWithLegacyId()
+			throws Exception {
+
+		givenFetchedFoldersAndDocuments();
+
+		final ConnectorSmbDocument connectorSmbDocumentA1 = es.getConnectorSmbDocument(documentA1);
+		ConnectorSmbDocument connectorSmbDocumentA2 = es.getConnectorSmbDocument(documentA2);
+		ConnectorSmbDocument connectorSmbDocumentAA4 = es.getConnectorSmbDocument(documentAA4);
+		ConnectorSmbDocument connectorSmbDocumentAA5 = es.getConnectorSmbDocument(documentAA5);
+		ConnectorSmbDocument connectorSmbDocumentB3 = es.getConnectorSmbDocument(documentB3);
+
+		ClassifyConnectorDocumentInFolderActionParameters parameters = ClassifyConnectorDocumentInFolderActionParameters
+				.wrap(robotsSchemas.newActionParameters(ClassifyConnectorDocumentInFolderActionParameters.SCHEMA_LOCAL_CODE));
+		recordServices.add(parameters.setInFolder(records.folder_A01).setMajorVersions(true)
+				.setDocumentType(rm.emailDocumentType()));
+
+		recordServices.add(robotsSchemas.newRobot().setActionParameters(parameters)
+				.setSchemaFilter(ConnectorSmbDocument.SCHEMA_TYPE).setSearchCriteria(asList(
+						new CriterionBuilder(ConnectorSmbDocument.SCHEMA_TYPE).booleanOperator(OR)
+								.where(es.connectorSmbDocument.url()).isContainingText("smb").build(),
+						new CriterionBuilder(ConnectorSmbDocument.SCHEMA_TYPE)
+								.where(es.connectorSmbDocument.url()).isContainingText("smb://B/3").build()
+				)).setAction(ClassifyConnectorDocumentInFolderActionExecutor.ID).setCode("robocop").setTitle("robocop"));
+
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull())).hasSize(9);
+
+		final String modifiedContent = "Modified content";
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				return new ByteArrayInputStream(modifiedContent.getBytes());
+			}
+		}).when(connectorSmb).getInputStream(argThat(
+				new ArgumentMatcher<ConnectorSmbDocument>() {
+					@Override
+					public boolean matches(Object o) {
+						return o instanceof ConnectorSmbDocument && ((ConnectorSmbDocument) o).getUrl().equals(connectorSmbDocumentA1.getUrl());
+					}
+				}), anyString());
+
+		//Run again
+		robotsSchemas.getRobotsManager().startAllRobotsExecution();
+		waitForBatchProcess();
+
+		assertThat(rm.searchDocuments(where(LEGACY_ID).isNotNull())).hasSize(9);
+
+		Document test = (Document) rm.searchDocuments(where(LEGACY_ID).isEqualTo(connectorSmbDocumentA1.getUrl())).get(0);
+		//Content is replaced
+		assertThat(test.getContent().getCurrentVersion().getVersion()).isEqualTo("1.0");
+		assertThat(strContentOf(test)).isEqualTo(modifiedContent);
+	}
 }

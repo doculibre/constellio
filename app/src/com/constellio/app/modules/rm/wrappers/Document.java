@@ -56,8 +56,8 @@ public class Document extends RMObject {
 	public static final String SAME_SEMI_ACTIVE_FATE_AS_FOLDER = "sameSemiActiveFateAsFolder";
 	public static final String SAME_INACTIVE_FATE_AS_FOLDER = "sameInactiveFateAsFolder";
 	public static final String PUBLISHED = "published";
-	public static final String CALENDAR_YEAR_ENTERED = Folder.CALENDAR_YEAR_ENTERED;
-	public static final String CALENDAR_YEAR = Folder.CALENDAR_YEAR;
+	public static final String CREATED_BY_ROBOT = "createdByRobot";
+	public static final String VERSION = "version";
 
 	public Document(Record record,
 			MetadataSchemaTypes types) {
@@ -106,6 +106,15 @@ public class Document extends RMObject {
 
 	public Document setKeywords(List<String> keywords) {
 		set(KEYWORDS, keywords);
+		return this;
+	}
+
+	public String getCreatedByRobot() {
+		return get(CREATED_BY_ROBOT);
+	}
+
+	public Document setCreatedByRobot(String robotId) {
+		set(CREATED_BY_ROBOT, robotId);
 		return this;
 	}
 
@@ -325,9 +334,5 @@ public class Document extends RMObject {
 		return BooleanUtils.isTrue((Boolean) get(PUBLISHED));
 	}
 
-	public <T> Document set(Metadata metadata, T value) {
-		set(metadata.getLocalCode(), value);
-		return this;
-	}
 
 }

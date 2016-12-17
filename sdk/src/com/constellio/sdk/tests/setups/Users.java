@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Collection;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.model.entities.records.wrappers.Group;
@@ -247,7 +249,7 @@ public class Users {
 
 	private void addGroup(String code, String title, String parent) {
 		GlobalGroup group = userServices.createGlobalGroup(
-				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE);
+				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(group);
 	}
 

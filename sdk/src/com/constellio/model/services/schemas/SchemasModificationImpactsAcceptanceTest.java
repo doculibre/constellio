@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -177,13 +178,8 @@ public class SchemasModificationImpactsAcceptanceTest extends ConstellioTest {
 	}
 
 	private org.assertj.core.api.ListAssert<String> assertThatAutoCompleteSearch(String text) {
-		ConditionTemplate conditionTemplate = ConditionTemplateFactory.autocompleteFieldMatching(text);
-
 		MetadataSchemaType type = schemasManager.getSchemaTypes(zeCollection).getSchemaType(zeSchema.typeCode());
-
-		LogicalSearchQuery query = new LogicalSearchQuery()
-				.setCondition(from(type).where(conditionTemplate));
-
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(type).where(autocompleteFieldMatching(text)));
 		return assertThat(searchServices.searchRecordIds(query));
 	}
 

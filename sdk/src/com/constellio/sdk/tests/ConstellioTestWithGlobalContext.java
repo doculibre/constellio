@@ -15,8 +15,8 @@ import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 public class ConstellioTestWithGlobalContext extends AbstractConstellioTest {
 
 	private static ConstellioTestSession testSession;
-	@Rule
-	public TestRule benchmarkRun = new BenchmarkRule();
+//	@Rule
+	//	public TestRule benchmarkRun = new BenchmarkRule();
 
 	@Before
 	public void verifyCorrectlyUsed() {

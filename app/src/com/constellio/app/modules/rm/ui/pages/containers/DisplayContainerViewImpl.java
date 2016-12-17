@@ -5,10 +5,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
@@ -28,6 +29,8 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -133,7 +136,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		buttons.add(slip);
 
 		Button labels = new ContainerLabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-				presenter.getTemplates());
+				presenter.getTemplates(), presenter.getLabelsReportFactory());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 
@@ -165,21 +168,30 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	public static class ContainerLabelsButton extends WindowButton {
 		private final RecordSelector selector;
 		private final List<LabelTemplate> labelTemplates;
+        private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
 
 		@PropertyId("startPosition") private ComboBox startPosition;
 		@PropertyId("numberOfCopies") private TextField copies;
 		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
 
 		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
-				List<LabelTemplate> labelTemplates) {
+				List<LabelTemplate> labelTemplates, final NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
 			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 			this.selector = selector;
 			this.labelTemplates = labelTemplates;
+            this.labelsReportFactory = labelsReportFactory;
 		}
 
 		@Override
 		protected Component buildWindowContent() {
 			startPosition = new ComboBox($("LabelsButton.startPosition"));
+			if (labelTemplates.size() > 0) {
+				int size = labelTemplates.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
+				startPosition.clear();
+				for (int i = 1; i <= size; i++) {
+					startPosition.addItem(i);
+				}
+			}
 			for (int i = 1; i <= 10; i++) {
 				startPosition.addItem(i);
 			}
@@ -191,6 +203,20 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
 			}
 			labelConfiguration.setNullSelectionAllowed(false);
+			labelConfiguration.setImmediate(true);
+			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
+					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
+					startPosition.clear();
+					startPosition.removeAllItems();
+					for (int i = 1; i <= size; i++) {
+
+						startPosition.addItem(i);
+					}
+				}
+			});
 
 			copies = new TextField($("LabelsButton.numberOfCopies"));
 			copies.setConverter(Integer.class);
@@ -201,10 +227,13 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				@Override
 				protected void saveButtonClick(LabelParametersVO parameters)
 						throws ValidationException {
-					LabelsReportFactory factory = new LabelsReportFactory(
-							selector.getSelectedRecordIds(), ((LabelTemplate) (labelConfiguration.getValue())),
-							parameters.getStartPosition(), parameters.getNumberOfCopies());
-					getWindow().setContent(new ReportViewer(factory));
+                    LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+                            selector.getSelectedRecordIds(),
+                            parameters.getLabelConfiguration(),
+                            parameters.getStartPosition(),
+                            parameters.getNumberOfCopies());
+
+					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters), labelsReportFactory.getFilename(null)));
 				}
 
 				@Override

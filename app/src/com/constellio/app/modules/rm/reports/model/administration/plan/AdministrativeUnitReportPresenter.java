@@ -1,17 +1,18 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.apache.commons.lang.StringUtils;
-
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.AdministrativeUnitReportModel.AdministrativeUnitReportModel_User;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -23,28 +24,37 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.apache.commons.lang.StringUtils;
 
-public class AdministrativeUnitReportPresenter {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 	private String collection;
-	private ModelLayerFactory modelLayerFactory;
 	private MetadataSchemaTypes types;
 	private TaxonomiesSearchOptions searchOptions;
 	private TaxonomiesSearchServices searchService;
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
 	private AuthorizationsServices authorizationsServices;
 	private boolean withUsers;
+	protected transient ModelLayerFactory modelLayerFactory;
+	protected transient AppLayerCollectionExtensions appCollectionExtentions;
+	protected transient AppLayerSystemExtensions appSystemExtentions;
 
-	public AdministrativeUnitReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
-
-		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
-		this.withUsers = true;
+	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory) {
+		this(collection, appLayerFactory, true);
 	}
 
-	public AdministrativeUnitReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean withUsers) {
-
+	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, boolean withUsers) {
 		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);
+		this.appSystemExtentions = appLayerFactory.getExtensions().getSystemWideExtensions();
 		this.withUsers = withUsers;
 	}
 
@@ -109,6 +119,7 @@ public class AdministrativeUnitReportPresenter {
 		List<AdministrativeUnitReportModel_AdministrativeUnit> children = new ArrayList<>();
 
 		if (parentRecord != null) {
+
 			List<TaxonomySearchRecord> childTaxonomySearchRecords = searchService.getLinkableChildConcept(User.GOD,
 					parentRecord, RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
 
@@ -179,7 +190,7 @@ public class AdministrativeUnitReportPresenter {
 
 	private void init() {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
+		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all()).setRows(1000);
 		searchService = modelLayerFactory.newTaxonomiesSearchService();
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
@@ -191,5 +202,21 @@ public class AdministrativeUnitReportPresenter {
 
 	public FoldersLocator getFoldersLocator() {
 		return modelLayerFactory.getFoldersLocator();
+	}
+
+	@Override
+	public List<String> getSupportedReports() {
+		return asList($("Reports.AdministrativeUnits"));
+	}
+
+	@Override
+	public NewReportWriterFactory getReport(String report) {
+		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
+		return rmModuleExtensions.getReportBuilderFactories().transferContainerRecordBuilderFactory.getValue();
+	}
+
+	@Override
+	public AdministrativeUnitReportParameters getReportParameters(String report) {
+		return new AdministrativeUnitReportParameters(withUsers);
 	}
 }

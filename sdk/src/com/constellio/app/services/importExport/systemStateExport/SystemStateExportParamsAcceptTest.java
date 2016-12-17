@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.systemStateExport;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -16,6 +17,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_InvalidRecordId;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporterRuntimeException.SystemStateExporterRuntimeException_RecordHasNoContent;
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -44,6 +46,7 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(HashingEncoding.BASE64_URL_ENCODED);
 		givenTransactionLogIsEnabled();
 		givenDisabledAfterTestValidations();
 		prepareSystem(
@@ -51,11 +54,9 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus(),
 				withCollection("anotherCollection").withAllTestUsers().withConstellioRMModule()
 		);
-
 		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.REWRITE);
-
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 
@@ -222,40 +223,54 @@ public class SystemStateExportParamsAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(File folder) {
 
+				File resource1 = new File(folder, "F/Fs/Fss/Fss7pKBafi8ok5KaOwEpmNdeGCE=".replace("/", separator));
+				File resource1Parsed = new File(folder, "F/Fs/Fss/Fss7pKBafi8ok5KaOwEpmNdeGCE=__parsed".replace("/", separator));
+
+				File resource2 = new File(folder, "T/TI/TIK/TIKwSvHOXHOOtRd1K9t2fm4TQ4I=".replace("/", separator));
+				File resource2Parsed = new File(folder, "T/TI/TIK/TIKwSvHOXHOOtRd1K9t2fm4TQ4I=__parsed".replace("/", separator));
+
+				File resource3 = new File(folder, "T/T-/T-4/T-4zq4cGP_tXkdJp_qz1WVWYhoQ=".replace("/", separator));
+				File resource3Parsed = new File(folder, "T/T-/T-4/T-4zq4cGP_tXkdJp_qz1WVWYhoQ=__parsed".replace("/", separator));
+
+				File resource4 = new File(folder, "K/KN/KN8/KN8RjbrnBgq1EDDV2U71a6_6gd4=".replace("/", separator));
+				File resource4Parsed = new File(folder, "K/KN/KN8/KN8RjbrnBgq1EDDV2U71a6_6gd4=__parsed".replace("/", separator));
+
 				//resource1
 				if (hashes.contains(document1PreviousContent)) {
-					assertThat(folder.list()).contains("Fs");
-					assertThat(new File(folder, "Fs").list())
-							.contains("Fss7pKBafi8ok5KaOwEpmNdeGCE=", "Fss7pKBafi8ok5KaOwEpmNdeGCE=__parsed");
+					assertThat(resource1).exists();
+					assertThat(resource1Parsed).exists();
 				} else {
-					assertThat(folder.list()).doesNotContain("Fs");
+					assertThat(resource1).doesNotExist();
+					assertThat(resource1Parsed).doesNotExist();
 				}
 
 				//resource2
 				if (hashes.contains(document1CurrentContent)) {
-					assertThat(folder.list()).contains("TI");
-					assertThat(new File(folder, "TI").list())
-							.contains("TIKwSvHOXHOOtRd1K9t2fm4TQ4I=", "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=__parsed");
+					assertThat(resource2).exists();
+					assertThat(resource2Parsed).exists();
+
 				} else {
-					assertThat(folder.list()).doesNotContain("Fs");
+					assertThat(resource2).doesNotExist();
+					assertThat(resource2Parsed).doesNotExist();
 				}
 
 				//resource3
+
 				if (hashes.contains(document2PreviousContent)) {
-					assertThat(folder.list()).contains("T+4zq4cGP");
-					assertThat(new File(folder, "T+4zq4cGP" + File.separator + "tXkdJp").list())
-							.contains("qz1WVWYhoQ=", "qz1WVWYhoQ=__parsed");
+					assertThat(resource3).exists();
+					assertThat(resource3Parsed).exists();
 				} else {
-					assertThat(folder.list()).doesNotContain("T+4zq4cGP");
+					assertThat(resource3).doesNotExist();
+					assertThat(resource3Parsed).doesNotExist();
 				}
 
 				//resource4
 				if (hashes.contains(document2CurrentContent)) {
-					assertThat(folder.list()).contains("KN8RjbrnBgq1EDDV2U71a6");
-					assertThat(new File(folder, "KN8RjbrnBgq1EDDV2U71a6").list())
-							.contains("6gd4=", "6gd4=__parsed");
+					assertThat(resource4).exists();
+					assertThat(resource4Parsed).exists();
 				} else {
-					assertThat(folder.list()).doesNotContain("KN8RjbrnBgq1EDDV2U71a6");
+					assertThat(resource4).doesNotExist();
+					assertThat(resource4Parsed).doesNotExist();
 				}
 
 				return true;

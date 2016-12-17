@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSearchConditionFactory.ContainerSearchParameters;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -46,7 +47,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 			protected LogicalSearchQuery getQuery() {
 				User user = presenterService().getCurrentUser(view.getSessionContext());
 				DecommissioningService service = new DecommissioningService(
-						view.getCollection(), modelLayerFactory);
+						view.getCollection(), appLayerFactory);
 				List<String> visibleAdminUnitsId = service.getChildrenAdministrativeUnit(adminUnitId, user);
 				MetadataSchema schema = schema(schemaVO.getCode());
 				LogicalSearchCondition condition;
@@ -70,7 +71,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				DecommissioningSearchConditionFactory conditionFactory = new DecommissioningSearchConditionFactory(
-						view.getCollection(), modelLayerFactory);
+						view.getCollection(), appLayerFactory);
 				ContainerSearchParameters parameters = new ContainerSearchParameters();
 				parameters.setAdminUnitId(adminUnitId);
 				if (tabName.startsWith(DEPOSIT_PREFIX)) {
@@ -103,14 +104,14 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 	}
 
 	public void displayAdminUnitButtonClicked(String tabName, RecordVO adminUnit) {
-		view.navigateTo().displayAdminUnitWithContainers(tabName, adminUnit.getId());
+		view.navigate().to(RMViews.class).displayAdminUnitWithContainers(tabName, adminUnit.getId());
 	}
 
 	public void displayFilingSpaceButtonClicked(String tabName, RecordVO filingSpace) {
-		view.navigateTo().displayFilingSpaceWithContainers(tabName, adminUnitId, filingSpace.getId());
+		view.navigate().to(RMViews.class).displayFilingSpaceWithContainers(tabName, adminUnitId, filingSpace.getId());
 	}
 
 	public void displayContainerButtonClicked(RecordVO container) {
-		view.navigateTo().displayContainer(container.getId());
+		view.navigate().to(RMViews.class).displayContainer(container.getId());
 	}
 }

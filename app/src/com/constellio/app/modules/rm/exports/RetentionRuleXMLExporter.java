@@ -152,7 +152,7 @@ public class RetentionRuleXMLExporter {
 			return "unités administratives responsables";
 		}
 
-		List<AdministrativeUnit> allAdministrativesUnits = rm.getAdministrativesUnits(rule.getAdministrativeUnits());
+		List<AdministrativeUnit> allAdministrativesUnits = rm.getAdministrativeUnits(rule.getAdministrativeUnits());
 
 		Collections.sort(allAdministrativesUnits, new Comparator<AdministrativeUnit>() {
 			@Override
@@ -272,9 +272,9 @@ public class RetentionRuleXMLExporter {
 	private String getCategoriesTitlesToString(RetentionRule rule) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)).sortAsc(CODE));
+				.setCondition(from(rm.category.schemaType()).where(rm.category.retentionRules()).isEqualTo(rule)).sortAsc(CODE));
 
-		List<Category> categories = rm.wrapCategories(records);
+		List<Category> categories = rm.wrapCategorys(records);
 		String categoriesTitles = "";
 
 		for (Category zeCategory : categories) {
@@ -291,9 +291,9 @@ public class RetentionRuleXMLExporter {
 	private String getCategoriesCodeToString(RetentionRule rule) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.categorySchemaType()).where(rm.categoryRetentionRules()).isEqualTo(rule)).sortAsc(CODE));
+				.setCondition(from(rm.category.schemaType()).where(rm.category.retentionRules()).isEqualTo(rule)).sortAsc(CODE));
 
-		List<Category> categories = rm.wrapCategories(records);
+		List<Category> categories = rm.wrapCategorys(records);
 		String categoriesCodes = "";
 
 		for (Category zeCategory : categories) {
@@ -312,8 +312,8 @@ public class RetentionRuleXMLExporter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery(
-				from(rm.retentionRuleSchemaType())
-						.where(rm.retentionRuleApproved()).isTrue()
+				from(rm.retentionRule.schemaType())
+						.where(rm.retentionRule.approved()).isTrue()
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()).sortAsc(CODE));
 
 		return new RetentionRuleXMLExporter(rm.wrapRetentionRules(records), exportFile, collection, modelLayerFactory);

@@ -4,6 +4,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.InputStream;
 
+import com.vaadin.data.validator.AbstractStringValidator;
+import com.vaadin.data.validator.RegexpValidator;
+import com.vaadin.ui.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
@@ -25,13 +28,6 @@ import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Embedded;
-import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
 	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
@@ -51,8 +47,10 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private TextField firstNameField;
 	@PropertyId("lastName")
 	private TextField lastNameField;
-	@PropertyId("email")
-	private TextField emailField;
+    @PropertyId("email")
+    private TextField emailField;
+    @PropertyId("personalEmails")
+    private TextArea personalEmailsField;
 	@PropertyId("phone")
 	private TextField phoneField;
 	@PropertyId("password")
@@ -61,6 +59,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private PasswordField confirmPasswordField;
 	@PropertyId("oldPassword")
 	private PasswordField oldPasswordField;
+	@PropertyId("loginLanguageCode")
+	private ComboBox loginLanguageCodeField;
 	@PropertyId("startTab")
 	private OptionGroup startTabField;
 	@PropertyId("defaultTabInFolderDisplay")
@@ -90,7 +90,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
+	protected Component buildMainComponent(final ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
@@ -172,6 +172,24 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		emailField.addValidator(new EmailValidator($("ModifyProfileView.invalidEmail")));
 		emailField.setEnabled(presenter.canModify());
 
+        personalEmailsField = new TextArea();
+        personalEmailsField.setCaption($("ModifyProfileView.personalEmails"));
+        personalEmailsField.setRequired(false);
+        personalEmailsField.setNullRepresentation("");
+        personalEmailsField.setId("personalEmails");
+        personalEmailsField.addStyleName("email");
+		personalEmailsField.addValidator(new Validator() {
+			private Validator emailValidator = new EmailValidator($("ModifyProfileView.invalidEmail"));
+			@Override
+			public void validate(Object value) throws InvalidValueException {
+				if (value != null) {
+					for (final String email : ((String) value).split("\n")) {
+						emailValidator.validate(email);
+					}
+				}
+			}
+		});
+
 		phoneField = new TextField();
 		phoneField.setCaption($("ModifyProfileView.phone"));
 		phoneField.setRequired(false);
@@ -191,7 +209,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 				if (passwordField.getValue() != null && StringUtils.isNotBlank(passwordField.getValue())) {
 					confirmPasswordField.setRequired(true);
 					oldPasswordField.setRequired(true);
-				} else {
 					passwordField.setValue(null);
 					confirmPasswordField.setRequired(false);
 					oldPasswordField.setRequired(false);
@@ -225,6 +242,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		oldPasswordField.addStyleName("oldPassword");
 		oldPasswordField.setEnabled(presenter.canModifyPassword());
 
+		loginLanguageCodeField = new ComboBox($("ModifyProfileView.loginLanguageCode"));
+		loginLanguageCodeField.setId("loginLanguageCode");
+		loginLanguageCodeField.setRequired(true);
+		loginLanguageCodeField.setNullSelectionAllowed(false);
+		for(String code : presenter.getCurrentCollectionLanguagesCodes()){
+			loginLanguageCodeField.addItem(code);
+			loginLanguageCodeField.setItemCaption(code, $("Language." + code));
+		}
+		loginLanguageCodeField.setEnabled(true);
+
 		startTabField = new OptionGroup($("ModifyProfileView.startTab"));
 		startTabField.setId("startTab");
 		for (String tab : presenter.getAvailableHomepageTabs()) {
@@ -235,10 +262,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup(DefaultTabInFolderDisplay.class);
 		defaultTabInFolderDisplay.setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
 		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.SUB_FOLDERS,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.SUB_FOLDERS));
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.DOCUMENTS,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.DOCUMENTS));
+		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
+				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
 		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
 				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
 
@@ -252,8 +277,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
 		}
 
-		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField,
-				phoneField, passwordField, confirmPasswordField, oldPasswordField, startTabField, defaultTabInFolderDisplay,
+		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
+				phoneField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
 				taxonomyField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)

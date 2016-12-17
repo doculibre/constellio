@@ -154,4 +154,8 @@ public class ReferenceDisplay extends Button {
 			});
 		}
 	}
+
+	public String getRecordId() {
+		return recordId;
+	}
 }

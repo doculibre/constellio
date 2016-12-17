@@ -14,8 +14,10 @@ public interface ImportFileView extends BaseView, AdminViewGroup {
 
 	void showImportCompleteMessage();
 
-	void setExampleFile(File exampleExcelFile);
+	void setExampleFile(File exampleFile);
 
 	List<String> getSelectedCollections();
+
+	ImportFileMode getImportFileMode();
 
 }

@@ -3,6 +3,7 @@ package com.constellio.sdk.dev.tools;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -51,7 +52,13 @@ public class CompareI18nKeys {
 			throws IOException {
 		List<String> keys = new ArrayList<>();
 
-		for (String line : FileUtils.readLines(file)) {
+		Iterator<String> linesIterator = FileUtils.readLines(file).iterator();
+
+		while(linesIterator.hasNext()) {
+			String line = linesIterator.next();
+			while(line.endsWith("\\")) {
+				line += linesIterator.next();
+			}
 			if (line.contains("=")) {
 				keys.add(line.split("=")[0]);
 			}

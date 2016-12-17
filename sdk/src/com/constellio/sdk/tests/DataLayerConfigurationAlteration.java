@@ -1,9 +1,9 @@
 package com.constellio.sdk.tests;
 
-import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 
 public interface DataLayerConfigurationAlteration {
 
-	void alter(DataLayerConfiguration configuration);
+	void alter(InMemoryDataLayerConfiguration configuration);
 
 }

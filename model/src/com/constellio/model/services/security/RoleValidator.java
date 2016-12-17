@@ -53,7 +53,7 @@ public class RoleValidator implements Validator<Role> {
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, String invalidCode) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(INVALID_CODE, invalidCode);
 		validationErrors.add(getClass(), errorCode, parameters);
 	}

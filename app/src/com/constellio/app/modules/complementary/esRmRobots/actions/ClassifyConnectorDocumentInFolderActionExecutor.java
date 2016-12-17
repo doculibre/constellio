@@ -45,7 +45,7 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records) {
+			List<Record> records, List<Record> processedRecords) {
 		String collection = actionParameters.getCollection();
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);
@@ -61,10 +61,13 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 		for (Record record : records) {
 			ConnectorDocument connectorDocument = es.wrapConnectorDocument(record);
 			try {
-				String classifiedDocumentId = classifyServices.classifyDocument(connectorDocument, params.getInFolder(),
-						params.getDocumentType(), params.getMajorVersions(), true, versions);
 
-				if (params.getActionAfterClassification() == EXCLUDE_DOCUMENTS && isNotBlank(classifiedDocumentId)) {
+				boolean excludeDocumentFromConnector = params.getActionAfterClassification() == EXCLUDE_DOCUMENTS;
+
+				String classifiedDocumentId = classifyServices.classifyDocument(connectorDocument, params.getInFolder(),
+						params.getDocumentType(), params.getMajorVersions(), excludeDocumentFromConnector, versions);
+
+				if (excludeDocumentFromConnector && isNotBlank(classifiedDocumentId)) {
 					List<String> newUrlsToExclude = Arrays.asList(connectorDocument.getURL());
 					connectorServices(appLayerFactory, connectorDocument)
 							.addExcludedUrlsTo(newUrlsToExclude, es.getConnectorInstance(connectorDocument.getConnector()));

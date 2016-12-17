@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfiguration;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -38,7 +40,6 @@ import com.constellio.app.modules.robots.model.services.RobotsService;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.params.ParamUtils;
@@ -59,7 +60,7 @@ import com.constellio.sdk.tests.setups.Users;
  */
 public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	@Mock AddEditRobotView view;
 	RobotsService robotsService;
 	AddEditRobotPresenter presenter;
@@ -109,11 +110,11 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		smbClassifyServices = new SmbClassifyServices(zeCollection, getAppLayerFactory(), users.adminIn(zeCollection));
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		robotsService = new RobotsService(zeCollection, getAppLayerFactory());
@@ -215,7 +216,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 		Map<String, String> params = new HashMap<>();
 		params.put("pageMode", AddEditRobotPresenter.EDIT);
 		params.put("robotId", robot.getId());
-		String viewPath = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_ROBOT, params);
+		String viewPath = ParamUtils.addParams(RobotsNavigationConfiguration.ADD_EDIT_ROBOT, params);
 		presenter.forParams(viewPath);
 
 		List<Criterion> criteria = robot.getSearchCriteria();

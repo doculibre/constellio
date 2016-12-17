@@ -38,7 +38,7 @@ public class BaseEventCategoryViewAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 		);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		driver = newWebDriver(FakeSessionContext.adminInCollection(zeCollection));
 		users = new Users().using(getModelLayerFactory().newUserServices());

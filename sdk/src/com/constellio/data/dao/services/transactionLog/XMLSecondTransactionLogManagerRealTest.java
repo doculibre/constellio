@@ -73,7 +73,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	String shishOclock = SolrUtils.convertLocalDateTimeToSolrDate(shishOclockLocalDateTime);
 	String tockOClock = SolrUtils.convertLocalDateTimeToSolrDate(tockOClockLocalDateTime);
 
-	SolrInputDocument record1, record2, record5, record3, record4 = new SolrInputDocument();
+	SolrInputDocument record1, record2, record5, record3, record6, record4 = new SolrInputDocument();
 	String deletedRecord6 = "deletedRecord6";
 	String deletedRecord7 = "deletedRecord7";
 	@Mock QueryResponseDTO queryResponseDTO;
@@ -134,7 +134,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		when(recordDao.getBigVaultServer()).thenReturn(bigVaultServer);
 		when(bigVaultServer.countDocuments()).thenReturn(42L);
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions, getDataLayerFactory().getTransactionLogRecoveryManager()));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions,
+				getDataLayerFactory().getTransactionLogRecoveryManager()));
 		transactionLog.initialize();
 
 		record1 = newSolrInputDocument("record1", -1L);
@@ -158,10 +159,15 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		record5.setField("text_s", "aValue");
 		record5.setField("date_dt", tockOClock);
 
+		record6 = newSolrInputDocument("record6ZZ", 56L);
+		record6.setField("text_s", "aValue");
+		record6.setField("date_dt", tockOClock);
+
 		firstTransactionNewRecords.add(record1);
 		firstTransactionNewRecords.add(record2);
 		firstTransactionModifiedRecords.add(record3);
 		firstTransactionModifiedRecords.add(record4);
+		firstTransactionModifiedRecords.add(record6);
 		firstTransactionDeletedByQueries.add(deleteByQueryParams = SolrUtils.toDeleteQueries(new ModifiableSolrParams()
 				.set("q", "zeQuery").add("fq", "firstFilter").add("fq", "secondFilter")));
 		firstTransactionDeletedByQueries.add(SolrUtils.toDeleteQueries(new ModifiableSolrParams()
@@ -293,6 +299,18 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenZZRecordsAreWrittenWhenWriteTransactionWithZZRecordsThenWrote()
+			throws Exception {
+
+		when(dataLayerConfiguration.isWriteZZRecords()).thenReturn(true);
+
+		transactionLog.prepare(firstTransactionId, firstTransaction);
+		transactionLog.flush(firstTransactionId);
+
+		assertThat(FileUtils.readFileToString(flushedTransaction1)).contains("record6ZZ");
+	}
+
+	@Test
 	public void givenAnExceptionOccurWhenFlushingThenThrowExceptionAndBlockFutureTransactions()
 			throws Exception {
 
@@ -326,7 +344,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(secondTransactionId, secondTransaction);
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions, getDataLayerFactory().getTransactionLogRecoveryManager()));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions,
+				getDataLayerFactory().getTransactionLogRecoveryManager()));
 
 		doReturn(true).when(transactionLog).isCommitted(firstTransactionTempFile, recordDao);
 		doReturn(false).when(transactionLog).isCommitted(secondTransactionTempFile, recordDao);
@@ -344,7 +363,8 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 	public void givenPreparedIsCalledBeforeInitializingTheTransactionLogThenException() {
 
 		transactionLog = spy(new XMLSecondTransactionLogManager(dataLayerConfiguration, ioServices, recordDao, contentDao,
-				backgroundThreadsManager, dataLayerLogger, systemExtensions, getDataLayerFactory().getTransactionLogRecoveryManager()));
+				backgroundThreadsManager, dataLayerLogger, systemExtensions,
+				getDataLayerFactory().getTransactionLogRecoveryManager()));
 		transactionLog.prepare(firstTransactionId, firstTransaction);
 
 	}

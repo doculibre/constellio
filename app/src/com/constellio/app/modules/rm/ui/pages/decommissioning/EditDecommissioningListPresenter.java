@@ -60,11 +60,11 @@ public class EditDecommissioningListPresenter extends SingleSchemaBasePresenter<
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 
 	private RMSchemasRecordsServices rmRecordsServices() {
-		return new RMSchemasRecordsServices(collection, modelLayerFactory);
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
 	public void cancelButtonClicked(RecordVO recordVO) {

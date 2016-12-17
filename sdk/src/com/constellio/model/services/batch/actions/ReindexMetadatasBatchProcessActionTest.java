@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -26,6 +27,9 @@ public class ReindexMetadatasBatchProcessActionTest extends ConstellioTest {
 	@Mock Record record1;
 	@Mock Record record2;
 	@Mock Record record3;
+
+	@Mock RecordProvider recordProvider;
+
 	List<Record> batch;
 
 	ReindexMetadatasBatchProcessAction action;
@@ -55,7 +59,7 @@ public class ReindexMetadatasBatchProcessActionTest extends ConstellioTest {
 	public void whenExecutingThenCreateTransactionSetForcedReindexedFieldsOptionsAndAddRecords()
 			throws Exception {
 
-		Transaction transaction = action.execute(batch, schemaTypes);
+		Transaction transaction = action.execute(batch, schemaTypes, recordProvider);
 
 		assertThat(transaction.getRecordUpdateOptions().getTransactionRecordsReindexation())
 				.isEqualTo(new TransactionRecordsReindexation(reindexedMetadatas));

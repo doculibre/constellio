@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.Workflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstance;
@@ -59,14 +60,13 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	}
 
 	public List<String> getTabs() {
-
 		List<String> tabs = new ArrayList<>();
 		tabs.add(TASKS_ASSIGNED_TO_CURRENT_USER);
 		tabs.add(TASKS_ASSIGNED_BY_CURRENT_USER);
 		tabs.add(TASKS_NOT_ASSIGNED);
 		tabs.add(TASKS_RECENTLY_COMPLETED);
 
-		if (areWorkflowsEnabled()) {
+		if (areWorkflowsEnabled() && getCurrentUser().has(TasksPermissionsTo.MANAGE_WORKFLOWS).globally()) {
 			tabs.add(WORKFLOWS_STARTED);
 		}
 
@@ -102,7 +102,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void editButtonClicked(RecordVO record) {
-		view.navigateTo().editTask(record.getId());
+		view.navigate().to().editTask(record.getId());
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void completeButtonClicked(RecordVO record) {
-		view.navigateTo().editTask(record.getId(), true);
+		view.navigate().to().editTask(record.getId(), true);
 	}
 
 	@Override
@@ -165,7 +165,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void displayWorkflowInstanceRequested(RecordVO recordVO) {
-		view.navigateTo().displayWorkflowInstance(recordVO.getId());
+		view.navigate().to(TaskViews.class).displayWorkflowInstance(recordVO.getId());
 	}
 
 	@Override

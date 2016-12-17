@@ -38,6 +38,7 @@ import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecor
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Schemas;
@@ -62,6 +63,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	Record record;
 	RecordValidationServices services;
 	@Mock Transaction transaction;
+	@Mock RecordUpdateOptions recordUpdateOptions;
 	@Mock ConfigProvider configProvider;
 
 	LocalDateTime january1_2010 = new LocalDateTime(2010, 1, 1, 0, 0);
@@ -87,12 +89,13 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 		thirdSchema = schemas.new ThirdSchemaMetadatas();
 
-		services = new RecordValidationServices(configProvider, getModelLayerFactory().getMetadataSchemasManager(),
+		services = new RecordValidationServices(configProvider, recordProvider,
+				getModelLayerFactory().getMetadataSchemasManager(),
 				getModelLayerFactory().newSearchServices(), getModelLayerFactory().newAuthorizationsServices());
 
 		recordServices = getModelLayerFactory().newCachelessRecordServices();
 		recordProvider = getModelLayerFactory().newCachelessRecordServices().newRecordProvider(null, new Transaction());
-
+		when(transaction.getRecordUpdateOptions()).thenReturn(recordUpdateOptions);
 	}
 
 	@Test
@@ -119,7 +122,6 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(Maximum50CharsRecordMetadataValidator.class, VALUE_LENGTH_TOO_LONG));
 		assertThat(errors.get(0).getParameters()).containsEntry(MAX_SIZE, "50").containsEntry(WAS_SIZE, "51")
-				.containsEntry(RecordMetadataValidator.METADATA_LABEL, zeSchema.stringMetadata().getLabel())
 				.containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
 				.containsEntry(RecordMetadataValidator.METADATA_VALUE, titleTooLong);
 
@@ -150,7 +152,6 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors).hasSize(1);
 		assertThat(errors.get(0)).has(codeBasedOn(Maximum50CharsRecordMultivalueMetadataValidator.class, VALUE_LENGTH_TOO_LONG));
 		assertThat(errors.get(0).getParameters()).containsEntry(MAX_SIZE, "50").containsEntry(WAS_SIZE, "51")
-				.containsEntry(RecordMetadataValidator.METADATA_LABEL, zeSchema.stringMetadata().getLabel())
 				.containsEntry(RecordMetadataValidator.METADATA_CODE, zeSchema.stringMetadata().getCode())
 				.containsEntry(RecordMetadataValidator.METADATA_VALUE, expectedConcatenatedStringValues);
 
@@ -420,8 +421,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.REQUIRED_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(ValueRequirementValidator.METADATA_CODE,
-				zeSchema.booleanMetadata().getCode()).containsEntry(ValueRequirementValidator.METADATA_LABEL,
-				zeSchema.booleanMetadata().getLabel());
+				zeSchema.booleanMetadata().getCode());
 	}
 
 	@Test
@@ -450,8 +450,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.REQUIRED_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(ValueRequirementValidator.METADATA_CODE,
-				zeSchema.booleanMetadata().getCode()).containsEntry(ValueRequirementValidator.METADATA_LABEL,
-				zeSchema.booleanMetadata().getLabel());
+				zeSchema.booleanMetadata().getCode());
 	}
 
 	@Test
@@ -468,8 +467,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(ValueRequirementValidator.class, ValueRequirementValidator.REQUIRED_VALUE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(ValueRequirementValidator.METADATA_CODE,
-				zeSchema.booleanMetadata().getCode()).containsEntry(ValueRequirementValidator.METADATA_LABEL,
-				zeSchema.booleanMetadata().getLabel());
+				zeSchema.booleanMetadata().getCode());
 	}
 
 	@Test
@@ -500,8 +498,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(AllowedReferencesValidator.class, AllowedReferencesValidator.UNALLOWED_REFERENCE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(AllowedReferencesValidator.METADATA_CODE,
-				zeSchema.referenceMetadata().getCode()).containsEntry(AllowedReferencesValidator.METADATA_LABEL,
-				zeSchema.referenceMetadata().getLabel());
+				zeSchema.referenceMetadata().getCode());
 	}
 
 	@Test
@@ -520,8 +517,7 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 		assertThat(errors.get(0)).has(
 				codeBasedOn(AllowedReferencesValidator.class, AllowedReferencesValidator.UNALLOWED_REFERENCE_FOR_METADATA));
 		assertThat(errors.get(0).getParameters()).containsEntry(AllowedReferencesValidator.METADATA_CODE,
-				zeSchema.referenceMetadata().getCode()).containsEntry(AllowedReferencesValidator.METADATA_LABEL,
-				zeSchema.referenceMetadata().getLabel());
+				zeSchema.referenceMetadata().getCode());
 	}
 
 	@Test

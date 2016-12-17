@@ -34,10 +34,10 @@ public class GlobalGroupsWriterTest extends ConstellioTest {
 		writer = new GlobalGroupsWriter(document);
 		writer.createEmptyGlobalGroups();
 
-		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE);
-		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE);
-		globalGroup1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE);
-		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE);
+		globalGroup1 = new XmlGlobalGroup("group1", null, GlobalGroupStatus.ACTIVE, true);
+		globalGroup1_1 = new XmlGlobalGroup("group1_1", "group1", GlobalGroupStatus.ACTIVE, true);
+		globalGroup1_1_1 = new XmlGlobalGroup("group1_1_1", "group1_1", GlobalGroupStatus.ACTIVE, true);
+		globalGroup2 = new XmlGlobalGroup("group2", null, GlobalGroupStatus.ACTIVE, true);
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class GlobalGroupsWriterTest extends ConstellioTest {
 		writer.addUpdate(globalGroup1);
 		writer.addUpdate(globalGroup2);
 
-		globalGroup1 = new XmlGlobalGroup("group1", "name1", Arrays.asList("user1"), null, GlobalGroupStatus.INACTIVE);
+		globalGroup1 = new XmlGlobalGroup("group1", "name1", Arrays.asList("user1"), null, GlobalGroupStatus.INACTIVE, true);
 		writer.addUpdate(globalGroup1);
 
 		assertThat(document.getRootElement().getChildren()).hasSize(2);

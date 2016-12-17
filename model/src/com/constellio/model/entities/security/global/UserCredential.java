@@ -14,6 +14,8 @@ public interface UserCredential {
 
 	String getEmail();
 
+	List<String> getPersonalEmails();
+
 	String getServiceKey();
 
 	Map<String, LocalDateTime> getAccessTokens();
@@ -50,6 +52,8 @@ public interface UserCredential {
 
 	UserCredential withEmail(String email);
 
+	UserCredential withPersonalEmails(List<String> personalEmails);
+
 	UserCredential withStatus(UserCredentialStatus status);
 
 	UserCredential withAccessToken(String token, LocalDateTime dateTime);
@@ -61,8 +65,6 @@ public interface UserCredential {
 	UserCredential withNewCollection(String collection);
 
 	UserCredential withSystemAdminPermission();
-
-	UserCredential withNewServiceKey();
 
 	UserCredential withServiceKey(String serviceKey);
 

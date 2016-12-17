@@ -32,6 +32,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessPart;
@@ -39,6 +40,7 @@ import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -99,6 +101,9 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 	@Mock LogicalSearchCondition condition;
 
+	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock DataLayerFactory dataLayerFactory;
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -127,10 +132,15 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 		when(searchServices.getLanguage(any(LogicalSearchQuery.class))).thenReturn("en");
 		when(searchServices.addSolrModifiableParams(any(LogicalSearchQuery.class))).thenCallRealMethod();
+
+		when(modelLayerFactory.newSearchServices()).thenReturn(searchServices);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
 	}
 
 	private void createManager() {
-		manager = spy(new BatchProcessesManager(searchServices, configManager));
+
+		manager = spy(new BatchProcessesManager(modelLayerFactory));
 		doReturn(currentDate).doReturn(newCurrentDate).when(manager).getCurrentTime();
 		doReturn(batchProcessListReader).when(manager).newBatchProcessListReader(any(Document.class));
 		doReturn(batchProcessListWriter).when(manager).newBatchProcessListWriter(any(Document.class));
@@ -246,7 +256,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 		doReturn(aBatchProcessDocument).when(manager).newDocument();
 		doReturn(aBatchProcessId).when(manager).newBatchProcessId();
 		when(batchProcessListReader.read(aBatchProcessId)).thenReturn(aBatchProcess);
-		when(searchServices.getResultsCount(condition)).thenReturn(42L);
+		when(searchServices.getResultsCount(any(LogicalSearchQuery.class))).thenReturn(42L);
 		BatchProcess returnedBatchProcess = manager.addBatchProcessInStandby(condition, action);
 
 		assertThat(returnedBatchProcess).isEqualTo(aBatchProcess);
@@ -497,7 +507,7 @@ public class BatchProcessesManagerTest extends ConstellioTest {
 
 		final AtomicInteger markAllStandbyAsPending = new AtomicInteger();
 
-		BatchProcessesManager manager = spy(new BatchProcessesManager(searchServices, configManager) {
+		BatchProcessesManager manager = spy(new BatchProcessesManager(modelLayerFactory) {
 
 			@Override
 			public void markAllStandbyAsPending() {

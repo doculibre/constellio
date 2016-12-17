@@ -3,9 +3,13 @@ package com.constellio.app.modules.es.ui.pages;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.constellio.app.modules.es.navigation.ESViews;
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,29 +17,31 @@ import org.mockito.Mock;
 
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
 
 public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest {
 
 	@Mock DisplayConnectorInstanceView view;
-	@Mock CoreViews navigator;
 	@Mock RecordVO recordVO;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	ConnectorManager connectorManager;
 	RecordServices recordServices;
 	ESSchemasRecordsServices es;
 	UserServices userServices;
+    MockedNavigation navigator;
 
 	Users users = new Users();
 	ConnectorType connectorType;
@@ -53,7 +59,9 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);
-		when(view.navigateTo()).thenReturn(navigator);
+        navigator = new MockedNavigation();
+        when(view.navigate()).thenReturn(navigator);
+
 
 		es = new ESSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -122,7 +130,7 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		presenter.forParams(connectorInstance.getId());
 		presenter.editConnectorInstanceButtonClicked();
 
-		verify(view.navigateTo()).editConnectorInstance(connectorInstance.getId());
+		verify(view.navigate().to(ESViews.class)).editConnectorInstance(connectorInstance.getId());
 	}
 
 	@Test
@@ -197,7 +205,7 @@ public class DisplayConnectorInstancePresenterAcceptTest extends ConstellioTest 
 		presenter.forParams(connectorInstance.getId());
 		presenter.editSchemasButtonClicked();
 
-		verify(view.navigateTo()).displayConnectorMappings(connectorInstance.getId());
+		verify(view.navigate().to(ESViews.class)).displayConnectorMappings(connectorInstance.getId());
 	}
 
 	private void addFetchedDocument(ConnectorInstance connectorInstance)

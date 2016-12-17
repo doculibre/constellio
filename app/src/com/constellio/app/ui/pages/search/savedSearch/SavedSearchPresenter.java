@@ -36,7 +36,8 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 				return new LogicalSearchQuery(from(schema)
-						.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser()))
+						.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser())
+						.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);
 			}
 		};
@@ -51,7 +52,8 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 				return new LogicalSearchQuery(from(schema)
 						.where(schema.getMetadata(SavedSearch.PUBLIC)).isTrue()
-						.andWhere(schema.getMetadata(SavedSearch.USER)).isNotEqual(getCurrentUser()))
+						.andWhere(schema.getMetadata(SavedSearch.USER)).isNotEqual(getCurrentUser())
+						.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);
 			}
 		};
@@ -67,21 +69,21 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 		savedSearch.setTitle(recordVO.getTitle());
 		savedSearch.setPublic((boolean) recordVO.get(SavedSearch.PUBLIC));
 		addOrUpdate(savedSearch.getWrappedRecord());
-		view.navigateTo().listSavedSearches();
+		view.navigate().to().listSavedSearches();
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
 		delete(getRecord(recordVO.getId()));
-		view.navigateTo().listSavedSearches();
+		view.navigate().to().listSavedSearches();
 	}
 
 	public void searchButtonClicked(RecordVO recordVO) {
 		switch (recordVO.<String>get(SavedSearch.SEARCH_TYPE)) {
 		case SimpleSearchView.SEARCH_TYPE:
-			view.navigateTo().simpleSearchReplay(recordVO.getId());
+			view.navigate().to().simpleSearchReplay(recordVO.getId());
 			break;
 		case AdvancedSearchView.SEARCH_TYPE:
-			view.navigateTo().advancedSearchReplay(recordVO.getId());
+			view.navigate().to().advancedSearchReplay(recordVO.getId());
 			break;
 		}
 	}

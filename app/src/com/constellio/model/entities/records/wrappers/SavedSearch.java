@@ -25,6 +25,13 @@ public class SavedSearch extends RecordWrapper {
 	public static final String SCHEMA_FILTER = "schemaFilter";
 	public static final String SEARCH_TYPE = "searchType";
 	public static final String SORT_ORDER = "sortOrder";
+	public static final String TEMPORARY = "temporary";
+	public static final String PAGE_NUMBER = "pageNumber";
+	public static final String RESULTS_VIEW_MODE = "resultsViewMode";
+	public static final String PAGE_LENGTH = "pageLength";
+
+	//testing only
+	public static final String CRITERION = "criterions";
 
 	public SavedSearch(Record record,
 			MetadataSchemaTypes types) {
@@ -42,6 +49,25 @@ public class SavedSearch extends RecordWrapper {
 
 	public SavedSearch setUser(String user) {
 		set(USER, user);
+		return this;
+	}
+
+	public String getResultsViewMode() {
+		return get(RESULTS_VIEW_MODE);
+	}
+
+	public SavedSearch setResultsViewMode(String resultsViewMode) {
+		set(RESULTS_VIEW_MODE, resultsViewMode);
+		return this;
+	}
+
+	public int getPageLength() {
+		Integer pageLengthInteger = getInteger(PAGE_LENGTH);
+		return pageLengthInteger != null ? pageLengthInteger : 0;
+	}
+
+	public SavedSearch setPageLength(int pageLength) {
+		set(PAGE_LENGTH, pageLength);
 		return this;
 	}
 
@@ -124,6 +150,24 @@ public class SavedSearch extends RecordWrapper {
 	public SavedSearch setSearchType(String searchType) {
 		set(SEARCH_TYPE, searchType);
 		return this;
+	}
+
+	public Boolean isTemporary() {
+		return get(TEMPORARY);
+	}
+
+	public SavedSearch setTemporary(Boolean temporary) {
+		set(TEMPORARY, temporary);
+		return this;
+	}
+
+	public SavedSearch setPageNumber(int pageNumber) {
+		set(PAGE_NUMBER, pageNumber);
+		return this;
+	}
+
+	public int getPageNumber() {
+		return getInteger(PAGE_NUMBER);
 	}
 
 	public enum SortOrder implements EnumWithSmallCode {

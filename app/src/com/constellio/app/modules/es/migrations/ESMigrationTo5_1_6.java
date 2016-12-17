@@ -24,6 +24,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
 
 import java.util.List;
+import java.util.Map;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
@@ -58,6 +59,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -96,16 +98,24 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 	String executionTab;
 	String credentialsTab;
 	String ldapUserTab;
+	Map<String, Map<Language, String>> groups;
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 			AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
-		configurationTab = migrationResourcesProvider.get("connectors.configurationTab");
-		executionTab = migrationResourcesProvider.get("connectors.executionTab");
-		credentialsTab = migrationResourcesProvider.get("connectors.credentialsTab");
-		ldapUserTab = migrationResourcesProvider.get("connectors.ldapUserTab");
+
+		configurationTab = "default:connectors.configurationTab";
+
+		executionTab = "connectors.executionTab";
+
+		credentialsTab = "connectors.credentialsTab";
+
+		ldapUserTab = "connectors.ldapUserTab";
+		groups = migrationResourcesProvider
+				.getLanguageMap(asList(configurationTab, executionTab, credentialsTab, ldapUserTab));
+
 		clearExistingRecordsAndSchemas(collection, appLayerFactory);
 		deleteESFacets(collection, appLayerFactory);
 
@@ -497,7 +507,6 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			documentSchema.createUndeletable(ConnectorSmbDocument.EXTENSION).setType(STRING).setSearchable(true);
 		}
 
-
 		private void updateConnectorHttpInstanceSchemaType(MetadataSchemaTypesBuilder types) {
 			MetadataSchemaTypeBuilder connectorHttpInstanceSchemaType = types.getSchemaType(ConnectorHttpInstance.SCHEMA_TYPE);
 			MetadataSchemaBuilder connectorHttpInstanceSchema = connectorHttpInstanceSchemaType
@@ -544,7 +553,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
 				.setTitle(migrationResourcesProvider.get("init.facet.ldapUserEnabled"))
-						//FIXME
+				//FIXME
 				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
 				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
 
@@ -614,7 +623,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 		facet.withLabel(mimetype, this.migrationResourcesProvider.get("init.facet.mimetype." + mimetype));
 	}
 
-	private void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
+	public static void createSmbFoldersTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 		String title = migrationResourcesProvider.getDefaultLanguageString("init.taxoSmbFolders");
 		Taxonomy taxonomy = Taxonomy.createPublic(ESTaxonomies.SMB_FOLDERS, title, collection, ConnectorSmbFolder.SCHEMA_TYPE);
@@ -920,7 +929,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 			SchemasDisplayManager manager, String collection) {
 
 		transaction.add(manager.getType(collection, ConnectorInstance.SCHEMA_TYPE)
-				.withMetadataGroup(asList(configurationTab, executionTab, credentialsTab, ldapUserTab)));
+				.withMetadataGroup(groups));
 
 		transaction.add(manager.getMetadata(collection, ConnectorInstance.DEFAULT_SCHEMA, ConnectorInstance.CONNECTOR_TYPE)
 				.withInputType(MetadataInputType.HIDDEN));

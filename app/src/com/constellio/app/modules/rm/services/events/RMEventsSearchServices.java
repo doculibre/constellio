@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.services.events;
 
-import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
-import static com.constellio.model.services.contents.ContentFactory.checkedOut;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNull;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -31,6 +17,15 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
+import static com.constellio.model.services.contents.ContentFactory.checkedOut;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RMEventsSearchServices {
 	private ModelLayerFactory modelLayerFactory;
@@ -87,24 +82,24 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersQuery(User currentUser) {
-		return new LogicalSearchQuery(from(schemas.folderSchemaType())
-				.where(schemas.folderBorrowed()).isTrue()
-				.andWhere(schemas.folderBorrowingType()).is(BorrowingType.BORROW))
+		return new LogicalSearchQuery(from(schemas.folder.schemaType())
+				.where(schemas.folder.borrowed()).isTrue()
+				.andWhere(schemas.folder.borrowingType()).is(BorrowingType.BORROW))
 				.filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersByUser(User currentUser, String userId) {
-		LogicalSearchCondition condition = from(schemas.folderSchemaType())
-				.where(schemas.folderBorrowed()).isTrue()
-				.andWhere(schemas.folderBorrowingType()).is(BorrowingType.BORROW)
-				.andWhere(schemas.folderBorrowedUserEntered()).is(userId);
+		LogicalSearchCondition condition = from(schemas.folder.schemaType())
+				.where(schemas.folder.borrowed()).isTrue()
+				.andWhere(schemas.folder.borrowingType()).is(BorrowingType.BORROW)
+				.andWhere(schemas.folder.borrowUserEntered()).is(userId);
 		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindLateBorrowedFoldersByUserAndDateRangeQuery(User currentUser, String userId) {
-		LogicalSearchCondition condition = from(schemas.folderSchemaType())
-				.where(schemas.folderBorrowed()).isTrue().andWhere(schemas.folderBorrowedUserEntered())
-				.is(userId).andWhere(schemas.folderBorrowPreviewReturnDate())
+		LogicalSearchCondition condition = from(schemas.folder.schemaType())
+				.where(schemas.folder.borrowed()).isTrue().andWhere(schemas.folder.borrowUserEntered())
+				.is(userId).andWhere(schemas.folder.borrowPreviewReturnDate())
 				.isLessThan(TimeProvider.getLocalDate());
 		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
 	}
@@ -316,7 +311,7 @@ public class RMEventsSearchServices {
 			List<LogicalSearchValueCondition> ofTheseAdministrativeUnits = new ArrayList<>();
 			ofTheseAdministrativeUnits.add(isNull());
 			for (Record concept : searchServices.search(
-					new LogicalSearchQuery(from(schemas.administrativeUnitSchemaType()).where(Schemas.IDENTIFIER).isIn(ids)))) {
+					new LogicalSearchQuery(from(schemas.administrativeUnit.schemaType()).where(Schemas.IDENTIFIER).isIn(ids)))) {
 
 				List<String> paths = concept.get(Schemas.PATH);
 
@@ -327,5 +322,14 @@ public class RMEventsSearchServices {
 
 			return from(schemas.eventSchemaType()).where(eventPrincipalPath).isAny(ofTheseAdministrativeUnits);
 		}
+	}
+
+	public LogicalSearchQuery newFindEventByRecordIDQuery(User currentUser, String recordID) {
+		Metadata metadataRecordID = schemas.eventSchema().getMetadata(Event.RECORD_ID);
+		Metadata timestamp = Schemas.CREATED_ON;
+
+		LogicalSearchCondition condition = fromEventsAccessibleBy(currentUser)
+				.andWhere(metadataRecordID).isEqualTo(recordID);
+		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 }

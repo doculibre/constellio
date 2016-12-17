@@ -47,7 +47,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 						.withFoldersAndContainersOfEveryStatus()
 		);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
@@ -313,7 +313,7 @@ public class BorrowingServicesAcceptTest extends ConstellioTest {
 				TimeProvider.getLocalDateTime().minusDays(1), TimeProvider.getLocalDateTime().plusDays(1)));
 		assertThat(records).hasSize(1);
 		Event event = new Event(records.get(0), getSchemaTypes());
-		assertThat(event.getUsername()).isEqualTo(this.records.getBob_userInAC().getUsername());
+		assertThat(event.getUsername()).isEqualTo(this.records.getAdmin().getUsername());
 		assertThat(event.getType()).isEqualTo(EventType.RETURN_FOLDER);
 		assertThat(event.getCreatedOn().toLocalDate()).isEqualTo(nowDate);
 	}

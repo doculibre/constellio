@@ -21,7 +21,7 @@ public class ManualTokenValidator implements RecordMetadataValidator<List<String
 			for (String token : tokens) {
 				if (token != null && !token.equals(PUBLIC_TOKEN)) {
 					if (!token.startsWith("r") && !token.startsWith("w") && !token.startsWith("d")) {
-						Map<String, String> parameters = new HashMap<>();
+						Map<String, Object> parameters = new HashMap<>();
 						parameters.put("invalidToken", token);
 						validationErrors.add(getClass(), "tokenMustStartWith_R_W_OR_D", parameters);
 					}

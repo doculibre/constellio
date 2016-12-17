@@ -37,6 +37,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
@@ -52,6 +53,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup schemas = new TestsSchemasSetup(zeCollection);
 	static ZeSchemaMetadatas zeSchema;
 	static AnotherSchemaMetadatas anotherSchema;
+	static ThirdSchemaMetadatas thirdSchema;
 
 	String anotherSchemaRecordId = "42";
 
@@ -70,6 +72,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 		zeSchema = schemas.new ZeSchemaMetadatas();
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
+		thirdSchema = schemas.new ThirdSchemaMetadatas();
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		recordServices.add(new TestRecord(anotherSchema, anotherSchemaRecordId));
@@ -256,7 +259,7 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFiveDynamicCalculatorDependingOnEachOthersWithoutCyclicDependencyThenCalculatedCorrectly()
+	public void givenFiveCalculatorDependingOnEachOthersWithoutCyclicDependencyThenCalculatedCorrectly()
 			throws Exception {
 
 		schemas.modify(new MetadataSchemaTypesAlteration() {
@@ -276,6 +279,83 @@ public class DynamicDependencyCalculatorAcceptanceTest extends ConstellioTest {
 
 				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
 						.defineDataEntry().asCalculated(Metadata5CalculatorDependingOnB_C.class);
+
+				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
+				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);
+				types.getSchema(zeSchema.code()).create("metadataC").setType(NUMBER);
+				types.getSchema(zeSchema.code()).create("metadataD").setType(NUMBER);
+
+			}
+		});
+
+		Record record = new TestRecord(zeSchema);
+		record.set(zeSchema.metadata("metadataA"), 1);
+		record.set(zeSchema.metadata("metadataB"), 4);
+		record.set(zeSchema.metadata("metadataC"), 6);
+		record.set(zeSchema.metadata("metadataD"), 100);
+		recordServices.add(record);
+
+		assertThat(record.get(zeSchema.metadata("calculated1"))).isEqualTo(242.0);
+		assertThat(record.get(zeSchema.metadata("calculated2"))).isEqualTo(110.0);
+		assertThat(record.get(zeSchema.metadata("calculated3"))).isEqualTo(121.0);
+		assertThat(record.get(zeSchema.metadata("calculated4"))).isEqualTo(11.0);
+		assertThat(record.get(zeSchema.metadata("calculated5"))).isEqualTo(10.0);
+
+	}
+
+	@Test(expected = MetadataSchemaBuilderRuntimeException.CyclicDependenciesInMetadata.class)
+	public void givenFiveDynamicCalculatorDependingOnEachOthersWithCyclicDependencyThenCalculatedCorrectly()
+			throws Exception {
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
+						.defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
+
+				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
+						.defineDataEntry().asJexlScript("metadataD+calculated5");
+
+				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
+						.defineDataEntry().asJexlScript("calculated2+calculated4");
+
+				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
+						.defineDataEntry().asJexlScript("metadataA+calculated5");
+
+				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
+						.defineDataEntry().asJexlScript("metadataB+metadataC+calculated1");
+
+				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
+
+				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);
+				types.getSchema(zeSchema.code()).create("metadataC").setType(NUMBER);
+				types.getSchema(zeSchema.code()).create("metadataD").setType(NUMBER);
+
+			}
+		});
+	}
+
+	@Test
+	public void givenFiveDynamicCalculatorDependingOnEachOthersWithoutCyclicDependencyThenCalculatedCorrectly()
+			throws Exception {
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).create("calculated1").setType(NUMBER)
+						.defineDataEntry().asJexlScript("calculated2+calculated3+calculated4");
+
+				types.getSchema(zeSchema.code()).create("calculated2").setType(NUMBER)
+						.defineDataEntry().asJexlScript("metadataD+calculated5");
+
+				types.getSchema(zeSchema.code()).create("calculated3").setType(NUMBER)
+						.defineDataEntry().asJexlScript("calculated2+calculated4");
+
+				types.getSchema(zeSchema.code()).create("calculated4").setType(NUMBER)
+						.defineDataEntry().asJexlScript("metadataA+calculated5");
+
+				types.getSchema(zeSchema.code()).create("calculated5").setType(NUMBER)
+						.defineDataEntry().asJexlScript("metadataB+metadataC");
 
 				types.getSchema(zeSchema.code()).create("metadataA").setType(NUMBER);
 				types.getSchema(zeSchema.code()).create("metadataB").setType(NUMBER);

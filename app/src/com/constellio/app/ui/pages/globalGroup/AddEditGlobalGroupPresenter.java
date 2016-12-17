@@ -110,7 +110,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 			collections.addAll(globalGroupVO.getCollections());
 		}
 		GlobalGroup newGlobalGroup = userServices.createGlobalGroup(globalGroupVO.getCode(), globalGroupVO.getName(),
-				collections, globalGroupVO.getParent(), globalGroupVO.getStatus());
+				collections, globalGroupVO.getParent(), globalGroupVO.getStatus(), globalGroupVO.isLocallyCreated());
 		return newGlobalGroup;
 	}
 
@@ -158,7 +158,7 @@ public class AddEditGlobalGroupPresenter extends BasePresenter<AddEditGlobalGrou
 		String parameters = ParamUtils.addParams(breadCrumb, newParamsMap);
 		parameters = cleanParameters(parameters);
 		backPage = correctUrlSlash(backPage, parameters);
-		view.navigateTo().url(backPage + parameters);
+		view.navigate().to().url(backPage + parameters);
 	}
 
 	private String correctUrlSlash(String backPage, String parameters) {

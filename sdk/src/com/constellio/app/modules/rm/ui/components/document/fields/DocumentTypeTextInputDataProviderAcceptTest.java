@@ -45,7 +45,7 @@ public class DocumentTypeTextInputDataProviderAcceptTest extends ConstellioTest 
 						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -90,8 +90,8 @@ public class DocumentTypeTextInputDataProviderAcceptTest extends ConstellioTest 
 		givenAllDocumentTypesConfig();
 
 		assertThat(documentTypeTextInputDataProvider.size(""))
-				.isEqualTo(11);
-		assertThat(documentTypeTextInputDataProvider.getData("", 0, 11))
+				.isEqualTo(14);
+		assertThat(documentTypeTextInputDataProvider.getData("", 0, 14))
 				.contains(records.documentTypeId_1,
 						records.documentTypeId_2,
 						records.documentTypeId_3,

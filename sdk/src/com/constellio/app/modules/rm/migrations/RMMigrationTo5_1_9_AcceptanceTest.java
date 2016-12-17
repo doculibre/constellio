@@ -33,8 +33,10 @@ public class RMMigrationTo5_1_9_AcceptanceTest extends ConstellioTest {
 				List<String> tableMetadataCodes = metadataSchemasDisplayManager
 						.getSchema(zeCollection, code).getTableMetadataCodes();
 				if (code.contains("default")) {
-					assertThat(tableMetadataCodes).isEqualTo(metadataSchemasDisplayManager
-							.getSchema(zeCollection, code).getSearchResultsMetadataCodes()).isNotEmpty();
+					if (!code.startsWith("event_")) {
+						assertThat(tableMetadataCodes).isEqualTo(metadataSchemasDisplayManager
+								.getSchema(zeCollection, code).getSearchResultsMetadataCodes()).isNotEmpty();
+					}
 				} else {
 					assertThat(tableMetadataCodes).isEmpty();
 				}

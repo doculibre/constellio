@@ -1,12 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
@@ -17,21 +10,28 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";
 	private final DisplayTaskPresenter presenter;
 	private Component subTasks;
+	private Component eventsComponent;
 	private TabSheet tabSheet;
 	private RecordDisplay recordDisplay;
 
@@ -57,9 +57,23 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		tabSheet.addTab(recordDisplay, $("DisplayTaskView.tabs.metadata"));
 		tabSheet.addTab(subTasks, $("DisplayTaskView.tabs.subtasks", presenter.getSubTaskCount()));
 
-		Component disabled = new CustomComponent();
-		tabSheet.addTab(disabled, $("DisplayTaskView.tabs.logs"));
-		tabSheet.getTab(disabled).setEnabled(false);
+		eventsComponent = new CustomComponent();
+		tabSheet.addTab(eventsComponent, $("DisplayTaskView.tabs.logs"));
+		if(presenter.hasCurrentUserPermissionToViewEvents()) {
+			tabSheet.getTab(eventsComponent).setEnabled(true);
+		}
+		else {
+			tabSheet.getTab(eventsComponent).setEnabled(false);
+		}
+
+		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				if (event.getTabSheet().getSelectedTab() == eventsComponent) {
+					presenter.refreshEvents();
+				}
+			}
+		});
 
 		verticalLayout.addComponent(tabSheet);
 		presenter.selectInitialTabForUser();
@@ -139,6 +153,11 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			public boolean isVisible() {
 				return super.isVisible() && presenter.isCloseCurrentTaskButtonVisible();
 			}
+
+			@Override
+			public boolean isEnabled() {
+				return super.isEnabled() && presenter.isCloseCurrentTaskButtonVisible();
+			}
 		};
 		actionMenuButtons.add(closeTask);
 
@@ -176,6 +195,19 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		Component table = new TaskTable(dataProvider, presenter);
 		tabSheet.replaceComponent(subTasks, table);
 		subTasks = table;
+	}
+
+	@Override
+	public void setEvents(RecordVODataProvider dataProvider) {
+		RecordVOTable table = new RecordVOTable($("DisplayTaskView.tabs.logs"), new RecordVOLazyContainer(dataProvider)) {
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new EventVOTableColumnsManager();
+			}
+		};
+		table.setSizeFull();
+		tabSheet.replaceComponent(eventsComponent, table);
+		eventsComponent = table;
 	}
 
 	@Override

@@ -18,6 +18,7 @@ import com.constellio.app.ui.tools.components.basic.DateFieldWebElement;
 import com.constellio.app.ui.tools.components.basic.DateTimeFieldWebElement;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveTextFieldWebElement;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -58,12 +59,12 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		givenCollection("otherCollection");
 
-		errors.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		errors.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 
@@ -280,8 +281,8 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 		assertThat(addEditSchemaMetadataPage.getFacetElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getAdvancedSearchElement().isEnabled()).isTrue();
 		// TODO Investigate why searchable and sortable fields are disabled
-		//		assertThat(addEditSchemaMetadataPage.getSortableElement().isEnabled()).isTrue();
-		//		assertThat(addEditSchemaMetadataPage.getSearchableElement().isEnabled()).isTrue();
+		//		assertThat(addEditSchemaMetadataPage.getSortableElement().getEnabled()).isTrue();
+		//		assertThat(addEditSchemaMetadataPage.getSearchableElement().getEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getEnableElement().isEnabled()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getEnableElement().isChecked()).isTrue();
 		assertThat(addEditSchemaMetadataPage.getRequiredElement().isEnabled()).isTrue();
@@ -323,7 +324,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRbooleanMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze boolean Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze boolean Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRbooleanMetadata_s");
@@ -358,7 +359,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRmultipleTextMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze multiple text Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze multiple text Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRmultipleTextMetadata_txt");
@@ -394,7 +395,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRtextMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze text Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze text Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRtextMetadata_t");
@@ -426,7 +427,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRrichTextMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze rich text box Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze rich text box Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRrichTextMetadata_txt");
@@ -458,7 +459,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRcontentMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze content Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze content Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRcontentMetadata_ss");
@@ -491,7 +492,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRborrowContentMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze content to borrow Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze content to borrow Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRborrowContentMetadata_ss");
@@ -522,7 +523,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRdateMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze date Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze date Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRdateMetadata_da");
@@ -554,7 +555,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRdateHourMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze date hour Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze date hour Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRdateHourMetadata_dt");
@@ -590,7 +591,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRreferenceMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze reference Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze reference Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences().getAllowedSchemaType()).isEqualTo("administrativeUnit");
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRreferenceMetadataId_s");
@@ -625,7 +626,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRreferenceDropDownMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze reference DropDown Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze reference DropDown Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences().getAllowedSchemaType()).isEqualTo("administrativeUnit");
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRreferenceDropDownMetadataId_s");
@@ -660,7 +661,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRreferenceRadioMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze reference Radio Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze reference Radio Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences().getAllowedSchemaType()).isEqualTo("administrativeUnit");
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRreferenceRadioMetadataId_s");
@@ -696,7 +697,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRstringMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze string Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze string Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRstringMetadata_ss");
@@ -730,7 +731,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRstringURLMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze string URL Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze string URL Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRstringURLMetadata_ss");
@@ -761,7 +762,7 @@ public class SchemaPageAcceptTest extends ConstellioTest {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(zeCollection)
 				.getMetadata("folder_default_USRnumeroMetadata");
-		assertThat(metadata.getLabel()).isEqualTo("Ze numéro Metadata");
+		assertThat(metadata.getLabel(Language.French)).isEqualTo("Ze numéro Metadata");
 		assertThat(metadata.getDataEntry().getType()).isEqualTo(DataEntryType.MANUAL);
 		assertThat(metadata.getAllowedReferences()).isNull();
 		assertThat(metadata.getDataStoreCode()).isEqualTo("USRnumeroMetadata_d");

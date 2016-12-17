@@ -1,10 +1,14 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
+import static com.constellio.app.api.cmis.binding.utils.CmisContentUtils.getAllVersions;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ALL_VERSIONS;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -32,15 +36,14 @@ public class GetAllVersionsRequest extends CmisCollectionRequest<List<ObjectData
 	String filter;
 	Boolean includeAllowableActions;
 	ExtensionsData extension;
-	CallContext callContext;
+
 	ObjectInfoHandler objectInfos;
 
 	public GetAllVersionsRequest(ConstellioCollectionRepository repository,
 			AppLayerFactory appLayerFactory, CallContext callContext, String repositoryId,
 			String objectId, String versionSeriesId, String filter, Boolean includeAllowableActions,
 			ExtensionsData extension, ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
-		this.callContext = callContext;
+		super(callContext, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;
 		this.versionSeriesId = versionSeriesId;
@@ -55,14 +58,14 @@ public class GetAllVersionsRequest extends CmisCollectionRequest<List<ObjectData
 			throws ConstellioCmisException {
 
 		List<ObjectData> versions = new ArrayList<>();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(repository.getCollection());
-		User user = (User) callContext.get(ConstellioCmisContextParameters.USER);
 
-		for (ContentCmisDocument version : CmisContentUtils.getAllVersions(objectId, recordServices, types, user)) {
-			versions.add(newContentObjectDataBuilder()
-					.build(callContext, version, null, includeAllowableActions, false, objectInfos));
+		List<ContentCmisDocument> contentCmisDocuments = getAllVersions(objectId, recordServices, types(), user);
+		if (!contentCmisDocuments.isEmpty()) {
+			ensureUserHasAllowableActionsOnRecord(contentCmisDocuments.get(0).getRecord(), CAN_GET_ALL_VERSIONS);
 
+			for (ContentCmisDocument version : contentCmisDocuments) {
+				versions.add(newContentObjectDataBuilder().build(version, null, includeAllowableActions, false, objectInfos));
+			}
 		}
 
 		return versions;

@@ -19,7 +19,7 @@ import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.G
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
 
 public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdatedEventListener {
-	private static final String CONFIG_FILE = "/globalGroups.xml";
+	public static final String CONFIG_FILE = "/globalGroups.xml";
 	private final ConfigManager configManager;
 	Map<String, GlobalGroup> cache = new HashMap<>();
 	Map<String, List<String>> cacheRelation = new HashMap<>();
@@ -35,13 +35,13 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 	}
 
 	@Override
-	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
-		return new XmlGlobalGroup(code, name, collections, parent, status);
+	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return new XmlGlobalGroup(code, name, collections, parent, status, locallyCreated);
 	}
 
 	@Override
-	public GlobalGroup create(String code, String parent, GlobalGroupStatus status) {
-		return create(code, code, Collections.<String>emptyList(), parent, status);
+	public GlobalGroup create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return create(code, code, Collections.<String>emptyList(), parent, status, locallyCreated);
 	}
 
 	@Override

@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeCodeChangeForbidden;
 import com.constellio.app.ui.pages.management.collections.AddEditCollectionPresenterException.AddEditCollectionPresenterException_CodeShouldNotContainDash;
@@ -68,10 +69,11 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 
 	public CollectionVO getCollectionVO() {
 		if (actionEdit) {
+			List<String> languages = collectionRecord.getLanguages();
 			return new CollectionVO(
-					code, collectionRecord.getName(), collectionRecord.getLanguages().get(0), getEnabledModules(code));
+					code, collectionRecord.getName(), languages, getEnabledModules(code));
 		} else {
-			return new CollectionVO();
+			return new CollectionVO(null, null, Arrays.asList(getMainDataLanguage()));
 		}
 	}
 
@@ -158,9 +160,12 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		Set<String> modules = entity.getModules();
 		String collectionCode = entity.getCode();
 		String collectionName = entity.getName();
-		String language = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		if (StringUtils.isBlank(collectionName)) {
+			collectionName = collectionCode;
+		}
+		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
-				.createCollectionInCurrentVersion(collectionCode, collectionName, Arrays.asList(language));
+				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
 		return updateCollectionModules(record, collectionCode, modules);
 	}
 
@@ -192,7 +197,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	private void navigateToBackPage() {
-		view.navigateTo().manageCollections();
+		view.navigate().to().manageCollections();
 	}
 
 	public boolean getActionEdit() {
@@ -212,7 +217,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 	}
 
 	public void backButtonClick() {
-		view.navigateTo().manageCollections();
+		view.navigate().to().manageCollections();
 	}
 
 	@Override
@@ -241,5 +246,19 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 
 	public boolean isModuleSelected(String moduleId, CollectionVO collectionVO) {
 		return collectionVO.getModules().contains(moduleId);
+	}
+
+	public List<String> getAllLanguages() {
+		return i18n.getSupportedLanguages();
+	}
+
+	public boolean isLanguageEnabled(String languageCode) {
+		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		boolean isNotMainLanguage = !mainDataLanguage.equals(languageCode);
+		return isNotMainLanguage;
+	}
+
+	public String getMainDataLanguage() {
+		return modelLayerFactory.getConfiguration().getMainDataLanguage();
 	}
 }

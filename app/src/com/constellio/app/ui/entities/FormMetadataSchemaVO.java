@@ -1,31 +1,34 @@
 package com.constellio.app.ui.entities;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 @SuppressWarnings("serial")
 public class FormMetadataSchemaVO implements Serializable {
 
-	String code;
+	String code = "";;
 
-	String localCode;
+	String localCode = "";;
 
-	String collection;
+	String collection = "";;
 
-	String label;
+	Map<String, String> labels = new HashMap<>();
 
-	public FormMetadataSchemaVO() {
-		super();
-		this.localCode = "";
-		this.code = "";
-		this.collection = "";
-		this.label = "";
+	String currentLanguageCode;
+
+	/* Schema type properties */
+	Boolean advancedSearch = null;
+
+
+	public FormMetadataSchemaVO(SessionContext sessionContext) {
+		this.currentLanguageCode = sessionContext.getCurrentLocale().getLanguage();
 	}
 
-	public FormMetadataSchemaVO(String code, String collection, String label) {
-		super();
-
+	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels) {
 		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[1];
 		if (localCodeParsed.contains("USR")) {
 			localCodeParsed = localCodeParsed.split("USR")[1];
@@ -34,7 +37,12 @@ public class FormMetadataSchemaVO implements Serializable {
 		this.localCode = localCodeParsed;
 		this.code = code;
 		this.collection = collection;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
+	}
+
+	public FormMetadataSchemaVO(String code, String collection, Map<String, String> labels, Boolean advancedSearch) {
+		this(code, collection, labels);
+		this.advancedSearch = advancedSearch;
 	}
 
 	public String getCode() {
@@ -49,12 +57,20 @@ public class FormMetadataSchemaVO implements Serializable {
 		return collection;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<String, String> getLabels() {
+		return labels;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public String getLabel(String language) {
+		return labels.get(language);
+	}
+
+	public void addLabel(String language, String label) {
+		labels.put(language, label);
+	}
+
+	public void setLabels(Map<String, String> labels) {
+		this.labels = new HashMap<>(labels);
 	}
 
 	public void setLocalCode(String code) {
@@ -64,6 +80,10 @@ public class FormMetadataSchemaVO implements Serializable {
 	public void setCollection(String collection) {
 		this.collection = collection;
 	}
+
+	public Boolean getAdvancedSearch() { return advancedSearch; }
+
+	public void setAdvancedSearch(Boolean advancedSearch) {	this.advancedSearch = advancedSearch; }
 
 	@Override
 	public int hashCode() {
@@ -105,11 +125,10 @@ public class FormMetadataSchemaVO implements Serializable {
 	public String toString() {
 		String toString;
 		try {
-			toString = getLabel();
+			toString = getLabel(currentLanguageCode);
 		} catch (RuntimeException e) {
 			toString = code;
 		}
 		return toString;
 	}
-
 }

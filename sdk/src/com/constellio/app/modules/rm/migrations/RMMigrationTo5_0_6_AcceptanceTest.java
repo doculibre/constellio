@@ -28,11 +28,11 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(null, false);
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		VariableRetentionPeriod period888 = rm.PERIOD_888();
 		VariableRetentionPeriod period999 = rm.PERIOD_999();
 		assertThat(period888).isNotNull();
@@ -85,9 +85,9 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(null, false);
 
-		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
+		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 
 		assertThat(rmTestRecords.getCategory_X().isLinkable()).isTrue();
 		assertThat(rmTestRecords.getCategory_Z().isLinkable()).isFalse();
@@ -99,10 +99,10 @@ public class RMMigrationTo5_0_6_AcceptanceTest extends ConstellioTest {
 
 		givenDisabledAfterTestValidations();
 		givenSystemAtVersion5_0_5_withRootLinkable();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(null, false);
 
-		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		assertThat(rmTestRecords.getCategory_X().isLinkable()).isTrue();
 		assertThat(rmTestRecords.getCategory_Z().isLinkable()).isFalse();

@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 public class MetadataList implements List<Metadata> {
@@ -52,7 +54,7 @@ public class MetadataList implements List<Metadata> {
 	@Override
 	public boolean contains(Object o) {
 		if (o instanceof Metadata) {
-			String code = codeOf((Metadata) o);
+			String code = ((Metadata) o).getInheritanceCode();
 			return codeIndex.containsKey(code);
 		} else {
 			return false;
@@ -269,9 +271,7 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 
-			if (!metadata.getPopulateConfigs().getProperties().isEmpty() ||
-					!metadata.getPopulateConfigs().getStyles().isEmpty() ||
-					!metadata.getPopulateConfigs().getRegexes().isEmpty()) {
+			if (!metadata.getPopulateConfigs().isEmpty()) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -383,13 +383,13 @@ public class MetadataList implements List<Metadata> {
 
 	private void addToIndex(Metadata metadata) {
 		localCodeIndex.put(metadata.getLocalCode(), metadata);
-		codeIndex.put(codeOf(metadata), metadata);
+		codeIndex.put(metadata.getInheritanceCode(), metadata);
 		datastoreCodeIndex.put(metadata.getDataStoreCode(), metadata);
 	}
 
 	private void removeFromIndex(Metadata metadata) {
 		localCodeIndex.remove(metadata.getLocalCode());
-		codeIndex.remove(codeOf(metadata));
+		codeIndex.remove(metadata.getInheritanceCode());
 		datastoreCodeIndex.remove(metadata.getDataStoreCode());
 	}
 
@@ -402,7 +402,7 @@ public class MetadataList implements List<Metadata> {
 	private void setIndexes(int index, Metadata element) {
 		removeFromIndex(nestedList.get(index));
 		localCodeIndex.put(element.getLocalCode(), element);
-		codeIndex.put(codeOf(element), element);
+		codeIndex.put(element.getInheritanceCode(), element);
 		datastoreCodeIndex.put(element.getDataStoreCode(), element);
 	}
 
@@ -424,6 +424,17 @@ public class MetadataList implements List<Metadata> {
 		return this;
 	}
 
+	public MetadataList onlyEssentialInSummary() {
+
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isEssentialInSummary()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyEssentialMetadatasAndCodeTitle() {
 
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
@@ -441,6 +452,26 @@ public class MetadataList implements List<Metadata> {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyCalculated() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlySequence() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getDataEntry().getType() == DataEntryType.SEQUENCE) {
 				filteredMetadatasList.add(metadata);
 			}
 		}
@@ -496,6 +527,16 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlyNotGlobals() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (!metadata.isGlobal()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public List<Metadata> onlyWithoutInheritance() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {
@@ -506,11 +547,11 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	public MetadataList sortAscTitle() {
+	public MetadataList sortAscTitle(final Language language) {
 		return sortedUsing(new Comparator<Metadata>() {
 			@Override
 			public int compare(Metadata o1, Metadata o2) {
-				return compareStrings(o1.getLabel(), o2.getLabel());
+				return compareStrings(o1.getLabel(language), o2.getLabel(language));
 			}
 		});
 	}
@@ -521,17 +562,37 @@ public class MetadataList implements List<Metadata> {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	private String codeOf(Metadata metadata) {
-		String code = metadata.getCode();
-		if (metadata.getInheritance() == null) {
-			return metadata.getCode();
-		} else {
-			String[] parts = SchemaUtils.underscoreSplitWithCache(code);
-			return parts[0] + "_default_" + parts[2];
-		}
-	}
-
 	public boolean containsMetadataWithLocalCode(String localCode) {
 		return localCodeIndex.containsKey(localCode);
+	}
+
+	public MetadataList onlyDuplicable() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isDuplicable()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public MetadataList onlyUSR() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.getLocalCode().startsWith("USR")) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public List<Metadata> onlyMarkedForDeletion() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			if (metadata.isMarkedForDeletion()) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 }

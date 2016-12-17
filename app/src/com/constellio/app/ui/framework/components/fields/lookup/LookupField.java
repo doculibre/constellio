@@ -157,6 +157,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		HorizontalLayout mainLayout = new HorizontalLayout(autoCompleteField, lookupWindowButton, clearButton);
 		mainLayout.setExpandRatio(autoCompleteField, 1);
 		mainLayout.setSpacing(true);
+		mainLayout.setWidth("100%");
 
 		return mainLayout;
 	}
@@ -238,7 +239,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public void validate()
 			throws InvalidValueException {
 		try {
-			autoCompleteField.validate();
+			if (autoCompleteField != null) {
+				autoCompleteField.validate();
+			}
 			super.validate();
 			removeStyleName(ERROR_STYLE_NAME);
 		} catch (InvalidValueException e) {
@@ -560,4 +563,5 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private interface SerializableQuery extends Query, Serializable {
 
 	}
+	
 }

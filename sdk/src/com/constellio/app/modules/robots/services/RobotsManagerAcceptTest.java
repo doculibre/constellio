@@ -8,7 +8,6 @@ import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.data.MapEntry.entry;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,12 +49,12 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	private ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 	private AnotherSchemaMetadatas anotherSchema = schemas.new AnotherSchemaMetadatas();
 
-	private static final Metadata METADATA1 = Metadata.newGlobalMetadata("metadata1_s", MetadataValueType.STRING, false);
-	private static final Metadata METADATA2 = Metadata.newGlobalMetadata("metadata2_s", MetadataValueType.STRING, false);
-	private static final Metadata METADATA3 = Metadata.newGlobalMetadata("metadata3_s", MetadataValueType.STRING, false);
-	private static final Metadata METADATA4 = Metadata.newGlobalMetadata("metadata4_s", MetadataValueType.STRING, false);
-	private static final Metadata METADATA5 = Metadata.newGlobalMetadata("metadata5_s", MetadataValueType.STRING, false);
-	private static final Metadata METADATA6 = Metadata.newGlobalMetadata("metadata6_s", MetadataValueType.STRING, false);
+	private static final Metadata METADATA1 = Metadata.newGlobalMetadata("metadata1_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA2 = Metadata.newGlobalMetadata("metadata2_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA3 = Metadata.newGlobalMetadata("metadata3_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA4 = Metadata.newGlobalMetadata("metadata4_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA5 = Metadata.newGlobalMetadata("metadata5_s", MetadataValueType.STRING, false, false);
+	private static final Metadata METADATA6 = Metadata.newGlobalMetadata("metadata6_s", MetadataValueType.STRING, false, false);
 
 	private static final String SET_METADATA1 = "setMetadata1";
 	private static final String SET_METADATA1_PARAMETERS_SCHEMA = "setMetadata1Parameters";
@@ -285,6 +284,31 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 				dryRunRobotAction(record6, robot110, robotSchemas)
 		));
 
+		assertThat(manager.dryRun(robot100)).extracting("recordId", "robotCode").isEqualTo(asList(
+				tuple("record5", "111"),
+				tuple("record6", "112"),
+				tuple("record4", "110"),
+				tuple("record5", "110"),
+				tuple("record6", "110"),
+
+				tuple("record8", "121"),
+				tuple("record9", "122"),
+				tuple("record7", "120"),
+				tuple("record8", "120"),
+				tuple("record9", "120"),
+
+				tuple("record1", "100"),
+				tuple("record2", "100"),
+				tuple("record3", "100"),
+				tuple("record4", "100"),
+				tuple("record5", "100"),
+				tuple("record6", "100"),
+				tuple("record7", "100"),
+				tuple("record8", "100"),
+				tuple("record9", "100")
+
+		));
+
 		assertThat(manager.dryRun(robot100)).isEqualTo(asList(
 				dryRunRobotAction(record5, robot111, robotSchemas),
 				dryRunRobotAction(record6, robot112, robotSchemas),
@@ -428,7 +452,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 		return new ActionExecutor() {
 			@Override
 			public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-					List<Record> records) {
+					List<Record> records, List<Record> processedRecords) {
 				Transaction transaction = new Transaction();
 				for (Record record : records) {
 					transaction.add(record.set(metadata, actionParameters.get("value")));
@@ -478,7 +502,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata1To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA1);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA1_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -489,7 +513,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata2To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA2);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA2_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -500,7 +524,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata3To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA3);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA3_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -511,7 +535,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata4To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA4);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA4_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -522,7 +546,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata5To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA5);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA5_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);
@@ -533,7 +557,7 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	}
 
 	private ActionParameters setMetadata6To(String value) {
-		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA6);
+		ActionParameters actionParameters = robotSchemas.newActionParameters(SET_METADATA6_PARAMETERS_SCHEMA);
 		actionParameters.set("value", value);
 		try {
 			recordServices.add(actionParameters);

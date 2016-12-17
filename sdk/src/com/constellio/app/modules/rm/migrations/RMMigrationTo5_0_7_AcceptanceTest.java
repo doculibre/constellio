@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Test;
 
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -28,8 +27,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.conf.LDAPTestConfig;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -42,6 +41,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
 
 @SlowTest
@@ -145,10 +145,10 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		List<AdministrativeUnit> unit10Children = rm.wrapAdministrativeUnits(searchServices.search(new LogicalSearchQuery()
-				.setCondition(from(rm.administrativeUnitSchemaType()).where(rm.administrativeUnit_parent()).isEqualTo(unit10))));
+				.setCondition(from(rm.administrativeUnit.schemaType()).where(rm.administrativeUnit.parent()).isEqualTo(unit10))));
 
 		assertThat(unit10Children).extracting("code").containsOnly("11", "12", "A");
 
@@ -192,29 +192,29 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 				fromAllSchemasIn(zeCollection).where(SCHEMA).isStartingWithText("filingSpace"))).isZero();
 
 		Metadata folderFilingSpace = rm.defaultFolderSchema().getMetadata(Folder.FILING_SPACE);
-		Metadata containerFilingSpace = rm.defaultContainerRecordSchema().getMetadata(ContainerRecord.FILING_SPACE);
-		Metadata decomListFilingSpace = rm.defaultDecommissioningListSchema().getMetadata(DecommissioningList.FILING_SPACE);
+		Metadata containerFilingSpace = rm.containerRecord.schema().getMetadata(ContainerRecord.FILING_SPACE);
+		Metadata decomListFilingSpace = rm.decommissioningList.schema().getMetadata(DecommissioningList.FILING_SPACE);
 
 		assertThatRecord(searchServices.searchSingleResult(from(rm.folderSchemaType()).where(TITLE).is("Banane")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit12b.getId())
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit12b.getId())
 				.hasNoMetadataValue(folderFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(from(rm.folderSchemaType()).where(TITLE).is("Perroquet")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(folderFilingSpace);
 
-		assertThatRecord(searchServices.searchSingleResult(from(rm.containerRecordSchemaType()).where(TITLE).is("10_A_12")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
+		assertThatRecord(searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(TITLE).is("10_A_12")))
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(containerFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(
-				from(rm.defaultDecommissioningListSchema()).where(IDENTIFIER).isEqualTo("list10")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit10a.getId())
+				from(rm.decommissioningList.schema()).where(IDENTIFIER).isEqualTo("list10")))
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit10a.getId())
 				.hasNoMetadataValue(decomListFilingSpace);
 
 		assertThatRecord(searchServices.searchSingleResult(
-				from(rm.defaultDecommissioningListSchema()).where(IDENTIFIER).isEqualTo("list08")))
-				.hasMetadataValue(rm.folderAdministrativeUnit(), unit20.getId())
+				from(rm.decommissioningList.schema()).where(IDENTIFIER).isEqualTo("list08")))
+				.hasMetadataValue(rm.folder.administrativeUnit(), unit20.getId())
 				.hasNoMetadataValue(decomListFilingSpace);
 	}
 
@@ -222,9 +222,9 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 	public void whenUpdatingFrom5_0_6ThenMigrateDecomListFolderDetail()
 			throws OptimisticLockingConfiguration {
 		givenSystemAtVersion5_0_6();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection);
+		getAppLayerFactory().newMigrationServices().migrate(null, false);
 
-		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getModelLayerFactory());
+		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 		List<DecomListFolderDetail> decomListFolderDetailList = rmTestRecords.getList01().getFolderDetails();
 
 		assertThat(decomListFolderDetailList).isNotEmpty();
@@ -260,7 +260,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 	}
 
 	private AdministrativeUnit getExistingUnitWithCode(String code) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		AdministrativeUnit unit = rm.getAdministrativeUnitWithCode(code);
 		assertThat(unit).describedAs("Unit with code '" + code + "'").isNotNull();
 		return unit;

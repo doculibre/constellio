@@ -1,6 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.sdk.tests.TestUtils.anInteger;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -13,8 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
-import sun.security.krb5.Config;
-
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -22,6 +19,7 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -52,6 +50,8 @@ public class RecordValidationServicesTest extends ConstellioTest {
 	@Mock ConfigProvider configProvider;
 
 	@Mock Transaction transaction;
+
+	@Mock RecordUpdateOptions recordUpdateOptions;
 
 	Metadata firstMetadata = mockMetadata("zeSchema_default_first");
 	Metadata secondMetadata = mockMetadata("zeSchema_default_second");
@@ -105,8 +105,8 @@ public class RecordValidationServicesTest extends ConstellioTest {
 		when(manualDataEntry.getType()).thenReturn(DataEntryType.MANUAL);
 		when(copiedDataEntry.getType()).thenReturn(DataEntryType.COPIED);
 		when(calculatedDataEntry.getType()).thenReturn(DataEntryType.CALCULATED);
-
-		services = spy(new RecordValidationServices(configProvider, schemasManager, searchServices));
+		when(transaction.getRecordUpdateOptions()).thenReturn(recordUpdateOptions);
+		services = spy(new RecordValidationServices(configProvider, recordProvider, schemasManager, searchServices));
 		doReturn(true).when(services).hasSecurityOnSchema(record);
 	}
 

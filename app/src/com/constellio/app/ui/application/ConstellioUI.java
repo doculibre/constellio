@@ -5,7 +5,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.lang.reflect.InvocationTargetException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.joda.time.LocalDateTime;
 
@@ -13,7 +15,7 @@ import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.sso.KerberosServices;
+import com.constellio.app.services.sso.SSOServices;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
@@ -26,6 +28,7 @@ import com.constellio.app.ui.pages.base.InitUIListener;
 import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
+import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.pages.login.LoginViewImpl;
 import com.constellio.app.ui.pages.setup.ConstellioSetupViewImpl;
@@ -55,22 +58,24 @@ import com.vaadin.ui.UI;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
-public class ConstellioUI extends UI implements SessionContextProvider {
+public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
+	
+	private Map<String, Object> uiContext = new HashMap<>();
 
 	public final RequestHandler requestHandler = new ConstellioResourceHandler();
 
-	private KerberosServices kerberosServices;
+	private SSOServices ssoServices;
 
 	@Override
 	protected void init(VaadinRequest request) {
 		getSession().addRequestHandler(requestHandler);
 
-		kerberosServices = KerberosServices.getInstance();
+		ssoServices = SSOServices.getInstance();
 
 		Page.getCurrent().setTitle($("ConstellioUI.pageTitle"));
 
@@ -201,7 +206,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 
 			UserVO currentUserVO = sessionContext.getCurrentUser();
-			if (currentUserVO == null && kerberosServices.isEnabled() && !sessionContext.isForcedSignOut()) {
+			if (currentUserVO == null && ssoServices.isEnabled() && !sessionContext.isForcedSignOut()) {
 				currentUserVO = ssoAuthenticate();
 			}
 			if (currentUserVO != null) {
@@ -320,6 +325,17 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 	public static ConstellioUI getCurrent() {
 		return (ConstellioUI) UI.getCurrent();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> T getAttribute(String key) {
+		return (T) uiContext.get(key);
+	}
+
+	@Override
+	public <T> void setAttribute(String key, T value) {
+		uiContext.put(key, value);
 	}
 
 }

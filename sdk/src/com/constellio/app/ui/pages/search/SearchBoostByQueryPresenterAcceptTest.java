@@ -5,6 +5,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
+import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -28,7 +30,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 
 	public static final String QUERY = "query";
 	@Mock SearchBoostView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	UserServices userServices;
 	SearchBoost searchBoostQuery1, searchBoostQuery2;
 	SearchBoostVO searchBoostQuery1VO, searchBoostQuery2VO;
@@ -58,7 +60,7 @@ public class SearchBoostByQueryPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		searchBoostQuery1 = new SearchBoost(QUERY, "*", "1 Query", 1d);
 		searchBoostQuery2 = new SearchBoost(QUERY, "code:a*", "2 Query", 2d);

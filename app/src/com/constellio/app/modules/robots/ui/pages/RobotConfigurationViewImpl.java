@@ -25,6 +25,8 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 
@@ -85,6 +87,7 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 		buttons.add(buildDeleteButton());
 		buttons.add(buildLogsButton());
 		buttons.add(buildDownloadButton());
+		buttons.add(buildDeleteRecordsButton());
 		return buttons;
 	}
 
@@ -141,6 +144,25 @@ public class RobotConfigurationViewImpl extends BaseViewImpl implements RobotCon
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				Page.getCurrent().open(resource, null, false);
+			}
+		};
+	}
+
+	private DeleteButton buildDeleteRecordsButton() {
+		return new DeleteButton($("RobotConfigurationView.deleteRecords")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.deleteRecordsButtonClicked(robot);
+			}
+		};
+	}
+
+	@Override
+	protected ClickListener getBackButtonClickListener() {
+		return new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.backButtonClicked();
 			}
 		};
 	}

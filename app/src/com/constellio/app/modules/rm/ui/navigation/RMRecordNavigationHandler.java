@@ -48,9 +48,9 @@ public class RMRecordNavigationHandler extends AbstractRecordNavigationHandler {
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayDocument(recordId);
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ConstellioUI.getCurrent().navigateTo().displayContainer(recordId);
+			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			ConstellioUI.getCurrent().navigateTo().displayRetentionRule(recordId);
+			ConstellioUI.getCurrent().navigate().to(RMViews.class).displayRetentionRule(recordId);
 		} else {
 			throw new UnsupportedOperationException("No navigation for schema type code " + schemaTypeCode);
 		}

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -51,7 +52,11 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 
 	public void viewAssembled() {
 		List<UserDocumentVO> currentUserUploadVOs = getCurrentUserDocumentVOs();
-		view.setUserDocuments(currentUserUploadVOs);
+		try {
+			view.setUserDocuments(currentUserUploadVOs);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	private List<UserDocumentVO> getCurrentUserDocumentVOs() {
@@ -116,15 +121,17 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		newUserDocumentVO.set(UserDocument.USER, currentUser.getWrappedRecord());
 		newUserDocumentVO.set(UserDocument.CONTENT, contentVersionVO);
 
-		// TODO More elegant way to achieve this
-		newRecord = toRecord(newUserDocumentVO);
-
 		try {
+			// TODO More elegant way to achieve this
+			newRecord = toRecord(newUserDocumentVO);
+
 			addOrUpdate(newRecord);
 			contentVersionVO.getInputStreamProvider().deleteTemp();
 
 			newUserDocumentVO = (UserDocumentVO) voBuilder.build(newRecord, VIEW_MODE.FORM, view.getSessionContext());
 			view.addUserDocument(newUserDocumentVO);
+		} catch (final IcapException e) {
+			view.showErrorMessage(e.getMessage());
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			Throwable cause = e.getCause();

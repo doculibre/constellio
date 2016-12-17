@@ -4,19 +4,24 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
@@ -44,6 +49,14 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	public LoginPresenter(LoginView view) {
 		super(view);
 		this.view = view;
+
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		String mainDataLanguage = appLayerFactory.getModelLayerFactory().getConfiguration().getMainDataLanguage();
+		if (mainDataLanguage != null) {
+			Locale mainDataLocale = Language.withCode(mainDataLanguage).getLocale();
+			i18n.setLocale(mainDataLocale);
+			view.getSessionContext().setCurrentLocale(mainDataLocale);
+		}
 	}
 
 	@Override
@@ -51,10 +64,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		return true;
 	}
 
-	public void viewEntered(String parameters) {
-		signOut();
-		view.updateUIContent();
-		System.err.println(parameters);
+	public void viewEntered() {
+
 	}
 
 	private void signOut() {
@@ -120,12 +131,15 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					}
 
 					modelLayerFactory.newLoggingServices().login(userInLastCollection);
+					Locale userLocale = getSessionLanguage(userInLastCollection);
 					SessionContext sessionContext = view.getSessionContext();
 					UserVO currentUser = voBuilder
 							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 					sessionContext.setCurrentUser(currentUser);
 					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
 					sessionContext.setForcedSignOut(false);
+					i18n.setLocale(userLocale);
+					sessionContext.setCurrentLocale(userLocale);
 
 					view.updateUIContent();
 					String currentState = view.navigateTo().getState();
@@ -143,7 +157,33 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		} else {
 			view.showBadLoginMessage();
 		}
+	}
 
+	Locale getSessionLanguage(User userInLastCollection) {
+		String userPreferredLanguage = userInLastCollection.getLoginLanguageCode();
+		String systemLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+		if (StringUtils.isBlank(userPreferredLanguage)) {
+			return getLocale(systemLanguage);
+		} else {
+			List<String> collectionLanguages = modelLayerFactory.getCollectionsListManager()
+					.getCollectionLanguages(userInLastCollection.getCollection());
+			if (collectionLanguages == null || collectionLanguages.isEmpty() || !collectionLanguages
+					.contains(userPreferredLanguage)) {
+				return getLocale(systemLanguage);
+			} else {
+				return getLocale(userPreferredLanguage);
+			}
+		}
+	}
+
+	private Locale getLocale(String languageCode) {
+		i18n.getSupportedLanguages();
+		for (Language language : Language.values()) {
+			if (language.getCode().equals(languageCode)) {
+				return new Locale(languageCode);
+			}
+		}
+		throw new ImpossibleRuntimeException("Invalid language " + languageCode);
 	}
 
 	boolean hasUserDocuments(User user, String collection) {

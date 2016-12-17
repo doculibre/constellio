@@ -72,9 +72,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		givenRule3IsDisabled();
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		service = getModelLayerFactory().newTaxonomiesSearchService();
-		decommissioningService = new DecommissioningService(zeCollection, getModelLayerFactory());
+		decommissioningService = new DecommissioningService(zeCollection, getAppLayerFactory());
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		UserCredential userCredential = userServices.getUserCredential(aliceWonderland);

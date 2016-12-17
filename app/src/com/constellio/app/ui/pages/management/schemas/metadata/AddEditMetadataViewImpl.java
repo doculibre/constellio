@@ -5,11 +5,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -31,14 +33,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	@PropertyId("localcode")
 	private BaseTextField localcodeField;
-	@PropertyId("label")
-	private BaseTextField titleField;
+	@PropertyId("labels")
+	private MultilingualTextField labelsField;
 	@PropertyId("valueType")
 	private ComboBox valueType;
 	@PropertyId("multivalue")
 	private CheckBox multivalueType;
 	@PropertyId("input")
 	private ComboBox inputType;
+	@PropertyId("displayType")
+	private ComboBox displayType;
 	@PropertyId("reference")
 	private ComboBox refType;
 	@PropertyId("required")
@@ -61,6 +65,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private Field<?> defaultValueField;
 	@PropertyId("inputMask")
 	private BaseTextField inputMask;
+	@PropertyId("duplicable")
+	private CheckBox duplicableField;
 
 	private MetadataForm metadataForm;
 	private FormMetadataVO formMetadataVO;
@@ -96,7 +102,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		final boolean inherited;
 		if (!editMode) {
-			formMetadataVO = new FormMetadataVO();
+			formMetadataVO = new FormMetadataVO(getSessionContext());
 			inherited = false;
 		} else {
 			inherited = presenter.isInherited(formMetadataVO.getCode());
@@ -125,10 +131,29 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				inputType.setItemCaption(type, $(MetadataInputType.getCaptionFor(type)));
 			}
 
+			displayType.setEnabled(false);
+			displayType.removeAllItems();
+			displayType.setEnabled(true);
+			List<MetadataDisplayType> displayTypes = MetadataDisplayType.getAvailableMetadataDisplayTypesFor(value, formMetadataVO.getInput());
+			for (MetadataDisplayType type : displayTypes) {
+				displayType.addItem(type);
+				displayType.setItemCaption(type, $(MetadataDisplayType.getCaptionFor(type)));
+			}
+			if(displayTypes.size() < 2) {
+				displayType.setEnabled(false);
+				displayType.setVisible(false);
+				displayType.setValue(displayType.getItemIds().iterator().next());
+			}
+			else {
+				displayType.setEnabled(true);
+				displayType.setVisible(true);
+			}
+
 			if (!inherited) {
 				this.enableCorrectFields(value, inherited, editMode);
 			}
 
+			inputMask.setEnabled(MetadataValueType.STRING.equals(value));
 			this.setValueFields(value);
 		}
 	}
@@ -185,8 +210,6 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			multivalueType.setEnabled(true);
 			break;
 		}
-
-		inputMask.setEnabled(MetadataValueType.STRING.equals(value));
 	}
 
 	private void setValueFields(MetadataValueType value) {
@@ -226,10 +249,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		localcodeField.setEnabled(!editMode);
 		localcodeField.setRequired(true);
 
-		titleField = new BaseTextField($("AddEditMetadataView.title"));
-		titleField.setRequired(true);
-		titleField.setId("title");
-		titleField.addStyleName("title");
+		//$("AddEditMetadataView.title")
+		labelsField = new MultilingualTextField();
+		labelsField.setRequired(true);
+		labelsField.setId("labels");
+		labelsField.addStyleName("labels");
 
 		valueType = new ComboBox();
 		valueType.setCaption($("AddEditMetadataView.type"));
@@ -287,10 +311,22 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputType.setEnabled(false);
 		inputType.setNullSelectionAllowed(false);
 
+		displayType = new ComboBox();
+		displayType.setCaption($("AddEditMetadataView.displayType"));
+		displayType.setRequired(true);
+		displayType.setId("displayType");
+		displayType.addStyleName("displayType");
+		displayType.setEnabled(false);
+		displayType.setNullSelectionAllowed(false);
+
 		metadataGroup = new OptionGroup($("AddEditMetadataView.metadataGroup"), presenter.getMetadataGroupList());
 		metadataGroup.setRequired(true);
 		metadataGroup.setId("metadataGroup");
 		metadataGroup.addStyleName("metadataGroup");
+		metadataGroup.setCaption(presenter.getLabel());
+		for (String itemCode : presenter.getMetadataGroupList()) {
+			metadataGroup.setItemCaption(itemCode, presenter.getGroupLabel(itemCode));
+		}
 
 		multivalueType = new CheckBox();
 		multivalueType.setCaption($("AddEditMetadataView.multivalue"));
@@ -356,6 +392,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		autocomplete.addStyleName("autocomplete");
 		autocomplete.setEnabled(!inherited);
 
+		duplicableField = new CheckBox();
+		duplicableField.setCaption($("AddEditMetadataView.duplicable"));
+		duplicableField.setRequired(false);
+		duplicableField.setId("duplicable");
+		duplicableField.addStyleName("duplicable");
+		duplicableField.setEnabled(true);
+
 		MetadataFieldFactory factory = new MetadataFieldFactory();
 
 		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO);
@@ -388,9 +431,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputMask = new BaseTextField($("AddEditMetadataView.inputMask"));
 		inputMask.setEnabled(false);
 
-		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, titleField, valueType, multivalueType,
+		metadataForm = new MetadataForm(formMetadataVO, this, localcodeField, labelsField, valueType, multivalueType,
 				inputType, inputMask, metadataGroup, refType, requiredField, enabledField, searchableField, sortableField,
-				advancedSearchField, highlight, autocomplete, defaultValueField) {
+				advancedSearchField, highlight, autocomplete, defaultValueField, duplicableField, displayType) {//, displayedHorizontallyField) {
 
 			@Override
 			public void reload() {
@@ -443,6 +486,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 		});
 
+		if(presenter.isMetadataSystemReserved()) {
+			disableFieldsForSystemReservedMetadatas();
+		}
+
 		return metadataForm;
 	}
 
@@ -450,5 +497,22 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	public void reloadForm() {
 		metadataForm.commit();
 		metadataForm.reload();
+	}
+
+	public void disableFieldsForSystemReservedMetadatas() {
+		localcodeField.setEnabled(false);
+		valueType.setEnabled(false);
+		refType.setEnabled(false);
+		inputType.setEnabled(false);
+		multivalueType.setEnabled(false);
+		requiredField.setEnabled(false);
+		enabledField.setEnabled(false);
+		searchableField.setEnabled(false);
+		advancedSearchField.setEnabled(false);
+		highlight.setEnabled(false);
+		autocomplete.setEnabled(false);
+		duplicableField.setEnabled(false);
+		inputMask.setEnabled(false);
+		defaultValueField.setEnabled(false);
 	}
 }

@@ -39,10 +39,10 @@ public class FileIconUtils implements Serializable {
 		}
 	}
 
-	private static String getIconPath(String fileName) {
+	public static String getIconPath(String fileName) {
 		String iconPath;
 		if (fileName != null) {
-			String extension = FilenameUtils.getExtension(fileName);
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 			if (StringUtils.isBlank(extension)) {
 				extension = fileName;
 			}
@@ -72,7 +72,7 @@ public class FileIconUtils implements Serializable {
 			if (DEFAULT_ICON_PATH.equals(iconPath)) {
 				extension = DEFAULT_VALUE;
 			} else {
-				extension = FilenameUtils.getExtension(fileName);
+				extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 			}
 		} else {
 			extension = getExtensionForRecordVO(recordVO);
@@ -82,7 +82,7 @@ public class FileIconUtils implements Serializable {
 
 	public static String getExtensionForRecordVO(RecordVO recordVO) {
 		if (recordVO.getExtension() != null) {
-			return recordVO.getExtension();
+			return recordVO.getExtension().toLowerCase();
 		} else {
 			return null;
 		}
@@ -120,19 +120,23 @@ public class FileIconUtils implements Serializable {
 	}
 
 	public static Resource getIconForRecordId(String recordId, boolean expanded) {
+		try {
+			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
+			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
+			Record record = recordServices.getDocumentById(recordId);
+			String collection = record.getCollection();
+			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecord(
+					new GetIconPathParams(record, expanded));
 
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		Record record = recordServices.getDocumentById(recordId);
-		String collection = record.getCollection();
-		String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecord(
-				new GetIconPathParams(record, expanded));
-
-		if (fileName != null) {
-			return getIcon(fileName);
-		} else {
+			if (fileName != null) {
+				return getIcon(fileName);
+			} else {
+				return null;
+			}
+		} catch (Throwable t) {
+			LOGGER.warn("Error while retrieving icon for record id " + recordId, t);
 			return null;
 		}
 	}

@@ -19,6 +19,8 @@ import com.vaadin.ui.Field;
 public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public static final String STYLE_FIELD = "metadata-field";
+	
+	private RecordFieldFactory formFieldFactory;
 
 	public RecordForm(RecordVO record) {
 		this(record, new MetadataFieldFactory());
@@ -30,6 +32,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 
 	public RecordForm(final RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		super(recordVO, buildFields(recordVO, formFieldFactory));
+		this.formFieldFactory = formFieldFactory;
 	}
 
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
@@ -43,6 +46,10 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			}
 		}
 		return fieldsAndPropertyIds;
+	}
+	
+	protected RecordFieldFactory getFormFieldFactory() {
+		return formFieldFactory;
 	}
 
 	@Override
@@ -89,10 +96,10 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		Field<?> firstFieldWithError = null;
 		for (ValidationError validationError : validationErrors.getValidationErrors()) {
 			String errorMessage = $(validationError);
-			String metadataCode = validationError.getParameters()
+			Object metadataCode = validationError.getParameters()
 					.get(com.constellio.model.frameworks.validation.Validator.METADATA_CODE);
 			if (metadataCode != null) {
-				MetadataVO metadata = viewObject.getMetadataOrNull(metadataCode);
+				MetadataVO metadata = viewObject.getMetadataOrNull((String)metadataCode);
 				if (metadata != null) {
 					Field<?> field = getField(metadata);
 					if (field != null) {

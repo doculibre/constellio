@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -18,6 +19,8 @@ import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameter
 import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.UpdateDocumentParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
@@ -36,7 +39,6 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private static final int BUFFER_SIZE = 64 * 1024;
-	private final CallContext context;
 	private final Holder<String> objectId;
 	private final Boolean overwriteFlag;
 	private final ContentStream contentStream;
@@ -44,8 +46,7 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
 	public ChangeContentStreamRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
 			CallContext context, Holder<String> objectId, Boolean overwriteFlag, ContentStream contentStream, boolean append) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.overwriteFlag = overwriteFlag;
 		this.contentStream = contentStream;
@@ -61,18 +62,17 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 		if (objectId == null) {
 			throw new CmisExceptions_InvalidArgument("Id");
 		}
-
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
-
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(repository.getCollection());
-		ContentCmisDocument contentCmisDocument = CmisContentUtils
-				.getContent(objectId.getValue(), recordServices, metadataSchemaTypes);
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		ContentCmisDocument contentCmisDocument = CmisContentUtils.getContent(objectId.getValue(), recordServices, types);
+		ensureUserHasAllowableActionsOnRecord(contentCmisDocument.getRecord(), Action.CAN_SET_CONTENT_STREAM);
 		Content content = contentCmisDocument.getContent();
 
 		IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		ContentManager contentManager = modelLayerFactory.getContentManager();
+
+//		UpdateDocumentParams params = new UpdateDocumentParams(user, contentCmisDocument.getRecord());
+		//		appLayerFactory.getExtensions().forCollection(collection).onUpdateCMISDocument(params);
 
 		setContent(user, recordServices, contentCmisDocument, content, ioServices, contentManager);
 
@@ -93,13 +93,13 @@ public class ChangeContentStreamRequest extends CmisCollectionRequest<Boolean> {
 
 			if (content.getCheckoutUserId() != null) {
 				if (user.getId().equals(content.getCheckoutUserId())) {
-					ContentVersionDataSummary dataSummary = contentManager.upload(inFromCopy);
+					ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
 					content.updateCheckedOutContentWithName(dataSummary, contentStream.getFileName());
 				} else {
 					throw new RuntimeException("TODO : Cannot modify content checked out by other user");
 				}
 			} else {
-				ContentVersionDataSummary dataSummary = contentManager.upload(inFromCopy);
+				ContentVersionDataSummary dataSummary = uploadContent(inFromCopy, contentStream.getFileName());
 				content.updateContentWithName(user, dataSummary, false, contentStream.getFileName());
 			}
 			recordServices.update(contentCmisDocument.getRecord(), user);

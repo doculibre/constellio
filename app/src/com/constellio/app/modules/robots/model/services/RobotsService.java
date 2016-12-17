@@ -8,13 +8,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.robots.model.wrappers.Robot;
+import com.constellio.app.modules.robots.model.wrappers.RobotLog;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.SearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RobotsService {
@@ -74,6 +77,12 @@ public class RobotsService {
 	}
 
 	public void deleteRobotHierarchy(Robot robot) {
+		for (String robotLogId : getRobotLogIds(robot.getId())) {
+			RobotLog robotLog = robots.getRobotLog(robotLogId);
+			recordServices.logicallyDelete(robotLog.getWrappedRecord(), User.GOD);
+			recordServices.physicallyDelete(robotLog.getWrappedRecord(), User.GOD);
+		}
+
 		for (Robot child : getChildRobots(robot.getId())) {
 			deleteRobotHierarchy(child);
 		}
@@ -86,10 +95,31 @@ public class RobotsService {
 	}
 
 	public List<Robot> getRootRobots() {
-		return robots.searchRobots(where(robots.robot.parent()).isNull());
+		LogicalSearchQuery searchQuery = new LogicalSearchQuery(from(robots.robot.schemaType())
+				.where(robots.robot.parent()).isNull());
+		searchQuery.sortAsc(Schemas.CODE);
+		return robots.searchRobots(searchQuery);
+	}
+
+	public List<Robot> getAutoExecutingRootRobots() {
+
+		LogicalSearchQuery searchQuery = new LogicalSearchQuery(from(robots.robot.schemaType())
+				.where(robots.robot.parent()).isNull().andWhere(robots.robot.autoExecute()).isTrue());
+		searchQuery.sortAsc(Schemas.CODE);
+		return robots.searchRobots(searchQuery);
+
 	}
 
 	public List<Robot> getChildRobots(String robotId) {
-		return robots.searchRobots(where(robots.robot.parent()).isEqualTo(robotId));
+		LogicalSearchQuery searchQuery = new LogicalSearchQuery(from(robots.robot.schemaType())
+				.where(robots.robot.parent()).isEqualTo(robotId));
+		searchQuery.sortAsc(Schemas.CODE);
+		return robots.searchRobots(searchQuery);
+	}
+
+	private List<String> getRobotLogIds(String robotId) {
+		LogicalSearchQuery query = new LogicalSearchQuery(
+				from(robots.robotLog.schemaType()).where(robots.robotLog.robot()).isEqualTo(robotId));
+		return searchServices.searchRecordIds(query);
 	}
 }

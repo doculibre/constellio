@@ -16,6 +16,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.OptimisticLocking;
@@ -67,7 +68,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 	void execute(List<Record> batch, List<String> errors) {
 		Transaction transaction = null;
 		try {
-			transaction = action.execute(batch, metadataSchemaTypes);
+			transaction = action.execute(batch, metadataSchemaTypes, new RecordProvider(recordServices));
 
 		} catch (Throwable t) {
 			t.printStackTrace();

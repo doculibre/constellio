@@ -19,6 +19,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.records.RecordProvider;
+import com.constellio.model.services.records.RecordValidatorParams;
 import com.constellio.sdk.tests.ConstellioTest;
 
 public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest extends ConstellioTest {
@@ -32,6 +34,7 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 	@Mock ValidationErrors validationErrors;
 	@Mock MetadataSchema schema;
 	@Mock ConfigProvider configProvider;
+	@Mock RecordProvider recordProvider;
 
 	SimpleDateFormat sdf = new SimpleDateFormat();
 
@@ -56,9 +59,11 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(creationDate)).thenReturn(date);
 		when(record.get(modificationDate)).thenReturn(dateBefore);
 
-		validator.validate(record, types, schema, configProvider, validationErrors);
+		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
+				configProvider, recordProvider);
+		validator.validate(params);
 
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(CreationDateIsBeforeOrEqualToLastModificationDateValidator.CREATION_DATE_MESSAGE_PARAM, date.toString());
 		parameters.put(CreationDateIsBeforeOrEqualToLastModificationDateValidator.MODIFICATION_DATE_MESSAGE_PARAM,
 				dateBefore.toString());
@@ -72,7 +77,9 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(creationDate)).thenReturn(date);
 		when(record.get(modificationDate)).thenReturn(date);
 
-		validator.validate(record, types, schema, configProvider, validationErrors);
+		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
+				configProvider, recordProvider);
+		validator.validate(params);
 
 		verifyZeroInteractions(validationErrors);
 	}
@@ -83,7 +90,9 @@ public class CreationDateIsBeforeOrEqualToLastModificationDateValidatorTest exte
 		when(record.get(creationDate)).thenReturn(date);
 		when(record.get(modificationDate)).thenReturn(dateAfter);
 
-		validator.validate(record, types, schema, configProvider, validationErrors);
+		RecordValidatorParams params = new RecordValidatorParams(record, types, schema, validator, validationErrors,
+				configProvider, recordProvider);
+		validator.validate(params);
 
 		verifyZeroInteractions(validationErrors);
 	}

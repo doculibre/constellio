@@ -21,10 +21,10 @@ import com.vaadin.ui.themes.ValoTheme;
 public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 	public static final String OK_BUTTON = "seleniumOkButton";
-	private final RMReportsPresenter presenter;
+	private final RMNewReportsPresenter presenter;
 
 	public RMReportsViewImpl() {
-		presenter = new RMReportsPresenter(this);
+		presenter = new RMNewReportsPresenter(this);
 	}
 
 	@Override

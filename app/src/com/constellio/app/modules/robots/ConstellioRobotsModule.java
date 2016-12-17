@@ -5,12 +5,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.ComboMigrationScript;
+import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
+import com.constellio.app.modules.robots.migrations.RobotsMigrationCombo;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_2;
 import com.constellio.app.modules.robots.migrations.RobotsMigrationTo5_1_3;
+import com.constellio.app.modules.robots.migrations.RobotsMigrationTo6_3;
 import com.constellio.app.modules.robots.model.actions.RunExtractorsActionExecutor;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.modules.robots.services.RobotsManager;
@@ -18,7 +22,7 @@ import com.constellio.app.modules.robots.ui.navigation.RobotsNavigationConfigura
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
 
-public class ConstellioRobotsModule implements InstallableModule {
+public class ConstellioRobotsModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "robots";
 	public static final String NAME = "Constellio Robots";
 
@@ -41,13 +45,14 @@ public class ConstellioRobotsModule implements InstallableModule {
 	public List<MigrationScript> getMigrationScripts() {
 		return Arrays.asList(
 				new RobotsMigrationTo5_1_2(),
-				new RobotsMigrationTo5_1_3()
+				new RobotsMigrationTo5_1_3(),
+				new RobotsMigrationTo6_3()
 		);
 	}
 
 	@Override
 	public void configureNavigation(NavigationConfig config) {
-		new RobotsNavigationConfiguration().configureNavigation(config);
+		RobotsNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -58,7 +63,6 @@ public class ConstellioRobotsModule implements InstallableModule {
 
 		RunExtractorsActionExecutor.registerIn(robotsManager);
 	}
-
 
 	@Override
 	public void stop(String collection, AppLayerFactory appLayerFactory) {
@@ -98,5 +102,20 @@ public class ConstellioRobotsModule implements InstallableModule {
 	@Override
 	public List<String> getRolesForCreator() {
 		return new ArrayList<>();
+	}
+
+	@Override
+	public void start(AppLayerFactory appLayerFactory) {
+		RobotsNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+	}
+
+	@Override
+	public void stop(AppLayerFactory appLayerFactory) {
+
+	}
+
+	@Override
+	public ComboMigrationScript getComboMigrationScript() {
+		return new RobotsMigrationCombo();
 	}
 }

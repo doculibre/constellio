@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
@@ -23,11 +24,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
+import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -126,6 +129,8 @@ public class ContentManagerTest extends ConstellioTest {
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
 	@Mock ModelLayerFactory modelLayerFactory;
+	@Mock DataLayerConfiguration dataLayerConfiguration;
+	@Mock ConstellioEIMConfigs constellioEIMConfigs;
 
 	@Before
 	public void setUp()
@@ -137,13 +142,17 @@ public class ContentManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.newFileParser()).thenReturn(fileParser);
+		when(modelLayerFactory.getSystemConfigs()).thenReturn(constellioEIMConfigs);
 
 		when(dataLayerFactory.newRecordDao()).thenReturn(recordDao);
 		when(dataLayerFactory.getContentsDao()).thenReturn(contentDao);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.getUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
-		when(ioServicesFactory.newHashingService()).thenReturn(hashingService);
+		when(ioServicesFactory.newHashingService(BASE64_URL_ENCODED)).thenReturn(hashingService);
 		when(ioServicesFactory.newIOServices()).thenReturn(ioServices);
+
+		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
+		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
 		contentManager = spy(new ContentManager(modelLayerFactory));
 		when(ioServices.copyToReusableStreamFactory(contentInputStream, null)).thenReturn(streamFactory);

@@ -4,6 +4,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
@@ -49,6 +50,15 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 	@Override
 	public void setCriteriaSchemaType(String schemaType) {
 		criteria.setSchemaType(schemaType);
+	}
+
+	@Override
+	public void setSearchCriteria(List<Criterion> criteria) {
+		this.criteria.setSearchCriteria(criteria);
+	}
+
+	@Override
+	public void setAdministrativeUnit(String administrativeUnitID) {
 	}
 
 	@Override

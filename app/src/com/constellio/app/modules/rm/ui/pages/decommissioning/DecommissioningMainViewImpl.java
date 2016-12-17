@@ -180,6 +180,12 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 						RecordVO entity = dataProvider.getRecordVO((int) itemId);
 						presenter.deleteButtonClicked(entity);
 					}
+
+					@Override
+					protected String getConfirmDialogMessage() {
+						RecordVO entity = dataProvider.getRecordVO((int) itemId);
+						return presenter.getDeleteConfirmMessage(entity);
+					}
 				};
 			}
 		});
@@ -231,7 +237,7 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Table buildTable(ButtonsContainer container) {
-		Table table = new RecordVOTable($("DecommissioningMainView.lists", container.size()));
+		RecordVOTable table = new RecordVOTable($("DecommissioningMainView.lists", container.size()));
 		table.setContainerDataSource(container);
 		table.setColumnHeader(BUTTONS_PROPERTY_ID, "");
 		table.setPageLength(Math.min(15, container.size()));

@@ -6,7 +6,9 @@ import static org.apache.chemistry.opencmis.commons.enums.Updatability.READONLY;
 import static org.apache.chemistry.opencmis.commons.enums.Updatability.READWRITE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.ObjectType;
@@ -18,6 +20,7 @@ import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -48,6 +51,7 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = newCmisSessionBuilder().authenticatedBy(chuckNorrisKey, chuckNorrisToken).onCollection(zeCollection)
 				.build();
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
@@ -86,6 +90,9 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 		assertThat(folderTypeMetadatas.get(Folder.COPY_STATUS))
 				.has(propertyType(STRING)).has(updatability(READONLY));
 
+		assertThat(getAllTypeIds()).containsOnly("document_email", "folder_default", "administrativeUnit_default", "taxonomy",
+				"storageSpace_default", "document_default", "category_default", "collection_default");
+
 	}
 
 	private Condition<? super PropertyDefinition<?>> updatability(final Updatability expectedValue) {
@@ -106,6 +113,17 @@ public class RMModuleTypesAcceptTest extends ConstellioTest {
 				return true;
 			}
 		};
+	}
+
+	private List<String> getAllTypeIds() {
+		List<String> ids = new ArrayList<>();
+		ObjectType baseFolderType = cmisSession.getTypeDefinition("cmis:folder");
+		Iterator<ObjectType> iterator = baseFolderType.getChildren().iterator();
+		while (iterator.hasNext()) {
+			ObjectType objectType = iterator.next();
+			ids.add(objectType.getId());
+		}
+		return ids;
 	}
 
 	private ObjectType getFolderType(String id) {

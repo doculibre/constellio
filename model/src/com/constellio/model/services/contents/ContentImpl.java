@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ import com.constellio.model.services.contents.ContentImplRuntimeException.Conten
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_NoSuchVersion;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
 import com.constellio.model.utils.Lazy;
 
 public class ContentImpl implements Content {
@@ -67,6 +69,14 @@ public class ContentImpl implements Content {
 
 	public static ContentImpl create(String id, User user, String filename, ContentVersionDataSummary newVersion, boolean major,
 			boolean empty) {
+		String version = major ? "1.0" : "0.1";
+
+		return createWithVersion(id, user, filename, newVersion, version, empty);
+	}
+
+	public static ContentImpl createWithVersion(String id, User user, String filename, ContentVersionDataSummary newVersion,
+			String version, boolean empty) {
+		version = validateVersion(version, null, false);
 		validateArgument("id", id);
 		validateUserArgument(user);
 		validateFilenameArgument(filename);
@@ -75,7 +85,6 @@ public class ContentImpl implements Content {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		ContentImpl content = new ContentImpl();
 		String correctFilename = correctFilename(filename);
-		String version = major ? "1.0" : "0.1";
 		content.id = id;
 		content.history = new ArrayList<>();
 		content.dirty = true;
@@ -102,7 +111,7 @@ public class ContentImpl implements Content {
 		return finalized ? "1.0" : "0.1";
 	}
 
-	private static String getVersionAfter(String version, boolean finalized) {
+	public static String getVersionAfter(String version, boolean finalized) {
 		int dotIndex = version.indexOf(".");
 		Integer major = Integer.valueOf(version.substring(0, dotIndex));
 		Integer minor = Integer.valueOf(version.substring(dotIndex + 1));
@@ -126,7 +135,11 @@ public class ContentImpl implements Content {
 			throw new ContentImplRuntimeException_InvalidArgument("new version");
 		}
 
-		if (newVersion.getHash() == null || newVersion.getMimetype() == null) {
+		if (newVersion.getHash() == null) {
+			throw new ContentImplRuntimeException_InvalidArgument("new version");
+		}
+
+		if (newVersion.getMimetype() == null) {
 			throw new ContentImplRuntimeException_InvalidArgument("new version");
 		}
 
@@ -136,6 +149,59 @@ public class ContentImpl implements Content {
 		if (!StringUtils.isNotBlank(argumentValue)) {
 			throw new ContentImplRuntimeException_InvalidArgument(argumentName);
 		}
+	}
+
+	private static String validateVersion(String version, String currentVersionLabel, boolean empty) {
+		try {
+			if (!empty && currentVersionLabel != null && version != null) {
+				Integer versionCompare = versionCompare(currentVersionLabel, version);
+				if (versionCompare >= 0) {
+					throw new ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(version, currentVersionLabel);
+				}
+			}
+			Double.valueOf(version);
+			if (version.indexOf(".") == -1) {
+				version += ".0";
+			}
+			return version;
+		} catch (NumberFormatException e) {
+			throw new ContentImplRuntimeException_InvalidArgument("version");
+		}
+	}
+	
+	/**
+	 * http://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
+	 * 
+	 * Compares two version strings. 
+	 * 
+	 * Use this instead of String.compareTo() for a non-lexicographical 
+	 * comparison that works for version strings. e.g. "1.10".compareTo("1.6").
+	 * 
+	 * @note It does not work if "1.10" is supposed to be equal to "1.10.0".
+	 * 
+	 * @param str1 a string of ordinal numbers separated by decimal points. 
+	 * @param str2 a string of ordinal numbers separated by decimal points.
+	 * @return The result is a negative integer if str1 is _numerically_ less than str2. 
+	 *         The result is a positive integer if str1 is _numerically_ greater than str2. 
+	 *         The result is zero if the strings are _numerically_ equal.
+	 */
+	public static Integer versionCompare(String str1, String str2) {
+	    String[] vals1 = str1.split("\\.");
+	    String[] vals2 = str2.split("\\.");
+	    int i = 0;
+	    // set index to first non-equal ordinal or length of shortest version string
+	    while (i < vals1.length && i < vals2.length && vals1[i].equals(vals2[i])) {
+	        i++;
+	    }
+	    // compare first non-equal ordinal number
+	    if (i < vals1.length && i < vals2.length) {
+	        int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
+	        return Integer.signum(diff);
+	    } else {
+		    // the strings are equal or one string is a substring of the other
+		    // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
+	        return Integer.signum(vals1.length - vals2.length);
+	    }
 	}
 
 	private static void validateFilenameArgument(String argumentValue) {
@@ -317,8 +383,20 @@ public class ContentImpl implements Content {
 		return null;
 	}
 
-	public ContentImpl updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name) {
+	public Content updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name) {
+		String version;
+		if (emptyVersion) {
+			version = finalize ? "1.0" : "0.1";
+		} else {
+			version = getNextVersion(finalize);
+		}
+		return updateContentWithVersionAndName(user, newVersion, version, name);
+	}
+
+	@Override
+	public Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version, String name) {
 		ensureNotCheckedOut();
+		version = validateVersion(version, currentVersion.getVersion(), isEmptyVersion());
 		validateUserArgument(user);
 		valdiateNewVersionArgument(newVersion);
 		LocalDateTime now = TimeProvider.getLocalDateTime();
@@ -326,17 +404,15 @@ public class ContentImpl implements Content {
 		String correctedFilename = correctFilename(name);
 		if (emptyVersion) {
 			emptyVersion = false;
-			String version = finalize ? "1.0" : "0.1";
 			currentVersion = new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null);
 		} else {
-			String version = getNextVersion(finalize);
 			setNewCurrentVersion(new ContentVersion(newVersion, correctedFilename, version, user.getId(), now, null));
 		}
 		this.dirty = true;
 		return this;
 	}
 
-	public ContentImpl updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
+	public Content updateContent(User user, ContentVersionDataSummary newVersion, boolean finalize) {
 		return updateContentWithName(user, newVersion, finalize, getCurrentVersion().getFilename());
 	}
 

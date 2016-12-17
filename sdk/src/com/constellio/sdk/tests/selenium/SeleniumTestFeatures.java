@@ -9,11 +9,13 @@ import java.util.Map;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
@@ -23,6 +25,8 @@ import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.SDKPasswords;
+import com.constellio.sdk.tests.ConstellioTestSession;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
 import com.constellio.sdk.tests.SkipTestsRule;
 import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
@@ -144,12 +148,98 @@ public class SeleniumTestFeatures {
 	}
 
 	public ConstellioWebDriver newWebDriver(boolean preferFirefox) {
+		return newWebDriver(preferFirefox, false);
+	}
+
+	public ConstellioWebDriver newWebDriver(boolean preferFirefox, boolean useSSL) {
 		disableAllServices();
 		if (!applicationStarted) {
 			startApplication();
 		}
 
-		String url = "http://localhost:" + port + "/constellio";
+		String url;
+		if (useSSL) {
+			url = "https://localhost:" + portSSL + "/constellio";
+		} else {
+			url = "http://localhost:" + port + "/constellio";
+		}
+
+		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
+		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
+
+		String currentPageLoadTime;
+		if (openedWebDriver == null) {
+			WebDriver webDriver;
+			if (firefoxBinaryDir == null && phantomJSBinaryDir == null) {
+				throw new RuntimeException(
+						"You need to configure 'phantomJSBinary' or 'firefoxBinary' properties in sdk.properties file");
+			} else if (phantomJSBinaryDir == null || (firefoxBinaryDir != null && preferFirefox)) {
+				webDriver = newFirefoxWebDriver(firefoxBinaryDir);
+
+			} else {
+				webDriver = newPhantomJSWebDriver(phantomJSBinaryDir);
+			}
+			FoldersLocator foldersLocator = factoriesTestFeatures.getFoldersLocator();
+			openedWebDriver = new ConstellioWebDriver(webDriver, url, foldersLocator, skipTestsRule);
+			currentPageLoadTime = "";
+
+		} else {
+			currentPageLoadTime = openedWebDriver.getPageLoadTimeAsString(2000);
+			openedWebDriver.manage().deleteAllCookies();
+		}
+
+		boolean customWindowPosition = ConstellioTestSession.get().isDeveloperTest();
+
+		if (customWindowPosition) {
+			String positionXConfig = sdkProperties.get("window.position.x");
+			String positionYConfig = sdkProperties.get("window.position.y");
+			String widthConfig = sdkProperties.get("window.width");
+			String heightConfig = sdkProperties.get("window.height");
+
+			if (StringUtils.isNotBlank(positionXConfig) && StringUtils.isNotBlank(positionYConfig)) {
+				int positionX = Integer.valueOf(positionXConfig);
+				int positionY = Integer.valueOf(positionYConfig);
+				openedWebDriver.manage().window().setPosition(new Point(positionX, positionY));
+			}
+
+			if (StringUtils.isNotBlank(widthConfig) && StringUtils.isNotBlank(heightConfig)) {
+				int width = Integer.valueOf(widthConfig);
+				int height = Integer.valueOf(heightConfig);
+				openedWebDriver.manage().window().setSize(new Dimension(width, height));
+			} else {
+				openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+			}
+
+		} else {
+			openedWebDriver.manage().window().setSize(new Dimension(1200, 1024));
+		}
+
+		boolean ready = false;
+
+		Exception exception = null;
+		for (int i = 0; i < 10 && !ready; i++) {
+			try {
+				openedWebDriver.gotoConstellio();
+				openedWebDriver.waitForPageReload(20, currentPageLoadTime);
+				ready = true;
+			} catch (Exception e) {
+				exception = e;
+			}
+		}
+		if (!ready) {
+			throw new RuntimeException(exception);
+		}
+
+		return openedWebDriver;
+	}
+
+	public ConstellioWebDriver newWebDriverSSL(boolean preferFirefox) {
+		disableAllServices();
+		if (!applicationStarted) {
+			startApplication();
+		}
+
+		String url = "http://localhost:" + portSSL + "/constellio";
 
 		String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
 		String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
@@ -276,7 +366,7 @@ public class SeleniumTestFeatures {
 		assertThat(cmis11).exists().isDirectory();
 		assertThat(cmis11.listFiles()).isNotEmpty();
 
-		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, "ncix123$");
+		ApplicationStarter.startApplication(keepAlive, webContent, portSSL, SDKPasswords.sslKeystorePassword());
 
 		applicationStarted = true;
 		System.out.println("Application started in " + (new Date().getTime() - time) + "ms");
@@ -312,4 +402,7 @@ public class SeleniumTestFeatures {
 
 	}
 
+	public ConstellioWebDriver getLastWebDriver() {
+		return openedWebDriver;
+	}
 }

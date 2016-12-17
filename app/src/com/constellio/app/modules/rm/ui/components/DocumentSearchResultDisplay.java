@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentLink;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -28,8 +29,8 @@ import com.vaadin.ui.HorizontalLayout;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
-	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
-		super(searchResultVO, componentFactory);
+	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory) {
+		super(searchResultVO, componentFactory, appLayerFactory);
 	}
 
 	@Override
@@ -43,7 +44,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			ContentVersionVO contentVersionVO = record.get(Document.CONTENT);
 			String agentURL = ConstellioAgentUtils.getAgentURL(record, contentVersionVO);
 			if (agentURL != null) {
-				titleComponent = new ConstellioAgentLink(agentURL, contentVersionVO, record.getTitle(), false);
+				titleComponent = new ConstellioAgentLink(agentURL, record, contentVersionVO, record.getTitle(), false);
 			} else {
 				titleComponent = super.newTitleComponent(searchResultVO);
 			}
@@ -82,7 +83,10 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		layout.setComponentAlignment(edit, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(download, Alignment.TOP_RIGHT);
 		layout.setComponentAlignment(open, Alignment.TOP_RIGHT);
+		layout.setComponentAlignment(titleComponent, Alignment.BOTTOM_LEFT);
 		layout.setWidth("100%");
+		layout.setHeight("100%");
+		layout.addStyleName("document-search-result-display");
 
 		return layout;
 	}

@@ -69,6 +69,9 @@ public enum Language {
 	}
 
 	public static Language withCode(String code) {
+		if (code == null) {
+			return null;
+		}
 		for (Language language : values()) {
 			if (code.equals(language.getCode())) {
 				return language;
@@ -81,11 +84,13 @@ public enum Language {
 		return Arrays.asList(values());
 	}
 
-	public static List<String> getAvailableLanguageCodes() {
-		List<String> languageCodes = new ArrayList<>();
-		for (Language language : values()) {
-			languageCodes.add(language.getCode());
+	public static List<Language> withCodes(List<String> codes) {
+		List<Language> languages = new ArrayList<>();
+
+		for (String code : codes) {
+			languages.add(withCode(code));
 		}
-		return languageCodes;
+
+		return languages;
 	}
 }

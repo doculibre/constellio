@@ -40,8 +40,11 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.TransactionLogExtension;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.IOServicesFactory;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.FakeEncryptionServices;
 
@@ -79,27 +82,31 @@ public class FactoriesTestFeatures {
 	public void afterTest() {
 
 		if (instanciated) {
-			factoriesInstance = getConstellioFactories();
-			DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
-			for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
-				deleteServerRecords(server);
-			}
-
-			if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
-				deleteFromHadoop(conf.getContentDaoHadoopUser(), conf.getContentDaoHadoopUrl());
-
-			}
-
-			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
-				deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
-			}
-
-			i18n.clearBundles();
+			clear();
 		}
 
 		ConstellioFactories.clear();
 		factoriesInstance = null;
 
+	}
+
+	public void clear() {
+		factoriesInstance = getConstellioFactories();
+		DataLayerConfiguration conf = factoriesInstance.getDataLayerConfiguration();
+		for (BigVaultServer server : factoriesInstance.getDataLayerFactory().getSolrServers().getServers()) {
+			deleteServerRecords(server);
+		}
+
+		if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
+			deleteFromHadoop(conf.getContentDaoHadoopUser(), conf.getContentDaoHadoopUrl());
+
+		}
+
+		if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
+			deleteFromZooKeeper(conf.getSettingsZookeeperAddress());
+		}
+
+		i18n.clearBundles();
 	}
 
 	private void deleteFromZooKeeper(String address) {
@@ -180,6 +187,15 @@ public class FactoriesTestFeatures {
 						dataLayerFactory.getDataLayerLogger().setMonitoredIds(loggingOfRecords);
 					}
 
+					dataLayerFactory.getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
+							.add(new TransactionLogExtension() {
+								@Override
+								public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
+										String collection) {
+									return ExtensionBooleanResult.FORCE_TRUE;
+								}
+							});
+
 					if (spiedClasses.isEmpty()) {
 						return dataLayerFactory;
 					} else {
@@ -190,11 +206,22 @@ public class FactoriesTestFeatures {
 				@Override
 				public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
 
+					if (spiedClasses.isEmpty()) {
+						return modelLayerFactory;
+					} else {
+						return spy(modelLayerFactory);
+					}
+				}
+
+				@Override
+				public AppLayerFactory decorateAppServicesFactory(final AppLayerFactory appLayerFactory) {
+
 					if (dummyPasswords) {
-						modelLayerFactory.add(new StatefulService() {
+						appLayerFactory.add(new StatefulService() {
 							@Override
 							public void initialize() {
 								try {
+									ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 									List<UserCredential> users = modelLayerFactory.newUserServices().getAllUserCredentials();
 									StringBuilder passwordFileContent = new StringBuilder();
 									for (UserCredential user : users) {
@@ -218,25 +245,13 @@ public class FactoriesTestFeatures {
 
 							}
 						});
-						if (fakeEncryptionServices) {
-							try {
-								modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-							} catch (Exception e) {
-								throw new RuntimeException(e);
-							}
-						}
 					}
 
 					if (spiedClasses.isEmpty()) {
-						return modelLayerFactory;
+						return appLayerFactory;
 					} else {
-						return spy(modelLayerFactory);
+						return spy(appLayerFactory);
 					}
-				}
-
-				@Override
-				public AppLayerFactory decorateAppServicesFactory(AppLayerFactory appLayerFactory) {
-					return spy(appLayerFactory);
 				}
 
 				@Override
@@ -263,6 +278,21 @@ public class FactoriesTestFeatures {
 				}
 			};
 
+			if (fakeEncryptionServices) {
+				modelLayerConfigurationAlterations.add(new ModelLayerConfigurationAlteration() {
+					@Override
+					public void alter(InMemoryModelLayerConfiguration configuration) {
+						Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+							@Override
+							public EncryptionServices get() {
+								return new FakeEncryptionServices();
+							}
+						};
+						configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+					}
+				});
+			}
+
 			File configManagerFolder = fileSystemTestFeatures.newTempFolderWithName("configManagerFolder");
 			File contentFolder = fileSystemTestFeatures.newTempFolderWithName("contentFolder");
 			File pluginsFolder;
@@ -271,6 +301,7 @@ public class FactoriesTestFeatures {
 			} else {
 				pluginsFolder = fileSystemTestFeatures.newTempFolderWithName("plugins");
 			}
+			File tlogWorkFolder = fileSystemTestFeatures.newTempFolderWithName("tlogWorkFolder");
 
 			decorator.setDataLayerConfigurationAlterations(dataLayerConfigurationAlterations);
 			decorator.setModelLayerConfigurationAlterations(modelLayerConfigurationAlterations);
@@ -280,7 +311,9 @@ public class FactoriesTestFeatures {
 			decorator.setConfigManagerFolder(configManagerFolder);
 			decorator.setAppTempFolder(fileSystemTestFeatures.newTempFolderWithName("appTempFolder"));
 			decorator.setContentFolder(contentFolder);
-			decorator.setPluginsFolder(pluginsFolder).setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
+			decorator.setPluginsFolder(pluginsFolder)
+					.setPluginsToMoveOnStartupFile(fileSystemTestFeatures.newTempFileWithContent(""));
+			decorator.setTransactionLogWorkFolder(tlogWorkFolder);
 			decorator.setSystemLanguage(systemLanguage);
 
 			if (initialState != null) {
@@ -289,7 +322,7 @@ public class FactoriesTestFeatures {
 					try {
 						SaveStateFeature
 								.loadStateFrom(initialState, tempFolder, configManagerFolder, contentFolder, pluginsFolder,
-										dummyPasswords);
+										tlogWorkFolder, dummyPasswords);
 					} catch (Exception e) {
 						throw new RuntimeException(e);
 					}
@@ -318,15 +351,6 @@ public class FactoriesTestFeatures {
 		}
 
 		factoriesInstance = ConstellioFactories.getInstance(propertyFile, decorator);
-
-		factoriesInstance.getDataLayerFactory().getExtensions().getSystemWideExtensions().getTransactionLogExtensions()
-				.add(new TransactionLogExtension() {
-					@Override
-					public ExtensionBooleanResult isDocumentFieldLoggedInTransactionLog(String field, String schema,
-							String collection) {
-						return ExtensionBooleanResult.FORCE_TRUE;
-					}
-				});
 
 		return factoriesInstance;
 	}
@@ -421,4 +445,5 @@ public class FactoriesTestFeatures {
 	public boolean isCheckRollback() {
 		return checkRollback;
 	}
+
 }

@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import org.joda.time.Duration;
+
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.modules.robots.model.RegisteredAction;
@@ -24,6 +26,9 @@ import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.threads.BackgroundThreadConfiguration;
+import com.constellio.data.threads.BackgroundThreadExceptionHandling;
+import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -33,19 +38,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RobotsManager implements StatefulService {
-
 	public static final String ID = "robotsManager";
-
 	private Map<String, RegisteredAction> actions = new HashMap<>();
-
 	private RobotSchemaRecordServices robotSchemas;
-
 	private SearchServices searchServices;
-
 	private BatchProcessesManager batchProcessesManager;
-
 	private String collection;
-
 	private RobotsService robotsService;
 
 	public RobotsManager(RobotSchemaRecordServices robotSchemas) {
@@ -54,6 +52,20 @@ public class RobotsManager implements StatefulService {
 		this.searchServices = robotSchemas.getModelLayerFactory().newSearchServices();
 		this.batchProcessesManager = robotSchemas.getModelLayerFactory().getBatchProcessesManager();
 		this.robotsService = new RobotsService(robotSchemas.getCollection(), robotSchemas.getAppLayerFactory());
+		startAutoExecutorThread();
+	}
+
+	private void startAutoExecutorThread() {
+		BackgroundThreadsManager manager = robotSchemas.getModelLayerFactory().getDataLayerFactory()
+				.getBackgroundThreadsManager();
+
+		manager.configure(BackgroundThreadConfiguration.repeatingAction("startAutoExecutingRobots", new Runnable() {
+			@Override
+			public void run() {
+				startAutoExecutingRobots();
+			}
+		}).handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE)
+				.executedEvery(Duration.standardHours(24)));
 	}
 
 	public RegisteredAction registerAction(String code, String parametersSchemaLocalCode, Collection<String> types,
@@ -90,6 +102,13 @@ public class RobotsManager implements StatefulService {
 		}
 	}
 
+	public void startAutoExecutingRobots() {
+		for (Robot robot : robotsService.getAutoExecutingRootRobots()) {
+			Stack<LogicalSearchCondition> conditions = new Stack<>();
+			startRobotExecution(robot, conditions, null);
+		}
+	}
+
 	public void startRobotExecution(String id) {
 		startRobotExecution(robotSchemas.getRobot(id));
 	}
@@ -105,7 +124,7 @@ public class RobotsManager implements StatefulService {
 		conditions.push(localCondition);
 
 		RobotCondition condition = newRobotCondition(conditions, robot);
-		if (searchServices.hasResults(condition.conditionIncludingParentCondition)) {
+		if (searchServices.hasResults(query(condition.conditionIncludingParentCondition))) {
 			for (Robot childRobot : robotsService.getChildRobots(robot.getId())) {
 				RobotCondition childsCondition = startRobotExecution(childRobot, conditions, dryRunRobotActions);
 				condition.childRobotConditions.add(childsCondition);
@@ -113,24 +132,25 @@ public class RobotsManager implements StatefulService {
 		}
 		conditions.pop();
 		if (robot.getAction() != null) {
-			LogicalSearchCondition builtCondition = condition.buildCondition();
+			LogicalSearchQuery query = query(condition.buildCondition());
 			if (dryRunRobotActions != null) {
-				Iterator<Record> recordsIterator = searchServices.recordsIterator(new LogicalSearchQuery(builtCondition), 5000);
+
+				Iterator<Record> recordsIterator = searchServices.recordsIterator(query, 5000);
 				while (recordsIterator.hasNext()) {
 					Record record = recordsIterator.next();
 					dryRunRobotActions.add(dryRunRobotAction(record, robot, robotSchemas));
 				}
 			} else {
-				createBatchProcess(robot.getId(), builtCondition, robot.getAction(), robot.getActionParameters());
+				createBatchProcess(robot.getId(), query, robot.getAction(), robot.getActionParameters());
 			}
 		}
 		return condition;
 	}
 
-	private void createBatchProcess(String robotId, LogicalSearchCondition condition, String action, String actionParametersId) {
-		if (searchServices.hasResults(condition)) {
+	private void createBatchProcess(String robotId, LogicalSearchQuery query, String action, String actionParametersId) {
+		if (searchServices.hasResults(query)) {
 			RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robotId, action, actionParametersId);
-			BatchProcess batchProcess = batchProcessesManager.addBatchProcessInStandby(condition, batchProcessAction);
+			BatchProcess batchProcess = batchProcessesManager.addBatchProcessInStandby(query, batchProcessAction);
 			batchProcessesManager.markAsPending(batchProcess);
 		}
 	}
@@ -172,6 +192,12 @@ public class RobotsManager implements StatefulService {
 	@Override
 	public void close() {
 
+	}
+
+	private LogicalSearchQuery query(LogicalSearchCondition condition) {
+		LogicalSearchQuery query = new LogicalSearchQuery(condition);
+		query.setPreferAnalyzedFields(true);
+		return query;
 	}
 
 	public RegisteredAction getActionFor(String actionCode) {

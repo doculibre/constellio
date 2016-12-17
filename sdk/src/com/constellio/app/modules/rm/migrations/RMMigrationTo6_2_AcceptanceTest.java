@@ -20,7 +20,7 @@ public class RMMigrationTo6_2_AcceptanceTest extends ConstellioTest {
 
 		givenSystemAtVersion6_1WithDocumentRules();
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RetentionRule folderAndDocumentRule = rm.getRetentionRule("00000000309");
 		RetentionRule documentRule = rm.getRetentionRule("00000000312");
 		RetentionRule folderRule = rm.getRetentionRule("ruleId_4");

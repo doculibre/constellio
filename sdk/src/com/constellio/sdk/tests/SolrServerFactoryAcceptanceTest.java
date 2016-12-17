@@ -2,6 +2,7 @@ package com.constellio.sdk.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTest {
 	private static Logger LOGGER = LoggerFactory.getLogger(SolrServerFactoryAcceptanceTest.class);
 
-	// TODO @Test
+	@Test
 	public void whenSettingUpSolrCollectionsThenTheirConfigurationAreStoredInThePathStartsWithTheCollectionName() {
 		for (BigVaultServer server : getConstellioFactories().getDataLayerFactory().getSolrServers().getServers()) {
 			AtomicFileSystem configFileSystem = server.getSolrServerFactory().getConfigFileSystem();
@@ -27,7 +28,7 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 		}
 	}
 
-	// TODO @Test
+	@Test
 	public void whenCreatingASolrServerThenTheWriteAccessIsProvided()
 			throws OptimisticLockingConfiguration {
 		String testFilePath = "/writeAccessFile.txt";
@@ -46,7 +47,7 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 
 	}
 
-	// TODO @Test
+	@Test
 	public void whenCreateASolrServerThenItCanBeReloaded()
 			throws Exception {
 		//In this test we do a very basic modification, reload the server, and check if the modification has affected on the search.
@@ -54,13 +55,13 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 		givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned();
 	}
 
-	// TODO @Test
+	@Test
 	public void whenChangingSolrConfiguraitonInTestThenOtherTestsAreNotAffectedFirst()
 			throws OptimisticLockingConfiguration {
 		doAModification();
 	}
 
-	// TODO @Test
+	@Test
 	public void whenChangingSolrConfiguraitonInTestThenOtherTestsAreNotAffectedSecond()
 			throws OptimisticLockingConfiguration {
 		doAModification();

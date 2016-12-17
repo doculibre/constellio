@@ -12,11 +12,13 @@ import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.LabelsButton.RecordSelector;
-import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
+import com.constellio.app.ui.framework.components.SearchResultSimpleTable;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
@@ -24,6 +26,7 @@ import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
+import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -62,6 +65,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 	private VerticalLayout resultsArea;
 	private VerticalLayout facetsArea;
 	private SearchResultTable results;
+	private SelectDeselectAllButton selectDeselectAllButton;
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -84,7 +88,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		VerticalLayout layout = new VerticalLayout(buildSearchUI(), buildResultsUI());
 		layout.setSpacing(true);
 		if (presenter.mustDisplayResults()) {
-			refreshSearchResultsAndFacets();
+			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
 	}
@@ -94,14 +98,23 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		ConstellioUI.getCurrent().getHeader().setSearchExpression(expression);
 	}
 
-	@Override
-	public void refreshSearchResultsAndFacets() {
-		refreshSearchResults();
+	public void refreshSearchResultsAndFacets(boolean temporarySave) {
+		refreshSearchResults(temporarySave);
 		refreshFacets();
 	}
 
 	@Override
-	public void refreshSearchResults() {
+	public void refreshSearchResultsAndFacets() {
+		refreshSearchResults(true);
+		refreshFacets();
+	}
+
+	@Override
+	public void refreshSearchResults(boolean temporarySave) {
+		if (temporarySave) {
+			presenter.saveTemporarySearch(false);
+		}
+
 		suggestions.removeAllComponents();
 		buildSuggestions();
 
@@ -110,14 +123,25 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(results));
 
-		resultsArea.removeAllComponents();
-		resultsArea.addComponents(results, results.createControls());
+		if (isDetailedView()) {
+			resultsArea.removeAllComponents();
+			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
+			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
+		} else {
+			resultsArea.removeAllComponents();
+			resultsArea.addComponent(results);
+		}
+	}
+
+	private boolean isDetailedView() {
+		return !SearchResultsViewMode.TABLE.equals(presenter.getResultsViewMode());
 	}
 
 	@Override
 	public void refreshFacets() {
 		facetsArea.removeAllComponents();
 		addFacetComponents(facetsArea);
+		presenter.setPageNumber(1);
 	}
 
 	@Override
@@ -163,14 +187,49 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		return main;
 	}
 
-	private SearchResultTable buildResultTable() {
-		SearchResultTable table = new SearchResultTable(buildResultContainer());
-		table.setWidth("100%");
-		table.setCurrentPage(presenter.getPageNumber());
-		return table;
+	protected SearchResultTable buildResultTable() {
+		return buildDetailedResultsTable();
 	}
 
-	private SearchResultContainer buildResultContainer() {
+	protected SearchResultTable buildDetailedResultsTable() {
+		SearchResultContainer container = buildResultContainer();
+		SearchResultDetailedTable srTable = new SearchResultDetailedTable(container);
+
+		int totalResults = container.size();
+		int totalAmountOfPages =  srTable.getTotalAmountOfPages();
+		int currentPage = presenter.getPageNumber();
+		
+		int selectedPageLength = presenter.getSelectedPageLength();
+		if (selectedPageLength == 0) {
+			selectedPageLength = Math.min(totalResults, SearchResultDetailedTable.DEFAULT_PAGE_LENGTH);
+		}
+		presenter.setSelectedPageLength(selectedPageLength);
+		
+		srTable.setPageLength(selectedPageLength);
+		srTable.setItemsPerPageValue(selectedPageLength);
+		srTable.setCurrentPage(currentPage);
+		
+		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
+			public void pageChanged(PagedTableChangeEvent event) {
+				presenter.setPageNumber(event.getCurrentPage());
+				presenter.saveTemporarySearch(false);
+				if (selectDeselectAllButton != null) {
+					selectDeselectAllButton.setSelectAllMode(true);
+				}
+			}
+		});
+		srTable.getItemsPerPageField().addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				presenter.setSelectedPageLength((int) event.getProperty().getValue());
+			}
+		});
+
+		srTable.setWidth("100%");
+		return srTable;
+	}
+
+	protected SearchResultContainer buildResultContainer() {
 		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(presenter.getSearchResults());
 		return new SearchResultContainer(results, displayFactory);
@@ -218,7 +277,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
 		criterion.setPageLength(criterion.size());
-		criterion.setValue(presenter.getSortCriterion());
+		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();
 		order.addItem(SortOrder.ASCENDING);
@@ -341,18 +400,33 @@ public abstract class SearchViewImpl<T extends SearchPresenter> extends BaseView
 		});
 
 		layout.addComponent(table);
-		layout.setVisible(!facet.getValues().isEmpty());
+		layout.setVisible(!facet.getValues().isEmpty() && isDetailedView());
 		layout.addStyleName(FACET_BOX_STYLE);
 		return layout;
 	}
 
 	protected Button buildSelectAllButton() {
-		return new LinkButton($("SearchView.selectCurrentPage")) {
+		selectDeselectAllButton = new SelectDeselectAllButton() {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				results.selectCurrentPage();
+			protected void onSelectAll(ClickEvent event) {
+				if (isDetailedView()) {
+					((SearchResultDetailedTable) results).selectCurrentPage();
+				} else {
+					((SearchResultSimpleTable) results).selectAll();
+				}
+			}
+
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				if (isDetailedView()) {
+					((SearchResultDetailedTable) results).deselectCurrentPage();
+				} else {
+					((SearchResultSimpleTable) results).deselectAll();
+				}
 			}
 		};
+		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+		return selectDeselectAllButton;
 	}
 
 	protected Button buildSavedSearchButton() {

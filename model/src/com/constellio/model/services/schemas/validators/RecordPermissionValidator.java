@@ -27,7 +27,8 @@ public class RecordPermissionValidator implements Validator<Record> {
 
 	@Override
 	public void validate(Record record, ValidationErrors validationErrors) {
-		if (transaction.getUser() != null && record.isDirty() && !record.isModified(Schemas.LOGICALLY_DELETED_STATUS)) {
+		if (transaction.getUser() != null && record.isDirty()
+				&& !(record.isModified(Schemas.LOGICALLY_DELETED_STATUS) || record.isModified(Schemas.LOGICALLY_DELETED_ON))) {
 			if (!authorizationsServices.canWrite(transaction.getUser(), record)) {
 				addValidationErrors(validationErrors, UNAUTHORIZED, record, transaction.getUser());
 			}
@@ -35,7 +36,7 @@ public class RecordPermissionValidator implements Validator<Record> {
 	}
 
 	private void addValidationErrors(ValidationErrors validationErrors, String errorCode, Record record, User user) {
-		Map<String, String> parameters = new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(RECORD_ID, record.getId());
 		parameters.put(USERNAME, user.getUsername());
 		validationErrors.add(getClass(), errorCode, parameters);

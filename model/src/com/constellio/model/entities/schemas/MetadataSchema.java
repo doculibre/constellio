@@ -2,6 +2,7 @@ package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,7 +10,9 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -24,9 +27,7 @@ public class MetadataSchema {
 
 	private final String collection;
 
-	private final String label;
-
-	private final List<Metadata> automaticMetadatas;
+	private Map<Language, String> labels;
 
 	private final MetadataList metadatas;
 
@@ -36,22 +37,28 @@ public class MetadataSchema {
 
 	private final Set<RecordValidator> schemaValidators;
 
-	private final Map<String, Metadata> indexByAtomicCode;
+	private final Map<String, Metadata> indexByLocalCode;
 
-	public MetadataSchema(String localCode, String code, String collection, String label, List<Metadata> metadatas,
+	private final Map<String, Metadata> indexByCode;
+
+	private MetadataSchemaCalculatedInfos calculatedInfos;
+
+	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
+			List<Metadata> metadatas,
 			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			List<Metadata> automaticMetadatas) {
+			MetadataSchemaCalculatedInfos calculatedInfos) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
 		this.collection = collection;
-		this.label = label;
+		this.labels = new HashMap<>(labels);
 		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
 		this.undeletable = undeletable;
 		this.schemaValidators = schemaValidators;
-		this.automaticMetadatas = automaticMetadatas;
-		this.indexByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
+		this.calculatedInfos = calculatedInfos;
+		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
+		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 	}
 
 	public String getLocalCode() {
@@ -66,8 +73,12 @@ public class MetadataSchema {
 		return collection;
 	}
 
-	public String getLabel() {
-		return label;
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public String getLabel(Language language) {
+		return labels.get(language);
 	}
 
 	public MetadataList getMetadatas() {
@@ -83,9 +94,13 @@ public class MetadataSchema {
 	}
 
 	public boolean hasMetadataWithCode(String metadataCode) {
-		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
+		try {
+			String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
 
-		return indexByAtomicCode.get(localCode) != null;
+			return indexByLocalCode.get(localCode) != null;
+		} catch (MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType e) {
+			return false;
+		}
 	}
 
 	public Metadata get(String metadataCode) {
@@ -94,18 +109,29 @@ public class MetadataSchema {
 
 	public Metadata getMetadata(String metadataCode) {
 
-		String localCode = new SchemaUtils().getLocalCode(metadataCode, code);
+		if (metadataCode.endsWith("PId")) {
+			metadataCode = metadataCode.substring(0, metadataCode.length() - 3);
+		}
 
-		Metadata metadata = indexByAtomicCode.get(localCode);
+		if (metadataCode.endsWith("Id")) {
+			metadataCode = metadataCode.substring(0, metadataCode.length() - 2);
+		}
+
+		Metadata metadata = indexByLocalCode.get(metadataCode);
+
 		if (metadata == null) {
-			throw new MetadataSchemasRuntimeException.NoSuchMetadata(localCode);
+			metadata = indexByCode.get(metadataCode);
+		}
+
+		if (metadata == null) {
+			throw new MetadataSchemasRuntimeException.NoSuchMetadata(metadataCode);
 		} else {
 			return metadata;
 		}
 	}
 
 	public List<Metadata> getAutomaticMetadatas() {
-		return automaticMetadatas;
+		return calculatedInfos.getAutomaticMetadatas();
 	}
 
 	public List<Metadata> getTaxonomyRelationshipReferences(List<Taxonomy> taxonomies) {
@@ -130,12 +156,12 @@ public class MetadataSchema {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators");
+		return HashCodeBuilder.reflectionHashCode(this, "schemaValidators", "calculatedInfos");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators");
+		return EqualsBuilder.reflectionEquals(this, obj, "schemaValidators", "calculatedInfos");
 	}
 
 	@Override
@@ -151,11 +177,19 @@ public class MetadataSchema {
 		return metadatas.onlyNonParentReferences();
 	}
 
-	public Map<String, Metadata> getIndexByAtomicCode() {
-		return indexByAtomicCode;
+	public Map<String, Metadata> getIndexByLocalCode() {
+		return indexByLocalCode;
 	}
 
 	public boolean isInTransactionLog() {
 		return inTransactionLog;
+	}
+
+	public List<RecordPreparationStep> getPreparationSteps() {
+		return calculatedInfos.getRecordPreparationSteps();
+	}
+
+	public List<Metadata> getContentMetadatasForPopulate() {
+		return calculatedInfos.getContentMetadatasForPopulate();
 	}
 }

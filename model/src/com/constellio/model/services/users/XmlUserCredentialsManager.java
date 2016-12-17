@@ -32,7 +32,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class XmlUserCredentialsManager implements UserCredentialsManager, ConfigUpdatedEventListener {
 
-	private static final String USER_CREDENTIALS_CONFIG = "/userCredentialsConfig.xml";
+	public static final String USER_CREDENTIALS_CONFIG = "/userCredentialsConfig.xml";
 
 	private final ConfigManager configManager;
 
@@ -115,6 +115,14 @@ public class XmlUserCredentialsManager implements UserCredentialsManager, Config
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
 			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
 			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+		return new XmlUserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
+				tokens, status, domain, msExchDelegateListBL, dn);
+	}
+
+	@Override
+	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails, String serviceKey,
+								 boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
+								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
 		return new XmlUserCredential(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections,
 				tokens, status, domain, msExchDelegateListBL, dn);
 	}

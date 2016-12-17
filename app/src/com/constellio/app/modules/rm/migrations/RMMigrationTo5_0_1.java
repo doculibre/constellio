@@ -71,6 +71,7 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.model.validators.RetentionRuleValidator;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -125,7 +126,42 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		setupRoles(collection, appLayerFactory.getModelLayerFactory());
 	}
 
-	private void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
+	private static void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+
+		setupClassificationPlanTaxonomies(collection, modelLayerFactory, migrationResourcesProvider);
+		setupStorageSpaceTaxonomy(collection, modelLayerFactory, migrationResourcesProvider);
+		setupAdminUnitTaxonomy(collection, modelLayerFactory, migrationResourcesProvider);
+	}
+
+	public static void setupStorageSpaceTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+
+		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, migrationResourcesProvider.getDefaultLanguageString(
+				"init.rm.containers"), collection,
+				StorageSpace.SCHEMA_TYPE);
+		taxonomiesManager.addTaxonomy(storagesTaxonomy, metadataSchemasManager);
+
+	}
+
+	public static void setupAdminUnitTaxonomy(String collection, ModelLayerFactory modelLayerFactory,
+			MigrationResourcesProvider migrationResourcesProvider) {
+
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+
+		Taxonomy unitTaxonomy = Taxonomy.createPublic(
+				ADMINISTRATIVE_UNITS, migrationResourcesProvider.getDefaultLanguageString("init.rm.admUnits"), collection,
+				AdministrativeUnit.SCHEMA_TYPE);
+		taxonomiesManager.addTaxonomy(unitTaxonomy, metadataSchemasManager);
+
+		taxonomiesManager.setPrincipalTaxonomy(unitTaxonomy, metadataSchemasManager);
+	}
+
+	public static void setupClassificationPlanTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
 			MigrationResourcesProvider migrationResourcesProvider) {
 
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
@@ -136,17 +172,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 						"init.rm.plan"), collection,
 						Category.SCHEMA_TYPE), metadataSchemasManager);
 
-		Taxonomy unitTaxonomy = Taxonomy.createPublic(
-				ADMINISTRATIVE_UNITS, migrationResourcesProvider.getDefaultLanguageString("init.rm.admUnits"), collection,
-				AdministrativeUnit.SCHEMA_TYPE);
-		taxonomiesManager.addTaxonomy(unitTaxonomy, metadataSchemasManager);
-
-		Taxonomy storagesTaxonomy = Taxonomy.createHiddenInHomePage(STORAGES, migrationResourcesProvider.getDefaultLanguageString(
-				"init.rm.containers"), collection,
-				StorageSpace.SCHEMA_TYPE);
-		taxonomiesManager.addTaxonomy(storagesTaxonomy, metadataSchemasManager);
-
-		taxonomiesManager.setPrincipalTaxonomy(unitTaxonomy, metadataSchemasManager);
 	}
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory) {
@@ -635,7 +660,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupMediumTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(MediumType.SCHEMA_TYPE, "Type de support", ValueListItemSchemaTypeCodeMode.DISABLED)
+				.createValueListItemSchema(MediumType.SCHEMA_TYPE, "Type de support", ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(MediumType.ANALOGICAL).setType(BOOLEAN).setDefaultRequirement(true);
@@ -646,7 +671,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	private MetadataSchemaTypeBuilder setupDocumentTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(DocumentType.SCHEMA_TYPE, "Type de document",
-						ValueListItemSchemaTypeCodeMode.DISABLED)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(DocumentType.LINKED_SCHEMA).setType(STRING);
@@ -656,7 +681,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupFolderTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
-				.createValueListItemSchema(FolderType.SCHEMA_TYPE, "Type de dossier", ValueListItemSchemaTypeCodeMode.DISABLED)
+				.createValueListItemSchema(FolderType.SCHEMA_TYPE, "Type de dossier", ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(FolderType.LINKED_SCHEMA).setType(STRING);
@@ -667,7 +692,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	private MetadataSchemaTypeBuilder setupContainerTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(ContainerRecordType.SCHEMA_TYPE, "Type de contenant",
-						ValueListItemSchemaTypeCodeMode.DISABLED)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(ContainerRecordType.LINKED_SCHEMA).setType(STRING);
@@ -678,7 +703,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	private MetadataSchemaTypeBuilder setupStorageSpaceTypeSchema() {
 		MetadataSchemaTypeBuilder schemaType = new ValueListItemSchemaTypeBuilder(types())
 				.createValueListItemSchema(StorageSpaceType.SCHEMA_TYPE, "Type d'emplacement",
-						ValueListItemSchemaTypeCodeMode.DISABLED)
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataDisabled())
 				.setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.create(StorageSpaceType.LINKED_SCHEMA).setType(STRING);

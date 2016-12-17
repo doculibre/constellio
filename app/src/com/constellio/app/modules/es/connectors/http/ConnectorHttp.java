@@ -149,7 +149,7 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public List<String> getReportMetadatas(String reportMode) {
-		if (ConnectorReportView.INDEXATION.equals(reportMode)) {
+		if (ConnectorReportView.INDEXING.equals(reportMode)) {
 			return Arrays.asList(ConnectorHttpDocument.URL, ConnectorHttpDocument.DOWNLOAD_TIME,
 					ConnectorHttpDocument.FETCHED_DATETIME);
 		} else if (ConnectorReportView.ERRORS.equals(reportMode)) {

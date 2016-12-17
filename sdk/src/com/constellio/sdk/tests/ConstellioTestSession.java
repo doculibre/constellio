@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 
 import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.model.conf.FoldersLocator;
@@ -17,6 +18,7 @@ import com.constellio.sdk.tests.selenium.SeleniumTestFeatures;
 
 public class ConstellioTestSession {
 
+	private static ConstellioTestSession session;
 	private Map<String, String> sdkProperties;
 	private FileSystemTestFeatures fileSystemTestFeatures;
 	private SeleniumTestFeatures seleniumTestFeatures;
@@ -34,11 +36,16 @@ public class ConstellioTestSession {
 
 	}
 
+	public static ConstellioTestSession get() {
+		return session;
+	}
+
 	public static ConstellioTestSession build(boolean isUniTest, Map<String, String> sdkProperties,
 			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest, boolean checkRollback) {
-		ConstellioTestSession session = new ConstellioTestSession();
+		session = new ConstellioTestSession();
 		i18n.setLocale(Locale.FRENCH);
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());
+		OpenedResourcesWatcher.logStackTraces = true;
 		session.sdkProperties = sdkProperties;
 		session.skipTestsRule = skipTestsRule;
 		session.toggleTestFeature = new ToggleTestFeature(session.sdkProperties);
@@ -197,6 +204,10 @@ public class ConstellioTestSession {
 
 	public ToggleTestFeature getToggleTestFeature() {
 		return toggleTestFeature;
+	}
+
+	public boolean isDeveloperTest() {
+		return skipTestsRule.isMainTest() || skipTestsRule.isInDevelopmentTest();
 	}
 
 }

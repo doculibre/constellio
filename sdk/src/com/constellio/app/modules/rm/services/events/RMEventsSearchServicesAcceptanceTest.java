@@ -59,7 +59,7 @@ public class RMEventsSearchServicesAcceptanceTest extends ConstellioTest {
 
 		inCollection(zeCollection).giveReadAccessTo(admin);
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		searchServices = getModelLayerFactory().newSearchServices();
 		borrowingServices = new BorrowingServices(zeCollection, getModelLayerFactory());
 		services = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);

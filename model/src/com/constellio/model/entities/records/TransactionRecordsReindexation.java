@@ -50,6 +50,12 @@ public class TransactionRecordsReindexation {
 		return reindexation;
 	}
 
+	public static TransactionRecordsReindexation NOTHING() {
+		TransactionRecordsReindexation reindexation = new TransactionRecordsReindexation();
+		reindexation.reindexAllMetadatas = false;
+		return reindexation;
+	}
+
 	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this);
@@ -58,5 +64,9 @@ public class TransactionRecordsReindexation {
 	@Override
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
+	}
+
+	public boolean isReindexAll() {
+		return reindexAllMetadatas;
 	}
 }

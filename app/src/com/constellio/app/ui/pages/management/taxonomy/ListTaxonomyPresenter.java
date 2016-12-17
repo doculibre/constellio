@@ -40,15 +40,15 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().addTaxonomy();
+		view.navigate().to().addTaxonomy();
 	}
 
 	public void editButtonClicked(String taxonomyCode) {
-		view.navigateTo().editTaxonomy(taxonomyCode);
+		view.navigate().to().editTaxonomy(taxonomyCode);
 	}
 
 	public void displayButtonClicked(TaxonomyVO taxonomy) {
-		view.navigateTo().taxonomyManagement(taxonomy.getCode());
+		view.navigate().to().taxonomyManagement(taxonomy.getCode());
 	}
 
 	@Override

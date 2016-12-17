@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 
 @SuppressWarnings("serial")
@@ -70,13 +71,22 @@ public class RecordServicesException extends Exception {
 	public static class UnresolvableOptimisticLockingConflict extends RecordServicesException {
 
 		public UnresolvableOptimisticLockingConflict(Exception e) {
-			super(e);
+			super("Unresolvable optimistic locking", e);
+		}
+
+		public UnresolvableOptimisticLockingConflict(String id) {
+			super("Unresolvable optimistic locking caused by id " + id);
 		}
 	}
 
 	public static class ValidationException extends RecordServicesException {
 
 		private final ValidationErrors errors;
+
+		public ValidationException(Transaction transaction, ValidationErrors errors) {
+			super(newMessage(transaction, errors));
+			this.errors = errors;
+		}
 
 		public ValidationException(Record record, ValidationErrors errors) {
 			super(newMessage(record, errors));
@@ -90,6 +100,14 @@ public class RecordServicesException extends Exception {
 			sb.append("' of type '");
 			sb.append(record.getSchemaCode());
 			sb.append("' failed. : \n\nValidation errors :\n");
+			sb.append(errors.toMultilineErrorsSummaryString());
+			sb.append("\n\nStack trace :");
+			return sb.toString();
+		}
+
+		private static String newMessage(Transaction transaction, ValidationErrors errors) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("Validation of transaction failed. : \n\nValidation errors :\n");
 			sb.append(errors.toMultilineErrorsSummaryString());
 			sb.append("\n\nStack trace :");
 			return sb.toString();

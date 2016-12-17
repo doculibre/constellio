@@ -1,12 +1,16 @@
 package com.constellio.model.conf;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.joda.time.Duration;
 
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class PropertiesModelLayerConfiguration extends PropertiesConfiguration implements ModelLayerConfiguration {
 
@@ -23,6 +27,63 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public void validate() {
+
+	}
+
+	public static class InMemoryModelLayerConfiguration extends PropertiesModelLayerConfiguration {
+
+		private Factory<EncryptionServices> encryptionServicesFactory;
+
+		public InMemoryModelLayerConfiguration(PropertiesModelLayerConfiguration nested) {
+			super(new HashMap<String, String>(nested.configs), nested.dataLayerConfiguration, nested.foldersLocator,
+					new File(""));
+		}
+
+		@Override
+		public void writeProperty(String key, String value) {
+			configs.put(key, value);
+		}
+
+		public void setConstellioEncryptionFile(File file) {
+			setFile("encryption.file", file);
+		}
+
+		public void setImportationFolder(File importationFolder) {
+			setFile("importationFolder", importationFolder);
+		}
+
+		public void setContentImportThreadFolder(File file) {
+			setFile("content.import.thread.folder", file);
+		}
+
+		public void setDeleteUnusedContentEnabled(boolean value) {
+			setBoolean("content.delete.unused.enabled", value);
+		}
+
+		public void setTokenDuration(Duration duration) {
+			setDuration("token.duration", duration);
+		}
+
+		public void setTokenRemovalThreadDelayBetweenChecks(Duration duration) {
+			setDuration("tokenRemovalThread.delayBetweenChecks", duration);
+		}
+
+		public void setEncryptionServicesFactory(Factory<EncryptionServices> encryptionServicesFactory) {
+			this.encryptionServicesFactory = encryptionServicesFactory;
+		}
+
+		@Override
+		public Factory<EncryptionServices> getEncryptionServicesFactory() {
+			return encryptionServicesFactory == null ? super.getEncryptionServicesFactory() : encryptionServicesFactory;
+		}
+
+		public void setUnreferencedContentsThreadDelayBetweenChecks(Duration duration) {
+			setDuration("unreferencedContentsThread.delayBetweenChecks", duration);
+		}
+
+		public void setDelayBeforeDeletingUnreferencedContents(Duration duration) {
+			setDuration("unreferencedContentsThread.delayBeforeDeleting", duration);
+		}
 
 	}
 
@@ -64,21 +125,21 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public Duration getDelayBeforeDeletingUnreferencedContents() {
-		return Duration.standardMinutes(10);
+		return getDuration("unreferencedContentsThread.delayBeforeDeleting", Duration.standardMinutes(10));
 	}
 
 	@Override
 	public Duration getUnreferencedContentsThreadDelayBetweenChecks() {
-		return Duration.standardSeconds(30);
+		return getDuration("unreferencedContentsThread.delayBetweenChecks", Duration.standardSeconds(30));
 	}
 
 	public Duration getTokenRemovalThreadDelayBetweenChecks() {
-		return Duration.standardHours(1);
+		return getDuration("tokenRemovalThread.delayBetweenChecks", Duration.standardHours(1));
 	}
 
 	@Override
 	public Duration getTokenDuration() {
-		return Duration.standardHours(10);
+		return getDuration("token.duration", Duration.standardHours(10));
 	}
 
 	@Override
@@ -92,6 +153,21 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	}
 
 	@Override
+	public boolean isPreviousPrivateKeyLost() {
+		return getBoolean("previousPrivateKeyLost", false);
+	}
+
+	@Override
+	public boolean isDeleteUnusedContentEnabled() {
+		return getBoolean("content.delete.unused.enabled", true);
+	}
+
+	@Override
+	public File getContentImportThreadFolder() {
+		return getFile("content.import.thread.folder", null);
+	}
+
+	@Override
 	public void setMainDataLanguage(String language) {
 		setString("mainDataLanguage", language);
 
@@ -99,7 +175,12 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 
 	@Override
 	public File getConstellioEncryptionFile() {
-		return foldersLocator.getConstellioEncryptionFile();
+		return getFile("encryption.file", foldersLocator.getConstellioEncryptionFile());
+	}
+
+	@Override
+	public DataLayerConfiguration getDataLayerConfiguration() {
+		return dataLayerConfiguration;
 	}
 
 	@Override
@@ -111,4 +192,15 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 	public boolean isBatchProcessesThreadEnabled() {
 		return batchProcessesEnabled;
 	}
+
+	@Override
+	public Factory<EncryptionServices> getEncryptionServicesFactory() {
+		return new Factory<EncryptionServices>() {
+			@Override
+			public EncryptionServices get() {
+				return new EncryptionServices(isPreviousPrivateKeyLost());
+			}
+		};
+	}
+
 }

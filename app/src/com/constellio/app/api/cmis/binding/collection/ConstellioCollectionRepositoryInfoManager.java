@@ -1,5 +1,10 @@
 package com.constellio.app.api.cmis.binding.collection;
 
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_ALL;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -27,12 +32,11 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryCapabili
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 
+import com.constellio.app.api.cmis.builders.object.AclBuilder;
+
 public class ConstellioCollectionRepositoryInfoManager {
 
 	private static final String ROOT_ID = "@root@";
-	private static final String CMIS_READ = "cmis:read";
-	private static final String CMIS_WRITE = "cmis:write";
-	private static final String CMIS_ALL = "cmis:all";
 
 	private final String collection;
 	private final String constellioVersion;
@@ -68,7 +72,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		repositoryInfo.setChangesIncomplete(true);
 
 		RepositoryCapabilitiesImpl capabilities = new RepositoryCapabilitiesImpl();
-		capabilities.setCapabilityAcl(CapabilityAcl.DISCOVER);
+		capabilities.setCapabilityAcl(CapabilityAcl.MANAGE);
 		capabilities.setAllVersionsSearchable(false);
 		capabilities.setCapabilityJoin(CapabilityJoin.NONE);
 		capabilities.setSupportsMultifiling(false);
@@ -88,7 +92,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 			//capabilities.setOrderByCapability(CapabilityOrderBy.NONE);
 
 			NewTypeSettableAttributesImpl typeSetAttributes = new NewTypeSettableAttributesImpl();
-			typeSetAttributes.setCanSetControllableAcl(false);
+			typeSetAttributes.setCanSetControllableAcl(true);
 			typeSetAttributes.setCanSetControllablePolicy(false);
 			typeSetAttributes.setCanSetCreatable(false);
 			typeSetAttributes.setCanSetDescription(false);
@@ -112,12 +116,13 @@ public class ConstellioCollectionRepositoryInfoManager {
 
 		AclCapabilitiesDataImpl aclCapability = new AclCapabilitiesDataImpl();
 		aclCapability.setSupportedPermissions(SupportedPermissions.BASIC);
-		aclCapability.setAclPropagation(AclPropagation.OBJECTONLY);
+		aclCapability.setAclPropagation(AclPropagation.REPOSITORYDETERMINED);
 
 		// permissions
 		List<PermissionDefinition> permissions = new ArrayList<PermissionDefinition>();
 		permissions.add(createPermission(CMIS_READ, "Read"));
 		permissions.add(createPermission(CMIS_WRITE, "Write"));
+		permissions.add(createPermission(CMIS_DELETE, "Delete"));
 		permissions.add(createPermission(CMIS_ALL, "All"));
 		aclCapability.setPermissionDefinitionData(permissions);
 
@@ -129,6 +134,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		list.add(createMapping(PermissionMapping.CAN_DELETE_OBJECT, CMIS_ALL));
 		list.add(createMapping(PermissionMapping.CAN_DELETE_TREE_FOLDER, CMIS_ALL));
 		list.add(createMapping(PermissionMapping.CAN_GET_ACL_OBJECT, CMIS_READ));
+		list.add(createMapping(PermissionMapping.CAN_APPLY_ACL_OBJECT, CMIS_READ));
 		list.add(createMapping(PermissionMapping.CAN_GET_ALL_VERSIONS_VERSION_SERIES, CMIS_READ));
 		list.add(createMapping(PermissionMapping.CAN_GET_CHILDREN_FOLDER, CMIS_READ));
 		list.add(createMapping(PermissionMapping.CAN_GET_DESCENDENTS_FOLDER, CMIS_READ));

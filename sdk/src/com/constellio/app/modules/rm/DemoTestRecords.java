@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
@@ -30,6 +29,7 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -288,6 +288,8 @@ public class DemoTestRecords {
 
 	private ModelLayerFactory modelLayerFactory;
 
+	private AppLayerFactory appLayerFactory;
+
 	private RecordServices recordServices;
 
 	private LoggingServices loggingServices;
@@ -302,8 +304,10 @@ public class DemoTestRecords {
 		this.collection = collection;
 	}
 
-	public DemoTestRecords setup(ModelLayerFactory modelLayerFactory)
+	public DemoTestRecords setup(AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
+		this.appLayerFactory = appLayerFactory;
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		users.setUp(userServices).withPasswords(modelLayerFactory.newAuthenticationService());
@@ -326,6 +330,9 @@ public class DemoTestRecords {
 		MV = schemas.FI();
 		PA_MD = asList(PA, MD);
 
+		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		systemConfigurationsManager.setValue(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
+
 		Transaction transaction = new Transaction();
 		setupUsers(transaction, userServices);
 		setupCategories(transaction);
@@ -337,7 +344,6 @@ public class DemoTestRecords {
 		setupAdministrativeUnitsAuthorizations();
 		//setupAuthorizations(modelLayerFactory.newAuthorizationsServices(), modelLayerFactory.getRolesManager());
 		waitForBatchProcesses(modelLayerFactory.getBatchProcessesManager());
-		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
 		return this;
 	}
@@ -353,7 +359,7 @@ public class DemoTestRecords {
 		edouard_managerInB_userInC = users.edouardIn(collection).getId();
 		gandalf_managerInABC = users.gandalfIn(collection).getId();
 		chuckNorris = users.chuckNorrisIn(collection).getId();
-		schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = modelLayerFactory.newRecordServices();
 		loggingServices = modelLayerFactory.newLoggingServices();
 		decommissioningLoggingService = new DecommissioningLoggingService(modelLayerFactory);
@@ -662,7 +668,6 @@ public class DemoTestRecords {
 	public DemoTestRecords withFoldersAndContainersOfEveryStatus() {
 		//Calculation of closing date is disabled because we want some folders without close date
 		systemConfigurationsManager.setValue(RMConfigs.CALCULATED_CLOSING_DATE, false);
-
 		systemConfigurationsManager.setValue(RMConfigs.YEAR_END_DATE, "10/31");
 
 		Transaction transaction = new Transaction();

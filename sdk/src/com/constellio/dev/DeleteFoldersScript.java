@@ -35,7 +35,7 @@ public class DeleteFoldersScript {
         for(String objectId : Arrays.asList(new String[]{"00000003606","00000007027"})){
         //for (String collection : collectionsListManager.getCollections()) {
             currentCollection = collection;
-            rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+            rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
             User adminUser = modelLayerFactory.newUserServices().getUserInCollection("admin", collection);
             Record folderRecord = recordServices.getDocumentById(objectId);

@@ -43,19 +43,19 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void addButtonClicked() {
-		view.navigateTo().addRetentionRule();
+		view.navigate().to(RMViews.class).addRetentionRule();
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displayRetentionRule(recordVO.getId());
+		view.navigate().to(RMViews.class).displayRetentionRule(recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editRetentionRule(recordVO.getId());
+		view.navigate().to(RMViews.class).editRetentionRule(recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {

@@ -215,14 +215,14 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 			throws Exception {
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		User user = modelLayerFactory.newUserServices().getUserInCollection("admin", collection);
 		modelLayerFactory.newRecordServices().update(user.setUserRoles(asList(RMRoles.RGD)).setCollectionAllAccess(true));
 
 		LogicalSearchQuery allUsersQuery = new LogicalSearchQuery(from(rm.userSchemaType()).returnAll());
 		LogicalSearchQuery allGroupsQuery = new LogicalSearchQuery(from(rm.groupSchemaType()).returnAll());
-		LogicalSearchQuery allRulesQuery = new LogicalSearchQuery(from(rm.retentionRuleSchemaType()).returnAll());
+		LogicalSearchQuery allRulesQuery = new LogicalSearchQuery(from(rm.retentionRule.schemaType()).returnAll());
 
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		LinkableRecordsList<User> users = new LinkableRecordsList<>(rm.wrapUsers(searchServices.search(allUsersQuery)));

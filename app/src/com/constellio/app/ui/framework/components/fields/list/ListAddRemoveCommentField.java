@@ -15,6 +15,7 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, CommentField> {
@@ -86,6 +87,11 @@ public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, Comme
 			throw new IllegalArgumentException("Unrecognized propertyId : " + propertyId);
 		}
 		return type;
+	}
+
+	@Override
+	protected void setMainLayoutWidth(VerticalLayout mainLayout) {
+		mainLayout.setWidth("100%");
 	}
 
 }

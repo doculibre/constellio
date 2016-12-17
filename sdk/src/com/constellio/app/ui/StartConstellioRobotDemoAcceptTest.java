@@ -27,7 +27,7 @@ public class StartConstellioRobotDemoAcceptTest extends ConstellioTest {
 			throws Exception {
 		givenCollection(zeCollection).withMockedAvailableModules(false).withConstellioRMModule().withConstellioESModule()
 				.withRobotsModule().withAllTestUsers();
-		records = new RMTestRecords(zeCollection).setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		records = new RMTestRecords(zeCollection).setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 	}
 
 	@Test

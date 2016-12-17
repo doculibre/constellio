@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.data;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatchingInMetadatas;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,10 +16,13 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupField.Text
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -34,23 +38,47 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 	private transient ModelLayerFactory modelLayerFactory;
 	protected SessionContext sessionContext;
 	protected String schemaTypeCode;
+	protected String schemaCode;
 	protected boolean security;
 	protected boolean onlyLinkables = false;
 	protected boolean writeAccess;
 
 	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
 			String schemaTypeCode, boolean writeAccess) {
+		this(constellioFactories, sessionContext, schemaTypeCode, null, writeAccess);
+	}
+
+	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
+			String schemaTypeCode, String schemaCode, boolean writeAccess) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
+		this.schemaCode = schemaCode;
 		this.modelLayerFactory = constellioFactories.getModelLayerFactory();
 		this.security = determineIfSecurity();
 	}
 
 	private boolean determineIfSecurity() {
+		boolean security = false;
+
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(getCurrentCollection());
-		MetadataSchemaType type = types.getSchemaType(schemaTypeCode);
-		return type.hasSecurity() || modelLayerFactory.getTaxonomiesManager().isTypeInPrincipalTaxonomy(type);
+		List<MetadataSchemaType> typesByCode = new ArrayList<MetadataSchemaType>();
+		if (schemaTypeCode != null) {
+			MetadataSchemaType type = types.getSchemaType(schemaTypeCode);
+			typesByCode.add(type);
+		} else {
+			SchemaUtils schemaUtils = new SchemaUtils();
+			String schemaTypeCodeFromSchema = schemaUtils.getSchemaTypeCode(schemaCode);
+			MetadataSchemaType type = types.getSchemaType(schemaTypeCodeFromSchema);
+			typesByCode.add(type);
+		}
+		for (MetadataSchemaType type : typesByCode) {
+			if (type.hasSecurity() || modelLayerFactory.getTaxonomiesManager().isTypeInPrincipalTaxonomy(type)) {
+				security = true;
+				break;
+			}
+		}
+		return security;
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -95,20 +123,36 @@ public class RecordTextInputDataProvider implements TextInputDataProvider<String
 	}
 
 	public SPEQueryResponse searchAutocompleteField(User user, String text, int startIndex, int count) {
-		MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
-				.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
-
 		LogicalSearchCondition condition;
-		if (StringUtils.isNotBlank(text)) {
-			condition = from(type).where(autocompleteFieldMatching(text));
+
+		if (schemaTypeCode != null) {
+
+			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
+			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
+			if (StringUtils.isNotBlank(text)) {
+				condition = from(type).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
+			} else {
+				condition = from(type).returnAll();
+			}
 		} else {
-			condition = from(type).returnAll();
+
+			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
+			List<Metadata> extraMetadatas = schema.getMetadatas().onlySearchable().onlySchemaAutocomplete();
+			if (StringUtils.isNotBlank(text)) {
+				condition = from(schema).where(autocompleteFieldMatchingInMetadatas(text, extraMetadatas));
+
+			} else {
+				condition = from(schema).returnAll();
+			}
 		}
 		if (onlyLinkables) {
 			condition = condition.andWhere(Schemas.LINKABLE).isTrueOrNull();
 		}
 
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
+				.setPreferAnalyzedFields(true)
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);

@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -33,11 +35,19 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.logging.EventFactory;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
@@ -50,6 +60,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	protected transient DocumentToVOBuilder voBuilder;
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient DecommissioningLoggingService decommissioningLoggingService;
+	private transient ModelLayerCollectionExtensions extensions;
 
 	public DocumentActionsPresenterUtils(T actionsComponent) {
 		this.actionsComponent = actionsComponent;
@@ -62,17 +73,18 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		initTransientObjects();
 	}
 
-	protected void readObject(java.io.ObjectInputStream stream)
+	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		initTransientObjects();
 	}
 
-	protected void initTransientObjects() {
+	private void initTransientObjects() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(presenterUtils.getCollection(),
-				presenterUtils.modelLayerFactory());
+				presenterUtils.appLayerFactory());
 		voBuilder = new DocumentToVOBuilder(presenterUtils.modelLayerFactory());
 		decommissioningLoggingService = new DecommissioningLoggingService(presenterUtils.modelLayerFactory());
+		extensions = presenterUtils.modelLayerFactory().getExtensions().forCollection(presenterUtils.getCollection());
 	}
 
 	public DocumentVO getDocumentVO() {
@@ -93,30 +105,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	ComponentState getEditButtonState() {
-		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
-
-		if (isEditDocumentPossible()) {
-			if (parentFolder.getArchivisticStatus().isInactive()) {
-				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
-					return ComponentState
-							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT).on(currentDocument()));
-				}
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_INACTIVE_DOCUMENT).on(currentDocument()));
-			}
-			if (parentFolder.getArchivisticStatus().isSemiActive()) {
-				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
-					return ComponentState
-							.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(parentFolder)
-									&& getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT).on(currentDocument()));
-				}
-				return ComponentState
-						.visibleIf(getCurrentUser().has(RMPermissionsTo.MODIFY_SEMIACTIVE_DOCUMENT).on(currentDocument()));
-			}
-			return ComponentState.ENABLED;
+		Record record = currentDocument();
+		User user = getCurrentUser();
+		if (isNotBlank(record.<String>get(LEGACY_ID)) && !user.has(RMPermissionsTo.MODIFY_IMPORTED_DOCUMENTS).on(record)) {
+			return ComponentState.INVISIBLE;
 		}
-		return ComponentState.INVISIBLE;
+		return ComponentState.visibleIf(user.hasWriteAccess().on(record)
+				&& extensions.isRecordModifiableBy(record, user));
 	}
 
 	public void editDocumentButtonClicked() {
@@ -148,6 +143,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	private ComponentState getDeleteButtonState() {
 		Folder parentFolder = rmSchemasRecordsServices.getFolder(currentDocument().getParentId());
 		if (isDeleteDocumentPossible()) {
+			if(documentVO != null) {
+				Document document = new Document(currentDocument(), presenterUtils.types());
+				if(document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT).on(currentDocument())) {
+					return ComponentState.INVISIBLE;
+				}
+
+				if(getCurrentBorrowerOf(document) != null && !getCurrentUser().has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(currentDocument())) {
+					return ComponentState.INVISIBLE;
+				}
+			}
 			if (parentFolder.getArchivisticStatus().isInactive()) {
 				if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
 					return ComponentState
@@ -229,6 +234,10 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return ComponentState
 						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_SEMIACTIVE_DOCUMENT).on(currentDocument()));
 			}
+			if (isNotBlank((String) currentDocument().get(LEGACY_ID))) {
+				return ComponentState
+						.visibleIf(getCurrentUser().has(RMPermissionsTo.SHARE_A_IMPORTED_DOCUMENT).on(currentDocument()));
+			}
 			return ComponentState.ENABLED;
 		}
 		return ComponentState.INVISIBLE;
@@ -272,14 +281,40 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			try {
 				presenterUtils.recordServices().update(record);
 
-				ContentVersionVO currentVersionVO = contentVersionVOBuilder.build(content);
+				ContentVersionVO currentVersionVO = buildContentVersionVO(content);
 				documentVO.setContent(currentVersionVO);
 
 				updateActionsComponent();
 				actionsComponent.showMessage($("DocumentActionsComponent.contentVersionDeleted", version));
+
+				createVersionDeletionEvent(record, version);
+
 			} catch (RecordServicesException e) {
 				actionsComponent.showErrorMessage(MessageUtils.toMessage(e));
 			}
+		}
+	}
+
+	public ContentVersionVO buildContentVersionVO(Content content) {
+		return contentVersionVOBuilder.build(content);
+	}
+
+	private void createVersionDeletionEvent(Record record, String version) {
+		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(getCurrentUser().getCollection(), getModelLayerFactory());
+		Event event = schemasRecords.newEvent();
+		event.setType(EventType.DELETE_DOCUMENT);
+		event.setUsername(getCurrentUser().getUsername());
+		if(documentVO != null) {
+			event.setUserRoles(StringUtils.join(getCurrentUser().getUserRoles().toArray(), "; "));
+			event.setTitle(record.getTitle());
+			event.setRecordId(documentVO.getId());
+			event.setEventPrincipalPath((String) record.get(Schemas.PRINCIPAL_PATH));
+		}
+		event.setRecordVersion(version);
+		try {
+			getModelLayerFactory().newRecordServices().add(event);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -350,7 +385,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	public void checkOutButtonClicked() {
+	public void checkOutButtonClicked(SessionContext sessionContext) {
 		if (isCheckOutPossible()) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
 			Document document = new Document(record, presenterUtils.types());
@@ -362,7 +397,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				updateActionsComponent();
 				String checkedOutVersion = content.getCurrentVersion().getVersion();
 				actionsComponent.showMessage($("DocumentActionsComponent.checkedOut", checkedOutVersion));
-				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
+				String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent(), sessionContext);
 				if (agentURL != null) {
 					actionsComponent.openAgentURL(agentURL);
 				}
@@ -546,7 +581,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void alertWhenAvailable() {
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(presenterUtils.getCollection(),
-				presenterUtils.modelLayerFactory());
+				presenterUtils.appLayerFactory());
 		Document document = schemas.getDocument(documentVO.getId());
 		List<String> usersToAlert = document.getAlertUsersWhenAvailable();
 		String currentUserId = getCurrentUser().getId();
@@ -558,7 +593,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (!newUsersToAlert.contains(currentUserId) && currentBorrower != null && !currentUserId.equals(currentBorrower)) {
 			newUsersToAlert.add(currentUserId);
 			document.setAlertUsersWhenAvailable(newUsersToAlert);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			presenterUtils.addOrUpdate(document.getWrappedRecord(), User.GOD);
 		}
 		actionsComponent.showMessage($("RMObject.createAlert"));
 	}
@@ -567,9 +602,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
-	public void addToCartRequested() {
-		Cart cart = rmSchemasRecordsServices.getOrCreateUserCart(getCurrentUser())
-				.addDocuments(Arrays.asList(documentVO.getId()));
+	public void addToCartRequested(RecordVO cartVO) {
+		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId()).addDocuments(Arrays.asList(documentVO.getId()));
 		presenterUtils.addOrUpdate(cart.getWrappedRecord());
 		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
 	}

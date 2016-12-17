@@ -1,8 +1,7 @@
 package com.constellio.model.services.security.authentification;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Hashtable;
-import java.util.Map;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
@@ -21,7 +20,15 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.services.LDAPServices;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
+import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
+import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
 public class LDAPAuthenticationService implements AuthenticationService, StatefulService {
 
@@ -32,14 +39,16 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	private LDAPConfigurationManager ldapConfigurationManager;
 	private ConfigManager configManager;
 	private HashingService hashingService;
+	private final UserServices userServices;
 
 	public Control[] connCtls = null;
 
 	public LDAPAuthenticationService(LDAPConfigurationManager ldapConfigurationManager, ConfigManager configManager,
-			HashingService hashingService) {
+			HashingService hashingService, UserServices userServices) {
 		this.ldapConfigurationManager = ldapConfigurationManager;
 		this.configManager = configManager;
 		this.hashingService = hashingService;
+		this.userServices = userServices;
 	}
 
 	@Override
@@ -57,17 +66,48 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		if (username.equals(ADMIN_USERNAME)) {
 			return adminAuthenticationService.authenticate(username, password);
 		}
-		if(StringUtils.isBlank(password)){
-			return false;
-		}
-		boolean authenticated = false;
 		if (StringUtils.isBlank(password)) {
+			LOGGER.info("invalid blank password");
 			return false;
 		}
+		return authenticateLDAPUser(username, password);
+	}
+
+	private boolean authenticateLDAPUser(String username, String password) {
+		LDAPDirectoryType directoryType = ldapServerConfiguration.getDirectoryType();
+		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.AZURE_AD) {
+			LDAPServices ldapServices = LDAPServicesFactory.newLDAPServices(directoryType);
+			String userEmail = userServices.getUser(username).getEmail();
+			try {
+				ldapServices.authenticateUser(ldapServerConfiguration, userEmail, password);
+				return true;
+			} catch (Throwable e) {
+				LOGGER.info("Error when trying to authenticate user " + username + " with email " + userEmail, e);
+				return false;
+			}
+		} else {
+			return authenticateDefaultLDAPUser(username, password);
+		}
+	}
+
+	//TODO : refactoring move to LDAPServicesImpl
+	private boolean authenticateDefaultLDAPUser(String username, String password) {
+		boolean authenticated = false;
 		for (String url : ldapServerConfiguration.getUrls()) {
 			authenticated = authenticate(username, password, url);
 
 			if (!authenticated) {
+				/*if(ldapServerConfiguration.getDomains().size() != 1) {
+					String searchedDomain = getUserDomain(username, url);
+					if(StringUtils.isNotBlank(searchedDomain)){
+						authenticated = authenticate(
+								username + "@" + searchedDomain, password, url);
+						if (authenticated) {
+							break;
+						}
+					}
+				//}*/
+
 				for (String domain : ldapServerConfiguration.getDomains()) {
 					String userAtDomain = username + "@" + domain;
 					authenticated = authenticate(
@@ -84,30 +124,30 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		return authenticated;
 	}
 
-	private boolean authenticate(String username, String password, String url) {
-		String domain = StringUtils.substringAfter(username, "@");
-
-		String[] securityPrincipals;
-		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY) {
-			securityPrincipals = new String[] { username };
-
-		} else {
-			String[] prefixes = new String[] { "uid=", "cn=" };
-			securityPrincipals = new String[prefixes.length];
-			for (int i = 0; i < prefixes.length; i++) {
-				String prefix = prefixes[i];
-				String usernameBeforeDomain = StringUtils.substringBefore(username, "@");
-				StringBuffer securityPrincipalSB = new StringBuffer();
-				securityPrincipalSB.append(prefix);
-				securityPrincipalSB.append(usernameBeforeDomain);
-				securityPrincipalSB.append(",");
-				securityPrincipalSB.append(domain);
-
-				securityPrincipals[i] = securityPrincipalSB.toString();
-			}
-		}
-
+	private String getUserDomain(String username, String url) {
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = ldapConfigurationManager.getLDAPUserSyncConfiguration();
+		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
+		boolean isAD = (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY);
+		LdapContext ctx = ldapServices.connectToLDAP(ldapServerConfiguration.getDomains(), url,
+				ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
+				ldapServerConfiguration.getFollowReferences(), isAD);
+		String dnForUser = ldapServices
+				.dnForUser(ctx, username, ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList());
 		try {
+			ctx.close();
+		} catch (NamingException e) {
+			//OK
+			LOGGER.warn("Error when trying to extract user dn", e);
+		}
+		return dnForUser;
+	}
+
+	private boolean authenticate(String username, String password, String url) {
+		try {
+			String domain = StringUtils.substringAfter(username, "@");
+
+			String[] securityPrincipals = getSecurityPrincipals(username, domain, url);
+
 			Hashtable env = new Hashtable();
 			env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 			env.put(Context.SECURITY_AUTHENTICATION, "simple");
@@ -115,6 +155,10 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			env.put("java.naming.ldap.attributes.binary", "tokenGroups objectSid");
 			if (this.ldapServerConfiguration.getFollowReferences()) {
 				env.put(Context.REFERRAL, "follow");
+			}
+			if (StringUtils.startsWith(url, "ldaps")) {
+				//env.put(Context.SECURITY_PROTOCOL, "ssl");
+				env.put("java.naming.ldap.factory.socket", "com.constellio.model.services.users.sync.ldaps.DummySSLSocketFactory");
 			}
 			InitialLdapContext context = new InitialLdapContext(env, connCtls);
 			for (String securityPrincipal : securityPrincipals) {
@@ -138,6 +182,61 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		} catch (NamingException e) {
 			LOGGER.warn("Naming exception", e);
 			return false;
+		}
+	}
+
+	private String[] getSecurityPrincipals(String username, String domain, String url)
+			throws NamingException {
+		String[] securityPrincipals;
+		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY) {
+			return new String[] { username };
+		} else if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.E_DIRECTORY) {
+			String userDn = getUserDn(username, domain, url);
+			return new String[] { userDn };
+		} else {
+			String[] prefixes = new String[] { "uid=", "cn=" };
+			securityPrincipals = new String[prefixes.length];
+			for (int i = 0; i < prefixes.length; i++) {
+				String prefix = prefixes[i];
+				String usernameBeforeDomain = StringUtils.substringBefore(username, "@");
+				StringBuffer securityPrincipalSB = new StringBuffer();
+				securityPrincipalSB.append(prefix);
+				securityPrincipalSB.append(usernameBeforeDomain);
+				securityPrincipalSB.append(",");
+				securityPrincipalSB.append(domain);
+
+				securityPrincipals[i] = securityPrincipalSB.toString();
+			}
+		}
+		return securityPrincipals;
+	}
+
+	private String getUserDn(String username, String domain, String url)
+			throws NamingException {
+		try {
+			UserCredential user = userServices.getUser(username);
+			if (StringUtils.isNotBlank(user.getDn())) {
+				return user.getDn();
+			}
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			LOGGER.warn("Trying to authenticate non constellio user " + username, e);
+		}
+
+		String ldapUser = this.ldapConfigurationManager.getLDAPUserSyncConfiguration().getUser();
+		String ldapPassword = this.ldapConfigurationManager.getLDAPUserSyncConfiguration().getPassword();
+
+		LdapContext ldapContext = null;
+		try {
+			ldapContext = new LDAPServicesImpl()
+					.connectToLDAP(Collections.EMPTY_LIST, url, ldapUser,
+							ldapPassword, ldapServerConfiguration.getFollowReferences(), false);
+
+			String usernameBeforeDomain = StringUtils.substringBefore(username, "@");
+			return new LDAPServicesImpl().dnForEdirectoryUser(ldapContext, domain, usernameBeforeDomain);
+		} finally {
+			if (ldapContext != null) {
+				ldapContext.close();
+			}
 		}
 	}
 

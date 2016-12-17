@@ -7,6 +7,10 @@ import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 
+@Deprecated
+/**
+ * Use LogicalSearchConditionBuilder instead
+ */
 public class ConditionTemplate {
 
 	LogicalOperator operator;

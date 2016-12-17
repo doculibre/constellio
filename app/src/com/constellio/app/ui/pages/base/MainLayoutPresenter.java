@@ -30,7 +30,7 @@ public class MainLayoutPresenter implements Serializable {
 	}
 
 	public ComponentState getStateFor(NavigationItem item) {
-		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getModelLayerFactory());
+		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getAppLayerFactory());
 	}
 
 	public List<NavigationItem> getNavigationItems() {
@@ -45,11 +45,12 @@ public class MainLayoutPresenter implements Serializable {
 		return items;
 	}
 
-	private User getUser() {
+	public User getUser() {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		UserVO userVO = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		return schemas.getUser(userVO.getId());
 
 	}

@@ -24,9 +24,9 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 	@Override
 	public void backButtonClicked(String schemaCode) {
 		if (schemaCode.equals(Group.DEFAULT_SCHEMA)) {
-			view.navigateTo().displayCollectionGroup(recordId);
+			view.navigate().to().displayCollectionGroup(recordId);
 		} else {
-			view.navigateTo().displayCollectionUser(recordId);
+			view.navigate().to().displayCollectionUser(recordId);
 		}
 	}
 

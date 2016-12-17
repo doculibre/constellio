@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -31,7 +32,7 @@ import org.mockito.stubbing.Answer;
 
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
@@ -46,7 +47,9 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
+import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.records.RecordServices;
@@ -91,8 +94,8 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	private long docx1Length = 27055L;
 	private long docx2Length = 27325L;
 
-	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
-	private String pdf2Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
+	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
+	private String pdf2Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 	private String pdf3Hash = "2O9RyZlxNUL3asxk2yGDT6VIlbs=";
 	private String docx1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 	private String docx2Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
@@ -103,16 +106,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		withSpiedServices(ContentManager.class);
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				Mockito.when(configuration.getDelayBeforeDeletingUnreferencedContents()).thenReturn(
-						org.joda.time.Duration.standardMinutes(42));
-
-				Mockito.when(configuration.getUnreferencedContentsThreadDelayBetweenChecks()).thenReturn(
-						org.joda.time.Duration.standardHours(10));
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setDelayBeforeDeletingUnreferencedContents(org.joda.time.Duration.standardMinutes(42));
+				configuration.setUnreferencedContentsThreadDelayBetweenChecks(org.joda.time.Duration.standardHours(10));
 			}
 		});
 		customSystemPreparation(new CustomSystemPreparation() {
@@ -1202,6 +1203,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		givenTimeIs(shishOClock);
 
+		assertThat(getModelLayerFactory().getConfiguration().getDelayBeforeDeletingUnreferencedContents()).isEqualTo(
+				org.joda.time.Duration.standardMinutes(42)
+		);
+
+		assertThat(getModelLayerFactory().getConfiguration().getUnreferencedContentsThreadDelayBetweenChecks()).isEqualTo(
+				org.joda.time.Duration.standardHours(10)
+		);
+
 		uploadPdf1InputStream();
 		uploadPdf2InputStream();
 		uploadDocx1InputStream();
@@ -1456,6 +1465,72 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenCreateAndUpdateContentWithCustomVersionLabelThenUsed()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5"))
+				.isSaved();
+
+		assertThat(theRecordContent()).isNot(emptyVersion);
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
+				.is(version("3.5")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+
+		when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "42", "ZeNewPdf.pdf")
+				.isSaved();
+
+		when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "66.6", "ZeNewPdf.pdf")
+				.isSaved();
+
+		assertThat(theRecordContent().getCurrentVersion().getVersion()).isEqualTo("66.6");
+		assertThat(theRecordContent().getHistoryVersions().get(1).getVersion()).isEqualTo("42.0");
+		assertThat(theRecordContent().getHistoryVersions().get(0).getVersion()).isEqualTo("3.5");
+	}
+
+	@Test
+	public void whenCreateAndUpdateContentWithBadCustomVersionThenException()
+			throws Exception {
+
+		try {
+			givenRecord()
+					.withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5a"));
+
+			fail("Invalid argument exception expected");
+		} catch (ContentImplRuntimeException_InvalidArgument e) {
+			//oK
+		}
+
+		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3.5"))
+				.isSaved();
+
+		try {
+			when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "42b", "ZeNewPdf.pdf");
+			fail("Invalid argument exception expected");
+		} catch (ContentImplRuntimeException_InvalidArgument e) {
+			//oK
+		}
+
+	}
+
+	@Test
+	public void whenCreateAndUpdateContentWithInferiorCustomVersionThenException()
+			throws Exception {
+
+		givenRecord().withSingleValueContent(contentManager.createWithVersion(bob, "ZePdf.pdf", uploadPdf1InputStream(), "3"))
+				.isSaved();
+
+		assertThat(theRecordContent().getCurrentVersion()).has(pdfMimetype()).has(filename("ZePdf.pdf")).has(pdf1HashAndLength())
+				.is(version("3.0")).is(modifiedBy(bob)).has(modificationDatetime(smashOClock));
+
+		try {
+			when(theRecord()).hasItsContentUpdatedWithVersionAndName(alice, uploadPdf2InputStream(), "2.4", "ZeNewPdf.pdf");
+			fail("Invalid argument exception expected");
+		} catch (ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion e) {
+			//oK
+		}
+
+	}
+
 	//------------------------------------------------------------------
 
 	private void assertThatRecordCanBeObtainedWithKeywords(String... keywords) {
@@ -1665,24 +1740,24 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	private ContentVersionDataSummary getPdf1InputStream() {
-		return new ContentVersionDataSummary("KN8RjbrnBgq1EDDV2U71a6/6gd4=", "application/pdf", 170039);
+		return new ContentVersionDataSummary(pdf1Hash, "application/pdf", 170039);
 	}
 
 	private ContentVersionDataSummary getPdf2InputStream() {
-		return new ContentVersionDataSummary("T+4zq4cGP/tXkdJp/qz1WVWYhoQ=", "application/pdf", 167347);
+		return new ContentVersionDataSummary(pdf2Hash, "application/pdf", 167347);
 	}
 
 	private ContentVersionDataSummary getPdf3InputStream() {
-		return new ContentVersionDataSummary("2O9RyZlxNUL3asxk2yGDT6VIlbs=", "application/pdf", 141667);
+		return new ContentVersionDataSummary(pdf3Hash, "application/pdf", 141667);
 	}
 
 	private ContentVersionDataSummary getDocx1InputStream() {
-		return new ContentVersionDataSummary("Fss7pKBafi8ok5KaOwEpmNdeGCE=",
+		return new ContentVersionDataSummary(docx1Hash,
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document", 27055);
 	}
 
 	private ContentVersionDataSummary getDocx2InputStream() {
-		return new ContentVersionDataSummary("TIKwSvHOXHOOtRd1K9t2fm4TQ4I=",
+		return new ContentVersionDataSummary(docx2Hash,
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document", 27325);
 	}
 
@@ -1882,6 +1957,13 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 				String name) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.updateContentWithName(alice, contentVersionDataSummary, false, name);
+			return this;
+		}
+
+		public RecordPreparation hasItsContentUpdatedWithVersionAndName(User alice,
+				ContentVersionDataSummary contentVersionDataSummary, String version, String name) {
+			Content content = record.get(zeSchema.contentMetadata());
+			content.updateContentWithVersionAndName(alice, contentVersionDataSummary, version, name);
 			return this;
 		}
 

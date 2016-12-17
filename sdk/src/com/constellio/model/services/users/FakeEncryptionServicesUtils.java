@@ -4,7 +4,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -15,9 +14,9 @@ import org.mockito.stubbing.Answer;
 import com.constellio.model.services.encrypt.EncryptionServices;
 
 public class FakeEncryptionServicesUtils extends EncryptionServices {
-	public FakeEncryptionServicesUtils(Key key)
+	public FakeEncryptionServicesUtils()
 			throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		super(key);
+		super(true);
 	}
 
 	@Override

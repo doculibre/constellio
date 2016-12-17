@@ -4,9 +4,9 @@ import static com.constellio.app.ui.application.NavigatorConfigurationService.AD
 import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_SCHEMA;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_EDIT_SCHEMA_RECORD;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ADD_RETENTION_RULE;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.ADD_RETENTION_RULE;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.ADMIN_MODULE;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.ARCHIVES_MANAGEMENT;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.ARCHIVES_MANAGEMENT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_ADD_EDIT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_GROUP;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_GROUP_ROLES;
@@ -15,23 +15,23 @@ import static com.constellio.app.ui.application.NavigatorConfigurationService.CO
 import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_USER_LIST;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.COLLECTION_USER_ROLES;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.CONFIG_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DECOMMISSIONING;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DECOMMISSIONING_LIST_BUILDER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DECOMMISSIONING_LIST_EDIT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_CONTAINER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_DOCUMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_FILING_SPACE_WITH_CONTAINERS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_FOLDER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_RETENTION_RULE;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DECOMMISSIONING_LIST_EDIT;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_CONTAINER;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_DOCUMENT;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_FOLDER;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.DISPLAY_RETENTION_RULE;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_SCHEMA_RECORD;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.DISPLAY_SCHEMA_TYPE;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EDIT_DISPLAY_FORM;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EDIT_DOCUMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EDIT_FOLDER;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.EDIT_RETENTION_RULE;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.EDIT_DOCUMENT;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.EDIT_FOLDER;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.EDIT_RETENTION_RULE;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENTS_LIST;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENT_CATEGORY;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.EVENT_DISPLAY;
@@ -47,13 +47,13 @@ import static com.constellio.app.ui.application.NavigatorConfigurationService.LD
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_ONGLET;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_RETENTION_RULES;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.LIST_RETENTION_RULES;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_SCHEMA_RECORDS;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_TAXONOMY;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.LIST_VALUE_DOMAINS;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.PERMISSION_MANAGEMENT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.RECORDS_MANAGEMENT;
-import static com.constellio.app.ui.application.NavigatorConfigurationService.REPORTS;
+import static com.constellio.app.modules.rm.navigation.RMNavigationConfiguration.REPORTS;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.SEARCH_DISPLAY_FORM;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.TAXONOMY_ADD_EDIT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.TAXONOMY_CONCEPT_ADD_EDIT;
@@ -70,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
@@ -1048,7 +1049,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigationToCreateFolderPossible() {
 		try {
-			driver.navigateTo().url(NavigatorConfigurationService.ADD_FOLDER);
+			driver.navigateTo().url(RMNavigationConfiguration.ADD_FOLDER);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1057,7 +1058,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigationToAddDocumentPossible() {
 		try {
-			driver.navigateTo().url(NavigatorConfigurationService.ADD_DOCUMENT);
+			driver.navigateTo().url(RMNavigationConfiguration.ADD_DOCUMENT);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1076,7 +1077,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigationToCreateSubFolderPossible(String folderId) {
 		try {
-			driver.navigateTo().url(NavigatorConfigurationService.ADD_FOLDER + "/parentId%253D" + folderId);
+			driver.navigateTo().url(RMNavigationConfiguration.ADD_FOLDER + "/parentId%253D" + folderId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1085,7 +1086,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigationToCreateDocumentPossible(String folderId) {
 		try {
-			driver.navigateTo().url(NavigatorConfigurationService.ADD_DOCUMENT + "/parentId%253D" + folderId);
+			driver.navigateTo().url(RMNavigationConfiguration.ADD_DOCUMENT + "/parentId%253D" + folderId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1103,7 +1104,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigationToTaskPossible(String taskId) {
 		try {
-			driver.navigateTo().url(NavigatorConfigurationService.DISPLAY_TASK + "/" + taskId);
+			driver.navigateTo().url(TasksNavigationConfiguration.DISPLAY_TASK + "/" + taskId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;
@@ -1112,7 +1113,7 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private boolean navigationToEditTaskPossible(String taskId) {
 		try {
-			driver.navigateTo().url(NavigatorConfigurationService.EDIT_TASK + "/id%253D" + taskId);
+			driver.navigateTo().url(TasksNavigationConfiguration.EDIT_TASK + "/id%253D" + taskId);
 			return !isOnHomePage();
 		} catch (Exception e) {
 			return false;

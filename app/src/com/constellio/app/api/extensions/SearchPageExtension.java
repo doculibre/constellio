@@ -1,6 +1,8 @@
 package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 
 public class SearchPageExtension {
@@ -9,4 +11,6 @@ public class SearchPageExtension {
 		return null;
 	}
 
+	public void notifyNewUserSearch(UserSearchEvent event) {
+	}
 }

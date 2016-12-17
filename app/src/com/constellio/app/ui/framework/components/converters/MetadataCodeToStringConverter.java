@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -32,7 +33,13 @@ public class MetadataCodeToStringConverter implements Converter<String, String> 
 			MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
 			Metadata metadata = types.getMetadata(value);
-			label = metadata.getLabel();
+			Language language;
+			if (locale == null) {
+				language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
+			} else {
+				language = Language.withCode(locale.getLanguage());
+			}
+			label = metadata.getLabel(language);
 		} else {
 			label = "";
 		}
@@ -48,6 +55,5 @@ public class MetadataCodeToStringConverter implements Converter<String, String> 
 	public Class<String> getPresentationType() {
 		return String.class;
 	}
-
 
 }

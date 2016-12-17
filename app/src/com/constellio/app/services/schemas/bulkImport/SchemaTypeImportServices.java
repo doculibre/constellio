@@ -15,6 +15,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -24,6 +25,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -67,6 +69,13 @@ public class SchemaTypeImportServices implements ImportServices {
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		valueListServices = new ValueListServices(appLayerFactory, collection);
 		this.collection = collection;
+	}
+
+	@Override
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
+			User user, List<String> collections, BulkImportParams params)
+			throws RecordsImportServicesRuntimeException {
+		return bulkImport(importDataProvider, progressionListener, user, collections);
 	}
 
 	@Override
@@ -262,7 +271,8 @@ public class SchemaTypeImportServices implements ImportServices {
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
 			if (typeCode.startsWith("ddv")) {
 				ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
-				builder.createValueListItemSchema(typeCode, title, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE);
+				builder.createValueListItemSchema(typeCode, title,
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false));
 
 			} else if (typeCode.startsWith("taxo") && typeCode.endsWith("Type")) {
 				String taxoCode = StringUtils.substringBetween(typeCode, "taxo", "Type");
@@ -281,7 +291,9 @@ public class SchemaTypeImportServices implements ImportServices {
 		} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
 			builder = types.createNewSchemaType(code);//"USR" +
 		}
-		builder.setLabel(title);
+		for (String language : appLayerFactory.getCollectionsManager().getCollectionLanguages(collection)) {
+			builder.addLabel(Language.withCode(language), title);
+		}
 		return builder;
 	}
 
@@ -295,7 +307,9 @@ public class SchemaTypeImportServices implements ImportServices {
 		MetadataSchemaTypeBuilder schemaTypeBuilder = getOrCreateSchemaType(types, schemaTypeCode);
 
 		MetadataSchemaBuilder schemaBuilder = getOrCreateSchemaBuilder(schemaTypeBuilder, schemaCode);
-		schemaBuilder.setLabel(schemaLabel);
+		for (String language : appLayerFactory.getCollectionsManager().getCollectionLanguages(collection)) {
+			schemaBuilder.addLabel(Language.withCode(language), schemaLabel);
+		}
 		List<Metadata> allGlobalMetadata = Schemas.getAllGlobalMetadatas();
 		for (ImportedMetadata importedMetadata : importedMetadataList) {
 			processMetadata(importedMetadata, schemaBuilder, allGlobalMetadata, types);
@@ -424,7 +438,7 @@ public class SchemaTypeImportServices implements ImportServices {
 		}
 
 		builder.setEnabled(importedMetadata.isEnabled());
-		builder.setLabel(importedMetadata.getLabel());
+		builder.setLabels(importedMetadata.getLabels());
 		builder.setDefaultRequirement(importedMetadata.isRequired());
 	}
 

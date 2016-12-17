@@ -5,8 +5,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
@@ -14,7 +14,6 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -27,6 +26,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Field;
@@ -44,13 +44,13 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 	private ConstellioSetupBean bean = new ConstellioSetupBean();
 
-	private String setupLocaleCode;
+//	private String setupLocaleCode;
 
 	private List<String> localeCodes = new ArrayList<>();
 
 	private List<String> moduleIds = new ArrayList<>();
 
-	private boolean loadSaveState;
+//	private boolean loadSaveState;
 
 	private VerticalLayout mainLayout;
 
@@ -65,6 +65,9 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	@PropertyId("modules")
 	private OptionGroup modulesField;
 
+	@PropertyId("languages")
+	private OptionGroup languagesField;
+
 	@PropertyId("collectionTitle")
 	private TextField collectionTitleField;
 
@@ -73,6 +76,9 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 	@PropertyId("adminPassword")
 	private PasswordField adminPasswordField;
+	
+	@PropertyId("demoData")
+	private CheckBox demoDataField;
 
 	@PropertyId("saveState")
 	private BaseUploadField saveStateField;
@@ -147,16 +153,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			languageButton.addClickListener(new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
-					loadSaveState = false;
-					setupLocaleCode = localeCode;
-					Locale setupLocale = new Locale(setupLocaleCode);
-					setLocale(setupLocale);
-					i18n.setLocale(setupLocale);
-					if (formLayout != null) {
-						mainLayout.removeComponent(formLayout);
-					}
-					buildFields();
-					mainLayout.addComponent(formLayout);
+					presenter.languageButtonClicked(localeCode);
 				}
 			});
 			preSetupButtonsLayout.addComponent(languageButton);
@@ -167,14 +164,18 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		loadSaveStateButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				loadSaveState = true;
-				if (formLayout != null) {
-					mainLayout.removeComponent(formLayout);
-				}
-				buildFields();
-				mainLayout.addComponent(formLayout);
+				presenter.loadSaveStateButtonClicked();
 			}
 		});
+	}
+	
+	@Override
+	public void reloadForm() {
+		if (formLayout != null) {
+			mainLayout.removeComponent(formLayout);
+		}
+		buildFields();
+		mainLayout.addComponent(formLayout);
 	}
 
 	private void buildFields() {
@@ -182,9 +183,22 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		formLayout.setSpacing(true);
 
 		Field<?>[] formFields;
-		if (!loadSaveState) {
+		if (!presenter.isLoadSaveState()) {
+			languagesField = new ListOptionGroup($("ConstellioSetupView.languages"));
+			languagesField.setMultiSelect(true);
+			languagesField.setRequired(true);
+
+			String setupLocaleCode = presenter.getSetupLocaleCode();
+			for (String languageCode : this.localeCodes) {
+				languagesField.addItem(languageCode);
+				languagesField.setItemEnabled(languageCode, !setupLocaleCode.equals(languageCode));
+				languagesField.setItemCaption(languageCode, $("Language." + languageCode));
+			}
+			bean.setLanguages(Arrays.asList(setupLocaleCode));
+
 			modulesField = new ListOptionGroup($("ConstellioSetupView.modules"));
 			modulesField.setMultiSelect(true);
+			modulesField.setRequired(true);
 
 			for (String moduleId : moduleIds) {
 				String moduleName = $("ConstellioSetupView.module." + moduleId);
@@ -193,14 +207,16 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			}
 
 			collectionTitleField = new BaseTextField($("ConstellioSetupView.collectionTitle"));
-			collectionTitleField.setRequired(true);
 
 			collectionCodeField = new BaseTextField($("ConstellioSetupView.collectionCode"));
 			collectionCodeField.setRequired(true);
 
 			adminPasswordField = new BasePasswordField($("ConstellioSetupView.adminPassword"));
+			
+			demoDataField = new CheckBox($("ConstellioSetupView.demoData"));
 
-			formFields = new Field[] { modulesField, collectionCodeField, collectionTitleField, adminPasswordField };
+			formFields = new Field[] { languagesField, modulesField, collectionCodeField, collectionTitleField,
+					adminPasswordField, demoDataField };
 		} else {
 			saveStateField = new BaseUploadField();
 			saveStateField.setCaption($("ConstellioSetupView.saveState"));
@@ -215,14 +231,17 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 				new Thread() {
 					@Override
 					public void run() {
-						if (!loadSaveState) {
+						if (!presenter.isLoadSaveState()) {
 							List<String> modules = bean.getModules();
+							List<String> languages = bean.getLanguages();
 							String collectionTitle = bean.getCollectionTitle();
 							String collectionCode = bean.getCollectionCode();
 							String adminPassword = bean.getAdminPassword();
+							boolean demoData = bean.isDemoData();
 
 							try {
-								presenter.saveRequested(setupLocaleCode, modules, collectionTitle, collectionCode, adminPassword);
+								presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
+										adminPassword, demoData);
 							} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
 								showMessage(constellioSetupPresenterException.getMessage());
 
@@ -289,11 +308,15 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 		private List<String> modules = new ArrayList<>();
 
+		private List<String> languages = new ArrayList<>();
+
 		private String collectionCode;
 
 		private String collectionTitle;
 
 		private String adminPassword;
+		
+		private boolean demoData = true;
 
 		private TempFileUpload saveState;
 
@@ -337,6 +360,21 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			this.saveState = saveState;
 		}
 
+		public List<String> getLanguages() {
+			return languages;
+		}
+
+		public void setLanguages(List<String> languages) {
+			this.languages = languages;
+		}
+
+		public boolean isDemoData() {
+			return demoData;
+		}
+
+		public void setDemoData(boolean demoData) {
+			this.demoData = demoData;
+		}
 	}
 
 }

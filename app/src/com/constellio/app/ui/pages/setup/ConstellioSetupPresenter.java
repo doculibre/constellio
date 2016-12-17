@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,8 +18,11 @@ import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_CannotLoadSaveState;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_CodeMustBeAlphanumeric;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_MustSelectAtLeastOneModule;
@@ -51,6 +55,10 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 	private static final String TEMP_UNZIP_FOLDER = "ConstellioSetupPresenter-TempUnzipFolder";
 
 	private static final Logger LOGGER = LogManager.getLogger(ConstellioSetupPresenter.class);
+	
+	private String setupLocaleCode;
+	
+	private boolean loadSaveState;
 
 	private ConstellioSetupView view;
 
@@ -95,9 +103,31 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		}
 		return linkTarget;
 	}
+	
+	boolean isLoadSaveState() {
+		return loadSaveState;
+	}
+	
+	String getSetupLocaleCode() {
+		return setupLocaleCode;
+	}
+	
+	void languageButtonClicked(String localeCode) {
+		loadSaveState = false;
+		setupLocaleCode = localeCode;
+		Locale setupLocale = new Locale(setupLocaleCode);
+		i18n.setLocale(setupLocale);
+		view.setLocale(setupLocale);
+		view.reloadForm();
+	}
+	
+	void loadSaveStateButtonClicked() {
+		loadSaveState = true;
+		view.reloadForm();
+	}
 
-	public void saveRequested(String setupLocaleCode, List<String> modules, String collectionTitle, String collectionCode,
-			String adminPassword)
+	public void saveRequested(List<String> languages, List<String> modules, String collectionTitle, String collectionCode,
+			String adminPassword, boolean demoData)
 			throws ConstellioSetupPresenterException {
 
 		if (!isValidCode(collectionCode)) {
@@ -113,9 +143,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 		setSystemLanguage(setupLocaleCode);
 		Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
-				collectionCode, asList(setupLocaleCode));
+				collectionCode, languages);
 		Collection collection = new Collection(collectionRecord,
 				modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));
+		if (StringUtils.isBlank(collectionTitle)) {
+			collectionTitle = collectionCode;
+		}
 		collection.setName(collectionTitle).setTitle(collectionTitle);
 		try {
 			recordServices().update(collection);
@@ -132,10 +165,12 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 					factories.getModelLayerFactory().getCollectionsListManager());
 			modulesManager.enableValidModuleAndGetInvalidOnes(collectionCode, module);
 			roles.addAll(PluginUtil.getRolesForCreator(module));
-			try {
-				((InstallableModule) module).addDemoData(collectionCode, appLayerFactory);
-			} catch (Throwable e) {
-				LOGGER.error("Error when adding demo data of module " + module.getId() + " in collection " + collection, e);
+			if (demoData) {
+				try {
+					((InstallableModule) module).addDemoData(collectionCode, appLayerFactory);
+				} catch (Throwable e) {
+					LOGGER.error("Error when adding demo data of module " + module.getId() + " in collection " + collection, e);
+				}
 			}
 		}
 
@@ -157,12 +192,11 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throw new RuntimeException(e);
 		}
 
-		// TODO Vincent fix session context creation
-		//		UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY);
-		//		SessionContext sessionContext = view.getSessionContext();
-		//		sessionContext.setCurrentCollection(collectionCode);
-		//		sessionContext.setCurrentLocale(new Locale(setupLocaleCode));
-		//		sessionContext.setCurrentUser(userVO);
+		SessionContext sessionContext = view.getSessionContext();
+		UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+		sessionContext.setCurrentCollection(collectionCode);
+		sessionContext.setCurrentLocale(new Locale(setupLocaleCode));
+		sessionContext.setCurrentUser(userVO);
 
 		view.updateUI();
 	}
@@ -259,5 +293,4 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throws AppManagementServiceException {
 		appLayerFactory.newApplicationService().restart();
 	}
-
 }

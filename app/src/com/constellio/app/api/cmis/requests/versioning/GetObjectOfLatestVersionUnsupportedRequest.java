@@ -18,7 +18,6 @@ public class GetObjectOfLatestVersionUnsupportedRequest extends CmisCollectionRe
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetObjectOfLatestVersionUnsupportedRequest.class);
 
-	CallContext callContext;
 	String objectId;
 	String versionSeriesId;
 	Boolean major;
@@ -36,8 +35,7 @@ public class GetObjectOfLatestVersionUnsupportedRequest extends CmisCollectionRe
 			CallContext callContext, String objectId, String versionSeriesId, Boolean major, String filter,
 			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
 			Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension, ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
-		this.callContext = callContext;
+		super(callContext, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.versionSeriesId = versionSeriesId;
 		this.major = major;

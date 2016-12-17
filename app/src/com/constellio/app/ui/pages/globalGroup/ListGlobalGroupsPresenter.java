@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.globalGroup;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -19,10 +21,34 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 
 	private transient UserServices userServices;
 
+	public static final String ACTIVE = "active";
+	public static final String INACTIVE = "inactive";
+
+
+
 	public ListGlobalGroupsPresenter(ListGlobalGroupsView view) {
 		super(view);
 		init();
 	}
+
+    public List<String> getTabs() {
+        List<String> tabs = new ArrayList<>();
+        tabs.add(ACTIVE);
+        tabs.add(INACTIVE);
+
+        return tabs;
+    }
+
+    public String getTabCaption(String tabId) {
+        switch (tabId){
+            case ACTIVE:
+                return "Actif";
+            case INACTIVE:
+                return "Inactif";
+            default:
+                return null;
+        }
+    }
 
 	private void init() {
 		userServices = modelLayerFactory.newUserServices();
@@ -35,21 +61,21 @@ public class ListGlobalGroupsPresenter extends BasePresenter<ListGlobalGroupsVie
 
 	public void addButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.GROUP_LIST, null);
-		view.navigateTo().addGlobalGroup(params);
+		view.navigate().to().addGlobalGroup(params);
 	}
 
 	public void editButtonClicked(GlobalGroupVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().editGlobalGroup(parameters);
+		view.navigate().to().editGlobalGroup(parameters);
 	}
 
 	public void displayButtonClicked(GlobalGroupVO entity) {
 		String parameters = getParameters(entity);
-		view.navigateTo().displayGlobalGroup(parameters);
+		view.navigate().to().displayGlobalGroup(parameters);
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().adminModule();
+		view.navigate().to().adminModule();
 	}
 
 	public void deleteButtonClicked(GlobalGroupVO globalGroupVO) {

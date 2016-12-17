@@ -1,7 +1,9 @@
 package com.constellio.model.services.security.authentification;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,10 +109,23 @@ public class PasswordFileAuthenticationService implements AuthenticationService 
 	}
 
 	private void updatePassword(final String username, final String newPasswordHash) {
+		final String usernameKey = UserUtils.cleanUsername(username);
 		configManager.updateProperties(AUTHENTIFICATION_PROPERTIES, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {
-				properties.put(username, newPasswordHash);
+				Set<String> keysToRemove = new HashSet<String>();
+				for (Map.Entry<String, String> entry : properties.entrySet()) {
+					final String aUsernameKey = UserUtils.cleanUsername(entry.getKey());
+					if (aUsernameKey.equals(usernameKey)) {
+						keysToRemove.add(entry.getKey());
+					}
+				}
+
+				for (String keyToRemove : keysToRemove) {
+					properties.remove(keyToRemove);
+				}
+
+				properties.put(usernameKey, newPasswordHash);
 			}
 		});
 	}

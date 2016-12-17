@@ -20,6 +20,7 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 	public static final String INVALID_VALUE_FOR_METADATA = "invalidValueForMetadata";
 	public static final String EXPECTED_TYPE_MESSAGE_PARAM = "expectedType";
 	public static final String METADATA_CODE_MESSAGE_PARAM = "metadataCode";
+	public static final String METADATA_LABEL_MESSAGE_PARAM = "metadataLabel";
 	public static final String WAS_VALUE_CLASS_MESSAGE_PARAM = "wasValueOfClass";
 
 	private final List<Metadata> metadatas;
@@ -120,14 +121,15 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 
 	//@formatter:off
 	private void addValidationErrors(Metadata metadata, Object value, ValidationErrors validationErrors, String metadataValueType) {
-		Map<String, String> parameters = createParameters(metadata, value, metadataValueType);
+		Map<String, Object> parameters = createParameters(metadata, value, metadataValueType);
 		validationErrors.add(getClass(), INVALID_VALUE_FOR_METADATA, parameters);
 	}
 	//@formatter:on
 
-	private Map<String, String> createParameters(Metadata metadata, Object value, String expected) {
-		Map<String, String> parameters = new HashMap<>();
+	private Map<String, Object> createParameters(Metadata metadata, Object value, String expected) {
+		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(METADATA_CODE_MESSAGE_PARAM, metadata.getCode());
+		parameters.put(METADATA_LABEL_MESSAGE_PARAM, metadata.getLabelsByLanguageCodes());
 		parameters.put(EXPECTED_TYPE_MESSAGE_PARAM, expected);
 		parameters.put(WAS_VALUE_CLASS_MESSAGE_PARAM, value == null ? "null" : value.getClass().getName());
 		return parameters;

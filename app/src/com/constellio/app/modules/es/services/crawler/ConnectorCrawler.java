@@ -3,12 +3,7 @@ package com.constellio.app.modules.es.services.crawler;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -78,40 +73,64 @@ public class ConnectorCrawler {
 
 	boolean crawlAllConnectors() {
 
-		List<ConnectorInstance> connectorInstances = getConnectorInstances();
-		initializeStartAndStopConnectors(connectorInstances);
-
 		boolean executedJobs = false;
-		for (CrawledConnector crawledConnector : crawledConnectors) {
 
-			ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
-			if (instance.isCurrentlyRunning()) {
-				LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + "' ****");
-				List<ConnectorJob> jobs = crawledConnector.connector.getJobs();
+		try {
+			List<ConnectorInstance> connectorInstances = getConnectorInstances();
+			initializeStartAndStopConnectors(connectorInstances);
 
-				if (!jobs.isEmpty()) {
-					try {
-						jobCrawler.crawl(jobs);
-					} catch (Exception e) {
-						e.printStackTrace();
+			Map<CrawledConnector, List<ConnectorJob>> connectorJobsMap = new HashMap<>();
+			List<ConnectorJob> allJobs = new ArrayList<>();
+
+			for (CrawledConnector crawledConnector : crawledConnectors) {
+
+				ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+				if (instance.isCurrentlyRunning()) {
+					List<ConnectorJob> connectorJobs = crawledConnector.connector.getJobs();
+					LOGGER.info("**** Get jobs of '" + crawledConnector.connectorInstance.getIdTitle() + " : " + connectorJobs.size() + " job(s) " + "' **** ");
+
+					if (!connectorJobs.isEmpty()) {
+						connectorJobsMap.put(crawledConnector, connectorJobs);
+						allJobs.addAll(connectorJobs);
+					} else {
+						try {
+							recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
+						} catch (RecordServicesException e) {
+							LOGGER.warn("last traversal date not updated", e);
+						}
 					}
-					executedJobs = true;
-					crawledConnector.connector.afterJobs(jobs);
-				} else {
-					try {
-						recordServices.add(instance.setLastTraversalOn(TimeProvider.getLocalDateTime()));
-					} catch (RecordServicesException e) {
-						LOGGER.warn("last traversal date not updated", e);
-					}
-					waitSinceNoJobs();
 				}
 			}
 
-		}
-		eventObserver.flush();
+			if (!allJobs.isEmpty()) {
+				try {
+					jobCrawler.crawl(allJobs);
+				} catch (Exception e) {
+					LOGGER.error("Error while executing connector jobs", e);
+				}
+				executedJobs = true;
 
-		if (crawledConnectors.isEmpty()) {
-			waitSinceNoJobs();
+				for (CrawledConnector crawledConnector : crawledConnectors) {
+					try {
+						ConnectorInstance instance = es.getConnectorInstance(crawledConnector.connectorInstance.getId());
+						crawledConnector.connector.afterJobs(connectorJobsMap.get(crawledConnector));
+
+					} catch (Exception e) {
+						LOGGER.warn("Error after connector jobs execution", e);
+					}
+				}
+
+				eventObserver.flush();
+			} else {
+				waitSinceNoJobs();
+			}
+
+
+			if (crawledConnectors.isEmpty()) {
+				waitSinceNoJobs();
+			}
+		} finally {
+			eventObserver.cleanup();
 		}
 
 		return executedJobs;
@@ -207,7 +226,7 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsSequentially(ESSchemasRecordsServices es, ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+														   ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new SimpleConnectorJobCrawler(), logger, eventObserver);
 	}
 
@@ -216,12 +235,12 @@ public class ConnectorCrawler {
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorLogger logger,
-			ConnectorEventObserver eventObserver) {
+														 ConnectorEventObserver eventObserver) {
 		return new ConnectorCrawler(es, new MultithreadConnectorJobCrawler(), logger, eventObserver);
 	}
 
 	public static ConnectorCrawler runningJobsInParallel(ESSchemasRecordsServices es, ConnectorEventObserver eventObserver) {
-		return runningJobsSequentially(es, new ConsoleConnectorLogger(), eventObserver);
+		return runningJobsInParallel(es, new ConsoleConnectorLogger(), eventObserver);
 	}
 
 	public void crawlUntilRecordsFound(final LogicalSearchCondition condition) {
@@ -264,10 +283,12 @@ public class ConnectorCrawler {
 		}
 	}
 
-	public void crawlNTimes(int times) {
+	public boolean crawlNTimes(int times) {
+		boolean hasJobs = false;
 		for (int i = 0; i < times; i++) {
-			crawlAllConnectors();
+			hasJobs = crawlAllConnectors();
 		}
+		return hasJobs;
 	}
 
 	public void crawlUntil(Factory<Boolean> condition) {

@@ -1,5 +1,8 @@
 package com.constellio.sdk.tests;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
@@ -30,13 +33,16 @@ public class ConstellioTest extends AbstractConstellioTest {
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
+			//			testSession.getFactoriesTestFeatures().clear();
 			try {
 				testSession.getFactoriesTestFeatures().getConstellioFactories();
-			} catch(Exception e) {
+			} catch (Exception e) {
 
 			}
 			testSession.close(true, false);
-			
+			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+			System.out.print("\t\t*** Exceptions displayed before this line are OK ***\n\n");
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 			IS_FIRST_EXECUTED_TEST = false;
 		}
@@ -47,6 +53,12 @@ public class ConstellioTest extends AbstractConstellioTest {
 						.setPreservedState(getClass().getName() + "-" + preserveStateAnnotation.state());
 			}
 		}
+	}
+
+	public void resetTestSession() {
+		testSession.close(true, false);
+
+		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 	}
 
 	protected void clearTestSession() {
@@ -74,5 +86,28 @@ public class ConstellioTest extends AbstractConstellioTest {
 
 	public static boolean isCurrentPreservingState() {
 		return isCurrentPreservingState;
+	}
+
+	public static Map<String, String> fr_en(String fr, String en) {
+		Map<String, String> map = new HashMap<>();
+		map.put("fr", fr);
+		map.put("en", en);
+		return map;
+	}
+
+	public static Map<String, String> en(String en) {
+		Map<String, String> map = new HashMap<>();
+		map.put("en", en);
+		return map;
+	}
+
+	public static Map<String, String> fr(String fr) {
+		Map<String, String> map = new HashMap<>();
+		map.put("fr", fr);
+		return map;
+	}
+
+	public static void disableCleanStartup() {
+		IS_FIRST_EXECUTED_TEST = false;
 	}
 }

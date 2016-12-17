@@ -18,6 +18,7 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.FileSystemConfigManager;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -28,6 +29,7 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager.TaxonomiesManagerCache;
@@ -202,6 +204,11 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		throw new TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound(code, collection);
 	}
 
+	public Taxonomy getTaxonomyOf(Record record) {
+		return getTaxonomyFor(record.getCollection(), new SchemaUtils().getSchemaTypeCode(record.getSchemaCode()));
+
+	}
+
 	public Taxonomy getTaxonomyFor(String collection, String schemaTypeCode) {
 		List<Taxonomy> enableTaxonomies = oneXMLConfigPerCollectionManager.get(collection).enableTaxonomies;
 		if (enableTaxonomies != null) {
@@ -344,6 +351,21 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		}
 
 		return taxonomies;
+	}
+
+	public List<Taxonomy> getAvailableTaxonomiesForSchema(String schemaCode, User user,
+			MetadataSchemasManager metadataSchemasManager) {
+
+		Set<Taxonomy> taxonomies = new HashSet<>();
+
+		SchemaUtils schemaUtils = new SchemaUtils();
+
+		String schemaType = schemaUtils.getSchemaTypeCode(schemaCode);
+
+		List<Taxonomy> schemaTaxonomies = getAvailableTaxonomiesForSelectionOfType(schemaType, user, metadataSchemasManager);
+		taxonomies.addAll(schemaTaxonomies);
+
+		return new ArrayList<>(taxonomies);
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSelectionOfType(String schemaType, User user,

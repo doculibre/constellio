@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -68,12 +69,12 @@ public class ConnectorManagerAcceptanceTest extends ConstellioTest {
 				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
 		connectorManager.createConnector(zeInstance);
 		String schemaCode = ConnectorHttpDocument.SCHEMA_TYPE + "_" + zeInstance.getId();
-		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel()).isEqualTo("Ze connector");
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel(Language.French)).isEqualTo("Ze connector");
 
 		zeInstance.setTitle("Ze ultimate connector");
 		getModelLayerFactory().newRecordServices().update(zeInstance);
 
-		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel())
+		assertThat(schemasManager.getSchemaTypes(zeCollection).getSchema(schemaCode).getLabel(Language.French))
 				.isEqualTo("Ze ultimate connector");
 	}
 

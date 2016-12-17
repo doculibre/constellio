@@ -153,7 +153,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 	private void givenGroupInCollectionAndCollectionPermissionToLegendsWhenGetGroupCollectionPermissionsThenReturnIt() {
 
 		GlobalGroup globalGroup = userServices.createGlobalGroup(
-				"legends", "legends", Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE);
+				"legends", "legends", Arrays.asList(zeCollection), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(globalGroup);
 
 		GroupCollectionPermissionsResource resource = new GroupCollectionPermissionsResource();

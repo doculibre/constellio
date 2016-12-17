@@ -10,8 +10,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -19,6 +21,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -31,7 +34,7 @@ public class SchemaUtils {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaUtils.class);
 
-	private static Map<String, String[]> underscoreSplitCache = new HashMap<>();
+	public static Map<String, String[]> underscoreSplitCache = new HashMap<>();
 
 	public static String[] underscoreSplitWithCache(String text) {
 		String[] cached = underscoreSplitCache.get(text);
@@ -104,7 +107,7 @@ public class SchemaUtils {
 		return underscoreSplitWithCache(metadata.getCode())[0];
 	}
 
-	public String getSchemaTypeCode(String schema) {
+	public static String getSchemaTypeCode(String schema) {
 		return underscoreSplitWithCache(schema)[0];
 	}
 
@@ -189,9 +192,23 @@ public class SchemaUtils {
 		//TODO Test that default schema metadata are returned instead of an inheritance in a custom schema
 		Map<String, Metadata> index = new HashMap<>();
 		for (MetadataSchema customSchema : customSchemas) {
-			index.putAll(customSchema.getIndexByAtomicCode());
+			index.putAll(customSchema.getIndexByLocalCode());
 		}
-		index.putAll(defaultSchema.getIndexByAtomicCode());
+		index.putAll(defaultSchema.getIndexByLocalCode());
+		return index;
+	}
+
+	public Map<String, Metadata> buildIndexByCode(List<Metadata> metadatas) {
+		Map<String, Metadata> index = new HashMap<>();
+		for (Metadata metadata : metadatas) {
+			index.put(metadata.getCode(), metadata);
+			if (metadata.isGlobal() || "code".equals(metadata.getLocalCode())) {
+				index.put("global_default_" + metadata.getLocalCode(), metadata);
+			}
+			if (metadata.getInheritance() != null) {
+				index.put(metadata.getInheritanceCode(), metadata);
+			}
+		}
 		return index;
 	}
 
@@ -272,8 +289,7 @@ public class SchemaUtils {
 	public boolean isDependentMetadata(Metadata calculatedMetadata, Metadata otherMetadata,
 			DynamicLocalDependency dependency) {
 		return !calculatedMetadata.getLocalCode().equals(otherMetadata.getLocalCode())
-				&& !Schemas.isGlobalMetadata(otherMetadata.getLocalCode())
-				&& dependency.isDependentOf(otherMetadata);
+				&& !otherMetadata.isGlobal() && dependency.isDependentOf(otherMetadata);
 	}
 
 	public static String getMetadataLocalCodeWithoutPrefix(Metadata metadata) {
@@ -336,5 +352,39 @@ public class SchemaUtils {
 		}
 
 		return valid;
+	}
+
+	public static Metadata getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(MetadataSchema schema,
+			Metadata metadata) {
+
+		CalculatedDataEntry calculatedDataEntry = ((CalculatedDataEntry) metadata.getDataEntry());
+		for (Dependency calculatorDependency : calculatedDataEntry.getCalculator().getDependencies()) {
+			if (calculatorDependency instanceof LocalDependency) {
+				LocalDependency calculatorLocalDependency = (LocalDependency) calculatorDependency;
+				if (calculatorLocalDependency.getReturnType() == MetadataValueType.REFERENCE) {
+					Metadata otherMetadata = schema.get(calculatorLocalDependency.getLocalMetadataCode());
+					if (otherMetadata.getAllowedReferences().getTypeWithAllowedSchemas()
+							.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
+						return otherMetadata;
+					}
+				}
+			}
+		}
+
+		throw new ImpossibleRuntimeException("getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship - No such metadata!");
+
+	}
+
+	public static List<String> localCodes(List<String> codes) {
+		List<String> localCodes = new ArrayList<>();
+		for (String code : codes) {
+			localCodes.add(SchemaUtils.toLocalCode(code));
+		}
+		return localCodes;
+	}
+
+	private static String toLocalCode(String code) {
+		String[] parts = new SchemaUtils().underscoreSplitWithCache(code);
+		return parts[2];
 	}
 }

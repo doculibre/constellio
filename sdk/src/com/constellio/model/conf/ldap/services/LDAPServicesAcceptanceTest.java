@@ -27,7 +27,7 @@ public class LDAPServicesAcceptanceTest {
 	}
 
 	private LdapContext getValidContext() {
-		return new LDAPServices()
+		return new LDAPServicesImpl()
 				.connectToLDAP(LDAPTestConfig.getDomains(), LDAPTestConfig.getLDAPDevServerUrl(), LDAPTestConfig.getUser(),
 						LDAPTestConfig.getPassword(), false, true);
 	}
@@ -38,7 +38,7 @@ public class LDAPServicesAcceptanceTest {
 		LdapContext ldapContext = getValidContext();
 		String ouWithGroup1AndGroup2 = "OU=ouWithGroup1AndGroup2,OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
 		String ouWithGroup3AndGroup4 = "OU=ouWithGroup3AndGroup4,OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
-		Set<LDAPGroup> groups = new LDAPServices()
+		Set<LDAPGroup> groups = new LDAPServicesImpl()
 				.getAllGroups(ldapContext, Arrays.asList(new String[] { ouWithGroup1AndGroup2, ouWithGroup3AndGroup4 }));
 		assertThat(groups.size()).isEqualTo(4);
 		List<String> groupsNames = new ArrayList<>();
@@ -48,76 +48,13 @@ public class LDAPServicesAcceptanceTest {
 		assertThat(groupsNames).contains("group1", "group2", "group3", "group4");
 	}
 
-   /* @Test
-	public void testMFA()
-            throws Exception{
-        LdapContext ldapContext = new LDAPServices().connectToLDAP(Arrays.asList(new String[]{"DC=mes,DC=reseau,DC=intra"}),//mes.reseau.intra
-                "ldap://127.0.0.1:3389",
-                "cs_065_IntelliGid_de",
-                "R*tsQ5yzt2Zfb#Xd");
-        String groupCN = "CN=guMFA,OU=Groupes Users (gu),OU=Groupes,DC=mes,DC=reseau,DC=intra";
-        Set<LDAPGroup> groups = new LDAPServices().getAllGroups(ldapContext, Arrays.asList(new String[]{groupCN}));
-        List<String> groupsNames = new ArrayList<>();
-        for(LDAPGroup group : groups){
-            groupsNames.add(group.getSimpleName());
-            System.out.println(group.getSimpleName());
-            System.out.println(group.getMembers().size());
-            if(!group.getMembers().isEmpty()){
-                System.out.println(group);
-            }
-        }
-        ldapContext.close();
-    }
-
-    @Test
-    public void testUsersMFA()
-            throws Exception{
-        LdapContext ldapContext = new LDAPServices().connectToLDAP(Arrays.asList(new String[]{"DC=mes,DC=reseau,DC=intra"}),//mes.reseau.intra
-                "ldap://127.0.0.1:3389",
-                "cs_065_IntelliGid_de",
-                "R*tsQ5yzt2Zfb#Xd");
-        String groupCN = "CN=guMFA,OU=Groupes Users (gu),OU=Groupes,DC=mes,DC=reseau,DC=intra";
-        Set<String> usersIds = new HashSet<>();
-        LDAPServices ldapServices = new LDAPServices();
-        for(String baseContextName : getBaseContextList()){
-            List<String> currentUsersIds;
-            try{
-                currentUsersIds = ldapServices.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, baseContextName);
-            } catch (NamingException e) {
-                throw new RuntimeException(e);
-            }
-            usersIds.addAll(currentUsersIds);
-        }
-        System.out.println(usersIds.size());
-        ldapContext.close();
-    }
-
-    private String[] getBaseContextList() {
-        return new String[]{
-            "OU=Utilisateurs,DC=mes,DC=reseau,DC=intra",
-                "OU=A_B,OU=Utilisateurs,DC=mes,DC=reseau,DC=intra"
-        };
-    }
-
-    @Test
-    public void testAcceptedUserMFA()
-            throws Exception{
-        LdapContext ldapContext = new LDAPServices().connectToLDAP(Arrays.asList(new String[]{"DC=mes,DC=reseau,DC=intra"}),//mes.reseau.intra
-                "ldap://127.0.0.1:3389",
-                "cs_065_IntelliGid_de",
-                "R*tsQ5yzt2Zfb#Xd");//
-        boolean isUser = new LDAPServices().isUser(LDAPDirectoryType.ACTIVE_DIRECTORY, "CN=Boulanger\\\\, Sylvain,OU=A_B,OU=Utilisateurs,DC=mes,DC=reseau,DC=intra",
-                //
-                ldapContext);
-        System.out.println(isUser);
-    }*/
 
 	@Test
 	public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
 		String ouWith2997groups = "OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca";
-		Set<LDAPGroup> groups = new LDAPServices().getAllGroups(ldapContext, Arrays.asList(new String[] { ouWith2997groups }));
+		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[] { ouWith2997groups }));
 		assertThat(groups.size()).isEqualTo(2997);
 	}
 
@@ -126,8 +63,8 @@ public class LDAPServicesAcceptanceTest {
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
 		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
-		List<String> users = new LDAPServices()
-				.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users);
+		List<String> users = new LDAPServicesImpl()
+				.searchUsersIdsFromContext(LDAPDirectoryType.ACTIVE_DIRECTORY, ldapContext, ouWith3001Users, LDAPTestConfig.getUserFilterGroupsList());
 		assertThat(users.size()).isEqualTo(3001);
 	}
 
@@ -136,7 +73,7 @@ public class LDAPServicesAcceptanceTest {
 			throws Exception {
 		LdapContext ldapContext = getValidContext();
 		String allTestGroupsOU = "OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
-		Set<LDAPGroup> groups = new LDAPServices().getAllGroups(ldapContext, Arrays.asList(new String[] { allTestGroupsOU }));
+		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[] { allTestGroupsOU }));
 		LDAPGroup subgroupLevel1 = null;
 		for (LDAPGroup group : groups) {
 
@@ -150,11 +87,21 @@ public class LDAPServicesAcceptanceTest {
 				.isEqualTo("CN=subgroupLevel1,OU=testSynchronization,DC=test,DC=doculibre,DC=ca");
 		for (String userId : subgroupLevel1.getMembers()) {
 			System.out.println("===========================user:" + userId);
-			LDAPUser ldapUser = new LDAPServices().getUser(LDAPDirectoryType.ACTIVE_DIRECTORY, userId,
+			LDAPUser ldapUser = new LDAPServicesImpl().getUser(LDAPDirectoryType.ACTIVE_DIRECTORY, userId,
 					ldapContext);
 			System.out.println(ldapUser);
 		}
 
 		System.out.println(subgroupLevel1);
+	}
+
+	@Test
+	public void whenDnForUserThenOk()
+			throws Exception {
+		LdapContext ldapContext = getValidContext();
+		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
+		String dn = new LDAPServicesImpl().dnForUser(ldapContext, "username0", Arrays.asList(ouWith3001Users));
+		assertThat(dn).isEqualTo("CN=username0,OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca");
+		System.out.println(dn);
 	}
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
@@ -276,16 +277,17 @@ public class ConstellioPluginConfigurationManager {
 	}
 
 	private String stackTraceToString(Throwable throwable) {
-		StringBuilder sb = new StringBuilder();
-		for (StackTraceElement element : throwable.getStackTrace()) {
-			sb.append(element.toString());
-			sb.append("\n");
-		}
-		sb.append(throwable.getMessage());
-		sb.append("\n");
-		sb.append(throwable.getLocalizedMessage());
-		sb.append("\n");
-		return sb.toString();
+		return ExceptionUtils.getStackTrace(throwable);
+//		StringBuilder sb = new StringBuilder();
+		//		for (StackTraceElement element : throwable.getStackTrace()) {
+		//			sb.append(element.toString());
+		//			sb.append("\n");
+		//		}
+		//		sb.append(throwable.getMessage());
+		//		sb.append("\n");
+		//		sb.append(throwable.getLocalizedMessage());
+		//		sb.append("\n");
+		//		return sb.toString();
 	}
 
 	public void removePlugin(final String pluginId) {

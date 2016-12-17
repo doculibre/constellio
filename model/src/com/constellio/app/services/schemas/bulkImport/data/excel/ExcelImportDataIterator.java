@@ -16,6 +16,7 @@ import org.joda.time.format.DateTimeFormatter;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.utils.LazyIterator;
 import com.drew.metadata.MetadataException;
 
@@ -54,6 +55,11 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 				}
 			}
 		}
+	}
+
+	@Override
+	public ImportDataOptions getOptions() {
+		return new ImportDataOptions();
 	}
 
 	@Override
@@ -190,7 +196,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			List<Map<String, String>> structure,
 			ExcelCell cell) {
 		structure = structure != null ? structure : new ArrayList<Map<String, String>>();
-		if(currentType.isMultiline() && currentType.getSeparator() != null) {
+		if (currentType.isMultiline() && currentType.getSeparator() != null) {
 			structure = createMultilineSubStructure(currentType, cell);
 		} else {
 			Map<String, String> itemStructure = createUpdateItemSubStructure(currentType, cell, structure);
@@ -209,7 +215,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		String[] lines = cell.getContents().split("\n");
 		for (int i = 0; i < lines.length; i++) {
 			Map<String, String> subStructure = new HashMap<String, String>();
-			if(StringUtils.isNotBlank(lines[i])) {
+			if (StringUtils.isNotBlank(lines[i])) {
 				String[] values = lines[i].split(currentType.getSeparator());
 				for (int j = 0; j < values.length; j++) {
 					subStructure.put(metadataNames[j], values[j]);
@@ -220,7 +226,8 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		return structure;
 	}
 
-	private Map<String, String> createUpdateItemSubStructure(ExcelDataType currentType, ExcelCell cell, List<Map<String, String>> structure) {
+	private Map<String, String> createUpdateItemSubStructure(ExcelDataType currentType, ExcelCell cell,
+			List<Map<String, String>> structure) {
 		Map<String, String> itemStructure;
 		if (structure.size() >= currentType.getItem() && !structure.isEmpty()) {
 			itemStructure = structure.get(currentType.getItem() - 1);
@@ -244,7 +251,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			return builder.toString();
 		}
 		return value != null ? String.valueOf(value) : null;
-//		return String.valueOf(value);
+		//		return String.valueOf(value);
 	}
 
 	private boolean lineIsEmpty() {

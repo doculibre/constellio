@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Locale;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,7 +28,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Mock AddEditFolderView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	AddEditFolderPresenter presenter;
 	SessionContext sessionContext;
@@ -46,7 +47,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -56,7 +57,7 @@ public class AddEditFolderFolderPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = spy(new AddEditFolderPresenter(view));
 

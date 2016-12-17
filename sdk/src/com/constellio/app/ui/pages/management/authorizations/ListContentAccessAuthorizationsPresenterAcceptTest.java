@@ -107,7 +107,7 @@ public class ListContentAccessAuthorizationsPresenterAcceptTest extends Constell
 		legends = users.legendsIn(zeCollection).getId();
 		rumors = users.rumorsIn(zeCollection).getId();
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		Transaction transaction = new Transaction();
 		transaction.add(rm.newAdministrativeUnitWithId(zeRootConcept).setCode("Ze root unit").setTitle("Ze root unit!"));
 		transaction

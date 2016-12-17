@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
@@ -34,6 +35,7 @@ public class MetadataVO implements Serializable {
 	final Class<? extends Enum<?>> enumClass;
 	final String[] taxonomyCodes;
 	final MetadataInputType metadataInputType;
+	final MetadataDisplayType metadataDisplayType;
 	final AllowedReferences allowedReferences;
 	final StructureFactory structureFactory;
 	final String metadataGroup;
@@ -42,19 +44,19 @@ public class MetadataVO implements Serializable {
 
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
-			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
+			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
 			AllowedReferences allowedReferences, boolean enabled, StructureFactory structureFactory, String metadataGroup,
 			Object defaultValue) {
 		this(code, null, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
-				schemaTypeCode, metadataInputType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue,
+				schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled, structureFactory, metadataGroup, defaultValue,
 				null);
 	}
 
 	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
-			boolean required, boolean multivalue, boolean readOnly, Map<Locale, String> labels,
-			Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-			MetadataInputType metadataInputType, AllowedReferences allowedReferences, boolean enabled,
-			StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask) {
+					  boolean required, boolean multivalue, boolean readOnly, Map<Locale, String> labels,
+					  Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
+					  MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
+					  StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask) {
 		super();
 		this.code = code;
 		this.datastoreCode = datastoreCode;
@@ -69,6 +71,7 @@ public class MetadataVO implements Serializable {
 		this.enumClass = enumClass;
 		this.taxonomyCodes = taxonomyCodes;
 		this.metadataInputType = metadataInputType;
+		this.metadataDisplayType = metadataDisplayType;
 		this.allowedReferences = allowedReferences;
 		this.enabled = enabled;
 		this.structureFactory = structureFactory;
@@ -84,11 +87,11 @@ public class MetadataVO implements Serializable {
 	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema,
 			boolean required,
 			boolean multivalue, boolean readOnly, Map<Locale, String> labels, Class<? extends Enum<?>> enumClass,
-			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType,
+			String[] taxonomyCodes, String schemaTypeCode, MetadataInputType metadataInputType, MetadataDisplayType metadataDisplayType,
 			AllowedReferences allowedReferences, String metadataGroup, Object defaultValue, boolean isWriteNullValues) {
 
 		this(code, type, collection, schema, required, multivalue, readOnly, labels, enumClass, taxonomyCodes,
-				schemaTypeCode, metadataInputType, allowedReferences, true, null, metadataGroup, defaultValue);
+				schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null, metadataGroup, defaultValue);
 	}
 
 	public MetadataVO() {
@@ -106,6 +109,7 @@ public class MetadataVO implements Serializable {
 		this.enumClass = null;
 		this.taxonomyCodes = new String[0];
 		this.metadataInputType = null;
+		this.metadataDisplayType = null;
 		this.enabled = true;
 		this.allowedReferences = null;
 		this.structureFactory = null;
@@ -175,6 +179,10 @@ public class MetadataVO implements Serializable {
 
 	public final MetadataInputType getMetadataInputType() {
 		return metadataInputType;
+	}
+
+	public final MetadataDisplayType getMetadataDisplayType() {
+		return metadataDisplayType;
 	}
 
 	public final StructureFactory getStructureFactory() {
@@ -297,8 +305,8 @@ public class MetadataVO implements Serializable {
 				if (other.schema != null) {
 					return false;
 				}
-			} else if (!schema.equals(other.schema)) {
-				return false;
+//			} else if (!schema.equals(other.schema)) {
+//				return false;
 			}
 		}
 		return true;

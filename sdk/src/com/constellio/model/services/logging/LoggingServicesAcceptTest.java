@@ -17,8 +17,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -80,7 +78,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
 		searchServices = getModelLayerFactory().newSearchServices();
 		UserServices userServices = getModelLayerFactory().newUserServices();
@@ -263,10 +261,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		assertThat(events.get(3).getUsername()).isEqualTo(aliceWonderland);
 		assertThat(events.get(3).getRecordId()).isEqualTo("record3");
 		assertThat(events.get(3).getType()).isEqualTo("create_zeSchemaType");
-
-
-
-
 
 	}
 
@@ -464,7 +458,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		Event event = rm.wrapEvent(folders.get(0));
 		assertThat(event.getType()).isEqualTo(EventType.MODIFY_FOLDER);
 		assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
-		String expectedDelta = "[ Titre :\n" +
+		String expectedDelta = "[ folder_default_title :\n" +
 				"\tAvant : titre1\n" +
 				"\tAprès : titre2]\n";
 		assertThat(event.getDelta()).isEqualTo(expectedDelta);

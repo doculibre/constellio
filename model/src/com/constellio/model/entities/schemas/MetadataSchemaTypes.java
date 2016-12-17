@@ -1,8 +1,12 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +14,7 @@ import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -30,9 +35,15 @@ public class MetadataSchemaTypes {
 	private final List<String> schemaTypesSortedByDependency;
 	private List<String> referenceDefaultValues;
 	private MetadataList searchableMetadatas;
+	private final Set<String> typeParentOfOtherTypes;
+
+	private final List<Language> languages;
+
+	private final MetadataNetwork metadataNetwork;
 
 	public MetadataSchemaTypes(String collection, int version, List<MetadataSchemaType> schemaTypes,
-			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues) {
+			List<String> schemaTypesSortedByDependency, List<String> referenceDefaultValues, List<Language> languages,
+			MetadataNetwork metadataNetwork) {
 		super();
 		this.version = version;
 		this.collection = collection;
@@ -41,6 +52,30 @@ public class MetadataSchemaTypes {
 		this.referenceDefaultValues = referenceDefaultValues;
 		this.searchableMetadatas = getAllMetadatas().onlySearchable();
 		this.schemaTypesMap = toUnmodifiableMap(schemaTypes);
+		this.languages = Collections.unmodifiableList(languages);
+		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
+		this.metadataNetwork = metadataNetwork;
+	}
+
+	private Set<String> buildTypeParentOfOtherTypes(List<MetadataSchemaType> schemaTypes) {
+
+		Set<String> typeParentOfOtherTypes = new HashSet<>();
+
+		for (MetadataSchemaType type : schemaTypes) {
+			secondFor:
+			for (MetadataSchemaType anotherType : schemaTypes) {
+				for (Metadata metadata : anotherType.getAllMetadatas()) {
+					if (metadata.getType() == REFERENCE && metadata.isChildOfRelationship()
+							&& metadata.getAllowedReferences().isAllowed(type)) {
+						typeParentOfOtherTypes.add(type.getCode());
+						break secondFor;
+					}
+				}
+			}
+		}
+
+		return Collections.unmodifiableSet(typeParentOfOtherTypes);
+
 	}
 
 	private Map<String, MetadataSchemaType> toUnmodifiableMap(List<MetadataSchemaType> schemaTypes) {
@@ -51,12 +86,20 @@ public class MetadataSchemaTypes {
 		return Collections.unmodifiableMap(types);
 	}
 
+	public MetadataNetwork getMetadataNetwork() {
+		return metadataNetwork;
+	}
+
 	public String getCollection() {
 		return collection;
 	}
 
 	public int getVersion() {
 		return version;
+	}
+
+	public List<Language> getLanguages() {
+		return languages;
 	}
 
 	public List<MetadataSchemaType> getSchemaTypesWithCode(List<String> codes) {
@@ -131,12 +174,12 @@ public class MetadataSchemaTypes {
 
 	@Override
 	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
+		return HashCodeBuilder.reflectionHashCode(this, "metadataNetwork");
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
+		return EqualsBuilder.reflectionEquals(this, obj, "metadataNetwork");
 	}
 
 	@Override
@@ -180,6 +223,11 @@ public class MetadataSchemaTypes {
 
 	public boolean hasMetadata(String metadataCode) {
 
+		String schemaCode = new SchemaUtils().getSchemaCode(metadataCode);
+		if (!hasSchema(schemaCode)) {
+			return false;
+		}
+
 		try {
 			getMetadata(metadataCode);
 			return true;
@@ -204,13 +252,19 @@ public class MetadataSchemaTypes {
 		return returnedMetadataSchemaTypes;
 	}
 
+	public List<MetadataSchemaType> getSchemaTypesSortedByLabelsOfLanguage(final Language language) {
+		List<MetadataSchemaType> types = new ArrayList<>(schemaTypes);
+		Collections.sort(types, new Comparator<MetadataSchemaType>() {
+			@Override
+			public int compare(MetadataSchemaType o1, MetadataSchemaType o2) {
+				return o1.getLabel(language).compareTo(o2.getLabel(language));
+			}
+		});
+		return Collections.unmodifiableList(types);
+	}
+
 	public boolean hasType(String schemaType) {
-		try {
-			getSchemaType(schemaType);
-			return true;
-		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
-			return false;
-		}
+		return schemaTypesMap.containsKey(schemaType);
 	}
 
 	public boolean hasSchema(String schemaCode) {
@@ -232,5 +286,17 @@ public class MetadataSchemaTypes {
 			metadatas.addAll(schemaType.getAllMetadataIncludingInheritedOnes());
 		}
 		return metadatas;
+	}
+
+	public boolean isRecordTypeMetadata(Metadata metadata) {
+		if ("type".equals(metadata.getCode()) || metadata.getType() == REFERENCE) {
+			MetadataSchema referencedSchema = getDefaultSchema(metadata.getReferencedSchemaType());
+			return referencedSchema.hasMetadataWithCode("linkedSchema");
+		}
+		return false;
+	}
+
+	public Set<String> getTypeParentOfOtherTypes() {
+		return typeParentOfOtherTypes;
 	}
 }

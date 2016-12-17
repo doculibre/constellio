@@ -15,6 +15,7 @@ import java.util.List;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -28,11 +29,11 @@ public class DecommissioningSearchConditionFactory {
 	SearchServices searchServices;
 	DecommissioningService decommissioningService;
 
-	public DecommissioningSearchConditionFactory(String collection, ModelLayerFactory modelLayerFactory) {
-		this.schemas = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		this.searchServices = modelLayerFactory.newSearchServices();
-		this.decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+	public DecommissioningSearchConditionFactory(String collection, AppLayerFactory appLayerFactory) {
+		this.schemas = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		this.taxonomiesSearchServices = appLayerFactory.getModelLayerFactory().newTaxonomiesSearchService();
+		this.searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
 	public static List<SearchType> availableCriteriaForFoldersWithoutPlanifiedDate() {
@@ -84,53 +85,53 @@ public class DecommissioningSearchConditionFactory {
 
 	public LogicalSearchCondition withoutClosingDateAndWithFixedPeriod(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.FIXED)
-				.andWhere(schemas.folderCloseDate()).isNull()
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
+				.andWhere(schemas.folder.activeRetentionType()).isEqualTo(RetentionType.FIXED)
+				.andWhere(schemas.folder.closingDate()).isNull()
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition withoutClosingDateAndWith888Period(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.OPEN)
-				.andWhere(schemas.folderCloseDate()).isNull()
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
+				.andWhere(schemas.folder.activeRetentionType()).isEqualTo(RetentionType.OPEN)
+				.andWhere(schemas.folder.closingDate()).isNull()
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition withoutClosingDateAndWith999Period(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderActiveRetentionType()).isEqualTo(RetentionType.UNTIL_REPLACED)
-				.andWhere(schemas.folderCloseDate()).isNull()
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
+				.andWhere(schemas.folder.activeRetentionType()).isEqualTo(RetentionType.UNTIL_REPLACED)
+				.andWhere(schemas.folder.closingDate()).isNull()
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToTransferToSemiActive(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderPlanifiedTransferDate()).isLessOrEqualThan(getLocalDate())
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
+				.andWhere(schemas.folder.expectedTransferDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToDestroy(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
+				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition activeToDeposit(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(ACTIVE);
+				.andWhere(schemas.folder.expectedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(ACTIVE);
 	}
 
 	public LogicalSearchCondition semiActiveToDestroy(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderPlanifiedDestructionDate()).isLessOrEqualThan(getLocalDate())
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
+				.andWhere(schemas.folder.expectedDestructionDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition semiActiveToDeposit(String adminUnitId) {
 		return fromFolderWhereAdministrativeUnitIs(adminUnitId)
-				.andWhere(schemas.folderPlanifiedDepositDate()).isLessOrEqualThan(getLocalDate())
-				.andWhere(schemas.folderArchivisticStatus()).isEqualTo(SEMI_ACTIVE);
+				.andWhere(schemas.folder.expectedDepositDate()).isLessOrEqualThan(getLocalDate())
+				.andWhere(schemas.folder.archivisticStatus()).isEqualTo(SEMI_ACTIVE);
 	}
 
 	public LogicalSearchCondition documentTransfer(String adminUnitId) {
@@ -171,10 +172,10 @@ public class DecommissioningSearchConditionFactory {
 	public LogicalSearchCondition getVisibleContainersCondition(ContainerSearchParameters params) {
 		params.validate();
 
-		return from(schemas.containerRecordSchemaType())
-				.where(schemas.containerAdministrativeUnit()).isEqualTo(params.adminUnitId)
-				.andWhere(schemas.containerDecommissioningType()).isEqualTo(params.type)
-				.andWhere(schemas.containerStorageSpace()).is(params.withStorage ? isNotNull() : isNull());
+		return from(schemas.containerRecord.schemaType())
+				.where(schemas.containerRecord.administrativeUnit()).isEqualTo(params.adminUnitId)
+				.andWhere(schemas.containerRecord.decommissioningType()).isEqualTo(params.type)
+				.andWhere(schemas.containerRecord.storageSpace()).is(params.withStorage ? isNotNull() : isNull());
 	}
 
 	public long getVisibleContainersCount(ContainerSearchParameters params) {
@@ -182,24 +183,24 @@ public class DecommissioningSearchConditionFactory {
 
 		List<String> units = decommissioningService.getAllAdminUnitIdsHierarchyOf(params.adminUnitId);
 
-		LogicalSearchCondition condition = from(schemas.containerRecordSchemaType())
-				.where(schemas.containerAdministrativeUnit()).isIn(units)
-				.andWhere(schemas.containerDecommissioningType()).isEqualTo(params.type)
-				.andWhere(schemas.containerStorageSpace()).is(params.withStorage ? isNotNull() : isNull());
+		LogicalSearchCondition condition = from(schemas.containerRecord.schemaType())
+				.where(schemas.containerRecord.administrativeUnit()).isIn(units)
+				.andWhere(schemas.containerRecord.decommissioningType()).isEqualTo(params.type)
+				.andWhere(schemas.containerRecord.storageSpace()).is(params.withStorage ? isNotNull() : isNull());
 
 		return searchServices.getResultsCount(condition);
 	}
 
 	public long getVisibleSubAdministrativeUnitCount(String administrativeUnitId) {
 
-		LogicalSearchCondition condition = from(schemas.administrativeUnitSchemaType())
-				.where(schemas.administrativeUnitParent()).is(administrativeUnitId)
+		LogicalSearchCondition condition = from(schemas.administrativeUnit.schemaType())
+				.where(schemas.administrativeUnit.parent()).is(administrativeUnitId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
 		return searchServices.getResultsCount(condition);
 	}
 
 	private LogicalSearchCondition fromFolderWhereAdministrativeUnitIs(String adminUnitId) {
-		return from(schemas.folderSchemaType()).where(schemas.folderAdministrativeUnit()).isEqualTo(adminUnitId);
+		return from(schemas.folder.schemaType()).where(schemas.folder.administrativeUnit()).isEqualTo(adminUnitId);
 	}
 
 	private LogicalSearchCondition fromDocumentWhereAdministrativeUnitIs(String adminUnitId) {

@@ -4,8 +4,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -51,6 +52,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 		}
 		setSchemaCode(newSchemaCode);
 		container = copyMetadataToSchema(view.getUpdatedContainer(), newSchemaCode);
+		container.set(ContainerRecord.TYPE, type);
 		view.reloadWithContainer(container);
 	}
 
@@ -64,16 +66,17 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	public void saveButtonClicked(RecordVO record) {
 		addOrUpdate(toRecord(record));
-		view.navigateTo().displayContainer(record.getId());
+		view.navigate().to(RMViews.class).displayContainer(record.getId());
 	}
 
 	public void cancelRequested() {
-		view.navigateTo().previousView();
+		view.navigate().to().previousView();
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
+		return securityServices.canCreateContainers(user);
 	}
 
 	protected Record newContainerRecord() {
@@ -98,7 +101,14 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	}
 
 	private String getLinkedSchemaCodeOf(String id) {
+		String linkedSchemaCode;
 		ContainerRecordType type = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getContainerRecordType(id);
-		return StringUtils.defaultIfBlank(type.getLinkedSchema(), ContainerRecord.DEFAULT_SCHEMA);
+		if (type == null || StringUtils.isBlank(type.getLinkedSchema())) {
+			linkedSchemaCode = ContainerRecord.DEFAULT_SCHEMA;
+		} else {
+			linkedSchemaCode = type.getLinkedSchema();
+		}
+		return linkedSchemaCode;
 	}
+	
 }

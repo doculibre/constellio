@@ -1,6 +1,11 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,14 +18,18 @@ import org.joda.time.LocalDateTime;
 import org.junit.Test;
 
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.annotations.SlowTest;
@@ -59,7 +68,7 @@ public class CoreMigrationTo_6_2AcceptanceTest extends ConstellioTest {
 		assertThat(dakotaUser.getEmail()).isEqualTo("dakota@doculibre.com");
 		assertThat(dakotaUser.getCollections()).containsOnly("zeCollection");
 		assertThat(dakotaUser.getGlobalGroups()).containsOnly(heroes.getCode());
-		assertThat(dakotaUser.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+		assertThat(dakotaUser.getStatus()).isEqualTo(ACTIVE);
 
 		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
 		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
@@ -110,7 +119,7 @@ public class CoreMigrationTo_6_2AcceptanceTest extends ConstellioTest {
 		assertThat(user4InNoCollection.getCollections()).isEmpty();
 
 		//2. validate statuses
-		assertThat(user1.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+		assertThat(user1.getStatus()).isEqualTo(ACTIVE);
 		User user5Approval = userServices.getUserInCollection("user5Apporval", zeCollection);
 		assertThat(user5Approval.getStatus()).isEqualTo(UserCredentialStatus.PENDING);
 		User user6Suspended = userServices.getUserInCollection("user6Suspended", zeCollection);
@@ -142,6 +151,87 @@ public class CoreMigrationTo_6_2AcceptanceTest extends ConstellioTest {
 		Map<String, LocalDateTime> tokens = user11Credentials.getAccessTokens();
 		assertThat(tokens.size()).isEqualTo(1);
 		assertThat(user2InCollection2.getAccessTokens()).isEmpty();
+
+	}
+
+	@Test
+	public void givenSystemWithStrangeUsersThenNotAllAreMigrated()
+			throws Exception {
+		givenSystemInState("given_system_in_6.1_with__module__with-strange-users.zip");
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		SchemasRecordsServices system = new SchemasRecordsServices(SYSTEM_COLLECTION, getModelLayerFactory());
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		//Verify usercredential and global group
+
+		List<GlobalGroup> globalGroups = system.wrapGlobalGroups(searchServices.search(new LogicalSearchQuery(
+				from(system.globalGroupSchemaType()).returnAll())));
+
+		assertThat(globalGroups).extracting("code", "name", "status").contains(
+				tuple("group1", "Ze group 1", GlobalGroupStatus.ACTIVE)
+		);
+
+		List<UserCredential> userCredentials = system.wrapCredentials(searchServices.search(new LogicalSearchQuery(
+				from(system.credentialSchemaType()).returnAll())));
+
+		assertThat(userCredentials).extracting("username", "firstName", "lastName", "email", "status").contains(
+				tuple("admin", "System", "Admin", "admin@organization.com", ACTIVE),
+				tuple("alice1", "Alice", "Wonderland", "alice@email.com", ACTIVE),
+				tuple("alice2", "Alice", "Wonderland", "alice@email.com", ACTIVE),
+				tuple("charles", "Charles", "Xavier", null, ACTIVE),
+				tuple("chuck", null, null, null, ACTIVE),
+				tuple("gandalf", "gandalf", "legris", "gandalf.legris@gmail.com", ACTIVE)
+		);
+
+		//Verify user and groups is ze collection
+
+		SchemasRecordsServices collection = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+		List<Group> groups = system.wrapGroups(searchServices.search(new LogicalSearchQuery(
+				from(collection.groupSchemaType()).returnAll())));
+
+		assertThat(groups).extracting("code", "title").contains(
+				tuple("group1", "Ze group 1")
+		);
+
+		List<User> users = system.wrapUsers(searchServices.search(new LogicalSearchQuery(
+				from(collection.userSchemaType()).returnAll())));
+
+		assertThat(users).extracting("username", "firstName", "lastName", "email", "status").contains(
+				tuple("alice1", "Alice", "Wonderland", "alice@email.com", ACTIVE),
+				tuple("alice2", "Alice", "Wonderland", "alice@email.com", ACTIVE),
+				tuple("chuck", null, null, null, ACTIVE),
+				tuple("gandalf", "gandalf", "legris", "gandalf.legris@gmail.com", ACTIVE)
+		).doesNotContain(
+				tuple("gandalf", "gandalf", "leblanc", "gandalf.leblanc@gmail.com", ACTIVE)
+		);
+
+	}
+
+	@Test
+	public void givenSystemIn6_2WithAProblemAndOldUserAndGroupFilesThenNotFixedAtStartup()
+			throws Exception {
+		givenSystemInState("given_system_in_6.2.2_with_tasks,rm_modules__ProblemAndOldUserGroupFiles.zip");
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		assertThat(userServices.getUserCredential(aliceWonderland).getCollections()).containsOnly(zeCollection);
+		try {
+			userServices.getUserInCollection(aliceWonderland, "newCollection");
+			fail("Exception expected");
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection e) {
+			//OK
+		}
+
+	}
+
+	@Test
+	public void givenSystemIn6_2WithAProblemAndRenamedOldUserAndGroupFilesThenNotFixedAtStartup()
+			throws Exception {
+
+		givenSystemInState("given_system_in_6.2.2_with_tasks,rm_modules__ProblemAndRenamedOldUserGroupFiles.zip");
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		assertThat(userServices.getUserCredential(aliceWonderland).getCollections()).containsOnly(zeCollection, "newCollection");
+		assertThat(userServices.getUserInCollection(aliceWonderland, "newCollection")).isNotNull();
 
 	}
 

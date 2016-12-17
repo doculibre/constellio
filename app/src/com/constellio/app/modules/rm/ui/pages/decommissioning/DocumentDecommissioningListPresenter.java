@@ -63,7 +63,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void editButtonClicked() {
-		view.navigateTo().editDecommissioningList(recordId);
+		view.navigate().to(RMViews.class).editDecommissioningList(recordId);
 	}
 
 	public boolean isDeletable() {
@@ -131,14 +131,14 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}
 
 	RMSchemasRecordsServices rmRecordsServices() {
 		if (rmRecordsServices == null) {
-			rmRecordsServices = new RMSchemasRecordsServices(view.getCollection(), modelLayerFactory);
+			rmRecordsServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordsServices;
 	}
@@ -151,6 +151,6 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 }

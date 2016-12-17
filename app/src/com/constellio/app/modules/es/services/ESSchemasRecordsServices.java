@@ -10,8 +10,10 @@ import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -45,6 +47,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -380,9 +383,33 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
 				anyConditions(
 						where(connectorDocument.fetched()).isFalse(),
-						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode))
+						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode),
+						where(connectorDocument.nextFetch()).isLessOrEqualThan(TimeProvider.getLocalDateTime())
+				)
+
 		));
 		return query;
+	}
+
+	public Iterator<String> getUrlsIterator(LogicalSearchQuery query) {
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL));
+		final Iterator<Record> recordIterator = getSearchServices().recordsIterator(query, 1000);
+		return new Iterator<String>() {
+			@Override
+			public boolean hasNext() {
+				return recordIterator.hasNext();
+			}
+
+			@Override
+			public String next() {
+				return recordIterator.next().get(Schemas.URL);
+			}
+
+			@Override
+			public void remove() {
+				recordIterator.remove();
+			}
+		};
 	}
 
 	public class SchemaTypeShortcuts_connectorDocument_common extends SchemaTypeShortcuts {
@@ -391,75 +418,75 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		}
 
 		public Metadata url() {
-			return Metadata.newGlobalMetadata("url_s", STRING, false);
+			return Metadata.newGlobalMetadata("url_s", STRING, false, false);
 		}
 
 		public Metadata mimetype() {
-			return Metadata.newGlobalMetadata("mimetype_s", STRING, false);
+			return Metadata.newGlobalMetadata("mimetype_s", STRING, false, false);
 		}
 
 		public Metadata traversalCode() {
-			return Metadata.newGlobalMetadata("traversalCode_s", STRING, false);
+			return Metadata.newGlobalMetadata("traversalCode_s", STRING, false, false);
 		}
 
 		public Metadata connector() {
-			return Metadata.newGlobalMetadata("connector_s", REFERENCE, false);
+			return Metadata.newGlobalMetadata("connector_s", REFERENCE, false, false);
 		}
 
 		public Metadata connectorType() {
-			return Metadata.newGlobalMetadata("connectorType_s", REFERENCE, false);
+			return Metadata.newGlobalMetadata("connectorType_s", REFERENCE, false, false);
 		}
 
 		public Metadata fetched() {
-			return Metadata.newGlobalMetadata("fetched_s", BOOLEAN, false);
+			return Metadata.newGlobalMetadata("fetched_s", BOOLEAN, false, false);
 		}
 
 		public Metadata fetchedDateTime() {
-			return Metadata.newGlobalMetadata("fetchedDateTime_dt", DATE_TIME, false);
+			return Metadata.newGlobalMetadata("fetchedDateTime_dt", DATE_TIME, false, false);
 		}
 
 		public Metadata status() {
-			return Metadata.newGlobalMetadata("status_s", ENUM, false);
+			return Metadata.newGlobalMetadata("status_s", ENUM, false, false);
 		}
 
 		public Metadata fetchFrequency() {
-			return Metadata.newGlobalMetadata("fetchFrequency_s", ENUM, false);
+			return Metadata.newGlobalMetadata("fetchFrequency_s", ENUM, false, false);
 		}
 
 		public Metadata fetchDelay() {
-			return Metadata.newGlobalMetadata("fetchDelay_d", NUMBER, false);
+			return Metadata.newGlobalMetadata("fetchDelay_d", NUMBER, false, false);
 		}
 
 		public Metadata nextFetch() {
-			return Metadata.newGlobalMetadata("nextFetch_dt", DATE_TIME, false);
+			return Metadata.newGlobalMetadata("nextFetch_dt", DATE_TIME, false, false);
 		}
 
 		public Metadata searchable() {
-			return Metadata.newGlobalMetadata("searchable_s", BOOLEAN, false);
+			return Metadata.newGlobalMetadata("searchable_s", BOOLEAN, false, false);
 		}
 
 		public Metadata neverFetch() {
-			return Metadata.newGlobalMetadata("neverFetch_s", BOOLEAN, false);
+			return Metadata.newGlobalMetadata("neverFetch_s", BOOLEAN, false, false);
 		}
 
 		public Metadata errorCode() {
-			return Metadata.newGlobalMetadata("errorCode_s", STRING, false);
+			return Metadata.newGlobalMetadata("errorCode_s", STRING, false, false);
 		}
 
 		public Metadata errorsCount() {
-			return Metadata.newGlobalMetadata("errorsCount_d", NUMBER, false);
+			return Metadata.newGlobalMetadata("errorsCount_d", NUMBER, false, false);
 		}
 
 		public Metadata errorMessage() {
-			return Metadata.newGlobalMetadata("errorMessage_s", STRING, false);
+			return Metadata.newGlobalMetadata("errorMessage_s", STRING, false, false);
 		}
 
 		public Metadata errorStackTrace() {
-			return Metadata.newGlobalMetadata("errorStackTrace_s", TEXT, false);
+			return Metadata.newGlobalMetadata("errorStackTrace_s", TEXT, false, false);
 		}
 
 		public final Metadata lastModified() {
-			return Metadata.newGlobalMetadata("lastModified_dt", DATE_TIME, false);
+			return Metadata.newGlobalMetadata("lastModified_dt", DATE_TIME, false, false);
 		}
 	}
 
@@ -535,4 +562,63 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return document;
 	}
 
+	public Iterator<ConnectorSmbDocument> iterateConnectorSmbDocuments(LogicalSearchCondition condition) {
+		MetadataSchemaType type = connectorSmbDocument.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return iterateConnectorSmbDocuments(query);
+	}
+
+	public Iterator<ConnectorSmbDocument> iterateConnectorSmbDocuments(LogicalSearchQuery query) {
+		return wrapRecordIteratorToSmbDocument(
+				appLayerFactory.getModelLayerFactory().newSearchServices().recordsIterator(query, 100));
+	}
+
+	public Iterator<ConnectorSmbDocument> wrapRecordIteratorToSmbDocument(final Iterator<Record> recordsIterator) {
+		return new Iterator<ConnectorSmbDocument>() {
+			@Override
+			public boolean hasNext() {
+				return recordsIterator.hasNext();
+			}
+
+			@Override
+			public ConnectorSmbDocument next() {
+				return wrapConnectorSmbDocument(recordsIterator.next());
+			}
+
+			@Override
+			public void remove() {
+				recordsIterator.remove();
+			}
+		};
+	}
+
+	public Iterator<ConnectorSmbFolder> iterateConnectorSmbFolders(LogicalSearchCondition condition) {
+		MetadataSchemaType type = connectorSmbDocument.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return iterateConnectorSmbFolders(query);
+	}
+
+	public Iterator<ConnectorSmbFolder> iterateConnectorSmbFolders(LogicalSearchQuery query) {
+		return wrapRecordIteratorToSmbFolder(
+				appLayerFactory.getModelLayerFactory().newSearchServices().recordsIterator(query, 100));
+	}
+
+	public Iterator<ConnectorSmbFolder> wrapRecordIteratorToSmbFolder(final Iterator<Record> recordsIterator) {
+		return new Iterator<ConnectorSmbFolder>() {
+			@Override
+			public boolean hasNext() {
+				return recordsIterator.hasNext();
+			}
+
+			@Override
+			public ConnectorSmbFolder next() {
+				return wrapConnectorSmbFolder(recordsIterator.next());
+			}
+
+			@Override
+			public void remove() {
+				recordsIterator.remove();
+			}
+		};
+	}
 }

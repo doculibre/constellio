@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+
+import com.constellio.data.threads.ConstellioJobManager;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -39,6 +40,8 @@ import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
@@ -54,6 +57,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class DataLayerFactory extends LayerFactory {
 
+	private static final String RECORDS_SEQUENCE_TABLE_CONFIG_PATH = "/sequence.properties";
+	private static final String SECONDARY_SEQUENCE_TABLE_CONFIG_PATH = "/secondarySequence.properties";
 	static final String RECORDS_COLLECTION = "records";
 	static final String EVENTS_COLLECTION = "events";
 	static final String CONTENTS_COLLECTION = "contents";
@@ -63,11 +68,13 @@ public class DataLayerFactory extends LayerFactory {
 	private final SolrServers solrServers;
 	private final ConfigManager configManager;
 	private final UniqueIdGenerator idGenerator;
+	private final UniqueIdGenerator secondaryIdGenerator;
 	private final DataLayerConfiguration dataLayerConfiguration;
 	private final ContentDao contentDao;
 	private final BigVaultLogger bigVaultLogger;
 	private final SecondTransactionLogManager secondTransactionLogManager;
 	private final BackgroundThreadsManager backgroundThreadsManager;
+	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
@@ -86,13 +93,16 @@ public class DataLayerFactory extends LayerFactory {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
 
+		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
+
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
 					ioServicesFactory.newIOServices()));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
-					ioServicesFactory.newIOServices(), ioServicesFactory.newHashingService()));
+					ioServicesFactory.newIOServices(),
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -102,7 +112,18 @@ public class DataLayerFactory extends LayerFactory {
 			this.idGenerator = new UUIDV1Generator();
 
 		} else if (dataLayerConfiguration.getIdGeneratorType() == IdGeneratorType.SEQUENTIAL) {
-			this.idGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager));
+			this.idGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager, RECORDS_SEQUENCE_TABLE_CONFIG_PATH));
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
+		}
+
+		if (dataLayerConfiguration.getSecondaryIdGeneratorType() == IdGeneratorType.UUID_V1) {
+			this.secondaryIdGenerator = new UUIDV1Generator();
+
+		} else if (dataLayerConfiguration.getSecondaryIdGeneratorType() == IdGeneratorType.SEQUENTIAL) {
+			this.secondaryIdGenerator = add(new ZeroPaddedSequentialUniqueIdGenerator(configManager,
+					SECONDARY_SEQUENCE_TABLE_CONFIG_PATH));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported UniqueIdGenerator");
@@ -110,7 +131,7 @@ public class DataLayerFactory extends LayerFactory {
 
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices()));
+			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
 
 		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
 			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
@@ -180,6 +201,10 @@ public class DataLayerFactory extends LayerFactory {
 		return idGenerator;
 	}
 
+	public UniqueIdGenerator getSecondaryUniqueIdGenerator() {
+		return secondaryIdGenerator;
+	}
+
 	public DataLayerLogger getDataLayerLogger() {
 		return dataLayerLogger;
 	}
@@ -242,6 +267,10 @@ public class DataLayerFactory extends LayerFactory {
 		return backgroundThreadsManager;
 	}
 
+	public ConstellioJobManager getConstellioJobManager() {
+		return constellioJobManager;
+	}
+
 	public SecondTransactionLogManager getSecondTransactionLogManager() {
 		return secondTransactionLogManager;
 	}
@@ -258,10 +287,9 @@ public class DataLayerFactory extends LayerFactory {
 		return (String) solrDocument.getFieldValue("value_s");
 	}
 
-
 	public void saveEncryptionKey() {
-		Random random = new Random();
-		String solrKeyPart = random.nextInt(1000) + "-" + random.nextInt(1000) + "-" + random.nextInt(1000);
+		String solrKeyPart = dataLayerConfiguration.createRandomUniqueKey();
+
 		RecordDao recordDao = newRecordDao();
 		Map<String, Object> fields = new HashMap<>();
 		fields.put("value_s", solrKeyPart);
@@ -276,5 +304,9 @@ public class DataLayerFactory extends LayerFactory {
 
 	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
 		return this.transactionLogRecoveryManager;
+	}
+
+	public SequencesManager getSequencesManager() {
+		return new SolrSequencesManager(newRecordDao(), secondTransactionLogManager);
 	}
 }

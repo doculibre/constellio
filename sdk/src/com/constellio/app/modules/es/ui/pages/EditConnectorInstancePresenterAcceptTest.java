@@ -16,6 +16,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
@@ -46,6 +47,7 @@ public class EditConnectorInstancePresenterAcceptTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioESModule().withAllTestUsers());
 		ConstellioFactories constellioFactories = getConstellioFactories();
 
+		SessionContext sessionContext;
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(constellioFactories);

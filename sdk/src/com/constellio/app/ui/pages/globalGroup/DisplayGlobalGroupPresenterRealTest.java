@@ -1,10 +1,7 @@
 package com.constellio.app.ui.pages.globalGroup;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -12,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -39,7 +37,8 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	@Mock DisplayGlobalGroupViewImpl globalGroupView;
 	@Mock UserServices userServices;
 	@Mock GlobalGroupVO heroesGlobalGroupVO;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
+    @Mock CoreViews coreView;
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
 	@Mock GlobalGroup heroes, legends;
@@ -57,9 +56,12 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		globalGroups = new ArrayList<>();
 		globalGroups.add(heroes);
 
+        navigator = new MockedNavigation();
+
 		when(globalGroupView.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(globalGroupView.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
-		when(globalGroupView.navigateTo()).thenReturn(navigator);
+		when(globalGroupView.navigate()).thenReturn(navigator);
+
 
 		when(heroes.getCode()).thenReturn(HEROES);
 		when(heroes.getName()).thenReturn(HEROES_GLOBAL_GROUP);
@@ -102,7 +104,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
 		presenter.backButtonClicked();
 
-		verify(globalGroupView.navigateTo(), times(1)).url("url3/url1/url2/" + URLEncoder.encode("globalGroupCode=heroes",
+		verify(globalGroupView.navigate().to(), times(1)).url("url3/url1/url2/" + URLEncoder.encode("globalGroupCode=heroes",
 				"UTF-8"));
 	}
 
@@ -112,7 +114,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
 		presenter.editButtonClicked(heroesGlobalGroupVO);
 
-		verify(globalGroupView.navigateTo(), times(1))
+		verify(globalGroupView.navigate().to(), times(1))
 				.editGlobalGroup("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
 						.encode("globalGroupCode=heroes", "UTF-8"));
 	}
@@ -123,7 +125,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
 		presenter.editButtonClicked(heroesGlobalGroupVO);
 
-		verify(globalGroupView.navigateTo(), times(1))
+		verify(globalGroupView.navigate().to(), times(1))
 				.editGlobalGroup("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
 						.encode("globalGroupCode=heroes", "UTF-8"));
 	}
@@ -140,7 +142,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
 		verify(userServices).logicallyRemoveGroupHierarchy(dakotaCredential, heroes);
 		verify(presenter).cleanInvalidBackPages();
-		verify(globalGroupView.navigateTo(), times(1)).url("url1/");
+		verify(globalGroupView.navigate().to(), times(1)).url("url1/");
 	}
 
 	@Test
@@ -168,7 +170,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
 		presenter.displayUserCredentialButtonClicked(dakotaCredentialVO, HEROES);
 
-		verify(globalGroupView.navigateTo(), times(1))
+		verify(globalGroupView.navigate().to(), times(1))
 				.displayUserCredential("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
 						.encode("globalGroupCode=heroes;username=dakota", "UTF-8"));
 	}
@@ -179,7 +181,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
 		presenter.editUserCredentialButtonClicked(dakotaCredentialVO, HEROES);
 
-		verify(globalGroupView.navigateTo(), times(1))
+		verify(globalGroupView.navigate().to(), times(1))
 				.editUserCredential("url1/url2/url3/" + NavigatorConfigurationService.GROUP_DISPLAY + "/" + URLEncoder
 						.encode("globalGroupCode=heroes;username=dakota", "UTF-8"));
 	}

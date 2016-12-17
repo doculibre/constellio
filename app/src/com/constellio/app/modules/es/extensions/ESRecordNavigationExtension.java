@@ -23,6 +23,8 @@ import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 
@@ -98,44 +100,49 @@ public class ESRecordNavigationExtension implements RecordNavigationExtension {
 			String title = recordVO.get(schemaCode + "_title");
 			String id = recordVO.getId();
 			String collection = recordVO.getSchema().getCollection();
-			ReferenceDisplay component = (ReferenceDisplay) navigationParams.getComponent();
+			Component component = navigationParams.getComponent();
+			if (component instanceof ReferenceDisplay) {
+				ReferenceDisplay referenceDisplay = (ReferenceDisplay) component;
 
-			if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
-				final String filename = StringUtils
-						.substringAfterLast(url, "/");
-				clickListener = prepareFileDownloader(url, title, id, collection, component, filename);
-			} else {
-				ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
-				ConnectorManager connectorManager = es.getConnectorManager();
-				for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
-					ConnectorUtilsServices<?> services = connector.getServices();
-					for (String type : services.getConnectorDocumentTypes()) {
-						if (schemaTypeCode.equals(type)) {
-							String connectorUrl = services.getRecordExternalUrl(recordVO);
-							if (connectorUrl != null) {
-								clickListener = new ClickListener() {
-									@Override
-									public void buttonClick(ClickEvent event) {
-										navigateToView(navigationParams);
-									}
-								};
-								component.setCaption(title == null ? url : title);
-								break;
+				//if (ConnectorSmbDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
+				//	final String filename = StringUtils
+				//			.substringAfterLast(url, "/");
+				//	clickListener = prepareFileDownloader(url, title, id, collection, referenceDisplay, filename);
+				//} else {
+					ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
+					ConnectorManager connectorManager = es.getConnectorManager();
+					for (RegisteredConnector connector : connectorManager.getRegisteredConnectors()) {
+						ConnectorUtilsServices<?> services = connector.getServices();
+						for (String type : services.getConnectorDocumentTypes()) {
+							if (schemaTypeCode.equals(type)) {
+								String connectorUrl = services.getRecordExternalUrl(recordVO);
+								if (connectorUrl != null) {
+									clickListener = new ClickListener() {
+										@Override
+										public void buttonClick(ClickEvent event) {
+											navigateToView(navigationParams);
+										}
+									};
+									referenceDisplay.setCaption(title == null ? url : title);
+									break;
+								}
 							}
 						}
 					}
+				//}
+				referenceDisplay.addStyleName(SearchResultDisplay.TITLE_STYLE);
+				referenceDisplay.setEnabled(true);
+				if (clickListener == null) {
+					//to fix null titles
+					if (StringUtils.isBlank(title)) {
+						title = url;
+					}
+					clickListener = prepareFileDownloader(url, title, id, collection, referenceDisplay, title);
 				}
-			}
-			component.addStyleName(SearchResultDisplay.TITLE_STYLE);
-			component.setEnabled(true);
-			if (clickListener == null) {
-				//to fix null titles
-				if (StringUtils.isBlank(title)) {
-					title = url;
-				}
-				clickListener = prepareFileDownloader(url, title, id, collection, component, title);
-			}
-			component.addClickListener(clickListener);
+				referenceDisplay.addClickListener(clickListener);
+			} else if (component instanceof Table) {
+				// TODO Implement for table 
+			}	
 		}
 	}
 

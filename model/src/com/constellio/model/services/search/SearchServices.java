@@ -1,26 +1,5 @@
 package com.constellio.model.services.search;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.DisMaxParams;
-import org.apache.solr.common.params.FacetParams;
-import org.apache.solr.common.params.HighlightParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.MoreLikeThisParams;
-import org.apache.solr.common.params.ShardParams;
-import org.apache.solr.common.params.StatsParams;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
 import com.constellio.data.dao.dto.records.RecordDTO;
@@ -49,6 +28,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery.Use
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.*;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class SearchServices {
 	RecordDao recordDao;
@@ -187,14 +172,18 @@ public class SearchServices {
 	}
 
 	public String getLanguage(LogicalSearchQuery query) {
-		String collection = query.getCondition().getCollection();
-		String language;
-		try {
-			language = collectionsListManager.getCollectionLanguages(collection).get(0);
-		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
-			language = mainDataLanguage;
+		if (query.getCondition().isCollectionSearch()) {
+			String collection = query.getCondition().getCollection();
+			String language;
+			try {
+				language = collectionsListManager.getCollectionLanguages(collection).get(0);
+			} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+				language = mainDataLanguage;
+			}
+			return language;
+		} else {
+			return mainDataLanguage;
 		}
-		return language;
 	}
 
 	public ModifiableSolrParams addSolrModifiableParams(LogicalSearchQuery query) {
@@ -215,8 +204,9 @@ public class SearchServices {
 			String qf = getQfFor(query.getFieldBoosts());
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
-			params.add(DisMaxParams.MM, "2<66%");
+			params.add(DisMaxParams.MM, "1");
 			params.add("defType", "edismax");
+			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
 
 			for (SearchBoost boost : query.getQueryBoosts()) {
 				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());

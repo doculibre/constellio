@@ -2,13 +2,21 @@ package com.constellio.model.services.schemas.builders;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.InheritedMetadataBehaviors;
@@ -42,7 +50,7 @@ public class MetadataBuilder {
 	private String localCode;
 	private String collection;
 	private String code;
-	private String label;
+	private Map<Language, String> labels = new HashMap<>();
 	private Boolean enabled;
 	private MetadataValueType type;
 	private boolean undeletable = false;
@@ -57,6 +65,9 @@ public class MetadataBuilder {
 	private boolean sortable = false;
 	private boolean encrypted = false;
 	private boolean essentialInSummary = false;
+	private boolean multiLingual;
+	private boolean markedForDeletion = false;
+	private boolean increasedDependencyLevel = false;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
 	private ClassListBuilder<RecordMetadataValidator<?>> recordMetadataValidators;
@@ -68,8 +79,25 @@ public class MetadataBuilder {
 	private MetadataPopulateConfigsBuilder populateConfigsBuilder;
 	private ClassProvider classProvider;
 	private String inputMask;
+	private Boolean duplicable;
+	private Set<String> customAttributes;
 
 	MetadataBuilder() {
+	}
+
+	static MetadataBuilder createCustomMetadataFromOriginalCustomMetadata(MetadataBuilder customMetadata, String codeSchema) {
+		MetadataBuilder copy;
+
+		if (customMetadata.getInheritance() == null) {
+			copy = modifyMetadataWithoutInheritance(customMetadata.getOriginalMetadata(), customMetadata.getClassProvider());
+		} else {
+			MetadataBuilder inheritanceCopy = MetadataBuilder.modifyMetadataWithoutInheritance(
+					customMetadata.getInheritance().getOriginalMetadata(), customMetadata.getClassProvider());
+			copy = modifyMetadataWithInheritance(customMetadata.getOriginalMetadata(), inheritanceCopy);
+		}
+		copy.setCode(codeSchema + "_" + copy.getLocalCode());
+
+		return copy;
 	}
 
 	static MetadataBuilder createCustomMetadataFromDefault(MetadataBuilder defaultMetadata, String codeSchema) {
@@ -87,7 +115,8 @@ public class MetadataBuilder {
 		builder.defaultValue = copy(defaultMetadata.defaultValue);
 		builder.recordMetadataValidators = new ClassListBuilder<>(builder.classProvider, RecordMetadataValidator.class);
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(defaultMetadata.getPopulateConfigsBuilder());
-
+		builder.multiLingual = defaultMetadata.multiLingual;
+		builder.customAttributes = defaultMetadata.customAttributes;
 		return builder;
 	}
 
@@ -103,13 +132,17 @@ public class MetadataBuilder {
 		builder.classProvider = schemaBuilder.getClassProvider();
 		builder.setCollection(schemaBuilder.getCollection());
 		builder.setLocalCode(localCode);
-		builder.setLabel(localCode);
+		for (Language language : schemaBuilder.getLabels().keySet()) {
+			builder.addLabel(language, localCode);
+		}
 		builder.setEnabled(true);
 		builder.setDefaultRequirement(false);
 		builder.setCode(schemaBuilder.getCode() + UNDERSCORE + localCode);
 		builder.recordMetadataValidators = new ClassListBuilder<>(builder.classProvider, RecordMetadataValidator.class);
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.create();
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.create();
+		builder.setDuplicable(false);
+		builder.customAttributes = new HashSet<>();
 		return builder;
 	}
 
@@ -133,7 +166,7 @@ public class MetadataBuilder {
 		builder.setCollection(metadata.getCollection());
 		builder.setCode(metadata.getCode());
 		builder.originalMetadata = metadata;
-		builder.label = metadata.getLabel();
+		builder.setLabels(metadata.getLabels());
 		builder.enabled = metadata.isEnabled();
 		builder.type = metadata.getType();
 		builder.undeletable = metadata.isUndeletable();
@@ -152,10 +185,12 @@ public class MetadataBuilder {
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
 		builder.defaultValue = metadata.getDefaultValue();
 		builder.inputMask = metadata.getInputMask();
+		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.dataEntry = metadata.getDataEntry();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(builder.classProvider,
 				RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadata.getAccessRestrictions());
+		builder.multiLingual = metadata.isMultiLingual();
 		if (metadata.getStructureFactory() != null) {
 			builder.structureFactoryClass = (Class) metadata.getStructureFactory().getClass();
 		}
@@ -164,6 +199,9 @@ public class MetadataBuilder {
 			builder.allowedReferencesBuilder = new AllowedReferencesBuilder(metadata.getAllowedReferences());
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
+		builder.duplicable = metadata.isDuplicable();
+		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
+		builder.customAttributes = new HashSet<>(metadata.getCustomAttributes());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -189,15 +227,23 @@ public class MetadataBuilder {
 		builder.essentialInSummary = metadata.isEssentialInSummary();
 		builder.childOfRelationship = metadata.isChildOfRelationship();
 		builder.taxonomyRelationship = metadata.isTaxonomyRelationship();
+		builder.markedForDeletion = metadata.isMarkedForDeletion();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
+		builder.multiLingual = metadata.isMultiLingual();
+		builder.customAttributes = inheritanceMetadata.customAttributes;
+		builder.increasedDependencyLevel = metadata.isIncreasedDependencyLevel();
 
 		for (String validatorClassName : inheritanceMetadata.recordMetadataValidators.implementationsClassname) {
 			builder.recordMetadataValidators.remove(validatorClassName);
 		}
-		if (inheritanceMetadata.getLabel() != null && !inheritanceMetadata.getLabel().equals(metadata.getLabel())) {
-			builder.label = metadata.getLabel();
+		if (inheritanceMetadata.getLabels() != null && !inheritanceMetadata.getLabels().isEmpty()) {
+			for (Language language : inheritanceMetadata.getLabels().keySet()) {
+				if (!inheritanceMetadata.getLabel(language).equals(metadata.getLabel(language))) {
+					builder.addLabel(language, metadata.getLabel(language));
+				}
+			}
 		}
 		if (metadata.getInputMask() != null && !metadata.getInputMask().equals(inheritanceMetadata.getInputMask())) {
 			builder.inputMask = metadata.getInputMask();
@@ -217,6 +263,9 @@ public class MetadataBuilder {
 			builder.setDefaultRequirement(null);
 		}
 		builder.populateConfigsBuilder = MetadataPopulateConfigsBuilder.modify(metadata.getPopulateConfigs());
+		if (inheritanceMetadata.isDuplicable() != null && !inheritanceMetadata.isDuplicable().equals(metadata.isDuplicable())) {
+			builder.duplicable = metadata.isDuplicable();
+		}
 	}
 
 	public MetadataBuilder getInheritance() {
@@ -252,12 +301,25 @@ public class MetadataBuilder {
 		return this;
 	}
 
-	public String getLabel() {
-		return label;
+	public String getLabel(Language language) {
+		return labels.get(language);
 	}
 
-	public MetadataBuilder setLabel(String label) {
-		this.label = label;
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public MetadataBuilder setLabels(Map<Language, String> labels) {
+		if (labels == null) {
+			this.labels = new HashMap<>();
+		} else {
+			this.labels = new HashMap<>(labels);
+		}
+		return this;
+	}
+
+	public MetadataBuilder addLabel(Language language, String label) {
+		this.labels.put(language, label);
 		return this;
 	}
 
@@ -293,6 +355,16 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public boolean isMultiLingual() {
+		return inheritance == null ? multiLingual : inheritance.isMultiLingual();
+	}
+
+	public MetadataBuilder setMultiLingual(boolean multiLingual) {
+		ensureCanModify("multiLingual");
+		this.multiLingual = multiLingual;
+		return this;
+	}
+
 	public boolean isSortable() {
 		return inheritance == null ? sortable : inheritance.isSortable();
 	}
@@ -300,6 +372,16 @@ public class MetadataBuilder {
 	public MetadataBuilder setSortable(boolean sortable) {
 		ensureCanModify("sortable");
 		this.sortable = sortable;
+		return this;
+	}
+
+	public boolean isIncreasedDependencyLevel() {
+		return inheritance == null ? increasedDependencyLevel : inheritance.isIncreasedDependencyLevel();
+	}
+
+	public MetadataBuilder setIncreasedDependencyLevel(boolean increasedDependencyLevel) {
+		ensureCanModify("increasedDependencyLevel");
+		this.increasedDependencyLevel = increasedDependencyLevel;
 		return this;
 	}
 
@@ -392,6 +474,22 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public boolean isMarkedForDeletion() {
+		return inheritance == null ? markedForDeletion : inheritance.markedForDeletion;
+	}
+
+	public MetadataBuilder setMarkedForDeletion(boolean markedForDeletion) {
+		ensureCanModify("markedForDeletion");
+		if (markedForDeletion) {
+			setEssentialInSummary(false);
+			setEssential(false);
+			setDefaultRequirement(false);
+			setEnabled(false);
+		}
+		this.markedForDeletion = markedForDeletion;
+		return this;
+	}
+
 	public Object getDefaultValue() {
 		return defaultValue;
 	}
@@ -464,6 +562,15 @@ public class MetadataBuilder {
 		return this;
 	}
 
+	public Boolean isDuplicable() {
+		return duplicable;
+	}
+
+	public MetadataBuilder setDuplicable(Boolean duplicable) {
+		this.duplicable = duplicable;
+		return this;
+	}
+
 	public AllowedReferencesBuilder defineReferences() {
 		ensureCanModify("defineReferences");
 		if (type == null) {
@@ -529,8 +636,14 @@ public class MetadataBuilder {
 
 	Metadata buildWithInheritance(Metadata inheritance) {
 
-		if (this.getLabel() == null || this.getLabel().equals(localCode)) {
-			this.label = inheritance.getLabel();
+		if (this.getLabels() == null || this.getLabels().isEmpty()) {
+			this.setLabels(inheritance.getLabels());
+		} else {
+			for (Language language : inheritance.getLabels().keySet()) {
+				if ((this.getLabel(language) == null || this.getLabel(language).equals(localCode))) {
+					addLabel(language, inheritance.getLabel(language));
+				}
+			}
 		}
 		if (this.getEnabled() == null) {
 			this.enabled = inheritance.isEnabled();
@@ -562,8 +675,12 @@ public class MetadataBuilder {
 			}
 		}
 
-		return new Metadata(inheritance, this.getLabel(), this.getEnabled(), this.getDefaultRequirement(), this.code,
-				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs);
+		if (duplicable == null) {
+			duplicable = inheritance.isDuplicable();
+		}
+
+		return new Metadata(inheritance, this.getLabels(), this.getEnabled(), this.getDefaultRequirement(), this.code,
+				this.recordMetadataValidators.build(), this.defaultValue, this.inputMask, populateConfigs, duplicable);
 	}
 
 	Metadata buildWithoutInheritance(DataStoreTypesFactory typesFactory, final ModelLayerFactory modelLayerFactory) {
@@ -596,7 +713,8 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary);
+				essential, encrypted, essentialInSummary, multiLingual, markedForDeletion, customAttributes,
+				increasedDependencyLevel);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -607,10 +725,14 @@ public class MetadataBuilder {
 			}
 		};
 
-		return new Metadata(localCode, this.getCode(), collection, this.getLabel(), this.getEnabled(), behaviors,
+		if (duplicable == null) {
+			duplicable = false;
+		}
+
+		return new Metadata(localCode, this.getCode(), collection, this.getLabels(), this.getEnabled(), behaviors,
 				this.type, references, this.getDefaultRequirement(), this.dataEntry, validators, dataStoreType,
 				accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigsBuilder.build(),
-				encryptionServicesFactory);
+				encryptionServicesFactory, duplicable);
 	}
 
 	private void validateNotReferencingTaxonomy(String typeWithAllowedSchemas, TaxonomiesManager taxonomiesManager) {
@@ -668,10 +790,10 @@ public class MetadataBuilder {
 
 	@Override
 	public String toString() {
-		return "MetadataBuilder [inheritance=" + inheritance + ", localCode=" + localCode + ", code=" + code + ", label="
-				+ label + ", enabled=" + enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
+		return "MetadataBuilder [inheritance=" + inheritance + ", localCode=" + localCode + ", code=" + code + ", enabled="
+				+ enabled + ", type=" + type + ", allowedReferencesBuilder=" + allowedReferencesBuilder
 				+ ", undeletable=" + undeletable + ", defaultRequirement=" + defaultRequirement + ", dataEntry=" + dataEntry
-				+ "]";
+				+ ", duplicable=" + duplicable + "]";
 	}
 
 	public MetadataBuilder addValidator(Class<? extends RecordMetadataValidator> clazz) {
@@ -703,8 +825,14 @@ public class MetadataBuilder {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "inheritance");
 		}
 		validateCode(inheritance.getLocalCode());
-		if (builder.getLabel() == null) {
+		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
+		} else {
+			for (Entry<Language, String> entry : builder.getLabels().entrySet()) {
+				if (StringUtils.isBlank(entry.getValue())) {
+					throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
+				}
+			}
 		}
 		if (builder.getEnabled() == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "enabled");
@@ -726,9 +854,12 @@ public class MetadataBuilder {
 		if (builder.code == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "code");
 		}
-		if (builder.getLabel() == null) {
-			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
+		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
+			//FIXME
+			builder.addLabel(Language.French, builder.getCode());
+			//			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
 		}
+
 		if (builder.getEnabled() == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "enabled");
 		}
@@ -847,7 +978,34 @@ public class MetadataBuilder {
 		this.allowedReferencesBuilder = allowedReferencesBuilder;
 	}
 
+	public boolean hasFlag(String flag) {
+		return customAttributes.contains(flag);
+	}
+
+	public MetadataBuilder setCustomAttributes(Set<String> customAttributes) {
+		this.customAttributes = customAttributes;
+		return this;
+	}
+
+	public MetadataBuilder addCustomAttribute(String customAttribute) {
+		if (customAttribute.contains(",")) {
+			throw new MetadataBuilderRuntimeException.InvalidAttribute("Custom Attribute", customAttribute);
+		}
+
+		customAttributes.add(customAttribute);
+		return this;
+	}
+
+	public MetadataBuilder removeCustomAttribute(String customAttribute) {
+		customAttributes.remove(customAttribute);
+		return this;
+	}
+
 	public ClassProvider getClassProvider() {
 		return classProvider;
+	}
+
+	public Set<String> getCustomAttributes() {
+		return Collections.unmodifiableSet(customAttributes);
 	}
 }

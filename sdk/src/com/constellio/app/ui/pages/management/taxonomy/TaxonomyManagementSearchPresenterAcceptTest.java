@@ -6,7 +6,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Before;
@@ -61,6 +63,7 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(userVO.getUsername()).thenReturn(admin);
 		when(sessionContext.getCurrentUser()).thenReturn(userVO);
+		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
 		presenter = new TaxonomyManagementSearchPresenter(view);
 	}
@@ -202,7 +205,7 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 	}
 
 	private String configurePathWithParams(String freeText, String taxonmyCode) {
-		Map<String, String> params = new com.google.gwt.dev.util.collect.HashMap<>();
+		Map<String, String> params = new HashMap<>();
 		params.put("taxonomyCode", taxonmyCode);
 		params.put("q", freeText);
 		return ParamUtils.addParams(NavigatorConfigurationService.TAXONOMY_SEARCH, params);

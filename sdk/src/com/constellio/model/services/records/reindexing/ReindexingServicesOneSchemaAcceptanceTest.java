@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.reindexing;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +35,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -70,7 +72,6 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		);
 		inCollection(zeCollection).giveWriteAccessTo(dakota);
 
-
 		recordServices = getModelLayerFactory().newRecordServices();
 		reindexingServices = getModelLayerFactory().newReindexingServices();
 		recordDao = getDataLayerFactory().newRecordDao();
@@ -84,7 +85,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 	public void whenReindexingThenKeepPrivateKey()
 			throws Exception {
 		byte[] keyBefore = EncryptionKeyFactory.getApplicationKey(getModelLayerFactory()).getEncoded();
-		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
 		byte[] keyAfter = EncryptionKeyFactory.getApplicationKey(getModelLayerFactory()).getEncoded();
 		assertThat(keyAfter).isEqualTo(keyBefore);
 
@@ -114,6 +115,90 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
 		assertThat(recordServices.getDocumentById("000666").get(zeSchema.metadata("referenceToZeSchema"))).isNull();
+	}
+
+	@Test
+	public void givenAutomaticMetadataMarkedForDeletionWhenReindexingThenValuesRemovedAndMetadataDeleted()
+			throws Exception {
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "calculatedMetadata_s:*");
+
+		givenTimeIs(shishOClock);
+		Transaction transaction = new Transaction();
+		transaction.setUser(users.dakotaLIndienIn(zeCollection));
+		transaction.add(new TestRecord(zeSchema, "000042"))
+				.set(zeSchema.metadata("copiedMetadataInput"), "value1")
+				.set(zeSchema.metadata("calculatedMetadataInput"), "value2");
+
+		transaction.add(new TestRecord(zeSchema, "000666"))
+				.set(zeSchema.metadata("referenceToZeSchema"), "000042");
+		recordServices.execute(transaction);
+
+		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+		assertThat(recordDao.query(params).getNumFound()).isNotEqualTo(0);
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).getMetadata("calculatedMetadata").setMarkedForDeletion(true);
+			}
+		});
+
+		assertThat(zeSchema.metadata("calculatedMetadata").isMarkedForDeletion()).isTrue();
+		assertThat(recordDao.query(params).getNumFound()).isNotEqualTo(0);
+
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+
+		schemas.refresh();
+		assertThat(recordDao.query(params).getNumFound()).isEqualTo(0);
+		assertThat(zeSchema.instance().hasMetadataWithCode("calculatedMetadata")).isFalse();
+
+	}
+
+	@Test
+	public void givenManualMetadataMarkedForDeletionWhenReindexingThenValuesRemovedAndMetadataDeleted()
+			throws Exception {
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).create("stringMetadata").setType(STRING);
+			}
+		});
+
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "stringMetadata_s:*");
+
+		givenTimeIs(shishOClock);
+		Transaction transaction = new Transaction();
+		transaction.setUser(users.dakotaLIndienIn(zeCollection));
+		transaction.add(new TestRecord(zeSchema, "000042"))
+				.set(zeSchema.metadata("stringMetadata"), "value1");
+
+		transaction.add(new TestRecord(zeSchema, "000666"))
+				.set(zeSchema.metadata("stringMetadata"), "value2");
+		recordServices.execute(transaction);
+
+		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+		assertThat(recordDao.query(params).getNumFound()).isNotEqualTo(0);
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).getMetadata("stringMetadata").setMarkedForDeletion(true);
+			}
+		});
+
+		assertThat(zeSchema.metadata("stringMetadata").isMarkedForDeletion()).isTrue();
+		assertThat(recordDao.query(params).getNumFound()).isNotEqualTo(0);
+
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+
+		schemas.refresh();
+		assertThat(recordDao.query(params).getNumFound()).isEqualTo(0);
+		assertThat(zeSchema.instance().hasMetadataWithCode("stringMetadata")).isFalse();
+
 	}
 
 	@Test
@@ -188,11 +273,12 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 		assertNoActiveIndexForRecord("000042");
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertNoActiveIndexForRecord("000042");
 
 	}
+
 
 	@Test
 	public void givenLogicallyDeletedRecordWhenReindexingThenStillLogicallyDeleted_2()
@@ -212,7 +298,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 		assertNoActiveIndexForRecord("000666");
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertNoActiveIndexForRecord("000666");
 
@@ -308,7 +394,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertNoCounterIndexForRecord("000042");
 		assertNoCounterIndexForRecord("000666");
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000042");
 		assertActiveIndexForRecord("000666");
@@ -352,7 +438,7 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 		assertNoCounterIndexForRecord("000666");
 		assertNoCounterIndexForRecord("000042");
 
-		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
+		reindexingServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE).setBatchSize(1));
 
 		assertActiveIndexForRecord("000666");
 		assertActiveIndexForRecord("000042");

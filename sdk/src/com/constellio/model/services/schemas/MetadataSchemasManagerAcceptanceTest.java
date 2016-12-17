@@ -6,9 +6,11 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
@@ -58,10 +60,12 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -71,13 +75,18 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
+import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeException.DataEntryBuilderRuntimeException_InvalidMetadataCode;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest;
 import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
@@ -97,13 +106,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DefaultClassProvider;
+import com.constellio.model.utils.Parametrized;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
+import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
@@ -121,6 +133,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	ZeSchemaMetadatas zeSchema;
 	ZeCustomSchemaMetadatas zeCustomSchema;
 	AnotherSchemaMetadatas anotherSchema;
+	ThirdSchemaMetadatas thirdSchema;
 
 	DataStoreTypesFactory typesFactory;
 	CollectionsListManager collectionsListManager;
@@ -143,6 +156,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		zeSchema = defaultSchema.new ZeSchemaMetadatas();
 		zeCustomSchema = defaultSchema.new ZeCustomSchemaMetadatas();
 		anotherSchema = defaultSchema.new AnotherSchemaMetadatas();
+		thirdSchema = defaultSchema.new ThirdSchemaMetadatas();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		searchServices = getModelLayerFactory().newSearchServices();
 		typesFactory = getDataLayerFactory().newTypesFactory();
@@ -389,6 +403,19 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenSchemaWithCodeContainingDefaultThenWorkNormally()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				MetadataSchemaBuilder builder = schemaTypes.getSchemaType("zeSchemaType").createCustomSchema("USRdefaults");
+				builder.create("zeMeta").setType(STRING);
+			}
+		}));
+
+	}
+
+	@Test
 	public void whenSavingDefaultSchemaMetadataThenCodeConserved()
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata());
@@ -409,7 +436,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichHasLabel("aLabel")));
 
-		assertThat(zeSchema.stringMetadata().getLabel()).isEqualTo("aLabel");
+		assertThat(zeSchema.stringMetadata().getLabel(Language.French)).isEqualTo("aLabel");
 	}
 
 	@Test
@@ -709,6 +736,157 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSavingAgregatedMetadatasThenDataTypeAndParametersConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+
+				MetadataSchemaBuilder anotherSchemaBuilder = schemaTypes.getSchema("anotherSchemaType_default");
+
+				schemaTypes.getSchema(anotherSchema.code()).create("ref")
+						.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+				schemaTypes.getSchema(anotherSchema.code()).create("number").setType(MetadataValueType.NUMBER);
+				schemaTypes.getSchema(zeSchema.code()).create("sum").setType(STRING).defineDataEntry()
+						.asSum(anotherSchemaBuilder.get("ref"), anotherSchemaBuilder.get("number"));
+			}
+		}));
+
+		AggregatedDataEntry dataEntry = (AggregatedDataEntry) zeSchema.metadata("sum").getDataEntry();
+		assertThat(dataEntry.getType()).isEqualTo(AGGREGATED);
+		assertThat(dataEntry.getInputMetadata()).isEqualTo("anotherSchemaType_default_number");
+		assertThat(dataEntry.getReferenceMetadata()).isEqualTo("anotherSchemaType_default_ref");
+		assertThat(dataEntry.getAgregationType()).isEqualTo(AggregationType.SUM);
+	}
+
+	@Test
+	public void whenCreateAgregatedMetadataWithIncompleteMetadataCodesOrCodeOfMetadataInCustomSchema()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(anotherSchema.code()).create("ref")
+						.defineReferencesTo(schemaTypes.getSchemaType("zeSchemaType"));
+				schemaTypes.getSchema(anotherSchema.code()).create("number").setType(MetadataValueType.NUMBER);
+				schemaTypes.getSchema(thirdSchema.code()).create("number").setType(MetadataValueType.NUMBER);
+				schemaTypes.getSchemaType(anotherSchema.typeCode()).createCustomSchema("custom1");
+
+				schemaTypes.getSchemaType(zeSchema.typeCode()).createCustomSchema("custom2");
+			}
+		}));
+
+		MetadataSchemaTypesBuilder builder = schemasManager.modify(zeCollection);
+
+		MetadataBuilder metadataBuilder = builder.getSchema("zeSchemaType_default").create("zeMeta");
+		MetadataBuilder numberMetadata = builder.getSchema("anotherSchemaType_default").get("number");
+		MetadataBuilder refMetadata = builder.getSchema("anotherSchemaType_default").get("ref");
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(numberMetadata, builder.getSchema("anotherSchemaType_custom1").get("ref"));
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(builder.getSchema("anotherSchemaType_custom1").get("number"), refMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(refMetadata, refMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(numberMetadata, numberMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		try {
+			metadataBuilder.defineDataEntry().asSum(builder.getSchema(thirdSchema.code()).get("number"), refMetadata);
+			fail("exception expected");
+		} catch (DataEntryBuilderRuntimeException_InvalidMetadataCode e) {
+			//OK
+		}
+
+		metadataBuilder.defineDataEntry().asSum(refMetadata, numberMetadata);
+	}
+
+	@Test
+	public void whenSavingParameterizedCalculatedMetadataThenDataTypeAndParametersConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(zeSchema.code()).create("calculatedString").setType(STRING).defineDataEntry()
+						.asCalculated(new TestParametrizedMetadataValueCalculator("value1", 42));
+			}
+		}));
+
+		CalculatedDataEntry dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+
+		TestParametrizedMetadataValueCalculator calculator = (TestParametrizedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(dataEntry.getType()).isEqualTo(CALCULATED);
+		assertThat(calculator.parameter1).isEqualTo("value1");
+		assertThat(calculator.parameter2).isEqualTo(42);
+	}
+
+	@Test
+	public void whenSavingInitializedCalculatedMetadataThenInitializedWhenBuilt()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.with(new MetadataSchemaTypesConfigurator() {
+			@Override
+			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+				schemaTypes.getSchema(zeSchema.code()).create("calculatedString").setType(STRING).defineDataEntry()
+						.asCalculated(TestInitializedMetadataValueCalculator.class);
+			}
+		}));
+
+		//TODO : initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) is called twice
+
+		CalculatedDataEntry dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+		TestInitializedMetadataValueCalculator calculator = (TestInitializedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(calculator.initializationCounter1).isEqualTo(2);
+		assertThat(calculator.initializationCounter2).isEqualTo(1);
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
+			}
+		});
+
+		dataEntry = (CalculatedDataEntry) zeSchema.metadata("calculatedString").getDataEntry();
+		calculator = (TestInitializedMetadataValueCalculator) dataEntry.getCalculator();
+		assertThat(calculator.initializationCounter1).isEqualTo(2);
+		assertThat(calculator.initializationCounter2).isEqualTo(1);
+	}
+
+	@Test
+	public void whenSavingSequenceMetadataThenDataTypeConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.withAFixedSequence().withADynamicSequence());
+
+		SequenceDataEntry fixedSeqDataEntry = (SequenceDataEntry) zeSchema.fixedSequenceMetadata().getDataEntry();
+		SequenceDataEntry dynamicSeqDataEntry = (SequenceDataEntry) zeSchema.dynamicSequenceMetadata().getDataEntry();
+
+		assertThat(fixedSeqDataEntry.getType()).isEqualTo(SEQUENCE);
+		assertThat(fixedSeqDataEntry.getFixedSequenceCode()).isEqualTo("zeSequence");
+		assertThat(fixedSeqDataEntry.getMetadataProvidingSequenceCode()).isNull();
+
+		assertThat(dynamicSeqDataEntry.getType()).isEqualTo(SEQUENCE);
+		assertThat(dynamicSeqDataEntry.getFixedSequenceCode()).isNull();
+		assertThat(dynamicSeqDataEntry.getMetadataProvidingSequenceCode()).isEqualTo("metadataDefiningSequenceNumber");
+	}
+
+	@Test
 	public void whenSavingCalculatedMetadataThenDataTypeConserved()
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withCalculatedDaysBetweenLocalDateAndAnotherSchemaRequiredDate(false));
@@ -742,8 +920,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(
 				defaultSchema.andCustomSchema().withAStringMetadata(whichHasLabelInCustomSchema("customLabel")));
 
-		assertThat(zeSchema.stringMetadata().getLabel()).isNotEqualTo("customLabel");
-		assertThat(zeCustomSchema.stringMetadata().getLabel()).isEqualTo("customLabel");
+		assertThat(zeSchema.stringMetadata().getLabel(Language.French)).isNotEqualTo("customLabel");
+		assertThat(zeCustomSchema.stringMetadata().getLabel(Language.French)).isEqualTo("customLabel");
 	}
 
 	@Test
@@ -831,9 +1009,9 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSavingDefaultSchemaThenLabelConserved()
 			throws Exception {
-		defineSchemasManager().using(defaultSchema.withSchemaLabel("zeLabel"));
+		defineSchemasManager().using(defaultSchema.withSchemaFrenchLabel("zeLabel"));
 
-		assertThat(zeSchema.instance().getLabel()).isEqualTo("zeLabel");
+		assertThat(zeSchema.instance().getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
 	@Test
@@ -855,9 +1033,9 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSavingCustomSchemaThenLabelConserved()
 			throws Exception {
-		defineSchemasManager().using(defaultSchema.andCustomSchema().withCustomSchemaLabel("zeLabel"));
+		defineSchemasManager().using(defaultSchema.andCustomSchema().withCustomSchemaFrenchLabel("zeLabel"));
 
-		assertThat(zeCustomSchema.instance().getLabel()).isEqualTo("zeLabel");
+		assertThat(zeCustomSchema.instance().getLabel(Language.French)).isEqualTo("zeLabel");
 	}
 
 	@Test
@@ -934,7 +1112,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.withAModifiedStringMetadata().andCustomSchema());
 
-		assertThat(zeSchema.stringMetadata().getLabel()).isEqualTo(zeCustomSchema.stringMetadata().getLabel());
+		assertThat(zeSchema.stringMetadata().getLabel(Language.French))
+				.isEqualTo(zeCustomSchema.stringMetadata().getLabel(Language.French));
 	}
 
 	@Test(expected = MetadataSchemasRuntimeException.NoSuchMetadata.class)
@@ -952,8 +1131,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(types.getMetadata("folder_default_rule").isEnabled()).isEqualTo(
 				types.getMetadata("folder_employee_rule").isEnabled()).isTrue();
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo(
-				types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("Rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo(
+				types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Rule");
 		assertThat(types.getMetadata("folder_default_rule").getAllowedReferences()).isEqualTo(
 				types.getMetadata("folder_employee_rule").getAllowedReferences());
 		assertThat(types.getMetadata("folder_default_rule").isDefaultRequirement()).isEqualTo(
@@ -971,8 +1150,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		assertThat(types.getMetadata("folder_default_rule").isEnabled()).isEqualTo(
 				types.getMetadata("folder_employee_rule").isEnabled()).isFalse();
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo(
-				types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo(
+				types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
 		assertThat(types.getMetadata("folder_default_rule").getAllowedReferences()).isEqualTo(
 				types.getMetadata("folder_employee_rule").getAllowedReferences());
 		assertThat(types.getMetadata("folder_default_rule").isDefaultRequirement()).isEqualTo(
@@ -1029,25 +1208,31 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes types = createTwoSchemas();
 
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
-		typesBuilder.getMetadata("folder_employee_rule").setLabel("a custom rule");
+		typesBuilder.getMetadata("folder_employee_rule").addLabel(Language.French, "a custom rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Rule");
-		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("a custom rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Rule");
+		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("a custom rule");
 
 		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
-		typesBuilder.getMetadata("folder_default_rule").setLabel("Ze Rule");
+		typesBuilder.getMetadata("folder_default_rule").addLabel(Language.French, "Ze Rule");
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Ze Rule");
-		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("a custom rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("a custom rule");
 
 		typesBuilder = MetadataSchemaTypesBuilder.modify(types, classProvider);
-		typesBuilder.getMetadata("folder_employee_rule").setLabel(null);
+		typesBuilder.getMetadata("folder_employee_rule").addLabel(Language.French, null);
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 
-		assertThat(types.getMetadata("folder_default_rule").getLabel()).isEqualTo("Ze Rule");
-		assertThat(types.getMetadata("folder_employee_rule").getLabel()).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_default_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
+		assertThat(types.getMetadata("folder_employee_rule").getLabel(Language.French)).isEqualTo("Ze Rule");
+	}
+
+	@Test(expected = MetadataSchemasManagerRuntimeException_NoSuchCollection.class)
+	public void whenGetTypesOfInvalidCollectionThenException()
+			throws Exception {
+		schemasManager.getSchemaTypes("invalidCollection");
 	}
 
 	@Test(expected = MetadataSchemaBuilderRuntimeException.CannotModifyAttributeOfInheritingMetadata.class)
@@ -1262,13 +1447,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		schemas.modify(new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchema(zeSchema.code()).create("customString").setType(MetadataValueType.STRING).setLabel("zeUltimate");
+				types.getSchema(zeSchema.code()).create("customString").setType(MetadataValueType.STRING)
+						.addLabel(Language.French, "zeUltimate");
 			}
 		});
 
 		assertThat(zeSchema.instance().hasMetadataWithCode("customString")).isTrue();
 		assertThat(zeSchema.instance().get("customString").getType()).isEqualTo(MetadataValueType.STRING);
-		assertThat(zeSchema.instance().get("customString").getLabel()).isEqualTo("zeUltimate");
+		assertThat(zeSchema.instance().get("customString").getLabel(Language.French)).isEqualTo("zeUltimate");
 
 		assertThat(zeCustomSchema.instance().hasMetadataWithCode("customString")).isTrue();
 		assertThat(zeCustomSchema.instance().get("customString").getType()).isEqualTo(MetadataValueType.STRING);
@@ -1286,12 +1472,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			public void alter(MetadataSchemaTypesBuilder types) {
 				MetadataSchemaBuilder zeSchemaType = types.getSchemaType(ZE_SCHEMA_TYPE_CODE).getDefaultSchema();
 				MetadataSchemaBuilder anotherSchema = types.getSchemaType(ANOTHER_SCHEMA_TYPE_CODE).getDefaultSchema();
-				zeSchemaType.get(TITLE.getCode()).setLabel("ze title label").setSortable(true)
+				zeSchemaType.get(TITLE.getCode()).addLabel(Language.French, "ze title label").setSortable(true)
 						.setEssentialInSummary(true).setEssential(true).setDefaultRequirement(true).setDefaultValue("toto")
 						.setEnabled(true).setSchemaAutocomplete(true).setSearchable(true).setSystemReserved(true)
 						.setUniqueValue(true).setUnmodifiable(true);
 
-				anotherSchema.get(TITLE.getCode()).setLabel("another title label").setSortable(false)
+				anotherSchema.get(TITLE.getCode()).addLabel(Language.French, "another title label").setSortable(false)
 						.setEssentialInSummary(false).setEssential(false).setDefaultRequirement(false).setDefaultValue("tata")
 						.setEnabled(false).setSchemaAutocomplete(false).setSearchable(false).setSystemReserved(false)
 						.setUniqueValue(false).setUnmodifiable(false);
@@ -1299,7 +1485,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		});
 
 		Metadata zeSchemaLabel = schemas.getTypes().getDefaultSchema(ZE_SCHEMA_TYPE_CODE).get(TITLE.getCode());
-		assertThat(zeSchemaLabel.getLabel()).isEqualTo("ze title label");
+		assertThat(zeSchemaLabel.getLabel(Language.French)).isEqualTo("ze title label");
 		assertThat(zeSchemaLabel.isSortable()).isTrue();
 		assertThat(zeSchemaLabel.isEssentialInSummary()).isTrue();
 		assertThat(zeSchemaLabel.isEssential()).isTrue();
@@ -1313,7 +1499,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(zeSchemaLabel.isUnmodifiable()).isTrue();
 
 		Metadata anotherSchemaLabel = schemas.getTypes().getDefaultSchema(ANOTHER_SCHEMA_TYPE_CODE).get(TITLE.getCode());
-		assertThat(anotherSchemaLabel.getLabel()).isEqualTo("another title label");
+		assertThat(anotherSchemaLabel.getLabel(Language.French)).isEqualTo("another title label");
 		assertThat(anotherSchemaLabel.isSortable()).isFalse();
 		assertThat(anotherSchemaLabel.isEssentialInSummary()).isFalse();
 		assertThat(anotherSchemaLabel.isEssential()).isFalse();
@@ -1405,7 +1591,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws MetadataSchemasManagerException {
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder.modify(types, new DefaultClassProvider());
 		MetadataBuilder rule = typesBuilder.getMetadata("folder_default_rule");
-		rule.setEnabled(false).setLabel("Ze Rule").setDefaultRequirement(true);
+		rule.setEnabled(false).addLabel(Language.French, "Ze Rule").setDefaultRequirement(true);
 		// rule.defineReferences().add(types.getDefaultSchema("rule"));
 		types = saveAndLoadSavedSchemaTypes(typesBuilder);
 		return types;
@@ -1418,11 +1604,11 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypeBuilder folderType = addFolderSchemaTypeBuilderWithoutRuleMetadatas(typesBuilder);
 		MetadataSchemaTypeBuilder ruleType = addRuleSchemaTypeBuilder(typesBuilder);
 
-		MetadataBuilder rule = folderType.getDefaultSchema().create("rule").setLabel("Rule").setType(REFERENCE)
+		MetadataBuilder rule = folderType.getDefaultSchema().create("rule").addLabel(Language.French, "Rule").setType(REFERENCE)
 				.setMultivalue(false);
 		rule.defineReferences().set(ruleType);
 
-		folderType.getDefaultSchema().create("ruleCode").setLabel("Rule code").setType(STRING).defineDataEntry()
+		folderType.getDefaultSchema().create("ruleCode").addLabel(Language.French, "Rule code").setType(STRING).defineDataEntry()
 				.asCopied(rule, ruleType.getDefaultSchema().getMetadata("code"));
 
 		return typesBuilder;
@@ -1431,10 +1617,12 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private MetadataSchemaTypeBuilder addFolderSchemaTypeBuilderWithoutRuleMetadatas(MetadataSchemaTypesBuilder types)
 			throws Exception {
 
-		MetadataSchemaTypeBuilder folderBuilder = types.createNewSchemaType("folder").setLabel("Folder").setSecurity(true);
-		folderBuilder.getDefaultSchema().create("zetitle").setType(STRING).setLabel("Title").setUndeletable(true)
+		MetadataSchemaTypeBuilder folderBuilder = types.createNewSchemaType("folder").addLabel(Language.French, "Folder")
+				.setSecurity(true);
+		folderBuilder.getDefaultSchema().create("zetitle").setType(STRING).addLabel(Language.French, "Title").setUndeletable(true)
 				.setUnmodifiable(true);
-		folderBuilder.createCustomSchema("employee").create("employeeName").setType(STRING).setLabel("Name of employee")
+		folderBuilder.createCustomSchema("employee").create("employeeName").setType(STRING)
+				.addLabel(Language.French, "Name of employee")
 				.setUndeletable(true).setSystemReserved(true).setMultivalue(false).setUniqueValue(true);
 
 		return folderBuilder;
@@ -1442,9 +1630,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	private MetadataSchemaTypeBuilder addRuleSchemaTypeBuilder(MetadataSchemaTypesBuilder types) {
 
-		MetadataSchemaTypeBuilder ruleBuilder = types.createNewSchemaType("rule").setLabel("Rule").setSecurity(false);
-		ruleBuilder.getDefaultSchema().create("zetitle").setType(STRING).setLabel("Title").setUndeletable(true);
-		ruleBuilder.getDefaultSchema().create("code").setType(STRING).setLabel("Code").setUndeletable(true);
+		MetadataSchemaTypeBuilder ruleBuilder = types.createNewSchemaType("rule").addLabel(Language.French, "Rule")
+				.setSecurity(false);
+		ruleBuilder.getDefaultSchema().create("zetitle").setType(STRING).addLabel(Language.French, "Title").setUndeletable(true);
+		ruleBuilder.getDefaultSchema().create("code").setType(STRING).addLabel(Language.French, "Code").setUndeletable(true);
 
 		return ruleBuilder;
 
@@ -1458,14 +1647,18 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		return newTypes;
 	}
 
-	public static class CalculatorWithOtherSchemaTitleDependency implements MetadataValueCalculator<String> {
+	public static class TestInitializedMetadataValueCalculator implements InitializedMetadataValueCalculator<String> {
 
-		ReferenceDependency<String> title = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_title");
+		int initializationCounter1 = 0;
+		int initializationCounter2 = 0;
+
+		MetadataSchemaTypes types;
+		MetadataSchema schema;
+		LocalDependency<String> titleParam = LocalDependency.toAString("title");
 
 		@Override
 		public String calculate(CalculatorParameters parameters) {
-			return null;
+			return parameters.get(titleParam);
 		}
 
 		@Override
@@ -1475,12 +1668,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
-		@Override
-		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(title);
+			return MetadataValueType.STRING;
 		}
 
 		@Override
@@ -1488,16 +1676,36 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(titleParam);
+		}
+
+		@Override
+		public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
+			initializationCounter1++;
+		}
+
+		@Override
+		public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata metadata) {
+			initializationCounter2++;
+		}
 	}
 
-	public static class CalculatorWithOtherSchemaCodeDependency implements MetadataValueCalculator<String> {
+	public static class TestParametrizedMetadataValueCalculator implements Parametrized, MetadataValueCalculator<String> {
 
-		ReferenceDependency<String> refCode = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_code");
+		String parameter1;
+		int parameter2;
+		LocalDependency<String> titleParam = LocalDependency.toAString("title");
+
+		public TestParametrizedMetadataValueCalculator(String parameter1, Integer parameter2) {
+			this.parameter1 = parameter1;
+			this.parameter2 = parameter2;
+		}
 
 		@Override
 		public String calculate(CalculatorParameters parameters) {
-			return null;
+			return parameter1 + ":" + parameter2 + parameters.get(titleParam);
 		}
 
 		@Override
@@ -1507,12 +1715,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
-		@Override
-		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(refCode);
+			return MetadataValueType.STRING;
 		}
 
 		@Override
@@ -1520,40 +1723,14 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 
-	}
-
-	public static class CalculatorWithOtherSchemaCodeAndTitleDependency implements MetadataValueCalculator<String> {
-
-		ReferenceDependency<String> title = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_title");
-		ReferenceDependency<String> refCode = ReferenceDependency.toAString("zeType_default_ref",
-				"anotherType_default_code");
-
-		@Override
-		public String calculate(CalculatorParameters parameters) {
-			return null;
-		}
-
-		@Override
-		public String getDefaultValue() {
-			return null;
-		}
-
-		@Override
-		public MetadataValueType getReturnType() {
-			return STRING;
-		}
-
 		@Override
 		public List<? extends Dependency> getDependencies() {
-			return Arrays.asList(refCode, title);
+			return Arrays.asList(titleParam);
 		}
 
 		@Override
-		public boolean isMultiValue() {
-			return false;
+		public Object[] getInstanceParameters() {
+			return new Object[] { parameter1, parameter2 };
 		}
-
 	}
-
 }

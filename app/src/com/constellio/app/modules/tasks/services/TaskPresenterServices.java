@@ -147,7 +147,7 @@ public class TaskPresenterServices {
 		if (!user.hasWriteAccess().on(record)) {
 			return false;
 		}
-		if (!isAssignedToUser(record, user)) {
+		if (!isAssignedToUser(record, user) && !wasCreatedByUser(record, user)) {
 			return false;
 		}
 		Object statusId = record.get(tasksSchemas.userTask.status());
@@ -169,6 +169,11 @@ public class TaskPresenterServices {
 		return CollectionUtils.containsAny(task.getAssigneeGroupsCandidates(), user.getUserGroups());
 	}
 
+	boolean wasCreatedByUser(Record record, User user) {
+		Task task = tasksSchemas.wrapTask(record);
+		return task.getCreatedBy() != null && task.getCreatedBy().equals(user.getId());
+	}
+
 	public void sendReminder(Record record, User user) {
 		Task task = tasksSchemas.wrapTask(record);
 		List<TaskReminder> newReminders = new ArrayList<>(task.getReminders());
@@ -183,7 +188,7 @@ public class TaskPresenterServices {
 	public void deleteTask(Record record, User currentUser) {
 		recordServices.logicallyDelete(record, currentUser);
 		loggingServices.logDeleteRecordWithJustification(record, currentUser, "");
-		recordServices.physicallyDelete(record, currentUser);
+		//recordServices.physicallyDelete(record, currentUser);
 	}
 
 	public boolean isDeleteTaskButtonVisible(Record record, User user) {

@@ -1,5 +1,6 @@
 package com.constellio.data.dao.managers.config;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -26,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
@@ -78,7 +80,7 @@ public class FileSystemConfigManagerAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws FileNotFoundException {
 
-		hashService = getIOLayerFactory().newHashingService();
+		hashService = getIOLayerFactory().newHashingService(BASE64_URL_ENCODED);
 
 		root = newTempFolder();
 

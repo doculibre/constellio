@@ -7,6 +7,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.vaadin.ui.*;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -16,6 +20,7 @@ import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -38,17 +43,10 @@ import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 	private static final String CODE = "code";
+	private static final String DETAILS = "details";
 	private static final String DOCUMENT_TYPE = "typeId";
 	private static final String MEDIUM_TYPES = "mediumTypeIds";
 	private static final String CONTENT_TYPES_COMMENT = "contentTypesComment";
@@ -105,6 +103,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		table.setPageLength(0);
 
 		table.setColumnHeader(CODE, $("FolderCopyRetentionRuleListTable.code"));
+		table.setColumnHeader(DETAILS, $("FolderCopyRetentionRuleListTable.details"));
 		table.setColumnHeader(DOCUMENT_TYPE, $("DocumentCopyRetentionRuleListTable.documentTypeId"));
 		table.setColumnHeader(MEDIUM_TYPES, $("DocumentCopyRetentionRuleListTable.mediumTypes"));
 		table.setColumnHeader(CONTENT_TYPES_COMMENT, "");
@@ -118,6 +117,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 		if (formMode) {
 			table.addContainerProperty(CODE, BaseTextField.class, null);
+			table.addContainerProperty(DETAILS, DetailsFieldGroup.class, null);
 			table.addContainerProperty(DOCUMENT_TYPE, LookupRecordField.class, null);
 			table.addContainerProperty(MEDIUM_TYPES, MediumTypesField.class, null);
 			table.addContainerProperty(CONTENT_TYPES_COMMENT, MiniTextField.class, null);
@@ -214,7 +214,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 			LookupRecordField documentTypeField = new LookupRecordField(DocumentType.SCHEMA_TYPE);
 			documentTypeField.setRequired(true);
-
+			final DetailsFieldGroup detailsField = new DetailsFieldGroup(copyRetentionRule);
 			final ActiveRetentionPeriodFieldGroup activeRetentionPeriodFieldGroup = new ActiveRetentionPeriodFieldGroup(
 					copyRetentionRule);
 			MediumTypesField mediumTypesField = new MediumTypesField(copyRetentionRule);
@@ -236,6 +236,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					.setPropertyDataSource(new NestedMethodProperty<String>(copyRetentionRule, INACTIVE_DISPOSAL_COMMENT));
 
 			table.getContainerProperty(copyRetentionRule, CODE).setValue(codeField);
+			table.getContainerProperty(copyRetentionRule, DETAILS).setValue(detailsField);
 			table.getContainerProperty(copyRetentionRule, DOCUMENT_TYPE).setValue(documentTypeField);
 			table.getContainerProperty(copyRetentionRule, MEDIUM_TYPES).setValue(mediumTypesField);
 			table.getContainerProperty(copyRetentionRule, CONTENT_TYPES_COMMENT).setValue(contentTypesCommentField);
@@ -472,7 +473,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 					metadataCode = copyRetentionRule.getSemiActiveDateMetadata();
 				}
 				String metadataLabelStr = metadataCodeToStringConverter
-						.convertToPresentation(metadataCode, String.class, getLocale());
+						.convertToPresentation(metadataCode, String.class,
+								ConstellioUI.getCurrent().getSessionContext().getCurrentLocale());
 				Label metadataLabel = new Label(metadataLabelStr);
 				Label retentionPeriodLabel = new Label("" + retentionPeriod.getValue());
 				addComponents(metadataLabel, retentionPeriodLabel);
@@ -481,6 +483,54 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 		public MetadataField getDateMetadataField() {
 			return dateMetadataField;
+		}
+
+	}
+
+	private class DetailsFieldGroup extends VerticalLayout {
+
+		private BaseTextField titleField;
+		private BaseTextArea descriptionField;
+		private CheckBox ignoreActivePeriodField;
+
+		public DetailsFieldGroup(final CopyRetentionRule copyRetentionRule) {
+			final WindowButton windowButton = new WindowButton($("DetailsFieldGroup.detailsButton"),$("DetailsFieldGroup.detailsWindow")) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout windowLayout = new VerticalLayout();
+
+					windowLayout.setSpacing(true);
+
+					Property<String> titleProperty = new MethodProperty<>(copyRetentionRule, "title");
+					Property<String> descriptionProperty = new MethodProperty<>(copyRetentionRule, "description");
+					Property<Boolean> ignoreActivePeriodProperty = new MethodProperty<>(copyRetentionRule,"ignoreActivePeriod");
+
+					titleField = new BaseTextField($("DetailsFieldGroup.title"), titleProperty);
+					titleField.setWidth("90%");
+					descriptionField = new BaseTextArea($("DetailsFieldGroup.description"), descriptionProperty);
+					descriptionField.setWidth("90%");
+					ignoreActivePeriodField = new CheckBox($("DetailsFieldGroup.ignoreActivePeriod"), ignoreActivePeriodProperty);
+
+					Button closeButton = new BaseButton("OK") {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							getWindow().close();
+						}
+					};
+
+					windowLayout.addComponents(titleField, descriptionField,ignoreActivePeriodField,closeButton);
+					return windowLayout;
+				}
+			};
+			addComponent(windowButton);
+		}
+
+		public BaseTextField getTitleField() {
+			return titleField;
+		}
+
+		public BaseTextArea getDescriptionField() {
+			return descriptionField;
 		}
 
 	}

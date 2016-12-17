@@ -1,6 +1,6 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2.FORMAT_ATTRIBUTE;
+import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3.FORMAT_ATTRIBUTE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 import java.util.ArrayList;
@@ -21,7 +21,9 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -30,12 +32,14 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpact;
 import com.constellio.model.services.schemas.impacts.SchemaTypesAlterationImpactsCalculator;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader1;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader2;
-import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter2;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader3;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -109,7 +113,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
-				new MetadataSchemaXMLWriter2().writeEmptyDocument(collection, document);
+				new MetadataSchemaXMLWriter3().writeEmptyDocument(collection, document);
 			}
 		};
 		oneXmlConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
@@ -133,17 +137,38 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 					typesBuilder = new MetadataSchemaXMLReader2(getClassProvider())
 							.read(collection, document, typesFactory, modelLayerFactory);
 
+				} else if (MetadataSchemaXMLReader3.FORMAT_VERSION.equals(formatVersion)) {
+					typesBuilder = new MetadataSchemaXMLReader3(getClassProvider())
+							.read(collection, document, typesFactory, modelLayerFactory);
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}
 
-				return typesBuilder.build(typesFactory, modelLayerFactory);
+				MetadataSchemaTypes builtTypes = typesBuilder.build(typesFactory, modelLayerFactory);
+
+				return builtTypes;
 			}
 		};
 	}
 
+	public MetadataSchema getSchemaOf(Record record) {
+		return getSchemaTypes(record).getSchema(record.getSchemaCode());
+	}
+
+	public MetadataSchemaType getSchemaTypeOf(Record record) {
+		return getSchemaTypes(record).getSchemaType(record.getTypeCode());
+	}
+
+	public MetadataSchemaTypes getSchemaTypes(CollectionObject collectionObject) {
+		return getSchemaTypes(collectionObject.getCollection());
+	}
+
 	public MetadataSchemaTypes getSchemaTypes(String collection) {
-		return oneXmlConfigPerCollectionManager().get(collection);
+		MetadataSchemaTypes types = oneXmlConfigPerCollectionManager().get(collection);
+		if (types == null) {
+			throw new MetadataSchemasManagerRuntimeException_NoSuchCollection(collection);
+		}
+		return types;
 	}
 
 	private OneXMLConfigPerCollectionManager<MetadataSchemaTypes> oneXmlConfigPerCollectionManager() {
@@ -230,7 +255,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throws OptimisticLocking {
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
 
-		Document document = new MetadataSchemaXMLWriter2().write(schemaTypes);
+		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
 		List<SchemaTypesAlterationImpact> impacts = calculateImpactsOf(schemaTypesBuilder);
 		List<BatchProcess> batchProcesses = prepareBatchProcesses(impacts, schemaTypesBuilder.getCollection());
 

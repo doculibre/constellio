@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.MappingParams;
 import com.constellio.app.modules.es.ui.entities.DocumentType;
 import com.constellio.app.modules.es.ui.entities.MappingVO;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.Language;
 
 public class DisplayConnectorMappingsPresenter extends MappingsPresenter<DisplayConnectorMappingsView> {
 
@@ -25,7 +28,9 @@ public class DisplayConnectorMappingsPresenter extends MappingsPresenter<Display
 	public List<DocumentType> getDocumentTypes() {
 		List<DocumentType> result = new ArrayList<>();
 		for (String code : mappingService().getDocumentTypes(connectorInstance())) {
-			String label = schema(code + "_default").getLabel();
+
+			Language language = Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage());
+			String label = schema(code + "_default").getLabel(language);
 			result.add(new DocumentType(code, label));
 		}
 		return result;
@@ -46,15 +51,15 @@ public class DisplayConnectorMappingsPresenter extends MappingsPresenter<Display
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().displayConnectorInstance(instanceId);
+		view.navigate().to(ESViews.class).displayConnectorInstance(instanceId);
 	}
 
 	public void addMappingRequested(String documentType) {
-		view.navigateTo().addConnectorMapping(instanceId, documentType);
+		view.navigate().to(ESViews.class).addConnectorMapping(instanceId, documentType);
 	}
 
 	public void editMappingRequested(String documentType, MappingVO mapping) {
-		view.navigateTo().editConnectorMapping(instanceId, documentType, mapping.getMetadata().getLocalCode());
+		view.navigate().to(ESViews.class).editConnectorMapping(instanceId, documentType, mapping.getMetadata().getLocalCode());
 	}
 
 	public void deleteMappingRequested(String documentType, MappingVO mappingVO) {

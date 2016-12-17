@@ -5,6 +5,8 @@ import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -12,6 +14,8 @@ import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 
 public class RMConfigs {
+
+	public static String decommissioningGroup = "decommissioning";
 
 	public enum DecommissioningPhase {
 		NEVER, ON_DEPOSIT, ON_TRANSFER_OR_DEPOSIT
@@ -46,7 +50,11 @@ public class RMConfigs {
 			ACTIVES_IN_CONTAINER_ALLOWED,
 			BORROWING_DURATION_IN_DAYS,
 			DOCUMENTS_TYPES_CHOICE,
-			WORKFLOWS_ENABLED;
+			WORKFLOWS_ENABLED,
+			ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER,
+			ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES,
+			CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART;
+	;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -57,7 +65,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER;
@@ -65,10 +73,14 @@ public class RMConfigs {
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
 
-		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, "decommissioning");
+		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
 		// Allow to enter retention rules for documents
-		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules").whichIsHidden());
+		add(DOCUMENT_RETENTION_RULES = decommissioning.createBooleanFalseByDefault("documentRetentionRules"));
+
+		// Validation exception if a folder's rule and category are not linked
+		add(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER = decommissioning
+				.createBooleanTrueByDefault("enforceCategoryAndRuleRelationshipInFolder"));
 
 		// Is the closing date calculated or manual?
 		add(CALCULATED_CLOSING_DATE = decommissioning.createBooleanTrueByDefault("calculatedCloseDate"));
@@ -184,8 +196,10 @@ public class RMConfigs {
 		add(AGENT_EDIT_USER_DOCUMENTS = agent.createBooleanTrueByDefault("editUserDocuments"));
 
 		add(AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS = agent.createInteger("backupRetentionPeriodInDays").withDefaultValue(30));
-		
+
 		add(AGENT_TOKEN_DURATION_IN_HOURS = agent.createInteger("tokenDurationInHours").withDefaultValue(10));
+
+		add(AGENT_READ_ONLY_WARNING = agent.createBooleanTrueByDefault("readOnlyWarning"));
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -198,6 +212,14 @@ public class RMConfigs {
 
 		add(WORKFLOWS_ENABLED = others.createBooleanFalseByDefault("workflowsEnabled"));
 
+		add(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES = decommissioning
+				.createEnum("allowModificationOfArchivisticStatusAndExpectedDates",
+						AllowModificationOfArchivisticStatusAndExpectedDatesChoice.class)
+				.withDefaultValue(AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED)
+				.scriptedBy(EnableOrDisableCalculatorsManualMetadataScript.class));
+
+		add(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART = decommissioning
+				.createBooleanTrueByDefault("calculatedMetadatasBasedOnFirstTimerangePart"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -208,6 +230,50 @@ public class RMConfigs {
 
 	public RMConfigs(SystemConfigurationsManager manager) {
 		this.manager = manager;
+	}
+
+	public AllowModificationOfArchivisticStatusAndExpectedDatesChoice allowModificationOfArchivisticStatusAndExpectedDates() {
+		return manager.getValue(ALLOW_MODIFICATION_OF_ARCHIVISTIC_STATUS_AND_EXPECTED_DATES);
+	}
+
+	public boolean isCalculatedClosingDate() {
+		return manager.getValue(CALCULATED_CLOSING_DATE);
+	}
+
+	public DecommissioningDateBasedOn decommissioningDateBasedOn() {
+		return manager.getValue(DECOMMISSIONING_DATE_BASED_ON);
+	}
+
+	public int calculatedClosingDateNumberOfYearWhenFixedRule() {
+		return manager.getValue(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_FIXED_RULE);
+	}
+
+	public int calculatedClosingDateNumberOfYearWhenVariableRule() {
+		return manager.getValue(CALCULATED_CLOSING_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_RULE);
+	}
+
+	public int calculatedSemiActiveDateNumberOfYearWhenVariablePeriod() {
+		return manager.getValue(CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD);
+	}
+
+	public int calculatedInactiveDateNumberOfYearWhenVariablePeriod() {
+		return manager.getValue(CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD);
+	}
+
+	public String yearEnd() {
+		return manager.getValue(YEAR_END_DATE);
+	}
+
+	public int requiredDaysBeforeYearEndForNotAddingAYear() {
+		return manager.getValue(REQUIRED_DAYS_BEFORE_YEAR_END_FOR_NOT_ADDING_A_YEAR);
+	}
+
+	public boolean isEnforcedCategoryAndRuleRelationshipInFolder() {
+		return manager.getValue(ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER);
+	}
+
+	public boolean isRulePrincipalCopyRequired() {
+		return manager.getValue(COPY_RULE_PRINCIPAL_REQUIRED);
 	}
 
 	public boolean areDocumentRetentionRulesEnabled() {
@@ -306,6 +372,10 @@ public class RMConfigs {
 		return manager.getValue(AGENT_TOKEN_DURATION_IN_HOURS);
 	}
 
+	public boolean isAgentReadOnlyWarning() {
+		return manager.getValue(AGENT_READ_ONLY_WARNING);
+	}
+
 	public int getBorrowingDurationDays() {
 		return manager.getValue(BORROWING_DURATION_IN_DAYS);
 	}
@@ -320,5 +390,9 @@ public class RMConfigs {
 
 	public DocumentsTypeChoice getDocumentsTypesChoice() {
 		return manager.getValue(DOCUMENTS_TYPES_CHOICE);
+	}
+
+	public boolean isCalculateOpenDateBasedOnFirstTimerangePart() {
+		return manager.getValue(CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART);
 	}
 }

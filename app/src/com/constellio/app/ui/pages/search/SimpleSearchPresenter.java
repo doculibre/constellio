@@ -4,21 +4,30 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
+
 	private int pageNumber;
 	private String searchExpression;
+	private String searchID;
 
 	public SimpleSearchPresenter(SimpleSearchView view) {
 		super(view);
@@ -30,18 +39,29 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			String[] parts = params.split("/", 3);
 			pageNumber = parts.length == 3 ? Integer.parseInt(parts[2]) : 1;
 			if ("s".equals(parts[0])) {
-				SavedSearch search = getSavedSearch(parts[1]);
-				searchExpression = search.getFreeTextSearch();
-				facetSelections.putAll(search.getSelectedFacets());
-				sortCriterion = search.getSortField();
-				sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+				searchID = parts[1];
+				SavedSearch search = getSavedSearch(searchID);
+				setSavedSearch(search);
 			} else {
+				searchID = null;
 				searchExpression = parts[1];
+				resultsViewMode = SearchResultsViewMode.DETAILED;
 			}
 		} else {
 			searchExpression = "";
+			resultsViewMode = SearchResultsViewMode.DETAILED;
 		}
 		return this;
+	}
+
+	private void setSavedSearch(SavedSearch search) {
+		searchExpression = search.getFreeTextSearch();
+		facetSelections.putAll(search.getSelectedFacets());
+		sortCriterion = search.getSortField();
+		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		pageNumber = search.getPageNumber();
+		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
+		setSelectedPageLength(search.getPageLength());
 	}
 
 	@Override
@@ -59,14 +79,22 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return pageNumber;
 	}
 
+	public void setPageNumber(int pageNumber) {
+		this.pageNumber = pageNumber;
+	}
+
 	@Override
 	public String getUserSearchExpression() {
 		return searchExpression;
 	}
+	
+	public void setSearchExpression(String searchExpression) {
+		this.searchExpression = searchExpression;
+	}
 
 	@Override
 	public void suggestionSelected(String suggestion) {
-		view.navigateTo().simpleSearch(suggestion);
+		view.navigate().to().simpleSearch(suggestion);
 	}
 
 	@Override
@@ -84,10 +112,12 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
-		for (MetadataVO metadata : getMetadataAllowedInSort(schemaTypes.get(0))) {
-			String localCode = MetadataVO.getCodeWithoutPrefix(metadata.getCode());
-			if (isMetadataInAllTypes(localCode, schemaTypes)) {
-				result.add(metadata);
+		Set<String> resultCodes = new HashSet<>();
+		for(MetadataSchemaType metadataSchemaType: schemaTypes) {
+			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
+				if(resultCodes.add(metadata.getLocalCode())) {
+					result.add(metadata);
+				}
 			}
 		}
 		return result;
@@ -115,7 +145,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
-		return search.setSearchType(SimpleSearchView.SEARCH_TYPE).setFreeTextSearch(searchExpression);
+		return search.setSearchType(SimpleSearchView.SEARCH_TYPE)
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber);
 	}
 
 	private List<MetadataSchemaType> allowedSchemaTypes() {
@@ -128,5 +160,53 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 			}
 		}
 		return result;
+	}
+
+	public Record getTemporarySearchRecord() {
+		//MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+		try {
+			return recordServices().getDocumentById(searchID);
+			/*
+			return searchServices().searchSingleResult(from(schema).where(schema.getMetadata(SavedSearch.USER))
+					.isEqualTo(getCurrentUser())
+					.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isEqualTo(true)
+					.andWhere(schema.getMetadata(SavedSearch.SEARCH_TYPE)).isEqualTo(SimpleSearchView.SEARCH_TYPE));
+					*/
+		} catch (Exception e) {
+			//TODO exception
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+	protected void saveTemporarySearch(boolean refreshPage) {
+		Record tmpSearchRecord;
+		if (searchID == null) {
+			tmpSearchRecord = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA));
+		} else {
+			tmpSearchRecord = getTemporarySearchRecord();
+		}
+
+		SavedSearch search = new SavedSearch(tmpSearchRecord, types())
+				.setTitle("temporarySimple")
+				.setUser(getCurrentUser().getId())
+				.setPublic(false)
+				.setSortField(sortCriterion)
+				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+				.setSelectedFacets(facetSelections.getNestedMap())
+				.setTemporary(true)
+				.setSearchType(SimpleSearchView.SEARCH_TYPE)
+				.setFreeTextSearch(searchExpression)
+				.setPageNumber(pageNumber)
+				.setPageLength(selectedPageLength);
+		try {
+			recordServices().update(search);
+			if (refreshPage) {
+				view.navigate().to().simpleSearchReplay(search.getId());
+			}
+		} catch (RecordServicesException e) {
+			LOGGER.info("TEMPORARY SAVE ERROR", e);
+		}
 	}
 }

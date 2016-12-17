@@ -1,6 +1,7 @@
 package com.constellio.app.api.cmis.accept;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 		users.setUp(userServices);
 
 		defineSchemasManager().using(zeCollectionSchemas);
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
@@ -65,6 +67,7 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 				.build();
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
@@ -80,15 +83,21 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenUpdatingCategoryThenPropertiesUpdated()
+	public void whenUpdatingCategoryThenException()
 			throws Exception {
 		Map<String, Object> properties = new HashMap<>();
 		properties.put("title", "updatedTitle");
 		//		properties.put(PropertyIds.CHANGE_TOKEN, recordServices.getDocumentById("folder1").getVersionLabel());
 		CmisObject initialObject = cmisSession.getObject("zetaxo1_category1");
-		CmisObject updatedObject = initialObject.updateProperties(properties);
+		try {
+			initialObject.updateProperties(properties);
 
-		assertThat(updatedObject.getProperty("title").getFirstValue()).isEqualTo("updatedTitle");
+			fail("Exception expected");
+		} catch (CmisRuntimeException ex) {
+			assertThat(ex.getMessage()).isEqualTo("L'utilisateur chuck n'a pas la permission CMIS CAN_UPDATE_PROPERTIES"
+					+ " sur l'enregistrement zetaxo1_category1 - zetaxo1_category1");
+		}
+
 	}
 
 	@Test
@@ -100,8 +109,10 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 		CmisObject initialObject = cmisSession.getRootFolder();
 		try {
 			initialObject.updateProperties(properties);
+			fail("Exception expected");
 		} catch (CmisRuntimeException ex) {
-			assertThat(ex.getMessage()).isEqualTo("Cannot update collection via CMIS.");
+			assertThat(ex.getMessage()).isEqualTo(
+					"L'utilisateur chuck n'a pas la permission CMIS CAN_UPDATE_PROPERTIES sur l'enregistrement zeCollection - zeCollection");
 		}
 	}
 

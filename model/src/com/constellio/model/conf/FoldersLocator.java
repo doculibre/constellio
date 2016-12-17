@@ -14,8 +14,11 @@ public class FoldersLocator {
 
 	private static String currentClassPath;
 
+	private File defaultTempFolder;
+
 	public FoldersLocator() {
 	}
+
 
 	public File getJavaRootFolder() {
 		String fullPath = getCurrentClassPath();
@@ -527,6 +530,23 @@ public class FoldersLocator {
 
 	public File getLicenseFile() {
 		return new File(getConfFolder(), "license.xml");
+	}
+
+	public File getWorkFolder() {
+		if (getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			//File workFolder = new File("/raid/francis/work"); //new File(getSDKProject(), "work");
+			File workFolder = new File(getSDKProject(), "work");
+			workFolder.mkdirs();
+			return workFolder;
+
+		} else if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+			File workFolder = new File(getWrapperInstallationFolder(), "work");
+			workFolder.mkdirs();
+			return workFolder;
+
+		} else {
+			throw new UnsupportedOperationException("Unsupported on tomcat");
+		}
 	}
 
 	/*

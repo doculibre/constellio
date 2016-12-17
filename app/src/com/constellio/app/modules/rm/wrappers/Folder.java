@@ -59,7 +59,7 @@ public class Folder extends RMObject {
 	public static final String EXPECTED_DESTRUCTION_DATE = "expectedDestructionDate";
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
-	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
+
 	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
@@ -83,9 +83,22 @@ public class Folder extends RMObject {
 	public static final String ALERT_USERS_WHEN_AVAILABLE = "alertUsersWhenAvailable";
 	public static final String PENDING_ALERTS = "pendingAlerts";
 	public static final String NEXT_ALERT_ON = "nextAlertOn";
+	public static final String CREATED_BY_ROBOT = "createdByRobot";
 
 	public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	public static final String CALENDAR_YEAR = "calendarYear";
+
+	public static final String MANUAL_EXPECTED_TRANSFER_DATE = "manualExpectedTransferDate";
+	public static final String MANUAL_EXPECTED_DEPOSIT_DATE = "manualExpectedDepositDate";
+	public static final String MANUAL_EXPECTED_DESTRUCTION_DATE = "manualExpectedDesctructionDate";
+	public static final String MANUAL_ARCHIVISTIC_STATUS = "manualArchivisticStatus";
+
+	public static final String TIME_RANGE = "timerange";
+
+	//public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
+	//public static final String CALENDAR_YEAR = "calendarYear";
+	//TO DELETE
+	public static final String RETENTION_RULE_ADMINISTRATIVE_UNITS = "ruleAdminUnit";
 
 	public Folder(Record record,
 			MetadataSchemaTypes types) {
@@ -281,10 +294,6 @@ public class Folder extends RMObject {
 		return get(INACTIVE_DISPOSAL_TYPE);
 	}
 
-	public List<String> getRetentionRuleAdministrativeUnits() {
-		return getList(RETENTION_RULE_ADMINISTRATIVE_UNITS);
-	}
-
 	public String getRetentionRule() {
 		return get(RETENTION_RULE);
 	}
@@ -323,6 +332,15 @@ public class Folder extends RMObject {
 
 	public Folder setKeywords(List<String> keywords) {
 		set(KEYWORDS, keywords);
+		return this;
+	}
+
+	public String getCreatedByRobot() {
+		return get(CREATED_BY_ROBOT);
+	}
+
+	public Folder setCreatedByRobot(String robotId) {
+		set(CREATED_BY_ROBOT, robotId);
 		return this;
 	}
 
@@ -636,5 +654,44 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public LocalDate getManualExpecteTransferdDate() {
+		return get(MANUAL_EXPECTED_TRANSFER_DATE);
+	}
+
+	public Folder setManualExpectedTransferDate(LocalDate date) {
+		set(MANUAL_EXPECTED_TRANSFER_DATE, date);
+		return this;
+	}
+
+	public LocalDate getManualExpectedDepositDate() {
+		return get(MANUAL_EXPECTED_DEPOSIT_DATE);
+	}
+
+	public Folder setManualExpectedDepositDate(LocalDate date) {
+		set(MANUAL_EXPECTED_DEPOSIT_DATE, date);
+		return this;
+	}
+
+	public LocalDate getManualExpectedDestructionDate() {
+		return get(MANUAL_EXPECTED_DESTRUCTION_DATE);
+	}
+
+	public Folder setManualExpectedDestructionDate(LocalDate date) {
+		set(MANUAL_EXPECTED_DESTRUCTION_DATE, date);
+		return this;
+	}
+
+	public FolderStatus getManualArchivisticStatus() {
+		return get(MANUAL_ARCHIVISTIC_STATUS);
+	}
+
+	public Folder setManualArchivisticStatus(FolderStatus status) {
+		set(MANUAL_ARCHIVISTIC_STATUS, status);
+		return this;
+	}
+
+	public String getTimeRange() {
+		return get(TIME_RANGE);
+	}
 }
 

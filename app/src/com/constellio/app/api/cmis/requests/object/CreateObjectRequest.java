@@ -4,6 +4,7 @@ import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -19,11 +20,11 @@ import com.constellio.app.api.cmis.binding.utils.CmisUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.Record;
 
 public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final Properties properties;
 	private final ObjectInfoHandler objectInfos;
 	CreateFolderRequest createFolderRequest;
@@ -33,10 +34,9 @@ public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 			CreateFolderRequest createFolderRequest, CreateDocumentRequest createDocumentRequest, CallContext context,
 			Properties properties, String folderId, ContentStream contentStream, VersioningState versioningState,
 			ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
+		super(context, repository, appLayerFactory);
 		this.createFolderRequest = createFolderRequest;
 		this.createDocumentRequest = createDocumentRequest;
-		this.context = context;
 		this.properties = properties;
 		this.objectInfos = objectInfos;
 	}
@@ -55,11 +55,13 @@ public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 		if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
 			ContentCmisDocument contentCmisDocument = createDocumentRequest.process();
-			return newContentObjectDataBuilder().build(context, contentCmisDocument, null, false, userReadOnly, objectInfos);
+			return newContentObjectDataBuilder().build(contentCmisDocument, null, false, userReadOnly, objectInfos);
+
 		} else if (type.getBaseTypeId() == BaseTypeId.CMIS_FOLDER) {
 			String objectId = createFolderRequest.process();
-			return newObjectDataBuilder().build(context, modelLayerFactory.newRecordServices()
-					.getDocumentById(objectId), null, false, userReadOnly, objectInfos);
+			Record record = recordServices.getDocumentById(objectId);
+			return newObjectDataBuilder().build(record, null, false, userReadOnly, objectInfos);
+
 		} else {
 			throw new CmisExceptions_ObjectNotFound("Type", typeId);
 		}

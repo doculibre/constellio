@@ -1,76 +1,82 @@
 package com.constellio.app.ui.framework.buttons.report;
 
-import com.constellio.app.ui.entities.FormMetadataVO;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.tepi.listbuilder.ListBuilder;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.List;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import org.vaadin.tepi.listbuilder.ListBuilder;
 
-public class ReportConfigurationPanel extends Panel{
-    protected ReportConfigurationPanelPresenter presenter;
-    private String collection;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.FormMetadataVO;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
-    public ReportConfigurationPanel(String caption, ReportConfigurationPresenter presenter, String collection) {
-        super(caption);
-        this.presenter = new ReportConfigurationPanelPresenter(presenter);
-        this.collection = collection;
-        init();
-    }
+public class ReportConfigurationPanel extends Panel {
+	protected ReportConfigurationPanelPresenter presenter;
+	private String collection;
 
-    private void init() {
-        VerticalLayout viewLayout = new VerticalLayout();
-        viewLayout.setSizeFull();
-        viewLayout.addComponents(buildTables());
-    }
+	public ReportConfigurationPanel(String caption, ReportConfigurationPresenter presenter, String collection) {
+		super(caption);
+		this.presenter = new ReportConfigurationPanelPresenter(presenter);
+		this.collection = collection;
+		init();
+	}
 
-    private Component buildTables() {
-        List<FormMetadataVO> metadataVOs = presenter.getMetadata();//collection
-        List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas(collection);
+	private void init() {
+		VerticalLayout viewLayout = new VerticalLayout();
+		viewLayout.setSizeFull();
+		viewLayout.addComponents(buildTables());
+	}
 
-        final ListBuilder select = new ListBuilder();
-        select.setColumns(30);
-        select.setRightColumnCaption($("SearchDisplayConfigView.rightColumn"));
-        select.setLeftColumnCaption($("SearchDisplayConfigView.leftColumn"));
+	private Component buildTables() {
+		List<FormMetadataVO> metadataVOs = presenter.getMetadata();//collection
+		List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas(collection);
 
-        for (FormMetadataVO form : metadataVOs) {
-            select.addItem(form);
-            select.setItemCaption(form, form.getLabel());
-        }
+		final ListBuilder select = new ListBuilder();
+		select.setColumns(30);
+		select.setRightColumnCaption($("SearchDisplayConfigView.rightColumn"));
+		select.setLeftColumnCaption($("SearchDisplayConfigView.leftColumn"));
 
-        select.setValue(valueMetadataVOs);
+		for (FormMetadataVO form : metadataVOs) {
+			select.addItem(form);
+			select.setItemCaption(form, form.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
+		}
 
-        Button saveButton = new Button($("save"));
-        saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        saveButton.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                List<FormMetadataVO> values = (List) select.getValue();
-                presenter.saveButtonClicked(values);
-            }
-        });
+		select.setValue(valueMetadataVOs);
 
-        Button cancelButton = new Button($("cancel"));
-        cancelButton.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                presenter.cancelButtonClicked();
-            }
-        });
+		Button saveButton = new Button($("save"));
+		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		saveButton.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				List<FormMetadataVO> values = (List) select.getValue();
+				presenter.saveButtonClicked(values);
+			}
+		});
 
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.addComponent(saveButton);
-        buttonsLayout.addComponent(cancelButton);
+		Button cancelButton = new Button($("cancel"));
+		cancelButton.addClickListener(new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				presenter.cancelButtonClicked();
+			}
+		});
 
-        VerticalLayout viewLayout = new VerticalLayout();
-        viewLayout.setSizeFull();
-        viewLayout.setSpacing(true);
-        viewLayout.addComponent(select);
-        viewLayout.addComponent(buttonsLayout);
+		HorizontalLayout buttonsLayout = new HorizontalLayout();
+		buttonsLayout.setSpacing(true);
+		buttonsLayout.addComponent(saveButton);
+		buttonsLayout.addComponent(cancelButton);
 
-        return viewLayout;
-    }
+		VerticalLayout viewLayout = new VerticalLayout();
+		viewLayout.setSizeFull();
+		viewLayout.setSpacing(true);
+		viewLayout.addComponent(select);
+		viewLayout.addComponent(buttonsLayout);
+
+		return viewLayout;
+	}
 }

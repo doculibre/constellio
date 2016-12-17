@@ -2,9 +2,9 @@ package com.constellio.app.services.schemasDisplay;
 
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +15,9 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -32,9 +34,11 @@ public class SchemasDisplayManagerCache {
 	private Map<String, SchemaDisplayConfig> schemas = new HashMap<>();
 	private Map<String, MetadataDisplayConfig> metadatas = new HashMap<>();
 	private Set<String> returnedFields;
+	List<Language> languages;
 
-	public SchemasDisplayManagerCache(String collection) {
+	public SchemasDisplayManagerCache(String collection, List<Language> languages) {
 		this.collection = collection;
+		this.languages = languages;
 	}
 
 	void set(SchemaTypesDisplayConfig types) {
@@ -91,8 +95,16 @@ public class SchemasDisplayManagerCache {
 	}
 
 	private SchemaTypeDisplayConfig getDefaultSchemaTypeDisplayConfig(String typeCode) {
-		// TODO verify for the default name
-		return new SchemaTypeDisplayConfig(collection, typeCode, Arrays.asList("Default"));
+
+		Map<String, Map<Language, String>> metadataGroup = new HashMap<>();
+		Map<Language, String> label = new HashMap<>();
+		// TODO iterate on all collections' languages
+
+		for (Language language : languages) {
+			label.put(language, $("default", language.getLocale()));
+		}
+		metadataGroup.put("default", label);
+		return new SchemaTypeDisplayConfig(collection, typeCode, metadataGroup);
 	}
 
 	public SchemaDisplayConfig getSchema(String schemaCode, MetadataSchemasManager metadataSchemasManager) {
@@ -155,9 +167,9 @@ public class SchemasDisplayManagerCache {
 				for (MetadataSchema schema : type.getAllSchemas()) {
 					SchemaDisplayConfig schemaDisplayConfig = getSchema(schema.getCode(), metadataSchemasManager);
 					List<String> metadatas = new ArrayList<>();
-					if ("search" .equals(viewMode)) {
+					if ("search".equals(viewMode)) {
 						metadatas = schemaDisplayConfig.getSearchResultsMetadataCodes();
-					} else if ("table" .equals(viewMode)) {
+					} else if ("table".equals(viewMode)) {
 						metadatas = schemaDisplayConfig.getTableMetadataCodes();
 					}
 					for (String displayedMetadata : metadatas) {
@@ -180,7 +192,8 @@ public class SchemasDisplayManagerCache {
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 		if (metadata.getInheritance() == null) {
 			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
-					metadataCode, metadataSchemasManager), false, "");
+					metadataCode, metadataSchemasManager), false, "",
+					getDefaultMetadataDisplayType());
 		} else {
 			MetadataDisplayConfig inheritedConfig = getMetadata(metadata.getInheritance().getCode(), metadataSchemasManager);
 			config = MetadataDisplayConfig.inheriting(metadataCode, inheritedConfig);
@@ -190,7 +203,7 @@ public class SchemasDisplayManagerCache {
 	}
 
 	private MetadataInputType getDefaultMetadataInputType(String metadataCode,
-			MetadataSchemasManager metadataSchemasManager) {
+															   MetadataSchemasManager metadataSchemasManager) {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 		List<MetadataInputType> types = MetadataInputType
@@ -201,4 +214,9 @@ public class SchemasDisplayManagerCache {
 
 		return types.get(0);
 	}
+
+	private MetadataDisplayType getDefaultMetadataDisplayType() {
+		return MetadataDisplayType.VERTICAL;
+	}
+
 }

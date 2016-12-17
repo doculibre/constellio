@@ -16,6 +16,8 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class CopyRetentionRule implements ModifiableStructure {
 	String code;
+	String title;
+	String description;
 	CopyType copyType;
 	List<String> mediumTypeIds = new ArrayList<>();
 	String contentTypesComment;
@@ -30,6 +32,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String activeDateMetadata;
 	Integer openActiveRetentionPeriod;
 	boolean essential;
+	boolean ignoreActivePeriod;
 	boolean dirty;
 	private String id;
 
@@ -44,7 +47,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 		if (this.id != null) {
 			throw new CopyRetentionRuleFactoryRuntimeException.CopyRetentionRuleFactoryRuntimeException_CannotModifyId(this.id);
 		}
-		dirty = true;
+		markAsDirty();
 		this.id = id;
 		return this;
 	}
@@ -54,8 +57,28 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setCode(String code) {
-		dirty = true;
+		markAsDirty();
 		this.code = code;
+		return this;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public CopyRetentionRule setTitle(String title) {
+		markAsDirty();
+		this.title = title;
+		return this;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public CopyRetentionRule setDescription(String description) {
+		markAsDirty();
+		this.description = description;
 		return this;
 	}
 
@@ -64,7 +87,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setOpenActiveRetentionPeriod(Integer openActiveRetentionPeriod) {
-		dirty = true;
+		markAsDirty();
 		this.openActiveRetentionPeriod = openActiveRetentionPeriod;
 		return this;
 	}
@@ -74,7 +97,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setCopyType(CopyType copyType) {
-		dirty = true;
+		markAsDirty();
 		this.copyType = copyType;
 		return this;
 	}
@@ -84,7 +107,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setMediumTypeIds(List<String> mediumTypeIds) {
-		dirty = true;
+		markAsDirty();
 		this.mediumTypeIds = mediumTypeIds;
 		return this;
 	}
@@ -94,7 +117,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setContentTypesComment(String contentTypesComment) {
-		dirty = true;
+		markAsDirty();
 		this.contentTypesComment = contentTypesComment;
 		return this;
 	}
@@ -104,7 +127,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setActiveRetentionPeriod(RetentionPeriod activeRetentionPeriod) {
-		dirty = true;
+		markAsDirty();
 		if (activeRetentionPeriod == null || activeRetentionPeriod.getValue() == 0) {
 			this.activeRetentionPeriod = RetentionPeriod.ZERO;
 		} else {
@@ -118,7 +141,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setActiveRetentionComment(String activeRetentionComment) {
-		dirty = true;
+		markAsDirty();
 		this.activeRetentionComment = activeRetentionComment;
 		return this;
 	}
@@ -128,7 +151,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setSemiActiveRetentionPeriod(RetentionPeriod semiActiveRetentionPeriod) {
-		dirty = true;
+		markAsDirty();
 		if (semiActiveRetentionPeriod == null || semiActiveRetentionPeriod.getValue() == 0) {
 			this.semiActiveRetentionPeriod = RetentionPeriod.ZERO;
 		} else {
@@ -142,7 +165,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setSemiActiveRetentionComment(String semiActiveRetentionComment) {
-		dirty = true;
+		markAsDirty();
 		this.semiActiveRetentionComment = semiActiveRetentionComment;
 		return this;
 	}
@@ -152,7 +175,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setInactiveDisposalType(DisposalType inactiveDisposalType) {
-		dirty = true;
+		markAsDirty();
 		this.inactiveDisposalType = inactiveDisposalType;
 		return this;
 	}
@@ -162,7 +185,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setInactiveDisposalComment(String inactiveDisposalComment) {
-		dirty = true;
+		markAsDirty();
 		this.inactiveDisposalComment = inactiveDisposalComment;
 		return this;
 	}
@@ -172,7 +195,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setTypeId(String typeId) {
-		dirty = true;
+		markAsDirty();
 		this.typeId = typeId;
 		return this;
 	}
@@ -190,8 +213,18 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setEssential(boolean essential) {
-		dirty = true;
+		markAsDirty();
 		this.essential = essential;
+		return this;
+	}
+
+	public boolean isIgnoreActivePeriod() {
+		return ignoreActivePeriod;
+	}
+
+	public CopyRetentionRule setIgnoreActivePeriod(boolean ignoreActivePeriod) {
+		markAsDirty();
+		this.ignoreActivePeriod = ignoreActivePeriod;
 		return this;
 	}
 
@@ -200,7 +233,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setSemiActiveDateMetadata(String semiActiveDateMetadata) {
-		this.dirty = true;
+		this.markAsDirty();
 		this.semiActiveDateMetadata = semiActiveDateMetadata;
 		return this;
 	}
@@ -210,7 +243,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	}
 
 	public CopyRetentionRule setActiveDateMetadata(String activeDateMetadata) {
-		this.dirty = true;
+		this.markAsDirty();
 		this.activeDateMetadata = activeDateMetadata;
 		return this;
 	}
@@ -270,6 +303,10 @@ public class CopyRetentionRule implements ModifiableStructure {
 
 	public CopyRetentionRuleInRule in(String ruleId, String category, int categoryLevel) {
 		return new CopyRetentionRuleInRule(ruleId, category, categoryLevel, this);
+	}
+
+	private void markAsDirty() {
+		dirty = true;
 	}
 
 }

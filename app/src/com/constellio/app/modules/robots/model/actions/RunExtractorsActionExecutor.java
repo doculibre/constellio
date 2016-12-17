@@ -26,11 +26,11 @@ public class RunExtractorsActionExecutor implements ActionExecutor {
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records) {
+			List<Record> records, List<Record> processedRecords) {
 		// Parameters will always be null, not use them
 		Transaction transaction = new Transaction();
 		transaction.setSkippingRequiredValuesValidation(true);
-		transaction.getRecordUpdateOptions().forceReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.addUpdate(records);
 		return transaction;
 	}

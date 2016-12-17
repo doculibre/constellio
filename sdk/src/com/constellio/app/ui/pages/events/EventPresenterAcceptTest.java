@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +33,7 @@ import com.constellio.sdk.tests.FakeSessionContext;
 
 public class EventPresenterAcceptTest extends ConstellioTest {
 	@Mock EventView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	SearchServices searchServices;
 	EventPresenter presenter;
@@ -53,7 +54,7 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		rmEventsSearchServices = new RMEventsSearchServices(getModelLayerFactory(), zeCollection);
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -63,7 +64,7 @@ public class EventPresenterAcceptTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = spy(new EventPresenter(view));
 

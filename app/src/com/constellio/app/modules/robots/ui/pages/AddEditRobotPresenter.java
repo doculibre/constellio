@@ -32,6 +32,7 @@ import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -164,6 +165,10 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		}
 	}
 
+	public boolean canAutoExecute() {
+		return robot.get(Robot.PARENT) == null;
+	}
+
 	@Override
 	public void addCriterionRequested() {
 		view.addEmptyCriterion();
@@ -209,8 +214,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 
 	private List<Choice> getSchemaFilterChoices() {
 		List<Choice> choices = new ArrayList<>();
+		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		for (String code : manager().getSupportedSchemaTypes()) {
-			choices.add(new Choice(code, schemaType(code).getLabel()));
+			choices.add(new Choice(code, schemaType(code).getLabel(language)));
 		}
 		return choices;
 	}
@@ -291,7 +297,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	public SearchResultVODataProvider getSearchResults(final List<Criterion> searchCriteria) {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory,
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {

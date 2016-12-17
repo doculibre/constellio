@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.schemas.type;
 
 import java.util.Map;
 
+import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -41,46 +42,64 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	public void editButtonClicked(MetadataSchemaVO schemaVO) {
 		parameters.put("schemaCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA, parameters);
-		view.navigateTo().editSchema(params);
+		view.navigate().to().editSchema(params);
 	}
 
 	public void editMetadataButtonClicked(MetadataSchemaVO schemaVO) {
 		parameters.put("schemaCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA_METADATA, parameters);
-		view.navigateTo().listSchemaMetadata(params);
+		view.navigate().to().listSchemaMetadata(params);
 	}
 
 	public void addButtonClicked() {
 		parameters.put("schemaCode", "");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA, parameters);
-		view.navigateTo().addSchema(params);
+		view.navigate().to().addSchema(params);
 	}
 
 	public void formButtonClicked(MetadataSchemaVO schemaVO) {
 		parameters.put("schemaCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.EDIT_DISPLAY_FORM, parameters);
-		view.navigateTo().editDisplayForm(params);
+		view.navigate().to().editDisplayForm(params);
 	}
 
 	public void orderButtonClicked(MetadataSchemaVO schemaVO) {
 		parameters.put("schemaCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.FORM_DISPLAY_FORM, parameters);
-		view.navigateTo().formDisplayForm(params);
+		view.navigate().to().formDisplayForm(params);
 	}
 
 	public void searchButtonClicked(MetadataSchemaVO schemaVO) {
 		parameters.put("schemaCode", schemaVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.SEARCH_DISPLAY_FORM, parameters);
-		view.navigateTo().searchDisplayForm(params);
+		view.navigate().to().searchDisplayForm(params);
 	}
 
 	public void tableButtonClicked() {
 		parameters.put("schemaCode", schemaTypeCode + "_default");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.TABLE_DISPLAY_FORM, parameters);
-		view.navigateTo().tableDisplayForm(params);
+		view.navigate().to().tableDisplayForm(params);
 	}
 
 	public void backButtonClicked() {
-		view.navigateTo().listSchemaTypes();
+		view.navigate().to().listSchemaTypes();
 	}
+	
+	boolean isDeletePossible(String schemaCode) {
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		return appSchemasServices.isSchemaDeletable(collection, schemaCode);
+	}
+
+	public void deleteButtonClicked(String schemaCode) {
+		if (isDeletePossible(schemaCode)) {
+			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+			appSchemasServices.deleteSchemaCode(collection, schemaCode);
+			view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
+		}
+	}
+
+	public boolean isDeleteButtonVisible(String schemaCode) {
+		return isDeletePossible(schemaCode);
+	}
+	
 }

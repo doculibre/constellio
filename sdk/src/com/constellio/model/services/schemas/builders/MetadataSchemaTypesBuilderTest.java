@@ -4,10 +4,12 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -51,7 +54,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		typesFactory = new FakeDataStoreTypeFactory();
 
-		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion("zeUltimateCollection", 0, new DefaultClassProvider());
+		typesBuilder = MetadataSchemaTypesBuilder.createWithVersion("zeUltimateCollection", 0, new DefaultClassProvider(),
+				Arrays.asList(Language.French));
 
 		zeType = typesBuilder.createNewSchemaType("zeType");
 		zeTypeDefaultSchema = zeType.getDefaultSchema();
@@ -639,16 +643,19 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		List<Metadata> metadatas = zeTypeDefaultSchema.buildDefault(typesFactory, modelLayerFactory).getAutomaticMetadatas();
 
-		assertThat(metadatas).hasSize(9);
-		assertThat(metadatas.get(0).getLocalCode()).isEqualTo("inheritedauthorizations");
-		assertThat(metadatas.get(1).getLocalCode()).isEqualTo("m2");
-		assertThat(metadatas.get(2).getLocalCode()).isEqualTo("parentpath");
-		assertThat(metadatas.get(3).getLocalCode()).isEqualTo("allauthorizations");
-		assertThat(metadatas.get(4).getLocalCode()).isEqualTo("m1");
-		assertThat(metadatas.get(5).getLocalCode()).isEqualTo("path");
-		assertThat(metadatas.get(6).getLocalCode()).isEqualTo("pathParts");
-		assertThat(metadatas.get(7).getLocalCode()).isEqualTo("principalpath");
-		assertThat(metadatas.get(8).getLocalCode()).isEqualTo("tokens");
+		assertThat(metadatas).extracting("localCode").isEqualTo(asList("allReferences", "inheritedauthorizations", "m2",
+				"parentpath", "allauthorizations", "m1", "path", "pathParts", "principalpath", "tokens"));
+
+		//		assertThat(metadatas).hasSize(9);
+		//		assertThat(metadatas.get(0).getLocalCode()).isEqualTo("inheritedauthorizations");
+		//		assertThat(metadatas.get(1).getLocalCode()).isEqualTo("m2");
+		//		assertThat(metadatas.get(2).getLocalCode()).isEqualTo("parentpath");
+		//		assertThat(metadatas.get(3).getLocalCode()).isEqualTo("allauthorizations");
+		//		assertThat(metadatas.get(4).getLocalCode()).isEqualTo("m1");
+		//		assertThat(metadatas.get(5).getLocalCode()).isEqualTo("path");
+		//		assertThat(metadatas.get(6).getLocalCode()).isEqualTo("pathParts");
+		//		assertThat(metadatas.get(7).getLocalCode()).isEqualTo("principalpath");
+		//		assertThat(metadatas.get(8).getLocalCode()).isEqualTo("tokens");
 
 	}
 

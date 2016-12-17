@@ -1,10 +1,12 @@
 package com.constellio.app.ui.pages.base;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -13,6 +15,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -20,6 +24,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.roles.Roles;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BasePresenterUtils implements Serializable {
 
@@ -158,4 +164,24 @@ public class BasePresenterUtils implements Serializable {
 		return modelLayerFactory.getRolesManager().getCollectionRoles(collection);
 	}
 
+	public CollectionsManager getCollectionManager() {
+		return appLayerFactory.getCollectionsManager();
+	}
+
+
+	public ContentVersionDataSummary uploadContent(final InputStream inputStream, final boolean handleDeletionOfUnreferencedHashes, final boolean parse, final String fileName) {
+		try {
+			return modelLayerFactory.getContentManager().upload(inputStream, handleDeletionOfUnreferencedHashes, parse, fileName);
+		} catch (final IcapException e) {
+			if (e instanceof IcapException.ThreatFoundException) {
+				throw new IcapException($(e, e.getFileName(),((IcapException.ThreatFoundException) e).getThreatName()));
+			}
+
+            if (e.getCause() == null) {
+                throw new IcapException($(e, e.getFileName()));
+            } else {
+                throw new IcapException($(e, e.getFileName()), e.getCause());
+            }
+		}
+	}
 }

@@ -63,7 +63,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 
 			createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects());
 			taxonomiesManager.editTaxonomy(taxonomy);
-			view.navigateTo().listTaxonomies();
+			view.navigate().to().listTaxonomies();
 		} else {
 			boolean canCreate = canCreate(taxonomyVO.getTitle());
 			if (canCreate) {
@@ -71,7 +71,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 						.createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(),
 								taxonomyVO.isVisibleInHomePage());
 				createMetadatasInClassifiedObjects(taxonomy, taxonomyVO.getClassifiedObjects());
-				view.navigateTo().listTaxonomies();
+				view.navigate().to().listTaxonomies();
 				titles.add(taxonomyVO.getTitle());
 			} else {
 				view.showErrorMessage("Taxonomny already exists!");
@@ -100,6 +100,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	void createMetadatasInDefaultSchemaIfInexistent(Taxonomy taxonomy, String schemaType) {
 
 		if (!getClassifiedObjects(taxonomy).contains(schemaType)) {
+			//TODO Patrick - code instead label
 			String groupLabel = $("classifiedInGroupLabel");
 			valueListServices().createAMultivalueClassificationMetadataInGroup(taxonomy, schemaType, groupLabel);
 		}
@@ -140,7 +141,7 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 	}
 
 	public void cancelButtonClicked() {
-		view.navigateTo().listTaxonomies();
+		view.navigate().to().listTaxonomies();
 	}
 
 	boolean canCreate(String taxonomy) {

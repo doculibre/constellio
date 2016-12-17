@@ -29,13 +29,13 @@ public class CollectionManagementViewImplAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		schemas = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		schemas = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
-		rm.setup(getModelLayerFactory()).withFoldersAndContainersOfEveryStatus();
+		rm.setup(getAppLayerFactory()).withFoldersAndContainersOfEveryStatus();
 
 		driver = newWebDriver(loggedAsUserInCollection("admin", zeCollection));
 

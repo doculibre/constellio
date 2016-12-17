@@ -1,21 +1,26 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
-import static com.constellio.model.frameworks.validation.Validator.METADATA_LABEL;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedReferenceFromDummyCalculatorUsingOtherMetadata;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculator;
 import static com.constellio.model.services.records.RecordServicesAcceptanceTestUtils.calculatedTextListFromDummyCalculatorReturningInvalidType;
 import static com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator.UNMODIFIABLE_METADATA;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -26,10 +31,15 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
 import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -42,28 +52,38 @@ import org.mockito.ArgumentCaptor;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
-import com.constellio.model.services.factories.ModelLayerFactoryUtils;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.CannotSetIdsToReindexInEmptyTransaction;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionHasMoreThan100000Records;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_TransactionWithMoreThan1000RecordsCannotHaveTryMergeOptimisticLockingResolution;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.MetadataUnmodifiableValidator;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.FakeEncryptionServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
@@ -94,6 +114,28 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 		System.out.println("\n\n--RecordServicesAcceptanceTest.setup--\n\n");
+
+		configure(new ModelLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+
+				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+
+					@Override
+					public EncryptionServices get() {
+						Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
+						try {
+							return new EncryptionServices(false).withKey(key);
+						} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				};
+
+				configuration.setEncryptionServicesFactory(encryptionServicesFactory);
+			}
+		});
+
 		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		schemas = new RecordServicesTestSchemaSetup();
@@ -217,9 +259,9 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas);
 		Record record1 = new TestRecord(zeSchema);
-		recordServices.add(record1.set(Schemas.TITLE, "zeTitle1"));
+		recordServices.add(record1.set(TITLE, "zeTitle1"));
 		Record record2 = new TestRecord(zeSchema);
-		recordServices.add(record2.set(Schemas.TITLE, "zeTitle2"));
+		recordServices.add(record2.set(TITLE, "zeTitle2"));
 
 		assertThat(recordServices.getRecordTitles(zeCollection, Arrays.asList(record1.getId(), record2.getId()))).contains(
 				"zeTitle1", "zeTitle2");
@@ -254,6 +296,144 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), valueTooLong);
 
 		recordServices.update(record);
+	}
+
+	@Test()
+	public void givenSchemaWithFixedSequenceMetadataWhenAddingValidRecordThenSetNewSequenceValue()
+			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
+		defineSchemasManager().using(schemas.withAFixedSequence());
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
+						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+
+			}
+		});
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isNull();
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isNull();
+
+		record.set(TITLE, "Ze title");
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("1");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F1.00");
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		record.set(TITLE, "Ze title");
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("2");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F2.00");
+
+	}
+
+	@Test()
+	public void givenSchemaWithFixedSequenceMetadataWithPatternWhenAddingValidRecordThenSetNewSequenceValue()
+			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
+		defineSchemasManager().using(schemas.withAFixedSequence(whichHasInputMask("99999")));
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get("title").setDefaultRequirement(true);
+				types.getSchema(zeSchema.code()).create("calculatedOnFixedSequence").setType(MetadataValueType.STRING)
+						.defineDataEntry().asJexlScript("'F'+ fixedSequenceMetadata + '.00'");
+
+			}
+		});
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isNull();
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isNull();
+
+		record.set(TITLE, "Ze title");
+
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("00001");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F00001.00");
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		record.set(TITLE, "Ze title");
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException.ValidationException e) {
+			//OK
+		}
+
+		assertThat(record.get(zeSchema.fixedSequenceMetadata())).isEqualTo("00002");
+		assertThat(record.get(zeSchema.metadata("calculatedOnFixedSequence"))).isEqualTo("F00002.00");
+
+	}
+
+	@Test()
+	public void givenSchemaWithDynamicSequenceMetadataWhenChangeSequenceSourceThenGetNewSequenceUsingNewSource()
+			throws Exception {
+
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
+		SequencesManager sequencesManager = getDataLayerFactory().getSequencesManager();
+		sequencesManager.set("sequence1", 42);
+		sequencesManager.set("sequence2", 666);
+
+		defineSchemasManager().using(schemas.withADynamicSequence());
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+
+		recordServices.add(record);
+
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isNull();
+
+		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence1"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("43");
+
+		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence2"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("667");
+
+		recordServices.update(record.set(zeSchema.metadataDefiningSequenceNumber(), "sequence1"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("44");
+
+		recordServices.update(record.set(TITLE, "zeTitle"));
+		assertThat(record.get(zeSchema.dynamicSequenceMetadata())).isEqualTo("44");
+
 	}
 
 	@Test()
@@ -476,15 +656,13 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEncryptedMetadataThenDecryptedInRecordAndEncryptedInSolr()
 			throws Exception {
-		Key key = EncryptionKeyFactory.newApplicationKey("zePassword", "zeUltimateSalt");
-		ModelLayerFactoryUtils.setApplicationEncryptionKey(getModelLayerFactory(), key);
 
 		defineSchemasManager()
 				.using(schemas.withATitle().withAStringMetadata(whichIsEncrypted)
 						.withAnotherStringMetadata(whichIsEncrypted, whichIsMultivalue));
 
 		assertThat(getModelLayerFactory().newEncryptionServices()).isNotNull();
-
+		assertThat(getModelLayerFactory().newEncryptionServices()).isNotInstanceOf(FakeEncryptionServices.class);
 		recordServices.add(record
 				.set(zeSchema.title(), "neverEncryptedValue")
 				.set(zeSchema.stringMetadata(), "decryptedValue1")
@@ -745,10 +923,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			recordServices.update(record.set(zeSchema.stringMetadata(), "another value"));
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
+			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
+			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
-					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-							METADATA_LABEL, "A toAString metadata"))
+					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
+					parameters)
 			);
 		}
 
@@ -756,10 +935,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			recordServices.update(record.set(zeSchema.stringMetadata(), null));
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
+			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
+			parameters.put(Validator.METADATA_LABEL, asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
-					MetadataUnmodifiableValidator.class.getName() + "_" + UNMODIFIABLE_METADATA,
-					asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata",
-							METADATA_LABEL, "A toAString metadata"))
+					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
+					parameters)
 			);
 		}
 
@@ -862,12 +1042,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenUpdateARecordAReferenceToANewRecord()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAReferenceFromAnotherSchemaToZeSchema());
+		defineSchemasManager().using(schemas.withAParentReferenceFromAnotherSchemaToZeSchema());
 
-		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
+		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(TITLE, "New record saved in transaction 1");
 		recordServices.add(anotherSchemaRecord);
 
-		Record zeSchemaRecord = new TestRecord(zeSchema).set(Schemas.TITLE, "New record saved in transaction 2");
+		Record zeSchemaRecord = new TestRecord(zeSchema).set(TITLE, "New record saved in transaction 2");
 		anotherSchemaRecord.set(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema"), zeSchemaRecord.getId());
 
 		recordServices.execute(new Transaction(anotherSchemaRecord, zeSchemaRecord));
@@ -879,10 +1059,10 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas.with(metadataFromAnotherSchemaToZeSchema()));
 
-		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
+		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(TITLE, "New record saved in transaction 1");
 		recordServices.add(anotherSchemaRecord);
 
-		Record zeSchemaRecord = new TestRecord(zeSchema).set(Schemas.TITLE, "New record saved in transaction 2");
+		Record zeSchemaRecord = new TestRecord(zeSchema).set(TITLE, "New record saved in transaction 2");
 		anotherSchemaRecord.set(anotherSchema.metadata("referenceFromAnotherSchemaToZeSchema"), asList(zeSchemaRecord.getId()));
 
 		recordServices.execute(new Transaction(anotherSchemaRecord, zeSchemaRecord));
@@ -906,13 +1086,187 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.with(
 				aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt()));
 
-		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(Schemas.TITLE, "New record saved in transaction 1");
+		Record anotherSchemaRecord = new TestRecord(anotherSchema).set(TITLE, "New record saved in transaction 1");
 		recordServices.add(anotherSchemaRecord);
 
-		Record zeSchemaRecord = new TestRecord(zeSchema).set(Schemas.TITLE, "New record saved in transaction 2");
+		Record zeSchemaRecord = new TestRecord(zeSchema).set(TITLE, "New record saved in transaction 2");
 		anotherSchemaRecord.set(anotherSchema.metadata("aStringMetadata"), zeSchemaRecord.getId());
 
 		recordServices.execute(new Transaction(anotherSchemaRecord, zeSchemaRecord));
+
+	}
+
+	@Test
+	public void whenExecutingTransactionWithRecordsMarkedForReindexingThenMarkedForReindexing()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+
+		Record record1 = new TestRecord(zeSchema).set(TITLE, "record1");
+		Record record2 = new TestRecord(zeSchema).set(TITLE, "record2");
+		Record record3 = new TestRecord(zeSchema).set(TITLE, "record3");
+		Record record4 = new TestRecord(zeSchema).set(TITLE, "record4");
+		Record record5 = new TestRecord(zeSchema).set(TITLE, "record5");
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5));
+
+		Record record6 = new TestRecord(zeSchema).set(TITLE, "record6");
+		Transaction transaction = new Transaction();
+		transaction.add(record1.set(TITLE, "newTitleOfRecord1"));
+		transaction.add(record2.set(TITLE, "newTitleOfRecord2"));
+		transaction.add(record6);
+		transaction.addRecordToReindex(record2);
+		transaction.addRecordToReindex(record5);
+		transaction.addRecordToReindex(record4);
+		transaction.addRecordToReindex(record6);
+
+		recordServices.execute(transaction);
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("newTitleOfRecord1", null),
+				tuple("newTitleOfRecord2", true),
+				tuple("record3", null),
+				tuple("record4", true),
+				tuple("record5", true),
+				tuple("record6", true)
+		);
+
+	}
+
+	@Test
+	public void givenRecordsMarkedForReindexingWhenUpdateThemInTransactionThenUnflaggedEvenIfNoChange()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+
+		Record record1 = new TestRecord(zeSchema, "r1").set(TITLE, "record1");
+		Record record2 = new TestRecord(zeSchema, "r2").set(TITLE, "record2");
+		Record record3 = new TestRecord(zeSchema, "r3").set(TITLE, "record3");
+		Record record4 = new TestRecord(zeSchema, "r4").set(TITLE, "record4");
+		Record record5 = new TestRecord(zeSchema, "r5").set(TITLE, "record5");
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5));
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("record1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", null)
+		);
+
+		Transaction transaction = new Transaction();
+		transaction.add(record1.set(TITLE, "newTitleOfRecord1"));
+		transaction.addRecordToReindex(record2);
+		transaction.addRecordToReindex(record3);
+		transaction.addRecordToReindex(record4);
+		transaction.addRecordToReindex(record5);
+		recordServices.execute(transaction);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("newTitleOfRecord1", null),
+				tuple("record2", true),
+				tuple("record3", true),
+				tuple("record4", true),
+				tuple("record5", true)
+		);
+
+		recordServices.refresh(record2, record3, record4);
+
+		transaction = new Transaction();
+		transaction.add(record2);
+		transaction.add(record3);
+		transaction.update(record4);
+		recordServices.execute(transaction);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("newTitleOfRecord1", null),
+				tuple("record2", true),
+				tuple("record3", true),
+				tuple("record4", true),
+				tuple("record5", true)
+		);
+
+		transaction = new Transaction();
+		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
+		transaction.add(record2);
+		transaction.add(record3);
+		transaction.update(record4);
+		recordServices.execute(transaction);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("newTitleOfRecord1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", true)
+		);
+	}
+
+	@Test
+	public void whenMarkAnInexistentRecordForReindexingThenException()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+
+		Record record1 = new TestRecord(zeSchema).set(TITLE, "record1");
+		Record record2 = new TestRecord(zeSchema).set(TITLE, "record2");
+		Record record3 = new TestRecord(zeSchema).set(TITLE, "record3");
+		Record record4 = new TestRecord(zeSchema).set(TITLE, "record4");
+		Record record5 = new TestRecord(zeSchema).set(TITLE, "record5");
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5));
+
+		Record record6 = new TestRecord(zeSchema).set(TITLE, "record6");
+		Transaction transaction = new Transaction();
+		transaction.addRecordToReindex(record2);
+		transaction.addRecordToReindex(record3);
+		transaction.addRecordToReindex(record4);
+		transaction.add(record6);
+		transaction.addRecordToReindex("record7");
+
+		try {
+			recordServices.execute(transaction);
+			fail("Exception expected");
+		} catch (RecordServicesException.UnresolvableOptimisticLockingConflict e) {
+			//OK
+		}
+
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		assertThatRecords(searchServices.search(query(from(zeSchema.instance()).returnAll())))
+				.extractingMetadatas(TITLE, MARKED_FOR_REINDEXING).containsOnly(
+				tuple("record1", null),
+				tuple("record2", null),
+				tuple("record3", null),
+				tuple("record4", null),
+				tuple("record5", null)
+		);
+
+	}
+
+	@Test(expected = CannotSetIdsToReindexInEmptyTransaction.class)
+	public void givenEmptyTransactionWithOnlyMarkedToReindexThenException()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+
+		Record record1 = new TestRecord(zeSchema).set(TITLE, "record1");
+		Record record2 = new TestRecord(zeSchema).set(TITLE, "record2");
+		Record record3 = new TestRecord(zeSchema).set(TITLE, "record3");
+		Record record4 = new TestRecord(zeSchema).set(TITLE, "record4");
+		Record record5 = new TestRecord(zeSchema).set(TITLE, "record5");
+		recordServices.execute(new Transaction(record1, record2, record3, record4, record5));
+
+		Record record6 = new TestRecord(zeSchema).set(TITLE, "record6");
+		Transaction transaction = new Transaction();
+		transaction.addRecordToReindex(record2);
+		transaction.addRecordToReindex(record3);
+		transaction.addRecordToReindex(record4);
+		recordServices.execute(transaction);
 
 	}
 
@@ -1037,5 +1391,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		return transaction;
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
 	}
 }

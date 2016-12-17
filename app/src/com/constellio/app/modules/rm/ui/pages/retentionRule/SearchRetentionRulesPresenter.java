@@ -56,11 +56,11 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {
-		view.navigateTo().displayRetentionRule(recordVO.getId());
+		view.navigate().to(RMViews.class).displayRetentionRule(recordVO.getId());
 	}
 
 	public void editButtonClicked(RecordVO recordVO) {
-		view.navigateTo().editRetentionRule(recordVO.getId());
+		view.navigate().to(RMViews.class).editRetentionRule(recordVO.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {

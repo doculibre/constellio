@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDispl
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
 import com.constellio.app.ui.framework.components.fields.number.BaseDoubleField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter.ConversionException;
@@ -76,7 +77,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		return this;
 	}
 
-	public Table attachTo(Table table) {
+	public BaseTable attachTo(BaseTable table) {
 		List<String> visibleColumns = new ArrayList<>();
 		boolean inValidationStatus = presenter.isInValidation();
 

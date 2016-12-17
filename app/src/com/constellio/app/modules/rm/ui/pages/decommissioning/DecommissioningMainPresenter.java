@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,7 +111,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void editButtonClicked(RecordVO entity) {
-		view.navigateTo().editDecommissioningList(entity.getId());
+		view.navigate().to(RMViews.class).editDecommissioningList(entity.getId());
 	}
 
 	public void deleteButtonClicked(RecordVO entity) {
@@ -146,7 +148,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private RecordVODataProvider buildDataProvider(final String tabId) {
-		MetadataSchema schema = rmRecordServices().defaultDecommissioningListSchema();
+		MetadataSchema schema = rmRecordServices().decommissioningList.schema();
 		MetadataSchemaVO schemaVO = new MetadataSchemaToVOBuilder().build(schema, VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(schemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -164,10 +166,20 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	DecommissioningListQueryFactory queryFactory() {
-		return new DecommissioningListQueryFactory(collection, modelLayerFactory);
+		return new DecommissioningListQueryFactory(collection, appLayerFactory);
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
+	}
+
+	String getDeleteConfirmMessage(RecordVO entity) {
+		String deleteConfirmMessage;
+		if (rmRecordServices.getDecommissioningList(entity.getId()).isApproved()) {
+			deleteConfirmMessage = $("DecommissioningMainView.deleteApprovedList");
+		} else {
+			deleteConfirmMessage = $("DecommissioningMainView.deleteList");
+		}
+		return deleteConfirmMessage;
 	}
 }

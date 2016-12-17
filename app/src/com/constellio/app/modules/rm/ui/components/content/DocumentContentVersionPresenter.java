@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -38,6 +39,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 	private transient ConstellioFactories constellioFactories;
 
 	private transient ModelLayerFactory modelLayerFactory;
+	private transient AppLayerFactory appLayerFactory;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
@@ -91,8 +93,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 
 		constellioFactories = window.getConstellioFactories();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
+		appLayerFactory = constellioFactories.getAppLayerFactory();
 
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		documentVOBuilder = new DocumentToVOBuilder(modelLayerFactory);
 	}
 
@@ -134,7 +137,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.getContent().checkOut(currentUser);
 			presenterUtils.addOrUpdate(document.getWrappedRecord());
-
+			
+			SessionContext sessionContext = window.getSessionContext();
+			agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO, sessionContext);
 			window.closeWindow();
 			if (agentURL != null) {
 				window.open(agentURL);

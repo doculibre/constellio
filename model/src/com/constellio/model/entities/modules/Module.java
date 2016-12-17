@@ -15,4 +15,5 @@ public interface Module extends ConstellioPlugin {
 	Map<String, List<String>> getPermissions();
 
 	List<String> getRolesForCreator();
+
 }

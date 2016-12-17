@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.sdk.tests.MockedNavigation;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,7 +38,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	ZeCustomSchemaMetadatas zeCustomSchema = setup.new ZeCustomSchemaMetadatas();
 	DisplayConfigPresenter presenter;
 	@Mock DisplayConfigView view;
-	@Mock CoreViews navigator;
+	MockedNavigation navigator;
 
 	@Before
 	public void setUp()
@@ -44,6 +46,9 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection()
 		);
+
+		navigator = new MockedNavigation();
+
 		defineSchemasManager()
 				.using(setup.andCustomSchema().withAStringMetadataInCustomSchema(whichIsMultivalue, whichIsSearchable)
 						.withAStringMetadata(whichIsSortable, whichIsEnabled).withABooleanMetadata(whichIsEnabled)
@@ -51,7 +56,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.adminInCollection(zeCollection));
 		when(view.getCollection()).thenReturn(zeCollection);
 		when(view.getConstellioFactories()).thenReturn(getConstellioFactories());
-		when(view.navigateTo()).thenReturn(navigator);
+		when(view.navigate()).thenReturn(navigator);
 
 		presenter = new DisplayConfigPresenter(view);
 		Map<String, String> parameters = new HashMap<>();
@@ -111,20 +116,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		List<FormMetadataVO> result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(14);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
-		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
-		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
-		assertThat(result.get(2).getCode()).isEqualTo(formMetadataVOs.get(2).getCode());
-		assertThat(result.get(3).getCode()).isEqualTo(formMetadataVOs.get(3).getCode());
-		assertThat(result.get(4).getCode()).isEqualTo(formMetadataVOs.get(4).getCode());
-		assertThat(result.get(5).getCode()).isEqualTo(formMetadataVOs.get(5).getCode());
-		assertThat(result.get(6).getCode()).isEqualTo(formMetadataVOs.get(6).getCode());
-		assertThat(result.get(7).getCode()).isEqualTo(formMetadataVOs.get(7).getCode());
-		assertThat(result.get(8).getCode()).isEqualTo(formMetadataVOs.get(8).getCode());
-		assertThat(result.get(9).getCode()).isEqualTo(formMetadataVOs.get(9).getCode());
-		assertThat(result.get(10).getCode()).isEqualTo(formMetadataVOs.get(10).getCode());
-		assertThat(result.get(11).getCode()).isEqualTo(formMetadataVOs.get(11).getCode());
 
 		formMetadataVOs = presenter.getMetadatas();
 		Collections.shuffle(formMetadataVOs);
@@ -132,20 +124,7 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 		manager.saveSchema(config);
 
 		result = presenter.getValueMetadatas();
-		assertThat(result).hasSize(14);
 		assertThat(result).containsExactlyElementsOf(formMetadataVOs);
-		assertThat(result.get(0).getCode()).isEqualTo(formMetadataVOs.get(0).getCode());
-		assertThat(result.get(1).getCode()).isEqualTo(formMetadataVOs.get(1).getCode());
-		assertThat(result.get(2).getCode()).isEqualTo(formMetadataVOs.get(2).getCode());
-		assertThat(result.get(3).getCode()).isEqualTo(formMetadataVOs.get(3).getCode());
-		assertThat(result.get(4).getCode()).isEqualTo(formMetadataVOs.get(4).getCode());
-		assertThat(result.get(5).getCode()).isEqualTo(formMetadataVOs.get(5).getCode());
-		assertThat(result.get(6).getCode()).isEqualTo(formMetadataVOs.get(6).getCode());
-		assertThat(result.get(7).getCode()).isEqualTo(formMetadataVOs.get(7).getCode());
-		assertThat(result.get(8).getCode()).isEqualTo(formMetadataVOs.get(8).getCode());
-		assertThat(result.get(9).getCode()).isEqualTo(formMetadataVOs.get(9).getCode());
-		assertThat(result.get(10).getCode()).isEqualTo(formMetadataVOs.get(10).getCode());
-		assertThat(result.get(11).getCode()).isEqualTo(formMetadataVOs.get(11).getCode());
 	}
 
 	private List<String> getCodeFromMetadata(List<Metadata> metadatas) {
@@ -165,11 +144,11 @@ public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	private List<FormMetadataVO> getFormVO(List<Metadata> metadatas) {
-		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder();
+		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(FakeSessionContext.adminInCollection(zeCollection));
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		for (Metadata metadata : metadatas) {
 			formMetadataVOs.add(builder.build(metadata, getAppLayerFactory().getMetadataSchemasDisplayManager(),
-					setup.zeCustomSchemaTypeCode()));
+					setup.zeCustomSchemaTypeCode(), view.getSessionContext()));
 		}
 
 		return formMetadataVOs;

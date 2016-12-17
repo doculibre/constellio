@@ -8,6 +8,7 @@ import java.util.List;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.es.services.crawler.DeleteEventOptions;
 import com.constellio.model.entities.records.Transaction;
 
 public class TestConnectorEventObserver implements ConnectorEventObserver {
@@ -62,7 +63,12 @@ public class TestConnectorEventObserver implements ConnectorEventObserver {
 
 	@Override
 	public void deleteEvents(ConnectorDocument... documents) {
-		deleteEvents(asList(documents));
+		deleteEvents(new DeleteEventOptions(), asList(documents));
+	}
+
+	@Override
+	public void deleteEvents(DeleteEventOptions deleteEventOptions, ConnectorDocument... documents) {
+		deleteEvents(deleteEventOptions, asList(documents));
 	}
 
 	@Override
@@ -86,13 +92,18 @@ public class TestConnectorEventObserver implements ConnectorEventObserver {
 
 	@Override
 	public void deleteEvents(List<ConnectorDocument> documents) {
+		deleteEvents(new DeleteEventOptions(), documents);
+	}
+
+	@Override
+	public void deleteEvents(DeleteEventOptions deleteEventOptions, List<ConnectorDocument> documents) {
 		Transaction transaction = new Transaction();
 		for (ConnectorDocument document : documents) {
 			deleteDocumentCount++;
 			events.add(TestConnectorEvent.deleteEvent(document));
 		}
 
-		nestedObserver.deleteEvents(documents);
+		nestedObserver.deleteEvents(deleteEventOptions, documents);
 	}
 
 	public int getAddNewDocumentCount() {
@@ -117,5 +128,10 @@ public class TestConnectorEventObserver implements ConnectorEventObserver {
 		List<TestConnectorEvent> newEvents = new ArrayList<>(events);
 		events.clear();
 		return newEvents;
+	}
+
+	@Override
+	public void cleanup() {
+		nestedObserver.cleanup();
 	}
 }

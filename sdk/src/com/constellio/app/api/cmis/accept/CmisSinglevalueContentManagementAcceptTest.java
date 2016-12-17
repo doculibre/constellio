@@ -1,5 +1,6 @@
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -84,11 +85,12 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(BASE64);
 		givenTimeIs(firstDocumentModificationOClock);
 
 		defineSchemasManager()
 				.using(schemas.withAContentMetadata());
-
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		TaxonomiesManager taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
@@ -121,6 +123,8 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		bob.setCollectionWriteAccess(true);
 		recordServices.update(alice.getWrappedRecord());
 		recordServices.update(bob.getWrappedRecord());
+
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test

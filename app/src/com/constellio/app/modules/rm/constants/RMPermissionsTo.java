@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.constants;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.model.entities.Permissions;
+
+import java.util.List;
 
 public class RMPermissionsTo {
 	public static Permissions PERMISSIONS = new Permissions(ConstellioRMModule.ID);
@@ -22,6 +22,7 @@ public class RMPermissionsTo {
 	public static final String SHARE_FOLDER = permission(FOLDER_GROUP, "shareFolders");
 	public static final String SHARE_A_SEMIACTIVE_FOLDER = permission(FOLDER_GROUP, "shareSemiActiveFolders");
 	public static final String SHARE_A_INACTIVE_FOLDER = permission(FOLDER_GROUP, "shareInactiveFolders");
+	public static final String SHARE_A_IMPORTED_FOLDER = permission(FOLDER_GROUP, "shareImportedFolders");
 
 	public static final String CREATE_SUB_FOLDERS = permission(FOLDER_GROUP, "createSubFolders");
 	public static final String CREATE_SUB_FOLDERS_IN_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP,
@@ -32,6 +33,7 @@ public class RMPermissionsTo {
 
 	public static final String MODIFY_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP, "modifySemiActiveFolders");
 	public static final String MODIFY_INACTIVE_FOLDERS = permission(FOLDER_GROUP, "modifyInactiveFolders");
+	public static final String MODIFY_IMPORTED_FOLDERS = permission(FOLDER_GROUP, "modifyImportedFolders");
 
 	public static final String DELETE_SEMIACTIVE_FOLDERS = permission(FOLDER_GROUP, "deleteSemiActiveFolders");
 	public static final String DELETE_INACTIVE_FOLDERS = permission(FOLDER_GROUP, "deleteInactiveFolders");
@@ -55,6 +57,7 @@ public class RMPermissionsTo {
 	public static final String SHARE_DOCUMENT = permission(DOCUMENT_GROUP, "shareDocuments");
 	public static final String SHARE_A_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareSemiActiveDocuments");
 	public static final String SHARE_A_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "shareInactiveDocuments");
+	public static final String SHARE_A_IMPORTED_DOCUMENT = permission(DOCUMENT_GROUP, "shareImportedDocuments");
 
 	public static final String CREATE_DOCUMENTS = permission(DOCUMENT_GROUP, "createDocuments");
 	public static final String CREATE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "createSemiActiveDocuments");
@@ -62,14 +65,19 @@ public class RMPermissionsTo {
 
 	public static final String MODIFY_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "modifySemiActiveDocuments");
 	public static final String MODIFY_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "modifyInactiveDocuments");
+	public static final String MODIFY_IMPORTED_DOCUMENTS = permission(DOCUMENT_GROUP, "modifyImportedDocuments");
 
 	public static final String UPLOAD_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "uploadSemiActiveDocuments");
 	public static final String UPLOAD_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "uploadInactiveDocuments");
 
 	public static final String DELETE_SEMIACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteSemiActiveDocuments");
 	public static final String DELETE_INACTIVE_DOCUMENT = permission(DOCUMENT_GROUP, "deleteInactiveDocuments");
+	public static final String DELETE_BORROWED_DOCUMENT = permission(DOCUMENT_GROUP, "deleteBorrowedDocuments");
+	public static final String DELETE_PUBLISHED_DOCUMENT = permission(DOCUMENT_GROUP, "deletePublishedDocuments");
 
 	public static final String RETURN_OTHER_USERS_DOCUMENTS = permission(DOCUMENT_GROUP, "returnOtherUsersDocuments");
+
+	public static final String PUBLISH_AND_UNPUBLISH_DOCUMENTS = permission(DOCUMENT_GROUP, "publishAndUnpublishDocuments");
 
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
@@ -81,6 +89,11 @@ public class RMPermissionsTo {
 	public static final String MANAGE_REPORTS = permission("management", "manageReports");
 	public static final String APPROVE_DECOMMISSIONING_LIST = permission(DECOMMISSIONING, "decommissioning");
 	public static final String MANAGE_CONTAINERS = permission(DECOMMISSIONING, "manageContainers");
+
+	// Cart
+	private static final String CART_GROUP = "carts";
+
+	public static final String USE_CART = permission(CART_GROUP, "useCart");
 
 	// RM Module management
 	private static final String RM_MANAGEMENT = "rmManagement";

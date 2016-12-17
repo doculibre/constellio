@@ -152,5 +152,19 @@ public class CyclicHierarchyValidatorTest extends ConstellioTest {
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 	}
+	
+	@Test
+	public void givenARecordWithIdInSubstringOfPrincipalPathThenNoError() {
+
+		when(record.get(metadataWithAChildOfReference)).thenReturn("anAllowedRecordId");
+		when(anAllowedRecord.get(Schemas.PRINCIPAL_PATH)).thenReturn("/anAllowedRecordIdanAllowedRecordId");
+
+		ValidationErrors validationErrors = new ValidationErrors();
+
+		validator.validate(record, validationErrors);
+
+		assertThat(validationErrors.getValidationErrors()).isEmpty();
+		
+	}
 
 }

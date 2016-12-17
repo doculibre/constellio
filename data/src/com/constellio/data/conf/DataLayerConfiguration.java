@@ -26,6 +26,10 @@ public interface DataLayerConfiguration {
 
 	File getContentDaoFileSystemFolder();
 
+	DigitSeparatorMode getContentDaoFileSystemDigitsSeparatorMode();
+
+	void setContentDaoFileSystemDigitsSeparatorMode(DigitSeparatorMode mode);
+
 	File getTempFolder();
 
 	ConfigManagerType getSettingsConfigType();
@@ -36,7 +40,13 @@ public interface DataLayerConfiguration {
 
 	IdGeneratorType getIdGeneratorType();
 
+	IdGeneratorType getSecondaryIdGeneratorType();
+
 	boolean isSecondTransactionLogEnabled();
+
+	boolean isWriteZZRecords();
+
+	HashingEncoding getHashingEncoding();
 
 	File getSecondTransactionLogBaseFolder();
 
@@ -52,8 +62,13 @@ public interface DataLayerConfiguration {
 
 	SecondTransactionLogReplayFilter getSecondTransactionLogReplayFilter();
 
-	void setSecondTransactionLogFolderEnabled(boolean enable);
+	void setWriteZZRecords(boolean enable);
+
 	boolean isLocalHttpSolrServer();
 
 	boolean isInRollbackTestMode();
+
+	String createRandomUniqueKey();
+
+	void setHashingEncoding(HashingEncoding encoding);
 }

@@ -15,9 +15,13 @@ public interface Record extends Serializable, CollectionObject {
 
 	public String getId();
 
+	String getTitle();
+
 	public long getVersion();
 
 	public String getSchemaCode();
+
+	String getTypeCode();
 
 	public boolean isDirty();
 
@@ -45,6 +49,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	boolean isActive();
 
+	boolean isDisconnected();
+
 	List<String> getFollowers();
 
 	Record getCopyOfOriginalRecord();
@@ -56,4 +62,7 @@ public interface Record extends Serializable, CollectionObject {
 	void markAsModified(Metadata metadata);
 
 	void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema);
+
+	boolean isOfSchemaType(String type);
+
 }

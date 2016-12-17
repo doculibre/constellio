@@ -6,45 +6,50 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
+
+import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.data.utils.TimeProvider;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactory;
-import com.constellio.app.modules.rm.reports.factories.ExampleReportFactory;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.components.ReportPresenter;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.KeySetMap;
+import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.StatusFilter;
@@ -56,27 +61,82 @@ import com.constellio.model.services.search.zipContents.ZipContentsService;
 import com.constellio.model.services.search.zipContents.ZipContentsService.NoContentToZipRuntimeException;
 import com.vaadin.server.StreamResource.StreamSource;
 
-public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements ReportPresenter {
+public abstract class SearchPresenter<T extends SearchView> extends BasePresenter<T> implements NewReportPresenter {
 	private static final String ZIP_CONTENT_RESOURCE = "zipContentsFolder";
 
 	public enum SortOrder {ASCENDING, DESCENDING}
 
 	private static Logger LOGGER = LoggerFactory.getLogger(SearchPresenter.class);
 
-	private Map<String, String[]> extraSolrParams = new HashMap<>();
+	protected Map<String, String[]> extraSolrParams = new HashMap<>();
 	KeySetMap<String, String> facetSelections = new KeySetMap<>();
 	Map<String, Boolean> facetStatus = new HashMap<>();
 	List<String> suggestions;
 	String sortCriterion;
 	SortOrder sortOrder;
+	String resultsViewMode;
 	String collection;
 	transient SchemasDisplayManager schemasDisplayManager;
 	transient SearchPresenterService service;
 	boolean highlighter = true;
+	int selectedPageLength;
+
+	public int getSelectedPageLength() {
+		return selectedPageLength;
+	}
+
+	public void setSelectedPageLength(int selectedPageLength) {
+		this.selectedPageLength = selectedPageLength;
+	}
 
 	public SearchPresenter(T view) {
 		super(view);
 		init(view.getConstellioFactories(), view.getSessionContext());
+		initSortParameters();
+	}
+
+	private void initSortParameters() {
+		SearchSortType searchSortType = modelLayerFactory.getSystemConfigs().getSearchSortType();
+		switch (searchSortType) {
+		case RELEVENCE:
+			sortOrder = SortOrder.DESCENDING;
+			this.sortCriterion = null;
+			break;
+		case PATH_ASC:
+			this.sortCriterion = Schemas.PATH.getCode();
+			this.sortOrder = SortOrder.ASCENDING;
+			break;
+		case PATH_DES:
+			this.sortCriterion = Schemas.PATH.getCode();
+			this.sortOrder = SortOrder.DESCENDING;
+			break;
+		case ID_ASC:
+			this.sortCriterion = Schemas.IDENTIFIER.getCode();
+			this.sortOrder = SortOrder.ASCENDING;
+			break;
+		case ID_DES:
+			this.sortCriterion = Schemas.IDENTIFIER.getCode();
+			this.sortOrder = SortOrder.DESCENDING;
+			break;
+		case CREATION_DATE_ASC:
+			this.sortCriterion = Schemas.CREATED_ON.getCode();
+			this.sortOrder = SortOrder.ASCENDING;
+			break;
+		case CREATION_DATE_DES:
+			this.sortCriterion = Schemas.CREATED_ON.getCode();
+			this.sortOrder = SortOrder.DESCENDING;
+			break;
+		case MODIFICATION_DATE_ASC:
+			this.sortCriterion = Schemas.MODIFIED_ON.getCode();
+			this.sortOrder = SortOrder.ASCENDING;
+			break;
+		case MODIFICATION_DATE_DES:
+			this.sortCriterion = Schemas.MODIFIED_ON.getCode();
+			this.sortOrder = SortOrder.DESCENDING;
+			break;
+		default:
+			throw new RuntimeException("Unsupported type " + searchSortType);
+		}
 	}
 
 	public void setExtraSolrParams(Map<String, String[]> extraSolrParams) {
@@ -103,14 +163,24 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	public void resetFacetAndOrder() {
 		resetFacetSelection();
-		sortOrder = SortOrder.ASCENDING;
+		//TODO
+		initSortParameters();
+		//sortOrder = SortOrder.ASCENDING;
 	}
+
+	public String getResultsViewMode() {
+		return resultsViewMode;
+	}
+
+	public abstract Record getTemporarySearchRecord();
 
 	public abstract SearchPresenter<T> forRequestParameters(String params);
 
 	public abstract boolean mustDisplayResults();
 
 	public abstract int getPageNumber();
+
+	public abstract void setPageNumber(int pageNumber);
 
 	public List<FacetVO> getFacets() {
 		return service.getFacets(getSearchQuery(), facetStatus);
@@ -146,7 +216,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	public SearchResultVODataProvider getSearchResults() {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), modelLayerFactory,
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
 				view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
@@ -161,8 +231,44 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				Metadata metadata = getMetadata(sortCriterion);
 				return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 			}
+
+			boolean hasExtensionsBeenNotified = false;
+
+			@Override
+			protected void onQuery(LogicalSearchQuery query, SPEQueryResponse response) {
+				if (!hasExtensionsBeenNotified) {
+					hasExtensionsBeenNotified = true;
+					SavedSearch search = new SavedSearch(recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA)),
+							types())
+							.setUser(getCurrentUser().getId())
+							.setSortField(sortCriterion)
+							.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
+							.setSelectedFacets(facetSelections.getNestedMap())
+							.setTemporary(false);
+
+					search = prepareSavedSearch(search);
+
+					LocalDateTime queryDateTime = TimeProvider.getLocalDateTime();
+					String username = view.getSessionContext().getCurrentUser().getUsername();
+					String language = view.getSessionContext().getCurrentLocale().getLanguage();
+					UserSearchEvent param = new UserSearchEvent(response, query, search, queryDateTime, language, username);
+
+					appLayerFactory.getExtensions().forCollection(view.getSessionContext().getCurrentCollection())
+							.notifyNewUserSearch(param);
+				}
+			}
 		};
 	}
+
+	private List<MetadataSchemaVO> getSchemas() {
+		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
+		return Arrays.asList(
+				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
+				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()),
+				builder.build(schema(Folder.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext()));
+	}
+
+	// TODO RecordVODataProvider for search results
 
 	public void facetValueSelected(String facetId, String facetValue) {
 		facetSelections.get(facetId).add(facetValue);
@@ -191,10 +297,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return facetSelections;
 	}
 
+	public void setFacetSelections(Map<String, Set<String>> facetSelections) {
+		this.facetSelections.putAll(facetSelections);
+	}
+
 	public void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
 		this.sortCriterion = sortCriterion;
 		this.sortOrder = sortOrder;
-		view.refreshSearchResults();
+		view.refreshSearchResults(true);
 	}
 
 	@Override
@@ -207,12 +317,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 		switch (report) {
 		case "Reports.fakeReport":
-			return new ExampleReportFactory(view.getSelectedRecordIds());
+			return getRmReportBuilderFactories().exampleBuilderFactory.getValue();
 		case "Reports.FolderLinearMeasureStats":
-			return new StatsReportBuilderFactory(view.getCollection(), modelLayerFactory, getSearchQuery());
+			return getRmReportBuilderFactories().statsBuilderFactory.getValue();
 		}
 		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
@@ -243,6 +353,23 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		};
+	}
+
+	public String getSortCriterionValueAmong(List<MetadataVO> sortableMetadata) {
+		if (this.sortCriterion == null) {
+			return null;
+		}
+		if (!this.sortCriterion.startsWith("global_")) {
+			return this.sortCriterion;
+		} else {
+			String localCode = new SchemaUtils().getLocalCodeFromMetadataCode(this.sortCriterion);
+			for (MetadataVO metadata : sortableMetadata) {
+				if (metadata.getLocalCode().equals(localCode)) {
+					return metadata.getCode();
+				}
+			}
+		}
+		return this.sortCriterion;
 	}
 
 	public abstract void suggestionSelected(String suggestion);
@@ -288,6 +415,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	protected void resetFacetSelection() {
 		facetSelections.clear();
+		initSortParameters();
 	}
 
 	protected SavedSearch getSavedSearch(String id) {
@@ -296,6 +424,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	}
 
 	Metadata getMetadata(String code) {
+		if (code.startsWith("global_")) {
+			return Schemas.getGlobalMetadata(code);
+		}
 		SchemaUtils utils = new SchemaUtils();
 		String schemaCode = utils.getSchemaCode(code);
 		return schema(schemaCode).getMetadata(utils.getLocalCode(code, schemaCode));
@@ -328,7 +459,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isSortable()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
@@ -348,7 +478,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				.setPublic(publicAccess)
 				.setSortField(sortCriterion)
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
-				.setSelectedFacets(facetSelections.getNestedMap());
+				.setSelectedFacets(facetSelections.getNestedMap())
+				.setTemporary(false);
+
 		try {
 			recordServices().add(prepareSavedSearch(search));
 		} catch (RecordServicesException e) {
@@ -359,11 +491,24 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return true;
 	}
 
+	protected abstract void saveTemporarySearch(boolean refreshPage);
+
 	protected SavedSearch prepareSavedSearch(SavedSearch search) {
 		return search;
 	}
 
-	private SearchBoostManager searchBoostManager() {
+	protected SearchBoostManager searchBoostManager() {
 		return modelLayerFactory.getSearchBoostManager();
+	}
+
+	@Override
+	public Object getReportParameters(String report) {
+		switch (report) {
+			case "Reports.fakeReport":
+				return new ExampleReportParameters(view.getSelectedRecordIds());
+			case "Reports.FolderLinearMeasureStats":
+				return new StatsReportParameters(view.getCollection(), appLayerFactory, getSearchQuery());
+		}
+		throw new UnknownReportRuntimeException("BUG: Unknown report " + report);
 	}
 }

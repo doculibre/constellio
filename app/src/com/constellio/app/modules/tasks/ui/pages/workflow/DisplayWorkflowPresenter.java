@@ -95,7 +95,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	}
 
 	void editButtonClicked() {
-		view.navigateTo().editWorkflow(workflowVO.getId());
+		view.navigate().to(TaskViews.class).editWorkflow(workflowVO.getId());
 	}
 
 	void deleteButtonClicked() {
@@ -126,7 +126,6 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		}
 	}
 
-	//TODO Thiago
 	void createExistingTaskSelected(WorkflowTaskVO workflowTaskVOBefore) {
 		String workflowId = workflowVO.getId();
 		SessionContext sessionContext = view.getSessionContext();
@@ -159,7 +158,7 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 	void editTaskSelected(WorkflowTaskVO workflowTaskVO) {
 		String taskId = workflowTaskVO.getTaskVO().getId();
 		String workflowId = workflowVO.getId();
-		view.navigateTo().editTask(taskId, workflowId);
+		view.navigate().to().editTask(taskId, workflowId);
 	}
 
 	void deleteTaskSelected(WorkflowTaskVO workflowTaskVO) {
@@ -216,7 +215,6 @@ public class DisplayWorkflowPresenter extends SingleSchemaBasePresenter<DisplayW
 		return allow;
 	}
 
-	//TODO Thiago
 	public boolean addExistingTaskAfter(WorkflowTaskVO existingItemId, WorkflowTaskVO targetItemId) {
 		boolean allow;
 		SessionContext sessionContext = view.getSessionContext();

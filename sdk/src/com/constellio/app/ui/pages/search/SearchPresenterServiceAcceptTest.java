@@ -24,6 +24,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
@@ -56,7 +57,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
-		rm = new RMSchemasRecordsServices(zeCollection, getModelLayerFactory());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		searchPresenterService = new SearchPresenterService(zeCollection, getModelLayerFactory());
 
 		allFolders = new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());
@@ -174,8 +175,8 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemaTypesBuilder typesBuilder = getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection);
-		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().setLabel("Ze folder");
-		typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema().setLabel("Ze document");
+		typesBuilder.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze folder");
+		typesBuilder.getSchemaType(Document.SCHEMA_TYPE).getDefaultSchema().addLabel(Language.French, "Ze document");
 		getModelLayerFactory().getMetadataSchemasManager().saveUpdateSchemaTypes(typesBuilder);
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("schema_s").setTitle("Ze type"));
@@ -228,6 +229,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		assertThat(facets.get(0).isOpen()).isTrue();
 	}
 
+
 	// ----------------------------------------------------
 
 	//	private Condition<? super FacetVO> dataStoreCode(final String expectedDataStoreCode) {
@@ -242,13 +244,13 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 
 	private ExpectedFacetValue value(RetentionRule retentionRule) {
 		int count = (int) searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderRetentionRule()).isEqualTo(retentionRule));
+				.where(rm.folder.retentionRule()).isEqualTo(retentionRule));
 		return new ExpectedFacetValue(retentionRule.getId(), retentionRule.getTitle(), -1);
 	}
 
 	private ExpectedFacetValue value(AdministrativeUnit unit) {
 		int count = (int) searchServices.getResultsCount(from(rm.folderSchemaType())
-				.where(rm.folderAdministrativeUnit()).isEqualTo(unit));
+				.where(rm.folder.administrativeUnit()).isEqualTo(unit));
 		return new ExpectedFacetValue(unit.getId(), unit.getTitle(), -1);
 	}
 

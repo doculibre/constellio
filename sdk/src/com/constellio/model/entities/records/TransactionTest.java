@@ -246,4 +246,14 @@ public class TransactionTest extends ConstellioTest {
 		assertThat(newTransaction.isSkippingRequiredValuesValidation()).isTrue();
 		assertThat(newTransaction.isSkippingReferenceToLogicallyDeletedValidation()).isTrue();
 	}
+
+	@Test
+	public void whenDuplicatingTransactionThenDuplicateIdsToReindex() {
+		transaction.addRecordToReindex("id1");
+		transaction.addRecordToReindex("id2");
+
+		Transaction newTransaction = new Transaction(transaction);
+
+		assertThat(newTransaction.getIdsToReindex()).containsOnly("id1", "id2");
+	}
 }

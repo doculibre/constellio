@@ -1,9 +1,10 @@
 package com.constellio.app.modules.rm.ui.accept.decommissioning;
 
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+
 import org.openqa.selenium.By;
 
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.tools.ButtonWebElement;
@@ -20,7 +21,7 @@ public class DecommissioningListPage extends PageHelper {
 	}
 
 	public DecommissioningListPage navigateToPage() {
-		driver.navigateTo().url(NavigatorConfigurationService.DECOMMISSIONING_LIST_DISPLAY + "/" + recordId);
+		driver.navigateTo().url(RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY + "/" + recordId);
 		return this;
 	}
 
@@ -40,7 +41,8 @@ public class DecommissioningListPage extends PageHelper {
 	}
 
 	public ButtonWebElement getApprovalRequestButton() {
-		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.APPROVAL_REQUEST_BUTTON));
+		ConstellioWebElement element = driver
+				.findRequiredElement(By.className(DecommissioningListViewImpl.APPROVAL_REQUEST_BUTTON));
 		return new ButtonWebElement(element);
 	}
 
@@ -55,7 +57,8 @@ public class DecommissioningListPage extends PageHelper {
 	}
 
 	public ButtonWebElement getValidationRequestButton() {
-		ConstellioWebElement element = driver.findRequiredElement(By.className(DecommissioningListViewImpl.VALIDATION_REQUEST_BUTTON));
+		ConstellioWebElement element = driver
+				.findRequiredElement(By.className(DecommissioningListViewImpl.VALIDATION_REQUEST_BUTTON));
 		return new ButtonWebElement(element);
 	}
 }

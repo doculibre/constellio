@@ -407,6 +407,8 @@ $popup-view-z-index: 3;
     }
 
     .lookup-autocomplete-field {
+    	width:100%;
+    	
         .v-filterselect-input {
         	padding-right: 0px;
         }
@@ -434,6 +436,16 @@ $popup-view-z-index: 3;
     .v-disabled:hover {
     	text-decoration: none;
     }
+    
+    .v-filterselect-suggestmenu {
+    	.gwt-MenuItem {
+    		padding-left: 0px;
+    		padding-right: 0px;
+    		span {
+    			padding-left: 10px;
+    		}
+    	}
+    }
 
     .autocomplete-error, .lookup-error {
     	.v-filterselect-input {
@@ -455,6 +467,7 @@ $popup-view-z-index: 3;
 
 	.xbreadcrumbs {
 		background-color: #FFFFFF;
+		height: auto;
 
 		.v-link a span,.xbreadcrumbbutton .v-button-caption {
 			font-size: 0.9em;
@@ -466,6 +479,7 @@ $popup-view-z-index: 3;
 
 		.xbreadcrumbbutton {
 		    height: auto;
+		    white-space: normal;
 		}
 	}
 
@@ -500,6 +514,12 @@ $popup-view-z-index: 3;
 				overflow: auto;
 				padding-left: 10px;
 				margin-top: 5px;
+			}
+		
+			.v-panel {
+				.v-scrollable {
+					overflow: auto;
+				}
 			}
 		}
 		
@@ -731,6 +751,10 @@ $popup-view-z-index: 3;
 	    }
     }
 
+	.v-table-row-textRed {
+	    color: red;
+	}
+	
     .constellio-layout {
 
 	    .sidebar {
@@ -837,6 +861,22 @@ $popup-view-z-index: 3;
 						    	border: 1px solid lightgray;
 						    	padding: 2px;
 						    	text-align: center;
+						    	
+						    	.v-slot-list-add-remove-table {
+						    		width: 100%;
+						    	}
+							}
+							
+							.v-has-caption {
+								width: 70%;
+								.list-add-remove-comment {
+									width: 100%;
+								}
+							}
+							
+							.reference-display {
+            					white-space: normal;
+            					height: inherit;
 							}
 
 							.copy-retention-rule-table-medium-types-field {
@@ -1190,7 +1230,6 @@ $popup-view-z-index: 3;
 
 			.base-display {
 				.v-slot-display-value {
-            		padding-right: 260px;
 				}
 
 				.v-slot-list-add-remove-comment {
@@ -1209,6 +1248,14 @@ $popup-view-z-index: 3;
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
+	    
+		// Admin ES Module 
+
+		.connector-report-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
+		}
     }
 
     .ui-with-top-menu[width-range~="801-1100px"] {
@@ -1254,13 +1301,18 @@ $popup-view-z-index: 3;
 			}
 
 			.base-display {
-				.v-slot-display-value {
+				.base-display-main-layout {
+					width:100%;
             		padding-right: 260px;
+            		
+					.v-slot-display-value {
+					}
+	
+					.v-slot-list-add-remove-comment {
+						width: 100%;
+					}
 				}
-
-				.v-slot-list-add-remove-comment {
-					width: 100%;
-				}
+			
 			}
         }
 
@@ -1274,6 +1326,14 @@ $popup-view-z-index: 3;
     	.v-slot-suggestions-summary-results {
             padding-right: 320px;
     	}
+	    
+		// Admin ES Module 
+
+		.connector-report-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
+		}
     }
 
     .ui-with-top-menu[width-range~="0-800px"] {
@@ -1340,5 +1400,72 @@ $popup-view-z-index: 3;
     	}
 
     }
+    
+    .v-progressbar {
+		width: 150px;
+	}
+
+	.v-progressbar-wrapper {
+		height: 7px;
+		border: 1px solid #197de1;
+	}
+	
+	.v-progressbar-indicator {
+		height: 7px;
+		background: #197de1;
+	}
+	
+	div.v-progressbar-indeterminate {
+		height: 20px;
+		width: 20px;
+		background: #fff url(common/img/ajax-loader-medium.gif) no-repeat 50%;
+		border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+	}
+	
+	.v-progressbar-indeterminate .v-progressbar-wrapper, .v-progressbar-indeterminate .v-progressbar-indicator, .v-progressbar-indeterminate-disabled .v-progressbar-wrapper, .v-progressbar-indeterminate-disabled .v-progressbar-indicator {
+		display: none;
+	}
+	
+	div.v-progressbar-indeterminate-disabled {
+		height: 20px;
+		width: 20px;
+		background: transparent;
+	}
+	
+	.v-progressindicator {
+		width: 150px;
+		background-color: #414B56;
+	}
+	
+	.v-progressindicator-wrapper {
+		height: 7px;
+		border: 1px solid #197de1; 
+	}
+	
+	.v-progressindicator-indicator {
+		height: 7px;
+		background: #197de1;
+	} 
+	
+	div.v-progressindicator-indeterminate {
+		height: 20px;
+		width: 20px;
+		background: #fff url(common/img/ajax-loader-medium.gif) no-repeat 50%;
+		border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+	}
+	
+	.v-progressindicator-indeterminate .v-progressindicator-wrapper, .v-progressindicator-indeterminate .v-progressindicator-indicator, .v-progressindicator-indeterminate-disabled .v-progressindicator-wrapper, .v-progressindicator-indeterminate-disabled .v-progressindicator-indicator {
+		display: none;
+	}
+	
+	div.v-progressindicator-indeterminate-disabled {
+		height: 20px;
+		width: 20px;
+		background: transparent;
+	}
 
 }

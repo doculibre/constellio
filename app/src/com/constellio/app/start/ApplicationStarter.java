@@ -13,6 +13,7 @@ import javax.servlet.Servlet;
 
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -30,10 +31,12 @@ import com.constellio.model.conf.FoldersLocator;
 
 public class ApplicationStarter {
 
+	private static int REQUEST_HEADER_SIZE = 32 * 1024;
+
 	private static Server server;
 	private static WebAppContext handler;
-	private static Map<String, Servlet> servlets = new HashMap<>();
-	private static Map<String, Filter> filters = new HashMap<>();
+	private static Map<String, List<Servlet>> servletMappings = new HashMap<>();
+	private static Map<String, List<Filter>> filterMappings = new HashMap<>();
 
 	private ApplicationStarter() {
 	}
@@ -70,14 +73,18 @@ public class ApplicationStarter {
 		try {
 			server.start();
 
-			for (String pathSpec : filters.keySet()) {
-				Filter filter = filters.get(pathSpec);
-				handler.addFilter(new FilterHolder(filter), pathSpec, EnumSet.allOf(DispatcherType.class));
+			for (String pathSpec : filterMappings.keySet()) {
+				List<Filter> filters = filterMappings.get(pathSpec);
+				for (Filter filter : filters) {
+					handler.addFilter(new FilterHolder(filter), pathSpec, EnumSet.allOf(DispatcherType.class));
+				}
 			}
 
-			for (String pathSpec : servlets.keySet()) {
-				Servlet servlet = servlets.get(pathSpec);
-				handler.addServlet(new ServletHolder(servlet), pathSpec);
+			for (String pathSpec : servletMappings.keySet()) {
+				List<Servlet> servlets = servletMappings.get(pathSpec);
+				for (Servlet servlet : servlets) {
+					handler.addServlet(new ServletHolder(servlet), pathSpec);
+				}
 			}
 		} catch (Exception e) {
 			throw new ApplicationStarterRuntimeException(e);
@@ -96,13 +103,19 @@ public class ApplicationStarter {
 		if (params.isSSL()) {
 			return getSslServer(params);
 		} else {
-			return new Server(params.getPort());
+			SocketConnector connector = new SocketConnector();
+			connector.setPort(params.getPort());
+			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
+
+			Server server =  new Server();
+			server.setConnectors(new Connector[] { connector });
+			return server;
 		}
 	}
 
 	public static void stopApplication() {
-		filters.clear();
-		servlets.clear();
+		filterMappings.clear();
+		servletMappings.clear();
 		handler = null;
 		try {
 			server.stop();
@@ -117,7 +130,8 @@ public class ApplicationStarter {
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
-		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2");
+		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello");
+
 		sslContextFactory.setExcludeCipherSuites(
 				"SSL_RSA_WITH_DES_CBC_SHA",
 				"SSL_DHE_RSA_WITH_DES_CBC_SHA",
@@ -134,10 +148,13 @@ public class ApplicationStarter {
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA");
+				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA"
+		);
 
 		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
 		connector.setPort(params.getPort());
+
+		connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 		sslServer.setConnectors(new Connector[] { connector });
 
@@ -146,9 +163,10 @@ public class ApplicationStarter {
 
 	public static void registerServlet(String pathRelativeToConstellioContext, Servlet servlet) {
 		if (handler == null) {
-			if (!servlets.containsKey(pathRelativeToConstellioContext)) {
-				servlets.put(pathRelativeToConstellioContext, servlet);
+			if (!servletMappings.containsKey(pathRelativeToConstellioContext)) {
+				servletMappings.put(pathRelativeToConstellioContext, new ArrayList<Servlet>());
 			}
+			servletMappings.get(pathRelativeToConstellioContext).add(servlet);
 		} else {
 			handler.addServlet(new ServletHolder(servlet), pathRelativeToConstellioContext);
 		}
@@ -156,19 +174,20 @@ public class ApplicationStarter {
 
 	public static void registerFilter(String pathRelativeToConstellioContext, Filter filter) {
 		if (handler == null) {
-			if (!filters.containsKey(pathRelativeToConstellioContext)) {
-				filters.put(pathRelativeToConstellioContext, filter);
+			if (!filterMappings.containsKey(pathRelativeToConstellioContext)) {
+				filterMappings.put(pathRelativeToConstellioContext, new ArrayList<Filter>());
 			}
+			filterMappings.get(pathRelativeToConstellioContext).add(filter);
 		} else {
 			handler.addFilter(new FilterHolder(filter), pathRelativeToConstellioContext, EnumSet.allOf(DispatcherType.class));
 		}
 	}
 
 	public static void resetServlets() {
-		servlets.clear();
+		servletMappings.clear();
 	}
 
 	public static void resetFilters() {
-		filters.clear();
+		filterMappings.clear();
 	}
 }

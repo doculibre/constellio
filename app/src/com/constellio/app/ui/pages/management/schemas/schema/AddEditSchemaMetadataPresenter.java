@@ -1,8 +1,13 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.constellio.app.services.metadata.MetadataDeletionException;
@@ -21,11 +26,11 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
@@ -47,9 +52,39 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		this.parameters = params;
 	}
 
-	public MetadataVODataProvider getDataProvider() {
+	public Map<String, MetadataVODataProvider> getDataProviders() {
+		Map<String, MetadataVODataProvider> dataProviders = new LinkedHashMap<>();
 		String schemaCode = getSchemaCode();
-		return new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode);
+		
+		MetadataVODataProvider custom = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+			@Override
+			protected boolean isAccepted(Metadata metadata) {
+				return metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON));
+			}
+		};
+		
+		MetadataVODataProvider system = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+			@Override
+			protected boolean isAccepted(Metadata metadata) {
+				return !metadata.getLocalCode().startsWith("USR") && metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON));
+			}
+		};
+		
+		MetadataVODataProvider disabled = new MetadataVODataProvider(new MetadataToVOBuilder(), modelLayerFactory, collection, schemaCode) {
+			@Override
+			protected boolean isAccepted(Metadata metadata) {
+				return !metadata.isEnabled() && (!metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(IDENTIFIER, CREATED_BY, MODIFIED_BY,
+						CREATED_ON, MODIFIED_ON));
+			}
+		};
+		
+		dataProviders.put($("AddEditSchemaMetadataView.tabs.custom", custom.size()), custom);
+		dataProviders.put($("AddEditSchemaMetadataView.tabs.system", system.size()), system);
+		dataProviders.put($("AddEditSchemaMetadataView.tabs.disabled", disabled.size()), disabled);
+		
+		return dataProviders;
 	}
 
 	public FormMetadataSchemaVO getSchemaVO() {
@@ -58,7 +93,7 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		if (schemaCode != null) {
 			MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
-			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema);
+			schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, view.getSessionContext());
 		}
 
 		return schemaVO;
@@ -68,26 +103,26 @@ public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<Ad
 		parameters.put("schemaCode", getSchemaCode());
 		parameters.put("metadataCode", "");
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-		view.navigateTo().addMetadata(params);
+		view.navigate().to().addMetadata(params);
 	}
 
 	public void editButtonClicked(MetadataVO metadataVO) {
 		parameters.put("schemaCode", getSchemaCode());
 		parameters.put("metadataCode", metadataVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-		view.navigateTo().editMetadata(params);
+		view.navigate().to().editMetadata(params);
 	}
 
 	public void backButtonClicked() {
 		String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_SCHEMA, parameters);
-		view.navigateTo().listSchema(params);
+		view.navigate().to().listSchema(params);
 	}
 
 	public void deleteButtonClicked(MetadataVO entity) {
 		try {
 			metadataDeletionService().deleteMetadata(entity.getCode());
 			String params = ParamUtils.addParams(NavigatorConfigurationService.ADD_EDIT_METADATA, parameters);
-			view.navigateTo().listSchemaMetadata(params);
+			view.navigate().to().listSchemaMetadata(params);
 
 		} catch (MetadataDeletionException e) {
 			view.showErrorMessage(getAppropriateMessage(e));

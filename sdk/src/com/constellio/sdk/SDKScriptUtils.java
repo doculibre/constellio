@@ -1,11 +1,18 @@
 package com.constellio.sdk;
 
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.factories.ConstellioFactoriesDecorator;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 
@@ -24,23 +31,32 @@ public class SDKScriptUtils {
 
 			@Override
 			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+
+				File keyTxt = new File(modelLayerConfiguration.getDataLayerConfiguration().getSettingsFileSystemBaseFolder(),
+						"key.txt");
+
+				modelLayerConfiguration = spy(modelLayerConfiguration);
 				modelLayerConfiguration.setBatchProcessesEnabled(false);
-				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
+				Factory<EncryptionServices> encryptionServicesFactory = new Factory<EncryptionServices>() {
+					@Override
+					public EncryptionServices get() {
+						return new FakeEncryptionServices();
+					}
+				};
+				when(modelLayerConfiguration.getEncryptionServicesFactory()).thenReturn(encryptionServicesFactory);
+				when(modelLayerConfiguration.getConstellioEncryptionFile()).thenReturn(keyTxt);
+				return modelLayerConfiguration;
 			}
 
 			@Override
 			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+
 				dataLayerConfiguration.setBackgroundThreadsEnabled(false);
 				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
 			}
 
 			@Override
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
-				try {
-					modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
 					public boolean authenticate(String username, String password) {
@@ -97,11 +113,6 @@ public class SDKScriptUtils {
 
 			@Override
 			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
-				try {
-					modelLayerFactory.setEncryptionServices(new FakeEncryptionServices());
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
 				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
 					@Override
 					public boolean authenticate(String username, String password) {
@@ -136,4 +147,61 @@ public class SDKScriptUtils {
 		return appLayerFactory;
 	}
 
+
+
+	public static AppLayerFactory startApplicationWithBatchProcessesAndBackgroundThreads() {
+
+		ConstellioFactoriesDecorator constellioFactoriesDecorator = new ConstellioFactoriesDecorator() {
+			@Override
+			public AppLayerConfiguration decorateAppLayerConfiguration(AppLayerConfiguration appLayerConfiguration) {
+				return super.decorateAppLayerConfiguration(appLayerConfiguration);
+			}
+
+			@Override
+			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+				modelLayerConfiguration.setBatchProcessesEnabled(true);
+				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
+			}
+
+			@Override
+			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+				dataLayerConfiguration.setBackgroundThreadsEnabled(true);
+				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
+			}
+
+			@Override
+			public ModelLayerFactory decorateModelServicesFactory(final ModelLayerFactory modelLayerFactory) {
+				modelLayerFactory.setAuthenticationService(new AuthenticationService() {
+					@Override
+					public boolean authenticate(String username, String password) {
+						return modelLayerFactory.newUserServices().getUserCredential(username) != null;
+					}
+
+					@Override
+					public boolean supportPasswordChange() {
+						return false;
+					}
+
+					@Override
+					public void changePassword(String username, String oldPassword, String newPassword) {
+
+					}
+
+					@Override
+					public void changePassword(String username, String newPassword) {
+
+					}
+
+					@Override
+					public void reloadServiceConfiguration() {
+
+					}
+				});
+				return modelLayerFactory;
+			}
+		};
+
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance(constellioFactoriesDecorator).getAppLayerFactory();
+		return appLayerFactory;
+	}
 }

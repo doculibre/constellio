@@ -18,8 +18,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
+
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Duration;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +31,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
@@ -52,7 +54,7 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 public class TaskReminderEmailManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TaskReminderEmailManager.class);
 	static int RECORDS_BATCH = 1000;
-	private static final long TWENTY_SECONDS = 20 * 1000l;
+	private static final long TWENTY_SECONDS = 60 * 1000l;
 	private static final Duration DURATION_BETWEEN_EXECUTION = new Duration(TWENTY_SECONDS);
 	public static final String ID = "taskReminderEmailManager";
 	private final BackgroundThreadsManager backgroundThreadsManager;
@@ -154,30 +156,37 @@ public class TaskReminderEmailManager implements StatefulService {
 		newParameters.addAll(parameters);
 
 		String parentTaskTitle = "";
-		String assignerUserName = getUserNameById(task.getAssigner());
-		String assigneeUserName = getUserNameById(task.getAssignee());
+		String assignerFullName = getUserFullNameById(task.getAssigner());
+		String assigneeFullName = getUserFullNameById(task.getAssignee());
 		if (task.getParentTask() != null) {
 			Task parentTask = taskSchemas.getTask(task.getParentTask());
 			parentTaskTitle = parentTask.getTitle();
 		}
 		String status = taskSchemas.getTaskStatus(task.getStatus()).getTitle();
 
-		newParameters.add(TASK_TITLE_PARAMETER + ":" + task.getTitle());
-		newParameters.add(PARENT_TASK_TITLE + ":" + parentTaskTitle);
-		newParameters.add(TASK_ASSIGNED_BY + ":" + assignerUserName);
-		newParameters.add(TASK_ASSIGNED_ON + ":" + task.getAssignedOn());
-		newParameters.add(TASK_ASSIGNED + ":" + assigneeUserName);
-		newParameters.add(TASK_DUE_DATE + ":" + task.getDueDate());
-		newParameters.add(TASK_STATUS + ":" + status);
-		newParameters.add(TASK_DESCRIPTION + ":" + task.getDescription());
+		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(task.getTitle()));
+		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(parentTaskTitle));
+		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(assignerFullName));
+		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
+		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
+		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
+		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
+		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
 		String constellioURL = eimConfigs.getConstellioUrl();
 
 		newParameters
-				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.DISPLAY_TASK + "/" + task.getId());
-		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + NavigatorConfigurationService.EDIT_TASK
+				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
+		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
 				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
 		emailToSend.setParameters(newParameters);
+	}
+
+	private Object formatToParameter(Object parameter) {
+		if(parameter == null) {
+			return "";
+		}
+		return parameter;
 	}
 
 	private String getUserNameById(String userId) {
@@ -185,6 +194,14 @@ public class TaskReminderEmailManager implements StatefulService {
 			return "";
 		}
 		return taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getUsername();
+	}
+
+	private String getUserFullNameById(String userId) {
+		if (org.apache.commons.lang3.StringUtils.isBlank(userId)) {
+			return "";
+		}
+		return taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
+				taskSchemas.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	private List<EmailAddress> getValidEmailAddresses(List<String> usersIds) {

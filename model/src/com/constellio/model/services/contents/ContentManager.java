@@ -12,9 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import com.constellio.model.services.contents.icap.IcapService;
 
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ import com.constellio.data.threads.BackgroundThreadConfiguration;
 import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.hashing.HashingService;
@@ -77,6 +80,8 @@ public class ContentManager implements StatefulService {
 
 	public static final String READ_CONTENT_FOR_PREVIEW_CONVERSION = "ContentManager-ReadContentForPreviewConversion";
 
+	static final String CONTENT_IMPORT_THREAD = "ContentImportThread";
+
 	static final String BACKGROUND_THREAD = "DeleteUnreferencedContent";
 
 	static final String READ_PARSED_CONTENT = "ContentServices-ReadParsedContent";
@@ -95,13 +100,17 @@ public class ContentManager implements StatefulService {
 	private final RecordServices recordServices;
 	private final CollectionsListManager collectionsListManager;
 	private final AtomicBoolean closing = new AtomicBoolean();
+	private final ModelLayerFactory modelLayerFactory;
+	private final IcapService icapService;
 
 	public ContentManager(ModelLayerFactory modelLayerFactory) {
 		super();
+		this.modelLayerFactory = modelLayerFactory;
 		this.contentDao = modelLayerFactory.getDataLayerFactory().getContentsDao();
 		this.recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
 		this.fileParser = modelLayerFactory.newFileParser();
-		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newHashingService();
+		this.hashingService = modelLayerFactory.getDataLayerFactory().getIOServicesFactory()
+				.newHashingService(modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding());
 		this.ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		this.uniqueIdGenerator = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator();
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -110,7 +119,7 @@ public class ContentManager implements StatefulService {
 		this.configuration = modelLayerFactory.getConfiguration();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-
+		icapService = new IcapService(modelLayerFactory);
 	}
 
 	@Override
@@ -119,7 +128,9 @@ public class ContentManager implements StatefulService {
 
 			@Override
 			public void run() {
-				deleteUnreferencedContents();
+				if (modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()) {
+					deleteUnreferencedContents();
+				}
 				convertPendingContentForPreview();
 			}
 		};
@@ -129,11 +140,33 @@ public class ContentManager implements StatefulService {
 						.executedEvery(
 								configuration.getUnreferencedContentsThreadDelayBetweenChecks())
 						.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+
+		if (configuration.getContentImportThreadFolder() != null) {
+			Runnable contentImportAction = new Runnable() {
+
+				@Override
+				public void run() {
+					uploadFilesInImportFolder();
+				}
+			};
+			backgroundThreadsManager.configure(
+					BackgroundThreadConfiguration.repeatingAction(CONTENT_IMPORT_THREAD, contentImportAction)
+							.executedEvery(Duration.standardSeconds(1))
+							.handlingExceptionWith(BackgroundThreadExceptionHandling.CONTINUE));
+		}
+
+		//
+		icapService.init();
 	}
 
 	@Override
 	public void close() {
 		closing.set(true);
+	}
+
+	public Content createWithVersion(User user, String filename, ContentVersionDataSummary newVersion, String version) {
+		String uniqueId = uniqueIdGenerator.next();
+		return ContentImpl.createWithVersion(uniqueId, user, filename, newVersion, version, false);
 	}
 
 	public Content createMajor(User user, String filename, ContentVersionDataSummary newVersion) {
@@ -211,6 +244,7 @@ public class ContentManager implements StatefulService {
 		return new ParsedContentConverter().convertToString(parsingResults);
 	}
 
+	@Deprecated
 	public ContentVersionDataSummary upload(InputStream inputStream) {
 		return upload(inputStream, true, true, null);
 	}
@@ -233,6 +267,9 @@ public class ContentManager implements StatefulService {
 			if (parse) {
 				ParsedContent parsedContent = getPreviouslyParsedContentOrParseFromStream(hash, closeableInputStreamFactory);
 				mimeType = parsedContent.getMimeType();
+				if (mimeType == null) {
+					mimeType = detectMimetype(closeableInputStreamFactory, fileName);
+				}
 			} else {
 				mimeType = detectMimetype(closeableInputStreamFactory, fileName);
 			}
@@ -248,6 +285,8 @@ public class ContentManager implements StatefulService {
 			ioServices.closeQuietly(closeableInputStreamFactory);
 		}
 	}
+
+	int contentVersionSummary = 0;
 
 	public ContentVersionDataSummary getContentVersionSummary(String hash) {
 		ParsedContent parsedContent = getParsedContentParsingIfNotYetDone(hash);
@@ -279,6 +318,14 @@ public class ContentManager implements StatefulService {
 
 	private ParsedContent parseAndSave(String hash, CloseableStreamFactory<InputStream> inputStreamFactory)
 			throws IOException {
+		//
+		try (final InputStream inputStream = inputStreamFactory.create(hash + ".icapscan")) {
+			if (inputStreamFactory instanceof CopyInputStreamFactory) {
+				final String filename = ((CopyInputStreamFactory) inputStreamFactory).getFilename();
+				icapService.scan(filename, inputStream);
+			}
+		}
+
 		ParsedContent parsedContent = tryToParse(inputStreamFactory);
 		saveParsedContent(hash, parsedContent);
 		return parsedContent;
@@ -366,6 +413,17 @@ public class ContentManager implements StatefulService {
 		return referenced;
 	}
 
+	public void uploadFilesInImportFolder() {
+		if (modelLayerFactory.getConfiguration().getContentImportThreadFolder() != null) {
+			new ContentManagerImportThreadServices(modelLayerFactory).importFiles();
+
+		}
+	}
+
+	public Map<String, Factory<ContentVersionDataSummary>> getImportedFilesMap() {
+		return new ContentManagerImportThreadServices(modelLayerFactory).readFileNameSHA1Index();
+	}
+
 	public void convertPendingContentForPreview() {
 
 		for (String collection : collectionsListManager.getCollections()) {
@@ -440,10 +498,7 @@ public class ContentManager implements StatefulService {
 		deleteUnreferencedContents(RecordsFlushing.NOW());
 	}
 
-
-	AtomicInteger counter = new AtomicInteger();
 	public void deleteUnreferencedContents(RecordsFlushing recordsFlushing) {
-		LOGGER.info("deleteUnreferencedContents " + counter.incrementAndGet());
 		List<RecordDTO> potentiallyDeletableContentMarkers;
 
 		while (!(potentiallyDeletableContentMarkers = getNextPotentiallyUnreferencedContentMarkers()).isEmpty()) {
@@ -489,7 +544,6 @@ public class ContentManager implements StatefulService {
 	}
 
 	public ParsedContent getParsedContent(String hash) {
-
 		String parsedContent = null;
 
 		InputStream inputStream = null;

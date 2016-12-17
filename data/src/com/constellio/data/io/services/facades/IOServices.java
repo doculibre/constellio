@@ -141,7 +141,7 @@ public class IOServices {
 		try {
 			return streamsServices.newBufferedFileInputStream(file, uniqueIdWith(name));
 		} catch (FileNotFoundException e) {
-			throw new ImpossibleRuntimeException(e);
+			throw new ImpossibleRuntimeException("File does not exist: " + file.getAbsolutePath(), e);
 		}
 	}
 
@@ -357,6 +357,10 @@ public class IOServices {
 		return fileServices.newTemporaryFile(resourceName);
 	}
 
+	public File newTemporaryFile(String resourceName, String extension) {
+		return fileServices.newTemporaryFile(resourceName, extension);
+	}
+
 	public void touch(File file) {
 		try {
 			FileUtils.touch(file);
@@ -377,6 +381,16 @@ public class IOServices {
 		fileServices.moveFile(src, dest);
 	}
 
+	public void replaceFileContent(File file, byte[] bytes)
+			throws IOException {
+		InputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+		try {
+			replaceFileContent(file, byteArrayInputStream);
+		} finally {
+			byteArrayInputStream.close();
+		}
+	}
+
 	public void replaceFileContent(File file, InputStream inputStream)
 			throws IOException {
 		File tempFile = getAtomicWriteTempFileFor(file);
@@ -394,5 +408,35 @@ public class IOServices {
 		}
 
 		moveFile(tempFile, file);
+	}
+
+	public void deleteEmptyDirectoriesExceptThisOneIn(File folder) {
+		deleteEmptyDirectoriesIn(folder, true);
+	}
+
+	public void deleteEmptyDirectoriesIn(File folder, boolean exceptThisDirectory) {
+		boolean hasFile = false;
+		File[] files = folder.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isDirectory()) {
+					deleteEmptyDirectoriesIn(file, false);
+					if (file.exists()) {
+						hasFile = true;
+					}
+
+				} else {
+					hasFile = true;
+				}
+			}
+		}
+
+		if (!hasFile && !exceptThisDirectory) {
+			try {
+				deleteDirectory(folder);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 }
