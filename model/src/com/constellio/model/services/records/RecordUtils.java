@@ -25,6 +25,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.DependencyUtils;
+import com.constellio.model.utils.DependencyUtilsParams;
 
 public class RecordUtils {
 
@@ -372,5 +373,52 @@ public class RecordUtils {
 		}
 
 		return schemaTypeCode + "_" + (customSchema == null ? "default" : customSchema);
+	}
+
+	public static List<Record> sortRecordByDependency(MetadataSchemaTypes types, List<Record> records) {
+
+		Set<String> ids = new HashSet<>(new RecordUtils().toIdList(records));
+		Map<String, Set<String>> dependencies = new HashMap<>();
+		Map<String, Record> recordMap = new HashMap<>();
+
+		boolean hasInterdependency = false;
+
+		for (Record record : records) {
+			MetadataSchema schema = types.getSchema(record.getSchemaCode());
+			Set<String> dependentIds = new HashSet<>();
+			recordMap.put(record.getId(), record);
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.getType() == MetadataValueType.REFERENCE) {
+					if (metadata.isMultivalue()) {
+						List<String> metadataIds = record.getList(metadata);
+						dependentIds.addAll(metadataIds);
+					} else {
+						String metadataId = record.get(metadata);
+						if (metadataId != null) {
+							dependentIds.add(metadataId);
+						}
+					}
+				}
+			}
+
+			for (String dependency : dependentIds) {
+				hasInterdependency |= ids.contains(dependency);
+			}
+
+			dependencies.put(record.getId(), dependentIds);
+		}
+
+		if (hasInterdependency) {
+			List<Record> sorted = new ArrayList<>();
+			DependencyUtilsParams params = new DependencyUtilsParams().withToleratedCyclicDepencies()
+					.sortUsingDefaultComparator();
+			for (String recordId : new DependencyUtils<String>().sortByDependency(dependencies, params)) {
+				sorted.add(recordMap.get(recordId));
+			}
+			return sorted;
+		} else {
+			return records;
+		}
+
 	}
 }

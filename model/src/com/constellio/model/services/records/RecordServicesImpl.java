@@ -381,10 +381,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 
 		boolean validations = transaction.getRecordUpdateOptions().isValidationsEnabled();
-		List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
+		//List<Record> records = RecordUtils.sortRecordByDependency(types, transaction.getRecords());
+		//List<Record> records = DependencyUtils.sortRecordByDependency(types, transaction.getRecords());
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(modelFactory.getContentManager(),
 				transaction.getParsedContentCache());
-		for (Record record : records) {
+		for (Record record : transaction.getRecords()) {
 			recordPopulateServices.populate(record, parsedContentProvider);
 
 			MetadataSchema schema = types.getSchema(record.getSchemaCode());

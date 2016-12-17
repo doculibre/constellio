@@ -62,26 +62,27 @@ public class RecordPopulateServices {
 		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 		List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
+		if (!contentMetadatas.isEmpty()) {
+			if (!record.isSaved()) {
+				String category = getCategory(parsedContentProvider, contentMetadatas, record);
+				setCategoryToRecord(record, category);
 
-		if (!record.isSaved()) {
-			String category = getCategory(parsedContentProvider, contentMetadatas, record);
-			setCategoryToRecord(record, category);
+			}
+			schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+			Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
 
-		}
-		schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-		Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
+			MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
+			TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (!metadata.getPopulateConfigs().isEmpty() || Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+					RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
+							titlePriority, schema);
+					if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
+						Object currentPopulatedValue = populator.populate(record, contentMetadatas);
 
-		MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
-		TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
-		for (Metadata metadata : schema.getMetadatas()) {
-			if (!metadata.getPopulateConfigs().isEmpty() || Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-				RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
-						titlePriority, schema);
-				if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
-					Object currentPopulatedValue = populator.populate(record, contentMetadatas);
-
-					if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-						record.set(metadata, currentPopulatedValue);
+						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+							record.set(metadata, currentPopulatedValue);
+						}
 					}
 				}
 			}
