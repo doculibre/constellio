@@ -145,11 +145,6 @@ public class AppManagementService {
 			}
 			String warVersion = findWarVersion(tempFolder);
 
-			File pluginsFolder = new File(tempFolder, "plugins");
-			if (pluginsFolder.exists()) {
-				updatePlugins(pluginsFolder);
-			}
-
 			String currentWarVersion = getWarVersion();
 			if (currentWarVersion == null || currentWarVersion.equals("5.0.5")) {
 				currentWarVersion = GradleFileVersionParser.getVersion();
@@ -168,8 +163,8 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 
-			File updatedWarPlugins = new File(tempFolder, "updated-plugins");
-			installNewOrUpdatedPlugins(updatedWarPlugins);
+			updatePlugins(new File(tempFolder, "plugins-to-update"));
+			installPlugins(new File(tempFolder, "plugins-to-install"));
 			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
@@ -211,6 +206,17 @@ public class AppManagementService {
 
 	}
 
+	private void installPlugins(File pluginsFolder) {
+		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
+			for (File pluginFile : pluginsFolder.listFiles()) {
+				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
+					LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
+					pluginManager.prepareInstallablePlugin(pluginFile);
+				}
+			}
+		}
+	}
+
 	private void updatePlugins(File pluginsFolder) {
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			Set<String> alreadyInstalledPlugins = new HashSet<>();
@@ -220,17 +226,21 @@ public class AppManagementService {
 			}
 
 			for (File pluginFile : pluginsFolder.listFiles()) {
-				try {
-					ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
+				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
+					try {
+						ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
 
-					if (alreadyInstalledPlugins.contains(info.getCode())) {
-						pluginManager.prepareInstallablePlugin(pluginFile);
-					} else {
-						pluginFile.delete();
+						if (alreadyInstalledPlugins.contains(info.getCode())) {
+							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
+							pluginManager.prepareInstallablePlugin(pluginFile);
+						} else {
+							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : deleted");
+							pluginFile.delete();
+						}
+
+					} catch (InvalidPluginJarException e) {
+						throw new RuntimeException(e);
 					}
-
-				} catch (InvalidPluginJarException e) {
-					throw new RuntimeException(e);
 				}
 			}
 		}
@@ -247,19 +257,6 @@ public class AppManagementService {
 			utils.movePluginsAndSetNoPluginToMove(pluginManager.getPluginsOfEveryStatus());
 		} catch (IOException e) {
 			throw new CannotSaveOldPlugins(e);
-		}
-	}
-
-	private void installNewOrUpdatedPlugins(File warPlugins) {
-		if (warPlugins.exists()) {
-			File[] updatedPlugins = warPlugins.listFiles();
-			if (updatedPlugins != null) {
-				for (File warPlugin : warPlugins.listFiles()) {
-					if (warPlugin.getName().toLowerCase().endsWith(".jar")) {
-						pluginManager.prepareInstallablePlugin(warPlugin);
-					}
-				}
-			}
 		}
 	}
 
