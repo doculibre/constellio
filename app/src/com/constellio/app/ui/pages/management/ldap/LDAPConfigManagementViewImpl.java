@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.ui.framework.components.StringListComponent;
@@ -10,17 +11,11 @@ import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.googlecode.mp4parser.contentprotection.PlayReadyHeader.PlayReadyRecord;
+import com.google.common.base.Joiner;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.PasswordField;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.*;
+import org.apache.commons.collections.CollectionUtils;
 
 public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements LDAPConfigManagementView {
 	private AzurAuthenticationTab azurAuthenticationTab;
@@ -188,7 +183,11 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	}
 
 	private class AzurSynchTab extends VerticalLayout {
-		Field applicationKey, clientId;
+		Field applicationKey;
+        Field clientId;
+        Field groupsFilterField;
+        Field usersFilterField;
+        Field userGroupsField;
 
 		private AzurSynchTab() {
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
@@ -197,24 +196,52 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 			buildDurationField(ldapUserSyncConfiguration);
 			addComponent(durationField);
+
 			buildCollectionsPanel();
 			addComponent(collectionsComponent);
-			clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
+
+            clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
 			clientId.setCaption($("LDAPConfigManagementView.clientId"));
 			addComponent(clientId);
 
 			applicationKey = createStringField(ldapUserSyncConfiguration.getClientSecret(), true);
 			applicationKey.setCaption($("LDAPConfigManagementView.applicationKey"));
 			addComponent(applicationKey);
-			buildUsersAcceptRegex(ldapUserSyncConfiguration);
-			addComponent(usersAcceptanceRegexField);
-			buildUsersRejectRegex(ldapUserSyncConfiguration);
-			addComponent(usersRejectionRegexField);
-			buildGroupsAcceptRegex(ldapUserSyncConfiguration);
-			addComponent(groupsAcceptanceRegexField);
-			buildGroupsRejectRegex(ldapUserSyncConfiguration);
-			addComponent(groupsRejectionRegexField);
 
+            addComponent(new Label("<HR/>", ContentMode.HTML));
+
+            groupsFilterField = createStringField(ldapUserSyncConfiguration.getGroupsFilter(), false);
+            groupsFilterField.setCaption($("LDAPConfigManagementView.groupsFilter"));
+            groupsFilterField.setSizeFull();
+            addComponent(groupsFilterField);
+
+            buildGroupsAcceptRegex(ldapUserSyncConfiguration);
+            addComponent(groupsAcceptanceRegexField);
+
+            buildGroupsRejectRegex(ldapUserSyncConfiguration);
+            addComponent(groupsRejectionRegexField);
+
+            addComponent(new Label("<HR />", ContentMode.HTML));
+
+            if (CollectionUtils.isEmpty(ldapUserSyncConfiguration.getUserGroups())) {
+                userGroupsField = new TextArea("");
+            } else {
+                userGroupsField = new TextArea(Joiner.on("\n").join(ldapUserSyncConfiguration.getUserGroups()));
+            }
+            userGroupsField.setCaption($("LDAPConfigManagementView.userGroups"));
+            userGroupsField.setSizeFull();
+            addComponent(userGroupsField);
+
+            usersFilterField = createStringField(ldapUserSyncConfiguration.getUsersFilter(), false);
+            usersFilterField.setCaption($("LDAPConfigManagementView.usersFilter"));
+            usersFilterField.setSizeFull();
+            addComponent(usersFilterField);
+
+            buildUsersAcceptRegex(ldapUserSyncConfiguration);
+			addComponent(usersAcceptanceRegexField);
+
+            buildUsersRejectRegex(ldapUserSyncConfiguration);
+			addComponent(usersRejectionRegexField);
 		}
 
 		public String getApplicationKey() {
@@ -224,7 +251,13 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
 			AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig()
 					.setApplicationKey(azurSynchTab.getApplicationKey())
-					.setClientId(azurSynchTab.getClientId());
+					.setClientId(azurSynchTab.getClientId())
+                    .setGroupsFilter((String) groupsFilterField.getValue())
+                    .setUsersFilter((String) usersFilterField.getValue());
+            if (userGroupsField.getValue() != null) {
+                azurUserSynchConfig = azurUserSynchConfig.setUserGroups(Arrays.asList(((String) userGroupsField.getValue()).split("\n")));
+            }
+
 			return new LDAPUserSyncConfiguration(azurUserSynchConfig, getUserFilter(), getGroupsFilter(),
 					durationField.getDuration(), selectedCollections());
 		}

@@ -46,6 +46,9 @@ public class LDAPUserSyncConfiguration {
 			List<String> selectedCollectionsCodes) {
 		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
 		this.azurUserSynchConfig.setClientId(azurUserSynchConfig.getClientId());
+        this.azurUserSynchConfig.setGroupsFilter(azurUserSynchConfig.getGroupsFilter());
+        this.azurUserSynchConfig.setUsersFilter(azurUserSynchConfig.getUsersFilter());
+        this.azurUserSynchConfig.setUserGroups(azurUserSynchConfig.getUserGroups());
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
@@ -146,4 +149,16 @@ public class LDAPUserSyncConfiguration {
 	public String getClientId() {
 		return this.azurUserSynchConfig.getClientId();
 	}
+
+    public String getGroupsFilter() {
+        return this.azurUserSynchConfig.getGroupsFilter();
+    }
+
+    public String getUsersFilter() {
+        return this.azurUserSynchConfig.getUsersFilter();
+    }
+
+    public List<String> getUserGroups() {
+        return this.azurUserSynchConfig.getUserGroups();
+    }
 }
