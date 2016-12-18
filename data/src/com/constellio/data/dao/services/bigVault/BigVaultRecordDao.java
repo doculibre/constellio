@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
@@ -425,7 +426,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	private void addParentPathToRecordsAncestors(String recordId, List<String> recordsAncestors, String parentPath) {
 		for (String parentId : parentPath.split("/")) {
-			if (!recordsAncestors.contains(parentId) && !parentId.equals(recordId)) {
+			if (!recordsAncestors.contains(parentId) && !parentId.equals(recordId) && StringUtils.isNotEmpty(parentId)) {
 				recordsAncestors.add(parentId);
 			}
 		}

@@ -160,6 +160,9 @@ public class TransactionWriterV1 {
 	}
 
 	private Collection<Object> removeEmptyStrings(Collection collection) {
+		if (collection == null) {
+			collection = new ArrayList();
+		}
 		if (collection.contains("")) {
 			List<Object> values = new ArrayList<>();
 

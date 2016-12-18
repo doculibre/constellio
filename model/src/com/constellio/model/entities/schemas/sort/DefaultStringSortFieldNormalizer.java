@@ -24,6 +24,9 @@ public class DefaultStringSortFieldNormalizer implements StringSortFieldNormaliz
 				normalizedText = normalizedText.replaceAll(regex, replacement);
 			}
 		}
+		if ("".equals(normalizedText)) {
+			normalizedText = null;
+		}
 		return normalizedText;
 	}
 

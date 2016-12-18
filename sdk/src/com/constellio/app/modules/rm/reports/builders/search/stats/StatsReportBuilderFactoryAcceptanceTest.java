@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,14 +52,14 @@ public class StatsReportBuilderFactoryAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenQueryWithoutResultsThenReturnNull()
+	public void givenQueryWithoutResultsThenReturnEmpty()
 			throws Exception {
 		LogicalSearchCondition condition = from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER).isEqualTo("inexistingid");
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(0);
 		StatsReportBuilderFactory statsReportBuilderFactory = new StatsReportBuilderFactory(zeCollection, getModelLayerFactory(),
 				query);
-		assertThat(statsReportBuilderFactory.getStatistics()).isNull();
+		assertThat(statsReportBuilderFactory.getStatistics()).contains(MapEntry.entry("count", 0L));
 	}
 
 	@Test
@@ -104,7 +105,6 @@ public class StatsReportBuilderFactoryAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
 		StatsReportBuilderFactory statsReportBuilderFactory = new StatsReportBuilderFactory(zeCollection, getModelLayerFactory(),
 				query);
-		Map<String, Object> stats = statsReportBuilderFactory.getStatistics();
-		assertThat(stats).isNull();
+		assertThat(statsReportBuilderFactory.getStatistics()).contains(MapEntry.entry("count", 0L));
 	}
 }

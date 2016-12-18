@@ -3,6 +3,7 @@ package com.constellio.data.dao.services.solr;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -22,6 +23,12 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 
 	@Override
 	public void setField(String name, Object value, float boost) {
+        if (value instanceof String) {
+            if (StringUtils.isEmpty((String) value)) {
+                value = null;
+            }
+        }
+
 		value = convertEmptyListToNull(value);
 		if (value == null) {
 			super.remove(name);
@@ -33,6 +40,11 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 
 	@Override
 	public void addField(String name, Object value, float boost) {
+        if (value instanceof String) {
+            if (StringUtils.isEmpty((String) value)) {
+                value = null;
+            }
+        }
 
 		value = convertEmptyListToNull(value);
 
