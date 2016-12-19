@@ -230,8 +230,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
-				//FIXME FB since module has just been installed it may be not enabled
-				//enableComplementaryModules(collection);
 				returnList.addAll(migrationServices.migrate(collection, null, true));
 			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 				throw new RuntimeException(optimisticLockingConfiguration);

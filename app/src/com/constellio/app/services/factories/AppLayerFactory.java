@@ -235,6 +235,7 @@ public class AppLayerFactory extends LayerFactory {
 						throw new RuntimeException(e);
 					}
 				} else {
+					LOGGER.info("No more in rollback mode...");
 					throw exception;
 				}
 			}

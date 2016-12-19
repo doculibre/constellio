@@ -8,6 +8,7 @@ import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRun
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.modules.Module;
 
 public interface ConstellioPluginManager extends StatefulService {
@@ -27,6 +28,10 @@ public interface ConstellioPluginManager extends StatefulService {
 	List<InstallableModule> getActivePluginModules();
 
 	PluginActivationFailureCause prepareInstallablePlugin(File file);
+
+	PluginActivationFailureCause prepareInstallablePluginInNextWebapp(File file, File nextWebappFolder);
+
+	void markNewPluginsInNewWarAsInstalled(FoldersLocator foldersLocator);
 
 	void markPluginAsDisabled(String pluginId);
 
