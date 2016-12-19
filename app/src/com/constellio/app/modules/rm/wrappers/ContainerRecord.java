@@ -1,17 +1,15 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.structures.Comment;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+
+import java.util.List;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
@@ -38,6 +36,10 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String BORROWED = "borrowed";
 	public static final String CAPACITY = "capacity";
 	public static final String FILL_RATIO_ENTRED = "fillRatioEntered";
+	public static final String LINEAR_SIZE_ENTERED = "linearSizeEntered";
+	public static final String LINEAR_SIZE = "linearSize";
+	public static final String LINEAR_SIZE_SUM = "linearSizeSum";
+
 
 	public ContainerRecord(Record record,
 			MetadataSchemaTypes types) {
