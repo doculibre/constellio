@@ -219,7 +219,7 @@ public class MigrationServices {
 			}
 		} catch (Throwable e) {
 			if (dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
-				throw new RuntimeException("A migration error is triggering a rollback");
+				throw new RuntimeException("A migration error is triggering a rollback", e);
 
 			} else {
 				constellioPluginManager
