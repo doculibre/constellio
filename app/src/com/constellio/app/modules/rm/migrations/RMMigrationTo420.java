@@ -51,7 +51,7 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 				.newRecordServices();
 		Facet recordCreated = rm.newFacetField()
 				.setActive(true).setElementPerPage(5).setFacetType(FacetType.FIELD)
-				.setFieldDataStoreCode(rm.folderAdministrativeUnit().getDataStoreCode()).setTitle("420 created");
+				.setFieldDataStoreCode(rm.folder.administrativeUnit().getDataStoreCode()).setTitle("420 created");
 		Transaction transaction = new Transaction();
 		transaction.add(recordCreated);
 		try {
@@ -61,11 +61,11 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 		}
 	}
 
-	static void deleteAllFacetsExceptOneThatWillBeModified(String collection, AppLayerFactory appLayerFactory){
+	static void deleteAllFacetsExceptOneThatWillBeModified(String collection, AppLayerFactory appLayerFactory) {
 		SearchServices searchService = appLayerFactory.getModelLayerFactory().newSearchServices();
 		SchemasRecordsServices schemas = new ESSchemasRecordsServices(collection, appLayerFactory);
 		List<Record> allFacets = searchService.search(new LogicalSearchQuery(from(schemas.facetSchemaType()).returnAll()));
-		if(allFacets.isEmpty()){
+		if (allFacets.isEmpty()) {
 			return;
 		}
 		Facet firstFacet = schemas.wrapFacet(allFacets.get(0));
@@ -78,7 +78,7 @@ public class RMMigrationTo420 extends MigrationHelper implements MigrationScript
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
-		for(int i = 1; i < allFacets.size(); i++){
+		for (int i = 1; i < allFacets.size(); i++) {
 			Record currentFacet = allFacets.get(i);
 			recordServices.logicallyDelete(currentFacet, null);
 			recordServices.physicallyDelete(currentFacet, null);
