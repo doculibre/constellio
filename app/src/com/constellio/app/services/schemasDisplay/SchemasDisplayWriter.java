@@ -1,24 +1,16 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.model.entities.Language;
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class SchemasDisplayWriter {
 	private static final String ROOT = "display";
@@ -240,7 +232,7 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
-		if (config.getDisplayType() != null && config.getDisplayType() != MetadataDisplayType.VERTICAL) {
+		if (config.getDisplayType() != null) {
 			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
 		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
