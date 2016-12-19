@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
@@ -26,6 +27,14 @@ public class RecordVOItem implements Item {
 	@Override
 	public Property<?> getItemProperty(Object id) {
 		Property<?> itemProperty;
+		if (id instanceof String) {
+			try {
+				MetadataVO metadataVO = recordVO.getMetadata((String) id);
+				id = metadataVO;
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				// Ignore
+			}
+		}
 		if (id instanceof MetadataVO) {
 			final MetadataVO metadata = (MetadataVO) id;
 			itemProperty = new AbstractProperty<Object>() {
