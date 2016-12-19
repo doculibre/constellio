@@ -218,9 +218,14 @@ public class MigrationServices {
 				migrate(migration);
 			}
 		} catch (Throwable e) {
-			constellioPluginManager
-					.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
-			exceptionWhenMigrating = true;
+			if (dataLayerFactory.getTransactionLogRecoveryManager().isInRollbackMode()) {
+				throw new RuntimeException("A migration error is triggering a rollback");
+
+			} else {
+				constellioPluginManager
+						.handleModuleNotMigratedCorrectly(migration.getModuleId(), collection, e);
+				exceptionWhenMigrating = true;
+			}
 		}
 		return exceptionWhenMigrating;
 	}

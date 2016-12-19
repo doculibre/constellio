@@ -9,7 +9,6 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.zookeeper.KeeperException.RuntimeInconsistencyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +43,12 @@ public final class MainConstellio {
 			installApplication(constellioInstallationDir);
 		} else {
 			FoldersLocator folderLocator = new FoldersLocator();
-			PluginManagementUtils utils = new PluginManagementUtils(folderLocator.getPluginsJarsFolder(),
-					folderLocator.getLibFolder(), folderLocator.getPluginsToMoveOnStartupFile());
+			PluginManagementUtils utils = new PluginManagementUtils(folderLocator);
 			Set<String> pluginsToMove = utils.getPluginsToMove();
 			if (pluginsToMove.isEmpty()) {
 				runApplication();
 			} else {
-				utils.movePluginsAndSetNoPluginToMove(pluginsToMove);
+				utils.movePlugins(pluginsToMove);
 				ensureApplicationWillRestartInCorrectState(utils);
 				LOGGER.info("Restarting app after plugins copy");
 				restartApplication();

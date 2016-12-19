@@ -5,11 +5,13 @@ import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +33,7 @@ import com.constellio.app.services.appManagement.AppManagementService.LicenseInf
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.InvalidJarsTest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -68,7 +71,8 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		FileUtils.copyFile(getTestResourceFile("initial-wrapper.conf"), wrapperConf);
 
 		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
-		ConstellioEIMConfigs eim = mock(ConstellioEIMConfigs.class);
+		getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ConstellioEIMConfigs.CLEAN_DURING_INSTALL, true);
 		foldersLocator = new FoldersLocator() {
 
 			@Override
@@ -96,9 +100,11 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 				return pluginsFolder;
 			}
 		};
-		doReturn(true).when(eim).isCleanDuringInstall();
-		appManagementService = spy(new AppManagementService(getIOLayerFactory(), foldersLocator, systemGlobalConfigsManager,
-				eim, pluginManager, getAppLayerFactory().newUpgradeAppRecoveryService()));
+
+		AppLayerFactory appLayerFactory = spy(getAppLayerFactory());
+		when(appLayerFactory.getPluginManager()).thenReturn(pluginManager);
+
+		appManagementService = spy(new AppManagementService(appLayerFactory, foldersLocator));
 
 		doReturn("5.0.4").when(appManagementService).getWarVersion();
 	}
@@ -144,10 +150,11 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		File newWebappVersion = new File(webappsFolder, "webapp-5.1.2");
 		File newWebappVersionWEB_INF = new File(newWebappVersion, "WEB-INF");
 		File newWebappVersionLib = new File(newWebappVersionWEB_INF, "lib");
-		File newWebappUpdatedPlugins = new File(webappsFolder, "updated-plugins");
+		File newWebappUpdatedPlugins = new File(webappsFolder, "plugins-to-install");
 
 		ArgumentCaptor<File> installedPluginsCaptor = ArgumentCaptor.forClass(File.class);
-		verify(pluginManager, times(2)).prepareInstallablePlugin(installedPluginsCaptor.capture());
+		verify(pluginManager, times(2))
+				.prepareInstallablePluginInNextWebapp(installedPluginsCaptor.capture(), any(File.class));
 
 		assertThat(installedPluginsCaptor.getAllValues()).extracting("name")
 				.containsOnly("plugin1.jar", "PLUGIN2.JAR");
@@ -448,7 +455,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		FileUtils.write(coreModel, "The content of core model!");
 		FileUtils.write(coreData, "The content of core data!");
 
-		File updatedPlugins = new File(warContentFolder, "updated-plugins");
+		File updatedPlugins = new File(warContentFolder, "plugins-to-install");
 		updatedPlugins.mkdirs();
 		plugin1 = new File(updatedPlugins, "plugin1.jar");
 		plugin2 = new File(updatedPlugins, "PLUGIN2.JAR");

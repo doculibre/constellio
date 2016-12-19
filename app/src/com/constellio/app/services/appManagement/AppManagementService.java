@@ -1,6 +1,5 @@
 package com.constellio.app.services.appManagement;
 
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
@@ -58,7 +57,6 @@ import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.utils.GradleFileVersionParser;
-import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -163,11 +161,10 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 
-			updatePlugins(new File(tempFolder, "plugins-to-update"));
-			installPlugins(new File(tempFolder, "plugins-to-install"));
 			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
+			updatePluginsWithThoseInWar(tempFolder);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -206,18 +203,25 @@ public class AppManagementService {
 
 	}
 
-	private void installPlugins(File pluginsFolder) {
+	private void updatePluginsWithThoseInWar(File nextWebapp) {
+		updatePlugins(nextWebapp);
+		installPlugins(nextWebapp);
+	}
+
+	private void installPlugins(File nextWebapp) {
+		File pluginsFolder = new File(nextWebapp, "plugins-to-install");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			for (File pluginFile : pluginsFolder.listFiles()) {
 				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
 					LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
-					pluginManager.prepareInstallablePlugin(pluginFile);
+					pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
 				}
 			}
 		}
 	}
 
-	private void updatePlugins(File pluginsFolder) {
+	private void updatePlugins(File nextWebapp) {
+		File pluginsFolder = new File(nextWebapp, "plugins-to-update");
 		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
 			Set<String> alreadyInstalledPlugins = new HashSet<>();
 
@@ -232,7 +236,7 @@ public class AppManagementService {
 
 						if (alreadyInstalledPlugins.contains(info.getCode())) {
 							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
-							pluginManager.prepareInstallablePlugin(pluginFile);
+							pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
 						} else {
 							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : deleted");
 							pluginFile.delete();
@@ -254,7 +258,7 @@ public class AppManagementService {
 		PluginManagementUtils utils = new PluginManagementUtils(oldPluginsFolder, newLibsFolder, pluginsToMoveFile);
 
 		try {
-			utils.movePluginsAndSetNoPluginToMove(pluginManager.getPluginsOfEveryStatus());
+			utils.movePlugins(pluginManager.getPluginsOfEveryStatus());
 		} catch (IOException e) {
 			throw new CannotSaveOldPlugins(e);
 		}
