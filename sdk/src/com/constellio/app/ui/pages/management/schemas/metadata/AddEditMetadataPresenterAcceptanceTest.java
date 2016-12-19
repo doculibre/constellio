@@ -1,39 +1,32 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 
@@ -253,5 +246,19 @@ public class AddEditMetadataPresenterAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDisplayConfig).isNotNull();
 		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.RADIO_BUTTONS);
 		assertThat(metadataDisplayConfig.getDisplayType()).isEqualTo(MetadataDisplayType.HORIZONTAL);
+
+		newMetadataForm = new FormMetadataVO(stringMeta.getCode(), MetadataValueType.REFERENCE, false, null, "",
+				newLabels, false, false, false, false, false, MetadataInputType.RADIO_BUTTONS, MetadataDisplayType.VERTICAL, false, false, true, "default",
+				null, null, false, view.getSessionContext());
+
+		presenter.saveButtonClicked(newMetadataForm, true);
+
+		schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		metadataDisplayConfig = schemasDisplayManager
+				.getMetadata(zeCollection, stringMeta.getCode());
+
+		assertThat(metadataDisplayConfig).isNotNull();
+		assertThat(metadataDisplayConfig.getInputType()).isEqualTo(MetadataInputType.RADIO_BUTTONS);
+		assertThat(metadataDisplayConfig.getDisplayType()).isEqualTo(MetadataDisplayType.VERTICAL);
 	}
 }
