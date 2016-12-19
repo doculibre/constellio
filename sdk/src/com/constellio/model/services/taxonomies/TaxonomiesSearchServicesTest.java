@@ -100,7 +100,7 @@ public class TaxonomiesSearchServicesTest extends ConstellioTest {
 
 		ArgumentCaptor<LogicalSearchQuery> query = ArgumentCaptor.forClass(LogicalSearchQuery.class);
 		when(zeTaxonomySchemaType1Record.get(Schemas.PATH)).thenReturn(zeTaxonomySchemaType1RecordPaths);
-		when(taxonomiesSearchOptions.getIncludeStatus()).thenReturn(StatusFilter.ACTIVES);
+		when(taxonomiesSearchOptions.getIncludeStatus()).thenReturn(StatusFilter.ALL);
 
 		services.findNonTaxonomyRecordsInStructure(zeTaxonomySchemaType1Record, taxonomiesSearchOptions);
 

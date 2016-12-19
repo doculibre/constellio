@@ -1,9 +1,9 @@
 package com.constellio.model.entities.schemas;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchema;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -30,6 +31,8 @@ public class MetadataSchemaType {
 
 	private final MetadataSchema defaultSchema;
 
+	private final Map<String, MetadataSchema> customSchemasByCode;
+	private final Map<String, MetadataSchema> customSchemasByLocalCode;
 	private final List<MetadataSchema> customSchemas;
 
 	private final Map<String, Metadata> metadatasByAtomicCode;
@@ -39,7 +42,6 @@ public class MetadataSchemaType {
 	private final boolean inTransactionLog;
 
 	private final Boolean undeletable;
-	private Collection<? extends Metadata> allMetadatas;
 
 	public MetadataSchemaType(String code, String collection, Map<Language, String> labels, List<MetadataSchema> customSchemas,
 			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog) {
@@ -54,6 +56,25 @@ public class MetadataSchemaType {
 		this.inTransactionLog = inTransactionLog;
 		this.metadatasByAtomicCode = Collections.unmodifiableMap(new SchemaUtils().buildMetadataByLocalCodeIndex(
 				customSchemas, defaultSchema));
+		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
+		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
+
+	}
+
+	private Map<String, MetadataSchema> buildCustomSchemasByCodeMap(List<MetadataSchema> customSchemas) {
+		Map<String, MetadataSchema> schemaMap = new HashMap<>();
+		for (MetadataSchema schema : customSchemas) {
+			schemaMap.put(schema.getCode(), schema);
+		}
+		return Collections.unmodifiableMap(schemaMap);
+	}
+
+	private Map<String, MetadataSchema> buildCustomSchemasByLocalCodeMap(List<MetadataSchema> customSchemas) {
+		Map<String, MetadataSchema> schemaMap = new HashMap<>();
+		for (MetadataSchema schema : customSchemas) {
+			schemaMap.put(schema.getLocalCode(), schema);
+		}
+		return Collections.unmodifiableMap(schemaMap);
 	}
 
 	public String getCollection() {
@@ -92,12 +113,16 @@ public class MetadataSchemaType {
 	}
 
 	public MetadataSchema getCustomSchema(String code) {
-		for (MetadataSchema metadataSchema : customSchemas) {
-			if (metadataSchema.getLocalCode().equals(code) || metadataSchema.getCode().equals(code)) {
-				return metadataSchema;
-			}
+		MetadataSchema schema = customSchemasByCode.get(code);
+		if (schema == null) {
+			schema = customSchemasByLocalCode.get(code);
 		}
-		throw new MetadataSchemasRuntimeException.NoSuchSchema(code);
+
+		if (schema == null) {
+			throw new MetadataSchemasRuntimeException.NoSuchSchema(code);
+		} else {
+			return schema;
+		}
 	}
 
 	public Metadata getMetadata(String metadataCode) {
@@ -117,7 +142,7 @@ public class MetadataSchemaType {
 		}
 
 		Metadata metadata;
-		if (schemaCode.contains(DEFAULT)) {
+		if (schemaCode.contains("_" + DEFAULT) || schemaCode.equals(DEFAULT)) {
 			metadata = getDefaultSchema().getMetadata(localMetadataCode);
 		} else {
 			metadata = getCustomSchema(schemaCode).getMetadata(localMetadataCode);
@@ -223,18 +248,32 @@ public class MetadataSchemaType {
 		return Collections.unmodifiableList(returnedMetadatas);
 	}
 
-	public MetadataSchema getSchema(String codeOrCode) {
+	private MetadataSchema getNullableSchema(String codeOrCode) {
 		MetadataSchema schema = null;
-		if (codeOrCode.contains("_")) {
-			schema = getSchemaWithCompleteCode(codeOrCode);
-		} else {
-			schema = getSchemaWithLocalCode(codeOrCode);
+		try {
+			if (codeOrCode.contains("_")) {
+				schema = getSchemaWithCompleteCode(codeOrCode);
+			} else {
+				schema = getSchemaWithLocalCode(codeOrCode);
+			}
+		} catch (NoSuchSchema e) {
+			return null;
 		}
+		return schema;
+	}
+
+	public MetadataSchema getSchema(String codeOrCode) {
+		MetadataSchema schema = getNullableSchema(codeOrCode);
 		if (schema == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchSchema(codeOrCode);
 		} else {
 			return schema;
 		}
+	}
+
+	public boolean hasSchema(String codeOrCode) {
+		MetadataSchema schema = getNullableSchema(codeOrCode);
+		return schema != null;
 	}
 
 	private MetadataSchema getSchemaWithLocalCode(String code) {
@@ -351,5 +390,9 @@ public class MetadataSchemaType {
 			}
 		});
 		return schemas;
+	}
+
+	public boolean isParentOfOtherRecords(String typeCode) {
+		return false;
 	}
 }

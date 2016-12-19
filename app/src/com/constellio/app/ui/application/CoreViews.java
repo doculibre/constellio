@@ -1,18 +1,18 @@
 package com.constellio.app.ui.application;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
+import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPresenter;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresenter;
 import com.constellio.app.ui.params.ParamUtils;
-import com.google.gwt.dev.util.collect.HashMap;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
 
@@ -223,7 +223,9 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.ADMIN_MODULE);
 	}
 
-
+	public void trash() {
+		navigator.navigateTo(NavigatorConfigurationService.TRASH);
+	}
 
 	public void listPrincipalAccessAuthorizations(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);
@@ -367,6 +369,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.IMPORT_SCHEMA_TYPES);
 	}
 
+	public void importSettings() {
+		navigator.navigateTo(NavigatorConfigurationService.IMPORT_SETTINGS);
+	}
+
 	public void exporter() {
 		navigator.navigateTo(NavigatorConfigurationService.EXPORTER);
 	}
@@ -470,4 +476,9 @@ public class CoreViews {
 		String viewPath = ParamUtils.addParams(RMNavigationConfiguration.ADD_EMAIL_ATTACHMENTS_TO_FOLDER, params);
 		navigator.navigateTo(viewPath);
 	}
+
+	public void systemCheck() {
+		navigator.navigateTo(NavigatorConfigurationService.SYSTEM_CHECK);
+	}
+	
 }

@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -8,6 +9,7 @@ import static com.constellio.model.services.schemas.builders.ClassListBuilder.co
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,6 +69,11 @@ public class Metadata implements DataStoreField {
 
 	final boolean duplicable;
 
+	final String dataStoreCode;
+	final String inheritanceCode;
+
+	final boolean global;
+
 	Metadata(String localCode, MetadataValueType type, boolean multivalue) {
 		this("global_default", localCode, type, multivalue, false);
 	}
@@ -83,7 +90,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false, multiLingual);
+				false, false, false, false, false, false, multiLingual, false, new HashSet<String>(), false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -115,7 +122,35 @@ public class Metadata implements DataStoreField {
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
 		this.duplicable = false;
+		this.dataStoreCode = computeDataStoreCode();
+		this.inheritanceCode = computeInheritanceCode();
+		this.global = computeIsGlobal();
 
+	}
+
+	public final String computeInheritanceCode() {
+		if (getInheritance() == null) {
+			return getCode();
+		} else {
+			String[] parts = SchemaUtils.underscoreSplitWithCache(getCode());
+			return parts[0] + "_default_" + parts[2];
+		}
+	}
+
+	private String computeDataStoreCode() {
+		if (type == MetadataValueType.REFERENCE) {
+			if (isChildOfRelationship()) {
+				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
+			} else {
+				return dataStoreType == null ? localCode : (localCode + "Id_" + dataStoreType);
+			}
+		} else {
+			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
+		}
+	}
+
+	public final boolean computeIsGlobal() {
+		return Schemas.isGlobalMetadata(getLocalCode());
 	}
 
 	public Metadata(String localCode, String code, String collection, Map<Language, String> labels, Boolean enabled,
@@ -148,6 +183,9 @@ public class Metadata implements DataStoreField {
 		this.populateConfigs = populateConfigs;
 		this.encryptionServicesFactory = encryptionServices;
 		this.duplicable = duplicatbale;
+		this.dataStoreCode = computeDataStoreCode();
+		this.inheritanceCode = computeInheritanceCode();
+		this.global = computeIsGlobal();
 	}
 
 	public Metadata(Metadata inheritance, Map<Language, String> labels, boolean enabled, boolean defaultRequirement, String code,
@@ -176,6 +214,9 @@ public class Metadata implements DataStoreField {
 		this.inputMask = inputMask;
 		this.encryptionServicesFactory = inheritance.encryptionServicesFactory;
 		this.duplicable = duplicable;
+		this.dataStoreCode = computeDataStoreCode();
+		this.inheritanceCode = computeInheritanceCode();
+		this.global = computeIsGlobal();
 	}
 
 	public String getCode() {
@@ -187,15 +228,11 @@ public class Metadata implements DataStoreField {
 	}
 
 	public String getDataStoreCode() {
-		if (type == MetadataValueType.REFERENCE) {
-			if (isChildOfRelationship()) {
-				return dataStoreType == null ? localCode : (localCode + "PId_" + dataStoreType);
-			} else {
-				return dataStoreType == null ? localCode : (localCode + "Id_" + dataStoreType);
-			}
-		} else {
-			return dataStoreType == null ? localCode : (localCode + "_" + dataStoreType);
-		}
+		return dataStoreCode;
+	}
+
+	public String getFrenchLabel() {
+		return getLabel(French);
 	}
 
 	public String getLabel(Language language) {
@@ -310,6 +347,14 @@ public class Metadata implements DataStoreField {
 		return getInheritedMetadataBehaviors().isSchemaAutocomplete();
 	}
 
+	public Set<String> getCustomAttributes() {
+		return getInheritedMetadataBehaviors().getCustomAttributes();
+	}
+
+	public boolean isIncreasedDependencyLevel() {
+		return getInheritedMetadataBehaviors().isReverseDependency();
+	}
+
 	public StringSortFieldNormalizer getSortFieldNormalizer() {
 		return hasNormalizedSortField() ? new DefaultStringSortFieldNormalizer() : null;
 	}
@@ -389,6 +434,16 @@ public class Metadata implements DataStoreField {
 		return false;
 	}
 
+	public boolean isSameLocalCodeIn(String... metadatasLocalCodes) {
+		for (String metadataLocalCode : metadatasLocalCodes) {
+			if (localCode.equals(metadataLocalCode)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public String getSchemaCode() {
 		return new SchemaUtils().getSchemaCode(this);
 	}
@@ -447,6 +502,19 @@ public class Metadata implements DataStoreField {
 		return localCode.equals(metadata.getLocalCode());
 	}
 
-	public boolean isDuplicable() { return duplicable; }
+	public boolean isDuplicable() {
+		return duplicable;
+	}
 
+	public boolean isMarkedForDeletion() {
+		return inheritedMetadataBehaviors.isMarkedForDeletion();
+	}
+
+	public String getInheritanceCode() {
+		return inheritanceCode;
+	}
+
+	public boolean isGlobal() {
+		return global;
+	}
 }

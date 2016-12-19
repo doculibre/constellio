@@ -5,13 +5,20 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import java.io.Serializable;
 import java.util.List;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportFactory;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ReportViewer;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property.ValueChangeEvent;
+import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.ComboBox;
@@ -27,32 +34,54 @@ public class LabelsButton extends WindowButton {
 	@PropertyId("labelConfigurations") private ComboBox format;
 	@PropertyId("numberOfCopies") private TextField copies;
 
+	private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
+
 	public LabelsButton(String caption, String windowCaption, RecordSelector selector,
-			Factory<List<LabelTemplate>> templatesFactory) {
+			Factory<List<LabelTemplate>> templatesFactory, NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
 		super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
 		this.selector = selector;
 		this.templatesFactory = templatesFactory;
+		this.labelsReportFactory = labelsReportFactory;
 	}
 
 	@Override
 	protected Component buildWindowContent() {
 		startPosition = new ComboBox($("LabelsButton.startPosition"));
-		for (int i = 1; i <= 10; i++) {
-			startPosition.addItem(i);
-		}
+
 		startPosition.setNullSelectionAllowed(false);
 
 		List<LabelTemplate> configurations = templatesFactory.get();
+
+		if (configurations.size() > 0) {
+			int size = configurations.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
+			startPosition.clear();
+			for (int i = 1; i <= size; i++) {
+				startPosition.addItem(i);
+			}
+		}
+
 		format = new ComboBox($("LabelsButton.labelFormat"));
 		for (LabelTemplate configuration : configurations) {
 			format.addItem(configuration);
 			format.setItemCaption(configuration, $(configuration.getName()));
 		}
-		if(configurations.size() > 0) {
+		if (configurations.size() > 0) {
 			format.select(configurations.get(0));
 		}
 		format.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 		format.setNullSelectionAllowed(false);
+		format.addValueChangeListener(new ValueChangeListener() {
+			@Override
+			public void valueChange(ValueChangeEvent event) {
+				LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
+				int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
+				startPosition.clear();
+				startPosition.removeAllItems();
+				for (int i = 1; i <= size; i++) {
+					startPosition.addItem(i);
+				}
+			}
+		});
 
 		copies = new TextField($("LabelsButton.numberOfCopies"));
 		copies.setConverter(Integer.class);
@@ -63,10 +92,19 @@ public class LabelsButton extends WindowButton {
 			protected void saveButtonClick(LabelParametersVO parameters)
 					throws ValidationException {
 				LabelTemplate labelTemplate = format.getValue() != null ? (LabelTemplate) format.getValue() : new LabelTemplate();
-				LabelsReportFactory factory = new LabelsReportFactory(
-						selector.getSelectedRecordIds(), labelTemplate,
-						parameters.getStartPosition(), parameters.getNumberOfCopies());
-				getWindow().setContent(new ReportViewer(factory));
+
+				LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+						selector.getSelectedRecordIds(),
+						labelTemplate,
+						parameters.getStartPosition(),
+						parameters.getNumberOfCopies());
+
+				if (labelsReportFactory != null) {
+					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters),
+							labelsReportFactory.getFilename(null)));
+				} else {
+					showErrorMessage($("ReportViewer.noReportFactoryAvailable"));
+				}
 			}
 
 			@Override

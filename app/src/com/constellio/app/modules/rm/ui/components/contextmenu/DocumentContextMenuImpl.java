@@ -5,6 +5,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -29,6 +30,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
+	
 	private boolean visible;
 	private RecordVO recordVO;
 	private ContentVersionVO contentVersionVO;
@@ -47,18 +49,22 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	//private boolean cancelCheckOutButtonVisible;
 	private boolean finalizeButtonVisible;
 
-	private DocumentContextMenuPresenter presenter;
+	protected DocumentContextMenuPresenter presenter;
 
 	public DocumentContextMenuImpl() {
 		this(null);
 	}
 
 	public DocumentContextMenuImpl(DocumentVO documentVO) {
-		presenter = new DocumentContextMenuPresenter(this);
+		presenter = newPresenter();
 		setDocumentVO(documentVO);
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
+	}
+	
+	protected DocumentContextMenuPresenter newPresenter() {
+		return new DocumentContextMenuPresenter(this);
 	}
 
 	public final boolean isVisible() {
@@ -109,7 +115,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 					if (contentVersionVO != null) {
 						String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 						if (agentURL != null) {
-							Page.getCurrent().open(agentURL, null);
+//							Page.getCurrent().open(agentURL, null);
+							new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 						} else {
 							ContentVersionVOResource contentVersionResource = new ContentVersionVOResource(contentVersionVO);
 							Resource downloadedResource = DownloadLink.wrapForDownload(contentVersionResource);

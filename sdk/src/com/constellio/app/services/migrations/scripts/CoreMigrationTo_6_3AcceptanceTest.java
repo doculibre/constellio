@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.sdk.tests.TestUtils.asMap;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +22,8 @@ import org.junit.Test;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.DigitSeparatorMode;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -33,6 +36,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
 import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
@@ -110,6 +114,27 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		assertThat(typeDisplay.getMetadataGroup()).hasSize(4);
 		assertThat(typeDisplay.getMetadataGroup().keySet()).containsOnly("group1", "group2", "group3", "group4");
 
+	}
+
+	@Test
+	public void whenMigratingFromAPreviousSystemThenDoNotUseBase64Url()
+			throws ConfigManagerException.OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException, MetadataSchemasManagerException.OptimisticLocking {
+
+		configure(new DataLayerConfigurationAlteration() {
+
+			@Override
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setHashingEncoding(null);
+				configuration.setContentDaoFileSystemDigitsSeparatorMode(null);
+			}
+		});
+		givenSystemAtVersion5_1_2withTokens();
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().getHashingEncoding())
+				.isEqualTo(BASE64);
+
+		assertThat(getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration()
+				.getContentDaoFileSystemDigitsSeparatorMode()).isEqualTo(DigitSeparatorMode.TWO_DIGITS);
 	}
 
 	private void givenSystemAtVersion5_1_2withTokens() {

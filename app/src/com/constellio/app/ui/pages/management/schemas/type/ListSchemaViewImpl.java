@@ -1,17 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.framework.buttons.AddButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.FormDisplay;
-import com.constellio.app.ui.framework.buttons.FormOrderButton;
-import com.constellio.app.ui.framework.buttons.MetadataButton;
-import com.constellio.app.ui.framework.buttons.SearchDisplayButton;
-import com.constellio.app.ui.framework.buttons.TableDisplayButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SchemaVOLazyContainer;
@@ -21,13 +11,14 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, ClickListener {
 	ListSchemaPresenter presenter;
@@ -147,6 +138,16 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 					protected void buttonClick(ClickEvent event) {
 						presenter.tableButtonClicked();
 					}
+
+					@Override
+					public boolean isVisible() {
+						Integer index = (Integer) itemId;
+						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+						if(entity == null || entity.getCode() == null || !entity.getCode().endsWith("default")) {
+							return false;
+						}
+						return true;
+					}
 				};
 				return tableDisplayButton;
 			}
@@ -161,6 +162,27 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 						Integer index = (Integer) itemId;
 						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
 						presenter.searchButtonClicked(entity);
+					}
+				};
+			}
+		});
+
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				return new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						Integer index = (Integer) itemId;
+						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+						presenter.deleteButtonClicked(entity.getCode());
+					}
+
+					@Override
+					public boolean isVisible() {
+						Integer index = (Integer) itemId;
+						MetadataSchemaVO entity = dataProvider.getSchemaVO(index);
+						return super.isVisible() && presenter.isDeleteButtonVisible(entity.getCode());
 					}
 				};
 			}

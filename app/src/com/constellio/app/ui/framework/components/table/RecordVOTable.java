@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components.table;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,8 @@ import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenuHandler;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -37,25 +40,19 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 
-public class RecordVOTable extends Table {
+public class RecordVOTable extends BaseTable {
 
 	public static final String STYLE_NAME = "record-table";
 	public static final String CLICKABLE_ROW_STYLE_NAME = "clickable-row";
 	private RecordContextMenu contextMenu;
-	private MetadataSchemaVO schemaVO;
+	private List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
 
 	private boolean contextMenuPossible = true;
 
 	public RecordVOTable() {
-		super();
+		super(null);
 		init();
-	}
-
-	public RecordVOTable(String caption, Container dataSource, Boolean collapsingAllowed) {
-		super(caption, dataSource);
-		init();
-		setColumnCollapsingAllowed(collapsingAllowed);
 	}
 
 	public RecordVOTable(String caption, Container dataSource) {
@@ -63,13 +60,55 @@ public class RecordVOTable extends Table {
 	}
 
 	public RecordVOTable(String caption) {
-		super(caption);
+		super(null, caption);
 		init();
 	}
 
 	public RecordVOTable(RecordVODataProvider dataProvider) {
+		super(null);
 		setContainerDataSource(new RecordVOLazyContainer(dataProvider));
 		init();
+	}
+
+	public RecordVOTable(String caption, Container dataSource, Boolean collapsingAllowed) {
+		super(null, caption);
+		setContainerDataSource(dataSource);
+		init();
+		setColumnCollapsingAllowed(collapsingAllowed);
+	}
+
+	@Override
+	protected String getTableId() {
+		String tableId;
+		if (!schemaVOs.isEmpty()) {
+			StringBuilder schemaVOSuffix = new StringBuilder();
+			for (MetadataSchemaVO schemaVO : schemaVOs) {
+				if (schemaVOSuffix.length() > 0) {
+					schemaVOSuffix.append("_");
+				}
+				schemaVOSuffix.append(schemaVO.getCode());
+			}
+			String componentId = getId();
+			String navigatorState = ConstellioUI.getCurrent().getNavigator().getState();
+			String navigatorStateWithoutParams;
+			if (navigatorState.indexOf("/") != -1) {
+				navigatorStateWithoutParams = StringUtils.substringBefore(navigatorState, "/");
+			} else {
+				navigatorStateWithoutParams = navigatorState;
+			}
+			tableId = navigatorStateWithoutParams + "." + schemaVOSuffix;
+			if (componentId != null) {
+				tableId += "." + componentId;
+			}
+		} else {
+			tableId = null;
+		}
+		return tableId;
+	}
+
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		return new RecordVOTableColumnsManager();
 	}
 
 	private void init() {
@@ -103,7 +142,7 @@ public class RecordVOTable extends Table {
 				return false;
 			}
 		});
-	}
+	}	
 
 	private boolean isDecomList(RecordVO recordVO) {
 		if (recordVO.getSchema() != null) {
@@ -131,13 +170,8 @@ public class RecordVOTable extends Table {
 		this.contextMenuPossible = contextMenuPossible;
 	}
 
-	public final MetadataSchemaVO getSchema() {
-		return schemaVO;
-	}
-
-	public final void setSchema(MetadataSchemaVO schemaVO) {
-		this.schemaVO = schemaVO;
-		initSchemaVO();
+	public final List<MetadataSchemaVO> getSchemas() {
+		return schemaVOs;
 	}
 
 	public final void setMetadataDisplayFactory(MetadataDisplayFactory metadataDisplayFactory) {
@@ -147,8 +181,8 @@ public class RecordVOTable extends Table {
 	@Override
 	public void setContainerDataSource(Container newDataSource) {
 		super.setContainerDataSource(newDataSource);
-		findSchemaVO(newDataSource);
-		initSchemaVO();
+		findSchemaVOs(newDataSource);
+		initSchemaVOs();
 	}
 
 	@Override
@@ -159,20 +193,29 @@ public class RecordVOTable extends Table {
 			RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);
 			RecordVO recordVO = recordVOItem.getRecord();
 			MetadataValueVO metadataValue = recordVO.getMetadataValue(metadataVO);
-			Component metadataDisplay = buildMetadataComponent(metadataValue, recordVO);
+			Component metadataDisplay;
+			if (metadataValue != null) {
+				metadataDisplay = buildMetadataComponent(metadataValue, recordVO);
+			} else {
+				metadataDisplay = new Label("");
+			}
 			if ((metadataDisplay instanceof Label) && metadataVO.codeMatches(Schemas.TITLE_CODE)) {
-				MetadataSchemaVO recordSchemaVO = recordVO.getSchema();
+				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
+				MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
 				String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
-				if (StringUtils.isNotBlank(prefix)) {
-					Label titleLabel = (Label) metadataDisplay;
-					titleLabel.setValue(prefix + " " + titleLabel.getValue());
-				}
+				Label titleLabel = (Label) metadataDisplay;
+				String titleForRecordVO = getTitleForRecordVO(titleRecordVO, prefix, titleLabel.getValue());
+				titleLabel.setValue(titleForRecordVO);
 			}
 			containerProperty = new ObjectProperty<>(metadataDisplay, Component.class);
 		} else {
 			containerProperty = super.getContainerProperty(itemId, propertyId);
 		}
 		return containerProperty;
+	}
+	
+	protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
+		return StringUtils.isNotBlank(prefix) ? prefix + " " + title : title; 
 	}
 
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
@@ -190,19 +233,19 @@ public class RecordVOTable extends Table {
 		return type;
 	}
 
-	private void findSchemaVO(Container container) {
+	private void findSchemaVOs(Container container) {
 		if (container instanceof RecordVOLazyContainer) {
 			RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) container;
-			schemaVO = recordVOLazyContainer.getSchema();
+			schemaVOs = recordVOLazyContainer.getSchemas();
 		} else if (container instanceof ContainerAdapter) {
 			ContainerAdapter<?> containerAdapter = (ContainerAdapter<?>) container;
-			findSchemaVO(containerAdapter.getNestedContainer());
+			findSchemaVOs(containerAdapter.getNestedContainer());
 		}
 	}
 
-	private void initSchemaVO() {
-		if (schemaVO != null) {
-			MetadataVO titleMetadata = schemaVO.getMetadata(Schemas.TITLE.getCode());
+	private void initSchemaVOs() {
+		if (schemaVOs != null && !schemaVOs.isEmpty()) {
+			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
 			setColumnExpandRatio(titleMetadata, 1);
 			if (isContextMenuPossible()) {
 				addContextMenu();
@@ -216,33 +259,36 @@ public class RecordVOTable extends Table {
 	}
 
 	protected void addContextMenu() {
-		String schemaCode = getSchema().getCode();
-		List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
-		for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
-			if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
-				contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
+		for (MetadataSchemaVO schemaVO : schemaVOs) {
+			String schemaCode = schemaVO.getCode();
+			List<RecordContextMenuHandler> recordContextMenuHandlers = ConstellioUI.getCurrent().getRecordContextMenuHandlers();
+			for (RecordContextMenuHandler recordContextMenuHandler : recordContextMenuHandlers) {
+				if (recordContextMenuHandler.isContextMenuForSchemaCode(schemaCode)) {
+					contextMenu = recordContextMenuHandler.getForSchemaCode(schemaCode);
+					break;
+				}
+			}
+			if (contextMenu != null) {
+				contextMenu.setAsContextMenuOf(this);
+				BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {
+					@Override
+					public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
+					}
+
+					@Override
+					public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
+					}
+
+					@Override
+					public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
+						Object itemId = event.getItemId();
+						RecordVO recordVO = getRecordVO(itemId);
+						contextMenu.openFor(recordVO);
+					}
+				};
+				contextMenu.addContextMenuTableListener(contextMenuTableListener);
 				break;
 			}
-		}
-		if (contextMenu != null) {
-			contextMenu.setAsContextMenuOf(this);
-			BaseContextMenuTableListener contextMenuTableListener = new BaseContextMenuTableListener() {
-				@Override
-				public void onContextMenuOpenFromFooter(ContextMenuOpenedOnTableFooterEvent event) {
-				}
-
-				@Override
-				public void onContextMenuOpenFromHeader(ContextMenuOpenedOnTableHeaderEvent event) {
-				}
-
-				@Override
-				public void onContextMenuOpenFromRow(ContextMenuOpenedOnTableRowEvent event) {
-					Object itemId = event.getItemId();
-					RecordVO recordVO = getRecordVO(itemId);
-					contextMenu.openFor(recordVO);
-				}
-			};
-			contextMenu.addContextMenuTableListener(contextMenuTableListener);
 		}
 	}
 

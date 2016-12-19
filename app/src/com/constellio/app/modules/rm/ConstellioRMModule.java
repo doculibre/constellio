@@ -15,11 +15,11 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
 import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
 import com.constellio.app.modules.rm.extensions.RMEmailDocumentRecordExtension;
+import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
@@ -27,15 +27,20 @@ import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordNavigationExtension;
 import com.constellio.app.modules.rm.extensions.RMSchemasLogicalDeleteExtension;
 import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
+import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
 import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
+import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
@@ -60,6 +65,13 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
+import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -82,6 +94,9 @@ import com.constellio.model.services.records.cache.RecordsCache;
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "rm";
 	public static final String NAME = "Constellio RM";
+
+	public static final int DEFAULT_VOLATILE_FOLDER_CACHE_SIZE = 10000;
+	public static final int DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE = 100;
 
 	@Override
 	public String getName() {
@@ -125,7 +140,17 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				new RMMigrationTo6_2(),
 				new RMMigrationTo6_2_0_7(),
 				new RMMigrationTo6_3(),
-				new RMMigrationTo6_4()
+				new RMMigrationTo6_4(),
+				new RMMigrationTo6_5(),
+				new RMMigrationTo6_5_1(),
+				new RMMigrationTo6_5_7(),
+				new RMMigrationTo6_5_20(),
+				new RMMigrationTo6_5_21(),
+				new RMMigrationTo6_5_33(),
+				new RMMigrationTo6_5_34(),
+				new RMMigrationTo6_5_36(),
+				new RMMigrationTo6_5_37(),
+				new RMMigrationTo6_5_50()
 		);
 	}
 
@@ -166,7 +191,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 
 	@Override
 	public void start(String collection, AppLayerFactory appLayerFactory) {
-		setupModelLayerExtensions(collection, appLayerFactory.getModelLayerFactory());
+		setupModelLayerExtensions(collection, appLayerFactory);
 		setupAppLayerExtensions(collection, appLayerFactory);
 	}
 
@@ -220,13 +245,16 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.cmisExtensions.add(new RMCmisExtension(collection, appLayerFactory));
 		extensions.recordAppExtensions.add(new RMRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new RMRecordNavigationExtension());
-		extensions.searchPageExtensions.add(new RMSearchPageExtension());
+		extensions.searchPageExtensions.add(new RMSearchPageExtension(appLayerFactory));
 		extensions.batchProcessingExtensions.add(new RMBatchProcessingExtension(collection, appLayerFactory));
 		extensions.recordFieldFactoryExtensions.add(new BatchProcessingRecordFactoryExtension());
-		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions());
+		extensions.moduleExtensionsMap.put(ID, new RMModuleExtensions(appLayerFactory));
+		extensions.systemCheckExtensions.add(new RMSystemCheckExtension(collection, appLayerFactory));
+		extensions.recordExportExtensions.add(new RMRecordExportExtension(collection, appLayerFactory));
 	}
 
-	private void setupModelLayerExtensions(String collection, ModelLayerFactory modelLayerFactory) {
+	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
 
 		extensions.recordExtensions.add(new RMSchemasLogicalDeleteExtension(collection, modelLayerFactory));
@@ -235,10 +263,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMOldSchemasBlockageRecordExtension());
 		extensions.recordExtensions.add(new RMCheckInAlertsRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMFolderExtension(collection, modelLayerFactory));
-		extensions.recordExtensions.add(new RMDocumentExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new DocumentRuleImportExtension(collection, modelLayerFactory));
+		extensions.schemaExtensions.add(new RMTrashSchemaExtension());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
@@ -263,8 +292,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		cache.configureCache(CacheConfig.permanentCache(rm.retentionRule.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.uniformSubdivision.schemaType()));
 		cache.configureCache(CacheConfig.permanentCache(rm.containerRecord.schemaType()));
-		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), 10000));
-		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), 100));
+		cache.configureCache(CacheConfig.volatileCache(rm.folder.schemaType(), DEFAULT_VOLATILE_FOLDER_CACHE_SIZE));
+		cache.configureCache(CacheConfig.volatileCache(rm.documentSchemaType(), DEFAULT_VOLATILE_DOCUMENTS_CACHE_SIZE));
 	}
 
 	@Override

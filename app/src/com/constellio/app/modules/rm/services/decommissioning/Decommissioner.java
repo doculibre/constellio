@@ -5,6 +5,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import java.util.ArrayList;
 import java.util.List;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.joda.time.LocalDate;
 
 import com.constellio.app.modules.rm.RMConfigs;
@@ -40,7 +41,8 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 
 public abstract class Decommissioner {
 	protected final DecommissioningService decommissioningService;
-	protected final ModelLayerFactory modelLayerFactory;
+	AppLayerFactory appLayerFactory;
+	ModelLayerFactory modelLayerFactory;
 	protected final RMSchemasRecordsServices rm;
 	protected final RMConfigs configs;
 	protected final SearchServices searchServices;
@@ -54,30 +56,31 @@ public abstract class Decommissioner {
 	private LocalDate processingDate;
 	private User user;
 
-	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService) {
+	public static Decommissioner forList(DecommissioningList decommissioningList, DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
 		switch (decommissioningList.getDecommissioningListType()) {
 		case FOLDERS_TO_CLOSE:
-			return new ClosingDecommissioner(decommissioningService);
+			return new ClosingDecommissioner(decommissioningService, appLayerFactory);
 		case FOLDERS_TO_TRANSFER:
 		case DOCUMENTS_TO_TRANSFER:
-			return new TransferringDecommissioner(decommissioningService);
+			return new TransferringDecommissioner(decommissioningService, appLayerFactory);
 		case FOLDERS_TO_DEPOSIT:
 		case DOCUMENTS_TO_DEPOSIT:
 			return decommissioningService.isSortable(decommissioningList) ?
-					new SortingDecommissioner(decommissioningService, true) :
-					new DepositingDecommissioner(decommissioningService);
+					new SortingDecommissioner(decommissioningService, true, appLayerFactory) :
+					new DepositingDecommissioner(decommissioningService, appLayerFactory);
 		case FOLDERS_TO_DESTROY:
 		case DOCUMENTS_TO_DESTROY:
 			return decommissioningService.isSortable(decommissioningList) ?
-					new SortingDecommissioner(decommissioningService, false) :
-					new DestroyingDecommissioner(decommissioningService);
+					new SortingDecommissioner(decommissioningService, false, appLayerFactory) :
+					new DestroyingDecommissioner(decommissioningService, appLayerFactory);
 		}
 		throw new ImpossibleRuntimeException("Unknown decommissioning type: " + decommissioningList.getDecommissioningListType());
 	}
 
-	protected Decommissioner(DecommissioningService decommissioningService) {
+	protected Decommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
 		this.decommissioningService = decommissioningService;
-		modelLayerFactory = decommissioningService.getModelLayerFactory();
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		rm = decommissioningService.getRMSchemasRecordServices();
 		configs = decommissioningService.getRMConfigs();
 		searchServices = modelLayerFactory.newSearchServices();
@@ -124,6 +127,10 @@ public abstract class Decommissioner {
 	private void markApproved() {
 		add(decommissioningList.setApprovalDate(processingDate).setApprovalUser(user));
 	}
+	
+	protected void removeManualArchivisticStatus(Folder folder) {
+		folder.setManualArchivisticStatus(null);
+	}
 
 	protected LocalDate getProcessingDate() {
 		return processingDate;
@@ -159,7 +166,7 @@ public abstract class Decommissioner {
 		FileService fileService = modelLayerFactory.getIOServicesFactory()
 				.newFileService();
 		DecomCertificateService service = new DecomCertificateService(rm, searchServices, contentManager, fileService,
-				user, decommissioningList);
+				user, decommissioningList, appLayerFactory);
 		service.computeContents();
 		Content documentsContent = service.getDocumentsContent();
 		Content foldersContent = service.getFoldersContent();
@@ -390,8 +397,8 @@ public abstract class Decommissioner {
 
 class ClosingDecommissioner extends Decommissioner {
 
-	protected ClosingDecommissioner(DecommissioningService decommissioningService) {
-		super(decommissioningService);
+	protected ClosingDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+		super(decommissioningService, appLayerFactory);
 	}
 
 	@Override
@@ -422,8 +429,8 @@ class ClosingDecommissioner extends Decommissioner {
 
 class TransferringDecommissioner extends Decommissioner {
 
-	protected TransferringDecommissioner(DecommissioningService decommissioningService) {
-		super(decommissioningService);
+	protected TransferringDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+		super(decommissioningService, appLayerFactory);
 	}
 
 	@Override
@@ -433,6 +440,7 @@ class TransferringDecommissioner extends Decommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		markFolderTransferred(folder);
 		processDocumentsIn(folder);
 	}
@@ -462,8 +470,8 @@ class TransferringDecommissioner extends Decommissioner {
 abstract class DeactivatingDecommissioner extends Decommissioner {
 	protected List<String> destroyedFolders;
 
-	protected DeactivatingDecommissioner(DecommissioningService decommissioningService) {
-		super(decommissioningService);
+	protected DeactivatingDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+		super(decommissioningService, appLayerFactory);
 		destroyedFolders = new ArrayList<>();
 	}
 
@@ -521,8 +529,8 @@ abstract class DeactivatingDecommissioner extends Decommissioner {
 
 class DepositingDecommissioner extends DeactivatingDecommissioner {
 
-	protected DepositingDecommissioner(DecommissioningService decommissioningService) {
-		super(decommissioningService);
+	protected DepositingDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+		super(decommissioningService, appLayerFactory);
 	}
 
 	@Override
@@ -532,6 +540,7 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		processDepositedFolder(folder, detail);
 	}
 
@@ -553,8 +562,8 @@ class DepositingDecommissioner extends DeactivatingDecommissioner {
 
 class DestroyingDecommissioner extends DeactivatingDecommissioner {
 
-	protected DestroyingDecommissioner(DecommissioningService decommissioningService) {
-		super(decommissioningService);
+	protected DestroyingDecommissioner(DecommissioningService decommissioningService, AppLayerFactory appLayerFactory) {
+		super(decommissioningService, appLayerFactory);
 	}
 
 	@Override
@@ -564,6 +573,7 @@ class DestroyingDecommissioner extends DeactivatingDecommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		processDeletedFolder(folder, detail);
 	}
 
@@ -586,8 +596,8 @@ class DestroyingDecommissioner extends DeactivatingDecommissioner {
 class SortingDecommissioner extends DeactivatingDecommissioner {
 	private final boolean depositByDefault;
 
-	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault) {
-		super(decommissioningService);
+	protected SortingDecommissioner(DecommissioningService decommissioningService, boolean depositByDefault, AppLayerFactory appLayerFactory) {
+		super(decommissioningService, appLayerFactory);
 		this.depositByDefault = depositByDefault;
 	}
 
@@ -598,6 +608,7 @@ class SortingDecommissioner extends DeactivatingDecommissioner {
 
 	@Override
 	protected void processFolder(Folder folder, DecomListFolderDetail detail) {
+		removeManualArchivisticStatus(folder);
 		if (shouldDeposit(folder, detail)) {
 			processDepositedFolder(folder, detail);
 		} else {

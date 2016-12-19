@@ -7,13 +7,17 @@ import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories.ContainerRecordReportFactoryParams;
+import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -25,9 +29,9 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.framework.components.ReportPresenter;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
@@ -39,7 +43,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements ReportPresenter {
+public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
 
@@ -112,12 +116,20 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 		Record record = modelLayerFactory.newRecordServices().getDocumentById(containerId);
 		ContainerRecord containerRecord = new ContainerRecord(record, types());
 
 		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
-		return rmModuleExtensions.getReportBuilderFactories().build(new ContainerRecordReportFactoryParams(containerRecord));
+		return rmModuleExtensions.getReportBuilderFactories().transferContainerRecordBuilderFactory.getValue();
+	}
+
+	@Override
+	public ContainerRecordReportParameters getReportParameters(String report) {
+		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
+
+		return new ContainerRecordReportParameters(containerId,
+				record.getDecommissioningType() == DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE);
 	}
 
 	public boolean canPrintReports() {
@@ -160,11 +172,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		}
 		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Metadata containerMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.CONTAINER);
-		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata).isEqualTo(container.getId());
+		LogicalSearchCondition condition = from(schemas.folder.schemaType()).where(containerMetadata)
+				.isEqualTo(container.getId());
 		DataStoreField linearSizeMetadata = schemas.folder.schemaType().getDefaultSchema().getMetadata(Folder.LINEAR_SIZE);
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata.getDataStoreCode());
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).computeStatsOnField(linearSizeMetadata);
 		SPEQueryResponse result = modelLayerFactory.newSearchServices().query(query);
-		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata.getDataStoreCode());
+		Map<String, Object> linearSizeStats = result.getStatValues(linearSizeMetadata);
 		if (linearSizeStats == null) {
 			if (result.getNumFound() > 0) {
 				//no folder with linearSize
@@ -209,7 +222,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	private DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}
@@ -219,5 +232,9 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			rmRecordServices = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory);
 		}
 		return rmRecordServices;
+	}
+
+	public NewReportWriterFactory<LabelsReportParameters> getLabelsReportFactory() {
+		return getRmReportBuilderFactories().labelsBuilderFactory.getValue();
 	}
 }

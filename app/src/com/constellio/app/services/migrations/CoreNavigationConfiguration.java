@@ -11,10 +11,12 @@ import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
+import com.constellio.app.ui.pages.trash.TrashViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
@@ -68,6 +70,8 @@ public class CoreNavigationConfiguration implements Serializable {
 	public static final String IMPORT_RECORDS_ICON = "images/icons/config/import.png";
 	public static final String IMPORT_SCHEMA_TYPES = "importSchemaTypes";
 	public static final String IMPORT_SCHEMA_TYPES_ICON = "images/icons/config/import-metadata.png";
+	public static final String IMPORT_SETTINGS = "importSettings";
+	public static final String IMPORT_SETTINGS_ICON = "images/icons/config/import-settings.png";
 	public static final String TRASH_BIN = "trashBin";
 	public static final String TRASH_BIN_ICON = "images/icons/config/garbage.png";
 	public static final String SEARCH_BOOST_BY_METADATA = "searchBoostByMetadata";
@@ -77,6 +81,10 @@ public class CoreNavigationConfiguration implements Serializable {
 
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String HOME = "home";
+	public static final String TRASH = "trash";
+
+	public static final String SYSTEM_CHECK = "systemCheck";
+	public static final String SYSTEM_CHECK_ICON = "images/icons/config/system-check.png";
 
 	public void configureNavigation(NavigationConfig config) {
 		configureSystemAdmin(config);
@@ -92,8 +100,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
 			}
 		});
@@ -105,8 +113,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_LDAP));
 			}
 		});
@@ -117,8 +125,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_GROUPS));
 			}
 		});
@@ -129,8 +137,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS));
 			}
 		});
@@ -141,8 +149,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_COLLECTIONS));
 			}
 		});
@@ -153,8 +161,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
 			}
 		});
@@ -165,8 +173,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS));
 			}
 		});
@@ -177,8 +185,20 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
+			}
+		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(IMPORT_SETTINGS, IMPORT_SETTINGS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().importSettings();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -189,8 +209,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -202,9 +222,20 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_UPDATES));
+			}
+		});
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(SYSTEM_CHECK, SYSTEM_CHECK_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().systemCheck();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername()).isSystemAdmin());
 			}
 		});
 	}
@@ -217,7 +248,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.hasAny(CorePermissions.MANAGE_TAXONOMIES, CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
@@ -228,7 +259,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_VALUELIST).globally());
 			}
 		});
@@ -240,7 +271,7 @@ public class CoreNavigationConfiguration implements Serializable {
 
 			//TODO changer pour permission
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_VALUELIST).globally());
 			}
 
@@ -252,7 +283,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally());
 			}
 		});
@@ -263,7 +294,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
@@ -274,7 +305,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
@@ -285,7 +316,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_EMAIL_SERVER).globally());
 			}
 		});
@@ -296,7 +327,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_METADATAEXTRACTOR).globally());
 			}
 		});
@@ -307,7 +338,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS).globally());
 			}
 		});
@@ -318,7 +349,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_METADATASCHEMAS).globally());
 			}
 		});
@@ -329,8 +360,8 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
-				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				CredentialUserPermissionChecker userHas = appLayerFactory.getModelLayerFactory().newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_DATA_IMPORTS));
 			}
 		});
@@ -342,7 +373,7 @@ public class CoreNavigationConfiguration implements Serializable {
 					}
 
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 					}
 				});
@@ -353,11 +384,21 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
 			}
 		});
-		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Inactive(TRASH_BIN, TRASH_BIN_ICON));
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(TRASH_BIN, TRASH_BIN_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().trash();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+			}
+		});
 	}
 
 	private void configureMainLayoutNavigation(NavigationConfig config) {
@@ -374,7 +415,7 @@ public class CoreNavigationConfiguration implements Serializable {
 					}
 
 					@Override
-					public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 						return ComponentState.ENABLED;
 					}
 				});
@@ -391,7 +432,7 @@ public class CoreNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				List<String> permissions = new ArrayList<>();
 				permissions.addAll(CorePermissions.COLLECTION_MANAGEMENT_PERMISSIONS);
 				permissions.addAll(RMPermissionsTo.RM_COLLECTION_MANAGEMENT_PERMISSIONS);
@@ -399,11 +440,29 @@ public class CoreNavigationConfiguration implements Serializable {
 
 				boolean canManageCollection = user.hasAny(permissions).globally();
 
-				UserServices userServices = modelLayerFactory.newUserServices();
+				UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 				boolean canManageSystem = userServices.has(user.getUsername())
 						.anyGlobalPermissionInAnyCollection(CorePermissions.SYSTEM_MANAGEMENT_PERMISSIONS);
 				return visibleIf(canManageCollection || canManageSystem);
 			}
 		});
+
+		config.add(MainLayout.MAIN_LAYOUT_NAVIGATION,
+				new NavigationItem.Active(TRASH, TrashViewImpl.class) {
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to().trash();
+					}
+
+					@Override
+					public int getOrderValue() {
+						return 100;
+					}
+
+					@Override
+					public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+						return visibleIf(user.has(CorePermissions.MANAGE_TRASH).globally());
+					}
+				});
 	}
 }

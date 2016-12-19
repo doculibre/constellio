@@ -2,6 +2,7 @@ package com.constellio.data.io;
 
 import java.io.File;
 
+import com.constellio.data.conf.HashingEncoding;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -32,7 +33,7 @@ public class IOServicesFactory {
 		return new EncodingService();
 	}
 
-	public HashingService newHashingService() {
-		return HashingService.forSHA1(newEncodingService());
+	public HashingService newHashingService(HashingEncoding hashingEncoding) {
+		return HashingService.forSHA1(newEncodingService(), hashingEncoding);
 	}
 }

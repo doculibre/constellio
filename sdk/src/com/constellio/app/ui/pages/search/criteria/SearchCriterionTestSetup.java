@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.search.criteria;
 
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
@@ -63,6 +64,11 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata aString() {

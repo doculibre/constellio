@@ -1,5 +1,6 @@
 package com.constellio.app.api.cmis.accept;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -53,7 +54,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		authenticationService = getModelLayerFactory().newAuthenticationService();
 		configManager = getDataLayerFactory().getConfigManager();
-		hashingService = getIOLayerFactory().newHashingService();
+		hashingService = getIOLayerFactory().newHashingService(BASE64);
 
 		userServices = getModelLayerFactory().newUserServices();
 		taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
@@ -66,6 +67,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 
 		defineSchemasManager().using(zeCollectionSchemas);
 		defineSchemasManager().using(anotherCollectionSchemas);
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy2(), metadataSchemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), metadataSchemasManager);
@@ -78,7 +80,7 @@ public class OldCmisAuthenticationAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.bob(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		userServices.addUserToCollection(users.chuckNorris(), anotherCollection);
-
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 	//
 	//	@Test

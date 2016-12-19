@@ -23,7 +23,7 @@ public class RMDownloadContentVersionLinkExtension implements DownloadContentVer
 
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
-			downloadLink = new ConstellioAgentLink(agentURL, contentVersionVO, caption);
+			downloadLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, caption);
 		} else {
 			downloadLink = new DownloadContentVersionLink(contentVersionVO, caption);
 		}

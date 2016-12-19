@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.Language;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -43,7 +44,7 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 					MetadataSchema schema = getSchema(referencedRecord);
 					if (metadata.isChildOfRelationship()) {
 						String principalPath = (String) referencedRecord.get(Schemas.PRINCIPAL_PATH);
-						if (principalPath != null && principalPath.contains(record.getId())) {
+						if (isInPrincipalPath(record.getId(), principalPath)) {
 							addValidationErrors(validationErrors, CANNOT_REFERENCE_A_DESCENDANT_IN_A_CHILD_OF_REFERENCE,
 									metadata, schema.getCode());
 						}
@@ -53,6 +54,20 @@ public class CyclicHierarchyValidator implements Validator<Record> {
 
 			}
 		}
+	}
+	
+	private boolean isInPrincipalPath(String recordId, String principalPath) {
+		boolean inPrincipalPath = false;
+		if (principalPath != null) {
+			String[] principalPathSplitted = StringUtils.split(principalPath, "/");
+			for (String principalPathPart : principalPathSplitted) {
+				if (principalPathPart.equals(recordId)) {
+					inPrincipalPath = true;
+					break;
+				}
+			}
+		}
+		return inPrincipalPath;
 	}
 
 	private MetadataSchema getSchema(Record referencedRecord) {

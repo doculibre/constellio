@@ -15,9 +15,11 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 
 public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
+	Users users = new Users();
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
@@ -26,7 +28,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 	public void whenCallLogicallyThenPhysicallyDeletableCheckOnCategoriesThenGoodBehavior() {
 
 		prepareSystem(
-				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus()
 		);
 
@@ -42,16 +44,16 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z(), admin).isFalse();
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z100(), admin).isFalse();
-		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z110(), admin).isTrue();
+		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z110(), admin).isFalse();
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z111(), admin).isTrue();
-		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z112(), admin).isTrue();
+		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z112(), admin).isFalse();
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z120(), admin).isFalse();
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z200(), admin).isTrue();
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_Z999(), admin).isTrue();
 		assertThatLogicallyThenPhysicallyDeletable(records.getCategory_ZE42(), admin).isTrue();
 
-		recordServices.logicallyDelete(records.getCategory_Z110().getWrappedRecord(), admin);
-		recordServices.physicallyDelete(records.getCategory_Z110().getWrappedRecord(), admin);
+		recordServices.logicallyDelete(records.getCategory_Z111().getWrappedRecord(), admin);
+		recordServices.physicallyDelete(records.getCategory_Z111().getWrappedRecord(), admin);
 
 		recordServices.logicallyDelete(records.getCategory_X13().getWrappedRecord(), admin);
 		recordServices.physicallyDelete(records.getCategory_X13().getWrappedRecord(), admin);
@@ -122,24 +124,67 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		User admin = records.getAdmin();
 
-		assertThatLogicallyDeletable(records.getCategory_X(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_X100(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_X110(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_X120(), admin).isTrue();
+		assertThatLogicallyDeletable(records.getCategory_X(), admin).isFalse();
+		assertThatLogicallyDeletable(records.getCategory_X100(), admin).isFalse();
+		assertThatLogicallyDeletable(records.getCategory_X110(), admin).isFalse();
+		assertThatLogicallyDeletable(records.getCategory_X120(), admin).isFalse();
 		assertThatLogicallyDeletable(records.getCategory_X13(), admin).isTrue();
 
-		assertThatLogicallyDeletable(records.getCategory_Z(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_Z100(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_Z110(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_Z110(), admin).isTrue();
+		assertThatLogicallyDeletable(records.getCategory_Z(), admin).isFalse();
+		assertThatLogicallyDeletable(records.getCategory_Z100(), admin).isFalse();
+		assertThatLogicallyDeletable(records.getCategory_Z110(), admin).isFalse();
+		assertThatLogicallyDeletable(records.getCategory_Z110(), admin).isFalse();
 		assertThatLogicallyDeletable(records.getCategory_Z111(), admin).isTrue();
-		assertThatLogicallyDeletable(records.getCategory_Z112(), admin).isTrue();
+		assertThatLogicallyDeletable(records.getCategory_Z112(), admin).isFalse();
 
 		//Logically deletable, but not physically
-		assertThatLogicallyDeletable(records.getCategory_Z120(), admin).isTrue();
+		assertThatLogicallyDeletable(records.getCategory_Z120(), admin).isFalse();
 		assertThatLogicallyDeletable(records.getCategory_Z200(), admin).isTrue();
 		assertThatLogicallyDeletable(records.getCategory_Z999(), admin).isTrue();
 		assertThatLogicallyDeletable(records.getCategory_ZE42(), admin).isTrue();
+	}
+
+	@Test
+	public void givenUnusedAdministrativeUnitThenDeletable()
+			throws Exception {
+
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
+						.withFoldersAndContainersOfEveryStatus()
+		);
+
+		User admin = users.adminIn(zeCollection);
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+		//unitId_10a : 63,
+		//unitId_30c : 21
+		//unitId_11b : 11
+		//unitId_12b : 10
+		//unitId_20d : 0
+
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
+
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
+
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
+
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
+		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyDeletable(RecordWrapper recordWrapper,

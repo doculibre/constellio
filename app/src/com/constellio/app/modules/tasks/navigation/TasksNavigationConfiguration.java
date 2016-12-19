@@ -15,6 +15,7 @@ import com.constellio.app.modules.tasks.ui.pages.workflow.AddEditWorkflowViewImp
 import com.constellio.app.modules.tasks.ui.pages.workflow.DisplayWorkflowViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflow.ListWorkflowsViewImpl;
 import com.constellio.app.modules.tasks.ui.pages.workflowInstance.DisplayWorkflowInstanceViewImpl;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -65,7 +66,7 @@ public class TasksNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});
@@ -84,7 +85,7 @@ public class TasksNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return ComponentState.ENABLED;
 			}
 		});
@@ -98,9 +99,9 @@ public class TasksNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 
-				RMConfigs configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+				RMConfigs configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 				if (!configs.areWorkflowsEnabled()) {
 					return ComponentState.INVISIBLE;
 				}

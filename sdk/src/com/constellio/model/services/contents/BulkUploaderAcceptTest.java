@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE32;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +30,7 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		hashingService = getIOLayerFactory().newHashingService();
+		hashingService = getIOLayerFactory().newHashingService(BASE32);
 		fileParser = getModelLayerFactory().newFileParser();
 
 		File zipFile = getTestResourceFile("10000files.bigf.zip");
@@ -46,9 +47,64 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 	@Test
 	@SlowTest
-	public void whenBulkUploading1000FilesThenAllHaveCorrectSizeHashingLanguageParsedContentAndBinaryContent()
+	public void whenBulkUploading10000FilesThenAllHaveCorrectSizeHashingLanguageParsedContentAndBinaryContent()
 			throws Exception {
+
 		test(10000);
+	}
+
+	@Test
+	public void whenBulkUploading100FilesWithDuplicatesThenNoExceptions()
+			throws Exception {
+		testWithDuplicates(100);
+	}
+
+	private void testWithDuplicates(int qty)
+			throws Exception {
+		BigFileIterator iterator = newIterator();
+
+		BulkUploader bulkUploader = new BulkUploader(getModelLayerFactory());
+		for (int i = 0; i < qty; i++) {
+			final byte[] bytes = iterator.next().getBytes();
+			for (int j = 0; j < 5; j++) {
+				bulkUploader.uploadAsync("upload" + i, new StreamFactory<InputStream>() {
+					@Override
+					public InputStream create(String name)
+							throws IOException {
+						return new ByteArrayInputStream(bytes);
+					}
+				});
+			}
+		}
+
+		bulkUploader.close();
+
+		iterator = newIterator();
+		for (int i = 0; i < qty; i++) {
+			System.out.println("Validating content #" + i);
+			String key = "upload" + i;
+			final byte[] bytes = iterator.next().getBytes();
+
+			ContentVersionDataSummary dataSummary = bulkUploader.get(key);
+			String expectedMimetype = "application/xhtml+xml; charset=UTF-8";
+			String expectedHash = hashingService.getHashFromBytes(bytes);
+			StreamFactory<InputStream> inputStreamFactory = new StreamFactory<InputStream>() {
+				@Override
+				public InputStream create(String name)
+						throws IOException {
+					return new ByteArrayInputStream(bytes);
+				}
+			};
+			ParsedContent expectedParsedContent = fileParser.parse(inputStreamFactory, bytes.length);
+			assertThat(dataSummary.getHash()).describedAs("Hash of " + key).isEqualTo(expectedHash);
+			assertThat(dataSummary.getMimetype()).describedAs("Mimetype of " + key).isEqualTo(expectedMimetype);
+			assertThat(dataSummary.getLength()).describedAs("Length of " + key).isEqualTo((long) bytes.length);
+			ParsedContent parsedContent = getModelLayerFactory().getContentManager().getParsedContent(expectedHash);
+			assertThat(parsedContent).isEqualTo(expectedParsedContent);
+			InputStream contentInputStream = getModelLayerFactory().getContentManager()
+					.getContentInputStream(expectedHash, SDK_STREAM);
+			assertThat(contentInputStream).describedAs("Content of " + key).hasContentEqualTo(new ByteArrayInputStream(bytes));
+		}
 	}
 
 	private void test(int qty)
@@ -71,6 +127,9 @@ public class BulkUploaderAcceptTest extends ConstellioTest {
 
 		iterator = newIterator();
 		for (int i = 0; i < qty; i++) {
+			if (i % 250 == 0) {
+				System.out.println("Validating content #" + i);
+			}
 			String key = "upload" + i;
 			final byte[] bytes = iterator.next().getBytes();
 

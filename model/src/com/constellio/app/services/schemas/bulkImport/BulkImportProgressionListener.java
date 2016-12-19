@@ -12,7 +12,9 @@ public interface BulkImportProgressionListener extends Serializable {
 
 	public void updateCurrentStepName(String stepName);
 
-	void onRecordImport(int addUpdateCount, String legacyId, String title);
+	void afterRecordValidations(String fromLegacyId, String toLegacyId, int totalValidated, int batchQty, int errorsCount);
+
+	void afterRecordImports(String fromLegacyId, String toLegacyId, int totalImported, int batchQty, int errorsCount);
 
 	void onRecordImportPostponed(String legacyId);
 }

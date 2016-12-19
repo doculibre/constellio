@@ -76,7 +76,7 @@ public class PluginManagementUtilsAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenMovePluginsAndSetNoPluginToMoveThenOk()
 			throws Exception {
-		utils1WithoutPluginsToMoveFile.movePluginsAndSetNoPluginToMove(pluginsList);
+		utils1WithoutPluginsToMoveFile.movePlugins(pluginsList);
 		assertThat(FileUtils.readLines(pluginsToMove1FileInexisting)).isEmpty();
 
 		File plugin1FromLib1 = new File(libFolder1, "plugin1.jar");
@@ -85,12 +85,11 @@ public class PluginManagementUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(plugin2FromLib1).hasContent("Another plugin updated");
 		File plugin4FromLib1 = new File(libFolder1, "plugin4.jar");
 		assertThat(plugin4FromLib1).hasContent("plugin 4");
-		assertThat(FileUtils.listFiles(libFolder1, new String[]{"jar"}, false)).containsOnly(
+		assertThat(FileUtils.listFiles(libFolder1, new String[] { "jar" }, false)).containsOnly(
 				plugin1FromLib1, plugin2FromLib1, plugin4FromLib1
 		);
 
-
-		utils2WithPluginsToMoveFile.movePluginsAndSetNoPluginToMove(pluginsList);
+		utils2WithPluginsToMoveFile.movePlugins(pluginsList);
 		assertThat(FileUtils.readLines(pluginsToMove2FileWithPlugins)).isEmpty();
 
 		File plugin1FromLib2 = new File(libFolder2, "plugin1.jar");
@@ -99,7 +98,7 @@ public class PluginManagementUtilsAcceptanceTest extends ConstellioTest {
 		assertThat(plugin2FromLib2).hasContent("Another plugin updated");
 		File plugin4FromLib2 = new File(libFolder2, "plugin4.jar");
 		assertThat(plugin4FromLib2).hasContent("plugin 4");
-		assertThat(FileUtils.listFiles(libFolder2, new String[]{"jar"}, false)).containsOnly(
+		assertThat(FileUtils.listFiles(libFolder2, new String[] { "jar" }, false)).containsOnly(
 				plugin1FromLib2, plugin2FromLib2, plugin4FromLib2
 		);
 	}
@@ -112,14 +111,14 @@ public class PluginManagementUtilsAcceptanceTest extends ConstellioTest {
 
 		File plugin2FromLib1 = new File(libFolder1, "PLUGIN2.jar");
 		assertThat(plugin2FromLib1).hasContent("Another plugin updated");
-		assertThat(FileUtils.listFiles(libFolder1, new String[]{"jar"}, false)).containsOnly(plugin2FromLib1);
+		assertThat(FileUtils.listFiles(libFolder1, new String[] { "jar" }, false)).containsOnly(plugin2FromLib1);
 
 		utils2WithPluginsToMoveFile.copyPluginFromPluginsFolderToLibFolder("PLUGIN2");
 		assertThat(FileUtils.readLines(pluginsToMove2FileWithPlugins)).containsOnly("plugin1");
 
 		File plugin2FromLib2 = new File(libFolder2, "PLUGIN2.jar");
 		assertThat(plugin2FromLib2).hasContent("Another plugin updated");
-		assertThat(FileUtils.listFiles(libFolder2, new String[]{"jar"}, false)).containsOnly(plugin2FromLib2);
+		assertThat(FileUtils.listFiles(libFolder2, new String[] { "jar" }, false)).containsOnly(plugin2FromLib2);
 	}
 
 	@Test
@@ -140,5 +139,23 @@ public class PluginManagementUtilsAcceptanceTest extends ConstellioTest {
 
 		Set<String> pluginsToUpdate2 = utils2WithPluginsToMoveFile.getPluginsToMove();
 		assertThat(pluginsToUpdate2).containsOnly("plugin1");
+	}
+
+	@Test
+	public void whenMarkPluginsToInstallThenMarked()
+			throws Exception {
+
+		File tempFolder = newTempFolder();
+		File otherTempFolder = newTempFolder();
+
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin1.jar");
+		PluginManagementUtils.markNewPluginsInNewWar(tempFolder, "plugin2.jar");
+		PluginManagementUtils.markNewPluginsInNewWar(otherTempFolder, "plugin3.jar");
+
+		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).containsOnly("plugin1.jar", "plugin2.jar");
+
+		PluginManagementUtils.clearNewPluginsInNewWar(tempFolder);
+		assertThat(PluginManagementUtils.getNewPluginsInNewWar(tempFolder)).isEmpty();
+
 	}
 }

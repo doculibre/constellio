@@ -18,6 +18,8 @@ public class GlobalGroupVO implements Serializable {
 
 	GlobalGroupStatus status;
 
+	boolean locallyCreated = true;
+
 	public GlobalGroupVO() {
 		this.status = GlobalGroupStatus.ACTIVE;
 	}
@@ -27,12 +29,13 @@ public class GlobalGroupVO implements Serializable {
 		this.status = GlobalGroupStatus.ACTIVE;
 	}
 
-	public GlobalGroupVO(String code, String name, Set<String> collections, String parent, GlobalGroupStatus status) {
+	public GlobalGroupVO(String code, String name, Set<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
 		this.code = code;
 		this.name = name;
 		this.collections = collections;
 		this.parent = parent;
 		this.status = status;
+        this.locallyCreated = locallyCreated;
 	}
 
 	public String getCode() {
@@ -74,6 +77,14 @@ public class GlobalGroupVO implements Serializable {
 	public void setStatus(GlobalGroupStatus status) {
 		this.status = status;
 	}
+
+    public boolean isLocallyCreated() {
+        return locallyCreated;
+    }
+
+    public void setLocallyCreated(boolean locallyCreated) {
+        this.locallyCreated = locallyCreated;
+    }
 }
 
 

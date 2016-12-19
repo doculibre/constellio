@@ -1,16 +1,20 @@
 package com.constellio.app.services.schemas.bulkImport;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.builder.ImportDataBuilder;
 
 public class DummyImportDataProvider implements ImportDataProvider {
+
+	public Map<String, ImportDataOptions> dataOptionsMap = new HashMap<>();
 
 	private Map<String, List<ImportDataBuilder>> data;
 
@@ -39,14 +43,27 @@ public class DummyImportDataProvider implements ImportDataProvider {
 		return new ArrayList<>(data.keySet());
 	}
 
+	public ImportDataOptions getDataOptions(String schemaType) {
+		if (dataOptionsMap.containsKey(schemaType)) {
+			return dataOptionsMap.get(schemaType);
+		} else {
+			return new ImportDataOptions();
+		}
+	}
+
 	@Override
-	public ImportDataIterator newDataIterator(String schemaType) {
+	public ImportDataIterator newDataIterator(final String schemaType) {
 		final Iterator<ImportDataBuilder> nestedIterator = data.get(schemaType).iterator();
 		return new ImportDataIterator() {
 
 			private boolean closed;
 
 			private int index;
+
+			@Override
+			public ImportDataOptions getOptions() {
+				return getDataOptions(schemaType);
+			}
 
 			@Override
 			public void close() {

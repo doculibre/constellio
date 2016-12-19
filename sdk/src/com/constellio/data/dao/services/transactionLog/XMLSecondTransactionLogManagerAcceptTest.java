@@ -1,5 +1,7 @@
 package com.constellio.data.dao.services.transactionLog;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 import static java.util.Arrays.asList;
@@ -8,7 +10,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -30,7 +31,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
@@ -45,6 +46,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
@@ -94,17 +96,18 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		givenBackgroundThreadsEnabled();
 		withSpiedServices(SecondTransactionLogManager.class);
 		logBaseFolder = newTempFolder();
 
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
-				doReturn(true).when(configuration).isSecondTransactionLogEnabled();
-				doReturn(logBaseFolder).when(configuration).getSecondTransactionLogBaseFolder();
-				doReturn(Duration.standardSeconds(5)).when(configuration).getSecondTransactionLogMergeFrequency();
-				doReturn(3).when(configuration).getSecondTransactionLogBackupCount();
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondTransactionLogEnabled(true);
+				configuration.setSecondTransactionLogBaseFolder(logBaseFolder);
+				configuration.setSecondTransactionLogMergeFrequency(Duration.standardSeconds(5));
+				configuration.setSecondTransactionLogBackupCount(3);
 			}
 		});
 
@@ -145,6 +148,9 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 			}
 		});
 		schemas.refresh();
+
+		getModelLayerFactory().getSystemConfigurationsManager()
+				.setValue(ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG, false);
 
 		User admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
@@ -187,8 +193,51 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		log.destroyAndRebuildSolrCollection();
 
 		Content content = recordServices.getDocumentById("zeRecord").get(zeSchema.contentMetadata());
-		assertThat(content.getCurrentVersion().getHash()).isEqualTo("io25znMv7hM3k+m441kYKBEHbbE=");
+		assertThat(content.getCurrentVersion().getHash()).isEqualTo("io25znMv7hM3k-m441kYKBEHbbE=");
+	}
 
+	@Test
+	public void givenSequencesWhenReplayLoggedThenSetToGoodValues()
+			throws Exception {
+		//TODO AFTER-TEST-VALIDATION-SEQ
+		givenDisabledAfterTestValidations();
+
+		for (int i = 0; i < 6; i++) {
+			getDataLayerFactory().getSequencesManager().next("zeSequence");
+		}
+		getDataLayerFactory().getSequencesManager().set("zeSequence", 10);
+		for (int i = 0; i < 32; i++) {
+			getDataLayerFactory().getSequencesManager().next("zeSequence");
+		}
+		getDataLayerFactory().getSequencesManager().set("anotherSequence", 666);
+
+		log.regroupAndMoveInVault();
+		log.destroyAndRebuildSolrCollection();
+
+		assertThat(getDataLayerFactory().getSequencesManager().getLastSequenceValue("zeSequence")).isEqualTo(42);
+		assertThat(getDataLayerFactory().getSequencesManager().getLastSequenceValue("anotherSequence")).isEqualTo(666);
+	}
+
+	@Test
+	public void givenSequencesWhenReindexReplayLoggedThenSetToGoodValues()
+			throws Exception {
+
+		for (int i = 0; i < 6; i++) {
+			getDataLayerFactory().getSequencesManager().next("zeSequence");
+		}
+		getDataLayerFactory().getSequencesManager().set("zeSequence", 10);
+		for (int i = 0; i < 32; i++) {
+			getDataLayerFactory().getSequencesManager().next("zeSequence");
+		}
+		getDataLayerFactory().getSequencesManager().set("anotherSequence", 666);
+
+		getModelLayerFactory().newReindexingServices().reindexCollections(RECALCULATE_AND_REWRITE);
+
+		log.regroupAndMoveInVault();
+		log.destroyAndRebuildSolrCollection();
+
+		assertThat(getDataLayerFactory().getSequencesManager().getLastSequenceValue("zeSequence")).isEqualTo(42);
+		assertThat(getDataLayerFactory().getSequencesManager().getLastSequenceValue("anotherSequence")).isEqualTo(666);
 	}
 
 	@Test
@@ -219,7 +268,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 		log.regroupAndMoveInVault();
 		assertThat(completeTLOG()).is(containingAllValues());
 
-		reindexServices.reindexCollection(zeCollection, new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE));
+		reindexServices.reindexCollection(zeCollection, new ReindexationParams(RECALCULATE_AND_REWRITE));
 		log.regroupAndMoveInVault();
 		assertThat(completeTLOG()).is(containingAllValues());
 
@@ -248,7 +297,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		givenTimeIs(shishOClockPlus2Hour);
 		recordServices.update(record1.set(zeSchema.stringMetadata(), "Obi-Wan Kenobi"));
-		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE));
+		reindexServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE));
 		assertThat(completeTLOG()).is(onlyContainingValues("Obi-Wan Kenobi"));
 		assertThat(backupTLOG(shishOClockPlus1Hour)).is(onlyContainingValues("Darth Vador", "Luke Skywalker"));
 		assertThat(backupTLOG(shishOClockPlus2Hour)).is(onlyContainingValues("Luke Skywalker", "Obi-Wan Kenobi"));
@@ -263,7 +312,7 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 
 		givenTimeIs(shishOClockPlus4Hour);
 		recordServices.update(record1.set(zeSchema.stringMetadata(), "Anakin Skywalker"));
-		reindexServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE));
+		reindexServices.reindexCollections(new ReindexationParams(RECALCULATE_AND_REWRITE));
 		assertThat(completeTLOG()).is(onlyContainingValues("Anakin Skywalker"));
 		assertThat(backupTLOG(shishOClockPlus1Hour)).is(deleted());
 		assertThat(backupTLOG(shishOClockPlus2Hour)).is(onlyContainingValues("Luke Skywalker", "Obi-Wan Kenobi"));
@@ -373,7 +422,9 @@ public class XMLSecondTransactionLogManagerAcceptTest extends ConstellioTest {
 					int arrayIndex;
 
 					while ((arrayIndex = index.incrementAndGet()) < nbRecordsToAdd) {
-						System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd);
+						if (arrayIndex + 1 % 100 == 0) {
+							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd);
+						}
 						Record record = new TestRecord(zeSchema);
 
 						record.set(zeSchema.stringMetadata(), recordTextValues.get(arrayIndex));

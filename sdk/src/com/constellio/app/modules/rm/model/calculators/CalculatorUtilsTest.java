@@ -16,6 +16,10 @@ public class CalculatorUtilsTest {
 
 		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 1), "04/30", 30)).isEqualTo(new LocalDate(2013, 4, 30));
 
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 1)).isEqualTo(new LocalDate(2013, 4, 30));
+
+		assertThat(toNextEndOfYearDate(new LocalDate(2012, 4, 30), "04/30", 0)).isEqualTo(new LocalDate(2012, 4, 30));
+
 		assertThat(toNextEndOfYearDate(new LocalDate(2013, 4, 1), "04/30", 30)).isEqualTo(new LocalDate(2014, 4, 30));
 
 		assertThat(toNextEndOfYearDate(new LocalDate(2012, 3, 30), "04/30", 30)).isEqualTo(new LocalDate(2012, 4, 30));

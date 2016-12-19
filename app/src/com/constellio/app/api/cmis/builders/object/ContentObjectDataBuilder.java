@@ -23,31 +23,40 @@ import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.joda.time.LocalDateTime;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 
 public class ContentObjectDataBuilder {
 
 	private static String DOCUMENT_TYPE_ID = BaseTypeId.CMIS_DOCUMENT.value();
 	private final ConstellioCollectionRepository repository;
+	private final AppLayerFactory appLayerFactory;
+	private final CallContext context;
+	private final User user;
+	private final AllowableActionsBuilder allowableActionsBuilder;
 
-	public ContentObjectDataBuilder(ConstellioCollectionRepository repository) {
+	public ContentObjectDataBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
+			CallContext context) {
 		this.repository = repository;
+		this.appLayerFactory = appLayerFactory;
+		this.context = context;
+		this.user = (User) context.get(ConstellioCmisContextParameters.USER);
+		this.allowableActionsBuilder = new AllowableActionsBuilder(repository, appLayerFactory, context);
 	}
 
-	public ObjectData build(AppLayerFactory appLayerFactory, CallContext context, ContentCmisDocument contentCmisDocument,
-			Set<String> filter,
-			boolean includeAllowableActions, boolean includeAcl, ObjectInfoHandler objectInfos) {
+	public ObjectData build(ContentCmisDocument contentCmisDocument, Set<String> filter, boolean includeAllowableActions,
+			boolean includeAcl, ObjectInfoHandler objectInfos) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
 		result.setProperties(compileProperties(contentCmisDocument, filter, objectInfo));
 
 		if (includeAllowableActions) {
-			result.setAllowableActions(
-					new AllowableActionsBuilder(appLayerFactory, repository, contentCmisDocument.getRecord()).build());
+			result.setAllowableActions(allowableActionsBuilder.build(contentCmisDocument.getRecord()));
 		}
 
 		if (context.isObjectInfoRequired()) {

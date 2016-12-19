@@ -98,11 +98,11 @@ public class EmailQueueManager implements StatefulService {
 	public void sendEmails() {
 		List<LogicalSearchQuery> searchConditions = prepareSearchQueries(TimeProvider.getLocalDateTime());
 		while (!searchConditions.isEmpty()) {
-			LOGGER.info("Remaining " + searchConditions.size() + " collections");
+			//LOGGER.info("Remaining " + searchConditions.size() + " collections");
 			for (Iterator<LogicalSearchQuery> iterator = searchConditions.iterator(); iterator.hasNext(); ) {
 				LogicalSearchQuery query = iterator.next();
-				LOGGER.info("Remaining " + searchServices.getResultsCount(query) + " emails in collection " + query.getCondition()
-						.getCollection());
+			//	LOGGER.info("Remaining " + searchServices.getResultsCount(query) + " emails in collection " + query.getCondition()
+			//			.getCollection());
 				query.setNumberOfRows(SEND_EMAIL_BATCH);
 				List<Record> records = searchServices.search(query);
 				if (records.isEmpty()) {

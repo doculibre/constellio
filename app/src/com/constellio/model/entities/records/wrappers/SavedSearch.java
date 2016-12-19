@@ -28,6 +28,7 @@ public class SavedSearch extends RecordWrapper {
 	public static final String TEMPORARY = "temporary";
 	public static final String PAGE_NUMBER = "pageNumber";
 	public static final String RESULTS_VIEW_MODE = "resultsViewMode";
+	public static final String PAGE_LENGTH = "pageLength";
 
 	//testing only
 	public static final String CRITERION = "criterions";
@@ -57,6 +58,16 @@ public class SavedSearch extends RecordWrapper {
 
 	public SavedSearch setResultsViewMode(String resultsViewMode) {
 		set(RESULTS_VIEW_MODE, resultsViewMode);
+		return this;
+	}
+
+	public int getPageLength() {
+		Integer pageLengthInteger = getInteger(PAGE_LENGTH);
+		return pageLengthInteger != null ? pageLengthInteger : 0;
+	}
+
+	public SavedSearch setPageLength(int pageLength) {
+		set(PAGE_LENGTH, pageLength);
 		return this;
 	}
 

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,6 @@ import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
-import com.google.gwt.dev.util.collect.HashMap;
 
 public class TaxonomyManagementWebElement {
 

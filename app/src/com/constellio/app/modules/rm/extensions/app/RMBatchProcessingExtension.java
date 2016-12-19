@@ -35,7 +35,7 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 		this.appLayerFactory = appLayerFactory;
 		this.collection = collection;
 		this.configs = new RMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
-		this.decommissioningService = new DecommissioningService(collection, appLayerFactory.getModelLayerFactory());
+		this.decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 	}
 
@@ -49,7 +49,7 @@ public class RMBatchProcessingExtension extends BatchProcessingExtension {
 
 	final List<String> hiddenDocumentMetadatasInReport = asList(Document.ALERT_USERS_WHEN_AVAILABLE,
 			Document.APPLICABLE_COPY_RULES,
-			Document.CALENDAR_YEAR, Document.ACTUAL_DEPOSIT_DATE_ENTERED, Document.ACTUAL_DESTRUCTION_DATE_ENTERED,
+			"calendarYear", Document.ACTUAL_DEPOSIT_DATE_ENTERED, Document.ACTUAL_DESTRUCTION_DATE_ENTERED,
 			Document.ACTUAL_TRANSFER_DATE_ENTERED, Document.INHERITED_FOLDER_RETENTION_RULE, Document.MAIN_COPY_RULE_ID_ENTERED);
 
 	final List<String> folderUnmodifiableMetadatas = asList(Folder.UNIFORM_SUBDIVISION_ENTERED);

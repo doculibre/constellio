@@ -26,6 +26,7 @@ public class BaseDisplay extends CustomComponent {
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeUndefined();
 		mainLayout.setSpacing(true);
+		mainLayout.addStyleName(STYLE_NAME + "-main-layout"); 
 		
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 
@@ -46,12 +47,14 @@ public class BaseDisplay extends CustomComponent {
 	}
 	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
-		HorizontalLayout captionAndComponentLayout = new HorizontalLayout();
-		captionAndComponentLayout.setSizeFull();
-		
-		mainLayout.addComponent(captionAndComponentLayout);
-		captionAndComponentLayout.addComponent(captionLabel);
-		captionAndComponentLayout.addComponent(displayComponent);
+		if (displayComponent.isVisible()) {
+			HorizontalLayout captionAndComponentLayout = new HorizontalLayout();
+			captionAndComponentLayout.setSizeFull();
+			
+			mainLayout.addComponent(captionAndComponentLayout);
+			captionAndComponentLayout.addComponent(captionLabel);
+			captionAndComponentLayout.addComponent(displayComponent);
+		}
 	}
 	
 	public static class CaptionAndComponent implements Serializable {

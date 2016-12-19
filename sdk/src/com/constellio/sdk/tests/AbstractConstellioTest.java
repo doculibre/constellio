@@ -6,7 +6,6 @@ import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameCont
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -30,13 +29,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.client.WebTarget;
 
+import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrClient;
+import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -63,7 +65,8 @@ import com.constellio.app.ui.tools.vaadin.TestContainerButtonListener;
 import com.constellio.app.ui.tools.vaadin.TestEnterViewListener;
 import com.constellio.app.ui.tools.vaadin.TestInitUIListener;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
-import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.HashingEncoding;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import com.constellio.data.io.IOServicesFactory;
@@ -85,6 +88,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.FailureDetectionTestWatcher.FailureDetectionTestWatcherListener;
 import com.constellio.sdk.tests.ToggleTestFeature.ToggleCondition;
 import com.constellio.sdk.tests.annotations.UiTest;
@@ -362,8 +366,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected InputStream getTestResourceInputStream(String partialName) {
+		return getTestResourceInputStream(null, partialName);
+	}
+
+	protected InputStream getTestResourceInputStream(Class<?> clazz, String partialName) {
 		ensureNotUnitTest();
-		File testResourceFile = getTestResourceFile(partialName);
+		File testResourceFile = getTestResourceFile(clazz, partialName);
 		InputStream inputStream;
 		try {
 			inputStream = newFileInputStream(testResourceFile);
@@ -391,8 +399,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected File getTestResourceFile(String partialName) {
-		ensureNotUnitTest();
-		String completeName = getClass().getCanonicalName().replace(".", File.separator) + "-" + partialName;
+		return getTestResourceFile(null, partialName);
+	}
+
+	public static File getTestResourceFileWithoutCheckingIfUnitTest(Class clazz, String partialName) {
+		String completeName = clazz.getCanonicalName().replace(".", File.separator) + "-" + partialName;
 		File resourcesDir = getResourcesDir();
 		File file = new File(resourcesDir, completeName);
 
@@ -400,6 +411,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			throw new RuntimeException("No such file '" + file.getAbsolutePath() + "'");
 		}
 		return file;
+	}
+
+	protected File getTestResourceFile(Class clazz, String partialName) {
+		ensureNotUnitTest();
+		return getTestResourceFileWithoutCheckingIfUnitTest(clazz == null ? getClass() : clazz, partialName);
 	}
 
 	protected StreamFactory<InputStream> getTestResourceInputStreamFactory(final String partialName) {
@@ -448,6 +464,11 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 						return new ByteArrayInputStream(bytes);
 					}
 				});
+	}
+
+	protected File getUnzippedResourceFile(Class clazz, String partialName) {
+		File zipFile = getTestResourceFile(clazz, partialName);
+		return unzipInTempFolder(zipFile);
 	}
 
 	protected File getUnzippedResourceFile(String partialName) {
@@ -512,6 +533,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected FoldersLocator getFoldersLocator() {
 		return getCurrentTestSession().getFactoriesTestFeatures().getFoldersLocator();
+	}
+
+	protected File givenUnzipedResourceInFolder(String fileName) {
+		ensureNotUnitTest();
+		File file = getTestResourceFile(fileName);
+		return getCurrentTestSession().getFileSystemTestFeatures().givenUnzipedFileInTempFolder(file);
+	}
+
+	protected File givenUnzipedResourceInFolder(Class<? extends AbstractConstellioTest> clazz, String fileName) {
+		ensureNotUnitTest();
+		File file = getTestResourceFile(clazz, fileName);
+		return getCurrentTestSession().getFileSystemTestFeatures().givenUnzipedFileInTempFolder(file);
 	}
 
 	protected File newTempFileWithContent(String fileName, String content) {
@@ -619,7 +652,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	private void ensureUITest() {
-		if (getClass().getAnnotation(UiTest.class) == null) {
+		if (getClass().getAnnotation(UiTest.class) == null && !skipTestRule.isInDevelopmentTest()) {
 			throw new RuntimeException("The test class must have declared @UITest annotation");
 		}
 	}
@@ -957,12 +990,13 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		final File logTempFolder = getCurrentTestSession().getFileSystemTestFeatures().newTempFolderWithName("tLog");
 		configure(new DataLayerConfigurationAlteration() {
 			@Override
-			public void alter(DataLayerConfiguration configuration) {
+			public void alter(InMemoryDataLayerConfiguration configuration) {
 
-				doReturn(true).when(configuration).isSecondTransactionLogEnabled();
-				doReturn(logTempFolder).when(configuration).getSecondTransactionLogBaseFolder();
+				configuration.setSecondTransactionLogEnabled(true);
+				configuration.setSecondTransactionLogBaseFolder(logTempFolder);
+
 				if (filter != null) {
-					doReturn(filter).when(configuration).getSecondTransactionLogReplayFilter();
+					configuration.setSecondTransactionLogReplayFilter(filter);
 				}
 			}
 		});
@@ -1138,7 +1172,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				}
 				if (preparator.demoTestRecords) {
 					try {
-						DemoTestRecords records = preparator.demoTestRecordsObject.setup(modelLayerFactory);
+						DemoTestRecords records = preparator.demoTestRecordsObject.setup(getAppLayerFactory());
 						if (preparator.foldersAndContainersOfEveryStatus) {
 							records = records.withFoldersAndContainersOfEveryStatus();
 						}
@@ -1341,5 +1375,36 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		ToggleCondition toggleCondition = new ToggleCondition();
 		toggleCondition.toggle = toggle;
 		return toggleCondition;
+	}
+
+	protected void givenHashingEncodingIs(final HashingEncoding encoding) {
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setHashingEncoding(encoding);
+			}
+		});
+	}
+
+	protected void assumeNotSolrCloud() {
+		Assume.assumeTrue("http".equals(sdkProperties.get("dao.records.type")));
+	}
+
+	protected Session newCMISSessionAsUserInZeCollection(String username) {
+		ensureNotUnitTest();
+		return newCMISSessionAsUserInCollection(username, zeCollection);
+	}
+
+	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
+		ensureNotUnitTest();
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		userServices.addUpdateUserCredential(userServices.getUser(username).withServiceKey(username + "-key"));
+		String token = userServices.generateToken(username, Duration.standardHours(72));
+		System.out.println("Logging as " + username + "-key / " + token);
+		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();
+		if (session == null) {
+			throw new RuntimeException("Failed to initialize cmis session");
+		}
+		return session;
 	}
 }

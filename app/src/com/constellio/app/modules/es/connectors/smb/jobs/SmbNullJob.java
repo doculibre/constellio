@@ -7,26 +7,17 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryI
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 
-public class SmbNullJob extends ConnectorJob implements SmbConnectorJob {
+public class SmbNullJob extends SmbConnectorJob {
 	private static final String jobName = SmbNullJob.class.getSimpleName();
-	private static SmbNullJob instance;
+	private final JobParams jobParams;
 
-	private SmbNullJob(Connector connector) {
-		super(connector, jobName);
-	}
-
-	public static synchronized SmbNullJob getInstance(Connector connector) {
-		if (instance == null) {
-			instance = new SmbNullJob(connector);
-		}
-		return instance;
+	public SmbNullJob(JobParams jobParams) {
+		super(jobParams.getConnector(), jobName);
+		this.jobParams = jobParams;
 	}
 
 	@Override
 	public void execute(Connector connector) {
-		// Do nothing.
-		this.connector.getLogger()
-				.debug("Executed " + toString(), "", new LinkedHashMap<String, String>());
 	}
 
 	@Override

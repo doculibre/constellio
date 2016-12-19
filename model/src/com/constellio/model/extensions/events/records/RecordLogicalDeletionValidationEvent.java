@@ -39,4 +39,8 @@ public class RecordLogicalDeletionValidationEvent implements RecordEvent {
 	public boolean isRecordReferenced() {
 		return referenceCount.get();
 	}
+
+	public String getCollection() {
+		return record.getCollection();
+	}
 }

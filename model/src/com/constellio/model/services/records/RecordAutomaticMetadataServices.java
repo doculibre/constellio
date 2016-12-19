@@ -1,5 +1,7 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,8 +32,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -40,6 +45,9 @@ import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 public class RecordAutomaticMetadataServices {
@@ -50,14 +58,17 @@ public class RecordAutomaticMetadataServices {
 	private final MetadataSchemasManager schemasManager;
 	private final TaxonomiesManager taxonomiesManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
+	private final SearchServices searchServices;
 
 	public RecordAutomaticMetadataServices(MetadataSchemasManager schemasManager, TaxonomiesManager taxonomiesManager,
-			SystemConfigurationsManager systemConfigurationsManager, ModelLayerLogger modelLayerLogger) {
+			SystemConfigurationsManager systemConfigurationsManager, ModelLayerLogger modelLayerLogger,
+			SearchServices searchServices) {
 		super();
 		this.modelLayerLogger = modelLayerLogger;
 		this.schemasManager = schemasManager;
 		this.taxonomiesManager = taxonomiesManager;
 		this.systemConfigurationsManager = systemConfigurationsManager;
+		this.searchServices = searchServices;
 	}
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
@@ -72,11 +83,45 @@ public class RecordAutomaticMetadataServices {
 
 	void updateAutomaticMetadata(RecordImpl record, RecordProvider recordProvider, Metadata metadata,
 			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
-		if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
+		if (metadata.isMarkedForDeletion()) {
+			record.updateAutomaticValue(metadata, null);
+
+		} else if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
 			setCopiedValuesInRecords(record, metadata, recordProvider, reindexation);
+
 		} else if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			setCalculatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+
+		} else if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+			setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+
 		}
+	}
+
+	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
+			TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+
+		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+
+		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
+		Metadata inputMetadata = types.getMetadata(aggregatedDataEntry.getInputMetadata());
+		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
+
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
+		query.computeStatsOnField(inputMetadata);
+		query.setNumberOfRows(1000);
+		SPEQueryResponse response = searchServices.query(query);
+
+		if (aggregatedDataEntry.getAgregationType() == AggregationType.SUM) {
+			Map<String, Object> statsValues = response.getStatValues(inputMetadata);
+			Double sum = statsValues == null ? 0.0 : (Double) response.getStatValues(inputMetadata).get("sum");
+			((RecordImpl) record).updateAutomaticValue(metadata, sum);
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported aggregation type : " + aggregatedDataEntry.getAgregationType());
+		}
+
 	}
 
 	void setCopiedValuesInRecords(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
@@ -93,6 +138,7 @@ public class RecordAutomaticMetadataServices {
 		if (isReferenceModified || forcedReindexation || inTransaction) {
 			Metadata copiedMetadata = schemasManager.getSchemaTypes(record.getCollection())
 					.getMetadata(copiedDataEntry.getCopiedMetadata());
+
 			copyValueInRecord(record, metadataWithCopyDataEntry, recordProvider, referenceMetadata, copiedMetadata);
 		}
 	}
@@ -139,7 +185,9 @@ public class RecordAutomaticMetadataServices {
 		Object calculatedValue;
 		if (requiredValuesDefined) {
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
-			calculatedValue = calculator.calculate(new CalculatorParameters(values, record.getId(), record.getCollection()));
+			calculatedValue = calculator.calculate(
+					new CalculatorParameters(values, record.getId(), record.<String>get(Schemas.LEGACY_ID),
+							record.getCollection()));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
@@ -373,6 +421,7 @@ public class RecordAutomaticMetadataServices {
 
 	void copyValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry, RecordProvider recordProvider,
 			Metadata referenceMetadata, Metadata copiedMetadata) {
+
 		if (referenceMetadata.isMultivalue()) {
 			List<String> referencedRecordIds = record.getList(referenceMetadata);
 			if (referencedRecordIds == null || referencedRecordIds.isEmpty()) {

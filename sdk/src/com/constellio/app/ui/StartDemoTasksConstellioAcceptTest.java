@@ -30,7 +30,7 @@ public class StartDemoTasksConstellioAcceptTest extends ConstellioTest {
 			throws Exception {
 		givenCollection(zeCollection).withTaskModule().withAllTestUsers();
 		users.setUp(getModelLayerFactory().newUserServices());
-		//FIXME si actiV schema tache non visible.withConstellioRMModule();
+
 
 		recordServices = getModelLayerFactory().newRecordServices();
 

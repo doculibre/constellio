@@ -30,6 +30,8 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
@@ -319,6 +321,56 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 
 		recordServices.update(record.set(zeCollectionSchema.largeTextMetadata(), null));
 		assertThatNoQuotesWordsCanBeFound();
+
+	}
+
+	@Test
+	public void givenIdsAreNotSearchableWhenSearchingUsingIdsThenFindRecords()
+			throws Exception {
+
+		givenFrenchCollectionWithSearchableMetadatas();
+
+		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCollectionSchema.code()).get(Schemas.IDENTIFIER).setSearchable(false);
+			}
+		});
+
+		Record record = new TestRecord(zeCollectionSchema, "00000042666");
+		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1));
+
+		Record anotherRecord = new TestRecord(zeCollectionSchema, "00000142666");
+		recordServices.add(anotherRecord.set(zeCollectionSchema.largeTextMetadata(), quote1));
+
+		Record thirdRecord = new TestRecord(zeCollectionSchema, "00000banane");
+		recordServices.add(thirdRecord.set(zeCollectionSchema.largeTextMetadata(), quote1));
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "00000042666"))).isEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "42666"))).isEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "00000142666"))).isEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "142666"))).isEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "00000banane"))).isEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "banane"))).isEmpty();
+
+	}
+
+	@Test
+	public void givenIdsAreSearchableWhenSearchingUsingIdsThenFindRecords()
+			throws Exception {
+
+		givenFrenchCollectionWithSearchableMetadatas();
+
+		Record record = new TestRecord(zeCollectionSchema, "00000042666");
+		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1));
+
+		Record anotherRecord = new TestRecord(zeCollectionSchema, "00000142666");
+		recordServices.add(anotherRecord.set(zeCollectionSchema.largeTextMetadata(), quote1));
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "00000042666"))).containsOnly("00000042666");
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "42666"))).containsOnly("00000042666");
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "00000142666"))).containsOnly("00000142666");
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "142666"))).containsOnly("00000142666");
 
 	}
 

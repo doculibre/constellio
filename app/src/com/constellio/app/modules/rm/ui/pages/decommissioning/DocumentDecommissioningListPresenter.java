@@ -131,7 +131,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}
@@ -151,6 +151,6 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 }

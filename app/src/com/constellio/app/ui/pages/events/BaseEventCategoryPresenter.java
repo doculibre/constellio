@@ -1,20 +1,20 @@
 package com.constellio.app.ui.pages.events;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.framework.data.event.category.EventsListDataProviderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import org.joda.time.LocalDateTime;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryView> {
 
 	public BaseEventCategoryPresenter(BaseEventCategoryView view) {
 		super(view);
+		recordServices().flush();
 	}
 
 	public void displayEvent(Integer itemId, EventCategory eventCategory) {
@@ -27,10 +27,10 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 			eventParameters.put(EventViewParameters.BY_ID_EVENT_PARAMETER, view.getEventId());
 		}
 		if (view.getEventStartDate() != null) {
-			eventParameters.put(EventViewParameters.EVENT_START_DATE, LocalDateTime.fromDateFields(view.getEventStartDate()));
+			eventParameters.put(EventViewParameters.EVENT_START_DATE, LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0,0,0,0));
 		}
 		if (view.getEventEndDate() != null) {
-			eventParameters.put(EventViewParameters.EVENT_END_DATE, LocalDateTime.fromDateFields(view.getEventEndDate()));
+			eventParameters.put(EventViewParameters.EVENT_END_DATE, LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23,59,59,999));
 		}
 		/*switch (eventCategory){
 		case CURRENTLY_BORROWED_FOLDERS:
@@ -50,8 +50,8 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		String username = currentUser.getUsername();
 		LocalDateTime startDate = (view.getEventStartDate() == null) ?
 				null :
-				LocalDateTime.fromDateFields(view.getEventStartDate());
-		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate());
+				LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0,0,0,0);
+		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23,59,59,59);
 		return EventsListDataProviderFactory
 				.getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, username,
 						startDate, endDate, view.getEventId());

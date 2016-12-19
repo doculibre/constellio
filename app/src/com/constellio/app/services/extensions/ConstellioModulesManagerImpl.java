@@ -70,7 +70,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 	@Override
 	public void initialize() {
 		createModulesConfigFileIfNotExist();
-		enableComplementaryModules();
 	}
 
 	public void enableComplementaryModules() {
@@ -231,8 +230,6 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 		MigrationServices migrationServices = migrationServicesDelayed.get();
 		for (String collection : collectionsListManager.getCollections()) {
 			try {
-				//FIXME FB since module has just been installed it may be not enabled
-				//enableComplementaryModules(collection);
 				returnList.addAll(migrationServices.migrate(collection, null, true));
 			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 				throw new RuntimeException(optimisticLockingConfiguration);
@@ -288,6 +285,7 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			enabledModuleIds.add(enabledModule.getId());
 		}
 
+		boolean newModulesEnabled = false;
 		for (InstallableModule complementaryModule : getComplementaryModules()) {
 			if (enabledModuleIds.containsAll(getDependencies(complementaryModule))) {
 				if (!isInstalled(complementaryModule)) {
@@ -296,8 +294,12 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 				}
 				if (!isModuleEnabled(collection, complementaryModule)) {
 					returnList.addAll(enableValidModuleAndGetInvalidOnes(collection, complementaryModule));
+					newModulesEnabled = true;
 				}
 			}
+		}
+		if (newModulesEnabled) {
+			enabledModuleIds.addAll(enableComplementaryModules(collection));
 		}
 		return returnList;
 	}
@@ -348,14 +350,15 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public boolean startModule(String collection, Module module) {
 
-		if (!startedModulesInAnyCollections.contains(module.getId())) {
-			if (module instanceof InstallableSystemModule) {
-				((InstallableSystemModule) module).start(appLayerFactory);
-			}
-			startedModulesInAnyCollections.add(module.getId());
-		}
-
 		try {
+
+			if (!startedModulesInAnyCollections.contains(module.getId())) {
+				if (module instanceof InstallableSystemModule) {
+					((InstallableSystemModule) module).start(appLayerFactory);
+				}
+				startedModulesInAnyCollections.add(module.getId());
+			}
+
 			((InstallableModule) module).start(collection, appLayerFactory);
 		} catch (Throwable e) {
 			if (isPluginModule(module)) {
@@ -415,6 +418,19 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 
 	public void removeCollectionFromVersionProperties(final String collection, ConfigManager configManager) {
 		configManager.updateProperties("/version.properties", newRemoveCollectionPropertiesAlteration(collection));
+
+		configManager.updateXML(MODULES_CONFIG_PATH, new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				Map<String, Element> moduleElements = parseModulesDocument(document);
+
+				for (Element element : moduleElements.values()) {
+					if (element.getAttribute("enabled_in_collection_" + collection) != null) {
+						element.removeAttribute("enabled_in_collection_" + collection);
+					}
+				}
+			}
+		});
 	}
 
 	PropertiesAlteration newRemoveCollectionPropertiesAlteration(final String collection) {
@@ -423,6 +439,9 @@ public class ConstellioModulesManagerImpl implements ConstellioModulesManager, S
 			public void alter(Map<String, String> properties) {
 				if (properties.containsKey(collection + "_version")) {
 					properties.remove(collection + "_version");
+				}
+				if (properties.containsKey(collection + "_completedMigrations")) {
+					properties.remove(collection + "_completedMigrations");
 				}
 			}
 		};

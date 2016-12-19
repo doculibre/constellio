@@ -17,6 +17,7 @@ import org.mockito.Spy;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -34,6 +35,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 	List<CopyRetentionRule> applicableCopyRules;
 	int confiRequiredDaysBeforeYearEnd;
 	String configYearEnd;
+	FolderStatus status = null;
+	boolean calculatedMetadatasBasedOnFirstTimerangePartParam = true;
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
@@ -100,6 +103,17 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 	}
 
 	@Test
+	public void givenInactiveFolderWithoutActualTransferDateThenNoTransferDateCalculated()
+			throws Exception {
+
+		status = FolderStatus.INACTIVE_DEPOSITED;
+		configNumberOfYearWhenVariableDelay = -1;
+		decommissioningDate = new LocalDate(2012, 1, 15);
+
+		assertThat(calculateFor(4, copy("4-6-C"))).isNull();
+	}
+
+	@Test
 	public void givenNoCalculatioOfVariablePeriodWhenCalculatingFolderWithVariablePeriodThenReturnNull()
 			throws Exception {
 
@@ -129,23 +143,39 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		assertThat(calculateFor(4, copy("888-5-C"))).isEqualTo(new LocalDate(2012, 1, 15));
 	}
 
+	@Test
+	public void givenFixedValueOfZeroForSemiActivePeriodWhenCalculatingExpectedTransferDateThenReturnNull()
+			throws Exception {
+
+		decommissioningDate = new LocalDate(2012, 1, 15);
+
+		assertThat(calculateFor(4, copy("888-0-C"))).isNull();
+	}
+
 	private CopyRetentionRule copy(String delays) {
 		return copyBuilder.newPrincipal(asList("PA", "MD"), delays);
 	}
 
 	private LocalDate calculateFor(int index, CopyRetentionRule copy) {
 
+		if (status == null) {
+			status = actualTransferDate == null ? FolderStatus.ACTIVE : FolderStatus.SEMI_ACTIVE;
+		}
+		when(params.get(calculator.statusParam)).thenReturn(status);
 		when(params.get(calculator.actualTransferDateParam)).thenReturn(actualTransferDate);
 		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
 				.thenReturn(configNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
+				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
 
 	private List<LocalDate> calculate() {
-
+		FolderStatus status = actualTransferDate == null ? FolderStatus.ACTIVE : FolderStatus.SEMI_ACTIVE;
+		when(params.get(calculator.statusParam)).thenReturn(status);
 		when(params.get(calculator.actualTransferDateParam)).thenReturn(actualTransferDate);
 		when(params.get(calculator.applicableCopyRulesParam)).thenReturn(applicableCopyRules);
 		when(params.get(calculator.configNumberOfYearWhenVariableDelayPeriodParam))
@@ -154,6 +184,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculatorTest extends Constell
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
+				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}

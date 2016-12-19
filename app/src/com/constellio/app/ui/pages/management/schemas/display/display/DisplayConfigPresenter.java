@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.display;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -21,6 +16,10 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.*;
+
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
 public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayConfigView> {
 
@@ -51,11 +50,21 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 		List<FormMetadataVO> formMetadataVOs = new ArrayList<>();
 		MetadataToFormVOBuilder builder = new MetadataToFormVOBuilder(view.getSessionContext());
 		for (Metadata metadata : list) {
-			if (this.isAllowedMetadata(metadata)) {
+			if (this.isAllowedMetadata(metadata) && metadata.isEnabled()) {
 				formMetadataVOs
 						.add(builder.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext()));
 			}
 		}
+
+		final String language = view.getSessionContext().getCurrentLocale().getLanguage();
+		Collections.sort(formMetadataVOs, new Comparator<FormMetadataVO>() {
+			@Override
+			public int compare(FormMetadataVO o1, FormMetadataVO o2) {
+				String s1 = removeAccents(o1.getLabel(language).toLowerCase());
+				String s2 = removeAccents(o2.getLabel(language).toLowerCase());
+				return s1.compareTo(s2);
+			}
+		});
 
 		return formMetadataVOs;
 	}
@@ -87,7 +96,7 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
 
-		return !localCodes.contains(metadata.getLocalCode());
+		return !localCodes.contains(metadata.getLocalCode()) && metadata.isEnabled();
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> schemaVOs) {

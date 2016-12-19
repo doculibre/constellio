@@ -25,12 +25,14 @@ allprojects {
     }
 
     tasks.withType(Javadoc) {
-        options.encoding = 'UTF-8'
+        task ->
+            enabled = false;
+            options.encoding = 'UTF-8'
     }
 
     repositories {
         flatDir {
-           dirs "${rootDir}/libs", "libs/"
+            dirs "${rootDir}/libs", "libs/"
         }
     }
 
@@ -97,7 +99,6 @@ allprojects {
         compile "org.apache.curator:curator-client:2.7.0"
         compile "org.apache.curator:curator-test:2.7.0"
         compile "commons-beanutils:commons-beanutils:1.9.2"
-        compile "com.itextpdf:itextpdf:5.0.6"
         compile "javax.servlet.jsp:jsp-api:2.2"
         compile "com.auxilii.msgparser:msgparser-1.12"
         compile "com.sun.messaging.mq:jaxm-api:4.4.1"
@@ -109,15 +110,16 @@ allprojects {
     }
 
     jar {
-        version = '6.3.43'
+        version = '6.5.666.42'
     }
 }
 
 war {
     baseName = "constellio"
-    version = "6.3.43"
+    version = "6.5.666.42"
 
     webInf {
+
         from("resources_i18n/") {
             into("resources_i18n")
         }
@@ -187,12 +189,7 @@ sonarqube {
         property "sonar.jdbc.driverClassName", "com.mysql.jdbc.Driver"
         property "sonar.jdbc.username", "sonar"
         property "sonar.jdbc.password", "6BKWMnLtrSNH"
-        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
         property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
-        property "sonar.projectName", "intelligid-dev"
-        property "sonar.projectKey", "intelligid-dev"
-        property "sonar.sources", "src/main/java"
         property "sonar.skipPackageDesign", "true"
     }
 }

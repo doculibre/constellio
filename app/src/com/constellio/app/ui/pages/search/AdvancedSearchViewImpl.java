@@ -122,8 +122,11 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					return presenter.getTemplates();
 				}
 			};
-			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"), $("SearchView.printLabels"), this,
-					labelTemplatesFactory);
+			LabelsButton labelsButton = new LabelsButton($("SearchView.labels"),
+					$("SearchView.printLabels"),
+					this,
+					labelTemplatesFactory,
+					presenter.getRmReportBuilderFactories().labelsBuilderFactory.getValue());
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
 			selectionActions.add(labelsButton);
@@ -138,8 +141,10 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE) ||
 				schemaType.equals(ContainerRecord.SCHEMA_TYPE)) {
-			Button addToCart = buildAddToCartButton();
-			selectionActions.add(addToCart);
+			if(presenter.hasCurrentUserPermissionToUseCart()) {
+				Button addToCart = buildAddToCartButton();
+				selectionActions.add(addToCart);
+			}
 		}
 
 		Button switchViewMode = buildSwitchViewMode();
@@ -181,9 +186,9 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	@Override
-	SearchResultTable buildResultTable() {
+	protected SearchResultTable buildResultTable() {
 		// TODO Table should take all space, since facets and sort are hidden.
-		if(presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+		if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
 			return buildSimpleResultsTable();
 		} else {
 			return buildDetailedResultsTable();
@@ -191,8 +196,9 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 	}
 
 	private SearchResultTable buildSimpleResultsTable() {
+		int maxSelectableResults = presenter.getMaxSelectableResults();
 		final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-		SearchResultSimpleTable table = new SearchResultSimpleTable(container);
+		SearchResultSimpleTable table = new SearchResultSimpleTable(container, maxSelectableResults);
 		table.setWidth("100%");
 		return table;
 	}

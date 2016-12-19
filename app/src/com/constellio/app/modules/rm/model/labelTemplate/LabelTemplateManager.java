@@ -7,10 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jdom2.Document;
+
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManagerRuntimeException.LabelTemplateManagerRuntimeException_CannotCreateLabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 
 public class LabelTemplateManager {
 
@@ -21,6 +25,24 @@ public class LabelTemplateManager {
 	public LabelTemplateManager(ConfigManager configManager) {
 		this.configManager = configManager;
 		labelTemplateMap = new HashMap<>();
+	}
+
+	public void addUpdateLabelTemplate(Document document) {
+		LabelTemplate template = new LabelTemplateReader(document).createLabelTemplate();
+
+		String path = LABELS_TEMPLATES_FOLDER + "/" + template.getKey() + ".xml";
+
+		if (configManager.exist(path)) {
+			XMLConfiguration configuration = configManager.getXML(path);
+			try {
+				configManager.update(path, configuration.getHash(), document);
+			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
+				throw new RuntimeException(optimisticLockingConfiguration);
+			}
+		} else {
+			configManager.add(path, document);
+		}
+		labelTemplateMap.put(template.getKey(), template);
 	}
 
 	public LabelTemplate getLabelTemplate(String code) {
@@ -93,12 +115,16 @@ public class LabelTemplateManager {
 		LabelTemplate folderAvery5159RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5159();
 		LabelTemplate folderAvery5161LeftTemplate = DefaultLabelsTemplate.createFolderLeftAvery5161();
 		LabelTemplate folderAvery5161RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5161();
+		LabelTemplate folderAvery5162LeftTemplate = DefaultLabelsTemplate.createFolderLeftAvery5162();
+		LabelTemplate folderAvery5162RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5162();
 		LabelTemplate folderAvery5163LeftTemplate = DefaultLabelsTemplate.createFolderLeftAvery5163();
 		LabelTemplate folderAvery5163RightTemplate = DefaultLabelsTemplate.createFolderRightAvery5163();
 		labelTemplates.add(folderAvery5159LeftTemplate);
 		labelTemplates.add(folderAvery5159RightTemplate);
 		labelTemplates.add(folderAvery5161LeftTemplate);
 		labelTemplates.add(folderAvery5161RightTemplate);
+		labelTemplates.add(folderAvery5162LeftTemplate);
+		labelTemplates.add(folderAvery5162RightTemplate);
 		labelTemplates.add(folderAvery5163LeftTemplate);
 		labelTemplates.add(folderAvery5163RightTemplate);
 

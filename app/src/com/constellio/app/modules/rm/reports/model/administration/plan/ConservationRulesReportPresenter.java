@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
@@ -34,27 +35,29 @@ public class ConservationRulesReportPresenter {
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ConservationRulesReportPresenter.class);
 	private String collection;
 	private ModelLayerFactory modelLayerFactory;
+	private AppLayerFactory appLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private SearchServices searchServices;
 	private boolean byAdministrativeUnit;
 	private DecommissioningService decommissioningService;
 	private String administrativeUnitId;
 
-	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
-		this(collection, modelLayerFactory, false, null);
+	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory) {
+		this(collection, appLayerFactory, false, null);
 	}
 
-	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory,
+	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
 			boolean byAdministrativeUnit) {
-		this(collection, modelLayerFactory, byAdministrativeUnit, null);
+		this(collection, appLayerFactory, byAdministrativeUnit, null);
 	}
 
-	public ConservationRulesReportPresenter(String collection, ModelLayerFactory modelLayerFactory,
+	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
 			boolean byAdministrativeUnit, String administrativeUnitId) {
 		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		searchServices = modelLayerFactory.newSearchServices();
-		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.byAdministrativeUnit = byAdministrativeUnit;
 		this.administrativeUnitId = administrativeUnitId;
@@ -104,14 +107,15 @@ public class ConservationRulesReportPresenter {
 			if (retentionRule != null) {
 				try {
 					ConservationRulesReportModel_Rule conservationRulesReportModel_Rule = new ConservationRulesReportModel_Rule();
-
 					String code = StringUtils.defaultString(retentionRule.getCode());
 					String title = StringUtils.defaultString(retentionRule.getTitle());
 					String description = StringUtils.defaultString(retentionRule.getDescription());
+					String juridicReference = StringUtils.defaultString(retentionRule.getJuridicReference());
 
 					conservationRulesReportModel_Rule.setRuleNumber(code);
 					conservationRulesReportModel_Rule.setTitle(title);
 					conservationRulesReportModel_Rule.setDescription(description);
+					conservationRulesReportModel_Rule.setJuridicReference(juridicReference);
 
 					conservationRulesReportModel_Rule.setPrincipalsHolders(getPrincipalsHolders(retentionRule));
 					conservationRulesReportModel_Rule.setPrincipalsCopies(getPrincipalCopies(retentionRule));

@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,6 +62,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 		users.setUp(userServices);
 
 		defineSchemasManager().using(zeCollectionSchemas);
+		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		taxonomiesManager.addTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		taxonomiesManager.setPrincipalTaxonomy(zeCollectionSchemas.getTaxonomy1(), schemasManager);
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
@@ -74,6 +76,7 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 				.build();
 
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionWriteAccess(true).getWrappedRecord());
+		CmisAcceptanceTestSetup.giveUseCMISPermissionToUsers(getModelLayerFactory());
 	}
 
 	@Test
@@ -81,17 +84,6 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 			throws Exception {
 		Record record = zeCollectionRecords.folder2_1;
 		String parentTargetId = zeCollectionRecords.folder1.getId();
-
-		moveObject(record, parentTargetId);
-		assertThat(record.getParentId()).isEqualTo(parentTargetId);
-		assertParentAndPrincipalPath(record, parentTargetId);
-	}
-
-	@Test
-	public void whenChangeParentOfSubCategoryThenItIsMoved()
-			throws Exception {
-		Record record = zeCollectionRecords.taxo1_category2_1;
-		String parentTargetId = zeCollectionRecords.taxo1_category1.getId();
 
 		moveObject(record, parentTargetId);
 		assertThat(record.getParentId()).isEqualTo(parentTargetId);
@@ -112,13 +104,18 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenChangeParentOfCategoryThenItIsMoved()
+	public void whenMovingConceptThenError()
 			throws Exception {
 		Record record = zeCollectionRecords.taxo1_category2;
 		String parentTargetId = zeCollectionRecords.taxo1_fond1_1.getId();
 
-		moveObject(record, parentTargetId);
-		assertParentAndPrincipalPath(record, parentTargetId);
+		try {
+			moveObject(record, parentTargetId);
+			fail("Exception expected");
+
+		} catch (CmisRuntimeException e) {
+			//OK
+		}
 	}
 
 	@Test
@@ -126,19 +123,6 @@ public class MoveObjectAcceptTest extends ConstellioTest {
 			throws Exception {
 		Record record = zeCollectionRecords.folder4;
 		String parentTargetId = zeCollectionRecords.taxo2_station2.getId();
-
-		try {
-			moveObject(record, parentTargetId);
-		} catch (Exception e) {
-			assertThat(e.getMessage()).isEqualTo("Target " + parentTargetId + " record is not in a principal taxonomy");
-		}
-	}
-
-	@Test
-	public void whenChangeParentOfCategoryToNonPrincipalConceptTaxonomyThenException()
-			throws Exception {
-		Record record = zeCollectionRecords.taxo1_category2;
-		String parentTargetId = zeCollectionRecords.taxo2_unit1.getId();
 
 		try {
 			moveObject(record, parentTargetId);

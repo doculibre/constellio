@@ -100,24 +100,32 @@ public class BigVaultRecordDao implements RecordDao {
 		this.secondTransactionLogManager = secondTransactionLogManager;
 	}
 
-	@Override
-	public TransactionResponseDTO execute(TransactionDTO transaction)
-			throws RecordDaoException.OptimisticLocking {
+	public BigVaultServerTransaction prepare(TransactionDTO transaction) {
 
 		List<SolrInputDocument> newDocuments = new ArrayList<>();
 		List<SolrInputDocument> updatedDocuments = new ArrayList<>();
 		List<String> deletedRecordsIds = new ArrayList<>();
 		List<String> deletedRecordsQueries = SolrUtils.toDeleteQueries(transaction.getDeletedByQueries());
-
 		prepareDocumentsForSolrTransaction(transaction, newDocuments, updatedDocuments, deletedRecordsIds);
 
 		if (!newDocuments.isEmpty() || !updatedDocuments.isEmpty() || !deletedRecordsIds.isEmpty() || !deletedRecordsQueries
 				.isEmpty()) {
-			try {
+			return new BigVaultServerTransaction(transaction.getRecordsFlushing(), newDocuments, updatedDocuments,
+					deletedRecordsIds, deletedRecordsQueries);
+		} else {
+			return null;
+		}
 
-				BigVaultServerTransaction bigVaultServerTransaction = new BigVaultServerTransaction(
-						transaction.getRecordsFlushing(), newDocuments, updatedDocuments, deletedRecordsIds,
-						deletedRecordsQueries);
+	}
+
+	@Override
+	public TransactionResponseDTO execute(TransactionDTO transaction)
+			throws RecordDaoException.OptimisticLocking {
+
+		BigVaultServerTransaction bigVaultServerTransaction = prepare(transaction);
+
+		if (bigVaultServerTransaction != null) {
+			try {
 
 				if (secondTransactionLogManager != null) {
 					secondTransactionLogManager.prepare(transaction.getTransactionId(), bigVaultServerTransaction);
@@ -168,6 +176,10 @@ public class BigVaultRecordDao implements RecordDao {
 					recordDTO);
 		}
 
+		for (String id : transaction.getMarkedForReindexing()) {
+			updatedDocuments.add(newMarkedForReindexingInputDocument(id));
+		}
+
 		if (!transaction.isSkippingReferenceToLogicallyDeletedValidation()) {
 			for (SolrInputDocument activeReferenceCheck : activeReferencesCheck.values()) {
 				updatedDocuments.add(activeReferenceCheck);
@@ -180,6 +192,16 @@ public class BigVaultRecordDao implements RecordDao {
 				transaction), recordsAncestors, transaction.getNewRecords()));
 		updatedDocuments
 				.addAll(incrementReferenceCountersOutOfTransactionInSolr(recordsOutOfTransactionRefCounts, recordsAncestors));
+	}
+
+	private SolrInputDocument newMarkedForReindexingInputDocument(String id) {
+		SolrInputDocument solrInputDocument = new SolrInputDocument();
+		solrInputDocument.addField("id", id);
+		solrInputDocument.addField("_version_", "1");
+		Map<String, String> setToTrue = new HashMap<>();
+		setToTrue.put("set", "__TRUE__");
+		solrInputDocument.addField("markedForReindexing_s", setToTrue);
+		return solrInputDocument;
 	}
 
 	private Object getCollection(TransactionDTO transaction) {
@@ -505,7 +527,8 @@ public class BigVaultRecordDao implements RecordDao {
 	private void verifyIndexForReferencesInMultivalueField(TransactionDTO transaction,
 			Object collection, Entry<String, Object> field, Map<Object, SolrInputDocument> activeReferencesCheck) {
 		for (Object referenceId : (List) field.getValue()) {
-			if (!activeReferencesCheck.containsKey(referenceId)
+			if (referenceId != null
+					&& !activeReferencesCheck.containsKey(referenceId)
 					&& !referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
 				activeReferencesCheck.put(referenceId, setVersion1ToDocument((String) referenceId, collection));
 			}

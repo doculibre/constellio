@@ -19,7 +19,8 @@ public class MultithreadConnectorJobCrawler implements ConnectorJobCrawler {
 
 	public MultithreadConnectorJobCrawler() {
 		queue = new LinkedBlockingQueue<>();
-		executor = new ThreadPoolExecutor(30, 50, 10, TimeUnit.SECONDS, queue, new ThreadPoolExecutor.CallerRunsPolicy());
+		int cores = Runtime.getRuntime().availableProcessors();
+		executor = new ThreadPoolExecutor(cores, cores * 2, 10, TimeUnit.SECONDS, queue, new ThreadPoolExecutor.CallerRunsPolicy());
 	}
 
 	/* (non-Javadoc)
@@ -30,7 +31,9 @@ public class MultithreadConnectorJobCrawler implements ConnectorJobCrawler {
 		Collection<Future<?>> futures = new LinkedList<Future<?>>();
 
 		for (ConnectorJob job : jobs) {
-			futures.add(executor.submit(job));
+			if (job != null) {
+				futures.add(executor.submit(job));
+			}
 		}
 
 		for (Future<?> future : futures) {

@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.taxonomy;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.vaadin.dialogs.ConfirmDialog;
@@ -14,6 +15,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -86,7 +88,12 @@ public class TaxonomyManagementSearchViewImpl extends BaseViewImpl implements Ta
 			Container recordsContainer = new RecordVOLazyContainer(dataProvider);
 			TaxonomyConceptsWithChildrenCountContainer adaptedContainer = new TaxonomyConceptsWithChildrenCountContainer(
 					recordsContainer, getCollection(), getSessionContext().getCurrentUser().getUsername(),
-					presenter.getTaxonomy().getCode(), dataProvider.getSchema().getCode().split("_")[0]);
+					presenter.getTaxonomy().getCode(), dataProvider.getSchema().getCode().split("_")[0]) {
+				@Override
+				protected Collection<?> getOwnContainerPropertyIds() {
+					return new ArrayList<>();
+				}
+			};
 			ButtonsContainer buttonsContainer = new ButtonsContainer<>(adaptedContainer, "buttons");
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
@@ -133,7 +140,8 @@ public class TaxonomyManagementSearchViewImpl extends BaseViewImpl implements Ta
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
-			Table table = new Table($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
+			RecordVOTable table = new RecordVOTable($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()),
+					recordsContainer);
 			table.setWidth("100%");
 			table.setId("childrenTable");
 			table.setColumnHeader("buttons", "");

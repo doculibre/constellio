@@ -285,11 +285,11 @@ public class RMTestRecords {
 	public final String folder_C54 = "C54";
 	public final String folder_C55 = "C55";
 
-	public final String document_A19 = "doc_A19";
-	public final String document_A49 = "doc_A49";
-	public final String document_B30 = "doc_B30";
-	public final String document_B33 = "doc_B33";
-	public final String document_A79 = "doc_A79";
+	public final String document_A19 = "docA19";
+	public final String document_A49 = "docA49";
+	public final String document_B30 = "docB30";
+	public final String document_B33 = "docB33";
+	public final String document_A79 = "docA79";
 
 	public final String folder_A01_documentWithSameCopy = "doc_A01_same_copy";
 	public final String folder_A01_documentWithDifferentCopy = "A02";
@@ -1603,19 +1603,17 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_A45).setTitle("Écureuil").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac12));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac12));
 
 		folders.add(rm.newFolderWithId(folder_A46).setTitle("Éléphant").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac12).setDescription("Babar"));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac12).setDescription("Babar"));
 
 		folders.add(rm.newFolderWithId(folder_A47).setTitle("Girafe").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5)).setCloseDateEntered(date(2002, 10, 31))
-				.setActualTransferDate(date(2006, 10, 31)).setContainer(containerId_bac12));
+				.setContainer(containerId_bac12));
 
 		folders.add(rm.newFolderWithId(folder_A48).setTitle("Gorille").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
@@ -1713,14 +1711,12 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_A83).setTitle("Orignal").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setActualDestructionDate(date(2007, 4, 14)));
+				.setCloseDateEntered(date(2001, 10, 31)).setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_A84).setTitle("Ours").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 11, 5))
-				.setCloseDateEntered(date(2002, 10, 31)).setActualTransferDate(date(2006, 10, 31))
-				.setActualDestructionDate(date(2008, 4, 14)));
+				.setCloseDateEntered(date(2002, 10, 31)).setActualDestructionDate(date(2008, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_A85).setTitle("Panda").setAdministrativeUnitEntered(unitId_10a)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
@@ -1844,13 +1840,12 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_B31).setTitle("Orange").setAdministrativeUnitEntered(unitId_11b)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac09));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac09));
 
 		folders.add(rm.newFolderWithId(folder_B32).setTitle("Pêche").setAdministrativeUnitEntered(unitId_12b)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1).setCopyStatusEntered(SECONDARY)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
-				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac08));
+				.setContainer(containerId_bac08));
 
 		folders.add(rm.newFolderWithId(folder_B33).setTitle("Poire").setAdministrativeUnitEntered(unitId_11b)
 				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
@@ -1878,8 +1873,7 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_B51).setTitle("Cerise").setAdministrativeUnitEntered(unitId_11b)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setActualDestructionDate(date(2007, 4, 14)));
+				.setCloseDateEntered(date(2001, 10, 31)).setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_B52).setTitle("Avocat").setAdministrativeUnitEntered(unitId_12b)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
@@ -1954,13 +1948,12 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_C31).setTitle("Laitue").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setContainer(containerId_bac07));
+				.setCloseDateEntered(date(2001, 10, 31)).setContainer(containerId_bac07));
 
 		folders.add(rm.newFolderWithId(folder_C32).setTitle("Maïs").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_X100).setRetentionRuleEntered(ruleId_1)
 				.setMediumTypes(rm.PA(), rm.DM()).setOpenDate(date(2000, 10, 4)).setCloseDateEntered(date(2001, 10, 31))
-				.setActualTransferDate(date(2004, 10, 31)).setContainer(containerId_bac07));
+				.setContainer(containerId_bac07));
 
 		folders.add(rm.newFolderWithId(folder_C33).setTitle("Navet").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_Z120).setRetentionRuleEntered(ruleId_3)
@@ -1989,8 +1982,7 @@ public class RMTestRecords {
 		folders.add(rm.newFolderWithId(folder_C51).setTitle("Poivron").setAdministrativeUnitEntered(unitId_30c)
 				.setCategoryEntered(categoryId_X110).setRetentionRuleEntered(ruleId_2)
 				.setMediumTypes(rm.PA(), rm.DM()).setCopyStatusEntered(SECONDARY).setOpenDate(date(2000, 10, 4))
-				.setCloseDateEntered(date(2001, 10, 31)).setActualTransferDate(date(2005, 10, 31))
-				.setActualDestructionDate(date(2007, 4, 14)));
+				.setCloseDateEntered(date(2001, 10, 31)).setActualDestructionDate(date(2007, 4, 14)));
 
 		folders.add(rm.newFolderWithId(folder_C52).setTitle("Pomme de terre")
 				.setAdministrativeUnitEntered(unitId_30c).setCategoryEntered(categoryId_X100)

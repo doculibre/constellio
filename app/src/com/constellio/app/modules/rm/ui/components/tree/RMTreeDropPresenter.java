@@ -48,7 +48,7 @@ public class RMTreeDropPresenter implements Serializable {
         RecordServices recordServices = modelLayerFactory.newRecordServices();
         UserServices userServices = modelLayerFactory.newUserServices();
         RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-        DecommissioningService decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+        DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
         
         Record sourceRecord = rm.get(sourceRecordId);
         Record targetRecord = rm.get(targetRecordId);

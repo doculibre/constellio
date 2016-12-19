@@ -196,6 +196,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata title() {
 			return getMetadata(code() + "_title");
 		}
@@ -230,6 +235,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -277,6 +287,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata title() {
 			return getMetadata(code() + "_title");
 		}
@@ -312,6 +327,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata title() {
@@ -438,6 +458,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return collection;
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata username() {
 			return getMetadata(code() + "_username");
 		}
@@ -462,6 +487,11 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		@Override
 		public String collection() {
 			return collection;
+		}
+
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
 		}
 
 		public Metadata groupCode() {

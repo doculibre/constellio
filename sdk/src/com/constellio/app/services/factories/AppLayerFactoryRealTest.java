@@ -2,7 +2,10 @@ package com.constellio.app.services.factories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import com.constellio.data.dao.managers.StatefulService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -17,6 +20,7 @@ import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.mockito.Mockito;
 
 public class AppLayerFactoryRealTest extends ConstellioTest {
 
@@ -43,6 +47,32 @@ public class AppLayerFactoryRealTest extends ConstellioTest {
 				return migrationServices;
 			}
 		});
+	}
+
+	@Test
+	public void whenRegisterManagerInitializeOnce()
+			throws Exception {
+
+		StatefulService statefulService = Mockito.mock(StatefulService.class);
+
+		AppLayerFactory appLayerFactory = getAppLayerFactory();
+
+		appLayerFactory.registerManager("zeCollection", "myModule", "moduleId", statefulService);
+
+		verify(statefulService, times(1)).initialize();
+	}
+
+	@Test
+	public void whenRegisterSystemManagerInitializeOnce()
+			throws Exception {
+
+		StatefulService statefulService = Mockito.mock(StatefulService.class);
+
+		AppLayerFactory appLayerFactory = getAppLayerFactory();
+
+		appLayerFactory.registerSystemWideManager("myModule", "moduleId", statefulService);
+
+		verify(statefulService, times(1)).initialize();
 	}
 
 	@Test

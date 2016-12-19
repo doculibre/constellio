@@ -14,7 +14,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModificationImpact;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
-import com.constellio.model.services.records.RecordDeleteOptions;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -205,7 +206,13 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordDeleteOptions options) {
+	public void physicallyDelete(Record record,
+			User user, RecordPhysicalDeleteOptions options) {
+		recordServices.physicallyDelete(record, user, options);
+	}
+
+	@Override
+	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
 		recordServices.physicallyDeleteNoMatterTheStatus(record, user, options);
 	}
 
@@ -240,15 +247,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void logicallyDeletePrincipalConceptIncludingRecords(Record record,
-			User user) {
-		recordServices.logicallyDeletePrincipalConceptIncludingRecords(record, user);
-	}
-
-	@Override
-	public void logicallyDeletePrincipalConceptExcludingRecords(Record record,
-			User user) {
-		recordServices.logicallyDeletePrincipalConceptExcludingRecords(record, user);
+	public void logicallyDelete(Record record,
+			User user, RecordLogicalDeleteOptions options) {
+		recordServices.logicallyDelete(record, user, options);
 	}
 
 	@Override
@@ -281,4 +282,5 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public void recalculate(Record record) {
 		recordServices.recalculate(record);
 	}
+
 }

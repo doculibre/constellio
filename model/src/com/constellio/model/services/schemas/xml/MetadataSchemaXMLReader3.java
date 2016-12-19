@@ -1,10 +1,14 @@
 package com.constellio.model.services.schemas.xml;
 
+import static com.constellio.model.entities.schemas.entries.AggregationType.SUM;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +19,7 @@ import org.jdom2.Element;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -22,6 +27,7 @@ import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -37,6 +43,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
+import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
 
 public class MetadataSchemaXMLReader3 {
@@ -128,7 +135,7 @@ public class MetadataSchemaXMLReader3 {
 
 		metadataBuilder.setLabels(readLabels(metadataElement));
 
-		if (metadataBuilder.getInheritance() != null && !metadataBuilder.getCode().contains("default")) {
+		if (metadataBuilder.getInheritance() != null && !metadataBuilder.getCode().contains("_default_")) {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);
 		} else {
 			parseMetadataWithoutInheritance(metadataElement, metadataBuilder, collectionSchema);
@@ -260,11 +267,25 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setEssential(readBooleanWithDefaultValue(essentialStringValue, false));
 		}
 
+		String customAttributes = metadataElement.getAttributeValue("customAttributes");
+		if (inheriteGlobalMetadata && customAttributes == null) {
+			metadataBuilder.setCustomAttributes(globalMetadataInCollectionSchema.getCustomAttributes());
+		} else {
+			metadataBuilder.setCustomAttributes(parseCustomAttributes(customAttributes));
+		}
+
 		String essentialInSummaryStringValue = metadataElement.getAttributeValue("essentialInSummary");
 		if (inheriteGlobalMetadata && essentialInSummaryStringValue == null) {
 			metadataBuilder.setEssentialInSummary(globalMetadataInCollectionSchema.isEssentialInSummary());
 		} else {
 			metadataBuilder.setEssentialInSummary(readBooleanWithDefaultValue(essentialInSummaryStringValue, false));
+		}
+
+		String increasedDependencyLevelStringValue = metadataElement.getAttributeValue("increasedDependencyLevel");
+		if (inheriteGlobalMetadata && increasedDependencyLevelStringValue == null) {
+			metadataBuilder.setIncreasedDependencyLevel(globalMetadataInCollectionSchema.isIncreasedDependencyLevel());
+		} else {
+			metadataBuilder.setIncreasedDependencyLevel(readBooleanWithDefaultValue(increasedDependencyLevelStringValue, false));
 		}
 
 		String unmodifiableStringValue = metadataElement.getAttributeValue("unmodifiable");
@@ -314,6 +335,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setUniqueValue(globalMetadataInCollectionSchema.isUniqueValue());
 		} else {
 			metadataBuilder.setUniqueValue(readBooleanWithDefaultValue(uniqueStringValue, false));
+		}
+
+		String markedForDeletion = metadataElement.getAttributeValue("markedForDeletion");
+		if (inheriteGlobalMetadata && markedForDeletion == null) {
+			metadataBuilder.setMarkedForDeletion(globalMetadataInCollectionSchema.isMarkedForDeletion());
+		} else {
+			metadataBuilder.setMarkedForDeletion(readBooleanWithDefaultValue(markedForDeletion, false));
 		}
 
 		String childOfRelationshipStringValue = metadataElement.getAttributeValue("childOfRelationship");
@@ -483,6 +511,20 @@ public class MetadataSchemaXMLReader3 {
 
 	}
 
+	private Set<String> parseCustomAttributes(String customAttributes) {
+		if (customAttributes != null && !customAttributes.isEmpty()) {
+			String[] elements = customAttributes.split(",");
+
+			Set<String> customAttributesSet = new HashSet<>();
+			for (String element : elements) {
+				customAttributesSet.add(element);
+			}
+
+			return customAttributesSet;
+		}
+		return new HashSet<>();
+	}
+
 	private boolean isInheriting(Element element) {
 		if (element.getAttributeValue("inheriting") == null) {
 			return false;
@@ -525,7 +567,26 @@ public class MetadataSchemaXMLReader3 {
 
 			} else if (dataEntry.getAttributeValue("calculator") != null) {
 				String calculator = dataEntry.getAttributeValue("calculator");
-				metadataBuilder.defineDataEntry().asCalculated(calculator);
+				ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
+				if ("parametrized".equals(calculator)) {
+					metadataBuilder.defineDataEntry().asCalculated(
+							(MetadataValueCalculator<?>) utils.toObject(dataEntry, Parametrized.class));
+				} else {
+					metadataBuilder.defineDataEntry().asCalculated(calculator);
+				}
+
+			} else if (dataEntry.getAttributeValue("fixedSequenceCode") != null) {
+				String fixedSequenceCode = dataEntry.getAttributeValue("fixedSequenceCode");
+				metadataBuilder.defineDataEntry().asFixedSequence(fixedSequenceCode);
+
+			} else if (dataEntry.getAttributeValue("metadataProvidingSequenceCode") != null) {
+				String metadataProvidingSequenceCode = dataEntry.getAttributeValue("metadataProvidingSequenceCode");
+				metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(metadataProvidingSequenceCode);
+
+			} else if (dataEntry.getAttributeValue("agregationType") != null) {
+				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
+				String inputMetadata = dataEntry.getAttributeValue("inputMetadata");
+				metadataBuilder.defineDataEntry().as(new AggregatedDataEntry(inputMetadata, referenceMetadata, SUM));
 			}
 		} else if (!isInheriting(metadataElement)) {
 			if (collectionSchemaBuilder == null) {

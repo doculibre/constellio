@@ -9,8 +9,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -58,6 +60,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.users.UserServices;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
+
 	private transient ContentVersionToVOBuilder contentVersionToVOBuilder;
 
 	private DocumentToVOBuilder voBuilder;
@@ -106,7 +109,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			document = rmSchemasRecordsServices.getDocument(id);
 			addView = false;
 		} else {
-			document = rmSchemasRecordsServices.newDocument();
+			document = newDocument();
 			if (StringUtils.isNotBlank(idCopy)) {
 				addViewWithCopy = true;
 			}
@@ -214,11 +217,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		contentVersionVO.setHash(null);
 		contentVersionVO.setVersion(null);
 
-		String filename = contentVersion.getFilename();
-		String extension = FilenameUtils.getExtension(filename);
+		String fileName = contentVersion.getFilename();
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
 		if ("eml".equals(extension) || "msg".equals(extension)) {
 			InputStream messageInputStream = contentVersionVO.getInputStreamProvider().getInputStream("populateFromUserDocument");
-			Email email = rmSchemasRecordsServices.newEmail(filename, messageInputStream);
+			Email email = rmSchemasRecordsServices.newEmail(fileName, messageInputStream);
 			documentVO = voBuilder.build(email.getWrappedRecord(), VIEW_MODE.FORM, view.getSessionContext());
 			contentVersionVO.setMajorVersion(true);
 		} else {
@@ -251,7 +254,6 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	private void setAsNewVersionOfContent(Document document) {
-		ContentManager contentManager = modelLayerFactory.getContentManager();
 		Document documentBeforeChange = rmSchemasRecordsServices.getDocument(document.getId());
 		Content contentBeforeChange = documentBeforeChange.getContent();
 		ContentVersionVO contentVersionVO = documentVO.getContent();
@@ -261,22 +263,31 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		ContentVersionDataSummary contentVersionSummary;
 		try {
-			contentVersionSummary = contentManager.upload(in, filename);
+			contentVersionSummary = uploadContent(in, true, true, filename);
+            contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
+            document.setContent(contentBeforeChange);
 		} finally {
 			IOUtils.closeQuietly(in);
 		}
-		contentBeforeChange.updateContentWithName(getCurrentUser(), contentVersionSummary, majorVersion, filename);
-		document.setContent(contentBeforeChange);
 	}
 
 	public void saveButtonClicked() {
-		Record record = toRecord(documentVO, newFile);
-		Document document = rmSchemas().wrapDocument(record);
+        Record record;
+        Document document;
 
-		boolean editWithUserDocument = !addView && userDocumentId != null;
-		if (editWithUserDocument) {
-			setAsNewVersionOfContent(document);
-		}
+        try {
+            record = toRecord(documentVO, newFile);
+            document = rmSchemas().wrapDocument(record);
+
+            boolean editWithUserDocument = !addView && userDocumentId != null;
+            if (editWithUserDocument) {
+                setAsNewVersionOfContent(document);
+            }
+        } catch (final IcapException e) {
+            view.showErrorMessage(e.getMessage());
+
+            return;
+        }
 
 		if (!canSaveDocument(document, getCurrentUser())) {
 			view.showMessage($("AddEditDocumentView.noPermissionToSaveDocument"));
@@ -298,7 +309,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		if (documentVO.getContent() != null) {
 			String currentTitle = document.getTitle();
 			String currentContentFilename = documentVO.getContent().getFileName();
-			String extension = FilenameUtils.getExtension(currentContentFilename);
+			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(currentContentFilename));
 			if (currentTitle.endsWith("." + extension)) {
 				document.getContent().renameCurrentVersion(currentTitle);
 			}
@@ -375,6 +386,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					String recordIdForEmailSchema = rmSchemasRecordsServices.getRecordIdForEmailSchema();
 					if (!recordIdForEmailSchema.equals(recordIdForDocumentType)) {
 						documentTypeField.setFieldValue(recordIdForEmailSchema);
+						contentVersionVO.setMajorVersion(true);
 						contentField.setVisible(false);
 						documentTypeField.setVisible(false);
 						reloadFormAfterDocumentTypeChange();
@@ -462,14 +474,17 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			try {
 				Metadata matchingMetadata = newSchema.getMetadata(metadataCodeWithoutPrefix);
 				if (matchingMetadata.getDataEntry().getType() == DataEntryType.MANUAL && !matchingMetadata.isSystemReserved()) {
-					Object metadataValue = documentVO.get(metadataVO);
-					Object defaultValue = metadataVO.getDefaultValue();
-					if (metadataValue instanceof ContentVersionVO) {
+					Object voMetadataValue = documentVO.get(metadataVO);
+					Object defaultValue = matchingMetadata.getDefaultValue();
+					Object voDefaultValue = metadataVO.getDefaultValue();
+					if (voMetadataValue instanceof ContentVersionVO) {
 						// Special case dealt with later
-						metadataValue = null;
-						document.getWrappedRecord().set(matchingMetadata, metadataValue);
-					} else if (metadataValue == null || !metadataValue.equals(defaultValue)) {
-						document.getWrappedRecord().set(matchingMetadata, metadataValue);
+						voMetadataValue = null;
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue == null && defaultValue == null) {
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
+					} else if (voMetadataValue != null && !voMetadataValue.equals(voDefaultValue)) {
+						document.getWrappedRecord().set(matchingMetadata, voMetadataValue);
 					}
 				}
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
@@ -548,14 +563,21 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 					contentVersionVO.setMajorVersion(true);
 					Record documentRecord = toRecord(documentVO);
 					Document document = new Document(documentRecord, types());
-					Content content = toContent(contentVersionVO);
-					document.setContent(content);
-					modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
-					documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
-					documentVO.getContent().setMajorVersion(null);
-					documentVO.getContent().setHash(null);
-					view.setRecord(documentVO);
-					view.getForm().reload();
+                    try {
+                        Content content = toContent(contentVersionVO);
+                        document.setContent(content);
+                        modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
+                        documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
+                        documentVO.getContent().setMajorVersion(null);
+                        documentVO.getContent().setHash(null);
+                        view.setRecord(documentVO);
+                        view.getForm().reload();
+                    } catch (final IcapException e) {
+                        view.showErrorMessage(e.getMessage());
+
+                        documentVO.setContent(null);
+                        getContentField().setFieldValue(null);
+                    }
 				}
 			}
 		});
@@ -591,9 +613,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		});
 
 		DocumentCopyRuleField copyRuleField = getCopyRuleField();
-		copyRuleField.setVisible(
-				areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1);
-		copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
+		if (copyRuleField != null) {
+			copyRuleField.setVisible(
+					areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1);
+			copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
+		}
 	}
 
 	private boolean canSaveDocument(Document document, User user) {
@@ -614,5 +638,13 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 	private boolean areDocumentRetentionRulesEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areDocumentRetentionRulesEnabled();
+	}
+
+	Document newDocument() {
+		User currentUser = getCurrentUser();
+		Document document = rmSchemasRecordsServices.newDocument();
+		document.setCreatedBy(currentUser.getId());
+		document.setAuthor(currentUser.getFirstName() + " " + currentUser.getLastName());
+		return document;
 	}
 }

@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -66,7 +67,7 @@ public class ListTaxonomyViewImpl extends BaseViewImpl implements ListTaxonomyVi
 		addButtons(buttonsContainer);
 		elements = buttonsContainer;
 
-		Table table = new Table($("ListTaxonomyView.tableTitle", elements.size()), elements);
+		BaseTable table = new BaseTable("ListTaxonomyView.tableTitle", $("ListTaxonomyView.tableTitle", elements.size()), elements);
 		table.setPageLength(elements.size());
 		table.setVisibleColumns("title", "buttons");
 		table.setColumnHeader("title", $("ListTaxonomyView.titleColumn"));

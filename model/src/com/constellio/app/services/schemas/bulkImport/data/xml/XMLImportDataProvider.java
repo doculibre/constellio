@@ -21,6 +21,8 @@ public class XMLImportDataProvider implements ImportDataProvider {
 
 	private IOServicesFactory ioServicesFactory;
 
+	private boolean deleteOnClose = true;
+
 	private File xmlFile;
 
 	private File zipFile;
@@ -29,9 +31,9 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	private String fileName;
 
 	XMLImportDataProvider(File file, IOServicesFactory ioServicesFactory, boolean isZipFile, String fileName) {
-		if(isZipFile){
+		if (isZipFile) {
 			this.zipFile = file;
-		}else{
+		} else {
 			this.xmlFile = file;
 		}
 		this.fileName = fileName;
@@ -48,7 +50,15 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		return instance;
 	}
 
-	public static XMLImportDataProvider forSingleXMLFile(ModelLayerFactory modelLayerFactory, File xmlFile){
+	public static XMLImportDataProvider forFolderOfXml(ModelLayerFactory modelLayerFactory, File folder) {
+		XMLImportDataProvider instance = new XMLImportDataProvider();
+		instance.tempFolder = folder;
+		instance.deleteOnClose = false;
+		instance.ioServicesFactory = modelLayerFactory.getIOServicesFactory();
+		return instance;
+	}
+
+	public static XMLImportDataProvider forSingleXMLFile(ModelLayerFactory modelLayerFactory, File xmlFile) {
 		return forSingleXMLFile(modelLayerFactory, xmlFile, xmlFile.getName());
 	}
 
@@ -56,6 +66,7 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		XMLImportDataProvider instance = new XMLImportDataProvider();
 		instance.xmlFile = xmlFile;
 		instance.fileName = fileName;
+		instance.deleteOnClose = false;
 		instance.ioServicesFactory = modelLayerFactory.getIOServicesFactory();
 		return instance;
 	}
@@ -75,14 +86,16 @@ public class XMLImportDataProvider implements ImportDataProvider {
 
 	@Override
 	public void close() {
-		ioServicesFactory.newIOServices().deleteQuietly(tempFolder);
+		if (deleteOnClose) {
+			ioServicesFactory.newIOServices().deleteQuietly(tempFolder);
+		}
 	}
 
 	@Override
 	public int size(String schemaType) {
 		int size = 0;
 		ImportDataIterator iterator = newDataIterator(schemaType);
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			iterator.next();
 			size++;
 		}
@@ -92,7 +105,7 @@ public class XMLImportDataProvider implements ImportDataProvider {
 	@Override
 	public List<String> getAvailableSchemaTypes() {
 		List<String> schemaTypes = new ArrayList<>();
-		if (tempFolder != null) {
+		if (tempFolder != null && tempFolder.listFiles() != null) {
 			for (File file : tempFolder.listFiles()) {
 				if (file.getName().endsWith(".xml")) {
 					schemaTypes.add(file.getName().replace(".xml", ""));
@@ -111,11 +124,11 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		IOServices ioServices = ioServicesFactory.newIOServices();
 		File file;
 		String currentFileName;
-		if(xmlFile != null){
+		if (xmlFile != null) {
 			file = xmlFile;
 			currentFileName = fileName;
-		}else{
-			file =  new File(tempFolder, schemaType + ".xml");
+		} else {
+			file = new File(tempFolder, schemaType + ".xml");
 			currentFileName = schemaType;
 		}
 		Reader reader = ioServices.newBufferedFileReader(file, getFileReaderStreamName());

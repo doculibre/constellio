@@ -1,23 +1,42 @@
 package com.constellio.data.utils;
 
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 public class LangUtils {
 
 	public static <T, V extends T, D extends T> T valueOrDefault(V value, D defaultValue) {
 		return value != null ? value : defaultValue;
+	}
+
+	public static Comparator<Entry<String, String>> mapStringStringEntryValueComparator() {
+		return new Comparator<Entry<String, String>>() {
+
+			@Override
+			public int compare(Entry<String, String> o1, Entry<String, String> o2) {
+				String s1 = removeAccents(o1.getValue());
+				String s2 = removeAccents(o2.getValue());
+				return s1.compareTo(s2);
+			}
+		};
 	}
 
 	public static LocalDate max(LocalDate date1, LocalDate date2) {
@@ -31,6 +50,26 @@ public class LangUtils {
 	}
 
 	public static LocalDate min(LocalDate date1, LocalDate date2) {
+		if (date1 == null) {
+			return date2;
+		}
+		if (date2 == null) {
+			return date1;
+		}
+		return date1.isAfter(date2) ? date2 : date1;
+	}
+
+	public static LocalDateTime max(LocalDateTime date1, LocalDateTime date2) {
+		if (date1 == null) {
+			return date2;
+		}
+		if (date2 == null) {
+			return date1;
+		}
+		return date1.isBefore(date2) ? date2 : date1;
+	}
+
+	public static LocalDateTime min(LocalDateTime date1, LocalDateTime date2) {
 		if (date1 == null) {
 			return date2;
 		}
@@ -102,14 +141,13 @@ public class LangUtils {
 	public static <T> ListComparisonResults<T> compare(List<T> before, List<T> after) {
 		List<T> newItems = new ArrayList<>();
 		List<T> removedItems = new ArrayList<>();
-		 if (after == null) {
+		if (after == null) {
 			removedItems = new ArrayList<>(before);
 
 		} else if (before == null) {
 			newItems = new ArrayList<>(after);
 
-		} else if (after != null && after != null ){
-
+		} else if (after != null && after != null) {
 
 			if (before != null) {
 				for (T item : before) {
@@ -185,8 +223,8 @@ public class LangUtils {
 	}
 
 	public static int compareStrings(String value1, String value2) {
-		String normalizedValue1 = AccentApostropheCleaner.removeAccents(value1);
-		String normalizedValue2 = AccentApostropheCleaner.removeAccents(value2);
+		String normalizedValue1 = removeAccents(value1);
+		String normalizedValue2 = removeAccents(value2);
 		return normalizedValue1.compareTo(normalizedValue2);
 	}
 
@@ -194,6 +232,88 @@ public class LangUtils {
 		Set<T> set1 = new HashSet<>(list1);
 		Set<T> set2 = new HashSet<>(list2);
 		return set1.equals(set2);
+	}
+
+	public static int countIteratorValues(Iterator<?> iterator) {
+		int count = 0;
+		while (iterator.hasNext()) {
+			iterator.next();
+			count++;
+		}
+		return count;
+	}
+
+	public static int nullableNaturalCompare(Comparable v1, Comparable v2) {
+		if (v1 == null) {
+
+			if (v2 == null) {
+				return 0;
+			} else {
+				return -1;
+			}
+
+		} else {
+
+			if (v2 == null) {
+				return 1;
+			} else {
+				return v1.compareTo(v2);
+			}
+
+		}
+
+	}
+
+	public static StringReplacer replacingLiteral(String target, String replacement) {
+		return new StringReplacer().replacingLiteral(target, replacement);
+	}
+
+	public static StringReplacer replacingRegex(String regex, String replacement) {
+		return new StringReplacer().replacingRegex(regex, replacement);
+	}
+
+	public static class StringReplacer {
+
+		List<StringReplacement> stringReplacements = new ArrayList<>();
+
+		public StringReplacer replacingRegex(String regex, String replacement) {
+			Pattern pattern = Pattern.compile(regex);
+			stringReplacements.add(new StringReplacement(pattern, replacement));
+			return this;
+		}
+
+		public StringReplacer replacingLiteral(String target, String replacement) {
+			if (!target.equals(replacement)) {
+				Pattern pattern = Pattern.compile(target.toString(), Pattern.LITERAL);
+				stringReplacements.add(new StringReplacement(pattern, replacement));
+			}
+			return this;
+		}
+
+		public String replaceOn(String value) {
+
+			String output = value;
+			for (StringReplacement stringReplacement : stringReplacements) {
+				output = stringReplacement.replace(output);
+			}
+
+			return output;
+		}
+	}
+
+	public static class StringReplacement {
+
+		Pattern pattern;
+		CharSequence replacement;
+
+		public StringReplacement(Pattern pattern, CharSequence replacement) {
+			this.pattern = pattern;
+			this.replacement = replacement;
+		}
+
+		String replace(String value) {
+			return pattern.matcher(value).replaceAll(Matcher.quoteReplacement(replacement.toString()));
+		}
 	}
 
 	public static class ListComparisonResults<T> {
@@ -314,5 +434,24 @@ public class LangUtils {
 		parameters.put(key2, value2);
 		parameters.put(key3, value3);
 		return parameters;
+	}
+
+	public static <V> Iterator<V> synchronizedIterator(final Iterator<V> nestedIterator) {
+		return new Iterator<V>() {
+			@Override
+			public synchronized boolean hasNext() {
+				return nestedIterator.hasNext();
+			}
+
+			@Override
+			public synchronized V next() {
+				return nestedIterator.next();
+			}
+
+			@Override
+			public synchronized void remove() {
+				nestedIterator.remove();
+			}
+		};
 	}
 }

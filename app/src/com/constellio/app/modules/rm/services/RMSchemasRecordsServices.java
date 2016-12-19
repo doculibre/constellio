@@ -22,10 +22,12 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.apache.poi.hsmf.datatypes.ByteChunk;
 import org.apache.poi.hsmf.datatypes.Chunk;
 import org.apache.poi.hsmf.datatypes.ChunkGroup;
@@ -40,19 +42,12 @@ import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
 import com.auxilii.msgparser.attachment.FileAttachment;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
@@ -75,10 +70,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
+	
+	private static final Logger LOGGER = Logger.getLogger(RMSchemasRecordsServices.class);
 
 	public static final String EMAIL_MIME_TYPES = "mimeTypes";
 	public static final String EMAIL_ATTACHMENTS = "attachments";
@@ -132,8 +130,16 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return containerRecordTypes;
 	}
 
+	public ContainerRecordType getContainerRecordTypeWithLegacyId(String id) {
+		return new ContainerRecordType(getByLegacyId(ContainerRecordType.SCHEMA_TYPE, id), getTypes());
+	}
+
 	public ContainerRecordType getContainerRecordType(String id) {
-		return new ContainerRecordType(get(id), getTypes());
+		try {
+			return new ContainerRecordType(get(id), getTypes());
+		} catch (NoSuchRecordWithId e) {
+			return null;
+		}
 	}
 
 	public ContainerRecordType newContainerRecordType() {
@@ -268,7 +274,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-
 	//Document type
 
 	public MetadataSchema documentTypeSchema() {
@@ -323,35 +328,35 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Folder
 
-    public MetadataSchema folderSchemaFor(String typeId) {
-        return typeId == null ? defaultFolderSchema() : folderSchemaFor(getFolderType(typeId));
-    }
+	public MetadataSchema folderSchemaFor(String typeId) {
+		return typeId == null ? defaultFolderSchema() : folderSchemaFor(getFolderType(typeId));
+	}
 
-    public Folder newFolderWithType(String typeId) {
-        Record record = create(folderSchemaFor(typeId));
-        return new Folder(record, getTypes()).setType(typeId);
-    }
+	public Folder newFolderWithType(String typeId) {
+		Record record = create(folderSchemaFor(typeId));
+		return new Folder(record, getTypes()).setType(typeId);
+	}
 
-    public MetadataSchema defaultFolderSchema() {
-        return getTypes().getSchema(Folder.DEFAULT_SCHEMA);
-    }
+	public MetadataSchema defaultFolderSchema() {
+		return getTypes().getSchema(Folder.DEFAULT_SCHEMA);
+	}
 
-    public MetadataSchemaType folderSchemaType() {
-        return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
-    }
+	public MetadataSchemaType folderSchemaType() {
+		return getTypes().getSchemaType(Folder.SCHEMA_TYPE);
+	}
 
-    public MetadataSchema folderSchemaFor(FolderType type) {
-        return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
-    }
+	public MetadataSchema folderSchemaFor(FolderType type) {
+		return type == null ? defaultFolderSchema() : getLinkedSchema(folderSchemaType(), type);
+	}
 
-    public Folder newFolderWithType(FolderType type) {
-        Record record = create(folderSchemaFor(type));
-        return new Folder(record, getTypes()).setType(type);
-    }
+	public Folder newFolderWithType(FolderType type) {
+		Record record = create(folderSchemaFor(type));
+		return new Folder(record, getTypes()).setType(type);
+	}
 
 	//
 
-    //Folder type
+	//Folder type
 
     /*
 
@@ -387,42 +392,44 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
         return new FolderType(create(defaultFolderTypeSchema(), id), getTypes());
     }*/
 
-    public MetadataSchema folderTypeSchema() {
-        return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
-    }
+	public MetadataSchema folderTypeSchema() {
+		return getTypes().getSchema(FolderType.DEFAULT_SCHEMA);
+	}
 
-    //
+	public MetadataSchemaType folderTypeSchemaType() {
+		return getTypes().getSchemaType(FolderType.SCHEMA_TYPE);
+	}
 
-    //Hierarchical value list item
+	//
 
-    public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
-        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-    }
+	//Hierarchical value list item
 
-    public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
-        List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
-        for (Record record : records) {
-            hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
-        }
-        return hierarchicalValueListItems;
-    }
+	public HierarchicalValueListItem wrapHierarchicalValueListItem(Record record) {
+		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+	}
 
-    public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
-        Record record = get(id);
-        return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
-    }
+	public List<HierarchicalValueListItem> wrapHierarchicalValueListItems(List<Record> records) {
+		List<HierarchicalValueListItem> hierarchicalValueListItems = new ArrayList<>();
+		for (Record record : records) {
+			hierarchicalValueListItems.add(wrapHierarchicalValueListItem(record));
+		}
+		return hierarchicalValueListItems;
+	}
 
-    public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
-        return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-    }
+	public HierarchicalValueListItem getHierarchicalValueListItem(String id) {
+		Record record = get(id);
+		return new HierarchicalValueListItem(record, getTypes(), record.getSchemaCode());
+	}
 
-    public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
-        return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
-    }
+	public HierarchicalValueListItem newHierarchicalValueListItem(String schemaCode) {
+		return new HierarchicalValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
+	}
 
+	public HierarchicalValueListItem newHierarchicalValueListItemWithId(String schemaCode, String id) {
+		return new HierarchicalValueListItem(create(schema(schemaCode), id), getTypes(), schemaCode);
+	}
 
-
-    //Medium type
+	//Medium type
 
 	public MetadataSchema mediumTypeSchema() {
 		return getTypes().getSchema(MediumType.DEFAULT_SCHEMA);
@@ -525,7 +532,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//
 
-
 	public MetadataSchemaType cartSchemaType() {
 		return getTypes().getSchemaType(Cart.SCHEMA_TYPE);
 	}
@@ -579,7 +585,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	}
 
 	public UserDocument newUserDocument() {
-		return new UserDocument(create(uniformSubdivision.schema()), getTypes());
+		return new UserDocument(create(userDocumentSchema()), getTypes());
 	}
 
 	public UserDocument newUserDocumentWithId(String id) {
@@ -592,8 +598,12 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//Value list item
 
+	public ValueListItem getValueListItemByLegacyId(String valueListCode, String valueListItemCode) {
+		return wrapValueListItem(getByLegacyId(getTypes().getSchemaType(valueListCode), valueListItemCode));
+	}
+
 	public ValueListItem wrapValueListItem(Record record) {
-		return new ValueListItem(record, getTypes(), record.getSchemaCode());
+		return record == null ? null : new ValueListItem(record, getTypes(), record.getSchemaCode());
 	}
 
 	public List<ValueListItem> wrapValueListItems(List<Record> records) {
@@ -711,17 +721,17 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//KEEP
 	public boolean isEmail(String fileName) {
-		String extension = FilenameUtils.getExtension(fileName);
-		return extension.equalsIgnoreCase("eml") || extension.equalsIgnoreCase("msg");
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+		return extension.equals("eml") || extension.equals("msg");
 	}
 
 	//KEEP
 	public Map<String, Object> parseEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedMessage;
-		String extension = FilenameUtils.getExtension(fileName);
-		if ("eml".equalsIgnoreCase(extension)) {
+		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
+		if ("eml".equals(extension)) {
 			parsedMessage = parseEml(messageInputStream);
-		} else if ("msg".equalsIgnoreCase(extension)) {
+		} else if ("msg".equals(extension)) {
 			parsedMessage = parseMsg(messageInputStream);
 		} else {
 			throw new IllegalArgumentException("Invalid file name : " + fileName);
@@ -815,14 +825,19 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				MimeMultipart mimeMultipart = (MimeMultipart) messageContent;
 				int partCount = mimeMultipart.getCount();
 				for (int i = 0; i < partCount; i++) {
-					BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-					String partFileName = bodyPart.getFileName();
-					Object partContent = bodyPart.getContent();
-					if (partContent instanceof InputStream) {
-						InputStream inputAttachment = (InputStream) partContent;
-						attachments.put(partFileName, inputAttachment);
-						mimeTypes.put(partFileName, bodyPart.getContentType());
-						attachmentFileNames.add(partFileName);
+					try {
+						BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+						String partFileName = bodyPart.getFileName();
+						Object partContent = bodyPart.getContent();
+						if (partContent instanceof InputStream) {
+							partFileName = MimeUtility.decodeText(partFileName);
+							InputStream inputAttachment = (InputStream) partContent;
+							attachments.put(partFileName, inputAttachment);
+							mimeTypes.put(partFileName, bodyPart.getContentType());
+							attachmentFileNames.add(partFileName);
+						}
+					} catch (Throwable t) {
+						LOGGER.warn("Error while parsing message content", t);
 					}
 				}
 			}

@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.containers;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
@@ -21,47 +22,99 @@ import com.vaadin.data.Item;
 @SuppressWarnings("serial")
 public class RecordVOLazyContainer extends LazyQueryContainer {
 
-	private RecordVODataProvider dataProvider;
+	private List<RecordVODataProvider> dataProviders;
 
 	public RecordVOLazyContainer(RecordVODataProvider dataProvider) {
-		super(new RecordVOLazyQueryDefinition(dataProvider), new RecordVOLazyQueryFactory(dataProvider));
-		this.dataProvider = dataProvider;
-		dataProvider.addDataRefreshListener(new DataRefreshListener() {
-			@Override
-			public void dataRefresh() {
-				RecordVOLazyContainer.this.refresh();
+		this(Arrays.asList(dataProvider));
+	}
+
+	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders) {
+		super(new RecordVOLazyQueryDefinition(dataProviders, false), new RecordVOLazyQueryFactory(dataProviders));
+		this.dataProviders = dataProviders;
+		for (RecordVODataProvider dataProvider : dataProviders) {
+			dataProvider.addDataRefreshListener(new DataRefreshListener() {
+				@Override
+				public void dataRefresh() {
+					RecordVOLazyContainer.this.refresh();
+				}
+			});
+		}
+	}
+	
+	public List<MetadataSchemaVO> getSchemas() {
+		List<MetadataSchemaVO> schemas = new ArrayList<>();
+		for (RecordVODataProvider dataProvider : dataProviders) {
+			schemas.add(dataProvider.getSchema());
+		}
+		return schemas;
+	}
+	
+	private static RecordVODataProviderAndRecordIndex forRecordIndex(List<RecordVODataProvider> dataProviders, int index) {
+		RecordVODataProviderAndRecordIndex result = null;
+		int lastSize = 0;
+		for (RecordVODataProvider dataProvider : dataProviders) {
+			int dataProviderSize = dataProvider.size();
+			if ((lastSize + dataProviderSize) > index) {
+				int actualIndex = index - lastSize;
+				result = new RecordVODataProviderAndRecordIndex(dataProvider, actualIndex);
+				break;
 			}
-		});
+			lastSize += dataProviderSize;
+		}
+		return result;
 	}
-
-	public MetadataSchemaVO getSchema() {
-		return dataProvider.getSchema();
-	}
-
+	
 	public RecordVO getRecordVO(int index) {
-		return dataProvider.getRecordVO(index);
+		RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, index);
+		int recordIndexForDataProvider = dataProviderAndRecordIndex.recordIndex;
+		return dataProviderAndRecordIndex.dataProvider.getRecordVO(recordIndexForDataProvider);
+	}
+	
+	private static class RecordVODataProviderAndRecordIndex implements Serializable {
+		
+		private RecordVODataProvider dataProvider;
+		
+		private int recordIndex;
+		
+		public RecordVODataProviderAndRecordIndex(RecordVODataProvider dataProvider, int recordIndex) {
+			this.dataProvider = dataProvider;
+			this.recordIndex = recordIndex;
+		}
+
 	}
 
 	public static class RecordVOLazyQueryDefinition extends LazyQueryDefinition {
 
-		RecordVODataProvider dataProvider;
+		List<RecordVODataProvider> dataProviders;
 
 		/**
 		 * final boolean compositeItems, final int batchSize, final Object idPropertyId
 		 *
-		 * //@param dataProvider
+		 * //@param dataProviders
 		 * //@param compositeItems
 		 * //@param batchSize
 		 * //@param idPropertyId
 		 */
-		public RecordVOLazyQueryDefinition(RecordVODataProvider dataProvider) {
+		public RecordVOLazyQueryDefinition(List<RecordVODataProvider> dataProviders, boolean tableMetadatasOnly) {
 			super(true, 100, null);
-			this.dataProvider = dataProvider;
+			this.dataProviders = dataProviders;
 
-			MetadataSchemaVO schema = dataProvider.getSchema();
-			if (schema != null) {
-				for (MetadataVO metadata : schema.getTableMetadatas()) {
-					super.addProperty(metadata, metadata.getJavaType(), null, true, true);
+			List<MetadataVO> queryMetadataVOs = new ArrayList<>();
+			for (RecordVODataProvider dataProvider : dataProviders) {
+				MetadataSchemaVO schema = dataProvider.getSchema();
+				List<MetadataVO> dataProviderQueryMetadataVOs = schema.getTableMetadatas();
+				if (!tableMetadatasOnly) {
+					List<MetadataVO> dataProviderAllMetadataVOs = schema.getDisplayMetadatas();
+					for (MetadataVO metadataVO : dataProviderAllMetadataVOs) {
+						if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
+							dataProviderQueryMetadataVOs.add(metadataVO);
+						}
+					}
+				}
+				for (MetadataVO metadata : dataProviderQueryMetadataVOs) {
+					if (!queryMetadataVOs.contains(metadata)) {
+						super.addProperty(metadata, metadata.getJavaType(), null, true, true);
+					}
 				}
 			}
 		}
@@ -69,10 +122,10 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 
 	public static class RecordVOLazyQueryFactory implements QueryFactory, Serializable {
 
-		RecordVODataProvider dataProvider;
+		List<RecordVODataProvider> dataProviders;
 
-		public RecordVOLazyQueryFactory(RecordVODataProvider dataProvider) {
-			this.dataProvider = dataProvider;
+		public RecordVOLazyQueryFactory(List<RecordVODataProvider> dataProviders) {
+			this.dataProviders = dataProviders;
 		}
 
 		@Override
@@ -84,12 +137,18 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 					MetadataVO sortMetadata = (MetadataVO) sortPropertyIds[i];
 					sortMetadatas.add(sortMetadata);
 				}
-				dataProvider.sort(sortMetadatas.toArray(new MetadataVO[0]), queryDefinition.getSortPropertyAscendingStates());
+				for (RecordVODataProvider dataProvider : dataProviders) {
+					dataProvider.sort(sortMetadatas.toArray(new MetadataVO[0]), queryDefinition.getSortPropertyAscendingStates());
+				}
 			}
 			return new SerializableQuery() {
 				@Override
 				public int size() {
-					return dataProvider.size();
+					int totalSizes = 0;
+					for (RecordVODataProvider dataProvider : dataProviders) {
+						totalSizes += dataProvider.size();
+					}
+					return totalSizes;
 				}
 
 				@Override
@@ -100,11 +159,39 @@ public class RecordVOLazyContainer extends LazyQueryContainer {
 				@Override
 				public List<Item> loadItems(int startIndex, int count) {
 					List<Item> items = new ArrayList<Item>();
-					List<RecordVO> recordVOs = dataProvider.listRecordVOs(startIndex, count);
-					for (RecordVO recordVO : recordVOs) {
+					
+					RecordVODataProviderAndRecordIndex dataProviderAndRecordIndex = forRecordIndex(dataProviders, startIndex);
+					RecordVODataProvider firstDataProvider = dataProviderAndRecordIndex.dataProvider;
+					int startIndexForFirstDataProvider = dataProviderAndRecordIndex.recordIndex;
+					
+					List<RecordVO> recordVOsFromFirstDataProvider = firstDataProvider.listRecordVOs(startIndexForFirstDataProvider, count);
+					for (RecordVO recordVO : recordVOsFromFirstDataProvider) {
 						Item item = new RecordVOItem(recordVO);
 						items.add(item);
 					}
+					
+					if (items.size() < count) {
+						// We need to add results from extra dataProviders
+						boolean firstDataProviderFound = false;
+						for (RecordVODataProvider dataProvider : dataProviders) {
+							if (dataProvider.equals(firstDataProvider)) {
+								firstDataProviderFound = true;
+							} else if (firstDataProviderFound) {
+								// Only records belonging to dataProviders after the first are relevant
+								int startIndexForDataProvider = 0;
+								int countForDataProvider = count - items.size();
+								List<RecordVO> recordVOsFromDataProvider = dataProvider.listRecordVOs(startIndexForDataProvider, countForDataProvider);
+								for (RecordVO recordVO : recordVOsFromDataProvider) {
+									Item item = new RecordVOItem(recordVO);
+									items.add(item);
+								}
+								if (items.size() >= count) {
+									break;
+								}
+							}
+						}
+					}
+					
 					return items;
 				}
 

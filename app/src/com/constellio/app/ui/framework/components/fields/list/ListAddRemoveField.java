@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.ui.application.ConstellioUI;
@@ -193,6 +196,13 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		}
 	}
 
+	protected void removeValue(Object value) {
+		if (value != null) {
+			valuesAndButtonsContainer.removeItem(value);
+			notifyValueChange();
+		}
+	}
+
 	protected void removeValue(T value) {
 		if (value != null) {
 			valuesAndButtonsContainer.removeItem(value);
@@ -248,9 +258,9 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addStyleName(STYLE_NAME);
 
 		mainLayout = new VerticalLayout();
-		mainLayout.setWidth("99%");
 		mainLayout.setHeightUndefined();
 		mainLayout.setSpacing(true);
+		setMainLayoutWidth(mainLayout);
 
 		addEditFieldLayout = new HorizontalLayout();
 		addEditFieldLayout.addStyleName(ADD_EDIT_FIELD_LAYOUT_STYLE_NAME);
@@ -291,25 +301,7 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		valuesAndButtonsContainer = new ButtonsContainer(valuesContainer);
 
 		if (isEditPossible()) {
-			valuesAndButtonsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId) {
-					EditButton editButton = new EditButton() {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							removeValue((T) itemId);
-							((Field<T>) addEditField).setValue((T) itemId);
-							addEditField.focus();
-						}
-					};
-					if (!isEditButtonVisible((T) itemId)) {
-						editButton.setVisible(false);
-					}
-					editButton.setEnabled(!ListAddRemoveField.this.isReadOnly() && ListAddRemoveField.this.isEnabled());
-					editButton.addStyleName(EDIT_BUTTON_STYLE_NAME);
-					return editButton;
-				}
-			});
+			valuesAndButtonsContainer.addButton(addEditButton());
 		}
 		valuesAndButtonsContainer.addButton(new ContainerButton() {
 			@Override
@@ -376,6 +368,32 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			setValue(newFieldValue);
 		}
 		return mainLayout;
+	}
+	
+	protected void setMainLayoutWidth(VerticalLayout mainLayout) {
+		mainLayout.setWidth("99%");
+	}
+
+	protected ContainerButton addEditButton() {
+		return new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId) {
+				EditButton editButton = new EditButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						removeValue((T) itemId);
+						((Field<T>) addEditField).setValue((T) itemId);
+						addEditField.focus();
+					}
+				};
+				if (!isEditButtonVisible((T) itemId)) {
+					editButton.setVisible(false);
+				}
+				editButton.setEnabled(!ListAddRemoveField.this.isReadOnly() && ListAddRemoveField.this.isEnabled());
+				editButton.addStyleName(EDIT_BUTTON_STYLE_NAME);
+				return editButton;
+			}
+		};
 	}
 
 	@SuppressWarnings("unchecked")

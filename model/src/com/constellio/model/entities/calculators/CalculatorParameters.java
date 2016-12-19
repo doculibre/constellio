@@ -14,11 +14,13 @@ public class CalculatorParameters {
 	final Map<Dependency, Object> values;
 	final String collection;
 	final String id;
+	final String legacyId;
 
-	public CalculatorParameters(Map<Dependency, Object> values, String id, String collection) {
+	public CalculatorParameters(Map<Dependency, Object> values, String id, String legacyId, String collection) {
 		super();
 		this.values = values;
 		this.id = id;
+		this.legacyId = legacyId;
 		this.collection = collection;
 	}
 
@@ -53,5 +55,9 @@ public class CalculatorParameters {
 
 	public String getId() {
 		return id;
+	}
+
+	public String getLegacyId() {
+		return legacyId;
 	}
 }

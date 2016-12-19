@@ -147,9 +147,9 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 
 		InOrder inOrder = inOrder(command, nestedCommand);
 		inOrder.verify(command).setCurrentThreadName();
-		inOrder.verify(command).logCommandCall();
+		//inOrder.verify(command).logCommandCall();
 		inOrder.verify(nestedCommand).run();
-		inOrder.verify(command).logCommandCallEnd();
+		//inOrder.verify(command).logCommandCallEnd();
 
 	}
 
@@ -172,7 +172,7 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 		String threadName = zeId + " (" + TestRunnable.class.getName() + ")";
 		InOrder inOrder = inOrder(command, nestedCommand);
 		inOrder.verify(command).setCurrentThreadName();
-		inOrder.verify(command).logCommandCall();
+		//inOrder.verify(command).logCommandCall();
 		inOrder.verify(nestedCommand).run();
 		inOrder.verify(command).logCommandCallEndedWithException(e);
 
@@ -192,7 +192,7 @@ public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 		String threadName = zeId + " (" + TestRunnable.class.getName() + ")";
 		InOrder inOrder = inOrder(command, nestedCommand);
 		inOrder.verify(command).setCurrentThreadName();
-		inOrder.verify(command).logCommandCall();
+		//inOrder.verify(command).logCommandCall();
 		inOrder.verify(nestedCommand).run();
 		inOrder.verify(command).logCommandCallEndedWithException(e);
 

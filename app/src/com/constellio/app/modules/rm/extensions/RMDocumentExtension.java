@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,9 +23,9 @@ public class RMDocumentExtension extends RecordExtension {
 	RMSchemasRecordsServices rm;
 	DecommissioningService decommissioningService;
 
-	public RMDocumentExtension(String collection, ModelLayerFactory modelLayerFactory) {
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-		decommissioningService = new DecommissioningService(collection, modelLayerFactory);
+	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		decommissioningService = new DecommissioningService(collection, appLayerFactory);
 	}
 
 	@Override

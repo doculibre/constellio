@@ -15,6 +15,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -68,6 +69,13 @@ public class SchemaTypeImportServices implements ImportServices {
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		valueListServices = new ValueListServices(appLayerFactory, collection);
 		this.collection = collection;
+	}
+
+	@Override
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
+			User user, List<String> collections, BulkImportParams params)
+			throws RecordsImportServicesRuntimeException {
+		return bulkImport(importDataProvider, progressionListener, user, collections);
 	}
 
 	@Override
@@ -263,7 +271,8 @@ public class SchemaTypeImportServices implements ImportServices {
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
 			if (typeCode.startsWith("ddv")) {
 				ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
-				builder.createValueListItemSchema(typeCode, title, ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE);
+				builder.createValueListItemSchema(typeCode, title,
+						ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique().titleUnique(false));
 
 			} else if (typeCode.startsWith("taxo") && typeCode.endsWith("Type")) {
 				String taxoCode = StringUtils.substringBetween(typeCode, "taxo", "Type");

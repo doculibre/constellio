@@ -47,6 +47,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		VerticalLayout layout = new VerticalLayout();
+		layout.setSpacing(true);
 
 		layout.addComponents(buildUserSearchesTable(), buildPublicSearchesTable());
 

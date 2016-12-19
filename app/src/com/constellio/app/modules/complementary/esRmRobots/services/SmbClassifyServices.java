@@ -1,5 +1,6 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -11,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -104,7 +106,13 @@ public class SmbClassifyServices {
 		ConnectorUtilsServices<?> connectorUtilsServices = connectorServicesFactory
 				.forConnectorDocumentNonStatic(appLayerFactory, connectorDocument);
 		try {
-			Document document = rmSchemasRecordsServices.newDocumentWithType(documentTypeId);
+			Document document = rmSchemasRecordsServices.getDocumentByLegacyId(connectorDocument.getUrl());
+
+			if (document == null) {
+				document = rmSchemasRecordsServices.newDocumentWithType(documentTypeId);
+				document.setLegacyId(connectorDocument.getUrl());
+			}
+			document.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 
 			document.setTitle(connectorDocument.getTitle());
 			document.setFolder(inRmFolder);
@@ -113,7 +121,7 @@ public class SmbClassifyServices {
 			Content content;
 			if (StringUtils.isEmpty(versions)) {
 				InputStream inputStream = connectorUtilsServices.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT);
-				newVersionDataSummary = contentManager.upload(inputStream, false, true, null);
+				newVersionDataSummary = contentManager.upload(inputStream, false, true, connectorDocument.getTitle());
 				//Content content;
 				if (majorVersions) {
 					content = contentManager.createMajor(currentUser, connectorDocument.getTitle(), newVersionDataSummary);
@@ -147,11 +155,29 @@ public class SmbClassifyServices {
 				recordServices.update(connectorDocument.setFetched(false));
 			}
 			return document.getId();
-		} catch (ConnectorSmbRuntimeException | RecordServicesException | ConnectorServicesRuntimeException e) {
+		} catch (ConnectorSmbRuntimeException |
+				RecordServicesException |
+				ConnectorServicesRuntimeException |
+				IcapException e) {
+
+			Exception exception = e;
+
+			if (e instanceof IcapException) {
+				if (e instanceof IcapException.ThreatFoundException) {
+					exception = new IcapException($(e, ((IcapException) e).getFileName(), ((IcapException.ThreatFoundException) e).getThreatName()));
+				} else {
+                    if (e.getCause() == null) {
+                        exception = new IcapException($(e, ((IcapException) e).getFileName()));
+                    } else {
+                        exception = new IcapException($(e, ((IcapException) e).getFileName()), e.getCause());
+                    }
+                }
+			}
+
 			if (newVersionDataSummary != null) {
 				contentManager.markForDeletionIfNotReferenced(newVersionDataSummary.getHash());
 			}
-			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, e);
+			throw new ClassifyServicesRuntimeException_CannotClassifyAsDocument(connectorDocument, exception);
 		}
 	}
 
@@ -165,7 +191,7 @@ public class SmbClassifyServices {
 			InputStream availableVersionInputStream = connectorUtilsServices
 					.newContentInputStream(connectorDocument, CLASSIFY_DOCUMENT, availableVersion);
 			ContentVersionDataSummary contentVersionDataSummary = contentManager
-					.upload(availableVersionInputStream, false, true, null);
+					.upload(availableVersionInputStream, false, true, connectorDocument.getTitle());
 			String filename = "zFileName";
 			String version = availableVersion;
 			String lastModifiedBy = currentUser.getUsername();

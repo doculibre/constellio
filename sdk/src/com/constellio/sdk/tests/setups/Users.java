@@ -249,7 +249,7 @@ public class Users {
 
 	private void addGroup(String code, String title, String parent) {
 		GlobalGroup group = userServices.createGlobalGroup(
-				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE);
+				code, title, new ArrayList<String>(), parent, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(group);
 	}
 

@@ -7,20 +7,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.framework.buttons.CleanAdministrativeUnitButton;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.ListSequencesButton;
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
@@ -143,6 +144,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 
 	private void buildSearchTaxonomies() {
 		searchLayout = new HorizontalLayout();
+		searchLayout.setSpacing(true);
 		final TextField searchField = new BaseTextField();
 		Button searchButton = new SearchButton();
 		searchField.focus();
@@ -260,7 +262,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			// TODO Implement deleteLogically for taxonomy concepts
 			recordsContainer = buttonsContainer;
 
-			Table table = new Table($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
+			RecordVOTable table = new RecordVOTable($(dataProvider.getSchema().getLabel(), dataProvider.getSchema().getCode()), recordsContainer);
 			table.setWidth("100%");
 			table.setId("childrenTable");
 			table.setColumnHeader("buttons", "");
@@ -301,7 +303,8 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 				}
 			});
 		}
-		if (presenter.getCurrentConcept() != null) {
+		RecordVO currentConcept = presenter.getCurrentConcept();
+		if (currentConcept != null) {
 			actionMenuButtons.add(new EditButton($("TaxonomyManagementView.edit")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
@@ -314,7 +317,19 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 					presenter.deleteButtonClicked(presenter.getCurrentConcept());
 				}
 			});
+			if(presenter.hasCurrentUserAccessToCurrentConcept()) {
+				actionMenuButtons.add(new CleanAdministrativeUnitButton($("TaxonomyManagementView.cleanAdministrativeUnit")) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.cleanAdministrativeUnitButtonClicked();
+					}
+				});
+			}
+			if (presenter.isSequenceTable(currentConcept)) {
+				actionMenuButtons.add(new ListSequencesButton(currentConcept.getId(), $("TaxonomyManagementView.sequences")));
+			}
 		}
+
 		return actionMenuButtons;
 	}
 
@@ -339,7 +354,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		for (TaxonomyManagementClassifiedType classifiedType : classifiedTypes) {
 			MetadataSchemaTypeVO schemaType = classifiedType.getSchemaType();
 			RecordVODataProvider provider = classifiedType.getDataProvider();
-			Table table = new RecordVOTable(provider);
+			RecordVOTable table = new RecordVOTable(provider);
 			table.setWidth("100%");
 			table.addItemClickListener(new ItemClickListener() {
 				@Override

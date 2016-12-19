@@ -6,11 +6,14 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -20,7 +23,7 @@ import java.io.StringWriter;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ImportFilePresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface{
+public class ImportFilePresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface {
 
 	private transient ImportServices importServices;
 
@@ -88,19 +91,32 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 
 				} else if (upload.getFileName().endsWith(".zip")) {
 					importDataProvider = getXMLImportDataProviderForZipFile(modelLayerFactory, file);
-				} else if(upload.getFileName().endsWith(".xml")){
+				} else if (upload.getFileName().endsWith(".xml")) {
 					importDataProvider = getXMLImportDataProviderForSingleXMLFile(modelLayerFactory, file, upload.getFileName());
-				}else{
+				} else {
 					view.showErrorMessage("Only xml, zip or xls formats are accepted");
 				}
 
-				if(importDataProvider != null){
-					BulkImportResults errors = importServices.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections());
-					for(ImportError error :errors.getImportErrors()){
+				if (importDataProvider != null) {
+
+					BulkImportParams params;
+					if (view.getImportFileMode() == ImportFileMode.PERMISSIVE) {
+						params = BulkImportParams.PERMISSIVE();
+					} else {
+						params = BulkImportParams.STRICT();
+					}
+
+					BulkImportResults errors = importServices
+							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections(), params);
+					for (ImportError error : errors.getImportErrors()) {
 						view.showErrorMessage(format(error));
 					}
 					view.showImportCompleteMessage();
 				}
+
+			} catch (ValidationException e) {
+				view.showErrorMessage(i18n.$(e.getValidationErrors()));
+
 			} catch (Exception e) {
 				e.printStackTrace();
 
@@ -115,7 +131,8 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 		}
 	}
 
-	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory, File file, String fileName) {
+	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory, File file,
+			String fileName) {
 		return XMLImportDataProvider.forSingleXMLFile(modelLayerFactory, file, fileName);
 	}
 

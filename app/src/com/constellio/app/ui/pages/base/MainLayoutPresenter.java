@@ -20,7 +20,6 @@ import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import org.eclipse.jetty.deploy.App;
 
 public class MainLayoutPresenter implements Serializable {
 
@@ -31,7 +30,7 @@ public class MainLayoutPresenter implements Serializable {
 	}
 
 	public ComponentState getStateFor(NavigationItem item) {
-		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getModelLayerFactory());
+		return item.getStateFor(getUser(), mainLayout.getHeader().getConstellioFactories().getAppLayerFactory());
 	}
 
 	public List<NavigationItem> getNavigationItems() {
@@ -46,7 +45,7 @@ public class MainLayoutPresenter implements Serializable {
 		return items;
 	}
 
-	private User getUser() {
+	public User getUser() {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		UserVO userVO = ConstellioUI.getCurrentSessionContext().getCurrentUser();
 		ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();

@@ -1,11 +1,14 @@
 package com.constellio.app.api.cmis.builders.object;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AllowableActionsImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
@@ -14,16 +17,20 @@ import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Taxonomy;
 
 public class TaxonomyObjectBuilder {
 
-	public static final String TAXONOMY_TYPE_ID = "taxonomy";
+	private CallContext context;
 
-	public TaxonomyObjectBuilder() {
+	public TaxonomyObjectBuilder(CallContext context) {
+		this.context = context;
 	}
 
-	public ObjectData build(CallContext context, Taxonomy taxonomy, ObjectInfoHandler objectInfoHandler) {
+	public static final String TAXONOMY_TYPE_ID = "taxonomy";
+
+	public ObjectData build(Taxonomy taxonomy, ObjectInfoHandler objectInfoHandler) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
@@ -49,6 +56,14 @@ public class TaxonomyObjectBuilder {
 			objectInfo.setObject(result);
 			objectInfoHandler.addObjectInfo(objectInfo);
 		}
+
+		Set<Action> actions = new HashSet<>();
+		actions.add(Action.CAN_GET_PROPERTIES);
+		actions.add(Action.CAN_GET_CHILDREN);
+
+		AllowableActionsImpl allowableActions = new AllowableActionsImpl();
+		allowableActions.setAllowableActions(actions);
+		result.setAllowableActions(allowableActions);
 
 		return result;
 	}

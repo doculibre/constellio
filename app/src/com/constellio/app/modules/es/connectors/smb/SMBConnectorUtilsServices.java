@@ -24,6 +24,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
 
 public class SMBConnectorUtilsServices implements ConnectorUtilsServices<ConnectorSmb> {
 
@@ -113,7 +114,11 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 
 	@Override
 	public String getRecordExternalUrl(RecordVO recordVO) {
-		return null;
+		String url = recordVO.get(ConnectorDocument.URL);
+		if (StringUtils.startsWith(url, "smb://")) {
+			url = "file://" + StringUtils.removeStart(url, "smb://");
+		}
+		return url;
 	}
 
 	@Override

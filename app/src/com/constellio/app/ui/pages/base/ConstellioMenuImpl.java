@@ -11,6 +11,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -63,6 +64,8 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
 
 	private List<String> collections = new ArrayList<>();
+    
+    private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 
 	public ConstellioMenuImpl() {
 		this.presenter = new ConstellioMenuPresenter(this);
@@ -130,11 +133,11 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			SessionContext sessionContext = getSessionContext();
 			String currentCollection = sessionContext.getCurrentCollection();
 			MenuItem collectionSubMenu = collectionMenu.addItem(
-					$("ConstellioMenu.collection", presenter.getCollectionCaption(currentCollection)), null);
+					$("ConstellioMenu.collection", collectionCodeToLabelConverter.getCollectionCaption(currentCollection)), null);
 			for (final String collection : collections) {
 
 				if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
-					String collectionCaption = presenter.getCollectionCaption(collection);
+					String collectionCaption = collectionCodeToLabelConverter.getCollectionCaption(collection);
 					MenuItem collectionMenuItem = collectionSubMenu.addItem(collectionCaption, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {

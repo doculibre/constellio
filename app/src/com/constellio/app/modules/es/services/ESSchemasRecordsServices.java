@@ -10,8 +10,10 @@ import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -45,6 +47,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
@@ -384,6 +387,27 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return query;
 	}
 
+	public Iterator<String> getUrlsIterator(LogicalSearchQuery query) {
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL));
+		final Iterator<Record> recordIterator = getSearchServices().recordsIterator(query, 1000);
+		return new Iterator<String>() {
+			@Override
+			public boolean hasNext() {
+				return recordIterator.hasNext();
+			}
+
+			@Override
+			public String next() {
+				return recordIterator.next().get(Schemas.URL);
+			}
+
+			@Override
+			public void remove() {
+				recordIterator.remove();
+			}
+		};
+	}
+
 	public class SchemaTypeShortcuts_connectorDocument_common extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_connectorDocument_common(String schemaCode) {
 			super(schemaCode);
@@ -534,4 +558,63 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return document;
 	}
 
+	public Iterator<ConnectorSmbDocument> iterateConnectorSmbDocuments(LogicalSearchCondition condition) {
+		MetadataSchemaType type = connectorSmbDocument.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return iterateConnectorSmbDocuments(query);
+	}
+
+	public Iterator<ConnectorSmbDocument> iterateConnectorSmbDocuments(LogicalSearchQuery query) {
+		return wrapRecordIteratorToSmbDocument(
+				appLayerFactory.getModelLayerFactory().newSearchServices().recordsIterator(query, 100));
+	}
+
+	public Iterator<ConnectorSmbDocument> wrapRecordIteratorToSmbDocument(final Iterator<Record> recordsIterator) {
+		return new Iterator<ConnectorSmbDocument>() {
+			@Override
+			public boolean hasNext() {
+				return recordsIterator.hasNext();
+			}
+
+			@Override
+			public ConnectorSmbDocument next() {
+				return wrapConnectorSmbDocument(recordsIterator.next());
+			}
+
+			@Override
+			public void remove() {
+				recordsIterator.remove();
+			}
+		};
+	}
+
+	public Iterator<ConnectorSmbFolder> iterateConnectorSmbFolders(LogicalSearchCondition condition) {
+		MetadataSchemaType type = connectorSmbDocument.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return iterateConnectorSmbFolders(query);
+	}
+
+	public Iterator<ConnectorSmbFolder> iterateConnectorSmbFolders(LogicalSearchQuery query) {
+		return wrapRecordIteratorToSmbFolder(
+				appLayerFactory.getModelLayerFactory().newSearchServices().recordsIterator(query, 100));
+	}
+
+	public Iterator<ConnectorSmbFolder> wrapRecordIteratorToSmbFolder(final Iterator<Record> recordsIterator) {
+		return new Iterator<ConnectorSmbFolder>() {
+			@Override
+			public boolean hasNext() {
+				return recordsIterator.hasNext();
+			}
+
+			@Override
+			public ConnectorSmbFolder next() {
+				return wrapConnectorSmbFolder(recordsIterator.next());
+			}
+
+			@Override
+			public void remove() {
+				recordsIterator.remove();
+			}
+		};
+	}
 }

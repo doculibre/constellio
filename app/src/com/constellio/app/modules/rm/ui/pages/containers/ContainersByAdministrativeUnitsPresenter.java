@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsView.ContainersViewTab;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -105,7 +105,8 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
+		return securityServices.hasAccessToManageContainersPage(user);
 	}
 
 	public void displayButtonClicked(String tabName, RecordVO entity) {
@@ -115,4 +116,5 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 	public void backButtonClicked() {
 		view.navigate().to(RMViews.class).archiveManagement();
 	}
+	
 }

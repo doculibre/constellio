@@ -21,6 +21,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	public String getSchemaCode();
 
+	String getTypeCode();
+
 	public boolean isDirty();
 
 	public boolean isFullyLoaded();
@@ -47,6 +49,8 @@ public interface Record extends Serializable, CollectionObject {
 
 	boolean isActive();
 
+	boolean isDisconnected();
+
 	List<String> getFollowers();
 
 	Record getCopyOfOriginalRecord();
@@ -62,4 +66,7 @@ public interface Record extends Serializable, CollectionObject {
 	<T> void addValueToList(Metadata metadata, T value);
 
 	<T> void removeValueFromList(Metadata metadata, T value);
+
+	boolean isOfSchemaType(String type);
+
 }

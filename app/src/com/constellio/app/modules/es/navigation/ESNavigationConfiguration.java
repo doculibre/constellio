@@ -11,6 +11,7 @@ import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.es.ui.pages.*;
 import com.constellio.app.modules.es.ui.pages.mapping.AddEditMappingViewImpl;
 import com.constellio.app.modules.es.ui.pages.mapping.DisplayConnectorMappingsViewImpl;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -31,29 +32,29 @@ public class ESNavigationConfiguration implements Serializable {
 	public static final String SEARCH_ENGINE_ICON = "images/icons/config/configuration-search.png";
 
 	public static final String TAXONOMIES = "taxonomies";
-    public static final String CONNECTOR_REPORT = "connectorReport";
-    public static final String DISPLAY_CONNECTOR_INSTANCE = "displayConnectorInstance";
-    public static final String ADD_CONNECTOR_MAPPING = "addConnectorMapping";
-    public static final String EDIT_CONNECTOR_MAPPING = "editConnectorMapping";
-    public static final String DISPLAY_CONNECTOR_MAPPINGS = "displayConnectorMappings";
-    public static final String EDIT_CONNECTOR_INSTANCE = "editConnectorInstance";
-    public static final String LIST_CONNECTOR_INSTANCES = "connectorInstances";
-    public static final String WIZARD_CONNECTOR_INSTANCE = "wizardConnectorInstance";
+	public static final String CONNECTOR_REPORT = "connectorReport";
+	public static final String DISPLAY_CONNECTOR_INSTANCE = "displayConnectorInstance";
+	public static final String ADD_CONNECTOR_MAPPING = "addConnectorMapping";
+	public static final String EDIT_CONNECTOR_MAPPING = "editConnectorMapping";
+	public static final String DISPLAY_CONNECTOR_MAPPINGS = "displayConnectorMappings";
+	public static final String EDIT_CONNECTOR_INSTANCE = "editConnectorInstance";
+	public static final String LIST_CONNECTOR_INSTANCES = "connectorInstances";
+	public static final String WIZARD_CONNECTOR_INSTANCE = "wizardConnectorInstance";
 
-    public static void configureNavigation(NavigationConfig config) {
+	public static void configureNavigation(NavigationConfig config) {
 		configureCollectionAdmin(config);
 		configureHomeFragments(config);
 	}
 
 	public static void configureNavigation(NavigatorConfigurationService service) {
 		service.register(CONNECTOR_REPORT, ConnectorReportViewImpl.class);
-        service.register(DISPLAY_CONNECTOR_INSTANCE, DisplayConnectorInstanceViewImpl.class);
-        service.register(ADD_CONNECTOR_MAPPING, AddEditMappingViewImpl.class);
-        service.register(EDIT_CONNECTOR_MAPPING, AddEditMappingViewImpl.class);
-        service.register(DISPLAY_CONNECTOR_MAPPINGS, DisplayConnectorMappingsViewImpl.class);
-        service.register(EDIT_CONNECTOR_INSTANCE, EditConnectorInstanceViewImpl.class);
-        service.register(LIST_CONNECTOR_INSTANCES, ListConnectorInstancesViewImpl.class);
-        service.register(WIZARD_CONNECTOR_INSTANCE, WizardConnectorInstanceViewImpl.class);
+		service.register(DISPLAY_CONNECTOR_INSTANCE, DisplayConnectorInstanceViewImpl.class);
+		service.register(ADD_CONNECTOR_MAPPING, AddEditMappingViewImpl.class);
+		service.register(EDIT_CONNECTOR_MAPPING, AddEditMappingViewImpl.class);
+		service.register(DISPLAY_CONNECTOR_MAPPINGS, DisplayConnectorMappingsViewImpl.class);
+		service.register(EDIT_CONNECTOR_INSTANCE, EditConnectorInstanceViewImpl.class);
+		service.register(LIST_CONNECTOR_INSTANCES, ListConnectorInstancesViewImpl.class);
+		service.register(WIZARD_CONNECTOR_INSTANCE, WizardConnectorInstanceViewImpl.class);
 	}
 
 	private static void configureCollectionAdmin(NavigationConfig config) {
@@ -64,7 +65,7 @@ public class ESNavigationConfiguration implements Serializable {
 			}
 
 			@Override
-			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_CONNECTORS).globally());
 			}
 		});
@@ -77,9 +78,9 @@ public class ESNavigationConfiguration implements Serializable {
 				private int defaultTab;
 
 				@Override
-				public List<RecordLazyTreeDataProvider> getDataProviders(ModelLayerFactory modelLayerFactory,
+				public List<RecordLazyTreeDataProvider> getDataProviders(AppLayerFactory appLayerFactory,
 						SessionContext sessionContext) {
-					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(modelLayerFactory, sessionContext);
+					TaxonomyTabSheet tabSheet = new TaxonomyTabSheet(appLayerFactory.getModelLayerFactory(), sessionContext);
 					defaultTab = tabSheet.getDefaultTab();
 					return tabSheet.getDataProviders();
 				}

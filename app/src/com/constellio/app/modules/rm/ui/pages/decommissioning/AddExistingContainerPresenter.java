@@ -123,6 +123,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 		}
 		this.pageNumber = search.getPageNumber();
 		this.setFacetSelections(search.getSelectedFacets());
+		this.setSelectedPageLength(search.getPageLength());
 	}
 
 	@Override
@@ -259,7 +260,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 				.setTemporary(true)
 				.setAdvancedSearch(view.getSearchCriteria())
 				.setPageNumber(pageNumber)
-				.setSelectedFacets(this.getFacetSelections().getNestedMap());
+				.setSelectedFacets(this.getFacetSelections().getNestedMap())
+				.setPageLength(getSelectedPageLength());
 		try {
 			recordServices().update(search);
 			if (refreshPage) {

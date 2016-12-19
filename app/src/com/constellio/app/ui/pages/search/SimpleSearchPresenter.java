@@ -4,7 +4,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -58,7 +60,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		sortCriterion = search.getSortField();
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		pageNumber = search.getPageNumber();
-		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
+		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
+		setSelectedPageLength(search.getPageLength());
 	}
 
 	@Override
@@ -84,6 +87,10 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public String getUserSearchExpression() {
 		return searchExpression;
 	}
+	
+	public void setSearchExpression(String searchExpression) {
+		this.searchExpression = searchExpression;
+	}
 
 	@Override
 	public void suggestionSelected(String suggestion) {
@@ -105,10 +112,12 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
-		for (MetadataVO metadata : getMetadataAllowedInSort(schemaTypes.get(0))) {
-			String localCode = MetadataVO.getCodeWithoutPrefix(metadata.getCode());
-			if (isMetadataInAllTypes(localCode, schemaTypes)) {
-				result.add(metadata);
+		Set<String> resultCodes = new HashSet<>();
+		for(MetadataSchemaType metadataSchemaType: schemaTypes) {
+			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
+				if(resultCodes.add(metadata.getLocalCode())) {
+					result.add(metadata);
+				}
 			}
 		}
 		return result;
@@ -189,7 +198,8 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setTemporary(true)
 				.setSearchType(SimpleSearchView.SEARCH_TYPE)
 				.setFreeTextSearch(searchExpression)
-				.setPageNumber(pageNumber);
+				.setPageNumber(pageNumber)
+				.setPageLength(selectedPageLength);
 		try {
 			recordServices().update(search);
 			if (refreshPage) {

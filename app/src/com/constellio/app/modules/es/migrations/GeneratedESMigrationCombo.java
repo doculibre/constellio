@@ -26,6 +26,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
@@ -91,6 +92,10 @@ public final class GeneratedESMigrationCombo {
 		MetadataSchemaBuilder connectorSmbFolderSchema = connectorSmbFolderSchemaType.getDefaultSchema();
 		MetadataSchemaTypeBuilder connectorTypeSchemaType = typesBuilder.createNewSchemaType("connectorType");
 		MetadataSchemaBuilder connectorTypeSchema = connectorTypeSchemaType.getDefaultSchema();
+		MetadataBuilder connectorHttpDocument_allReferences = connectorHttpDocumentSchema.get("allReferences");
+		connectorHttpDocument_allReferences.setMultivalue(true);
+		connectorHttpDocument_allReferences.setSystemReserved(true);
+		connectorHttpDocument_allReferences.setUndeletable(true);
 		MetadataBuilder connectorHttpDocument_allauthorizations = connectorHttpDocumentSchema.get("allauthorizations");
 		connectorHttpDocument_allauthorizations.setMultivalue(true);
 		connectorHttpDocument_allauthorizations.setSystemReserved(true);
@@ -148,6 +153,10 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorHttpDocument_errorMessage = connectorHttpDocumentSchema.create("errorMessage")
 				.setType(MetadataValueType.STRING);
 		connectorHttpDocument_errorMessage.setUndeletable(true);
+		MetadataBuilder connectorHttpDocument_errorOnPhysicalDeletion = connectorHttpDocumentSchema
+				.get("errorOnPhysicalDeletion");
+		connectorHttpDocument_errorOnPhysicalDeletion.setSystemReserved(true);
+		connectorHttpDocument_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder connectorHttpDocument_errorStackTrace = connectorHttpDocumentSchema.create("errorStackTrace")
 				.setType(MetadataValueType.TEXT);
 		connectorHttpDocument_errorStackTrace.setUndeletable(true);
@@ -206,6 +215,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorHttpDocument_level = connectorHttpDocumentSchema.create("level")
 				.setType(MetadataValueType.NUMBER);
 		connectorHttpDocument_level.setUndeletable(true);
+		MetadataBuilder connectorHttpDocument_logicallyDeletedOn = connectorHttpDocumentSchema.get("logicallyDeletedOn");
+		connectorHttpDocument_logicallyDeletedOn.setSystemReserved(true);
+		connectorHttpDocument_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder connectorHttpDocument_manualTokens = connectorHttpDocumentSchema.get("manualTokens");
 		connectorHttpDocument_manualTokens.setMultivalue(true);
 		connectorHttpDocument_manualTokens.setSystemReserved(true);
@@ -215,6 +227,9 @@ public final class GeneratedESMigrationCombo {
 				.get("markedForPreviewConversion");
 		connectorHttpDocument_markedForPreviewConversion.setSystemReserved(true);
 		connectorHttpDocument_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder connectorHttpDocument_markedForReindexing = connectorHttpDocumentSchema.get("markedForReindexing");
+		connectorHttpDocument_markedForReindexing.setSystemReserved(true);
+		connectorHttpDocument_markedForReindexing.setUndeletable(true);
 		MetadataBuilder connectorHttpDocument_mimetype = connectorHttpDocumentSchema.create("mimetype")
 				.setType(MetadataValueType.STRING);
 		connectorHttpDocument_mimetype.setUndeletable(true);
@@ -487,6 +502,10 @@ public final class GeneratedESMigrationCombo {
 				.setType(MetadataValueType.STRING);
 		connectorInstance_smb_username.setDefaultRequirement(true);
 		connectorInstance_smb_username.setUndeletable(true);
+		MetadataBuilder connectorInstance_allReferences = connectorInstanceSchema.get("allReferences");
+		connectorInstance_allReferences.setMultivalue(true);
+		connectorInstance_allReferences.setSystemReserved(true);
+		connectorInstance_allReferences.setUndeletable(true);
 		MetadataBuilder connectorInstance_allauthorizations = connectorInstanceSchema.get("allauthorizations");
 		connectorInstance_allauthorizations.setMultivalue(true);
 		connectorInstance_allauthorizations.setSystemReserved(true);
@@ -532,6 +551,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorInstance_enabled = connectorInstanceSchema.create("enabled").setType(MetadataValueType.BOOLEAN);
 		connectorInstance_enabled.setUndeletable(true);
 		connectorInstance_enabled.setDefaultValue(true);
+		MetadataBuilder connectorInstance_errorOnPhysicalDeletion = connectorInstanceSchema.get("errorOnPhysicalDeletion");
+		connectorInstance_errorOnPhysicalDeletion.setSystemReserved(true);
+		connectorInstance_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder connectorInstance_followers = connectorInstanceSchema.get("followers");
 		connectorInstance_followers.setMultivalue(true);
 		connectorInstance_followers.setSystemReserved(true);
@@ -559,6 +581,9 @@ public final class GeneratedESMigrationCombo {
 		connectorInstance_legacyIdentifier.setSearchable(true);
 		connectorInstance_legacyIdentifier.setUniqueValue(true);
 		connectorInstance_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder connectorInstance_logicallyDeletedOn = connectorInstanceSchema.get("logicallyDeletedOn");
+		connectorInstance_logicallyDeletedOn.setSystemReserved(true);
+		connectorInstance_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder connectorInstance_manualTokens = connectorInstanceSchema.get("manualTokens");
 		connectorInstance_manualTokens.setMultivalue(true);
 		connectorInstance_manualTokens.setSystemReserved(true);
@@ -567,6 +592,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorInstance_markedForPreviewConversion = connectorInstanceSchema.get("markedForPreviewConversion");
 		connectorInstance_markedForPreviewConversion.setSystemReserved(true);
 		connectorInstance_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder connectorInstance_markedForReindexing = connectorInstanceSchema.get("markedForReindexing");
+		connectorInstance_markedForReindexing.setSystemReserved(true);
+		connectorInstance_markedForReindexing.setUndeletable(true);
 		MetadataBuilder connectorInstance_modifiedBy = connectorInstanceSchema.get("modifiedBy");
 		connectorInstance_modifiedBy.setSystemReserved(true);
 		connectorInstance_modifiedBy.setUndeletable(true);
@@ -638,6 +666,10 @@ public final class GeneratedESMigrationCombo {
 				.setType(MetadataValueType.TEXT);
 		connectorLdapUserDocument_address.setUndeletable(true);
 		connectorLdapUserDocument_address.setSearchable(true);
+		MetadataBuilder connectorLdapUserDocument_allReferences = connectorLdapUserDocumentSchema.get("allReferences");
+		connectorLdapUserDocument_allReferences.setMultivalue(true);
+		connectorLdapUserDocument_allReferences.setSystemReserved(true);
+		connectorLdapUserDocument_allReferences.setUndeletable(true);
 		MetadataBuilder connectorLdapUserDocument_allauthorizations = connectorLdapUserDocumentSchema.get("allauthorizations");
 		connectorLdapUserDocument_allauthorizations.setMultivalue(true);
 		connectorLdapUserDocument_allauthorizations.setSystemReserved(true);
@@ -704,6 +736,10 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorLdapUserDocument_errorMessage = connectorLdapUserDocumentSchema.create("errorMessage")
 				.setType(MetadataValueType.STRING);
 		connectorLdapUserDocument_errorMessage.setUndeletable(true);
+		MetadataBuilder connectorLdapUserDocument_errorOnPhysicalDeletion = connectorLdapUserDocumentSchema
+				.get("errorOnPhysicalDeletion");
+		connectorLdapUserDocument_errorOnPhysicalDeletion.setSystemReserved(true);
+		connectorLdapUserDocument_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder connectorLdapUserDocument_errorStackTrace = connectorLdapUserDocumentSchema.create("errorStackTrace")
 				.setType(MetadataValueType.TEXT);
 		connectorLdapUserDocument_errorStackTrace.setUndeletable(true);
@@ -763,6 +799,9 @@ public final class GeneratedESMigrationCombo {
 		connectorLdapUserDocument_legacyIdentifier.setSearchable(true);
 		connectorLdapUserDocument_legacyIdentifier.setUniqueValue(true);
 		connectorLdapUserDocument_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder connectorLdapUserDocument_logicallyDeletedOn = connectorLdapUserDocumentSchema.get("logicallyDeletedOn");
+		connectorLdapUserDocument_logicallyDeletedOn.setSystemReserved(true);
+		connectorLdapUserDocument_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder connectorLdapUserDocument_manager = connectorLdapUserDocumentSchema.create("manager")
 				.setType(MetadataValueType.STRING);
 		connectorLdapUserDocument_manager.setUndeletable(true);
@@ -775,6 +814,10 @@ public final class GeneratedESMigrationCombo {
 				.get("markedForPreviewConversion");
 		connectorLdapUserDocument_markedForPreviewConversion.setSystemReserved(true);
 		connectorLdapUserDocument_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder connectorLdapUserDocument_markedForReindexing = connectorLdapUserDocumentSchema
+				.get("markedForReindexing");
+		connectorLdapUserDocument_markedForReindexing.setSystemReserved(true);
+		connectorLdapUserDocument_markedForReindexing.setUndeletable(true);
 		MetadataBuilder connectorLdapUserDocument_mimetype = connectorLdapUserDocumentSchema.create("mimetype")
 				.setType(MetadataValueType.STRING);
 		connectorLdapUserDocument_mimetype.setUndeletable(true);
@@ -864,6 +907,10 @@ public final class GeneratedESMigrationCombo {
 				.setType(MetadataValueType.STRING);
 		connectorLdapUserDocument_workTitle.setUndeletable(true);
 		connectorLdapUserDocument_workTitle.setSearchable(true);
+		MetadataBuilder connectorSmbDocument_allReferences = connectorSmbDocumentSchema.get("allReferences");
+		connectorSmbDocument_allReferences.setMultivalue(true);
+		connectorSmbDocument_allReferences.setSystemReserved(true);
+		connectorSmbDocument_allReferences.setUndeletable(true);
 		MetadataBuilder connectorSmbDocument_allauthorizations = connectorSmbDocumentSchema.get("allauthorizations");
 		connectorSmbDocument_allauthorizations.setMultivalue(true);
 		connectorSmbDocument_allauthorizations.setSystemReserved(true);
@@ -906,6 +953,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorSmbDocument_errorMessage = connectorSmbDocumentSchema.create("errorMessage")
 				.setType(MetadataValueType.STRING);
 		connectorSmbDocument_errorMessage.setUndeletable(true);
+		MetadataBuilder connectorSmbDocument_errorOnPhysicalDeletion = connectorSmbDocumentSchema.get("errorOnPhysicalDeletion");
+		connectorSmbDocument_errorOnPhysicalDeletion.setSystemReserved(true);
+		connectorSmbDocument_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder connectorSmbDocument_errorStackTrace = connectorSmbDocumentSchema.create("errorStackTrace")
 				.setType(MetadataValueType.TEXT);
 		connectorSmbDocument_errorStackTrace.setUndeletable(true);
@@ -976,6 +1026,9 @@ public final class GeneratedESMigrationCombo {
 		connectorSmbDocument_legacyIdentifier.setSearchable(true);
 		connectorSmbDocument_legacyIdentifier.setUniqueValue(true);
 		connectorSmbDocument_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder connectorSmbDocument_logicallyDeletedOn = connectorSmbDocumentSchema.get("logicallyDeletedOn");
+		connectorSmbDocument_logicallyDeletedOn.setSystemReserved(true);
+		connectorSmbDocument_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder connectorSmbDocument_manualTokens = connectorSmbDocumentSchema.get("manualTokens");
 		connectorSmbDocument_manualTokens.setMultivalue(true);
 		connectorSmbDocument_manualTokens.setSystemReserved(true);
@@ -985,6 +1038,9 @@ public final class GeneratedESMigrationCombo {
 				.get("markedForPreviewConversion");
 		connectorSmbDocument_markedForPreviewConversion.setSystemReserved(true);
 		connectorSmbDocument_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder connectorSmbDocument_markedForReindexing = connectorSmbDocumentSchema.get("markedForReindexing");
+		connectorSmbDocument_markedForReindexing.setSystemReserved(true);
+		connectorSmbDocument_markedForReindexing.setUndeletable(true);
 		MetadataBuilder connectorSmbDocument_mimetype = connectorSmbDocumentSchema.create("mimetype")
 				.setType(MetadataValueType.STRING);
 		connectorSmbDocument_mimetype.setUndeletable(true);
@@ -1072,6 +1128,10 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorSmbDocument_visibleInTrees = connectorSmbDocumentSchema.get("visibleInTrees");
 		connectorSmbDocument_visibleInTrees.setSystemReserved(true);
 		connectorSmbDocument_visibleInTrees.setUndeletable(true);
+		MetadataBuilder connectorSmbFolder_allReferences = connectorSmbFolderSchema.get("allReferences");
+		connectorSmbFolder_allReferences.setMultivalue(true);
+		connectorSmbFolder_allReferences.setSystemReserved(true);
+		connectorSmbFolder_allReferences.setUndeletable(true);
 		MetadataBuilder connectorSmbFolder_allauthorizations = connectorSmbFolderSchema.get("allauthorizations");
 		connectorSmbFolder_allauthorizations.setMultivalue(true);
 		connectorSmbFolder_allauthorizations.setSystemReserved(true);
@@ -1114,6 +1174,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorSmbFolder_errorMessage = connectorSmbFolderSchema.create("errorMessage")
 				.setType(MetadataValueType.STRING);
 		connectorSmbFolder_errorMessage.setUndeletable(true);
+		MetadataBuilder connectorSmbFolder_errorOnPhysicalDeletion = connectorSmbFolderSchema.get("errorOnPhysicalDeletion");
+		connectorSmbFolder_errorOnPhysicalDeletion.setSystemReserved(true);
+		connectorSmbFolder_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder connectorSmbFolder_errorStackTrace = connectorSmbFolderSchema.create("errorStackTrace")
 				.setType(MetadataValueType.TEXT);
 		connectorSmbFolder_errorStackTrace.setUndeletable(true);
@@ -1173,6 +1236,9 @@ public final class GeneratedESMigrationCombo {
 		connectorSmbFolder_legacyIdentifier.setSearchable(true);
 		connectorSmbFolder_legacyIdentifier.setUniqueValue(true);
 		connectorSmbFolder_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder connectorSmbFolder_logicallyDeletedOn = connectorSmbFolderSchema.get("logicallyDeletedOn");
+		connectorSmbFolder_logicallyDeletedOn.setSystemReserved(true);
+		connectorSmbFolder_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder connectorSmbFolder_manualTokens = connectorSmbFolderSchema.get("manualTokens");
 		connectorSmbFolder_manualTokens.setMultivalue(true);
 		connectorSmbFolder_manualTokens.setSystemReserved(true);
@@ -1182,6 +1248,9 @@ public final class GeneratedESMigrationCombo {
 				.get("markedForPreviewConversion");
 		connectorSmbFolder_markedForPreviewConversion.setSystemReserved(true);
 		connectorSmbFolder_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder connectorSmbFolder_markedForReindexing = connectorSmbFolderSchema.get("markedForReindexing");
+		connectorSmbFolder_markedForReindexing.setSystemReserved(true);
+		connectorSmbFolder_markedForReindexing.setUndeletable(true);
 		MetadataBuilder connectorSmbFolder_mimetype = connectorSmbFolderSchema.create("mimetype")
 				.setType(MetadataValueType.STRING);
 		connectorSmbFolder_mimetype.setUndeletable(true);
@@ -1259,6 +1328,10 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorSmbFolder_visibleInTrees = connectorSmbFolderSchema.get("visibleInTrees");
 		connectorSmbFolder_visibleInTrees.setSystemReserved(true);
 		connectorSmbFolder_visibleInTrees.setUndeletable(true);
+		MetadataBuilder connectorType_allReferences = connectorTypeSchema.get("allReferences");
+		connectorType_allReferences.setMultivalue(true);
+		connectorType_allReferences.setSystemReserved(true);
+		connectorType_allReferences.setUndeletable(true);
 		MetadataBuilder connectorType_allauthorizations = connectorTypeSchema.get("allauthorizations");
 		connectorType_allauthorizations.setMultivalue(true);
 		connectorType_allauthorizations.setSystemReserved(true);
@@ -1300,6 +1373,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorType_detachedauthorizations = connectorTypeSchema.get("detachedauthorizations");
 		connectorType_detachedauthorizations.setSystemReserved(true);
 		connectorType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder connectorType_errorOnPhysicalDeletion = connectorTypeSchema.get("errorOnPhysicalDeletion");
+		connectorType_errorOnPhysicalDeletion.setSystemReserved(true);
+		connectorType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder connectorType_followers = connectorTypeSchema.get("followers");
 		connectorType_followers.setMultivalue(true);
 		connectorType_followers.setSystemReserved(true);
@@ -1327,6 +1403,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorType_linkedSchema = connectorTypeSchema.create("linkedSchema").setType(MetadataValueType.STRING);
 		connectorType_linkedSchema.setDefaultRequirement(true);
 		connectorType_linkedSchema.setUndeletable(true);
+		MetadataBuilder connectorType_logicallyDeletedOn = connectorTypeSchema.get("logicallyDeletedOn");
+		connectorType_logicallyDeletedOn.setSystemReserved(true);
+		connectorType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder connectorType_manualTokens = connectorTypeSchema.get("manualTokens");
 		connectorType_manualTokens.setMultivalue(true);
 		connectorType_manualTokens.setSystemReserved(true);
@@ -1335,6 +1414,9 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorType_markedForPreviewConversion = connectorTypeSchema.get("markedForPreviewConversion");
 		connectorType_markedForPreviewConversion.setSystemReserved(true);
 		connectorType_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder connectorType_markedForReindexing = connectorTypeSchema.get("markedForReindexing");
+		connectorType_markedForReindexing.setSystemReserved(true);
+		connectorType_markedForReindexing.setUndeletable(true);
 		MetadataBuilder connectorType_modifiedBy = connectorTypeSchema.get("modifiedBy");
 		connectorType_modifiedBy.setSystemReserved(true);
 		connectorType_modifiedBy.setUndeletable(true);
@@ -1389,6 +1471,254 @@ public final class GeneratedESMigrationCombo {
 		MetadataBuilder connectorType_visibleInTrees = connectorTypeSchema.get("visibleInTrees");
 		connectorType_visibleInTrees.setSystemReserved(true);
 		connectorType_visibleInTrees.setUndeletable(true);
+		MetadataBuilder connectorInstance_http_allReferences = connectorInstance_httpSchema.get("allReferences");
+		MetadataBuilder connectorInstance_http_allauthorizations = connectorInstance_httpSchema.get("allauthorizations");
+		MetadataBuilder connectorInstance_http_authorizations = connectorInstance_httpSchema.get("authorizations");
+		MetadataBuilder connectorInstance_http_availableFields = connectorInstance_httpSchema.get("availableFields");
+		MetadataBuilder connectorInstance_http_code = connectorInstance_httpSchema.get("code");
+		MetadataBuilder connectorInstance_http_connectorType = connectorInstance_httpSchema.get("connectorType");
+		MetadataBuilder connectorInstance_http_createdBy = connectorInstance_httpSchema.get("createdBy");
+		MetadataBuilder connectorInstance_http_createdOn = connectorInstance_httpSchema.get("createdOn");
+		MetadataBuilder connectorInstance_http_deleted = connectorInstance_httpSchema.get("deleted");
+		MetadataBuilder connectorInstance_http_denyTokens = connectorInstance_httpSchema.get("denyTokens");
+		MetadataBuilder connectorInstance_http_detachedauthorizations = connectorInstance_httpSchema
+				.get("detachedauthorizations");
+		MetadataBuilder connectorInstance_http_enabled = connectorInstance_httpSchema.get("enabled");
+		MetadataBuilder connectorInstance_http_errorOnPhysicalDeletion = connectorInstance_httpSchema
+				.get("errorOnPhysicalDeletion");
+		MetadataBuilder connectorInstance_http_followers = connectorInstance_httpSchema.get("followers");
+		MetadataBuilder connectorInstance_http_id = connectorInstance_httpSchema.get("id");
+		MetadataBuilder connectorInstance_http_inheritedauthorizations = connectorInstance_httpSchema
+				.get("inheritedauthorizations");
+		MetadataBuilder connectorInstance_http_lastTraversalOn = connectorInstance_httpSchema.get("lastTraversalOn");
+		MetadataBuilder connectorInstance_http_legacyIdentifier = connectorInstance_httpSchema.get("legacyIdentifier");
+		MetadataBuilder connectorInstance_http_logicallyDeletedOn = connectorInstance_httpSchema.get("logicallyDeletedOn");
+		MetadataBuilder connectorInstance_http_manualTokens = connectorInstance_httpSchema.get("manualTokens");
+		MetadataBuilder connectorInstance_http_markedForPreviewConversion = connectorInstance_httpSchema
+				.get("markedForPreviewConversion");
+		MetadataBuilder connectorInstance_http_markedForReindexing = connectorInstance_httpSchema.get("markedForReindexing");
+		MetadataBuilder connectorInstance_http_modifiedBy = connectorInstance_httpSchema.get("modifiedBy");
+		MetadataBuilder connectorInstance_http_modifiedOn = connectorInstance_httpSchema.get("modifiedOn");
+		MetadataBuilder connectorInstance_http_parentpath = connectorInstance_httpSchema.get("parentpath");
+		MetadataBuilder connectorInstance_http_path = connectorInstance_httpSchema.get("path");
+		MetadataBuilder connectorInstance_http_pathParts = connectorInstance_httpSchema.get("pathParts");
+		MetadataBuilder connectorInstance_http_principalpath = connectorInstance_httpSchema.get("principalpath");
+		MetadataBuilder connectorInstance_http_propertiesMapping = connectorInstance_httpSchema.get("propertiesMapping");
+		MetadataBuilder connectorInstance_http_removedauthorizations = connectorInstance_httpSchema.get("removedauthorizations");
+		MetadataBuilder connectorInstance_http_schema = connectorInstance_httpSchema.get("schema");
+		MetadataBuilder connectorInstance_http_searchable = connectorInstance_httpSchema.get("searchable");
+		MetadataBuilder connectorInstance_http_shareDenyTokens = connectorInstance_httpSchema.get("shareDenyTokens");
+		MetadataBuilder connectorInstance_http_shareTokens = connectorInstance_httpSchema.get("shareTokens");
+		MetadataBuilder connectorInstance_http_title = connectorInstance_httpSchema.get("title");
+		MetadataBuilder connectorInstance_http_tokens = connectorInstance_httpSchema.get("tokens");
+		MetadataBuilder connectorInstance_http_traversalCode = connectorInstance_httpSchema.get("traversalCode");
+		MetadataBuilder connectorInstance_http_traversalSchedule = connectorInstance_httpSchema.get("traversalSchedule");
+		MetadataBuilder connectorInstance_http_visibleInTrees = connectorInstance_httpSchema.get("visibleInTrees");
+		MetadataBuilder connectorInstance_ldap_allReferences = connectorInstance_ldapSchema.get("allReferences");
+		MetadataBuilder connectorInstance_ldap_allauthorizations = connectorInstance_ldapSchema.get("allauthorizations");
+		MetadataBuilder connectorInstance_ldap_authorizations = connectorInstance_ldapSchema.get("authorizations");
+		MetadataBuilder connectorInstance_ldap_availableFields = connectorInstance_ldapSchema.get("availableFields");
+		MetadataBuilder connectorInstance_ldap_code = connectorInstance_ldapSchema.get("code");
+		MetadataBuilder connectorInstance_ldap_connectorType = connectorInstance_ldapSchema.get("connectorType");
+		MetadataBuilder connectorInstance_ldap_createdBy = connectorInstance_ldapSchema.get("createdBy");
+		MetadataBuilder connectorInstance_ldap_createdOn = connectorInstance_ldapSchema.get("createdOn");
+		MetadataBuilder connectorInstance_ldap_deleted = connectorInstance_ldapSchema.get("deleted");
+		MetadataBuilder connectorInstance_ldap_denyTokens = connectorInstance_ldapSchema.get("denyTokens");
+		MetadataBuilder connectorInstance_ldap_detachedauthorizations = connectorInstance_ldapSchema
+				.get("detachedauthorizations");
+		MetadataBuilder connectorInstance_ldap_enabled = connectorInstance_ldapSchema.get("enabled");
+		MetadataBuilder connectorInstance_ldap_errorOnPhysicalDeletion = connectorInstance_ldapSchema
+				.get("errorOnPhysicalDeletion");
+		MetadataBuilder connectorInstance_ldap_followers = connectorInstance_ldapSchema.get("followers");
+		MetadataBuilder connectorInstance_ldap_id = connectorInstance_ldapSchema.get("id");
+		MetadataBuilder connectorInstance_ldap_inheritedauthorizations = connectorInstance_ldapSchema
+				.get("inheritedauthorizations");
+		MetadataBuilder connectorInstance_ldap_lastTraversalOn = connectorInstance_ldapSchema.get("lastTraversalOn");
+		MetadataBuilder connectorInstance_ldap_legacyIdentifier = connectorInstance_ldapSchema.get("legacyIdentifier");
+		MetadataBuilder connectorInstance_ldap_logicallyDeletedOn = connectorInstance_ldapSchema.get("logicallyDeletedOn");
+		MetadataBuilder connectorInstance_ldap_manualTokens = connectorInstance_ldapSchema.get("manualTokens");
+		MetadataBuilder connectorInstance_ldap_markedForPreviewConversion = connectorInstance_ldapSchema
+				.get("markedForPreviewConversion");
+		MetadataBuilder connectorInstance_ldap_markedForReindexing = connectorInstance_ldapSchema.get("markedForReindexing");
+		MetadataBuilder connectorInstance_ldap_modifiedBy = connectorInstance_ldapSchema.get("modifiedBy");
+		MetadataBuilder connectorInstance_ldap_modifiedOn = connectorInstance_ldapSchema.get("modifiedOn");
+		MetadataBuilder connectorInstance_ldap_parentpath = connectorInstance_ldapSchema.get("parentpath");
+		MetadataBuilder connectorInstance_ldap_path = connectorInstance_ldapSchema.get("path");
+		MetadataBuilder connectorInstance_ldap_pathParts = connectorInstance_ldapSchema.get("pathParts");
+		MetadataBuilder connectorInstance_ldap_principalpath = connectorInstance_ldapSchema.get("principalpath");
+		MetadataBuilder connectorInstance_ldap_propertiesMapping = connectorInstance_ldapSchema.get("propertiesMapping");
+		MetadataBuilder connectorInstance_ldap_removedauthorizations = connectorInstance_ldapSchema.get("removedauthorizations");
+		MetadataBuilder connectorInstance_ldap_schema = connectorInstance_ldapSchema.get("schema");
+		MetadataBuilder connectorInstance_ldap_searchable = connectorInstance_ldapSchema.get("searchable");
+		MetadataBuilder connectorInstance_ldap_shareDenyTokens = connectorInstance_ldapSchema.get("shareDenyTokens");
+		MetadataBuilder connectorInstance_ldap_shareTokens = connectorInstance_ldapSchema.get("shareTokens");
+		MetadataBuilder connectorInstance_ldap_title = connectorInstance_ldapSchema.get("title");
+		MetadataBuilder connectorInstance_ldap_tokens = connectorInstance_ldapSchema.get("tokens");
+		MetadataBuilder connectorInstance_ldap_traversalCode = connectorInstance_ldapSchema.get("traversalCode");
+		MetadataBuilder connectorInstance_ldap_traversalSchedule = connectorInstance_ldapSchema.get("traversalSchedule");
+		MetadataBuilder connectorInstance_ldap_visibleInTrees = connectorInstance_ldapSchema.get("visibleInTrees");
+		MetadataBuilder connectorInstance_smb_allReferences = connectorInstance_smbSchema.get("allReferences");
+		MetadataBuilder connectorInstance_smb_allauthorizations = connectorInstance_smbSchema.get("allauthorizations");
+		MetadataBuilder connectorInstance_smb_authorizations = connectorInstance_smbSchema.get("authorizations");
+		MetadataBuilder connectorInstance_smb_availableFields = connectorInstance_smbSchema.get("availableFields");
+		MetadataBuilder connectorInstance_smb_code = connectorInstance_smbSchema.get("code");
+		MetadataBuilder connectorInstance_smb_connectorType = connectorInstance_smbSchema.get("connectorType");
+		MetadataBuilder connectorInstance_smb_createdBy = connectorInstance_smbSchema.get("createdBy");
+		MetadataBuilder connectorInstance_smb_createdOn = connectorInstance_smbSchema.get("createdOn");
+		MetadataBuilder connectorInstance_smb_deleted = connectorInstance_smbSchema.get("deleted");
+		MetadataBuilder connectorInstance_smb_denyTokens = connectorInstance_smbSchema.get("denyTokens");
+		MetadataBuilder connectorInstance_smb_detachedauthorizations = connectorInstance_smbSchema.get("detachedauthorizations");
+		MetadataBuilder connectorInstance_smb_enabled = connectorInstance_smbSchema.get("enabled");
+		MetadataBuilder connectorInstance_smb_errorOnPhysicalDeletion = connectorInstance_smbSchema
+				.get("errorOnPhysicalDeletion");
+		MetadataBuilder connectorInstance_smb_followers = connectorInstance_smbSchema.get("followers");
+		MetadataBuilder connectorInstance_smb_id = connectorInstance_smbSchema.get("id");
+		MetadataBuilder connectorInstance_smb_inheritedauthorizations = connectorInstance_smbSchema
+				.get("inheritedauthorizations");
+		MetadataBuilder connectorInstance_smb_lastTraversalOn = connectorInstance_smbSchema.get("lastTraversalOn");
+		MetadataBuilder connectorInstance_smb_legacyIdentifier = connectorInstance_smbSchema.get("legacyIdentifier");
+		MetadataBuilder connectorInstance_smb_logicallyDeletedOn = connectorInstance_smbSchema.get("logicallyDeletedOn");
+		MetadataBuilder connectorInstance_smb_manualTokens = connectorInstance_smbSchema.get("manualTokens");
+		MetadataBuilder connectorInstance_smb_markedForPreviewConversion = connectorInstance_smbSchema
+				.get("markedForPreviewConversion");
+		MetadataBuilder connectorInstance_smb_markedForReindexing = connectorInstance_smbSchema.get("markedForReindexing");
+		MetadataBuilder connectorInstance_smb_modifiedBy = connectorInstance_smbSchema.get("modifiedBy");
+		MetadataBuilder connectorInstance_smb_modifiedOn = connectorInstance_smbSchema.get("modifiedOn");
+		MetadataBuilder connectorInstance_smb_parentpath = connectorInstance_smbSchema.get("parentpath");
+		MetadataBuilder connectorInstance_smb_path = connectorInstance_smbSchema.get("path");
+		MetadataBuilder connectorInstance_smb_pathParts = connectorInstance_smbSchema.get("pathParts");
+		MetadataBuilder connectorInstance_smb_principalpath = connectorInstance_smbSchema.get("principalpath");
+		MetadataBuilder connectorInstance_smb_propertiesMapping = connectorInstance_smbSchema.get("propertiesMapping");
+		MetadataBuilder connectorInstance_smb_removedauthorizations = connectorInstance_smbSchema.get("removedauthorizations");
+		MetadataBuilder connectorInstance_smb_schema = connectorInstance_smbSchema.get("schema");
+		MetadataBuilder connectorInstance_smb_searchable = connectorInstance_smbSchema.get("searchable");
+		MetadataBuilder connectorInstance_smb_shareDenyTokens = connectorInstance_smbSchema.get("shareDenyTokens");
+		MetadataBuilder connectorInstance_smb_shareTokens = connectorInstance_smbSchema.get("shareTokens");
+		MetadataBuilder connectorInstance_smb_title = connectorInstance_smbSchema.get("title");
+		MetadataBuilder connectorInstance_smb_tokens = connectorInstance_smbSchema.get("tokens");
+		MetadataBuilder connectorInstance_smb_traversalCode = connectorInstance_smbSchema.get("traversalCode");
+		MetadataBuilder connectorInstance_smb_traversalSchedule = connectorInstance_smbSchema.get("traversalSchedule");
+		MetadataBuilder connectorInstance_smb_visibleInTrees = connectorInstance_smbSchema.get("visibleInTrees");
+		MetadataBuilder facet_field_active = facet_fieldSchema.get("active");
+		MetadataBuilder facet_field_allReferences = facet_fieldSchema.get("allReferences");
+		MetadataBuilder facet_field_allauthorizations = facet_fieldSchema.get("allauthorizations");
+		MetadataBuilder facet_field_authorizations = facet_fieldSchema.get("authorizations");
+		MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
+		MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
+		MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
+		MetadataBuilder facet_field_denyTokens = facet_fieldSchema.get("denyTokens");
+		MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
+		MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
+		MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
+		MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
+		MetadataBuilder facet_field_followers = facet_fieldSchema.get("followers");
+		MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
+		MetadataBuilder facet_field_inheritedauthorizations = facet_fieldSchema.get("inheritedauthorizations");
+		MetadataBuilder facet_field_legacyIdentifier = facet_fieldSchema.get("legacyIdentifier");
+		MetadataBuilder facet_field_logicallyDeletedOn = facet_fieldSchema.get("logicallyDeletedOn");
+		MetadataBuilder facet_field_manualTokens = facet_fieldSchema.get("manualTokens");
+		MetadataBuilder facet_field_markedForPreviewConversion = facet_fieldSchema.get("markedForPreviewConversion");
+		MetadataBuilder facet_field_markedForReindexing = facet_fieldSchema.get("markedForReindexing");
+		MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
+		MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
+		MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
+		MetadataBuilder facet_field_order = facet_fieldSchema.get("order");
+		MetadataBuilder facet_field_orderResult = facet_fieldSchema.get("orderResult");
+		MetadataBuilder facet_field_pages = facet_fieldSchema.get("pages");
+		MetadataBuilder facet_field_parentpath = facet_fieldSchema.get("parentpath");
+		MetadataBuilder facet_field_path = facet_fieldSchema.get("path");
+		MetadataBuilder facet_field_pathParts = facet_fieldSchema.get("pathParts");
+		MetadataBuilder facet_field_principalpath = facet_fieldSchema.get("principalpath");
+		MetadataBuilder facet_field_removedauthorizations = facet_fieldSchema.get("removedauthorizations");
+		MetadataBuilder facet_field_schema = facet_fieldSchema.get("schema");
+		MetadataBuilder facet_field_searchable = facet_fieldSchema.get("searchable");
+		MetadataBuilder facet_field_shareDenyTokens = facet_fieldSchema.get("shareDenyTokens");
+		MetadataBuilder facet_field_shareTokens = facet_fieldSchema.get("shareTokens");
+		MetadataBuilder facet_field_title = facet_fieldSchema.get("title");
+		MetadataBuilder facet_field_tokens = facet_fieldSchema.get("tokens");
+		MetadataBuilder facet_field_usedByModule = facet_fieldSchema.get("usedByModule");
+		MetadataBuilder facet_field_visibleInTrees = facet_fieldSchema.get("visibleInTrees");
+		MetadataBuilder facet_query_active = facet_querySchema.get("active");
+		MetadataBuilder facet_query_allReferences = facet_querySchema.get("allReferences");
+		MetadataBuilder facet_query_allauthorizations = facet_querySchema.get("allauthorizations");
+		MetadataBuilder facet_query_authorizations = facet_querySchema.get("authorizations");
+		MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
+		MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
+		MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
+		MetadataBuilder facet_query_denyTokens = facet_querySchema.get("denyTokens");
+		MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
+		MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
+		MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
+		MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
+		MetadataBuilder facet_query_followers = facet_querySchema.get("followers");
+		MetadataBuilder facet_query_id = facet_querySchema.get("id");
+		MetadataBuilder facet_query_inheritedauthorizations = facet_querySchema.get("inheritedauthorizations");
+		MetadataBuilder facet_query_legacyIdentifier = facet_querySchema.get("legacyIdentifier");
+		MetadataBuilder facet_query_logicallyDeletedOn = facet_querySchema.get("logicallyDeletedOn");
+		MetadataBuilder facet_query_manualTokens = facet_querySchema.get("manualTokens");
+		MetadataBuilder facet_query_markedForPreviewConversion = facet_querySchema.get("markedForPreviewConversion");
+		MetadataBuilder facet_query_markedForReindexing = facet_querySchema.get("markedForReindexing");
+		MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
+		MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
+		MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
+		MetadataBuilder facet_query_order = facet_querySchema.get("order");
+		MetadataBuilder facet_query_orderResult = facet_querySchema.get("orderResult");
+		MetadataBuilder facet_query_pages = facet_querySchema.get("pages");
+		MetadataBuilder facet_query_parentpath = facet_querySchema.get("parentpath");
+		MetadataBuilder facet_query_path = facet_querySchema.get("path");
+		MetadataBuilder facet_query_pathParts = facet_querySchema.get("pathParts");
+		MetadataBuilder facet_query_principalpath = facet_querySchema.get("principalpath");
+		MetadataBuilder facet_query_removedauthorizations = facet_querySchema.get("removedauthorizations");
+		MetadataBuilder facet_query_schema = facet_querySchema.get("schema");
+		MetadataBuilder facet_query_searchable = facet_querySchema.get("searchable");
+		MetadataBuilder facet_query_shareDenyTokens = facet_querySchema.get("shareDenyTokens");
+		MetadataBuilder facet_query_shareTokens = facet_querySchema.get("shareTokens");
+		MetadataBuilder facet_query_title = facet_querySchema.get("title");
+		MetadataBuilder facet_query_tokens = facet_querySchema.get("tokens");
+		MetadataBuilder facet_query_usedByModule = facet_querySchema.get("usedByModule");
+		MetadataBuilder facet_query_visibleInTrees = facet_querySchema.get("visibleInTrees");
+		MetadataBuilder task_approval_allReferences = task_approvalSchema.get("allReferences");
+		MetadataBuilder task_approval_allauthorizations = task_approvalSchema.get("allauthorizations");
+		MetadataBuilder task_approval_assignCandidates = task_approvalSchema.get("assignCandidates");
+		MetadataBuilder task_approval_assignedOn = task_approvalSchema.get("assignedOn");
+		MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
+		MetadataBuilder task_approval_authorizations = task_approvalSchema.get("authorizations");
+		MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
+		MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
+		MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
+		MetadataBuilder task_approval_denyTokens = task_approvalSchema.get("denyTokens");
+		MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
+		MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
+		MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
+		MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
+		MetadataBuilder task_approval_followers = task_approvalSchema.get("followers");
+		MetadataBuilder task_approval_id = task_approvalSchema.get("id");
+		MetadataBuilder task_approval_inheritedauthorizations = task_approvalSchema.get("inheritedauthorizations");
+		MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
+		MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
+		MetadataBuilder task_approval_manualTokens = task_approvalSchema.get("manualTokens");
+		MetadataBuilder task_approval_markedForPreviewConversion = task_approvalSchema.get("markedForPreviewConversion");
+		MetadataBuilder task_approval_markedForReindexing = task_approvalSchema.get("markedForReindexing");
+		MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
+		MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
+		MetadataBuilder task_approval_parentpath = task_approvalSchema.get("parentpath");
+		MetadataBuilder task_approval_path = task_approvalSchema.get("path");
+		MetadataBuilder task_approval_pathParts = task_approvalSchema.get("pathParts");
+		MetadataBuilder task_approval_principalpath = task_approvalSchema.get("principalpath");
+		MetadataBuilder task_approval_removedauthorizations = task_approvalSchema.get("removedauthorizations");
+		MetadataBuilder task_approval_schema = task_approvalSchema.get("schema");
+		MetadataBuilder task_approval_searchable = task_approvalSchema.get("searchable");
+		MetadataBuilder task_approval_shareDenyTokens = task_approvalSchema.get("shareDenyTokens");
+		MetadataBuilder task_approval_shareTokens = task_approvalSchema.get("shareTokens");
+		MetadataBuilder task_approval_title = task_approvalSchema.get("title");
+		MetadataBuilder task_approval_tokens = task_approvalSchema.get("tokens");
+		MetadataBuilder task_approval_visibleInTrees = task_approvalSchema.get("visibleInTrees");
+		MetadataBuilder task_approval_workflowIdentifier = task_approvalSchema.get("workflowIdentifier");
+		MetadataBuilder task_approval_workflowRecordIdentifiers = task_approvalSchema.get("workflowRecordIdentifiers");
+		connectorHttpDocument_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		connectorHttpDocument_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		connectorHttpDocument_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		connectorHttpDocument_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
@@ -1397,6 +1727,7 @@ public final class GeneratedESMigrationCombo {
 		connectorHttpDocument_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		connectorHttpDocument_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		connectorHttpDocument_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		connectorInstance_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		connectorInstance_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		connectorInstance_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		connectorInstance_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -1404,6 +1735,7 @@ public final class GeneratedESMigrationCombo {
 		connectorInstance_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		connectorInstance_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		connectorInstance_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		connectorLdapUserDocument_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		connectorLdapUserDocument_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		connectorLdapUserDocument_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		connectorLdapUserDocument_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
@@ -1412,6 +1744,7 @@ public final class GeneratedESMigrationCombo {
 		connectorLdapUserDocument_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		connectorLdapUserDocument_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		connectorLdapUserDocument_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		connectorSmbDocument_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		connectorSmbDocument_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		connectorSmbDocument_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		connectorSmbDocument_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
@@ -1420,6 +1753,7 @@ public final class GeneratedESMigrationCombo {
 		connectorSmbDocument_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		connectorSmbDocument_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		connectorSmbDocument_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		connectorSmbFolder_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		connectorSmbFolder_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		connectorSmbFolder_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		connectorSmbFolder_nextFetch.defineDataEntry().asCalculated(NextFetchCalculator.class);
@@ -1428,6 +1762,7 @@ public final class GeneratedESMigrationCombo {
 		connectorSmbFolder_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		connectorSmbFolder_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		connectorSmbFolder_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		connectorType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		connectorType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		connectorType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		connectorType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -1502,8 +1837,8 @@ public final class GeneratedESMigrationCombo {
 				.withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getType(collection, "connectorInstance").withSimpleSearchStatus(false)
 				.withAdvancedSearchStatus(false).withManageableStatus(false).withMetadataGroup(resourcesProvider.getLanguageMap(
-						asList("connectors.advanced", "default:connectors.configurationTab", "connectors.ldapUserTab",
-								"connectors.credentialsTab", "connectors.executionTab"))));
+						asList("connectors.executionTab", "connectors.advanced", "default:connectors.configurationTab",
+								"connectors.ldapUserTab", "connectors.credentialsTab"))));
 		transaction.add(manager.getSchema(collection, "connectorInstance_http").withFormMetadataCodes(
 				asList("connectorInstance_http_code", "connectorInstance_http_title", "connectorInstance_http_connectorType",
 						"connectorInstance_http_traversalCode", "connectorInstance_http_lastTraversalOn",
@@ -1844,13 +2179,14 @@ public final class GeneratedESMigrationCombo {
 		transaction.add(manager.getSchema(collection, "event_default").withFormMetadataCodes(
 				asList("event_default_title", "event_default_type", "event_default_delta", "event_default_eventPrincipalPath",
 						"event_default_ip", "event_default_permissionDateRange", "event_default_permissionRoles",
-						"event_default_permissionUsers", "event_default_reason", "event_default_userRoles",
-						"event_default_username")).withDisplayMetadataCodes(
+						"event_default_permissionUsers", "event_default_reason", "event_default_recordVersion",
+						"event_default_userRoles", "event_default_username")).withDisplayMetadataCodes(
 				asList("event_default_title", "event_default_type", "event_default_createdBy", "event_default_createdOn",
 						"event_default_modifiedBy", "event_default_modifiedOn", "event_default_delta",
 						"event_default_eventPrincipalPath", "event_default_ip", "event_default_permissionDateRange",
 						"event_default_permissionRoles", "event_default_permissionUsers", "event_default_reason",
-						"event_default_recordIdentifier", "event_default_userRoles", "event_default_username"))
+						"event_default_recordIdentifier", "event_default_recordVersion", "event_default_userRoles",
+						"event_default_username"))
 				.withSearchResultsMetadataCodes(asList("event_default_title", "event_default_modifiedOn"))
 				.withTableMetadataCodes(asList("event_default_title", "event_default_modifiedOn")));
 		transaction.add(manager.getSchema(collection, "facet_field").withFormMetadataCodes(
@@ -1944,6 +2280,6 @@ public final class GeneratedESMigrationCombo {
 						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
 						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
 						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
-						"core.manageTrash", "core.manageValueList", "core.viewEvents")));
+						"core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents")));
 	}
 }

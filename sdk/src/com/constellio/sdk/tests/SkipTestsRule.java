@@ -154,6 +154,9 @@ public class SkipTestsRule implements TestRule {
 			}
 		}
 
+		if (internetTest == null) {
+			internetTest = description.getAnnotation(InternetTest.class);
+		}
 		if (slowTest == null) {
 			slowTest = description.getAnnotation(SlowTest.class);
 		}

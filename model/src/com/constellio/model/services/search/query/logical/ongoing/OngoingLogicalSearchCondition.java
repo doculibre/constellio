@@ -12,6 +12,7 @@ import com.constellio.model.services.search.query.logical.condition.ConditionTem
 import com.constellio.model.services.search.query.logical.condition.DataStoreFieldLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchConditionBuilder;
 
 public class OngoingLogicalSearchCondition {
 
@@ -25,6 +26,10 @@ public class OngoingLogicalSearchCondition {
 	public OngoingLogicalSearchConditionWithDataStoreFields where(DataStoreField dataStoreField) {
 		return new OngoingLogicalSearchConditionWithDataStoreFields(filters, Arrays.asList(dataStoreField),
 				LogicalOperator.AND);
+	}
+
+	public LogicalSearchCondition where(LogicalSearchConditionBuilder builder) {
+		return builder.build(this);
 	}
 
 	public LogicalSearchCondition where(ConditionTemplate template) {

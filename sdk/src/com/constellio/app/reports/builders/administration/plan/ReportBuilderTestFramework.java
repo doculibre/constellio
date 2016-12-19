@@ -9,7 +9,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import com.constellio.app.ui.framework.reports.ReportBuilder;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
 
@@ -48,11 +48,15 @@ public abstract class ReportBuilderTestFramework extends ConstellioTest {
 
 	}
 
-	protected File build(ReportBuilder reportBuilder) {
+	protected File write(ReportWriter reportWriter) {
+		return build(reportWriter);
+	}
+
+	protected File build(ReportWriter reportWriter) {
 		String name = getTestName();
-		File outputFile = new File(outputFolder, name + "." + reportBuilder.getFileExtension());
+		File outputFile = new File(outputFolder, name + "." + reportWriter.getFileExtension());
 		try {
-			reportBuilder.build(new FileOutputStream(outputFile));
+			reportWriter.write(new FileOutputStream(outputFile));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -60,8 +64,8 @@ public abstract class ReportBuilderTestFramework extends ConstellioTest {
 		return outputFile;
 	}
 
-	protected void buildAndOpen(ReportBuilder reportBuilder) {
-		File outputFile = build(reportBuilder);
+	protected void buildAndOpen(ReportWriter reportWriter) {
+		File outputFile = write(reportWriter);
 		open(outputFile.getAbsolutePath());
 	}
 

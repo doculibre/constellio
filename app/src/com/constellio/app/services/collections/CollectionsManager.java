@@ -1,5 +1,9 @@
 package com.constellio.app.services.collections;
 
+import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
+import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
@@ -39,9 +43,11 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -78,6 +84,8 @@ public class CollectionsManager implements StatefulService {
 
 	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
 
+	private List<String> newDisabledCollections = new ArrayList<>();
+
 	public CollectionsManager(ModelLayerFactory modelLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
 			Delayed<MigrationServices> migrationServicesDelayed, SystemGlobalConfigsManager systemGlobalConfigsManager) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -99,15 +107,7 @@ public class CollectionsManager implements StatefulService {
 			initializeSystemCollection();
 		}
 
-		UserCredentialAndGlobalGroupsMigration migration = new UserCredentialAndGlobalGroupsMigration(modelLayerFactory);
-		if (migration.isMigrationRequired()) {
-			migration.migrateUserAndGroups();
-		}
-		try {
-			modelLayerFactory.newUserServices().getUser("admin");
-		} catch (UserServicesRuntimeException_NoSuchUser e) {
-			createAdminUser();
-		}
+		disableCollectionsWithoutSchemas();
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
@@ -119,8 +119,27 @@ public class CollectionsManager implements StatefulService {
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
 
-		cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
-		cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
+		if (schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
+			cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
+		}
+
+	}
+
+	private void disableCollectionsWithoutSchemas() {
+
+		for (String collection : collectionsListManager.getCollections()) {
+			try {
+				MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+				types.getSchemaType(User.SCHEMA_TYPE);
+
+			} catch (Exception e) {
+				collectionsListManager.remove(collection);
+				newDisabledCollections.add(collection);
+				LOGGER.warn("Collection '" + collection + "' has been disabled since it have no schemas "
+						+ "(probably a problem during the creation of the collection)");
+			}
+		}
 	}
 
 	private void createSystemCollection() {
@@ -132,30 +151,6 @@ public class CollectionsManager implements StatefulService {
 	private void initializeSystemCollection() {
 		for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
 			listener.systemCollectionCreated();
-		}
-	}
-
-	private void createAdminUser() {
-		//String serviceKey = "adminkey";
-		String password = "password";
-		String username = "admin";
-		String firstName = "System";
-		String lastName = "Admin";
-		String email = "admin@organization.com";
-		UserCredentialStatus status = UserCredentialStatus.ACTIVE;
-		String domain = "";
-		List<String> globalGroups = new ArrayList<>();
-		List<String> collections = new ArrayList<>();
-		boolean isSystemAdmin = true;
-
-		UserServices userServices = modelLayerFactory.newUserServices();
-		UserCredential adminCredentials = userServices.createUserCredential(
-				username, firstName, lastName, email, null, isSystemAdmin, globalGroups, collections,
-				new HashMap<String, LocalDateTime>(), status, domain, Arrays.asList(""), null);
-		userServices.addUpdateUserCredential(adminCredentials);
-		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
-		if (authenticationService.supportPasswordChange()) {
-			authenticationService.changePassword("admin", password);
 		}
 	}
 
@@ -171,11 +166,12 @@ public class CollectionsManager implements StatefulService {
 		modelLayerFactory.newUserServices().addGlobalGroupsInCollection(code);
 	}
 
-	Record createCollectionRecordWithCode(String code, String name, List<String> languages) {
+	public Record createCollectionRecordWithCode(String code, String name, List<String> languages) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		Record record = recordServices.newRecordWithSchema(collectionSchema(code));
 		record.set(collectionCodeMetadata(code), code);
 		record.set(collectionNameMetadata(code), name);
+		record.set(Schemas.TITLE, name);
 		record.set(collectionLanguages(code), languages);
 		try {
 			recordServices.add(record);
@@ -234,6 +230,11 @@ public class CollectionsManager implements StatefulService {
 		removeCollectionFromBigVault(collection);
 		removeCollectionFromVersionProperties(collection, configManager);
 		removeRemoveAllConfigsOfCollection(collection, configManager);
+		removeCollectionFromCache(collection);
+	}
+
+	private void removeCollectionFromCache(String collection) {
+		modelLayerFactory.getRecordsCaches().invalidate(collection);
 	}
 
 	private void removeRemoveAllConfigsOfCollection(final String collection, ConfigManager configManager) {

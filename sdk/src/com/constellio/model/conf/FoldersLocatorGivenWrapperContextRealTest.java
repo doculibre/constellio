@@ -32,8 +32,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	static File constellioProperties, keystore, constellioSetupProperties, wrapperInstallationFolder, conf, importation, bin, webapp,
 			webapp2, webapp3, webinf, wrapperConf, command, deploy, temp, commandCmdTxt, uploadConstellioWar, settings, custom,
 			lib, languageProfiles, dict, bpmns, anotherTemp, smtpMail, buildData, vaadin, themes, themesConstellio,
-			themesConstellioImages, crypt;
-	@Rule public TestRule benchmarkRun = new BenchmarkRule();
+			themesConstellioImages, crypt, workFolder;
 	String testCase;
 	FoldersLocator foldersLocator;
 
@@ -84,7 +83,7 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 		themesConstellio = new File(themes, "constellio");
 		themesConstellioImages = new File(themesConstellio, "images");
 		crypt = new File(conf, "key.txt");
-
+		workFolder = new File(wrapperInstallationFolder, "work");
 		importation.mkdir();
 		conf.mkdir();
 		languageProfiles.mkdir();
@@ -269,6 +268,12 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 	public void givenWebAppFolderWhenGetLibFolderForItThenReturnsDefaultLibFolder() {
 		assertThat(foldersLocator.getLibFolder())
 				.isEqualTo(foldersLocator.getLibFolder(foldersLocator.getConstellioWebappFolder()));
+	}
+
+	@Test
+	public void whenGetWorkFolderThenObtainCorrectFolderAndCreateItIfRequired() {
+		assertThat(foldersLocator.getWorkFolder()).isEqualTo(workFolder);
+		assertThat(workFolder).exists();
 	}
 
 	@Test

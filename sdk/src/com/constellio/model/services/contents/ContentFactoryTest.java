@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.io.InputStream;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,11 @@ public class ContentFactoryTest extends ConstellioTest {
 	ContentVersion currentVersion, currentCOVersion;
 	ContentVersion firstVersion;
 	ContentVersion secondVersion;
-	Content content, emptyContent;
+	ContentVersion sameInfoAsCurrentVersion;
+	ContentVersion sameInfoAsCurrentVersion2;
+	ContentVersion differentInfoFromCurrentVersion;
+	ContentVersion sameInfoAsCurrentVersion3;
+	Content content, emptyContent, sameInfoAsCurrentContent;
 	long zeLength1;
 	long zeLength2;
 	long zeLength3;
@@ -56,10 +61,22 @@ public class ContentFactoryTest extends ConstellioTest {
 				"0.1", aliceId, meetingOClock, "comment:Of\n\rVersion0.1");
 		secondVersion = new ContentVersion(new ContentVersionDataSummary("ze2ndHash", "zeMime2", zeLength2), "zeFileName_2.pdf",
 				"0.2", bobId, shishOClock, null);
+		
+		sameInfoAsCurrentVersion = new ContentVersion(new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3), "zeFileName_3.pdf",
+				"0.1", charlesId, teaOClock, "commentOf\nVersion::0.1");
+		sameInfoAsCurrentVersion2 = new ContentVersion(new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3), "zeFileName_3.pdf",
+				"0.2", charlesId, teaOClock, "commentOf\nVersion::0.2");
+		differentInfoFromCurrentVersion = new ContentVersion(new ContentVersionDataSummary("ze2ndHash", "zeMime2", zeLength2), "zeFileName_2.pdf",
+				"0.3", bobId, shishOClock, null);
+		sameInfoAsCurrentVersion3 = new ContentVersion(new ContentVersionDataSummary("zeHash", "zeMime3", zeLength3), "zeFileName_3.pdf",
+				"0.4", charlesId, teaOClock, "commentOf\nVersion::0.4");
+		
 		content = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion, tockOClock,
 				dakotaId, false);
 		emptyContent = new ContentImpl("zeContent", currentVersion, lazy(firstVersion, secondVersion), currentCOVersion,
 				tockOClock, dakotaId, true);
+		sameInfoAsCurrentContent = new ContentImpl("zeContent", currentVersion, lazy(sameInfoAsCurrentVersion, sameInfoAsCurrentVersion2, differentInfoFromCurrentVersion, sameInfoAsCurrentVersion3), currentCOVersion, tockOClock,
+				dakotaId, false);
 
 		when(alice.getId()).thenReturn(aliceId);
 		when(bob.getId()).thenReturn(bobId);
@@ -346,6 +363,66 @@ public class ContentFactoryTest extends ConstellioTest {
 		text = factory.toString(content.cancelCheckOut());
 		assertThat(text).doesNotContain(ContentFactory.checkedOut().getText());
 
+	}
+	
+	@Test
+	public void givenSameInfoAsCurrentVersionWhenToStringThenFoundOnce() {
+		
+		String text = factory.toString(sameInfoAsCurrentContent);
+		assertThat(StringUtils.countMatches(text, ":f=zeFileName_3.pdf")).isEqualTo(2);
+		assertThat(StringUtils.countMatches(text, ":u=charlesId")).isEqualTo(2);
+		assertThat(StringUtils.countMatches(text, ":m=zeMime3")).isEqualTo(2);
+		System.out.println(text);
+	}
+	
+	@Test
+	public void givenStringWithoutDuplicatedInfoWhenBuildThenInfoSetOnAllVersions() {
+		String text = "v2:zeContent::cf=zeFileName_3.pdf::co=true::f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=1.0:commentOf\r\n" + 
+				"Version$#$$#$1.0::f=zeCOFileName_3.pdf:h=zeCOHash:l=0:m=zeCOMime3:u=dakotaId:t=1351987323000:v=1.1:commentOf$#$$#$CheckedOutVersion::dakotaId::1351990923000::f=:h=zeHash:l=0:m=:u=:t=1351994523000:v=0.1:commentOf\r\n" + 
+				"Version$#$$#$0.1::f=:h=zeHash:l=0:m=:u=:t=1351994523000:v=0.2:commentOf\r\n" + 
+				"Version$#$$#$0.2::f=zeFileName_2.pdf:h=ze2ndHash:l=0:m=zeMime2:u=bobId:t=1351998123000:v=0.3:null::f=zeFileName_3.pdf:h=zeHash:l=0:m=zeMime3:u=charlesId:t=1351994523000:v=0.4:commentOf\r\n" + 
+				"Version$#$$#$0.4::";
+		
+		Content content = (Content) factory.build(text);
+		ContentVersion currentParsed = content.getCurrentVersion();
+		ContentVersion currentCOParsed = content.getCurrentCheckedOutVersion();
+		List<ContentVersion> historyVersions = content.getHistoryVersions();
+		
+		assertThat(currentParsed.getVersion()).isEqualTo("1.0");
+		assertThat(currentParsed.getFilename()).isEqualTo("zeFileName_3.pdf");
+		assertThat(currentParsed.getModifiedBy()).isEqualTo("charlesId");
+		assertThat(currentParsed.getMimetype()).isEqualTo("zeMime3");
+
+		assertThat(currentCOParsed.getVersion()).isEqualTo("1.1");
+		assertThat(currentCOParsed.getFilename()).isEqualTo("zeCOFileName_3.pdf");
+		assertThat(currentCOParsed.getModifiedBy()).isEqualTo("dakotaId");
+		assertThat(currentCOParsed.getMimetype()).isEqualTo("zeCOMime3");
+		
+		assertThat(historyVersions.size()).isEqualTo(4);
+		ContentVersion historyVersion1 = historyVersions.get(0);
+		ContentVersion historyVersion2 = historyVersions.get(1);
+		ContentVersion historyVersion3 = historyVersions.get(2);
+		ContentVersion historyVersion4 = historyVersions.get(3);
+
+		assertThat(historyVersion1.getVersion()).isEqualTo("0.1");
+		assertThat(historyVersion1.getFilename()).isEqualTo("zeFileName_3.pdf");
+		assertThat(historyVersion1.getModifiedBy()).isEqualTo("charlesId");
+		assertThat(historyVersion1.getMimetype()).isEqualTo("zeMime3");
+
+		assertThat(historyVersion2.getVersion()).isEqualTo("0.2");
+		assertThat(historyVersion2.getFilename()).isEqualTo("zeFileName_3.pdf");
+		assertThat(historyVersion2.getModifiedBy()).isEqualTo("charlesId");
+		assertThat(historyVersion2.getMimetype()).isEqualTo("zeMime3");
+
+		assertThat(historyVersion3.getVersion()).isEqualTo("0.3");
+		assertThat(historyVersion3.getFilename()).isEqualTo("zeFileName_2.pdf");
+		assertThat(historyVersion3.getModifiedBy()).isEqualTo("bobId");
+		assertThat(historyVersion3.getMimetype()).isEqualTo("zeMime2");
+
+		assertThat(historyVersion4.getVersion()).isEqualTo("0.4");
+		assertThat(historyVersion4.getFilename()).isEqualTo("zeFileName_3.pdf");
+		assertThat(historyVersion4.getModifiedBy()).isEqualTo("charlesId");
+		assertThat(historyVersion4.getMimetype()).isEqualTo("zeMime3");
 	}
 
 	private Lazy<List<ContentVersion>> lazy(final ContentVersion... contentVersions) {

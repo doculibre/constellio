@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -56,6 +57,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
 public class DecommissioningService {
+	private final AppLayerFactory appLayerFactory;
 	private final ModelLayerFactory modelLayerFactory;
 	private final RecordServices recordServices;
 	private final RMSchemasRecordsServices rm;
@@ -66,10 +68,11 @@ public class DecommissioningService {
 	private final RMConfigs configs;
 	private final DecommissioningEmailService emailService;
 
-	public DecommissioningService(String collection, ModelLayerFactory modelLayerFactory) {
+	public DecommissioningService(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
-		this.modelLayerFactory = modelLayerFactory;
-		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.recordServices = modelLayerFactory.newRecordServices();
@@ -318,7 +321,7 @@ public class DecommissioningService {
 	}
 
 	Decommissioner decommissioner(DecommissioningList decommissioningList) {
-		return Decommissioner.forList(decommissioningList, this);
+		return Decommissioner.forList(decommissioningList, this, appLayerFactory);
 	}
 
 	public List<Folder> getFoldersForAdministrativeUnit(String administrativeUnitId) {
@@ -631,49 +634,47 @@ public class DecommissioningService {
 	}
 
 	public Folder duplicateStructureAndSave(Folder folder, User currentUser) {
-
-		Transaction transaction = new Transaction();
-		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction);
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
-		return duplicatedFolder;
+        return duplicateStructure(folder, currentUser, true);
 	}
 
-	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction) {
-		Folder duplicatedFolder = duplicate(folder, currentUser);
+    public Folder duplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication) {
+
+        Transaction transaction = new Transaction();
+        Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+        try {
+            recordServices.execute(transaction);
+        } catch (RecordServicesException e) {
+            throw new RuntimeException(e);
+        }
+        return duplicatedFolder;
+    }
+
+	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction, boolean forceTitleDuplication) {
+		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
 		transaction.add(duplicatedFolder);
 
 		List<Folder> children = rm.wrapFolders(searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isEqualTo(folder))));
 		for (Folder child : children) {
-			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction);
+			Folder duplicatedChild = duplicateStructureAndAddToTransaction(child, currentUser, transaction, forceTitleDuplication);
 			duplicatedChild.setTitle(child.getTitle());
 			duplicatedChild.setParentFolder(duplicatedFolder);
 		}
 		return duplicatedFolder;
 	}
 
-	public Folder duplicateAndSave(Folder folder, User currentUser) {
-		try {
-			Folder duplicatedFolder = duplicate(folder, currentUser);
-			recordServices.add(duplicatedFolder);
-			return duplicatedFolder;
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	public Folder duplicate(Folder folder, User currentUser) {
+	public Folder duplicate(Folder folder, User currentUser, boolean forceTitleDuplication) {
 		Folder newFolder = rm.newFolderWithType(folder.getType());
 		MetadataSchema schema = newFolder.getSchema();
 
 		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
+            newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
-		newFolder.setTitle(folder.getTitle() + " (Copie)");
+
+        if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable() || forceTitleDuplication) {
+            newFolder.setTitle(folder.getTitle() + " (Copie)");
+        }
+
 		newFolder.setFormCreatedBy(currentUser);
 		newFolder.setFormCreatedOn(TimeProvider.getLocalDateTime());
 
@@ -729,7 +730,7 @@ public class DecommissioningService {
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 }
 

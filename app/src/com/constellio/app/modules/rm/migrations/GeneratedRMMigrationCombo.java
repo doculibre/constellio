@@ -15,19 +15,18 @@ import com.constellio.app.modules.rm.model.calculators.ContainerRecordTreeVisibi
 import com.constellio.app.modules.rm.model.calculators.ContainerTitleCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderActiveRetentionTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderApplicableCopyRuleCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderCalendarYearCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderArchivisticStatusCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator3;
 import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderInactiveDisposalTypeCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderSemiActiveRetentionTypeCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderStatusCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryCopyRetentionRulesOnDocumentTypesCalculator;
 import com.constellio.app.modules.rm.model.calculators.category.CategoryLevelCalculator;
@@ -47,7 +46,6 @@ import com.constellio.app.modules.rm.model.calculators.document.DocumentActualDe
 import com.constellio.app.modules.rm.model.calculators.document.DocumentActualTransferDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentApplicableCopyRulesCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentArchivisticStatusCalculator;
-import com.constellio.app.modules.rm.model.calculators.document.DocumentCalendarYearCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedDestructionDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentExpectedTransferDateCalculator;
@@ -96,6 +94,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
@@ -198,6 +197,11 @@ public final class GeneratedRMMigrationCombo {
 		MetadataSchemaBuilder uniformSubdivisionSchema = uniformSubdivisionSchemaType.getDefaultSchema();
 		MetadataBuilder administrativeUnit_adress = administrativeUnitSchema.create("adress").setType(MetadataValueType.STRING);
 		administrativeUnit_adress.setUndeletable(true);
+		MetadataBuilder administrativeUnit_allReferences = administrativeUnitSchema.get("allReferences");
+		administrativeUnit_allReferences.setMultivalue(true);
+		administrativeUnit_allReferences.setSystemReserved(true);
+		administrativeUnit_allReferences.setUndeletable(true);
+		administrativeUnit_allReferences.setEssential(true);
 		MetadataBuilder administrativeUnit_allauthorizations = administrativeUnitSchema.get("allauthorizations");
 		administrativeUnit_allauthorizations.setMultivalue(true);
 		administrativeUnit_allauthorizations.setSystemReserved(true);
@@ -247,6 +251,9 @@ public final class GeneratedRMMigrationCombo {
 		administrativeUnit_detachedauthorizations.setSystemReserved(true);
 		administrativeUnit_detachedauthorizations.setUndeletable(true);
 		administrativeUnit_detachedauthorizations.setEssential(true);
+		MetadataBuilder administrativeUnit_errorOnPhysicalDeletion = administrativeUnitSchema.get("errorOnPhysicalDeletion");
+		administrativeUnit_errorOnPhysicalDeletion.setSystemReserved(true);
+		administrativeUnit_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder administrativeUnit_filingSpaces = administrativeUnitSchema.create("filingSpaces")
 				.setType(MetadataValueType.REFERENCE);
 		administrativeUnit_filingSpaces.setMultivalue(true);
@@ -290,6 +297,9 @@ public final class GeneratedRMMigrationCombo {
 		administrativeUnit_legacyIdentifier.setSearchable(true);
 		administrativeUnit_legacyIdentifier.setUniqueValue(true);
 		administrativeUnit_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder administrativeUnit_logicallyDeletedOn = administrativeUnitSchema.get("logicallyDeletedOn");
+		administrativeUnit_logicallyDeletedOn.setSystemReserved(true);
+		administrativeUnit_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder administrativeUnit_manualTokens = administrativeUnitSchema.get("manualTokens");
 		administrativeUnit_manualTokens.setMultivalue(true);
 		administrativeUnit_manualTokens.setSystemReserved(true);
@@ -301,6 +311,10 @@ public final class GeneratedRMMigrationCombo {
 		administrativeUnit_markedForPreviewConversion.setSystemReserved(true);
 		administrativeUnit_markedForPreviewConversion.setUndeletable(true);
 		administrativeUnit_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder administrativeUnit_markedForReindexing = administrativeUnitSchema.get("markedForReindexing");
+		administrativeUnit_markedForReindexing.setSystemReserved(true);
+		administrativeUnit_markedForReindexing.setUndeletable(true);
+		administrativeUnit_markedForReindexing.setEssential(true);
 		MetadataBuilder administrativeUnit_modifiedBy = administrativeUnitSchema.get("modifiedBy");
 		administrativeUnit_modifiedBy.setSystemReserved(true);
 		administrativeUnit_modifiedBy.setUndeletable(true);
@@ -380,6 +394,10 @@ public final class GeneratedRMMigrationCombo {
 		administrativeUnit_visibleInTrees.setSystemReserved(true);
 		administrativeUnit_visibleInTrees.setUndeletable(true);
 		administrativeUnit_visibleInTrees.setEssential(true);
+		MetadataBuilder cart_allReferences = cartSchema.get("allReferences");
+		cart_allReferences.setMultivalue(true);
+		cart_allReferences.setSystemReserved(true);
+		cart_allReferences.setUndeletable(true);
 		MetadataBuilder cart_allauthorizations = cartSchema.get("allauthorizations");
 		cart_allauthorizations.setMultivalue(true);
 		cart_allauthorizations.setSystemReserved(true);
@@ -414,6 +432,9 @@ public final class GeneratedRMMigrationCombo {
 		cart_documents.setMultivalue(true);
 		cart_documents.setUndeletable(true);
 		cart_documents.defineReferencesTo(documentSchemaType);
+		MetadataBuilder cart_errorOnPhysicalDeletion = cartSchema.get("errorOnPhysicalDeletion");
+		cart_errorOnPhysicalDeletion.setSystemReserved(true);
+		cart_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder cart_folders = cartSchema.create("folders").setType(MetadataValueType.REFERENCE);
 		cart_folders.setMultivalue(true);
 		cart_folders.setUndeletable(true);
@@ -442,6 +463,9 @@ public final class GeneratedRMMigrationCombo {
 		cart_legacyIdentifier.setSearchable(true);
 		cart_legacyIdentifier.setUniqueValue(true);
 		cart_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder cart_logicallyDeletedOn = cartSchema.get("logicallyDeletedOn");
+		cart_logicallyDeletedOn.setSystemReserved(true);
+		cart_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder cart_manualTokens = cartSchema.get("manualTokens");
 		cart_manualTokens.setMultivalue(true);
 		cart_manualTokens.setSystemReserved(true);
@@ -450,6 +474,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder cart_markedForPreviewConversion = cartSchema.get("markedForPreviewConversion");
 		cart_markedForPreviewConversion.setSystemReserved(true);
 		cart_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder cart_markedForReindexing = cartSchema.get("markedForReindexing");
+		cart_markedForReindexing.setSystemReserved(true);
+		cart_markedForReindexing.setUndeletable(true);
 		MetadataBuilder cart_modifiedBy = cartSchema.get("modifiedBy");
 		cart_modifiedBy.setSystemReserved(true);
 		cart_modifiedBy.setUndeletable(true);
@@ -512,6 +539,11 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder cart_visibleInTrees = cartSchema.get("visibleInTrees");
 		cart_visibleInTrees.setSystemReserved(true);
 		cart_visibleInTrees.setUndeletable(true);
+		MetadataBuilder category_allReferences = categorySchema.get("allReferences");
+		category_allReferences.setMultivalue(true);
+		category_allReferences.setSystemReserved(true);
+		category_allReferences.setUndeletable(true);
+		category_allReferences.setEssential(true);
 		MetadataBuilder category_allauthorizations = categorySchema.get("allauthorizations");
 		category_allauthorizations.setMultivalue(true);
 		category_allauthorizations.setSystemReserved(true);
@@ -564,6 +596,9 @@ public final class GeneratedRMMigrationCombo {
 		category_detachedauthorizations.setSystemReserved(true);
 		category_detachedauthorizations.setUndeletable(true);
 		category_detachedauthorizations.setEssential(true);
+		MetadataBuilder category_errorOnPhysicalDeletion = categorySchema.get("errorOnPhysicalDeletion");
+		category_errorOnPhysicalDeletion.setSystemReserved(true);
+		category_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder category_followers = categorySchema.get("followers");
 		category_followers.setMultivalue(true);
 		category_followers.setSystemReserved(true);
@@ -601,6 +636,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder category_linkable = categorySchema.create("linkable").setType(MetadataValueType.BOOLEAN);
 		category_linkable.setUndeletable(true);
 		category_linkable.setEssential(true);
+		MetadataBuilder category_logicallyDeletedOn = categorySchema.get("logicallyDeletedOn");
+		category_logicallyDeletedOn.setSystemReserved(true);
+		category_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder category_manualTokens = categorySchema.get("manualTokens");
 		category_manualTokens.setMultivalue(true);
 		category_manualTokens.setSystemReserved(true);
@@ -611,6 +649,10 @@ public final class GeneratedRMMigrationCombo {
 		category_markedForPreviewConversion.setSystemReserved(true);
 		category_markedForPreviewConversion.setUndeletable(true);
 		category_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder category_markedForReindexing = categorySchema.get("markedForReindexing");
+		category_markedForReindexing.setSystemReserved(true);
+		category_markedForReindexing.setUndeletable(true);
+		category_markedForReindexing.setEssential(true);
 		MetadataBuilder category_modifiedBy = categorySchema.get("modifiedBy");
 		category_modifiedBy.setSystemReserved(true);
 		category_modifiedBy.setUndeletable(true);
@@ -694,6 +736,15 @@ public final class GeneratedRMMigrationCombo {
 		containerRecord_administrativeUnit.setUndeletable(true);
 		containerRecord_administrativeUnit.setEssential(true);
 		containerRecord_administrativeUnit.defineTaxonomyRelationshipToType(administrativeUnitSchemaType);
+		MetadataBuilder containerRecord_administrativeUnits = containerRecordSchema.create("administrativeUnits")
+				.setType(MetadataValueType.REFERENCE);
+		containerRecord_administrativeUnits.setMultivalue(true);
+		containerRecord_administrativeUnits.defineReferencesTo(administrativeUnitSchemaType);
+		MetadataBuilder containerRecord_allReferences = containerRecordSchema.get("allReferences");
+		containerRecord_allReferences.setMultivalue(true);
+		containerRecord_allReferences.setSystemReserved(true);
+		containerRecord_allReferences.setUndeletable(true);
+		containerRecord_allReferences.setEssential(true);
 		MetadataBuilder containerRecord_allauthorizations = containerRecordSchema.get("allauthorizations");
 		containerRecord_allauthorizations.setMultivalue(true);
 		containerRecord_allauthorizations.setSystemReserved(true);
@@ -756,6 +807,9 @@ public final class GeneratedRMMigrationCombo {
 		containerRecord_detachedauthorizations.setSystemReserved(true);
 		containerRecord_detachedauthorizations.setUndeletable(true);
 		containerRecord_detachedauthorizations.setEssential(true);
+		MetadataBuilder containerRecord_errorOnPhysicalDeletion = containerRecordSchema.get("errorOnPhysicalDeletion");
+		containerRecord_errorOnPhysicalDeletion.setSystemReserved(true);
+		containerRecord_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder containerRecord_filingSpace = containerRecordSchema.create("filingSpace")
 				.setType(MetadataValueType.REFERENCE);
 		containerRecord_filingSpace.setUndeletable(true);
@@ -799,6 +853,9 @@ public final class GeneratedRMMigrationCombo {
 		containerRecord_legacyIdentifier.setSearchable(true);
 		containerRecord_legacyIdentifier.setUniqueValue(true);
 		containerRecord_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder containerRecord_logicallyDeletedOn = containerRecordSchema.get("logicallyDeletedOn");
+		containerRecord_logicallyDeletedOn.setSystemReserved(true);
+		containerRecord_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder containerRecord_manualTokens = containerRecordSchema.get("manualTokens");
 		containerRecord_manualTokens.setMultivalue(true);
 		containerRecord_manualTokens.setSystemReserved(true);
@@ -809,6 +866,10 @@ public final class GeneratedRMMigrationCombo {
 		containerRecord_markedForPreviewConversion.setSystemReserved(true);
 		containerRecord_markedForPreviewConversion.setUndeletable(true);
 		containerRecord_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder containerRecord_markedForReindexing = containerRecordSchema.get("markedForReindexing");
+		containerRecord_markedForReindexing.setSystemReserved(true);
+		containerRecord_markedForReindexing.setUndeletable(true);
+		containerRecord_markedForReindexing.setEssential(true);
 		MetadataBuilder containerRecord_modifiedBy = containerRecordSchema.get("modifiedBy");
 		containerRecord_modifiedBy.setSystemReserved(true);
 		containerRecord_modifiedBy.setUndeletable(true);
@@ -913,6 +974,10 @@ public final class GeneratedRMMigrationCombo {
 		containerRecord_visibleInTrees.setSystemReserved(true);
 		containerRecord_visibleInTrees.setUndeletable(true);
 		containerRecord_visibleInTrees.setEssential(true);
+		MetadataBuilder ddvContainerRecordType_allReferences = ddvContainerRecordTypeSchema.get("allReferences");
+		ddvContainerRecordType_allReferences.setMultivalue(true);
+		ddvContainerRecordType_allReferences.setSystemReserved(true);
+		ddvContainerRecordType_allReferences.setUndeletable(true);
 		MetadataBuilder ddvContainerRecordType_allauthorizations = ddvContainerRecordTypeSchema.get("allauthorizations");
 		ddvContainerRecordType_allauthorizations.setMultivalue(true);
 		ddvContainerRecordType_allauthorizations.setSystemReserved(true);
@@ -956,6 +1021,10 @@ public final class GeneratedRMMigrationCombo {
 				.get("detachedauthorizations");
 		ddvContainerRecordType_detachedauthorizations.setSystemReserved(true);
 		ddvContainerRecordType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvContainerRecordType_errorOnPhysicalDeletion = ddvContainerRecordTypeSchema
+				.get("errorOnPhysicalDeletion");
+		ddvContainerRecordType_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvContainerRecordType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvContainerRecordType_followers = ddvContainerRecordTypeSchema.get("followers");
 		ddvContainerRecordType_followers.setMultivalue(true);
 		ddvContainerRecordType_followers.setSystemReserved(true);
@@ -983,6 +1052,9 @@ public final class GeneratedRMMigrationCombo {
 		ddvContainerRecordType_legacyIdentifier.setUnmodifiable(true);
 		MetadataBuilder ddvContainerRecordType_linkedSchema = ddvContainerRecordTypeSchema.create("linkedSchema")
 				.setType(MetadataValueType.STRING);
+		MetadataBuilder ddvContainerRecordType_logicallyDeletedOn = ddvContainerRecordTypeSchema.get("logicallyDeletedOn");
+		ddvContainerRecordType_logicallyDeletedOn.setSystemReserved(true);
+		ddvContainerRecordType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvContainerRecordType_manualTokens = ddvContainerRecordTypeSchema.get("manualTokens");
 		ddvContainerRecordType_manualTokens.setMultivalue(true);
 		ddvContainerRecordType_manualTokens.setSystemReserved(true);
@@ -992,6 +1064,9 @@ public final class GeneratedRMMigrationCombo {
 				.get("markedForPreviewConversion");
 		ddvContainerRecordType_markedForPreviewConversion.setSystemReserved(true);
 		ddvContainerRecordType_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder ddvContainerRecordType_markedForReindexing = ddvContainerRecordTypeSchema.get("markedForReindexing");
+		ddvContainerRecordType_markedForReindexing.setSystemReserved(true);
+		ddvContainerRecordType_markedForReindexing.setUndeletable(true);
 		MetadataBuilder ddvContainerRecordType_modifiedBy = ddvContainerRecordTypeSchema.get("modifiedBy");
 		ddvContainerRecordType_modifiedBy.setSystemReserved(true);
 		ddvContainerRecordType_modifiedBy.setUndeletable(true);
@@ -1048,6 +1123,10 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvContainerRecordType_visibleInTrees = ddvContainerRecordTypeSchema.get("visibleInTrees");
 		ddvContainerRecordType_visibleInTrees.setSystemReserved(true);
 		ddvContainerRecordType_visibleInTrees.setUndeletable(true);
+		MetadataBuilder ddvDocumentType_allReferences = ddvDocumentTypeSchema.get("allReferences");
+		ddvDocumentType_allReferences.setMultivalue(true);
+		ddvDocumentType_allReferences.setSystemReserved(true);
+		ddvDocumentType_allReferences.setUndeletable(true);
 		MetadataBuilder ddvDocumentType_allauthorizations = ddvDocumentTypeSchema.get("allauthorizations");
 		ddvDocumentType_allauthorizations.setMultivalue(true);
 		ddvDocumentType_allauthorizations.setSystemReserved(true);
@@ -1087,6 +1166,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvDocumentType_detachedauthorizations = ddvDocumentTypeSchema.get("detachedauthorizations");
 		ddvDocumentType_detachedauthorizations.setSystemReserved(true);
 		ddvDocumentType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvDocumentType_errorOnPhysicalDeletion = ddvDocumentTypeSchema.get("errorOnPhysicalDeletion");
+		ddvDocumentType_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvDocumentType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvDocumentType_followers = ddvDocumentTypeSchema.get("followers");
 		ddvDocumentType_followers.setMultivalue(true);
 		ddvDocumentType_followers.setSystemReserved(true);
@@ -1113,6 +1195,9 @@ public final class GeneratedRMMigrationCombo {
 		ddvDocumentType_legacyIdentifier.setUnmodifiable(true);
 		MetadataBuilder ddvDocumentType_linkedSchema = ddvDocumentTypeSchema.create("linkedSchema")
 				.setType(MetadataValueType.STRING);
+		MetadataBuilder ddvDocumentType_logicallyDeletedOn = ddvDocumentTypeSchema.get("logicallyDeletedOn");
+		ddvDocumentType_logicallyDeletedOn.setSystemReserved(true);
+		ddvDocumentType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvDocumentType_manualTokens = ddvDocumentTypeSchema.get("manualTokens");
 		ddvDocumentType_manualTokens.setMultivalue(true);
 		ddvDocumentType_manualTokens.setSystemReserved(true);
@@ -1121,6 +1206,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvDocumentType_markedForPreviewConversion = ddvDocumentTypeSchema.get("markedForPreviewConversion");
 		ddvDocumentType_markedForPreviewConversion.setSystemReserved(true);
 		ddvDocumentType_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder ddvDocumentType_markedForReindexing = ddvDocumentTypeSchema.get("markedForReindexing");
+		ddvDocumentType_markedForReindexing.setSystemReserved(true);
+		ddvDocumentType_markedForReindexing.setUndeletable(true);
 		MetadataBuilder ddvDocumentType_modifiedBy = ddvDocumentTypeSchema.get("modifiedBy");
 		ddvDocumentType_modifiedBy.setSystemReserved(true);
 		ddvDocumentType_modifiedBy.setUndeletable(true);
@@ -1181,6 +1269,10 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvDocumentType_visibleInTrees = ddvDocumentTypeSchema.get("visibleInTrees");
 		ddvDocumentType_visibleInTrees.setSystemReserved(true);
 		ddvDocumentType_visibleInTrees.setUndeletable(true);
+		MetadataBuilder ddvFolderType_allReferences = ddvFolderTypeSchema.get("allReferences");
+		ddvFolderType_allReferences.setMultivalue(true);
+		ddvFolderType_allReferences.setSystemReserved(true);
+		ddvFolderType_allReferences.setUndeletable(true);
 		MetadataBuilder ddvFolderType_allauthorizations = ddvFolderTypeSchema.get("allauthorizations");
 		ddvFolderType_allauthorizations.setMultivalue(true);
 		ddvFolderType_allauthorizations.setSystemReserved(true);
@@ -1220,6 +1312,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvFolderType_detachedauthorizations = ddvFolderTypeSchema.get("detachedauthorizations");
 		ddvFolderType_detachedauthorizations.setSystemReserved(true);
 		ddvFolderType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvFolderType_errorOnPhysicalDeletion = ddvFolderTypeSchema.get("errorOnPhysicalDeletion");
+		ddvFolderType_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvFolderType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvFolderType_followers = ddvFolderTypeSchema.get("followers");
 		ddvFolderType_followers.setMultivalue(true);
 		ddvFolderType_followers.setSystemReserved(true);
@@ -1245,6 +1340,9 @@ public final class GeneratedRMMigrationCombo {
 		ddvFolderType_legacyIdentifier.setUniqueValue(true);
 		ddvFolderType_legacyIdentifier.setUnmodifiable(true);
 		MetadataBuilder ddvFolderType_linkedSchema = ddvFolderTypeSchema.create("linkedSchema").setType(MetadataValueType.STRING);
+		MetadataBuilder ddvFolderType_logicallyDeletedOn = ddvFolderTypeSchema.get("logicallyDeletedOn");
+		ddvFolderType_logicallyDeletedOn.setSystemReserved(true);
+		ddvFolderType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvFolderType_manualTokens = ddvFolderTypeSchema.get("manualTokens");
 		ddvFolderType_manualTokens.setMultivalue(true);
 		ddvFolderType_manualTokens.setSystemReserved(true);
@@ -1253,6 +1351,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvFolderType_markedForPreviewConversion = ddvFolderTypeSchema.get("markedForPreviewConversion");
 		ddvFolderType_markedForPreviewConversion.setSystemReserved(true);
 		ddvFolderType_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder ddvFolderType_markedForReindexing = ddvFolderTypeSchema.get("markedForReindexing");
+		ddvFolderType_markedForReindexing.setSystemReserved(true);
+		ddvFolderType_markedForReindexing.setUndeletable(true);
 		MetadataBuilder ddvFolderType_modifiedBy = ddvFolderTypeSchema.get("modifiedBy");
 		ddvFolderType_modifiedBy.setSystemReserved(true);
 		ddvFolderType_modifiedBy.setUndeletable(true);
@@ -1309,6 +1410,10 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvFolderType_visibleInTrees = ddvFolderTypeSchema.get("visibleInTrees");
 		ddvFolderType_visibleInTrees.setSystemReserved(true);
 		ddvFolderType_visibleInTrees.setUndeletable(true);
+		MetadataBuilder ddvMediumType_allReferences = ddvMediumTypeSchema.get("allReferences");
+		ddvMediumType_allReferences.setMultivalue(true);
+		ddvMediumType_allReferences.setSystemReserved(true);
+		ddvMediumType_allReferences.setUndeletable(true);
 		MetadataBuilder ddvMediumType_allauthorizations = ddvMediumTypeSchema.get("allauthorizations");
 		ddvMediumType_allauthorizations.setMultivalue(true);
 		ddvMediumType_allauthorizations.setSystemReserved(true);
@@ -1350,6 +1455,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvMediumType_detachedauthorizations = ddvMediumTypeSchema.get("detachedauthorizations");
 		ddvMediumType_detachedauthorizations.setSystemReserved(true);
 		ddvMediumType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvMediumType_errorOnPhysicalDeletion = ddvMediumTypeSchema.get("errorOnPhysicalDeletion");
+		ddvMediumType_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvMediumType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvMediumType_followers = ddvMediumTypeSchema.get("followers");
 		ddvMediumType_followers.setMultivalue(true);
 		ddvMediumType_followers.setSystemReserved(true);
@@ -1374,6 +1482,9 @@ public final class GeneratedRMMigrationCombo {
 		ddvMediumType_legacyIdentifier.setSearchable(true);
 		ddvMediumType_legacyIdentifier.setUniqueValue(true);
 		ddvMediumType_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder ddvMediumType_logicallyDeletedOn = ddvMediumTypeSchema.get("logicallyDeletedOn");
+		ddvMediumType_logicallyDeletedOn.setSystemReserved(true);
+		ddvMediumType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvMediumType_manualTokens = ddvMediumTypeSchema.get("manualTokens");
 		ddvMediumType_manualTokens.setMultivalue(true);
 		ddvMediumType_manualTokens.setSystemReserved(true);
@@ -1382,6 +1493,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvMediumType_markedForPreviewConversion = ddvMediumTypeSchema.get("markedForPreviewConversion");
 		ddvMediumType_markedForPreviewConversion.setSystemReserved(true);
 		ddvMediumType_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder ddvMediumType_markedForReindexing = ddvMediumTypeSchema.get("markedForReindexing");
+		ddvMediumType_markedForReindexing.setSystemReserved(true);
+		ddvMediumType_markedForReindexing.setUndeletable(true);
 		MetadataBuilder ddvMediumType_modifiedBy = ddvMediumTypeSchema.get("modifiedBy");
 		ddvMediumType_modifiedBy.setSystemReserved(true);
 		ddvMediumType_modifiedBy.setUndeletable(true);
@@ -1438,6 +1552,10 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvMediumType_visibleInTrees = ddvMediumTypeSchema.get("visibleInTrees");
 		ddvMediumType_visibleInTrees.setSystemReserved(true);
 		ddvMediumType_visibleInTrees.setUndeletable(true);
+		MetadataBuilder ddvStorageSpaceType_allReferences = ddvStorageSpaceTypeSchema.get("allReferences");
+		ddvStorageSpaceType_allReferences.setMultivalue(true);
+		ddvStorageSpaceType_allReferences.setSystemReserved(true);
+		ddvStorageSpaceType_allReferences.setUndeletable(true);
 		MetadataBuilder ddvStorageSpaceType_allauthorizations = ddvStorageSpaceTypeSchema.get("allauthorizations");
 		ddvStorageSpaceType_allauthorizations.setMultivalue(true);
 		ddvStorageSpaceType_allauthorizations.setSystemReserved(true);
@@ -1479,6 +1597,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvStorageSpaceType_detachedauthorizations = ddvStorageSpaceTypeSchema.get("detachedauthorizations");
 		ddvStorageSpaceType_detachedauthorizations.setSystemReserved(true);
 		ddvStorageSpaceType_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvStorageSpaceType_errorOnPhysicalDeletion = ddvStorageSpaceTypeSchema.get("errorOnPhysicalDeletion");
+		ddvStorageSpaceType_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvStorageSpaceType_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvStorageSpaceType_followers = ddvStorageSpaceTypeSchema.get("followers");
 		ddvStorageSpaceType_followers.setMultivalue(true);
 		ddvStorageSpaceType_followers.setSystemReserved(true);
@@ -1505,6 +1626,9 @@ public final class GeneratedRMMigrationCombo {
 		ddvStorageSpaceType_legacyIdentifier.setUnmodifiable(true);
 		MetadataBuilder ddvStorageSpaceType_linkedSchema = ddvStorageSpaceTypeSchema.create("linkedSchema")
 				.setType(MetadataValueType.STRING);
+		MetadataBuilder ddvStorageSpaceType_logicallyDeletedOn = ddvStorageSpaceTypeSchema.get("logicallyDeletedOn");
+		ddvStorageSpaceType_logicallyDeletedOn.setSystemReserved(true);
+		ddvStorageSpaceType_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvStorageSpaceType_manualTokens = ddvStorageSpaceTypeSchema.get("manualTokens");
 		ddvStorageSpaceType_manualTokens.setMultivalue(true);
 		ddvStorageSpaceType_manualTokens.setSystemReserved(true);
@@ -1514,6 +1638,9 @@ public final class GeneratedRMMigrationCombo {
 				.get("markedForPreviewConversion");
 		ddvStorageSpaceType_markedForPreviewConversion.setSystemReserved(true);
 		ddvStorageSpaceType_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder ddvStorageSpaceType_markedForReindexing = ddvStorageSpaceTypeSchema.get("markedForReindexing");
+		ddvStorageSpaceType_markedForReindexing.setSystemReserved(true);
+		ddvStorageSpaceType_markedForReindexing.setUndeletable(true);
 		MetadataBuilder ddvStorageSpaceType_modifiedBy = ddvStorageSpaceTypeSchema.get("modifiedBy");
 		ddvStorageSpaceType_modifiedBy.setSystemReserved(true);
 		ddvStorageSpaceType_modifiedBy.setUndeletable(true);
@@ -1570,6 +1697,10 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvStorageSpaceType_visibleInTrees = ddvStorageSpaceTypeSchema.get("visibleInTrees");
 		ddvStorageSpaceType_visibleInTrees.setSystemReserved(true);
 		ddvStorageSpaceType_visibleInTrees.setUndeletable(true);
+		MetadataBuilder ddvVariablePeriod_allReferences = ddvVariablePeriodSchema.get("allReferences");
+		ddvVariablePeriod_allReferences.setMultivalue(true);
+		ddvVariablePeriod_allReferences.setSystemReserved(true);
+		ddvVariablePeriod_allReferences.setUndeletable(true);
 		MetadataBuilder ddvVariablePeriod_allauthorizations = ddvVariablePeriodSchema.get("allauthorizations");
 		ddvVariablePeriod_allauthorizations.setMultivalue(true);
 		ddvVariablePeriod_allauthorizations.setSystemReserved(true);
@@ -1613,6 +1744,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvVariablePeriod_detachedauthorizations = ddvVariablePeriodSchema.get("detachedauthorizations");
 		ddvVariablePeriod_detachedauthorizations.setSystemReserved(true);
 		ddvVariablePeriod_detachedauthorizations.setUndeletable(true);
+		MetadataBuilder ddvVariablePeriod_errorOnPhysicalDeletion = ddvVariablePeriodSchema.get("errorOnPhysicalDeletion");
+		ddvVariablePeriod_errorOnPhysicalDeletion.setSystemReserved(true);
+		ddvVariablePeriod_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder ddvVariablePeriod_followers = ddvVariablePeriodSchema.get("followers");
 		ddvVariablePeriod_followers.setMultivalue(true);
 		ddvVariablePeriod_followers.setSystemReserved(true);
@@ -1637,6 +1771,9 @@ public final class GeneratedRMMigrationCombo {
 		ddvVariablePeriod_legacyIdentifier.setSearchable(true);
 		ddvVariablePeriod_legacyIdentifier.setUniqueValue(true);
 		ddvVariablePeriod_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder ddvVariablePeriod_logicallyDeletedOn = ddvVariablePeriodSchema.get("logicallyDeletedOn");
+		ddvVariablePeriod_logicallyDeletedOn.setSystemReserved(true);
+		ddvVariablePeriod_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder ddvVariablePeriod_manualTokens = ddvVariablePeriodSchema.get("manualTokens");
 		ddvVariablePeriod_manualTokens.setMultivalue(true);
 		ddvVariablePeriod_manualTokens.setSystemReserved(true);
@@ -1645,6 +1782,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder ddvVariablePeriod_markedForPreviewConversion = ddvVariablePeriodSchema.get("markedForPreviewConversion");
 		ddvVariablePeriod_markedForPreviewConversion.setSystemReserved(true);
 		ddvVariablePeriod_markedForPreviewConversion.setUndeletable(true);
+		MetadataBuilder ddvVariablePeriod_markedForReindexing = ddvVariablePeriodSchema.get("markedForReindexing");
+		ddvVariablePeriod_markedForReindexing.setSystemReserved(true);
+		ddvVariablePeriod_markedForReindexing.setUndeletable(true);
 		MetadataBuilder ddvVariablePeriod_modifiedBy = ddvVariablePeriodSchema.get("modifiedBy");
 		ddvVariablePeriod_modifiedBy.setSystemReserved(true);
 		ddvVariablePeriod_modifiedBy.setUndeletable(true);
@@ -1706,6 +1846,11 @@ public final class GeneratedRMMigrationCombo {
 		decommissioningList_administrativeUnit.setUndeletable(true);
 		decommissioningList_administrativeUnit.setEssential(true);
 		decommissioningList_administrativeUnit.defineReferencesTo(administrativeUnitSchemaType);
+		MetadataBuilder decommissioningList_allReferences = decommissioningListSchema.get("allReferences");
+		decommissioningList_allReferences.setMultivalue(true);
+		decommissioningList_allReferences.setSystemReserved(true);
+		decommissioningList_allReferences.setUndeletable(true);
+		decommissioningList_allReferences.setEssential(true);
 		MetadataBuilder decommissioningList_allauthorizations = decommissioningListSchema.get("allauthorizations");
 		decommissioningList_allauthorizations.setMultivalue(true);
 		decommissioningList_allauthorizations.setSystemReserved(true);
@@ -1796,6 +1941,9 @@ public final class GeneratedRMMigrationCombo {
 				.setType(MetadataValueType.BOOLEAN);
 		decommissioningList_electronicMedium.setUndeletable(true);
 		decommissioningList_electronicMedium.setEssential(true);
+		MetadataBuilder decommissioningList_errorOnPhysicalDeletion = decommissioningListSchema.get("errorOnPhysicalDeletion");
+		decommissioningList_errorOnPhysicalDeletion.setSystemReserved(true);
+		decommissioningList_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder decommissioningList_filingSpace = decommissioningListSchema.create("filingSpace")
 				.setType(MetadataValueType.REFERENCE);
 		decommissioningList_filingSpace.setUndeletable(true);
@@ -1851,6 +1999,9 @@ public final class GeneratedRMMigrationCombo {
 		decommissioningList_legacyIdentifier.setSearchable(true);
 		decommissioningList_legacyIdentifier.setUniqueValue(true);
 		decommissioningList_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder decommissioningList_logicallyDeletedOn = decommissioningListSchema.get("logicallyDeletedOn");
+		decommissioningList_logicallyDeletedOn.setSystemReserved(true);
+		decommissioningList_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder decommissioningList_manualTokens = decommissioningListSchema.get("manualTokens");
 		decommissioningList_manualTokens.setMultivalue(true);
 		decommissioningList_manualTokens.setSystemReserved(true);
@@ -1862,6 +2013,10 @@ public final class GeneratedRMMigrationCombo {
 		decommissioningList_markedForPreviewConversion.setSystemReserved(true);
 		decommissioningList_markedForPreviewConversion.setUndeletable(true);
 		decommissioningList_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder decommissioningList_markedForReindexing = decommissioningListSchema.get("markedForReindexing");
+		decommissioningList_markedForReindexing.setSystemReserved(true);
+		decommissioningList_markedForReindexing.setUndeletable(true);
+		decommissioningList_markedForReindexing.setEssential(true);
 		MetadataBuilder decommissioningList_modifiedBy = decommissioningListSchema.get("modifiedBy");
 		decommissioningList_modifiedBy.setSystemReserved(true);
 		decommissioningList_modifiedBy.setUndeletable(true);
@@ -2096,6 +2251,11 @@ public final class GeneratedRMMigrationCombo {
 		document_alertUsersWhenAvailable.setUndeletable(true);
 		document_alertUsersWhenAvailable.setDuplicable(true);
 		document_alertUsersWhenAvailable.defineReferencesTo(userSchemaType);
+		MetadataBuilder document_allReferences = documentSchema.get("allReferences");
+		document_allReferences.setMultivalue(true);
+		document_allReferences.setSystemReserved(true);
+		document_allReferences.setUndeletable(true);
+		document_allReferences.setEssential(true);
 		MetadataBuilder document_allauthorizations = documentSchema.get("allauthorizations");
 		document_allauthorizations.setMultivalue(true);
 		document_allauthorizations.setSystemReserved(true);
@@ -2123,12 +2283,6 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder document_borrowed = documentSchema.create("borrowed").setType(MetadataValueType.BOOLEAN);
 		document_borrowed.setUndeletable(true);
 		document_borrowed.setDuplicable(true);
-		MetadataBuilder document_calendarYear = documentSchema.create("calendarYear").setType(MetadataValueType.DATE);
-		document_calendarYear.setUndeletable(true);
-		MetadataBuilder document_calendarYearEntered = documentSchema.create("calendarYearEntered")
-				.setType(MetadataValueType.STRING);
-		document_calendarYearEntered.setUndeletable(true);
-		document_calendarYearEntered.setDuplicable(true);
 		MetadataBuilder document_category = documentSchema.create("category").setType(MetadataValueType.REFERENCE);
 		document_category.setUndeletable(true);
 		document_category.setEssential(true);
@@ -2186,6 +2340,9 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder document_documentType = documentSchema.create("documentType").setType(MetadataValueType.STRING);
 		document_documentType.setSystemReserved(true);
 		document_documentType.setUndeletable(true);
+		MetadataBuilder document_errorOnPhysicalDeletion = documentSchema.get("errorOnPhysicalDeletion");
+		document_errorOnPhysicalDeletion.setSystemReserved(true);
+		document_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder document_expectedDepositDate = documentSchema.create("expectedDepositDate")
 				.setType(MetadataValueType.DATE);
 		document_expectedDepositDate.setUndeletable(true);
@@ -2259,6 +2416,9 @@ public final class GeneratedRMMigrationCombo {
 		document_legacyIdentifier.setSearchable(true);
 		document_legacyIdentifier.setUniqueValue(true);
 		document_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder document_logicallyDeletedOn = documentSchema.get("logicallyDeletedOn");
+		document_logicallyDeletedOn.setSystemReserved(true);
+		document_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder document_mainCopyRule = documentSchema.create("mainCopyRule").setType(MetadataValueType.STRUCTURE);
 		document_mainCopyRule.setDefaultRequirement(true);
 		document_mainCopyRule.setUndeletable(true);
@@ -2277,6 +2437,10 @@ public final class GeneratedRMMigrationCombo {
 		document_markedForPreviewConversion.setSystemReserved(true);
 		document_markedForPreviewConversion.setUndeletable(true);
 		document_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder document_markedForReindexing = documentSchema.get("markedForReindexing");
+		document_markedForReindexing.setSystemReserved(true);
+		document_markedForReindexing.setUndeletable(true);
+		document_markedForReindexing.setEssential(true);
 		MetadataBuilder document_modifiedBy = documentSchema.get("modifiedBy");
 		document_modifiedBy.setSystemReserved(true);
 		document_modifiedBy.setUndeletable(true);
@@ -2383,6 +2547,11 @@ public final class GeneratedRMMigrationCombo {
 		filingSpace_administrators.setUndeletable(true);
 		filingSpace_administrators.setEssential(true);
 		filingSpace_administrators.defineReferencesTo(userSchemaType);
+		MetadataBuilder filingSpace_allReferences = filingSpaceSchema.get("allReferences");
+		filingSpace_allReferences.setMultivalue(true);
+		filingSpace_allReferences.setSystemReserved(true);
+		filingSpace_allReferences.setUndeletable(true);
+		filingSpace_allReferences.setEssential(true);
 		MetadataBuilder filingSpace_allauthorizations = filingSpaceSchema.get("allauthorizations");
 		filingSpace_allauthorizations.setMultivalue(true);
 		filingSpace_allauthorizations.setSystemReserved(true);
@@ -2426,6 +2595,9 @@ public final class GeneratedRMMigrationCombo {
 		filingSpace_detachedauthorizations.setSystemReserved(true);
 		filingSpace_detachedauthorizations.setUndeletable(true);
 		filingSpace_detachedauthorizations.setEssential(true);
+		MetadataBuilder filingSpace_errorOnPhysicalDeletion = filingSpaceSchema.get("errorOnPhysicalDeletion");
+		filingSpace_errorOnPhysicalDeletion.setSystemReserved(true);
+		filingSpace_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder filingSpace_followers = filingSpaceSchema.get("followers");
 		filingSpace_followers.setMultivalue(true);
 		filingSpace_followers.setSystemReserved(true);
@@ -2454,6 +2626,9 @@ public final class GeneratedRMMigrationCombo {
 		filingSpace_legacyIdentifier.setSearchable(true);
 		filingSpace_legacyIdentifier.setUniqueValue(true);
 		filingSpace_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder filingSpace_logicallyDeletedOn = filingSpaceSchema.get("logicallyDeletedOn");
+		filingSpace_logicallyDeletedOn.setSystemReserved(true);
+		filingSpace_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder filingSpace_manualTokens = filingSpaceSchema.get("manualTokens");
 		filingSpace_manualTokens.setMultivalue(true);
 		filingSpace_manualTokens.setSystemReserved(true);
@@ -2464,6 +2639,10 @@ public final class GeneratedRMMigrationCombo {
 		filingSpace_markedForPreviewConversion.setSystemReserved(true);
 		filingSpace_markedForPreviewConversion.setUndeletable(true);
 		filingSpace_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder filingSpace_markedForReindexing = filingSpaceSchema.get("markedForReindexing");
+		filingSpace_markedForReindexing.setSystemReserved(true);
+		filingSpace_markedForReindexing.setUndeletable(true);
+		filingSpace_markedForReindexing.setEssential(true);
 		MetadataBuilder filingSpace_modifiedBy = filingSpaceSchema.get("modifiedBy");
 		filingSpace_modifiedBy.setSystemReserved(true);
 		filingSpace_modifiedBy.setUndeletable(true);
@@ -2582,6 +2761,11 @@ public final class GeneratedRMMigrationCombo {
 		folder_alertUsersWhenAvailable.setUndeletable(true);
 		folder_alertUsersWhenAvailable.setDuplicable(true);
 		folder_alertUsersWhenAvailable.defineReferencesTo(userSchemaType);
+		MetadataBuilder folder_allReferences = folderSchema.get("allReferences");
+		folder_allReferences.setMultivalue(true);
+		folder_allReferences.setSystemReserved(true);
+		folder_allReferences.setUndeletable(true);
+		folder_allReferences.setEssential(true);
 		MetadataBuilder folder_allauthorizations = folderSchema.get("allauthorizations");
 		folder_allauthorizations.setMultivalue(true);
 		folder_allauthorizations.setSystemReserved(true);
@@ -2628,11 +2812,6 @@ public final class GeneratedRMMigrationCombo {
 		folder_borrowingType.setUndeletable(true);
 		folder_borrowingType.setDuplicable(true);
 		folder_borrowingType.defineAsEnum(BorrowingType.class);
-		MetadataBuilder folder_calendarYear = folderSchema.create("calendarYear").setType(MetadataValueType.DATE);
-		folder_calendarYear.setUndeletable(true);
-		MetadataBuilder folder_calendarYearEntered = folderSchema.create("calendarYearEntered").setType(MetadataValueType.STRING);
-		folder_calendarYearEntered.setUndeletable(true);
-		folder_calendarYearEntered.setDuplicable(true);
 		MetadataBuilder folder_category = folderSchema.create("category").setType(MetadataValueType.REFERENCE);
 		folder_category.setDefaultRequirement(true);
 		folder_category.setUndeletable(true);
@@ -2719,6 +2898,9 @@ public final class GeneratedRMMigrationCombo {
 		folder_enteredClosingDate.setUndeletable(true);
 		folder_enteredClosingDate.setEssential(true);
 		folder_enteredClosingDate.setDuplicable(true);
+		MetadataBuilder folder_errorOnPhysicalDeletion = folderSchema.get("errorOnPhysicalDeletion");
+		folder_errorOnPhysicalDeletion.setSystemReserved(true);
+		folder_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder folder_expectedDepositDate = folderSchema.create("expectedDepositDate").setType(MetadataValueType.DATE);
 		folder_expectedDepositDate.setUndeletable(true);
 		folder_expectedDepositDate.setEssential(true);
@@ -2798,6 +2980,9 @@ public final class GeneratedRMMigrationCombo {
 		folder_linearSize.setUndeletable(true);
 		folder_linearSize.setEssential(true);
 		folder_linearSize.setDuplicable(true);
+		MetadataBuilder folder_logicallyDeletedOn = folderSchema.get("logicallyDeletedOn");
+		folder_logicallyDeletedOn.setSystemReserved(true);
+		folder_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder folder_mainCopyRule = folderSchema.create("mainCopyRule").setType(MetadataValueType.STRUCTURE);
 		folder_mainCopyRule.setUndeletable(true);
 		folder_mainCopyRule.setEssential(true);
@@ -2806,6 +2991,23 @@ public final class GeneratedRMMigrationCombo {
 				.setType(MetadataValueType.STRING);
 		folder_mainCopyRuleIdEntered.setUndeletable(true);
 		folder_mainCopyRuleIdEntered.setDuplicable(true);
+		MetadataBuilder folder_manualArchivisticStatus = folderSchema.create("manualArchivisticStatus")
+				.setType(MetadataValueType.ENUM);
+		folder_manualArchivisticStatus.setUndeletable(true);
+		folder_manualArchivisticStatus.setEnabled(false);
+		folder_manualArchivisticStatus.defineAsEnum(FolderStatus.class);
+		MetadataBuilder folder_manualExpectedDepositDate = folderSchema.create("manualExpectedDepositDate")
+				.setType(MetadataValueType.DATE);
+		folder_manualExpectedDepositDate.setUndeletable(true);
+		folder_manualExpectedDepositDate.setEnabled(false);
+		MetadataBuilder folder_manualExpectedDesctructionDate = folderSchema.create("manualExpectedDesctructionDate")
+				.setType(MetadataValueType.DATE);
+		folder_manualExpectedDesctructionDate.setUndeletable(true);
+		folder_manualExpectedDesctructionDate.setEnabled(false);
+		MetadataBuilder folder_manualExpectedTransferDate = folderSchema.create("manualExpectedTransferDate")
+				.setType(MetadataValueType.DATE);
+		folder_manualExpectedTransferDate.setUndeletable(true);
+		folder_manualExpectedTransferDate.setEnabled(false);
 		MetadataBuilder folder_manualTokens = folderSchema.get("manualTokens");
 		folder_manualTokens.setMultivalue(true);
 		folder_manualTokens.setSystemReserved(true);
@@ -2816,6 +3018,10 @@ public final class GeneratedRMMigrationCombo {
 		folder_markedForPreviewConversion.setSystemReserved(true);
 		folder_markedForPreviewConversion.setUndeletable(true);
 		folder_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder folder_markedForReindexing = folderSchema.get("markedForReindexing");
+		folder_markedForReindexing.setSystemReserved(true);
+		folder_markedForReindexing.setUndeletable(true);
+		folder_markedForReindexing.setEssential(true);
 		MetadataBuilder folder_mediaType = folderSchema.create("mediaType").setType(MetadataValueType.ENUM);
 		folder_mediaType.setUndeletable(true);
 		folder_mediaType.setEssential(true);
@@ -2886,8 +3092,9 @@ public final class GeneratedRMMigrationCombo {
 		folder_retentionRuleEntered.defineReferencesTo(retentionRuleSchemaType);
 		MetadataBuilder folder_ruleAdminUnit = folderSchema.create("ruleAdminUnit").setType(MetadataValueType.REFERENCE);
 		folder_ruleAdminUnit.setMultivalue(true);
+		folder_ruleAdminUnit.setMarkedForDeletion(true);
 		folder_ruleAdminUnit.setUndeletable(true);
-		folder_ruleAdminUnit.setEssential(true);
+		folder_ruleAdminUnit.setEnabled(false);
 		folder_ruleAdminUnit.defineReferencesTo(administrativeUnitSchemaType);
 		MetadataBuilder folder_schema = folderSchema.get("schema");
 		folder_schema.setDefaultRequirement(true);
@@ -2918,6 +3125,9 @@ public final class GeneratedRMMigrationCombo {
 		folder_shareTokens.setUndeletable(true);
 		folder_shareTokens.setEssential(true);
 		folder_shareTokens.defineValidators().add(ManualTokenValidator.class);
+		MetadataBuilder folder_timerange = folderSchema.create("timerange").setType(MetadataValueType.STRING);
+		folder_timerange.setInputMask("9999-9999");
+		folder_timerange.setEnabled(false);
 		MetadataBuilder folder_title = folderSchema.get("title");
 		folder_title.setDefaultRequirement(true);
 		folder_title.setUndeletable(true);
@@ -2956,6 +3166,11 @@ public final class GeneratedRMMigrationCombo {
 		retentionRule_administrativeUnits.setUndeletable(true);
 		retentionRule_administrativeUnits.setEssential(true);
 		retentionRule_administrativeUnits.defineReferencesTo(administrativeUnitSchemaType);
+		MetadataBuilder retentionRule_allReferences = retentionRuleSchema.get("allReferences");
+		retentionRule_allReferences.setMultivalue(true);
+		retentionRule_allReferences.setSystemReserved(true);
+		retentionRule_allReferences.setUndeletable(true);
+		retentionRule_allReferences.setEssential(true);
 		MetadataBuilder retentionRule_allauthorizations = retentionRuleSchema.get("allauthorizations");
 		retentionRule_allauthorizations.setMultivalue(true);
 		retentionRule_allauthorizations.setSystemReserved(true);
@@ -3042,6 +3257,9 @@ public final class GeneratedRMMigrationCombo {
 		retentionRule_documentTypesDetails.setUndeletable(true);
 		retentionRule_documentTypesDetails.setEssential(true);
 		retentionRule_documentTypesDetails.defineStructureFactory(RetentionRuleDocumentTypeFactory.class);
+		MetadataBuilder retentionRule_errorOnPhysicalDeletion = retentionRuleSchema.get("errorOnPhysicalDeletion");
+		retentionRule_errorOnPhysicalDeletion.setSystemReserved(true);
+		retentionRule_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder retentionRule_essentialDocuments = retentionRuleSchema.create("essentialDocuments")
 				.setType(MetadataValueType.BOOLEAN);
 		retentionRule_essentialDocuments.setUndeletable(true);
@@ -3089,6 +3307,9 @@ public final class GeneratedRMMigrationCombo {
 		retentionRule_legacyIdentifier.setSearchable(true);
 		retentionRule_legacyIdentifier.setUniqueValue(true);
 		retentionRule_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder retentionRule_logicallyDeletedOn = retentionRuleSchema.get("logicallyDeletedOn");
+		retentionRule_logicallyDeletedOn.setSystemReserved(true);
+		retentionRule_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder retentionRule_manualTokens = retentionRuleSchema.get("manualTokens");
 		retentionRule_manualTokens.setMultivalue(true);
 		retentionRule_manualTokens.setSystemReserved(true);
@@ -3099,6 +3320,10 @@ public final class GeneratedRMMigrationCombo {
 		retentionRule_markedForPreviewConversion.setSystemReserved(true);
 		retentionRule_markedForPreviewConversion.setUndeletable(true);
 		retentionRule_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder retentionRule_markedForReindexing = retentionRuleSchema.get("markedForReindexing");
+		retentionRule_markedForReindexing.setSystemReserved(true);
+		retentionRule_markedForReindexing.setUndeletable(true);
+		retentionRule_markedForReindexing.setEssential(true);
 		MetadataBuilder retentionRule_modifiedBy = retentionRuleSchema.get("modifiedBy");
 		retentionRule_modifiedBy.setSystemReserved(true);
 		retentionRule_modifiedBy.setUndeletable(true);
@@ -3183,6 +3408,11 @@ public final class GeneratedRMMigrationCombo {
 		retentionRule_visibleInTrees.setSystemReserved(true);
 		retentionRule_visibleInTrees.setUndeletable(true);
 		retentionRule_visibleInTrees.setEssential(true);
+		MetadataBuilder storageSpace_allReferences = storageSpaceSchema.get("allReferences");
+		storageSpace_allReferences.setMultivalue(true);
+		storageSpace_allReferences.setSystemReserved(true);
+		storageSpace_allReferences.setUndeletable(true);
+		storageSpace_allReferences.setEssential(true);
 		MetadataBuilder storageSpace_allauthorizations = storageSpaceSchema.get("allauthorizations");
 		storageSpace_allauthorizations.setMultivalue(true);
 		storageSpace_allauthorizations.setSystemReserved(true);
@@ -3239,6 +3469,9 @@ public final class GeneratedRMMigrationCombo {
 		storageSpace_detachedauthorizations.setSystemReserved(true);
 		storageSpace_detachedauthorizations.setUndeletable(true);
 		storageSpace_detachedauthorizations.setEssential(true);
+		MetadataBuilder storageSpace_errorOnPhysicalDeletion = storageSpaceSchema.get("errorOnPhysicalDeletion");
+		storageSpace_errorOnPhysicalDeletion.setSystemReserved(true);
+		storageSpace_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder storageSpace_followers = storageSpaceSchema.get("followers");
 		storageSpace_followers.setMultivalue(true);
 		storageSpace_followers.setSystemReserved(true);
@@ -3267,6 +3500,9 @@ public final class GeneratedRMMigrationCombo {
 		storageSpace_legacyIdentifier.setSearchable(true);
 		storageSpace_legacyIdentifier.setUniqueValue(true);
 		storageSpace_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder storageSpace_logicallyDeletedOn = storageSpaceSchema.get("logicallyDeletedOn");
+		storageSpace_logicallyDeletedOn.setSystemReserved(true);
+		storageSpace_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder storageSpace_manualTokens = storageSpaceSchema.get("manualTokens");
 		storageSpace_manualTokens.setMultivalue(true);
 		storageSpace_manualTokens.setSystemReserved(true);
@@ -3277,6 +3513,10 @@ public final class GeneratedRMMigrationCombo {
 		storageSpace_markedForPreviewConversion.setSystemReserved(true);
 		storageSpace_markedForPreviewConversion.setUndeletable(true);
 		storageSpace_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder storageSpace_markedForReindexing = storageSpaceSchema.get("markedForReindexing");
+		storageSpace_markedForReindexing.setSystemReserved(true);
+		storageSpace_markedForReindexing.setUndeletable(true);
+		storageSpace_markedForReindexing.setEssential(true);
 		MetadataBuilder storageSpace_modifiedBy = storageSpaceSchema.get("modifiedBy");
 		storageSpace_modifiedBy.setSystemReserved(true);
 		storageSpace_modifiedBy.setUndeletable(true);
@@ -3355,6 +3595,11 @@ public final class GeneratedRMMigrationCombo {
 		storageSpace_visibleInTrees.setSystemReserved(true);
 		storageSpace_visibleInTrees.setUndeletable(true);
 		storageSpace_visibleInTrees.setEssential(true);
+		MetadataBuilder uniformSubdivision_allReferences = uniformSubdivisionSchema.get("allReferences");
+		uniformSubdivision_allReferences.setMultivalue(true);
+		uniformSubdivision_allReferences.setSystemReserved(true);
+		uniformSubdivision_allReferences.setUndeletable(true);
+		uniformSubdivision_allReferences.setEssential(true);
 		MetadataBuilder uniformSubdivision_allauthorizations = uniformSubdivisionSchema.get("allauthorizations");
 		uniformSubdivision_allauthorizations.setMultivalue(true);
 		uniformSubdivision_allauthorizations.setSystemReserved(true);
@@ -3404,6 +3649,9 @@ public final class GeneratedRMMigrationCombo {
 		uniformSubdivision_detachedauthorizations.setSystemReserved(true);
 		uniformSubdivision_detachedauthorizations.setUndeletable(true);
 		uniformSubdivision_detachedauthorizations.setEssential(true);
+		MetadataBuilder uniformSubdivision_errorOnPhysicalDeletion = uniformSubdivisionSchema.get("errorOnPhysicalDeletion");
+		uniformSubdivision_errorOnPhysicalDeletion.setSystemReserved(true);
+		uniformSubdivision_errorOnPhysicalDeletion.setUndeletable(true);
 		MetadataBuilder uniformSubdivision_followers = uniformSubdivisionSchema.get("followers");
 		uniformSubdivision_followers.setMultivalue(true);
 		uniformSubdivision_followers.setSystemReserved(true);
@@ -3432,6 +3680,9 @@ public final class GeneratedRMMigrationCombo {
 		uniformSubdivision_legacyIdentifier.setSearchable(true);
 		uniformSubdivision_legacyIdentifier.setUniqueValue(true);
 		uniformSubdivision_legacyIdentifier.setUnmodifiable(true);
+		MetadataBuilder uniformSubdivision_logicallyDeletedOn = uniformSubdivisionSchema.get("logicallyDeletedOn");
+		uniformSubdivision_logicallyDeletedOn.setSystemReserved(true);
+		uniformSubdivision_logicallyDeletedOn.setUndeletable(true);
 		MetadataBuilder uniformSubdivision_manualTokens = uniformSubdivisionSchema.get("manualTokens");
 		uniformSubdivision_manualTokens.setMultivalue(true);
 		uniformSubdivision_manualTokens.setSystemReserved(true);
@@ -3443,6 +3694,10 @@ public final class GeneratedRMMigrationCombo {
 		uniformSubdivision_markedForPreviewConversion.setSystemReserved(true);
 		uniformSubdivision_markedForPreviewConversion.setUndeletable(true);
 		uniformSubdivision_markedForPreviewConversion.setEssential(true);
+		MetadataBuilder uniformSubdivision_markedForReindexing = uniformSubdivisionSchema.get("markedForReindexing");
+		uniformSubdivision_markedForReindexing.setSystemReserved(true);
+		uniformSubdivision_markedForReindexing.setUndeletable(true);
+		uniformSubdivision_markedForReindexing.setEssential(true);
 		MetadataBuilder uniformSubdivision_modifiedBy = uniformSubdivisionSchema.get("modifiedBy");
 		uniformSubdivision_modifiedBy.setSystemReserved(true);
 		uniformSubdivision_modifiedBy.setUndeletable(true);
@@ -3519,7 +3774,7 @@ public final class GeneratedRMMigrationCombo {
 		uniformSubdivision_visibleInTrees.setUndeletable(true);
 		uniformSubdivision_visibleInTrees.setEssential(true);
 		MetadataBuilder userDocument_folder = userDocumentSchema.create("folder").setType(MetadataValueType.REFERENCE);
-		userDocument_folder.defineReferencesTo(asList(folderSchema));
+		userDocument_folder.defineReferencesTo(folderSchemaType);
 		MetadataBuilder userTask_administrativeUnit = userTaskSchema.create("administrativeUnit")
 				.setType(MetadataValueType.REFERENCE);
 		userTask_administrativeUnit.defineTaxonomyRelationshipToType(administrativeUnitSchemaType);
@@ -3529,6 +3784,198 @@ public final class GeneratedRMMigrationCombo {
 		MetadataBuilder userTask_linkedFolders = userTaskSchema.create("linkedFolders").setType(MetadataValueType.REFERENCE);
 		userTask_linkedFolders.setMultivalue(true);
 		userTask_linkedFolders.defineReferencesTo(folderSchemaType);
+		MetadataBuilder document_email_actualDepositDate = document_emailSchema.get("actualDepositDate");
+		MetadataBuilder document_email_actualDepositDateEntered = document_emailSchema.get("actualDepositDateEntered");
+		MetadataBuilder document_email_actualDestructionDate = document_emailSchema.get("actualDestructionDate");
+		MetadataBuilder document_email_actualDestructionDateEntered = document_emailSchema.get("actualDestructionDateEntered");
+		MetadataBuilder document_email_actualTransferDate = document_emailSchema.get("actualTransferDate");
+		MetadataBuilder document_email_actualTransferDateEntered = document_emailSchema.get("actualTransferDateEntered");
+		MetadataBuilder document_email_administrativeUnit = document_emailSchema.get("administrativeUnit");
+		MetadataBuilder document_email_alertUsersWhenAvailable = document_emailSchema.get("alertUsersWhenAvailable");
+		MetadataBuilder document_email_allReferences = document_emailSchema.get("allReferences");
+		MetadataBuilder document_email_allauthorizations = document_emailSchema.get("allauthorizations");
+		MetadataBuilder document_email_applicableCopyRule = document_emailSchema.get("applicableCopyRule");
+		MetadataBuilder document_email_archivisticStatus = document_emailSchema.get("archivisticStatus");
+		MetadataBuilder document_email_author = document_emailSchema.get("author");
+		MetadataBuilder document_email_authorizations = document_emailSchema.get("authorizations");
+		MetadataBuilder document_email_borrowed = document_emailSchema.get("borrowed");
+		MetadataBuilder document_email_category = document_emailSchema.get("category");
+		MetadataBuilder document_email_closingDate = document_emailSchema.get("closingDate");
+		MetadataBuilder document_email_comments = document_emailSchema.get("comments");
+		MetadataBuilder document_email_company = document_emailSchema.get("company");
+		MetadataBuilder document_email_content = document_emailSchema.get("content");
+		MetadataBuilder document_email_copyStatus = document_emailSchema.get("copyStatus");
+		MetadataBuilder document_email_createdBy = document_emailSchema.get("createdBy");
+		MetadataBuilder document_email_createdOn = document_emailSchema.get("createdOn");
+		MetadataBuilder document_email_deleted = document_emailSchema.get("deleted");
+		MetadataBuilder document_email_denyTokens = document_emailSchema.get("denyTokens");
+		MetadataBuilder document_email_description = document_emailSchema.get("description");
+		MetadataBuilder document_email_detachedauthorizations = document_emailSchema.get("detachedauthorizations");
+		MetadataBuilder document_email_documentType = document_emailSchema.get("documentType");
+		MetadataBuilder document_email_errorOnPhysicalDeletion = document_emailSchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder document_email_expectedDepositDate = document_emailSchema.get("expectedDepositDate");
+		MetadataBuilder document_email_expectedDestructionDate = document_emailSchema.get("expectedDestructionDate");
+		MetadataBuilder document_email_expectedTransferDate = document_emailSchema.get("expectedTransferDate");
+		MetadataBuilder document_email_filingSpace = document_emailSchema.get("filingSpace");
+		MetadataBuilder document_email_folder = document_emailSchema.get("folder");
+		MetadataBuilder document_email_followers = document_emailSchema.get("followers");
+		MetadataBuilder document_email_formCreatedBy = document_emailSchema.get("formCreatedBy");
+		MetadataBuilder document_email_formCreatedOn = document_emailSchema.get("formCreatedOn");
+		MetadataBuilder document_email_formModifiedBy = document_emailSchema.get("formModifiedBy");
+		MetadataBuilder document_email_formModifiedOn = document_emailSchema.get("formModifiedOn");
+		MetadataBuilder document_email_id = document_emailSchema.get("id");
+		MetadataBuilder document_email_inheritedRetentionRule = document_emailSchema.get("inheritedRetentionRule");
+		MetadataBuilder document_email_inheritedauthorizations = document_emailSchema.get("inheritedauthorizations");
+		MetadataBuilder document_email_keywords = document_emailSchema.get("keywords");
+		MetadataBuilder document_email_legacyIdentifier = document_emailSchema.get("legacyIdentifier");
+		MetadataBuilder document_email_logicallyDeletedOn = document_emailSchema.get("logicallyDeletedOn");
+		MetadataBuilder document_email_mainCopyRule = document_emailSchema.get("mainCopyRule");
+		MetadataBuilder document_email_mainCopyRuleIdEntered = document_emailSchema.get("mainCopyRuleIdEntered");
+		MetadataBuilder document_email_manualTokens = document_emailSchema.get("manualTokens");
+		MetadataBuilder document_email_markedForPreviewConversion = document_emailSchema.get("markedForPreviewConversion");
+		MetadataBuilder document_email_markedForReindexing = document_emailSchema.get("markedForReindexing");
+		MetadataBuilder document_email_modifiedBy = document_emailSchema.get("modifiedBy");
+		MetadataBuilder document_email_modifiedOn = document_emailSchema.get("modifiedOn");
+		MetadataBuilder document_email_openingDate = document_emailSchema.get("openingDate");
+		MetadataBuilder document_email_parentpath = document_emailSchema.get("parentpath");
+		MetadataBuilder document_email_path = document_emailSchema.get("path");
+		MetadataBuilder document_email_pathParts = document_emailSchema.get("pathParts");
+		MetadataBuilder document_email_principalpath = document_emailSchema.get("principalpath");
+		MetadataBuilder document_email_published = document_emailSchema.get("published");
+		MetadataBuilder document_email_removedauthorizations = document_emailSchema.get("removedauthorizations");
+		MetadataBuilder document_email_retentionRule = document_emailSchema.get("retentionRule");
+		MetadataBuilder document_email_sameInactiveFateAsFolder = document_emailSchema.get("sameInactiveFateAsFolder");
+		MetadataBuilder document_email_sameSemiActiveFateAsFolder = document_emailSchema.get("sameSemiActiveFateAsFolder");
+		MetadataBuilder document_email_schema = document_emailSchema.get("schema");
+		MetadataBuilder document_email_searchable = document_emailSchema.get("searchable");
+		MetadataBuilder document_email_shareDenyTokens = document_emailSchema.get("shareDenyTokens");
+		MetadataBuilder document_email_shareTokens = document_emailSchema.get("shareTokens");
+		MetadataBuilder document_email_subject = document_emailSchema.get("subject");
+		MetadataBuilder document_email_title = document_emailSchema.get("title");
+		MetadataBuilder document_email_tokens = document_emailSchema.get("tokens");
+		MetadataBuilder document_email_type = document_emailSchema.get("type");
+		MetadataBuilder document_email_version = document_emailSchema.get("version");
+		MetadataBuilder document_email_visibleInTrees = document_emailSchema.get("visibleInTrees");
+		MetadataBuilder facet_field_active = facet_fieldSchema.get("active");
+		MetadataBuilder facet_field_allReferences = facet_fieldSchema.get("allReferences");
+		MetadataBuilder facet_field_allauthorizations = facet_fieldSchema.get("allauthorizations");
+		MetadataBuilder facet_field_authorizations = facet_fieldSchema.get("authorizations");
+		MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
+		MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
+		MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
+		MetadataBuilder facet_field_denyTokens = facet_fieldSchema.get("denyTokens");
+		MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
+		MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
+		MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder facet_field_facetType = facet_fieldSchema.get("facetType");
+		MetadataBuilder facet_field_fieldDatastoreCode = facet_fieldSchema.get("fieldDatastoreCode");
+		MetadataBuilder facet_field_followers = facet_fieldSchema.get("followers");
+		MetadataBuilder facet_field_id = facet_fieldSchema.get("id");
+		MetadataBuilder facet_field_inheritedauthorizations = facet_fieldSchema.get("inheritedauthorizations");
+		MetadataBuilder facet_field_legacyIdentifier = facet_fieldSchema.get("legacyIdentifier");
+		MetadataBuilder facet_field_logicallyDeletedOn = facet_fieldSchema.get("logicallyDeletedOn");
+		MetadataBuilder facet_field_manualTokens = facet_fieldSchema.get("manualTokens");
+		MetadataBuilder facet_field_markedForPreviewConversion = facet_fieldSchema.get("markedForPreviewConversion");
+		MetadataBuilder facet_field_markedForReindexing = facet_fieldSchema.get("markedForReindexing");
+		MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
+		MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
+		MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
+		MetadataBuilder facet_field_order = facet_fieldSchema.get("order");
+		MetadataBuilder facet_field_orderResult = facet_fieldSchema.get("orderResult");
+		MetadataBuilder facet_field_pages = facet_fieldSchema.get("pages");
+		MetadataBuilder facet_field_parentpath = facet_fieldSchema.get("parentpath");
+		MetadataBuilder facet_field_path = facet_fieldSchema.get("path");
+		MetadataBuilder facet_field_pathParts = facet_fieldSchema.get("pathParts");
+		MetadataBuilder facet_field_principalpath = facet_fieldSchema.get("principalpath");
+		MetadataBuilder facet_field_removedauthorizations = facet_fieldSchema.get("removedauthorizations");
+		MetadataBuilder facet_field_schema = facet_fieldSchema.get("schema");
+		MetadataBuilder facet_field_searchable = facet_fieldSchema.get("searchable");
+		MetadataBuilder facet_field_shareDenyTokens = facet_fieldSchema.get("shareDenyTokens");
+		MetadataBuilder facet_field_shareTokens = facet_fieldSchema.get("shareTokens");
+		MetadataBuilder facet_field_title = facet_fieldSchema.get("title");
+		MetadataBuilder facet_field_tokens = facet_fieldSchema.get("tokens");
+		MetadataBuilder facet_field_usedByModule = facet_fieldSchema.get("usedByModule");
+		MetadataBuilder facet_field_visibleInTrees = facet_fieldSchema.get("visibleInTrees");
+		MetadataBuilder facet_query_active = facet_querySchema.get("active");
+		MetadataBuilder facet_query_allReferences = facet_querySchema.get("allReferences");
+		MetadataBuilder facet_query_allauthorizations = facet_querySchema.get("allauthorizations");
+		MetadataBuilder facet_query_authorizations = facet_querySchema.get("authorizations");
+		MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
+		MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
+		MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
+		MetadataBuilder facet_query_denyTokens = facet_querySchema.get("denyTokens");
+		MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
+		MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
+		MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder facet_query_facetType = facet_querySchema.get("facetType");
+		MetadataBuilder facet_query_fieldDatastoreCode = facet_querySchema.get("fieldDatastoreCode");
+		MetadataBuilder facet_query_followers = facet_querySchema.get("followers");
+		MetadataBuilder facet_query_id = facet_querySchema.get("id");
+		MetadataBuilder facet_query_inheritedauthorizations = facet_querySchema.get("inheritedauthorizations");
+		MetadataBuilder facet_query_legacyIdentifier = facet_querySchema.get("legacyIdentifier");
+		MetadataBuilder facet_query_logicallyDeletedOn = facet_querySchema.get("logicallyDeletedOn");
+		MetadataBuilder facet_query_manualTokens = facet_querySchema.get("manualTokens");
+		MetadataBuilder facet_query_markedForPreviewConversion = facet_querySchema.get("markedForPreviewConversion");
+		MetadataBuilder facet_query_markedForReindexing = facet_querySchema.get("markedForReindexing");
+		MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
+		MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
+		MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
+		MetadataBuilder facet_query_order = facet_querySchema.get("order");
+		MetadataBuilder facet_query_orderResult = facet_querySchema.get("orderResult");
+		MetadataBuilder facet_query_pages = facet_querySchema.get("pages");
+		MetadataBuilder facet_query_parentpath = facet_querySchema.get("parentpath");
+		MetadataBuilder facet_query_path = facet_querySchema.get("path");
+		MetadataBuilder facet_query_pathParts = facet_querySchema.get("pathParts");
+		MetadataBuilder facet_query_principalpath = facet_querySchema.get("principalpath");
+		MetadataBuilder facet_query_removedauthorizations = facet_querySchema.get("removedauthorizations");
+		MetadataBuilder facet_query_schema = facet_querySchema.get("schema");
+		MetadataBuilder facet_query_searchable = facet_querySchema.get("searchable");
+		MetadataBuilder facet_query_shareDenyTokens = facet_querySchema.get("shareDenyTokens");
+		MetadataBuilder facet_query_shareTokens = facet_querySchema.get("shareTokens");
+		MetadataBuilder facet_query_title = facet_querySchema.get("title");
+		MetadataBuilder facet_query_tokens = facet_querySchema.get("tokens");
+		MetadataBuilder facet_query_usedByModule = facet_querySchema.get("usedByModule");
+		MetadataBuilder facet_query_visibleInTrees = facet_querySchema.get("visibleInTrees");
+		MetadataBuilder task_approval_allReferences = task_approvalSchema.get("allReferences");
+		MetadataBuilder task_approval_allauthorizations = task_approvalSchema.get("allauthorizations");
+		MetadataBuilder task_approval_assignCandidates = task_approvalSchema.get("assignCandidates");
+		MetadataBuilder task_approval_assignedOn = task_approvalSchema.get("assignedOn");
+		MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
+		MetadataBuilder task_approval_authorizations = task_approvalSchema.get("authorizations");
+		MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
+		MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
+		MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
+		MetadataBuilder task_approval_denyTokens = task_approvalSchema.get("denyTokens");
+		MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
+		MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
+		MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
+		MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
+		MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
+		MetadataBuilder task_approval_followers = task_approvalSchema.get("followers");
+		MetadataBuilder task_approval_id = task_approvalSchema.get("id");
+		MetadataBuilder task_approval_inheritedauthorizations = task_approvalSchema.get("inheritedauthorizations");
+		MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
+		MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
+		MetadataBuilder task_approval_manualTokens = task_approvalSchema.get("manualTokens");
+		MetadataBuilder task_approval_markedForPreviewConversion = task_approvalSchema.get("markedForPreviewConversion");
+		MetadataBuilder task_approval_markedForReindexing = task_approvalSchema.get("markedForReindexing");
+		MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
+		MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
+		MetadataBuilder task_approval_parentpath = task_approvalSchema.get("parentpath");
+		MetadataBuilder task_approval_path = task_approvalSchema.get("path");
+		MetadataBuilder task_approval_pathParts = task_approvalSchema.get("pathParts");
+		MetadataBuilder task_approval_principalpath = task_approvalSchema.get("principalpath");
+		MetadataBuilder task_approval_removedauthorizations = task_approvalSchema.get("removedauthorizations");
+		MetadataBuilder task_approval_schema = task_approvalSchema.get("schema");
+		MetadataBuilder task_approval_searchable = task_approvalSchema.get("searchable");
+		MetadataBuilder task_approval_shareDenyTokens = task_approvalSchema.get("shareDenyTokens");
+		MetadataBuilder task_approval_shareTokens = task_approvalSchema.get("shareTokens");
+		MetadataBuilder task_approval_title = task_approvalSchema.get("title");
+		MetadataBuilder task_approval_tokens = task_approvalSchema.get("tokens");
+		MetadataBuilder task_approval_visibleInTrees = task_approvalSchema.get("visibleInTrees");
+		MetadataBuilder task_approval_workflowIdentifier = task_approvalSchema.get("workflowIdentifier");
+		MetadataBuilder task_approval_workflowRecordIdentifiers = task_approvalSchema.get("workflowRecordIdentifiers");
+		administrativeUnit_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		administrativeUnit_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		administrativeUnit_filingSpacesAdmins.defineDataEntry()
 				.asCopied(administrativeUnit_filingSpaces, filingSpace_administrators);
@@ -3540,6 +3987,7 @@ public final class GeneratedRMMigrationCombo {
 		administrativeUnit_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		administrativeUnit_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
 		administrativeUnit_unitAncestors.defineDataEntry().asCalculated(AdministrativeUnitAncestorsCalculator.class);
+		cart_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		cart_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		cart_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		cart_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3547,6 +3995,7 @@ public final class GeneratedRMMigrationCombo {
 		cart_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		cart_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		cart_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		category_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		category_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		category_copyRetentionRulesOnDocumentTypes.defineDataEntry()
 				.asCalculated(CategoryCopyRetentionRulesOnDocumentTypesCalculator.class);
@@ -3558,6 +4007,7 @@ public final class GeneratedRMMigrationCombo {
 		category_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		category_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		category_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		containerRecord_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		containerRecord_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		containerRecord_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		containerRecord_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3567,6 +4017,7 @@ public final class GeneratedRMMigrationCombo {
 		containerRecord_title.defineDataEntry().asCalculated(ContainerTitleCalculator.class);
 		containerRecord_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
 		containerRecord_visibleInTrees.defineDataEntry().asCalculated(ContainerRecordTreeVisibilityCalculator.class);
+		ddvContainerRecordType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		ddvContainerRecordType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		ddvContainerRecordType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		ddvContainerRecordType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3574,6 +4025,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvContainerRecordType_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		ddvContainerRecordType_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		ddvContainerRecordType_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		ddvDocumentType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		ddvDocumentType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		ddvDocumentType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		ddvDocumentType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3581,6 +4033,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvDocumentType_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		ddvDocumentType_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		ddvDocumentType_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		ddvFolderType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		ddvFolderType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		ddvFolderType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		ddvFolderType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3588,6 +4041,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvFolderType_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		ddvFolderType_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		ddvFolderType_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		ddvMediumType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		ddvMediumType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		ddvMediumType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		ddvMediumType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3595,6 +4049,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvMediumType_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		ddvMediumType_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		ddvMediumType_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		ddvStorageSpaceType_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		ddvStorageSpaceType_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		ddvStorageSpaceType_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		ddvStorageSpaceType_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3602,6 +4057,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvStorageSpaceType_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		ddvStorageSpaceType_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		ddvStorageSpaceType_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		ddvVariablePeriod_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		ddvVariablePeriod_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		ddvVariablePeriod_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		ddvVariablePeriod_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3609,6 +4065,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvVariablePeriod_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		ddvVariablePeriod_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		ddvVariablePeriod_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		decommissioningList_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		decommissioningList_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		decommissioningList_analogicalMedium.defineDataEntry().asCalculated(DecomListHasAnalogicalMediumTypesCalculator.class);
 		decommissioningList_containers.defineDataEntry().asCalculated(DecomListContainersCalculator.class);
@@ -3632,10 +4089,10 @@ public final class GeneratedRMMigrationCombo {
 		document_actualDestructionDate.defineDataEntry().asCalculated(DocumentActualDestructionDateCalculator.class);
 		document_actualTransferDate.defineDataEntry().asCalculated(DocumentActualTransferDateCalculator.class);
 		document_administrativeUnit.defineDataEntry().asCopied(document_folder, folder_administrativeUnit);
+		document_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		document_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		document_applicableCopyRule.defineDataEntry().asCalculated(DocumentApplicableCopyRulesCalculator.class);
 		document_archivisticStatus.defineDataEntry().asCalculated(DocumentArchivisticStatusCalculator.class);
-		document_calendarYear.defineDataEntry().asCalculated(DocumentCalendarYearCalculator.class);
 		document_category.defineDataEntry().asCopied(document_folder, folder_category);
 		document_closingDate.defineDataEntry().asCopied(document_folder, folder_closingDate);
 		document_copyStatus.defineDataEntry().asCopied(document_folder, folder_copyStatus);
@@ -3658,6 +4115,7 @@ public final class GeneratedRMMigrationCombo {
 		document_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
 		document_version.defineDataEntry().asCalculated(DocumentVersionCalculator.class);
 		document_visibleInTrees.defineDataEntry().asCopied(document_folder, folder_visibleInTrees);
+		filingSpace_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		filingSpace_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		filingSpace_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		filingSpace_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3671,10 +4129,10 @@ public final class GeneratedRMMigrationCombo {
 		folder_administrativeUnit.defineDataEntry().asCalculated(FolderAppliedAdministrativeUnitCalculator.class);
 		folder_administrativeUnitAncestors.defineDataEntry()
 				.asCopied(folder_administrativeUnit, administrativeUnit_unitAncestors);
+		folder_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		folder_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		folder_applicableCopyRule.defineDataEntry().asCalculated(FolderApplicableCopyRuleCalculator.class);
-		folder_archivisticStatus.defineDataEntry().asCalculated(FolderStatusCalculator.class);
-		folder_calendarYear.defineDataEntry().asCalculated(FolderCalendarYearCalculator.class);
+		folder_archivisticStatus.defineDataEntry().asCalculated(FolderArchivisticStatusCalculator2.class);
 		folder_category.defineDataEntry().asCalculated(FolderApplicableCategoryCalculator.class);
 		folder_categoryCode.defineDataEntry().asCopied(folder_category, category_code);
 		folder_closingDate.defineDataEntry().asCalculated(FolderClosingDateCalculator.class);
@@ -3685,9 +4143,9 @@ public final class GeneratedRMMigrationCombo {
 				.asCalculated(FolderCopyRulesExpectedTransferDatesCalculator.class);
 		folder_copyStatus.defineDataEntry().asCalculated(FolderCopyStatusCalculator3.class);
 		folder_decommissioningDate.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator.class);
-		folder_expectedDepositDate.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator.class);
-		folder_expectedDestructionDate.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator.class);
-		folder_expectedTransferDate.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator.class);
+		folder_expectedDepositDate.defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator2.class);
+		folder_expectedDestructionDate.defineDataEntry().asCalculated(FolderExpectedDestructionDateCalculator2.class);
+		folder_expectedTransferDate.defineDataEntry().asCalculated(FolderExpectedTransferDateCalculator2.class);
 		folder_filingSpace.defineDataEntry().asCalculated(FolderAppliedFilingSpaceCalculator.class);
 		folder_filingSpaceCode.defineDataEntry().asCopied(folder_filingSpace, filingSpace_code);
 		folder_folderType.defineDataEntry().asCopied(folder_type, ddvFolderType_title);
@@ -3707,6 +4165,7 @@ public final class GeneratedRMMigrationCombo {
 		folder_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
 		folder_uniformSubdivision.defineDataEntry().asCalculated(FolderAppliedUniformSubdivisionCalculator.class);
 		folder_visibleInTrees.defineDataEntry().asCalculated(FolderTreeVisibilityCalculator.class);
+		retentionRule_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		retentionRule_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		retentionRule_documentTypes.defineDataEntry().asCalculated(RuleDocumentTypesCalculator2.class);
 		retentionRule_folderTypes.defineDataEntry().asCalculated(RuleFolderTypesCalculator.class);
@@ -3716,6 +4175,7 @@ public final class GeneratedRMMigrationCombo {
 		retentionRule_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		retentionRule_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		retentionRule_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		storageSpace_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		storageSpace_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		storageSpace_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		storageSpace_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3723,6 +4183,7 @@ public final class GeneratedRMMigrationCombo {
 		storageSpace_pathParts.defineDataEntry().asCalculated(PathPartsCalculator.class);
 		storageSpace_principalpath.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
 		storageSpace_tokens.defineDataEntry().asCalculated(TokensCalculator2.class);
+		uniformSubdivision_allReferences.defineDataEntry().asCalculated(AllReferencesCalculator.class);
 		uniformSubdivision_allauthorizations.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
 		uniformSubdivision_inheritedauthorizations.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
 		uniformSubdivision_parentpath.defineDataEntry().asCalculated(ParentPathCalculator.class);
@@ -3803,7 +4264,8 @@ public final class GeneratedRMMigrationCombo {
 				asList("containerRecord_default_type", "containerRecord_default_temporaryIdentifier",
 						"containerRecord_default_identifier", "containerRecord_default_full",
 						"containerRecord_default_description", "containerRecord_default_administrativeUnit",
-						"containerRecord_default_storageSpace", "containerRecord_default_capacity"))
+						"containerRecord_default_storageSpace", "containerRecord_default_capacity",
+						"containerRecord_default_administrativeUnits"))
 				.withSearchResultsMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn"))
 				.withTableMetadataCodes(asList("containerRecord_default_title", "containerRecord_default_modifiedOn")));
 		transaction.add(manager.getMetadata(collection, "containerRecord_default_administrativeUnit").withMetadataGroup("")
@@ -3974,7 +4436,7 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "document").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(
-						resourcesProvider.getLanguageMap(asList("classifiedInGroupLabel", "default:defaultGroupLabel"))));
+						resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel", "classifiedInGroupLabel"))));
 		transaction.add(manager.getSchema(collection, "document_email").withFormMetadataCodes(
 				asList("document_email_folder", "document_email_type", "document_email_title",
 						"document_email_mainCopyRuleIdEntered", "document_email_content", "document_email_keywords",
@@ -4110,15 +4572,16 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getSchema(collection, "event_default").withFormMetadataCodes(
 				asList("event_default_title", "event_default_type", "event_default_delta", "event_default_eventPrincipalPath",
 						"event_default_ip", "event_default_permissionDateRange", "event_default_permissionRoles",
-						"event_default_permissionUsers", "event_default_reason", "event_default_userRoles",
-						"event_default_username")).withDisplayMetadataCodes(
+						"event_default_permissionUsers", "event_default_reason", "event_default_recordVersion",
+						"event_default_userRoles", "event_default_username")).withDisplayMetadataCodes(
 				asList("event_default_title", "event_default_type", "event_default_createdBy", "event_default_createdOn",
 						"event_default_modifiedBy", "event_default_modifiedOn", "event_default_delta",
 						"event_default_eventPrincipalPath", "event_default_ip", "event_default_permissionDateRange",
 						"event_default_permissionRoles", "event_default_permissionUsers", "event_default_reason",
-						"event_default_recordIdentifier", "event_default_userRoles", "event_default_username"))
-				.withSearchResultsMetadataCodes(asList("event_default_title", "event_default_modifiedOn"))
-				.withTableMetadataCodes(asList("event_default_title", "event_default_modifiedOn")));
+						"event_default_recordIdentifier", "event_default_recordVersion", "event_default_userRoles",
+						"event_default_username"))
+				.withSearchResultsMetadataCodes(asList("event_default_title", "event_default_modifiedOn")).withTableMetadataCodes(
+						asList("event_default_recordIdentifier", "event_default_title", "event_default_modifiedOn")));
 		transaction.add(manager.getSchema(collection, "facet_field").withFormMetadataCodes(
 				asList("facet_field_title", "facet_field_elementPerPage", "facet_field_facetType",
 						"facet_field_fieldDatastoreCode", "facet_field_order", "facet_field_orderResult", "facet_field_pages",
@@ -4165,7 +4628,7 @@ public final class GeneratedRMMigrationCombo {
 				.withInputType(MetadataInputType.HIDDEN).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(false));
 		transaction.add(manager.getType(collection, "folder").withSimpleSearchStatus(true).withAdvancedSearchStatus(true)
 				.withManageableStatus(false).withMetadataGroup(
-						resourcesProvider.getLanguageMap(asList("classifiedInGroupLabel", "default:defaultGroupLabel"))));
+						resourcesProvider.getLanguageMap(asList("default:defaultGroupLabel", "classifiedInGroupLabel"))));
 		transaction.add(manager.getSchema(collection, "folder_default").withFormMetadataCodes(
 				asList("folder_default_type", "folder_default_title", "folder_default_parentFolder",
 						"folder_default_categoryEntered", "folder_default_uniformSubdivisionEntered",
@@ -4426,31 +4889,36 @@ public final class GeneratedRMMigrationCombo {
 						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
 						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
 						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
-						"core.manageTrash", "core.manageValueList", "core.viewEvents", "rm.borrowFolder", "rm.createDocuments",
-						"rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders",
-						"rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning",
-						"rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deleteSemiActiveDocuments",
+						"core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents", "rm.borrowFolder",
+						"rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments",
+						"rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders",
+						"rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteInactiveDocuments",
+						"rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments",
 						"rm.deleteSemiActiveFolders", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders",
 						"rm.editDecommissioningList", "rm.manageClassificationPlan", "rm.manageContainers",
 						"rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports",
 						"rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions",
-						"rm.modifyFolderDecomDate", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments",
-						"rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder",
-						"rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList",
-						"rm.returnOtherUsersDocuments", "rm.shareDocuments", "rm.shareFolders", "rm.shareInactiveDocuments",
-						"rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
-						"rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "tasks.manageWorkflows")));
+						"rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders",
+						"rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders",
+						"rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments",
+						"rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments",
+						"rm.returnOtherUsersDocuments", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments",
+						"rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders",
+						"rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments",
+						"rm.uploadSemiActiveDocuments", "rm.useCart", "tasks.manageWorkflows")));
 		rolesManager.addRole(new Role(collection, "U", "Utilisateur",
 				asList("rm.borrowFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders",
-						"rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.modifySemiActiveBorrowedFolder",
-						"rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
-						"rm.uploadSemiActiveDocuments")));
+						"rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders",
+						"rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.shareDocuments",
+						"rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
+						"rm.uploadSemiActiveDocuments", "rm.useCart")));
 		rolesManager.addRole(new Role(collection, "M", "Gestionnaire",
 				asList("rm.borrowFolder", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.decommissioning",
-						"rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.manageContainers",
-						"rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.modifyOpeningDateFolder",
-						"rm.modifySemiActiveBorrowedFolder", "rm.shareDocuments", "rm.shareFolders",
-						"rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments")));
+						"rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders",
+						"rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations",
+						"rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments",
+						"rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
+						"rm.uploadSemiActiveDocuments", "rm.useCart")));
 		rolesManager.addRole(new Role(collection, "RGD", "Responsable de la gestion documentaire",
 				asList("core.deleteContentVersion", "core.ldapConfigurationManagement", "core.manageConnectors",
 						"core.manageEmailServer", "core.manageFacets", "core.manageMetadataExtractor",
@@ -4458,19 +4926,22 @@ public final class GeneratedRMMigrationCombo {
 						"core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration",
 						"core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemModules",
 						"core.manageSystemServers", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies",
-						"core.manageTrash", "core.manageValueList", "core.viewEvents", "rm.borrowFolder", "rm.createDocuments",
-						"rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders",
-						"rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning",
-						"rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deleteSemiActiveDocuments",
+						"core.manageTrash", "core.manageValueList", "core.useExternalAPIS", "core.viewEvents", "rm.borrowFolder",
+						"rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments",
+						"rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders",
+						"rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteInactiveDocuments",
+						"rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments",
 						"rm.deleteSemiActiveFolders", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders",
 						"rm.editDecommissioningList", "rm.manageClassificationPlan", "rm.manageContainers",
 						"rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports",
 						"rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions",
-						"rm.modifyFolderDecomDate", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments",
-						"rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder",
-						"rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList",
-						"rm.returnOtherUsersDocuments", "rm.shareDocuments", "rm.shareFolders", "rm.shareInactiveDocuments",
-						"rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders",
-						"rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments")));
+						"rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders",
+						"rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders",
+						"rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments",
+						"rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments",
+						"rm.returnOtherUsersDocuments", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments",
+						"rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders",
+						"rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments",
+						"rm.uploadSemiActiveDocuments", "rm.useCart", "tasks.manageWorkflows")));
 	}
 }

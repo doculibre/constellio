@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -29,6 +30,7 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+//AFTER : Move in com.constellio.model.services.records.
 public class ModificationImpactCalculator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModificationImpactCalculator.class);
@@ -203,9 +205,15 @@ public class ModificationImpactCalculator {
 			} else {
 				referencesToMetadata = Collections.emptyList();
 			}
-		} else {
+		} else if (automaticMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			referencesToMetadata = getReferenceMetadatasUsedByTheGivenCalculatedMetadataToObtainValuesOfTheModifiedMetadata(
 					automaticMetadata, modifiedMetadata);
+
+		} else if (automaticMetadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+			referencesToMetadata = Collections.emptyList();
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported type : " + automaticMetadata.getDataEntry().getType());
 		}
 
 		return referencesToMetadata;

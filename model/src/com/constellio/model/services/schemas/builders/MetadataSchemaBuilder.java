@@ -4,6 +4,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,21 +17,36 @@ import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaCalculatedInfos;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCode;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModificationUsersAndDateRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaComparators;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException.NoSuchMetadata;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
+import com.constellio.model.utils.Lazy;
 
 public class MetadataSchemaBuilder {
 
@@ -284,6 +300,10 @@ public class MetadataSchemaBuilder {
 		}
 	}
 
+	public MetadataBuilder get(Metadata metadata) {
+		return get(metadata.getLocalCode());
+	}
+
 	public MetadataBuilder get(String code) {
 		String metadataCode = new SchemaUtils().toLocalMetadataCode(code);
 
@@ -317,7 +337,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataSchema buildDefault(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
-		List<Metadata> newMetadatas = buildMetadatas(typesFactory, modelLayerFactory);
+		MetadataList newMetadatas = buildMetadatas(typesFactory, modelLayerFactory);
 
 		validateDefault(this);
 
@@ -335,20 +355,137 @@ public class MetadataSchemaBuilder {
 		Collections.sort(newMetadatas, SchemaComparators.METADATA_COMPARATOR_BY_ASC_LOCAL_CODE);
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
+		Set<RecordValidator> recordValidators = this.schemaValidators.build();
+
 		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
-				inTransactionLog, this.schemaValidators.build(), orderAutomaticMetadatas(newMetadatas));
+				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
 	}
 
-	List<Metadata> buildMetadatas(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
-		List<Metadata> newMetadatas = new ArrayList<>();
+	private static class SchemaRecordSteps {
+
+		List<Metadata> automaticMetadatas;
+		List<RecordPreparationStep> steps;
+
+	}
+
+	private Lazy<MetadataSchemaCalculatedInfos> lazyCalculateSchemaInfos(final MetadataList newMetadatas,
+			final Set<RecordValidator> recordValidators) {
+		return new Lazy<MetadataSchemaCalculatedInfos>() {
+			@Override
+			protected MetadataSchemaCalculatedInfos load() {
+				return calculateSchemaInfos(newMetadatas, recordValidators);
+			}
+		};
+	}
+
+	private MetadataSchemaCalculatedInfos calculateSchemaInfos(MetadataList newMetadatas,
+			Set<RecordValidator> recordValidators) {
+
+		for (Metadata metadata : newMetadatas.onlyCalculated().onlyWithoutInheritance()) {
+			MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
+					.getCalculator();
+			if (calculator instanceof InitializedMetadataValueCalculator) {
+				((InitializedMetadataValueCalculator) calculator).initialize(newMetadatas, metadata);
+			}
+		}
+
+		Map<String, Set<String>> allAutoMetadatasDependencies = newSchemaUtils().calculatedMetadataDependencies(newMetadatas);
+
+		List<String> sequenceMetadatas = newMetadatas.onlySequence().toLocalCodesList();
+		Set<String> metadatasDependingOnSequence = new HashSet<>(sequenceMetadatas);
+		Map<String, Set<String>> autoMetadatasDependencies = new HashMap<>();
+		Map<String, Set<String>> autoMetadatasDependenciesBasedOnSequence = new HashMap<>();
+
+		boolean hasNewerMetadatasDependingOnSequence = true;
+		while (hasNewerMetadatasDependingOnSequence) {
+			int sizeBefore = metadatasDependingOnSequence.size();
+
+			for (Map.Entry<String, Set<String>> entry : allAutoMetadatasDependencies.entrySet()) {
+				for (String dependency : entry.getValue()) {
+					if (metadatasDependingOnSequence.contains(dependency)) {
+						metadatasDependingOnSequence.add(entry.getKey());
+					}
+				}
+			}
+
+			hasNewerMetadatasDependingOnSequence = metadatasDependingOnSequence.size() != sizeBefore;
+		}
+
+		for (Map.Entry<String, Set<String>> entry : allAutoMetadatasDependencies.entrySet()) {
+			if (metadatasDependingOnSequence.contains(entry.getKey())) {
+				autoMetadatasDependenciesBasedOnSequence.put(entry.getKey(), entry.getValue());
+			} else {
+				autoMetadatasDependencies.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		List<Metadata> autoMetas = orderAutomaticMetadatas(newMetadatas, autoMetadatasDependencies);
+		List<Metadata> autoMetasBasedOnSequence = orderAutomaticMetadatas(newMetadatas,
+				autoMetadatasDependenciesBasedOnSequence);
+
+		List<Metadata> automaticMetadatas = new ArrayList<>();
+		automaticMetadatas.addAll(autoMetas);
+		automaticMetadatas.addAll(autoMetasBasedOnSequence);
+
+		List<RecordPreparationStep> steps = new ArrayList<>();
+		steps.add(new UpdateCreationModificationUsersAndDateRecordPreparationStep());
+		steps.add(new ValidateMetadatasRecordPreparationStep(newMetadatas.onlyManuals().onlyNonSystemReserved()));
+		steps.add(new CalculateMetadatasRecordPreparationStep(autoMetas));
+		steps.add(new ValidateCyclicReferencesRecordPreparationStep());
+		steps.add(new ValidateMetadatasRecordPreparationStep(autoMetas));
+		steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
+
+		if (!sequenceMetadatas.isEmpty()) {
+			steps.add(new SequenceRecordPreparationStep(newMetadatas.onlySequence()));
+		}
+
+		if (!autoMetasBasedOnSequence.isEmpty()) {
+			steps.add(new CalculateMetadatasRecordPreparationStep(autoMetasBasedOnSequence));
+			steps.add(new ValidateMetadatasRecordPreparationStep(autoMetasBasedOnSequence));
+			if (!recordValidators.isEmpty()) {
+				steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
+			}
+		}
+
+		List<Metadata> contentMetadatas = newMetadatas.onlyWithType(MetadataValueType.CONTENT)
+				.sortedUsing(new ContentsComparator());
+		return new MetadataSchemaCalculatedInfos(steps, automaticMetadatas, contentMetadatas);
+	}
+
+	public static class ContentsComparator implements Comparator<Metadata> {
+		@Override
+		public int compare(Metadata m1, Metadata m2) {
+			if (m1.isDefaultRequirement() && !m2.isDefaultRequirement()) {
+				return -1;
+
+			} else if (!m1.isDefaultRequirement() && m2.isDefaultRequirement()) {
+				return 1;
+
+			} else if (m1.isMultivalue() && !m2.isMultivalue()) {
+				return 1;
+
+			} else if (!m1.isMultivalue() && m2.isMultivalue()) {
+				return -1;
+
+			} else {
+				String code1 = m1.getLocalCode();
+				String code2 = m2.getLocalCode();
+				return code1.compareTo(code2);
+			}
+
+		}
+	}
+
+	MetadataList buildMetadatas(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+		MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
 			newMetadatas.add(metadataBuilder.buildWithoutInheritance(typesFactory, modelLayerFactory));
 		}
 		return newMetadatas;
 	}
 
-	private List<Metadata> orderAutomaticMetadatas(List<Metadata> metadatas) {
-		Map<String, Set<String>> automaticMetadatasDependencies = newSchemaUtils().calculatedMetadataDependencies(metadatas);
+	private List<Metadata> orderAutomaticMetadatas(List<Metadata> metadatas,
+			Map<String, Set<String>> automaticMetadatasDependencies) {
 		List<String> sortedMetadataCodes;
 
 		try {
@@ -357,7 +494,15 @@ public class MetadataSchemaBuilder {
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
 			throw new MetadataSchemaBuilderRuntimeException.CyclicDependenciesInMetadata(e);
 		}
+
 		List<Metadata> sortedMetadatas = new ArrayList<>();
+
+		for (Metadata metadata : metadatas) {
+			if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
+				sortedMetadatas.add(metadata);
+			}
+		}
+
 		for (String sortedMetadataCode : sortedMetadataCodes) {
 			for (Metadata metadata : metadatas) {
 				if (sortedMetadataCode.equals(metadata.getLocalCode())) {
@@ -379,7 +524,7 @@ public class MetadataSchemaBuilder {
 
 	MetadataSchema buildCustom(MetadataSchema defaultSchema, DataStoreTypesFactory typesFactory,
 			ModelLayerFactory modelLayerFactory) {
-		List<Metadata> newMetadatas = new ArrayList<>();
+		final MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
 			try {
 				Metadata inheritance = defaultSchema.getMetadata(metadataBuilder.getLocalCode());
@@ -395,10 +540,12 @@ public class MetadataSchemaBuilder {
 
 		Collections.sort(newMetadatas, SchemaComparators.METADATA_COMPARATOR_BY_ASC_LOCAL_CODE);
 
+		final Set<RecordValidator> recordValidators = this.schemaValidators.build(defaultSchema.getValidators());
+
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
-				inTransactionLog, this.schemaValidators.build(defaultSchema.getValidators()),
-				orderAutomaticMetadatas(newMetadatas));
+		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas,
+				this.isUndeletable(),
+				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators));
 	}
 
 	public boolean isInheriting() {
@@ -478,7 +625,7 @@ public class MetadataSchemaBuilder {
 		createUndeletable("code").setEssential(true).setDefaultRequirement(true).setType(STRING).setUniqueValue(true);
 	}
 
-	public void deleteMetadataWithoutValidation(Metadata metadataToDelete) {
+	public void deleteMetadataWithoutValidation(MetadataBuilder metadataToDelete) {
 		try {
 			MetadataBuilder metadataBuilder = getMetadata(metadataToDelete.getLocalCode());
 			metadatas.remove(metadataBuilder);

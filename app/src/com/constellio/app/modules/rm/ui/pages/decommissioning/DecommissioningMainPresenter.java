@@ -1,5 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -164,10 +166,20 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	DecommissioningListQueryFactory queryFactory() {
-		return new DecommissioningListQueryFactory(collection, modelLayerFactory);
+		return new DecommissioningListQueryFactory(collection, appLayerFactory);
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
+	}
+
+	String getDeleteConfirmMessage(RecordVO entity) {
+		String deleteConfirmMessage;
+		if (rmRecordServices.getDecommissioningList(entity.getId()).isApproved()) {
+			deleteConfirmMessage = $("DecommissioningMainView.deleteApprovedList");
+		} else {
+			deleteConfirmMessage = $("DecommissioningMainView.deleteList");
+		}
+		return deleteConfirmMessage;
 	}
 }

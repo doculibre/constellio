@@ -140,6 +140,11 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return "zeCollection";
 		}
 
+		@Override
+		public MetadataSchema instance() {
+			return getSchema(code());
+		}
+
 		public Metadata username() {
 			return getMetadata(code() + "_username");
 		}

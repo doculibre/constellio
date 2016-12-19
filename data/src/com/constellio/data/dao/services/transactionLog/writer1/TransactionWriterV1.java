@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
@@ -17,10 +19,25 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 
 public class TransactionWriterV1 {
 
+	boolean writeZZRecords;
+
 	DataLayerSystemExtensions extensions;
 
-	public TransactionWriterV1(DataLayerSystemExtensions extensions) {
+	public TransactionWriterV1(boolean writeZZRecords, DataLayerSystemExtensions extensions) {
 		this.extensions = extensions;
+		this.writeZZRecords = writeZZRecords;
+	}
+
+	public String toSetSequenceLogEntry(String sequenceId, long value) {
+		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
+		stringBuilder.append("sequence set " + sequenceId + "=" + value + "\n");
+		return stringBuilder.toString();
+	}
+
+	public String toNextSequenceLogEntry(String sequenceId) {
+		StringBuilder stringBuilder = new StringBuilder("--transaction--\n");
+		stringBuilder.append("sequence next " + sequenceId + "\n");
+		return stringBuilder.toString();
 	}
 
 	public String toLogEntry(BigVaultServerTransaction transaction) {
@@ -134,15 +151,19 @@ public class TransactionWriterV1 {
 	}
 
 	private Collection<Object> removeEmptyStrings(Collection collection) {
-		List<Object> values = new ArrayList<>();
+		if (collection.contains("")) {
+			List<Object> values = new ArrayList<>();
 
-		for (Object item : collection) {
-			if (!"".equals(item)) {
-				values.add(item);
+			for (Object item : collection) {
+				if (!"".equals(item)) {
+					values.add(item);
+				}
 			}
-		}
 
-		return values;
+			return values;
+		} else {
+			return collection;
+		}
 	}
 
 	private void appendValue(StringBuilder stringBuilder, String fieldLogName, Object item) {
@@ -158,12 +179,15 @@ public class TransactionWriterV1 {
 	}
 
 	private boolean isLogged(String id) {
-		return !id.endsWith("ZZ");
+		return writeZZRecords || !id.endsWith("ZZ");
 	}
 
 	protected void appendDeletedByQuery(StringBuilder stringBuilder, String deletedByQuery) {
 		stringBuilder.append("deletequery " + deletedByQuery + "\n");
 	}
+
+	private Pattern lineFeedPattern = Pattern.compile("\n", Pattern.LITERAL);
+	private Pattern zPattern = Pattern.compile("Z", Pattern.LITERAL);
 
 	private String correct(Object value) {
 		if (value == null || "null".equals(value)) {
@@ -171,13 +195,13 @@ public class TransactionWriterV1 {
 
 		} else if (value instanceof Date) {
 			LocalDateTime dateTime = new LocalDateTime(value);
-			return correctDate(dateTime).toString().replace("Z", "");
+			return zPattern.matcher(correctDate(dateTime).toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else if (value instanceof LocalDateTime || value instanceof LocalDate) {
-			return value.toString().replace("Z", "");
+			return zPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement(""));
 
 		} else {
-			return value.toString().replace("\n", "__LINEBREAK__");
+			return lineFeedPattern.matcher(value.toString()).replaceAll(Matcher.quoteReplacement("__LINEBREAK__"));
 		}
 	}
 

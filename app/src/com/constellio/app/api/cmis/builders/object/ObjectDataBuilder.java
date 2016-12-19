@@ -1,6 +1,8 @@
 package com.constellio.app.api.cmis.builders.object;
 
 import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CMIS_NEVER_RETURN_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
 
 import java.util.GregorianCalendar;
 import java.util.HashSet;
@@ -10,6 +12,7 @@ import java.util.Set;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
@@ -19,10 +22,12 @@ import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_Runtime;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -38,16 +43,22 @@ public class ObjectDataBuilder {
 	private final AppLayerFactory appLayerFactory;
 	private final ModelLayerFactory modelLayerFactory;
 	private final SchemasRecordsServices schemas;
+	private final CallContext context;
 	private final String taxonomyPath = null;
+	private final AllowableActionsBuilder allowableActionsBuilder;
+	private final User user;
 
-	public ObjectDataBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory) {
+	public ObjectDataBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context) {
 		this.repository = repository;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		this.context = context;
 		this.schemas = new SchemasRecordsServices(repository.getCollection(), modelLayerFactory);
+		this.allowableActionsBuilder = new AllowableActionsBuilder(repository, appLayerFactory, context);
+		this.user = (User) context.get(ConstellioCmisContextParameters.USER);
 	}
 
-	public ObjectData build(CallContext context, Record record, Set<String> filter, boolean includeAllowableActions,
+	public ObjectData build(Record record, Set<String> filter, boolean includeAllowableActions,
 			boolean includeAcl, ObjectInfoHandler objectInfos) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
@@ -61,15 +72,16 @@ public class ObjectDataBuilder {
 		}
 
 		if (includeAllowableActions) {
-			result.setAllowableActions(new AllowableActionsBuilder(appLayerFactory, repository, record).build());
+			result.setAllowableActions(allowableActionsBuilder.build(record));
 		}
 
 		callExtensions(result, propertiesBuilder, record);
 
-		//if (includeAcl) {
-		result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
-		result.setIsExactAcl(true);
-		//}
+		boolean neverReturlACL = modelLayerFactory.getSystemConfigurationsManager().getValue(CMIS_NEVER_RETURN_ACL);
+		if (includeAcl && !neverReturlACL && allowableActionsBuilder.build(record).getAllowableActions().contains(CAN_GET_ACL)) {
+			result.setAcl(new AclBuilder(repository, modelLayerFactory).build(record));
+			result.setIsExactAcl(true);
+		}
 
 		if (context.isObjectInfoRequired()) {
 			objectInfo.setObject(result);
@@ -90,6 +102,8 @@ public class ObjectDataBuilder {
 		if (record == null) {
 			throw new IllegalArgumentException("Record must not be null!");
 		}
+
+		boolean readAccess = user.hasReadAccess().on(record);
 
 		setupObjectInfo(objectInfo, typeId);
 
@@ -133,7 +147,7 @@ public class ObjectDataBuilder {
 			}
 
 			if (path != null) {
-				if ("collection_default".equals(typeId)) {
+				if ("collection_default" .equals(typeId)) {
 					propertiesBuilder.addPropertyString(PropertyIds.PATH, "/");
 				} else {
 					path = "/taxo_" + path.substring(1);
@@ -148,7 +162,9 @@ public class ObjectDataBuilder {
 				propertiesBuilder.addPropertyString(PropertyIds.PARENT_ID,
 						path.split("/")[path.split("/").length - 2]);
 			}
-			addPropertiesForMetadatas(record, propertiesBuilder);
+			if (readAccess) {
+				addPropertiesForMetadatas(record, propertiesBuilder);
+			}
 
 			propertiesBuilder.addPropertyIdList(PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null);
 

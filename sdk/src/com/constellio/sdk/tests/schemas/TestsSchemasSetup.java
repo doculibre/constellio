@@ -10,6 +10,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.sdk.tests.TestUtils.asMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -102,6 +104,28 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public static MetadataBuilderConfigurator whichIncreaseDependencyLevel = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setIncreasedDependencyLevel(true);
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichHasCustomAttributes(final String... attributes) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				for (String attribute : attributes) {
+					builder.addCustomAttribute(attribute);
+				}
+			}
+
+		};
+	}
+
 	public static MetadataBuilderConfigurator whichIsEssentialInSummary = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -132,6 +156,15 @@ public class TestsSchemasSetup extends SchemasSetup {
 		@Override
 		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 			builder.setEssential(true);
+		}
+
+	};
+
+	public static MetadataBuilderConfigurator whichIsMarkedForDeletion = new MetadataBuilderConfigurator() {
+
+		@Override
+		public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+			builder.setMarkedForDeletion(true);
 		}
 
 	};
@@ -175,6 +208,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		}
 
 	};
+
 	public static MetadataBuilderConfigurator whichIsSearchable = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -290,6 +324,16 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 	};
 
+	public static MetadataBuilderConfigurator whichIsCalculatedUsingPattern(final String pattern) {
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asJexlScript(pattern);
+			}
+		};
+	}
+
 	public static MetadataBuilderConfigurator whichHasStructureFactory = new MetadataBuilderConfigurator() {
 
 		@Override
@@ -348,6 +392,30 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public static MetadataBuilderConfigurator whichHasFixedSequence(final String fixedSequenceCode) {
+
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asFixedSequence(fixedSequenceCode);
+			}
+
+		};
+	}
+
+	public static MetadataBuilderConfigurator whichHasSequenceDefinedByMetadata(final String metadataLocalCode) {
+
+		return new MetadataBuilderConfigurator() {
+
+			@Override
+			public void configure(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
+				builder.defineDataEntry().asSequenceDefinedByMetadata(metadataLocalCode);
+			}
+
+		};
+	}
+
 	private static MetadataBuilder getCustomMetadata(MetadataBuilder builder, MetadataSchemaTypesBuilder schemaTypes) {
 		return schemaTypes.getMetadata(builder.getCode().replace("_default_", "_custom_"));
 	}
@@ -362,6 +430,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		MetadataBuilder stringReference = zeDefaultSchemaBuilder.create("stringRef").setType(REFERENCE)
 				.setMultivalue(multivalueReferences);
 		MetadataBuilder copiedStringMetadata = zeDefaultSchemaBuilder.create("copiedStringMeta").setType(STRING)
+				.setLabels(asMap(Language.French, "Une métadonnée copiée"))
 				.setDefaultRequirement(required).setMultivalue(multivalue || multivalueReferences);
 		MetadataBuilder otherSchemaStringMetadata = anOtherSchemaTypeBuilder.getDefaultSchema().create("stringMetadata")
 				.setType(STRING).setMultivalue(multivalue);
@@ -527,6 +596,20 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
+	public TestsSchemasSetup withAThirdStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("thirdStringMetadata").setType(STRING)
+				.addLabel(Language.French, "A third string metadata");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+	public TestsSchemasSetup withRecordValidator(Class<? extends RecordValidator> validatorClass)
+			throws Exception {
+		zeDefaultSchemaBuilder.defineValidators().add(validatorClass);
+		return this;
+	}
+
 	public TestsSchemasSetup withAnotherSchemaStringMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("stringMetadata").setType(STRING)
@@ -600,7 +683,7 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
-	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+	public TestsSchemasSetup withAParentReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
 				.defineChildOfRelationshipToType(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
@@ -608,9 +691,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
+	public TestsSchemasSetup withAReferenceFromAnotherSchemaToZeSchema(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("referenceFromAnotherSchemaToZeSchema")
+				.defineReferencesTo(zeDefaultSchemaBuilder.getSchemaTypeBuilder());
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
 	@Override
 	public void setUp() {
-		zeSchemaTypeBuilder = typesBuilder.createNewSchemaType(ZE_SCHEMA_TYPE_CODE).setSecurity(security);
+		zeSchemaTypeBuilder = typesBuilder.createNewSchemaType(ZE_SCHEMA_TYPE_CODE).setSecurity(security).setLabels(
+				asMap(Language.French, "Ze type de schéma", Language.English, "Ze schema type"));
 		anOtherSchemaTypeBuilder = typesBuilder.createNewSchemaType(ANOTHER_SCHEMA_TYPE_CODE).setSecurity(security);
 		aThirdSchemaTypeBuilder = typesBuilder.createNewSchemaType(A_THIRD_SCHEMA_TYPE_CODE).setSecurity(security);
 		zeDefaultSchemaBuilder = zeSchemaTypeBuilder.getDefaultSchema();
@@ -688,6 +780,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
+	public TestsSchemasSetup withTypeFrenchLabel(String label) {
+		zeSchemaTypeBuilder.addLabel(Language.French, label);
+		return this;
+	}
+
 	public TestsSchemasSetup withCustomSchemaFrenchLabel(String label) {
 		zeCustomSchemaBuilder.addLabel(Language.French, label);
 		return this;
@@ -740,6 +837,20 @@ public class TestsSchemasSetup extends SchemasSetup {
 		};
 	}
 
+	public TestsSchemasSetup withAFixedSequence(MetadataBuilderConfigurator... builderConfigurators) {
+		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("fixedSequenceMetadata").defineDataEntry()
+				.asFixedSequence("zeSequence");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
+	public TestsSchemasSetup withADynamicSequence() {
+		zeDefaultSchemaBuilder.create("metadataDefiningSequenceNumber").setType(STRING);
+		zeDefaultSchemaBuilder.create("dynamicSequenceMetadata").defineDataEntry()
+				.asSequenceDefinedByMetadata("metadataDefiningSequenceNumber");
+		return this;
+	}
+
 	public static class ZeSchemaMetadatasAdapter implements SchemaShortcuts {
 
 		ZeSchemaMetadatas zeSchemaMetadatas;
@@ -772,6 +883,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 
 		public String firstReferenceToAnotherSchemaCompleteCode() {
 			return zeSchemaMetadatas.firstReferenceToAnotherSchemaCompleteCode();
+		}
+
+		public Metadata dynamicSequenceMetadata() {
+			return zeSchemaMetadatas.dynamicSequenceMetadata();
+		}
+
+		public Metadata fixedSequenceMetadata() {
+			return zeSchemaMetadatas.fixedSequenceMetadata();
+		}
+
+		public Metadata metadataDefiningSequenceNumber() {
+			return zeSchemaMetadatas.metadataDefiningSequenceNumber();
 		}
 
 		public Metadata firstReferenceToAnotherSchema() {
@@ -896,6 +1019,18 @@ public class TestsSchemasSetup extends SchemasSetup {
 	}
 
 	public class ZeSchemaMetadatas implements SchemaShortcuts {
+
+		public Metadata dynamicSequenceMetadata() {
+			return getMetadata(code() + "_" + "dynamicSequenceMetadata");
+		}
+
+		public Metadata fixedSequenceMetadata() {
+			return getMetadata(code() + "_" + "fixedSequenceMetadata");
+		}
+
+		public Metadata metadataDefiningSequenceNumber() {
+			return getMetadata(code() + "_" + "metadataDefiningSequenceNumber");
+		}
 
 		public Metadata metadataWithCode(String code) {
 			return getMetadata(code);

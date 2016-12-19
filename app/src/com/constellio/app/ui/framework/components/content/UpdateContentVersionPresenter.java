@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
+import com.constellio.model.services.contents.icap.IcapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,36 +144,43 @@ public class UpdateContentVersionPresenter implements Serializable {
 				}
 				recordVO.set(metadataVO, newVersionVO);
 
-				boolean newContent;
-				if (content == null) {
-					newContent = true;
-					record = presenterUtils.toRecord(recordVO);
-					content = record.get(contentMetadata);
-				} else {
-					newContent = false;
-				}
-				newVersionVO.setContentId(content.getId());
+                try {
+                    boolean newContent;
+                    if (content == null) {
+                        newContent = true;
+                        record = presenterUtils.toRecord(recordVO);
+                        content = record.get(contentMetadata);
+                    } else {
+                        newContent = false;
+                    }
+                    newVersionVO.setContentId(content.getId());
 
-				ContentVersionDataSummary newVersionDataSummary = contentManager.upload(inputStream, fileName);
-				if (newMajorVersion) {
-					contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
-				} else if (newMinorVersion) {
-					contentManager.createMinor(currentUser, fileName, newVersionDataSummary);
-				}
+                    ContentVersionDataSummary newVersionDataSummary = presenterUtils.uploadContent(inputStream, true, true, fileName);
+                    if (newMajorVersion) {
+                        contentManager.createMajor(currentUser, fileName, newVersionDataSummary);
+                    } else if (newMinorVersion) {
+                        contentManager.createMinor(currentUser, fileName, newVersionDataSummary);
+                    }
 
-				if (isContentCheckedOut()) {
-					if (checkingIn) {
-						content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
-					} else {
-						content.updateCheckedOutContentWithName(newVersionDataSummary, fileName);
-					}
-					modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
-				} else if (!newContent) {
-					content.updateContentWithName(currentUser, newVersionDataSummary, newMajorVersion, fileName);
-				}
+                    if (isContentCheckedOut()) {
+                        if (checkingIn) {
+                            content.checkInWithModificationAndName(newVersionDataSummary, newMajorVersion, fileName);
+                        } else {
+                            content.updateCheckedOutContentWithName(newVersionDataSummary, fileName);
+                        }
+                        modelLayerFactory.newLoggingServices().returnRecord(record, currentUser);
+                    } else if (!newContent) {
+                        content.updateContentWithName(currentUser, newVersionDataSummary, newMajorVersion, fileName);
+                    }
+                } catch(final IcapException e) {
+                    window.showErrorMessage(e.getMessage());
+
+                    return;
+                }
 			} else {
 				inputStreamProvider = null;
 				if (newMajorVersion) {
+					content.checkIn();
 					content.finalizeVersion();
 				} else if (newMinorVersion) {
 					content.checkIn();

@@ -71,7 +71,11 @@ public class RecordServicesException extends Exception {
 	public static class UnresolvableOptimisticLockingConflict extends RecordServicesException {
 
 		public UnresolvableOptimisticLockingConflict(Exception e) {
-			super(e);
+			super("Unresolvable optimistic locking", e);
+		}
+
+		public UnresolvableOptimisticLockingConflict(String id) {
+			super("Unresolvable optimistic locking caused by id " + id);
 		}
 	}
 

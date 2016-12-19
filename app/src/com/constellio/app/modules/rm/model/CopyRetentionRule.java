@@ -16,6 +16,8 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class CopyRetentionRule implements ModifiableStructure {
 	String code;
+	String title;
+	String description;
 	CopyType copyType;
 	List<String> mediumTypeIds = new ArrayList<>();
 	String contentTypesComment;
@@ -30,6 +32,7 @@ public class CopyRetentionRule implements ModifiableStructure {
 	String activeDateMetadata;
 	Integer openActiveRetentionPeriod;
 	boolean essential;
+	boolean ignoreActivePeriod;
 	boolean dirty;
 	private String id;
 
@@ -56,6 +59,26 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setCode(String code) {
 		markAsDirty();
 		this.code = code;
+		return this;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public CopyRetentionRule setTitle(String title) {
+		markAsDirty();
+		this.title = title;
+		return this;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public CopyRetentionRule setDescription(String description) {
+		markAsDirty();
+		this.description = description;
 		return this;
 	}
 
@@ -192,6 +215,16 @@ public class CopyRetentionRule implements ModifiableStructure {
 	public CopyRetentionRule setEssential(boolean essential) {
 		markAsDirty();
 		this.essential = essential;
+		return this;
+	}
+
+	public boolean isIgnoreActivePeriod() {
+		return ignoreActivePeriod;
+	}
+
+	public CopyRetentionRule setIgnoreActivePeriod(boolean ignoreActivePeriod) {
+		markAsDirty();
+		this.ignoreActivePeriod = ignoreActivePeriod;
 		return this;
 	}
 

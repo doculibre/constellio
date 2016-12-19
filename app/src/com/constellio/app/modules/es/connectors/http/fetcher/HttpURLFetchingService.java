@@ -33,6 +33,10 @@ public class HttpURLFetchingService implements AutoCloseable {
 		if (credentialsProvider != null) {
 			webClient.setCredentialsProvider(credentialsProvider);
 		}
+		webClient.setRefreshHandler(new RefreshHandler() {
+			@Override
+			public void handleRefresh(Page page, URL url, int seconds) throws IOException {}}
+		);
 	}
 
 	public Page fetch(String url) {

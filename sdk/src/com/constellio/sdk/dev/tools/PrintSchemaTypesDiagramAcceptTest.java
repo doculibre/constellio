@@ -24,6 +24,7 @@ public class PrintSchemaTypesDiagramAcceptTest extends ConstellioTest {
 	private static List<String> restrictedTypes = asList(Collection.SCHEMA_TYPE, Event.SCHEMA_TYPE, WorkflowTask.SCHEMA_TYPE,
 			User.SCHEMA_TYPE, Group.SCHEMA_TYPE);
 
+	// http://plantuml.com/plantuml/uml/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000
 	@Test
 	@MainTestDefaultStart
 	public void printSchemas()

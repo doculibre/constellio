@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.constellio.data.threads.ConstellioJobManager;
+
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -38,6 +40,8 @@ import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.recovery.TransactionLogRecoveryManager;
+import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.data.dao.services.sequence.SolrSequencesManager;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.dao.services.solr.SolrServers;
@@ -70,6 +74,7 @@ public class DataLayerFactory extends LayerFactory {
 	private final BigVaultLogger bigVaultLogger;
 	private final SecondTransactionLogManager secondTransactionLogManager;
 	private final BackgroundThreadsManager backgroundThreadsManager;
+	private final ConstellioJobManager constellioJobManager;
 	private final DataLayerLogger dataLayerLogger;
 	private final DataLayerExtensions dataLayerExtensions;
 	final TransactionLogRecoveryManager transactionLogRecoveryManager;
@@ -88,13 +93,16 @@ public class DataLayerFactory extends LayerFactory {
 
 		this.backgroundThreadsManager = add(new BackgroundThreadsManager(dataLayerConfiguration));
 
+		constellioJobManager = add(new ConstellioJobManager(dataLayerConfiguration));
+
 		if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.ZOOKEEPER) {
 			this.configManager = add(new ZooKeeperConfigManager(dataLayerConfiguration.getSettingsZookeeperAddress(),
 					ioServicesFactory.newIOServices()));
 
 		} else if (dataLayerConfiguration.getSettingsConfigType() == ConfigManagerType.FILESYSTEM) {
 			this.configManager = add(new FileSystemConfigManager(dataLayerConfiguration.getSettingsFileSystemBaseFolder(),
-					ioServicesFactory.newIOServices(), ioServicesFactory.newHashingService()));
+					ioServicesFactory.newIOServices(),
+					ioServicesFactory.newHashingService(dataLayerConfiguration.getHashingEncoding())));
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported ConfigManagerType");
@@ -123,7 +131,7 @@ public class DataLayerFactory extends LayerFactory {
 
 		if (ContentDaoType.FILESYSTEM == dataLayerConfiguration.getContentDaoType()) {
 			File rootFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
-			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices()));
+			contentDao = add(new FileSystemContentDao(rootFolder, ioServicesFactory.newIOServices(), dataLayerConfiguration));
 
 		} else if (ContentDaoType.HADOOP == dataLayerConfiguration.getContentDaoType()) {
 			String hadoopUrl = dataLayerConfiguration.getContentDaoHadoopUrl();
@@ -259,6 +267,10 @@ public class DataLayerFactory extends LayerFactory {
 		return backgroundThreadsManager;
 	}
 
+	public ConstellioJobManager getConstellioJobManager() {
+		return constellioJobManager;
+	}
+
 	public SecondTransactionLogManager getSecondTransactionLogManager() {
 		return secondTransactionLogManager;
 	}
@@ -292,5 +304,9 @@ public class DataLayerFactory extends LayerFactory {
 
 	public TransactionLogRecoveryManager getTransactionLogRecoveryManager() {
 		return this.transactionLogRecoveryManager;
+	}
+
+	public SequencesManager getSequencesManager() {
+		return new SolrSequencesManager(newRecordDao(), secondTransactionLogManager);
 	}
 }

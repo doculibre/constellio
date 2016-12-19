@@ -1,7 +1,9 @@
-apply from: 'http://plugins.jasoft.fi/vaadin-groovy.plugin?version=0.9.7'
+plugins {
+    id "fi.jasoft.plugin.vaadin" version '0.11.4'
+}
 
 vaadin {
-    version '7.6.5'
+    version '7.7.4'
     addon.title = "constellio"
 
     widgetset 'com.constellio.app.ui.application.widgetset.AppWidgetset'
@@ -41,12 +43,12 @@ dependencies {
     testCompile "org.slf4j:slf4j-log4j12:1.7.7"
     testCompile "org.slf4j:slf4j-api:1.7.7"
     testCompile "javax.servlet:javax.servlet-api:3.1.0"
-    testCompile "com.vaadin:vaadin-shared:7.6.5"
-    testCompile "com.vaadin:vaadin-client:7.6.5"
-    testCompile "com.vaadin:vaadin-server:7.6.5"
-    testCompile "com.vaadin:vaadin-themes:7.6.5"
-    testCompile "com.vaadin:vaadin-client-compiled:7.6.5"
-    testCompile "com.vaadin:vaadin-client-compiler:7.6.5"
+    testCompile "com.vaadin:vaadin-shared:7.7.4"
+    testCompile "com.vaadin:vaadin-client:7.7.4"
+    testCompile "com.vaadin:vaadin-server:7.7.4"
+    testCompile "com.vaadin:vaadin-themes:7.7.4"
+    testCompile "com.vaadin:vaadin-client-compiled:7.7.4"
+//    testCompile "com.vaadin:vaadin-client-compiler:7.7.4"
     testCompile "com.vaadin:vaadin-sass-compiler:0.9.11"
     testCompile "javax.servlet:javax.servlet-api:3.1.0"
     testCompile "javax.servlet.jsp:jsp-api:2.2"
@@ -73,12 +75,12 @@ dependencies {
     compile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
     compile "javax.servlet:javax.servlet-api:3.1.0"
     compile "javax.servlet.jsp:jsp-api:2.2"
-    compile "com.vaadin:vaadin-shared:7.6.5"
-    compile "com.vaadin:vaadin-client:7.6.5"
-    compile "com.vaadin:vaadin-server:7.6.5"
-    compile "com.vaadin:vaadin-themes:7.6.5"
-    compile "com.vaadin:vaadin-client-compiled:7.6.5"
-    compile "com.vaadin:vaadin-client-compiler:7.6.5"
+    compile "com.vaadin:vaadin-shared:7.7.4"
+    compile "com.vaadin:vaadin-client:7.7.4"
+    compile "com.vaadin:vaadin-server:7.7.4"
+    compile "com.vaadin:vaadin-themes:7.7.4"
+    compile "com.vaadin:vaadin-client-compiled:7.7.4"
+//    compile "com.vaadin:vaadin-client-compiler:7.7.4"
     compile "com.vaadin:vaadin-sass-compiler:0.9.11"
     compile "org.apache.solr:solr-solrj:5.0.0"
     compile "org.apache.solr:solr-core:5.0.0"
@@ -120,4 +122,14 @@ configurations {
 
 artifacts {
     testArtifacts jarTest
+}
+
+sonarqube {
+    properties {
+        property "sonar.jacoco.reportPath", "$projectDir/sdk/build/jacoco/test.exec"
+        property "sonar.junit.reportsPath", "$projectDir/sdk/build/reports/"
+        property "sonar.projectName", "constellio"
+        property "sonar.projectKey", "constellio"
+        property "sonar.sources", "src/"
+    }
 }

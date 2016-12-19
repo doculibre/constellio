@@ -15,6 +15,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
@@ -191,7 +192,8 @@ public class SchemasDisplayManagerCache {
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 		if (metadata.getInheritance() == null) {
 			config = new MetadataDisplayConfig(collection, metadataCode, false, getDefaultMetadataInputType(
-					metadataCode, metadataSchemasManager), false, "");
+					metadataCode, metadataSchemasManager), false, "",
+					getDefaultMetadataDisplayType());
 		} else {
 			MetadataDisplayConfig inheritedConfig = getMetadata(metadata.getInheritance().getCode(), metadataSchemasManager);
 			config = MetadataDisplayConfig.inheriting(metadataCode, inheritedConfig);
@@ -201,7 +203,7 @@ public class SchemasDisplayManagerCache {
 	}
 
 	private MetadataInputType getDefaultMetadataInputType(String metadataCode,
-			MetadataSchemasManager metadataSchemasManager) {
+															   MetadataSchemasManager metadataSchemasManager) {
 
 		Metadata metadata = metadataSchemasManager.getSchemaTypes(collection).getMetadata(metadataCode);
 		List<MetadataInputType> types = MetadataInputType
@@ -211,6 +213,10 @@ public class SchemasDisplayManagerCache {
 		}
 
 		return types.get(0);
+	}
+
+	private MetadataDisplayType getDefaultMetadataDisplayType() {
+		return MetadataDisplayType.VERTICAL;
 	}
 
 }

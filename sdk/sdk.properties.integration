@@ -1,7 +1,7 @@
 # === WEB DRIVERS CONFIGURATION ===
 # if both are specified, phantomjs is used, unless you call newFirefoxWebDriver() in the test
 #firefoxBinary=detect
-firefoxBinary=/opt/firefox/firefox
+firefoxBinary=/opt/firefox_headless
 #phantomJSBinary=
 port=7070
 
@@ -15,12 +15,12 @@ dao.settings.type=filesystem
 
 # === RUN/SKIP TESTS CONFIGURATION ===
 skip.slowtests=false
-skip.uitests=false
+skip.uitests=true
 skip.drivertests=false
 skip.loadtests=true
 skip.internettests=false
-skip.indevelopment=false
-
+skip.indevelopment=true
+skip.testsWithGradle=false
 
 tests.whitelist=
-tests.blacklist=
+tests.blacklist=com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportBuilderFactoryAcceptanceTest,com.constellio.model.services.search.SearchServiceAcceptanceTest,com.constellio.model.services.emails.EmailServicesAcceptanceTest,com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImplAcceptanceTest,com.constellio.app.modules.es.connectors.sharepoint.ConnectorSharepointUtilsServicesRealTest,com.constellio.app.modules.es.connectors.sharepoint.SharepointSecurityAcceptanceTest

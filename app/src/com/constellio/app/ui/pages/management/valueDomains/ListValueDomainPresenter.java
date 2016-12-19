@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
@@ -17,6 +10,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView> {
 
@@ -46,6 +45,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 					.modify(view.getCollection());
 			Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).addLabel(language, newLabel);
+			metadataSchemaTypesBuilder.getSchemaType(schemaTypeVO.getCode()).getDefaultSchema().addLabel(language, newLabel);
 
 			try {
 				modelLayerFactory.getMetadataSchemasManager().saveUpdateSchemaTypes(metadataSchemaTypesBuilder);
@@ -53,7 +53,7 @@ public class ListValueDomainPresenter extends BasePresenter<ListValueDomainView>
 				throw new RuntimeException(optimistickLocking);
 			}
 			view.refreshTable();
-		} else {
+		} else if (newLabel != null && !newLabel.equals(schemaTypeVO.getLabel(view.getSessionContext().getCurrentLocale()))) {
 			view.showErrorMessage($("ListValueDomainView.existingValueDomain", newLabel));
 		}
 	}

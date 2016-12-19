@@ -30,6 +30,7 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
+
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -237,6 +238,29 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenSearchingRecordsReturningWithFullValueContainingSpecialCharactersThenFindResult()
+			throws Exception {
+
+		defineSchemasManager().using(schema.withAStringMetadata().withABooleanMetadata());
+		Record special;
+
+		transaction.addUpdate(
+				newRecordOfZeSchema().set(zeSchema.stringMetadata(), "Chuck Norris + - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
+		transaction.addUpdate(
+				special = newRecordOfZeSchema().set(zeSchema.stringMetadata(), "+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"));
+
+		recordServices.execute(transaction);
+
+		OngoingLogicalSearchConditionWithDataStoreFields whereMetadata = from(zeSchema.instance())
+				.where(zeSchema.stringMetadata());
+
+		assertThat(findRecords(whereMetadata.isEqualTo("+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\"))).containsOnly(special);
+
+		assertThat(findRecords(whereMetadata.isIn(asList("+ - && || ! ( ) { } [ ] ^ \" ~ * ? : \\")))).containsOnly(special);
+
+	}
+
+	@Test
 	public void whenSearchingByEnumValueThenFindRecords()
 			throws Exception {
 
@@ -289,10 +313,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).returnAll();
 		//when
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.computeStatsOnField(statsMetadata.getDataStoreCode());
+		query.computeStatsOnField(statsMetadata);
 		//then
 		SPEQueryResponse response = searchServices.query(query);
-		Map<String, Object> values = response.getStatValues(statsMetadata.getDataStoreCode());
+		Map<String, Object> values = response.getStatValues(statsMetadata);
 		assertThat(values.get("min")).isEqualTo(12.0);
 		assertThat(values.get("max")).isEqualTo(13.5);
 		assertThat(values.get("sum")).isEqualTo(25.5);
@@ -315,10 +339,10 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		condition = from(zeSchema.instance()).returnAll();
 		//when
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.computeStatsOnField(statsMetadata.getDataStoreCode());
+		query.computeStatsOnField(statsMetadata);
 		//then
 		SPEQueryResponse response = searchServices.query(query);
-		Map<String, Object> values = response.getStatValues(statsMetadata.getDataStoreCode());
+		Map<String, Object> values = response.getStatValues(statsMetadata);
 		assertThat(values.get("missing")).isEqualTo(1L);
 		assertThat(values.get("count")).isEqualTo(2L);
 		assertThat(values.get("min")).isEqualTo(12.0);
@@ -908,11 +932,11 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata());
 		transaction.addUpdate(expectedRecord = newRecordOfZeSchema()
-				.set(zeSchema.stringMetadata(), "Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris"));
+				.set(zeSchema.stringMetadata(), "Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris -1.-03"));
 		recordServices.execute(transaction);
 
 		condition = from(zeSchema.instance()).where(zeSchema.stringMetadata())
-				.isContainingText(":h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:");
+				.isContainingText("Chuck:h=T+4zq4cGP/tXkdJp/qz1WVWYhoQ=:Norris -1.-03");
 		List<Record> records = findRecords(condition);
 
 		assertThat(records).containsOnly(expectedRecord);

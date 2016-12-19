@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.model.calculators;
 
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedInactiveDate;
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
 import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
 
 import java.util.Arrays;
@@ -29,19 +30,26 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 	LocalDependency<List<LocalDate>> copyRulesExpectedTransferDateParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).whichIsMultivalue();
 
-	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriodParam =
+	ConfigDependency<Integer> configSemiActiveNumberOfYearWhenVariableDelayPeriodParam =
+			RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
+	ConfigDependency<Integer> configInactiveNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
+
+	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
+
 	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
+	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
+			.dependency();
 
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
 		return Arrays.asList(decommissioningDateParam, archivisticStatusParam, datesAndDateTimesParam,
-				copyRulesExpectedTransferDateParam, configNumberOfYearWhenVariableDelayPeriodParam);
+				copyRulesExpectedTransferDateParam, configSemiActiveNumberOfYearWhenVariableDelayPeriodParam,
+				configInactiveNumberOfYearWhenVariableDelayPeriodParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	@Override
 	protected LocalDate calculateForCopyRule(int index, CopyRetentionRule copyRule, CalculatorParameters parameters) {
-
 		CalculatorInput input = new CalculatorInput(parameters);
 
 		if (input.archivisticStatus.isInactive()) {
@@ -57,7 +65,8 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 		} else if (input.archivisticStatus.isSemiActive()) {
 			baseTransferDate = input.decommissioningDate;
-			LocalDate dateSpecifiedInCopyRule = input.getAjustedBaseDateFromSemiActiveDelay(copyRule);
+			LocalDate dateSpecifiedInCopyRule = input
+					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			baseTransferDate = LangUtils.min(baseTransferDate, dateSpecifiedInCopyRule);
 
 		} else {
@@ -65,9 +74,12 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 				expectedTransferDate = input.copyRulesExpectedTransferDate.get(index);
 			}
 
-			LocalDate dateSpecifiedInCopyRule = input.getAjustedBaseDateFromSemiActiveDelay(copyRule);
+			LocalDate dateSpecifiedInCopyRule = input
+					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
+			} else if (expectedTransferDate == null && input.inactiveNumberOfYearWhenVariableDelayPeriod != -1) {
+				baseTransferDate = input.decommissioningDate;
 			} else {
 				baseTransferDate = expectedTransferDate;
 			}
@@ -75,7 +87,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 		}
 
 		LocalDate calculatedInactiveDate = calculateExpectedInactiveDate(copyRule, baseTransferDate,
-				input.numberOfYearWhenVariableDelayPeriod);
+				input.inactiveNumberOfYearWhenVariableDelayPeriod);
 
 		if (calculatedInactiveDate == null) {
 			return null;
@@ -98,27 +110,42 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 		List<LocalDate> copyRulesExpectedTransferDate;
 
-		Integer numberOfYearWhenVariableDelayPeriod;
+		Integer semiActiveNumberOfYearWhenVariableDelayPeriod, inactiveNumberOfYearWhenVariableDelayPeriod;
 		DynamicDependencyValues datesAndDateTimes;
+		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			super(parameters);
 			this.archivisticStatus = parameters.get(archivisticStatusParam);
 			this.decommissioningDate = parameters.get(decommissioningDateParam);
 			this.copyRulesExpectedTransferDate = parameters.get(copyRulesExpectedTransferDateParam);
-			this.numberOfYearWhenVariableDelayPeriod = parameters.get(configNumberOfYearWhenVariableDelayPeriodParam);
+			this.semiActiveNumberOfYearWhenVariableDelayPeriod = parameters
+					.get(configSemiActiveNumberOfYearWhenVariableDelayPeriodParam);
+			this.inactiveNumberOfYearWhenVariableDelayPeriod = parameters
+					.get(configInactiveNumberOfYearWhenVariableDelayPeriodParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
+			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
-		public LocalDate getAjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy) {
+		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {
 			String semiActiveMetadata = copy.getSemiActiveDateMetadata();
 
 			if (semiActiveMetadata != null && semiActiveMetadata.equals(copy.getActiveDateMetadata())) {
 				return null;
 
 			} else {
-				LocalDate date = datesAndDateTimesParam.getDate(semiActiveMetadata, datesAndDateTimes);
-				return date == null ? null : ajustToFinancialYear(date);
+				LocalDate date = datesAndDateTimesParam
+						.getDate(semiActiveMetadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
+				if (date == null) {
+					return null;
+				} else {
+
+					if (!copy.isIgnoreActivePeriod()) {
+						date = calculateExpectedTransferDate(copy, date, semiActiveNumberOfYearWhenVariableDelayPeriod);
+					}
+					date = adjustToFinancialYear(date);
+					return date;
+				}
 			}
 		}
 	}

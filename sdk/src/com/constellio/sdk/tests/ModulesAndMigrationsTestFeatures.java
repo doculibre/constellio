@@ -107,11 +107,15 @@ public class ModulesAndMigrationsTestFeatures {
 	}
 
 	public ModulesAndMigrationsTestFeatures withAllTestUsers() {
+		return withAllTest(new Users());
+	}
+
+	public ModulesAndMigrationsTestFeatures withAllTest(Users usingUsers) {
 		UserServices userServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory().newUserServices();
 		UserPhotosServices userPhotosServices = factoriesTestFeatures.getConstellioFactories().getModelLayerFactory()
 				.newUserPhotosServices();
-		if (users == null) {
-			users = new Users();
+		if (this.users == null) {
+			users = usingUsers;
 			users.setUp(userServices).withPhotos(userPhotosServices);
 		}
 		userServices.addUserToCollection(users.admin(), collection);

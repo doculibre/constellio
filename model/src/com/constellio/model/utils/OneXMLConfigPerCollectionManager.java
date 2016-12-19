@@ -82,7 +82,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 			throws OptimisticLockingConfiguration {
 		String configPath = getConfigPath(collection);
 		configManager.update(configPath, hash, document);
-		load(collection, configPath);
+		//load(collection, configPath);
 	}
 
 	public T get(String collection) {
@@ -123,6 +123,11 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		String configPath = getConfigPath(collection);
 
 		registerCollectionConfigAndLoad(collection);
+	}
+
+	@Override
+	public void onCollectionDeleted(String collection) {
+		cache.remove(collection);
 	}
 
 	public void createCollectionFile(final String collection, DocumentAlteration documentAlteration) {

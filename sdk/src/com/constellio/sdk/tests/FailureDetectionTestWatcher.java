@@ -34,4 +34,8 @@ public class FailureDetectionTestWatcher extends TestWatcher {
 		void finished(Description description);
 
 	}
+
+	public boolean isFailed() {
+		return failed;
+	}
 }

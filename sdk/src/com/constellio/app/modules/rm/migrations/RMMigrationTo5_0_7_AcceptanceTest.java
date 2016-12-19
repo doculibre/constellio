@@ -27,8 +27,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.conf.LDAPTestConfig;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -222,7 +222,7 @@ public class RMMigrationTo5_0_7_AcceptanceTest extends ConstellioTest {
 	public void whenUpdatingFrom5_0_6ThenMigrateDecomListFolderDetail()
 			throws OptimisticLockingConfiguration {
 		givenSystemAtVersion5_0_6();
-		getAppLayerFactory().newMigrationServices().migrate(zeCollection, false);
+		getAppLayerFactory().newMigrationServices().migrate(null, false);
 
 		RMTestRecords rmTestRecords = new RMTestRecords(zeCollection).alreadySettedUp(getAppLayerFactory());
 		List<DecomListFolderDetail> decomListFolderDetailList = rmTestRecords.getList01().getFolderDetails();

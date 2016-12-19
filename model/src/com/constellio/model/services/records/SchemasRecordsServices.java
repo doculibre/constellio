@@ -1,5 +1,9 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +24,9 @@ import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
 
 public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
@@ -171,6 +178,16 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public Event newEvent() {
 		return new Event(create(defaultSchema(Event.SCHEMA_TYPE)), getTypes());
+	}
+
+	public List<Event> searchEvents(LogicalSearchQuery query) {
+		return wrapEvents(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<Event> searchEvents(LogicalSearchCondition condition) {
+		MetadataSchemaType type = eventSchemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapEvents(modelLayerFactory.newSearchServices().search(query));
 	}
 
 	//EmailToSend

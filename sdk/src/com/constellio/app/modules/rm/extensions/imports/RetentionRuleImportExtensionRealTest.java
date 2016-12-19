@@ -1,5 +1,15 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -8,15 +18,6 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.google.gwt.dev.util.collect.HashMap;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class RetentionRuleImportExtensionRealTest extends ConstellioTest {
 

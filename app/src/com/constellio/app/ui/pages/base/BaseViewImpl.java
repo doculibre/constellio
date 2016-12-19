@@ -13,11 +13,12 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
@@ -54,6 +55,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private Component actionMenu;
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
+	
+	private List<ActionMenuButtonsDecorator> actionMenuButtonsDecorators = new ArrayList<>();
 
 	public BaseViewImpl() {
 		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
@@ -176,6 +179,20 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 
 		afterViewAssembled(event);
+		
+//		StringBuffer js = new StringBuffer();
+//		js.append("setTimeout(function() {setInterval(function() {\r\n"); 
+//		js.append("try {");
+//		js.append("\r\n");
+//		js.append("var req = new XMLHttpRequest();"); 
+//		js.append("\r\n");
+//		js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
+//		js.append("\r\n");
+//		js.append("req.send();");
+//		js.append("\r\n");
+//		js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
+//		js.append("}, 10000);}, 1000);");
+//		if (true) com.vaadin.ui.JavaScript.eval(js.toString());
 	}
 
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -268,6 +285,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		} else {
 			actionMenuLayout = new VerticalLayout();
 			actionMenuLayout.setSizeUndefined();
+			
+			for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+				actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+			}
+			
 			for (Button actionMenuButton : actionMenuButtons) {
 				actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 				actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
@@ -335,6 +357,18 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	protected ClickListener getBackButtonClickListener() {
 		return null;
+	}
+	
+	public void addActionMenuButtonsDecorator(ActionMenuButtonsDecorator decorator) {
+		this.actionMenuButtonsDecorators.add(decorator);
+	}
+	
+	public List<ActionMenuButtonsDecorator> getActionMenuButtonsDecorators() {
+		return actionMenuButtonsDecorators;
+	}
+	
+	public void removeActionMenuButtonsDecorator(ActionMenuButtonsDecorator decorator) {
+		this.actionMenuButtonsDecorators.remove(decorator);
 	}
 
 	protected abstract Component buildMainComponent(ViewChangeEvent event);

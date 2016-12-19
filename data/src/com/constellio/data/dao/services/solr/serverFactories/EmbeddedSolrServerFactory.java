@@ -45,7 +45,7 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 			throw FileSystemSolrManagerException.noSuchSolrConfig(confFolder);
 		}
 
-		File schemaFile = new File(confFolder, "schema.xml");
+		File schemaFile = new File(confFolder, "managed-schema");
 		if (!schemaFile.exists()) {
 			throw FileSystemSolrManagerException.noSuchSchema(confFolder);
 		}

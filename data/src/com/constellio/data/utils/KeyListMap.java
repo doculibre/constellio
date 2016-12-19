@@ -57,4 +57,8 @@ public class KeyListMap<K, V> implements Serializable {
 	public void clear() {
 		map.clear();
 	}
+
+	public boolean contains(K key, V value) {
+		return contains(key) && get(key).contains(value);
+	}
 }

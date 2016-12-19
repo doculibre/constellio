@@ -166,8 +166,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery computeStatsOnField(String metadata) {
-		this.statisticFields.add(metadata);
+	public LogicalSearchQuery computeStatsOnField(DataStoreField field) {
+		this.statisticFields.add(field.getDataStoreCode());
 		return this;
 	}
 
@@ -336,10 +336,11 @@ public class LogicalSearchQuery implements SearchQuery {
 	public List<String> getFilterQueries() {
 		List<String> filterQueries = new ArrayList<>();
 
-		for (String filterQuery : condition.getFilters().getFilterQueries()) {
-			filterQueries.add(filterQuery);
+		if (condition.getFilters() != null) {
+			for (String filterQuery : condition.getFilters().getFilterQueries()) {
+				filterQueries.add(filterQuery);
+			}
 		}
-
 		if (filterStatus != null) {
 			filterQueries.add(filterStatus);
 		}
@@ -453,5 +454,9 @@ public class LogicalSearchQuery implements SearchQuery {
 		public String getAccess() {
 			return access;
 		}
+	}
+
+	public static LogicalSearchQuery query(LogicalSearchCondition condition) {
+		return new LogicalSearchQuery(condition);
 	}
 }

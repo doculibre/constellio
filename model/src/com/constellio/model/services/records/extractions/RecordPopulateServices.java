@@ -2,7 +2,10 @@ package com.constellio.model.services.records.extractions;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
@@ -23,11 +26,11 @@ import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
+import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-
 
 public class RecordPopulateServices {
 
@@ -50,36 +53,37 @@ public class RecordPopulateServices {
 	}
 
 	public void populate(Record record) {
-
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager);
+		populate(record, parsedContentProvider);
+	}
+
+	public void populate(Record record, ParsedContentProvider parsedContentProvider) {
+
 		MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
-		List<Metadata> contentMetadatas = schema.getMetadatas().onlyWithType(CONTENT).sortedUsing(new ContentsComparator());
+		List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
+		if (!contentMetadatas.isEmpty()) {
+			if (!record.isSaved()) {
+				String category = getCategory(parsedContentProvider, contentMetadatas, record);
+				setCategoryToRecord(record, category);
 
-		if (!record.isSaved()) {
-			String category = getCategory(parsedContentProvider, contentMetadatas, record);
-			setCategoryToRecord(record, category);
+			}
+			schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
+			Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
 
-		}
-		schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-		MetadataList populatedMetadatas = schema.getMetadatas().onlyPopulated();
-		Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
+			MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
+			TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (!metadata.getPopulateConfigs().isEmpty() || Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+					RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
+							titlePriority, schema);
+					if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
+						Object currentPopulatedValue = populator.populate(record, contentMetadatas);
 
-		if (!populatedMetadatas.containsMetadataWithLocalCode(Schemas.TITLE_CODE)) {
-			populatedMetadatas = new MetadataList(populatedMetadatas);
-			populatedMetadatas.add(schema.get(Schemas.TITLE_CODE));
-		}
-
-		MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
-		TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
-		for (Metadata metadata : populatedMetadatas) {
-			RecordMetadataPopulator populator = new RecordMetadataPopulator(parsedContentProvider, metadata, priority,
-					titlePriority, schema);
-			if (isRepopulatable(record, originalRecord, metadata, contentMetadatas, populator)) {
-				Object currentPopulatedValue = populator.populate(record, contentMetadatas);
-
-				if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
-					record.set(metadata, currentPopulatedValue);
+						if (currentPopulatedValue != null || !Schemas.TITLE_CODE.equals(metadata.getLocalCode())) {
+							record.set(metadata, currentPopulatedValue);
+						}
+					}
 				}
 			}
 		}
@@ -203,7 +207,6 @@ public class RecordPopulateServices {
 							break;
 						}
 
-
 					}
 				}
 				return value;
@@ -212,7 +215,7 @@ public class RecordPopulateServices {
 		}
 
 		private Object populateUsingMetatdataPopulator(Record record) {
-			for (MetadataPopulator metadataPopulator: metadata.getPopulateConfigs().getMetadataPopulators()){
+			for (MetadataPopulator metadataPopulator : metadata.getPopulateConfigs().getMetadataPopulators()) {
 				metadataPopulator.init(contentManager, schema, metadata.isMultivalue());
 				Object value = metadataPopulator.getPopulationValue(record);
 				if (value != null)
@@ -396,7 +399,9 @@ public class RecordPopulateServices {
 
 			String fileName = content.getCurrentVersion().getFilename();
 
-			return fileName == null ? new ArrayList<String>() : Collections.singletonList(content.getCurrentVersion().getFilename());
+			return fileName == null ?
+					new ArrayList<String>() :
+					Collections.singletonList(content.getCurrentVersion().getFilename());
 
 		}
 
@@ -464,48 +469,4 @@ public class RecordPopulateServices {
 		return contents;
 	}
 
-	public static class ContentsComparator implements Comparator<Metadata> {
-		@Override
-		public int compare(Metadata m1, Metadata m2) {
-			if (m1.isDefaultRequirement() && !m2.isDefaultRequirement()) {
-				return -1;
-
-			} else if (!m1.isDefaultRequirement() && m2.isDefaultRequirement()) {
-				return 1;
-
-			} else if (m1.isMultivalue() && !m2.isMultivalue()) {
-				return 1;
-
-			} else if (!m1.isMultivalue() && m2.isMultivalue()) {
-				return -1;
-
-			} else {
-				String code1 = m1.getLocalCode();
-				String code2 = m2.getLocalCode();
-				return code1.compareTo(code2);
-			}
-
-		}
-	}
-
-	private static class ParsedContentProvider {
-
-		Map<String, ParsedContent> cache = new HashMap<>();
-
-		ContentManager contentManager;
-
-		private ParsedContentProvider(ContentManager contentManager) {
-			this.contentManager = contentManager;
-		}
-
-		public ParsedContent getParsedContentParsingIfNotYetDone(String hash) {
-			ParsedContent parsedContent = cache.get(hash);
-			if (parsedContent == null) {
-				parsedContent = contentManager.getParsedContentParsingIfNotYetDone(hash);
-				cache.put(hash, parsedContent);
-			}
-
-			return parsedContent;
-		}
-	}
 }

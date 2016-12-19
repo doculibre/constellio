@@ -13,13 +13,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
+import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;
+import com.constellio.app.modules.rm.reports.factories.labels.ExampleReportParameters;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
-import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportBuilderFactory;
+import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriterFactory;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -43,7 +45,7 @@ import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
@@ -68,6 +70,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -120,6 +123,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		schemaTypeCode = search.getSchemaFilter();
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode():SearchResultsViewMode.DETAILED;
+		setSelectedPageLength(search.getPageLength());
 
 		view.setSchemaType(schemaTypeCode);
 		view.setSearchExpression(searchExpression);
@@ -281,13 +285,12 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String reportTitle) {
+	public NewReportWriterFactory<SearchResultReportParameters> getReport(String reportTitle) {
 		try {
 			return super.getReport(reportTitle);
 		} catch (UnknownReportRuntimeException e) {
 			/**/
-			return new SearchResultReportBuilderFactory(modelLayerFactory, view.getSelectedRecordIds(), view.getSchemaType(),
-					collection, reportTitle, getCurrentUser(), getSearchQuery());
+			return new SearchResultReportWriterFactory(appLayerFactory);
 		}
 	}
 
@@ -406,10 +409,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.setFreeTextSearch(searchExpression)
 				.setAdvancedSearch(view.getSearchCriteria())
 				.setPageNumber(pageNumber)
-				.setResultsViewMode(resultsViewMode);
+				.setResultsViewMode(resultsViewMode)
+				.setPageLength(selectedPageLength);
 		try {
 			recordServices().update(search);
-			if(refreshPage) {
+			if (refreshPage) {
 				view.navigate().to().advancedSearchReplay(search.getId());
 			}
 		} catch (RecordServicesException e) {
@@ -477,5 +481,24 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public void switchToDetailedView() {
 		resultsViewMode = SearchResultsViewMode.DETAILED;
 		saveTemporarySearch(true);
+	}
+
+	public int getMaxSelectableResults() {
+		return modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.MAX_SELECTABLE_SEARCH_RESULTS);
+	}
+
+	@Override
+	public Object getReportParameters(String report) {
+		switch (report) {
+			case "Reports.fakeReport":
+			case "Reports.FolderLinearMeasureStats":
+				return super.getReportParameters(report);
+		}
+		return new SearchResultReportParameters(view.getSelectedRecordIds(), view.getSchemaType(),
+				collection, report, getCurrentUser(), getSearchQuery());
+	}
+
+	public boolean hasCurrentUserPermissionToUseCart() {
+		return getCurrentUser().has(RMPermissionsTo.USE_CART).globally();
 	}
 }

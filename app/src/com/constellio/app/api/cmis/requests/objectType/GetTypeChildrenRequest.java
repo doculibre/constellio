@@ -15,7 +15,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 public class GetTypeChildrenRequest extends CmisCollectionRequest<TypeDefinitionList> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private CallContext callContext;
 	private String typeId;
 	private BigInteger maxItems;
 	private Boolean includePropertyDefinitions;
@@ -24,9 +23,8 @@ public class GetTypeChildrenRequest extends CmisCollectionRequest<TypeDefinition
 	public GetTypeChildrenRequest(ConstellioCollectionRepository constellioCollectionRepository,
 			CallContext callContext, String typeId, BigInteger maxItems, Boolean includePropertyDefinitions, BigInteger skipCount,
 			AppLayerFactory appLayerFactory) {
-		super(constellioCollectionRepository, appLayerFactory);
+		super(callContext, constellioCollectionRepository, appLayerFactory);
 
-		this.callContext = callContext;
 		this.typeId = typeId;
 		this.maxItems = maxItems;
 		this.includePropertyDefinitions = includePropertyDefinitions;

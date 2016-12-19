@@ -191,7 +191,6 @@ public class ConnectorManager implements StatefulService {
 		if (crawler == null) {
 			ConnectorLogger connectorLogger = new ConsoleConnectorLogger();
 			String resourceName = "crawlerObserver-" + UUIDV1Generator.newRandomId() + "-" + es.getCollection();
-			System.out.println("Starting crawler '" + resourceName + "'");
 			ConnectorEventObserver connectorEventObserver = new DefaultConnectorEventObserver(es, connectorLogger, resourceName);
 			if (inParallel) {
 				this.crawler = ConnectorCrawler.runningJobsInParallel(es, connectorLogger, connectorEventObserver);

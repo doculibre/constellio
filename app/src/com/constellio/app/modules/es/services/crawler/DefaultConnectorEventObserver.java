@@ -53,7 +53,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		this.connectorLogger = connectorLogger;
 		this.resourceName = resourceName;
 		this.userServices = es.getModelLayerFactory().newUserServices();
-		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions();
+		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions().withRecordsPerBatch(50);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
 		this.mappingService = new ConnectorMappingService(es);
 	}
@@ -114,17 +114,11 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	public void push(List<ConnectorDocument> documents) {
 		List<Record> documentRecords = new ArrayList<>();
 		for (ConnectorDocument document : documents) {
-			//			if (document.isFetched()) {
-			//				LOGGER.info("**** Received fetched document '" + document.getWrappedRecord().getIdTitle() + "'");
-			//			} else {
-			//				LOGGER.info("**** Received document to fetch  : '" + document.getId() + "'");
-			//			}
 			Map<String, ConnectorField> fieldDeclarations = applyMappedPropertiesToMetadata(document);
 			addFieldDeclarations(document.getConnector(), fieldDeclarations);
 			documentRecords.add(document.getWrappedRecord());
 		}
 
-		Transaction transaction = new Transaction(documentRecords);
 		boolean flushNow = false;
 		for (Record record : documentRecords) {
 			if (flushNow || es.getModelLayerFactory().getRecordsCaches().getCache(record.getCollection())
@@ -167,7 +161,12 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 
 	@Override
 	public void deleteEvents(ConnectorDocument... documents) {
-		deleteEvents(asList(documents));
+		deleteEvents(new DeleteEventOptions(), asList(documents));
+	}
+
+	@Override
+	public void deleteEvents(DeleteEventOptions options, ConnectorDocument... documents) {
+		deleteEvents(options, asList(documents));
 	}
 
 	@Override
@@ -204,6 +203,25 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		fieldsDeclarationPerConnectorId.clear();
 	}
 
+	@Override
+	public void deleteEvents(List<ConnectorDocument> documents) {
+		this.deleteEvents(new DeleteEventOptions(), documents);
+	}
+
+	@Override
+	public void deleteEvents(DeleteEventOptions options, List<ConnectorDocument> documents) {
+		for (ConnectorDocument document : documents) {
+			try {
+				es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD, options.logicalDeleteOptions);
+				es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD, options.physicalDeleteOptions);
+			} catch (RecordServicesRuntimeException e) {
+				String title = "Cannot delete document '" + document.getWrappedRecord().getIdTitle() + "'";
+				String description = ConnectorsUtils.getStackTrace(e);
+				connectorLogger.error(title, description, new HashMap<String, String>());
+			}
+		}
+	}
+
 	private boolean hasDeclaredFieldsWithCode(List<ConnectorField> availableFields, String id) {
 		for (ConnectorField field : availableFields) {
 			if (id != null && id.equals(field.getId())) {
@@ -214,24 +232,15 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 	}
 
 	@Override
-	public void deleteEvents(List<ConnectorDocument> documents) {
-		for (ConnectorDocument document : documents) {
-			try {
-				es.getRecordServices().logicallyDelete(document.getWrappedRecord(), User.GOD);
-				es.getRecordServices().physicallyDelete(document.getWrappedRecord(), User.GOD);
-			} catch (RecordServicesRuntimeException e) {
-				String title = "Cannot delete document '" + document.getWrappedRecord().getIdTitle() + "'";
-				String description = ConnectorsUtils.getStackTrace(e);
-				connectorLogger.error(title, description, new HashMap<String, String>());
-			}
-		}
-	}
-
-	@Override
 	public void flush() {
 		handler.pushCurrent();
 		handler.barrier();
 		es.getRecordServices().flush();
 		saveNewDeclaredFields();
+	}
+
+	@Override
+	public void cleanup() {
+		handler.resetException();
 	}
 }

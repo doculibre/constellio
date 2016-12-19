@@ -1,5 +1,7 @@
 package com.constellio.model.services.factories;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +24,7 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
+import com.constellio.model.services.background.ModelLayerBackgroundThreadsManager;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
@@ -61,6 +64,7 @@ import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.tasks.TaskServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
@@ -106,6 +110,7 @@ public class ModelLayerFactory extends LayerFactory {
 	private final LDAPUserSyncManager ldapUserSyncManager;
 	private final PasswordFileAuthenticationService passwordFileAuthenticationService;
 	private final EmailQueueManager emailQueueManager;
+	private final TrashQueueManager trashQueueManager;
 	private final RecordsCaches recordsCaches = new RecordsCaches();
 	private final SecurityTokenManager securityTokenManager;
 	protected Key applicationEncryptionKey;
@@ -113,6 +118,8 @@ public class ModelLayerFactory extends LayerFactory {
 	private final SearchBoostManager searchBoostManager;
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
+
+	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 
 	public ModelLayerFactory(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
@@ -134,7 +141,7 @@ public class ModelLayerFactory extends LayerFactory {
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
 		this.collectionsListManager = add(new CollectionsListManager(configManager));
-		this.batchProcessesManager = add(new BatchProcessesManager(newSearchServices(), configManager));
+		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
 				new TaxonomiesManager(configManager, newSearchServices(), batchProcessesManager, collectionsListManager,
 						recordsCaches));
@@ -166,12 +173,12 @@ public class ModelLayerFactory extends LayerFactory {
 		this.ldapConfigurationManager = add(new LDAPConfigurationManager(this, configManager));
 		this.ldapUserSyncManager = add(
 				new LDAPUserSyncManager(newUserServices(), globalGroupsManager, ldapConfigurationManager,
-						dataLayerFactory.getBackgroundThreadsManager()));
+						dataLayerFactory.getConstellioJobManager()));
 		ldapAuthenticationService = add(
 				new LDAPAuthenticationService(ldapConfigurationManager, configManager,
-						ioServicesFactory.newHashingService(), newUserServices()));
+						ioServicesFactory.newHashingService(BASE64), newUserServices()));
 		passwordFileAuthenticationService = new PasswordFileAuthenticationService(configManager,
-				ioServicesFactory.newHashingService());
+				ioServicesFactory.newHashingService(BASE64));
 		this.authenticationManager = new CombinedAuthenticationService(ldapConfigurationManager, ldapAuthenticationService,
 				passwordFileAuthenticationService);
 		this.emailConfigurationsManager = add(
@@ -183,6 +190,9 @@ public class ModelLayerFactory extends LayerFactory {
 		this.storedBatchProcessProgressionServices = add(new StoredBatchProcessProgressionServices(configManager));
 		this.searchBoostManager = add(
 				new SearchBoostManager(configManager, collectionsListManager));
+		this.trashQueueManager = add(new TrashQueueManager(this));
+
+		this.modelLayerBackgroundThreadsManager = add(new ModelLayerBackgroundThreadsManager(this));
 
 	}
 
@@ -216,8 +226,7 @@ public class ModelLayerFactory extends LayerFactory {
 	}
 
 	public FreeTextSearchServices newFreeTextSearchServices() {
-		return new FreeTextSearchServices(dataLayerFactory.newRecordDao(), dataLayerFactory.newEventsDao(), newUserServices(),
-				securityTokenManager);
+		return new FreeTextSearchServices(this);
 	}
 
 	public FileParser newFileParser() {
@@ -426,5 +435,13 @@ public class ModelLayerFactory extends LayerFactory {
 	public void setAuthenticationService(AuthenticationService authenticationService) {
 		ensureNotYetInitialized();
 		this.authenticationManager = authenticationService;
+	}
+
+	public TrashQueueManager getTrashQueueManager() {
+		return trashQueueManager;
+	}
+
+	public ModelLayerBackgroundThreadsManager getModelLayerBackgroundThreadsManager() {
+		return modelLayerBackgroundThreadsManager;
 	}
 }

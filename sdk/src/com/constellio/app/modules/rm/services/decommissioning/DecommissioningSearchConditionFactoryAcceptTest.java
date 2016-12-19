@@ -36,7 +36,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		factory = new DecommissioningSearchConditionFactory(zeCollection, getModelLayerFactory());
+		factory = new DecommissioningSearchConditionFactory(zeCollection, getAppLayerFactory());
 	}
 
 	@Test
@@ -138,11 +138,11 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenActualTime();
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
-				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).hasSize(12);
+				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).contains(records.folder_A(45, 47)).hasSize(15);
 
 		givenTimeIs(new LocalDate(2009, 10, 31));
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
-				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).hasSize(12);
+				.contains(records.folder_A(10, 15)).contains(records.folder_A(19, 24)).contains(records.folder_A(45, 47)).hasSize(15);
 
 		givenTimeIs(new LocalDate(2004, 10, 31));
 		assertThatResultsOf(factory.activeToDestroy(records.unitId_10a))
@@ -164,15 +164,15 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenActualTime();
 		assertThatResultsOf(factory.activeToTransferToSemiActive(records.unitId_10a))
-				.containsOnlyOnce(records.folder_A(10, 27));
+				.containsOnlyOnce(records.folder_A(10, 12)).containsOnlyOnce(records.folder_A(16, 27));
 
 		givenTimeIs(new LocalDate(2010, 11, 05));
 		assertThatResultsOf(factory.activeToTransferToSemiActive(records.unitId_10a))
-				.containsOnlyOnce(records.folder_A(10, 27));
+				.containsOnlyOnce(records.folder_A(10, 12)).containsOnlyOnce(records.folder_A(16, 27));
 
 		givenTimeIs(new LocalDate(2003, 10, 31));
 		assertThatResultsOf(factory.activeToTransferToSemiActive(records.unitId_10a))
-				.containsOnlyOnce(records.folder_A13, records.folder_A14, records.folder_A16, records.folder_A17,
+				.containsOnlyOnce(records.folder_A16, records.folder_A17,
 						records.folder_A18, records.folder_A19,
 						records.folder_A20, records.folder_A21);
 
@@ -182,7 +182,7 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenActualTime();
 		assertThatResultsOf(factory.activeToTransferToSemiActive(records.unitId_30c))
-				.containsOnlyOnce(records.folder_C04, records.folder_C05, records.folder_C06, records.folder_C07,
+				.containsOnlyOnce(records.folder_C04, records.folder_C07,
 						records.folder_C08, records.folder_C09);
 	}
 
@@ -221,24 +221,22 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 
 		givenActualTime();
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
-				.contains(records.folder_A(42, 47)).contains(records.folder_A(51, 56)).hasSize(12);
+				.contains(records.folder_A(42, 44)).contains(records.folder_A(51, 56)).hasSize(9);
 
 		givenTimeIs(new LocalDate(2010, 11, 5));
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
-				.contains(records.folder_A(42, 47)).contains(records.folder_A(51, 56)).hasSize(12);
+				.contains(records.folder_A(42, 44)).contains(records.folder_A(51, 56)).hasSize(9);
 
 		givenTimeIs(new LocalDate(2007, 10, 31));
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
-				.contains(records.folder_A(45, 47)).contains(records.folder_A(54, 55)).hasSize(5);
+				.contains(records.folder_A(54, 55)).hasSize(2);
 
 		givenTimeIs(new LocalDate(2007, 10, 30));
-		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a))
-				.contains(records.folder_A(45, 47)).hasSize(3);
+		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_10a)).isEmpty();
 
 		givenActualTime();
 		assertThatResultsOf(factory.semiActiveToDestroy(records.unitId_30c))
-				.containsOnlyOnce(records.folder_C30, records.folder_C31, records.folder_C32, records.folder_C33,
-						records.folder_C34);
+				.containsOnlyOnce(records.folder_C30, records.folder_C33,records.folder_C34);
 	}
 
 	@Test
@@ -361,21 +359,13 @@ public class DecommissioningSearchConditionFactoryAcceptTest extends ConstellioT
 		givenTimeIs(new LocalDate(2100, 11, 5));
 		assertThatResultsOf(factory.documentTransfer(records.unitId_10a))
 				.contains(records.decommissionnableProcesInFolder_A(1, 3))
-				.contains(records.decommissionnableContractsInFolder_A(1, 6))
 				.contains(records.decommissionnableProcesInFolder_A(10, 12))
-				.contains(records.decommissionnableContractsInFolder_A(10, 12))
-				.contains(records.decommissionnableContractsInFolder_A(16, 18))
-				.contains(records.decommissionnableProcesInFolder_A(22, 27))
-				.contains(records.decommissionnableContractsInFolder_A(22, 27)).hasSize(60);
+				.contains(records.decommissionnableProcesInFolder_A(22, 27)).hasSize(24);
 
 		givenTimeIs(new LocalDate(2005, 10, 31));
 		assertThatResultsOf(factory.documentTransfer(records.unitId_10a))
-				.contains(records.decommissionnableContractsInFolder_A(4, 6))
 				.contains(records.decommissionnableProcesInFolder_A(10, 12))
-				.contains(records.decommissionnableContractsInFolder_A(10, 12))
-				.contains(records.decommissionnableContractsInFolder_A(16, 18))
-				.contains(records.decommissionnableProcesInFolder_A(22, 27))
-				.contains(records.decommissionnableContractsInFolder_A(22, 27)).hasSize(48);
+				.contains(records.decommissionnableProcesInFolder_A(22, 27)).hasSize(18);
 
 	}
 

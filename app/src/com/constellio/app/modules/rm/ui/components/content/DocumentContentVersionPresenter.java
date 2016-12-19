@@ -137,7 +137,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.getContent().checkOut(currentUser);
 			presenterUtils.addOrUpdate(document.getWrappedRecord());
-
+			
+			SessionContext sessionContext = window.getSessionContext();
+			agentURL = ConstellioAgentUtils.getAgentURL(documentVO, contentVersionVO, sessionContext);
 			window.closeWindow();
 			if (agentURL != null) {
 				window.open(agentURL);

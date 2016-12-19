@@ -5,13 +5,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class ConstellioEIMConfigs {
 
@@ -33,8 +36,38 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration IN_UPDATE_PROCESS;
 	public static final SystemConfiguration BATCH_PROCESSING_MODE;
 
+	public static final SystemConfiguration CMIS_NEVER_RETURN_ACL;
+
 	public static final SystemConfiguration DATE_FORMAT;
 	public static final SystemConfiguration DATE_TIME_FORMAT;
+	public static final SystemConfiguration TRASH_PURGE_DELAI;
+
+	public static final SystemConfiguration MAX_SELECTABLE_SEARCH_RESULTS;
+	public static final SystemConfiguration WRITE_ZZRECORDS_IN_TLOG;
+
+	public static final SystemConfiguration SEARCH_SORT_TYPE;
+
+    public static final SystemConfiguration ICAP_SCAN_ACTIVATED;
+
+    public static final SystemConfiguration ICAP_SERVER_URL;
+
+	public static final SystemConfiguration ICAP_RESPONSE_TIMEOUT;
+	
+	public static final SystemConfiguration CKEDITOR_TOOLBAR_CONFIG;
+	
+	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = ""	+
+	        "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" + 
+			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" + 
+			"	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" + 
+			"	'/',\n" + 
+			"	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n" + 
+			"	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n" + 
+			"	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" + 
+			"	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" + 
+			"	'/',\n" + 
+			"	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" + 
+			"	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" + 
+			"	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -67,8 +100,26 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(BATCH_PROCESSING_MODE = others.createEnum("batchProcessingMode", BatchProcessingMode.class)
-				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA));
+				.withDefaultValue(BatchProcessingMode.ALL_METADATA_OF_SCHEMA).whichIsHidden());
+		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 
+		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
+		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
+
+		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
+		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
+				.scriptedBy(WriteZZRecordsScript.class));
+		add(CMIS_NEVER_RETURN_ACL = advanced.createBooleanTrueByDefault("cmisNeverReturnACL"));
+
+        //
+		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
+        add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
+		add(ICAP_SERVER_URL = icapConfigurationGroup.createString("icapServerUrl"));
+		add(ICAP_RESPONSE_TIMEOUT = icapConfigurationGroup.createInteger("icapResponseTimeout").withDefaultValue(5000));
+
+        add(CKEDITOR_TOOLBAR_CONFIG = others.createString("ckeditorToolbarConfig").withDefaultValue(DEFAULT_CKEDITOR_TOOLBAR_CONFIG));
+		
+        //
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
 
@@ -102,6 +153,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(CONSTELLIO_URL);
 	}
 
+	public Boolean isWriteZZRecordsInTlog() {
+		return manager.getValue(WRITE_ZZRECORDS_IN_TLOG);
+	}
+
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
@@ -118,11 +173,49 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(DATE_TIME_FORMAT);
 	}
 
+	public Integer getTrashPurgeDelai() {
+		return manager.getValue(TRASH_PURGE_DELAI);
+	}
+
 	public BatchProcessingMode getBatchProcessingMode() {
 		return manager.getValue(BATCH_PROCESSING_MODE);
+	}
+
+	public SearchSortType getSearchSortType() {
+		return manager.getValue(SEARCH_SORT_TYPE);
+	}
+
+	public Boolean isCmisNeverReturnAcl() {
+		return manager.getValue(CMIS_NEVER_RETURN_ACL);
 	}
 
 	public static Collection<? extends SystemConfiguration> getCoreConfigs() {
 		return configurations;
 	}
+
+	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
+
+		@Override
+		public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
+			modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().setWriteZZRecords(newValue);
+		}
+
+	}
+
+    public boolean getIcapScanActivated() {
+        return manager.getValue(ICAP_SCAN_ACTIVATED);
+    }
+
+    public String getIcapServerUrl() {
+        return manager.getValue(ICAP_SERVER_URL);
+    }
+
+	public int getIcapResponseTimeout() {
+		return manager.getValue(ICAP_RESPONSE_TIMEOUT);
+	}
+	
+	public String getCKEditorToolbarConfig() {
+		return manager.getValue(CKEDITOR_TOOLBAR_CONFIG);
+	}
+
 }

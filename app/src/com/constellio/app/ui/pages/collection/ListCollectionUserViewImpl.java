@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.RolesButton;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -150,7 +151,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	private Table buildUserTable() {
 		RecordVODataProvider dataProvider = presenter.getDataProvider();
 		Container container = buildContainer(dataProvider);
-		Table table = new RecordVOTable($("ListCollectionUserView.tableTitle", dataProvider.size()), container);
+		RecordVOTable table = new RecordVOTable($("ListCollectionUserView.tableTitle", dataProvider.size()), container);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
 		table.setColumnWidth(dataProvider.getSchema().getCode() + "_id", 120);
@@ -205,10 +206,10 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 
 	private Table buildGroupsTable() {
 		GlobalGroupVODataProvider globalGroupVODataProvider = presenter.getGlobalGroupVODataProvider();
-		List<GlobalGroupVO> globalGroupsVO = globalGroupVODataProvider.listGlobalGroupVOsWithUsersInCollection(getCollection());
+		List<GlobalGroupVO> globalGroupsVO = globalGroupVODataProvider.listActiveGlobalGroupVOsWithUsersInCollection(getCollection());
 		globalGroupVODataProvider.setGlobalGroupVOs(globalGroupsVO);
 		Container container = buildGroupContainer(globalGroupVODataProvider);
-		Table table = new Table($("ListCollectionUserView.globalGroupsTableTitle", globalGroupVODataProvider.size()), container);
+		BaseTable table = new BaseTable("ListCollectionUserView.globalGroupsTableTitle", $("ListCollectionUserView.globalGroupsTableTitle", globalGroupVODataProvider.size()), container);
 		table.setWidth("100%");
 		table.setColumnHeader("buttons", "");
 		table.setColumnHeader("code", $("ListCollectionUserView.groupCodeColumn"));

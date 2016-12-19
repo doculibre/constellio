@@ -3,7 +3,6 @@ package com.constellio.model.services.users;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.doReturn;
 
 import java.security.Key;
 import java.util.ArrayList;
@@ -19,6 +18,7 @@ import org.junit.Test;
 
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -49,9 +49,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		withSpiedServices(ModelLayerConfiguration.class, CollectionsListManager.class);
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				org.joda.time.Duration fortyTwoMinutes = org.joda.time.Duration.standardSeconds(42);
-				doReturn(fortyTwoMinutes).when(configuration).getTokenDuration();
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setTokenDuration(org.joda.time.Duration.standardSeconds(42));
 			}
 		});
 

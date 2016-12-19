@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static java.util.Arrays.asList;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
@@ -11,6 +12,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.SearchResultsViewMode;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class CoreMigrationTo_6_4 implements MigrationScript {
@@ -26,6 +28,7 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 		new CoreSchemaAlterationFor6_4(collection, provider, appLayerFactory).migrate();
 		//initializeUsersLanguages(collection, appLayerFactory);a
 		applySchemasDisplay(collection, appLayerFactory.getMetadataSchemasDisplayManager());
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	private class CoreSchemaAlterationFor6_4 extends MetadataSchemasAlterationHelper {
@@ -38,6 +41,9 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			typesBuilder.getDefaultSchema(SavedSearch.SCHEMA_TYPE).createUndeletable(SavedSearch.RESULTS_VIEW_MODE)
 					.setType(MetadataValueType.STRING).setDefaultValue(SearchResultsViewMode.DETAILED);
+
+			MetadataSchemaBuilder defaultSchema = typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE).getDefaultSchema();
+			defaultSchema.createUndeletable(SavedSearch.PAGE_LENGTH).setType(NUMBER);
 		}
 	}
 
@@ -61,7 +67,6 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 		)));
 
 		transaction.in("savedSearch").addToDisplay("resultsViewMode").beforeMetadata("schemaFilter");
-
 		transaction.in("savedSearch").addToForm("resultsViewMode").beforeMetadata("schemaFilter");
 
 		manager.execute(transaction.build());

@@ -33,13 +33,16 @@ public class ConstellioTest extends AbstractConstellioTest {
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 		if (!isKeepingPreviousState() && testSession.getFactoriesTestFeatures() != null && IS_FIRST_EXECUTED_TEST) {
 
+			//			testSession.getFactoriesTestFeatures().clear();
 			try {
 				testSession.getFactoriesTestFeatures().getConstellioFactories();
 			} catch (Exception e) {
 
 			}
 			testSession.close(true, false);
+			System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
+			System.out.print("\t\t*** Exceptions displayed before this line are OK ***\n\n");
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 			IS_FIRST_EXECUTED_TEST = false;
 		}

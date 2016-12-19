@@ -1,21 +1,16 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.model.entities.Language;
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class SchemasDisplayWriter {
 	private static final String ROOT = "display";
@@ -35,6 +30,7 @@ public class SchemasDisplayWriter {
 	private static final String TABLE_METADATA_CODES = "TableMetadataCodes";
 	private static final String METADATA_DISPLAY_CONFIGS = "MetadataDisplayConfigs";
 	private static final String INPUT_TYPE = "InputType";
+	private static final String DISPLAY_TYPE = "DisplayType";
 	private static final String VISIBLE_IN_ADVANCED_SEARCH = "VisibleInAdvancedSearch";
 	private static final String HIGHLIGHT = "Highlight";
 	private static final String METADATA_GROUP_LABEL = "MetadataGroupLabel";
@@ -150,7 +146,15 @@ public class SchemasDisplayWriter {
 
 	private String labelToSemiColonStringSeparated(Map<Language, String> labels) {
 		StringBuilder stringBuilder = new StringBuilder();
-		for (Entry<Language, String> entry : labels.entrySet()) {
+		List<Entry<Language, String>> entries = new ArrayList<>(labels.entrySet());
+		Collections.sort(entries, new Comparator<Entry<Language, String>>() {
+			@Override
+			public int compare(Entry<Language, String> o1, Entry<Language, String> o2) {
+				return o1.getKey().getCode().compareTo(o2.getKey().getCode());
+			}
+		});
+
+		for (Entry<Language, String> entry : entries) {
 			stringBuilder.append(entry.getKey().getCode() + "=" + entry.getValue() + LABEL_SEPARATOR);
 		}
 		return stringBuilder.toString();
@@ -228,6 +232,9 @@ public class SchemasDisplayWriter {
 		Element metadata = getOrCreateElementFromParent(metadataDisplayConfigs, config.getMetadataCode());
 		metadata.setAttribute(VISIBLE_IN_ADVANCED_SEARCH, config.isVisibleInAdvancedSearch() ? TRUE : FALSE);
 		metadata.setAttribute(INPUT_TYPE, config.getInputType().name());
+		if (config.getDisplayType() != null) {
+			metadata.setAttribute(DISPLAY_TYPE, config.getDisplayType().name());
+		}
 		metadata.setAttribute(HIGHLIGHT, config.isHighlight() ? TRUE : FALSE);
 		metadata.setAttribute(METADATA_GROUP,
 				StringUtils.isBlank(config.getMetadataGroupCode()) ? "" : config.getMetadataGroupCode());

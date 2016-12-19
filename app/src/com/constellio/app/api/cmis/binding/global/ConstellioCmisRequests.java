@@ -1,5 +1,7 @@
 package com.constellio.app.api.cmis.binding.global;
 
+import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +66,9 @@ import com.constellio.app.api.cmis.requests.versioning.GetAllVersionsRequest;
 import com.constellio.app.api.cmis.requests.versioning.GetObjectOfLatestVersionUnsupportedRequest;
 import com.constellio.app.api.cmis.requests.versioning.GetPropertiesOfLatestVersionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.users.UserServices;
 
 public class ConstellioCmisRequests extends AbstractCmisService implements CallContextAwareCmisService {
 
@@ -108,9 +113,20 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	public List<RepositoryInfo> getRepositoryInfos(ExtensionsData extension) {
 		List<RepositoryInfo> result = new ArrayList<RepositoryInfo>();
 
+		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		UserCredential userCredential = ConstellioCmisRequestFactory.authenticateUserFromContext(context, userServices);
+
+		CallContext callContext = getCallContext();
+
 		for (ConstellioCollectionRepository fsr : repositoryManager.getRepositories()) {
-			result.add(new GetRepositoryInfoRequest(fsr, appLayerFactory, fsr.getCollection(), extension, getCallContext())
-					.processRequest());
+			String collection = fsr.getCollection();
+			if (userCredential.getCollections().contains(collection)) {
+				User user = userServices.getUserInCollection(userCredential.getUsername(), collection);
+				if (userCredential.isSystemAdmin() || user.has(USE_EXTERNAL_APIS_FOR_COLLECTION).globally()) {
+					result.add(new GetRepositoryInfoRequest(fsr, appLayerFactory, collection, extension, callContext)
+							.processRequest());
+				}
+			}
 		}
 
 		return result;
@@ -230,7 +246,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	@Override
 	public void deleteObjectOrCancelCheckOut(String repositoryId, String objectId, Boolean allVersions,
 			ExtensionsData extension) {
-		new DeleteObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
+		new DeleteObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(), objectId)
 				.processRequest();
 	}
 
@@ -356,9 +372,8 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public void cancelCheckOut(String repositoryId, String objectId, ExtensionsData extension) {
-		new CancelCheckOutUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, repositoryId,
-				objectId,
-				extension).processRequest();
+		new CancelCheckOutUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
+				repositoryId, objectId, extension).processRequest();
 	}
 
 	@Override
@@ -390,7 +405,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions, ExtensionsData extension) {
-		return new GetAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, objectId)
+		return new GetAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(), objectId)
 				.processRequest();
 	}
 

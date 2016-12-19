@@ -15,6 +15,7 @@ import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
 import com.constellio.app.api.cmis.binding.utils.CmisUtils;
 import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -25,7 +26,6 @@ import com.constellio.model.services.records.RecordServices;
 public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
-	private final CallContext context;
 	private final String objectId;
 	private final String versionRequestsId;
 	private final String filter;
@@ -33,12 +33,10 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 	private final Boolean includeAcl;
 	private final ObjectInfoHandler objectInfos;
 
-	public GetObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context,
+	public GetObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory, CallContext context,
 			String objectId, String versionRequestsId, String filter, Boolean includeAllowableActions, Boolean includeAcl,
 			ObjectInfoHandler objectInfos) {
-		super(repository, appLayerFactory);
-		this.context = context;
+		super(context, repository, appLayerFactory);
 		if (objectId == null) {
 			// this works only because there are no versions in a file system
 			// and the object id and version series id are the same
@@ -62,30 +60,41 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 		boolean includeAllowableActionsValue = CmisUtils.getBooleanParameter(includeAllowableActions, false);
 		boolean includeAclValue = CmisUtils.getBooleanParameter(includeAcl, false);
-
 		Set<String> filterCollection = CmisUtils.splitFilter(filter);
-		User user = (User) context.get(ConstellioCmisContextParameters.USER);
 
 		if ("@root@".equals(objectId)) {
-			Record collection = appLayerFactory.getCollectionsManager().getCollection(repository.getCollection())
-					.getWrappedRecord();
+			Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
 			return newObjectDataBuilder()
-					.build(context, collection, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+					.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+
 		} else if (objectId.startsWith("taxo_")) {
-			Taxonomy taxonomy = modelLayerFactory.getTaxonomiesManager()
-					.getEnabledTaxonomyWithCode(repository.getCollection(), objectId.split("_")[1]);
-			return newTaxonomyObjectBuilder().build(context, taxonomy, objectInfos);
+			Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, objectId.split("_")[1]);
+			return newTaxonomyObjectBuilder().build(taxonomy, objectInfos);
+
 		} else if (objectId.startsWith("content_")) {
-			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager()
-					.getSchemaTypes(repository.getCollection());
-			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types);
+			ContentCmisDocument content = CmisContentUtils.getContent(objectId, recordServices, types());
+			GetObjectParams params = new GetObjectParams(user, content.getRecord());
+			appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
+
 			return newContentObjectDataBuilder()
-					.build(appLayerFactory, context, content, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+					.build(content, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+
 		} else {
-			Record record = modelLayerFactory.newRecordServices().getDocumentById(objectId, user);
-			return newObjectDataBuilder()
-					.build(context, record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+			Record record = recordServices.getDocumentById(objectId);
+			GetObjectParams params = new GetObjectParams(user, record);
+			appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
+
+			if (record.getId().equals(record.getCollection())) {
+				Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
+				return newObjectDataBuilder()
+						.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+
+			} else {
+				ensureUserHasReadAccessToRecordOrADescendantOf(record);
+				return newObjectDataBuilder()
+						.build(record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
+			}
+
 		}
 
 	}

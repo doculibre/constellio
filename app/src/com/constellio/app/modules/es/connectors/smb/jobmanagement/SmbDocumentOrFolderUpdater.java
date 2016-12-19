@@ -15,6 +15,9 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
 
+import javax.activation.MimetypesFileTypeMap;
+import java.net.URLConnection;
+
 public class SmbDocumentOrFolderUpdater {
 	private final ConnectorSmbInstance connectorInstance;
 	private SmbRecordService smbRecordService;
@@ -55,6 +58,9 @@ public class SmbDocumentOrFolderUpdater {
 				.set(Schemas.SHARE_TOKENS.getLocalCode(), smbFileDTO.getAllowShareTokens())
 				.set(Schemas.SHARE_DENY_TOKENS.getLocalCode(), smbFileDTO.getDenyShareTokens());
 
+
+		String mimeType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(smbFileDTO.getUrl());
+
 		// Optional
 		smbDocument.setParsedContent(smbFileDTO.getParsedContent())
 				.setSize(smbFileDTO.getLength())
@@ -63,6 +69,7 @@ public class SmbDocumentOrFolderUpdater {
 				.setPermissionsHash(smbFileDTO.getPermissionsHash())
 				.setLanguage(smbFileDTO.getLanguage())
 				.setExtension(smbFileDTO.getExtension())
+				.setMimetype(mimeType)
 				.setTitle(smbFileDTO.getName());
 
 		// Errors
@@ -116,20 +123,20 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder) {
+	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentId) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
-			updateFailedDocumentDTO(smbFileDTO, smbDocument);
+			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentId);
 		} else {
 			ConnectorSmbFolder smbFolder = smbRecordService.convertToSmbFolderOrNull(documentOrFolder);
 
 			if (smbFolder != null) {
-				updateFailedFolderDTO(smbFileDTO, smbFolder);
+				updateFailedFolderDTO(smbFileDTO, smbFolder, parentId);
 			}
 		}
 	}
 
-	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument) {
+	private void updateFailedDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentId) {
 
 		smbDocument.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -138,7 +145,8 @@ public class SmbDocumentOrFolderUpdater {
 				.setFetchedDateTime(TimeProvider.getLocalDateTime())
 				.setUrl(smbFileDTO.getUrl())
 				.setLastFetchAttemptDetails(smbFileDTO.getErrorMessage())
-				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED);
+				.setLastFetchAttemptStatus(LastFetchedStatus.FAILED)
+				.setParent(parentId);
 
 		smbDocument.setErrorCode("ErrorCode")
 				.setErrorMessage(smbFileDTO.getErrorMessage())
@@ -146,7 +154,7 @@ public class SmbDocumentOrFolderUpdater {
 				.incrementErrorsCount();
 	}
 
-	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder) {
+	private void updateFailedFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentId) {
 
 		smbFolder.setConnector(connectorInstance)
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -158,7 +166,8 @@ public class SmbDocumentOrFolderUpdater {
 				.setErrorCode("ErrorCode")
 				.setErrorMessage(smbFileDTO.getErrorMessage())
 				.setErrorStackTrace(smbFileDTO.getErrorMessage())
-				.incrementErrorsCount();
+				.incrementErrorsCount()
+				.setParent(parentId);
 	}
 
 	public void updateUnmodifiedDocument(SmbFileDTO smbFileDTO, ConnectorDocument<?> document, String parentId) {

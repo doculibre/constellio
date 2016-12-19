@@ -2,19 +2,26 @@ package com.constellio.app.modules.rm.extensions;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
@@ -88,10 +95,28 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		} else if (event.isSchemaType(FilingSpace.SCHEMA_TYPE)) {
 			return isFilingSpaceLogicallyDeletable(event);
 
+		} else if (event.isSchemaType(AdministrativeUnit.SCHEMA_TYPE)) {
+			return isAdministrativeUnitLogicallyDeletable(event);
+
+		} else if (event.isSchemaType(Category.SCHEMA_TYPE)) {
+			return isCategoryLogicallyDeletable(event);
+
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
 		}
 
+	}
+
+	private ExtensionBooleanResult isAdministrativeUnitLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
+				fromAllSchemasExcept(asList(rm.administrativeUnit.schemaType()))
+						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
+	}
+
+	private ExtensionBooleanResult isCategoryLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return ExtensionBooleanResult.falseIf(event.isRecordReferenced() || searchServices.hasResults(
+				fromAllSchemasExcept(asList(rm.category.schemaType()))
+						.where(Schemas.PATH).isContainingText(event.getRecord().getId())));
 	}
 
 	private ExtensionBooleanResult isFilingSpaceLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {

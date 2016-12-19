@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
-import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportViewImpl;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
@@ -25,8 +25,8 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.framework.components.ReportPresenter;
-import com.constellio.app.ui.framework.reports.ReportBuilderFactory;
+import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -34,7 +34,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 
-public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView> implements ReportPresenter {
+public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
+		implements NewReportPresenter {
 	private transient RMSchemasRecordsServices rmRecordsServices;
 	private transient DecommissioningService decommissioningService;
 	private transient DecommissioningList decommissioningList;
@@ -292,7 +293,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	DecommissioningService decommissioningService() {
 		if (decommissioningService == null) {
-			decommissioningService = new DecommissioningService(view.getCollection(), modelLayerFactory);
+			decommissioningService = new DecommissioningService(view.getCollection(), appLayerFactory);
 		}
 		return decommissioningService;
 	}
@@ -344,7 +345,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	private DecommissioningSecurityService securityService() {
-		return new DecommissioningSecurityService(collection, modelLayerFactory);
+		return new DecommissioningSecurityService(collection, appLayerFactory);
 	}
 
 	public boolean canValidate() {
@@ -389,13 +390,18 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	@Override
-	public ReportBuilderFactory getReport(String report) {
+	public NewReportWriterFactory getReport(String report) {
 
 		if (report.equals("Reports.DecommissioningList")) {
-			return new DecommissioningListReportViewImpl(recordId);
+			return getRmReportBuilderFactories().decommissioningListBuilderFactory.getValue();
 		} else {//Reports.documentsCertificate //Reports.foldersCertificate
 			throw new RuntimeException("BUG: Unknown report: " + report);
 		}
+	}
+
+	@Override
+	public Object getReportParameters(String report) {
+		return new DecommissioningListReportParameters(decommissioningList.getId());
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {
@@ -436,5 +442,15 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		} else {
 			return null;
 		}
+	}
+
+	public String getDeleteConfirmMessage() {
+		String deleteConfirmMessage;
+		if (decommissioningList().isApproved()) {
+			deleteConfirmMessage = $("DecommissioningListView.deleteApprovedList");
+		} else {
+			deleteConfirmMessage = $("DecommissioningListView.deleteList");
+		}
+		return deleteConfirmMessage;
 	}
 }

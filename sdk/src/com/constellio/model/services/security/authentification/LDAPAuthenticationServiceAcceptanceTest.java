@@ -4,17 +4,12 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-import org.joda.time.Duration;
 import org.junit.Test;
 
 import com.constellio.model.conf.LDAPTestConfig;
-import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.RegexFilter;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.users.UserServices;
@@ -23,13 +18,26 @@ import com.constellio.sdk.tests.ConstellioTest;
 
 public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 
+	//TODO - Disabled @Test
+	public void givenLdapsWhenAuthenticatingUsersThenOK()
+			throws Exception {
+		givenCollectionWithUsers("administrator");
+		saveValidLDAPSConfig();
+		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
+
+		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword());
+		assertThat(authenticated).isTrue();
+
+		authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword() + "salt");
+		assertThat(authenticated).isFalse();
+	}
+
 	@Test
 	public void givenActiveDirectoryAuthenticationManagerWhenAuthenticatingValidLdapUsersWithValidCredentialsThenSuccess()
 			throws Exception {
 		givenCollectionWithUsers("administrator");
 		saveValidLDAPConfig();
 		AuthenticationService authenticationService = getModelLayerFactory().newAuthenticationService();
-
 		boolean authenticated = authenticationService.authenticate("administrator", SDKPasswords.testLDAPPassword());
 		assertThat(authenticated).isTrue();
 	}
@@ -48,6 +56,13 @@ public class LDAPAuthenticationServiceAcceptanceTest extends ConstellioTest {
 
 	private void saveValidLDAPConfig() {
 		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+		getModelLayerFactory().getLdapConfigurationManager()
+				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
+	}
+
+	private void saveValidLDAPSConfig() {
+		LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPSServerConfiguration();
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
 		getModelLayerFactory().getLdapConfigurationManager()
 				.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);

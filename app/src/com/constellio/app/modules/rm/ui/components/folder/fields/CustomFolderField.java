@@ -19,4 +19,7 @@ public interface CustomFolderField<T> extends Serializable {
 	void setReadOnly(boolean readOnly);
 
 	void focus();
+
+	void setCaption(String caption);
+	
 }

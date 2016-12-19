@@ -29,21 +29,22 @@ public class ArchiveManagementPresenter extends BasePresenter<ArchiveManagementV
 
 	public void onViewAssembled() {
 		User user = getCurrentUser();
-		view.setDecommissioningButtonVisible(hasAccessToDecommissioningPage());
-		view.setNewContainerButtonVisible(user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally());
-		view.setContainersButtonVisible(user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally());
-		view.setPrintReportsButtonVisible(user.has(RMPermissionsTo.MANAGE_REPORTS).globally());
-	}
-
-	private boolean hasAccessToDecommissioningPage() {
-		User user = getCurrentUser();
-		return new DecommissioningSecurityService(user.getCollection(), modelLayerFactory)
-				.hasAccessToDecommissioningMainPage(user);
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
+		view.setDecommissioningButtonVisible(securityServices.hasAccessToDecommissioningMainPage(user));
+		view.setNewContainerButtonVisible(securityServices.canCreateContainers(user));
+		view.setContainersButtonVisible(securityServices.hasAccessToManageContainersPage(user));
+		view.setPrintReportsButtonVisible(hasAccessToManageReportsPage());
 	}
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.hasAny(RMPermissionsTo.MANAGE_REPORTS, RMPermissionsTo.MANAGE_CONTAINERS).globally() ||
-				hasAccessToDecommissioningPage();
+		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
+		return securityServices.hasAccessToDecommissioningMainPage(user) || securityServices.hasAccessToManageContainersPage(user) || hasAccessToManageReportsPage();
 	}
+	
+	private boolean hasAccessToManageReportsPage() {
+		User user = getCurrentUser();
+		return user.has(RMPermissionsTo.MANAGE_REPORTS).onSomething();
+	}
+
 }

@@ -28,14 +28,19 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -118,11 +123,24 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 	}
 
 	public final void delete(Record record, String reason, boolean physically, User user) {
-		recordServices().logicallyDelete(record, user);
-		modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
-		if (physically) {
-			recordServices().physicallyDelete(record, user);
+		boolean putFirstInTrash = putFirstInTrash(record);
+		if (recordServices().isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+			recordServices().logicallyDelete(record, user);
+			modelLayerFactory().newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
+			if (physically && !putFirstInTrash) {
+				recordServices().physicallyDelete(record, user);
+			}
 		}
+	}
+
+	private boolean putFirstInTrash(Record record) {
+		ModelLayerExtensions ext = modelLayerFactory().getExtensions();
+		if (ext == null) {
+			return false;
+		}
+		ModelLayerCollectionExtensions extensions = ext.forCollection(record.getCollection());
+		PutSchemaRecordsInTrashEvent event = new PutSchemaRecordsInTrashEvent(record.getSchemaCode());
+		return extensions.isPutInTrashBeforePhysicalDelete(event);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -260,7 +278,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			ContentVersionDataSummary contentVersionDataSummary;
 			try {
 				inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-				contentVersionDataSummary = contentManager.upload(inputStream, fileName);
+				contentVersionDataSummary = uploadContent(inputStream, true, true, fileName);
 			} finally {
 				IOServices ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 				ioServices.closeQuietly(inputStream);

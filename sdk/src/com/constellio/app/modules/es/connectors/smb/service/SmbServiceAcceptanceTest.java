@@ -1,37 +1,32 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyMap;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.List;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileFilter;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
-import com.constellio.app.modules.es.connectors.smb.service.SmbService.SmbModificationIndicator;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbServiceTestUtils;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileFilter;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 public class SmbServiceAcceptanceTest extends ConstellioTest {
 	private ConnectorSmbUtils smbUtils;
@@ -41,7 +36,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 	@Mock WindowsPermissionsFactory permissionsFactory;
 	@Mock SmbFileFactory smbFactory;
 
-	private SmbService smbService;
+	private SmbShareService smbService;
 
 	private String SHARE_URL = SmbTestParams.EXISTING_SHARE;
 	private String FILE_URL = SHARE_URL + SmbTestParams.EXISTING_FILE;
@@ -62,7 +57,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 			throws MalformedURLException {
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenReturn(smbTestUtils.getValidSmbFile());
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFile(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFile(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		SmbFileDTO smbFileDTO = smbService.getSmbFileDTO(FILE_URL);
@@ -75,7 +70,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 			throws MalformedURLException {
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenReturn(smbTestUtils.getValidSmbFile());
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		SmbFileDTO smbFileDTO = smbService.getSmbFileDTO(FOLDER_URL);
@@ -88,7 +83,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 			throws MalformedURLException {
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenThrow(MalformedURLException.class);
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		SmbFileDTO smbFileDTO = smbService.getSmbFileDTO("invalid url");
@@ -102,7 +97,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 			throws MalformedURLException {
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenReturn(smbTestUtils.getSmbFileWithChildren());
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		List<String> children = smbService.getChildrenUrlsFor(SHARE_URL);
@@ -115,7 +110,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 			throws MalformedURLException {
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenThrow(MalformedURLException.class);
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		List<String> children = smbService.getChildrenUrlsFor("invalid url");
@@ -131,7 +126,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 		SmbFile smbFile = Mockito.mock(SmbFile.class);
 		when(smbFile.listFiles(any(SmbFileFilter.class))).thenThrow(SmbException.class);
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenReturn(smbFile);
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		List<String> children = smbService.getChildrenUrlsFor(SHARE_URL);
@@ -150,7 +145,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 		SmbModificationIndicator modificationIndicator = smbService.getModificationIndicator(FILE_URL);
 
@@ -161,17 +156,13 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenBadConditionsWhenGettingModificationIndicatorsThenGetChangeIndicatorsAndLog() {
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
+	public void givenBadConditionsWhenGettingModificationIndicatorsThenReturnNull() {
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFolder(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		SmbModificationIndicator modificationIndicator = smbService.getModificationIndicator(FILE_URL);
 
-		assertThat(modificationIndicator.getLastModified()).isEqualTo(0);
-		assertThat(modificationIndicator.getPermissionsHash()).isEqualTo("Hash to replace");
-		assertThat(modificationIndicator.getSize()).isEqualTo(-4);
-
-		verify(logger, atLeastOnce()).error(anyString(), anyString(), anyMap());
+		assertThat(modificationIndicator).isNull();
 	}
 
 	@Test
@@ -179,7 +170,7 @@ public class SmbServiceAcceptanceTest extends ConstellioTest {
 			throws MalformedURLException {
 		when(permissionsFactory.newWindowsPermissions(any(SmbFile.class))).thenReturn(smbTestUtils.getWindowsPermissions());
 		when(smbFactory.getSmbFile(anyString(), any(NtlmPasswordAuthentication.class))).thenReturn(smbTestUtils.getValidSmbFile());
-		smbService = new SmbServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFile(), smbUtils, logger, es, permissionsFactory,
+		smbService = new SmbShareServiceSimpleImpl(smbTestUtils.getValidCredentials(), smbTestUtils.getFetchValidFile(), smbUtils, logger, es, permissionsFactory,
 				smbFactory);
 
 		SmbFileDTO smbFileDTO = smbService.getSmbFileDTO(FILE_URL);

@@ -26,7 +26,6 @@ import com.vaadin.ui.themes.ValoTheme;
 public class SearchResultDetailedTable extends BasePagedTable<SearchResultContainer> implements SearchResultTable{
 	public static final String TABLE_STYLE = "search-result-table";
 	public static final String CHECKBOX_PROPERTY = "checkbox";
-	public static final int DEFAULT_PAGE_LENGTH = 10;
 
 	private Set<Object> selected;
 	private Set<SelectionChangeListener> listeners;

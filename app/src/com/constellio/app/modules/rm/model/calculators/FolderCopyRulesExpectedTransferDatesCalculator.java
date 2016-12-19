@@ -10,6 +10,7 @@ import org.joda.time.LocalDate;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -24,15 +25,18 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 
 	LocalDependency<LocalDate> decommissioningDateParam = LocalDependency.toADate(Folder.DECOMMISSIONING_DATE);
 	LocalDependency<LocalDate> actualTransferDateParam = LocalDependency.toADate(Folder.ACTUAL_TRANSFER_DATE);
+	LocalDependency<FolderStatus> statusParam = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);
 	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
 
 	ConfigDependency<Integer> configNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_SEMIACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
+	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
+			.dependency();
 
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
 		return Arrays.asList(decommissioningDateParam, actualTransferDateParam, datesAndDateTimesParam,
-				configNumberOfYearWhenVariableDelayPeriodParam);
+				configNumberOfYearWhenVariableDelayPeriodParam, statusParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	@Override
@@ -40,18 +44,18 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 
 		CalculatorInput input = new CalculatorInput(parameters);
 
-		if (input.actualTransferDate != null) {
+		if (input.actualTransferDate != null || FolderStatus.ACTIVE != parameters.get(statusParam)) {
 			return null;
 		} else {
-			LocalDate date = getAjustedDateUsedToCalculation(input, copyRule);
+			LocalDate date = getAdjustedDateUsedToCalculation(input, copyRule, parameters.get(configYearEndParam));
 			return calculateExpectedTransferDate(copyRule, date, input.numberOfYearWhenVariableDelayPeriod);
 		}
 	}
 
-	private LocalDate getAjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule) {
-		LocalDate activeDelayDate = input.getAjustedBaseDateFromActiveDelay(copyRule);
+	private LocalDate getAdjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule, String yearEnd) {
+		LocalDate activeDelayDate = input.getAdjustedBaseDateFromActiveDelay(copyRule, yearEnd);
 
-		if (activeDelayDate != null && input.decommissioningDate != null) {
+		if (activeDelayDate != null) {
 			return activeDelayDate;
 		} else {
 			return input.decommissioningDate;
@@ -65,6 +69,7 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 		LocalDate actualTransferDate;
 		DynamicDependencyValues datesAndDateTimes;
 		Integer numberOfYearWhenVariableDelayPeriod;
+		boolean calculatedMetadatasBasedOnFirstTimerangePart;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			super(parameters);
@@ -72,13 +77,15 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 			this.actualTransferDate = parameters.get(actualTransferDateParam);
 			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
 			this.numberOfYearWhenVariableDelayPeriod = parameters.get(configNumberOfYearWhenVariableDelayPeriodParam);
+			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
-		public LocalDate getAjustedBaseDateFromActiveDelay(CopyRetentionRule copy) {
+		public LocalDate getAdjustedBaseDateFromActiveDelay(CopyRetentionRule copy, String yearEnd) {
 			String metadata = copy.getActiveDateMetadata();
 
-			LocalDate date = datesAndDateTimesParam.getDate(metadata, datesAndDateTimes);
-			return date == null ? null : ajustToFinancialYear(date);
+			LocalDate date = datesAndDateTimesParam
+					.getDate(metadata, datesAndDateTimes, yearEnd, calculatedMetadatasBasedOnFirstTimerangePart);
+			return date == null ? null : adjustToFinancialYear(date);
 		}
 	}
 }

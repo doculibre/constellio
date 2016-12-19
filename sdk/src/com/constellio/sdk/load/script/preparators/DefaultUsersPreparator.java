@@ -33,7 +33,7 @@ public class DefaultUsersPreparator implements UserPreparator {
 		for (int i = 0; i < groupsCount; i++) {
 			String code = "" + i;
 			String name = "Group '" + code + "'";
-			groups.add(new XmlGlobalGroup(code, name, collections, null, GlobalGroupStatus.ACTIVE));
+			groups.add(new XmlGlobalGroup(code, name, collections, null, GlobalGroupStatus.ACTIVE, true));
 		}
 
 		return groups;

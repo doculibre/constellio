@@ -229,6 +229,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		assertThat(facets.get(0).isOpen()).isTrue();
 	}
 
+
 	// ----------------------------------------------------
 
 	//	private Condition<? super FacetVO> dataStoreCode(final String expectedDataStoreCode) {

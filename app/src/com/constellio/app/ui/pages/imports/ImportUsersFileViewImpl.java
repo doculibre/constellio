@@ -8,7 +8,8 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ImportUsersFileViewImpl extends ImportFileViewImpl implements ImportFileView{
+public class ImportUsersFileViewImpl extends ImportFileViewImpl implements ImportFileView {
+	
     private CollectionsSelectionPanel collectionsComponent;
 
     @Override

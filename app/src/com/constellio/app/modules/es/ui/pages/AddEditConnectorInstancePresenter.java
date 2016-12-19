@@ -2,10 +2,10 @@ package com.constellio.app.modules.es.ui.pages;
 
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
@@ -37,7 +37,7 @@ public abstract class AddEditConnectorInstancePresenter extends SingleSchemaBase
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
-		return user.has(RMPermissionsTo.MANAGE_CONTAINERS).globally();
+		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_CONNECTORS);
 	}
 
 	public void backButtonClicked() {

@@ -22,6 +22,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
@@ -80,56 +81,64 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 	}
 
 	private Component buildTables() {
-		final MetadataVODataProvider dataProvider = presenter.getDataProvider();
+		TabSheet tabSheet = new TabSheet();
+		tabSheet.setSizeFull();
+		
+		Map<String, MetadataVODataProvider> dataProviders = presenter.getDataProviders();
+		for (String tabCaption : dataProviders.keySet()) {
+			final MetadataVODataProvider dataProvider = dataProviders.get(tabCaption);
 
-		MetadataVOLazyContainer recordsContainer = new MetadataVOLazyContainer(dataProvider, batchSize);
-		ButtonsContainer<MetadataVOLazyContainer> buttonsContainer = new ButtonsContainer<>(recordsContainer, "buttons");
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						Integer index = (Integer) itemId;
-						MetadataVO entity = dataProvider.getMetadataVO(index);
-						presenter.editButtonClicked(entity);
-					}
-				};
-			}
-		});
+			MetadataVOLazyContainer recordsContainer = new MetadataVOLazyContainer(dataProvider, batchSize);
+			ButtonsContainer<MetadataVOLazyContainer> buttonsContainer = new ButtonsContainer<>(recordsContainer, "buttons");
+			buttonsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId) {
+					return new EditButton() {
+						@Override
+						protected void buttonClick(ClickEvent event) {
+							Integer index = (Integer) itemId;
+							MetadataVO entity = dataProvider.getMetadataVO(index);
+							presenter.editButtonClicked(entity);
+						}
+					};
+				}
+			});
 
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId) {
-				return new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						Integer index = (Integer) itemId;
-						MetadataVO entity = dataProvider.getMetadataVO(index);
-						presenter.deleteButtonClicked(entity);
-					}
+			buttonsContainer.addButton(new ContainerButton() {
+				@Override
+				protected Button newButtonInstance(final Object itemId) {
+					return new DeleteButton() {
+						@Override
+						protected void confirmButtonClick(ConfirmDialog dialog) {
+							Integer index = (Integer) itemId;
+							MetadataVO entity = dataProvider.getMetadataVO(index);
+							presenter.deleteButtonClicked(entity);
+						}
 
-					@Override
-					public boolean isVisible() {
-						Integer index = (Integer) itemId;
-						MetadataVO entity = dataProvider.getMetadataVO(index);
-						return presenter.isMetadataDeletable(entity);
-					}
-				};
-			}
-		});
+						@Override
+						public boolean isVisible() {
+							Integer index = (Integer) itemId;
+							MetadataVO entity = dataProvider.getMetadataVO(index);
+							return presenter.isMetadataDeletable(entity);
+						}
+					};
+				}
+			});
 
-		Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
-		table.setSizeFull();
-		table.setPageLength(Math.min(15, dataProvider.size()));
-		table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));
-		table.setColumnHeader("enabledCaption", $("AddEditSchemaMetadataView.enabledCaption"));
-		table.setColumnHeader("valueCaption", $("AddEditSchemaMetadataView.valueCaption"));
-		table.setColumnHeader("inputCaption", $("AddEditSchemaMetadataView.inputCaption"));
-		table.setColumnHeader("requiredCaption", $("AddEditSchemaMetadataView.requiredCaption"));
-		table.setColumnHeader("buttons", "");
-		table.setColumnWidth("buttons", 60);
+			Table table = new Table($("AddEditSchemaMetadataView.tableTitle", recordsContainer.size()), buttonsContainer);
+			table.setSizeFull();
+			table.setPageLength(Math.min(12, dataProvider.size()));
+			table.setColumnHeader("caption", $("AddEditSchemaMetadataView.caption"));
+			table.setColumnHeader("enabledCaption", $("AddEditSchemaMetadataView.enabledCaption"));
+			table.setColumnHeader("valueCaption", $("AddEditSchemaMetadataView.valueCaption"));
+			table.setColumnHeader("inputCaption", $("AddEditSchemaMetadataView.inputCaption"));
+			table.setColumnHeader("requiredCaption", $("AddEditSchemaMetadataView.requiredCaption"));
+			table.setColumnHeader("buttons", "");
+			table.setColumnWidth("buttons", 80);
+			
+			tabSheet.addTab(table, tabCaption);
+		}
 
-		return table;
+		return tabSheet;
 	}
 }

@@ -1,5 +1,8 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +36,6 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoS
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_CannotBuildStructureValue;
@@ -120,6 +122,7 @@ public class RecordImpl implements Record {
 		} else {
 			return setModifiedValue(metadata, convertedRecord);
 		}
+
 	}
 
 	@Override
@@ -191,7 +194,7 @@ public class RecordImpl implements Record {
 		if (!code.startsWith(schemaCode)) {
 			throw new InvalidMetadata(code);
 		}
-		if (metadata.getDataEntry().getType() != DataEntryType.MANUAL) {
+		if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
 			throw new RecordRuntimeException.CannotSetManualValueInAutomaticField(metadata);
 		}
 		if (metadata.getLocalCode().equals("id")) {
@@ -433,6 +436,11 @@ public class RecordImpl implements Record {
 		return schemaCode;
 	}
 
+	@Override
+	public String getTypeCode() {
+		return SchemaUtils.getSchemaTypeCode(schemaCode);
+	}
+
 	public RecordDTO getRecordDTO() {
 		return recordDTO;
 	}
@@ -549,9 +557,8 @@ public class RecordImpl implements Record {
 
 		for (String modifiedMetadataDataStoreCode : getModifiedValues().keySet()) {
 			String localCode = SchemaUtils.underscoreSplitWithCache(modifiedMetadataDataStoreCode)[0];
-			String metadataCode = schemaCode + "_" + localCode;
 			try {
-				modifiedMetadatas.add(schemaTypes.getMetadata(metadataCode));
+				modifiedMetadatas.add(schemaTypes.getSchema(schemaCode).getMetadata(localCode));
 			} catch (NoSuchMetadata e) {
 				Record originalRecord = getCopyOfOriginalRecord();
 				try {
@@ -635,14 +642,56 @@ public class RecordImpl implements Record {
 		return id;
 	}
 
+//	@Override
+//	public int hashCode() {
+//		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
+//	}
+//
+//	@Override
+//	public boolean equals(Object obj) {
+//		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
+//	}
+
 	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof RecordImpl))
+			return false;
+
+		RecordImpl record = (RecordImpl) o;
+
+		if (version != record.version)
+			return false;
+		if (disconnected != record.disconnected)
+			return false;
+		if (fullyLoaded != record.fullyLoaded)
+			return false;
+		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null)
+			return false;
+		if (schemaCode != null ? !schemaCode.equals(record.schemaCode) : record.schemaCode != null)
+			return false;
+		if (collection != null ? !collection.equals(record.collection) : record.collection != null)
+			return false;
+		if (!id.equals(record.id))
+			return false;
+		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null)
+			return false;
+
+		return true;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
+	public int hashCode() {
+		int result = modifiedValues != null ? modifiedValues.hashCode() : 0;
+		result = 31 * result + (schemaCode != null ? schemaCode.hashCode() : 0);
+		result = 31 * result + (collection != null ? collection.hashCode() : 0);
+		result = 31 * result + id.hashCode();
+		result = 31 * result + (int) (version ^ (version >>> 32));
+		result = 31 * result + (disconnected ? 1 : 0);
+		result = 31 * result + (structuredValues != null ? structuredValues.hashCode() : 0);
+		result = 31 * result + (fullyLoaded ? 1 : 0);
+		return result;
 	}
 
 	@Override
@@ -668,7 +717,7 @@ public class RecordImpl implements Record {
 
 			if (!specialField) {
 				String metadataCode = new SchemaUtils().getLocalCodeFromDataStoreCode(key);
-				if (!specialField && schema.getMetadata(metadataCode).getDataEntry().getType() == DataEntryType.MANUAL) {
+				if (!specialField && schema.getMetadata(metadataCode).getDataEntry().getType() == MANUAL) {
 					Object initialValue = recordDTO.getFields().get(entry.getKey());
 					Object modifiedValue = entry.getValue();
 					Object currentValue = otherVersionRecordDTO.getFields().get(entry.getKey());
@@ -678,7 +727,7 @@ public class RecordImpl implements Record {
 					} else {
 
 						if (!LangUtils.areNullableEqual(currentValue, initialValue)) {
-							throw new RecordRuntimeException.CannotMerge();
+							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}
 				}
@@ -778,6 +827,11 @@ public class RecordImpl implements Record {
 	}
 
 	@Override
+	public boolean isDisconnected() {
+		return disconnected;
+	}
+
+	@Override
 	public List<String> getFollowers() {
 		if (modifiedValues.containsKey("followers_ss")) {
 			followers = (List<String>) modifiedValues.get("followers_ss");
@@ -848,13 +902,13 @@ public class RecordImpl implements Record {
 
 	@Override
 	public void changeSchema(MetadataSchema wasSchema, MetadataSchema newSchema) {
-		System.out.println("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
+		LOGGER.info("changeSchema (" + wasSchema.getCode() + "=>" + newSchema.getCode() + ")");
 		Map<String, Metadata> newSchemasMetadatas = new HashMap<>();
 		for (Metadata metadata : newSchema.getMetadatas()) {
 			newSchemasMetadatas.put(metadata.getLocalCode(), metadata);
 		}
 		for (Metadata wasMetadata : wasSchema.getMetadatas()) {
-			if (wasMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+			if (wasMetadata.getDataEntry().getType() == MANUAL) {
 				Metadata newMetadata = newSchemasMetadatas.get(wasMetadata.getLocalCode());
 				if (newMetadata == null || !newMetadata.isSameValueThan(wasMetadata)) {
 					set(wasMetadata, null);
@@ -870,7 +924,7 @@ public class RecordImpl implements Record {
 		this.schemaCode = newSchema.getCode();
 
 		for (Metadata metadata : newSchema.getMetadatas()) {
-			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
+			if (metadata.getDataEntry().getType() == MANUAL) {
 				if (metadata.isMultivalue()) {
 					List<Object> value = getList(metadata);
 					if (value.isEmpty()) {
@@ -885,6 +939,11 @@ public class RecordImpl implements Record {
 			}
 		}
 		markAsModified(Schemas.SCHEMA);
+	}
+
+	@Override
+	public boolean isOfSchemaType(String type) {
+		return schemaCode.startsWith(type + "_");
 	}
 
 	private static boolean isDefaultValue(Object value, Metadata metadata) {

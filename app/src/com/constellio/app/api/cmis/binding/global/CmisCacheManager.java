@@ -3,7 +3,6 @@ package com.constellio.app.api.cmis.binding.global;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
@@ -14,6 +13,7 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionTypeDefinitionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
 
 /**
@@ -38,6 +38,10 @@ public class CmisCacheManager implements StatefulService, CollectionsListManager
 		appLayerFactory.getModelLayerFactory().getCollectionsListManager().registerCollectionsListener(this);
 	}
 
+	public ConstellioCollectionRepository getRepository(String collection) {
+		return repositories.get(collection);
+	}
+
 	public Collection<ConstellioCollectionRepository> getRepositories() {
 		return repositories.values();
 	}
@@ -56,9 +60,14 @@ public class CmisCacheManager implements StatefulService, CollectionsListManager
 		addCollectionsToRepository(collection);
 	}
 
+	@Override
+	public void onCollectionDeleted(String collection) {
+		repositories.remove(collection);
+	}
+
 	private void addCollectionsToRepository() {
-		List<String> collections = appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollections();
-		for (String collection : collections) {
+		CollectionsListManager collectionsListManager = appLayerFactory.getModelLayerFactory().getCollectionsListManager();
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			addCollectionsToRepository(collection);
 		}
 	}
@@ -66,7 +75,7 @@ public class CmisCacheManager implements StatefulService, CollectionsListManager
 	private void addCollectionsToRepository(String collection) {
 		File zeFileSystemRootDir = new File("/home/developer/git/constellio-dev/zeRepository");
 		ConstellioCollectionTypeDefinitionsManager typeManager = new ConstellioCollectionTypeDefinitionsManager(
-				appLayerFactory.getModelLayerFactory(), collection);
+				appLayerFactory, collection);
 		ConstellioCollectionRepositoryInfoManager repositoryInfoManager = new ConstellioCollectionRepositoryInfoManager(
 				collection, appLayerFactory.newMigrationServices().getCurrentVersion(collection));
 		ConstellioCollectionRepository zeCollectionRepository = new ConstellioCollectionRepository(collection,

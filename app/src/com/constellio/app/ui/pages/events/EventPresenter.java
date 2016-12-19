@@ -51,6 +51,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public EventPresenter(EventView view) {
 		super(view, Event.DEFAULT_SCHEMA);
+		recordServices().flush();
 	}
 
 	@Override
@@ -208,28 +209,27 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return eventCategory;
 	}
 
-	public String getRecordLinkTitle(MetadataValueVO metadataValue, RecordVO recordVO) {
-		String recordId = metadataValue.getValue().toString();
-		String title = recordVO.get(Schemas.TITLE.getLocalCode());
-		if (title == null) {
-			return recordId;
-		} else {
-			return recordId + " : " + title;
-		}
+	public RecordVO getLinkedRecordVO(RecordVO eventVO) {
+		String recordId = eventVO.get(Event.RECORD_ID);
+		Record linkedRecord = recordServices().getDocumentById(recordId);
+		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+		return voBuilder.build(linkedRecord, VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
-	public void recordLinkClicked(MetadataValueVO metadataValue) {
-		String recordId = metadataValue.getValue().toString();
+	public void recordLinkClicked(RecordVO eventVO) {
+		String eventId = eventVO.get(Event.RECORD_ID);
+		Record linkedRecord = recordServices().getDocumentById(eventId);
+		String linkedRecordId = linkedRecord.getId();
 		try {
-			recordServices().getDocumentById(recordId);
+			recordServices().getDocumentById(linkedRecordId);
 			if (getEventType().contains(EventType.DECOMMISSIONING_LIST)) {
-				view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+				view.navigate().to(RMViews.class).displayDecommissioningList(linkedRecordId);
 			} else if (getEventType().contains("folder")) {
-				view.navigate().to(RMViews.class).displayFolder(recordId);
+				view.navigate().to(RMViews.class).displayFolder(linkedRecordId);
 			} else if (getEventType().contains("document")) {
-				view.navigate().to(RMViews.class).displayDocument(recordId);
+				view.navigate().to(RMViews.class).displayDocument(linkedRecordId);
 			} else {
-				view.navigate().to(TaskViews.class).displayTask(recordId);
+				view.navigate().to(TaskViews.class).displayTask(linkedRecordId);
 			}
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 			return;
@@ -316,4 +316,5 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		};
 		return voBuilder;
 	}
+	
 }

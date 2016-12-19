@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -16,6 +17,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
@@ -25,14 +27,16 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
-	private File exampleExcelFile;
+
+	private File exampleFile;
 	protected ImportFilePresenterInterface presenter;
 	protected VerticalLayout mainLayout;
-	private Link exampleExcelFileLink;
+	private Link exampleFileLink;
 	private BaseUploadField uploadField;
 	private Button uploadButton;
 	private ProgressBar progressBar;
 	private Panel messagesPanel;
+	private EnumWithSmallCodeComboBox mode;
 	private VerticalLayout messagesLayout;
 	private int total;
 
@@ -50,10 +54,8 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
-		//exampleExcelFileLink = new DownloadLink(new FileResource(exampleExcelFile), $("ImportFileView.exampleExcelFile"));
-
 		uploadField = new BaseUploadField();
-		uploadField.setCaption($("ImportFileView.excelFile"));
+		uploadField.setCaption(getUploadFieldCaption());
 
 		uploadButton = new BaseButton($("ImportFileView.startImport")) {
 			@Override
@@ -66,6 +68,11 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		};
 		uploadButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
+		mode = new EnumWithSmallCodeComboBox(ImportFileMode.class);
+		mode.setImmediate(true);
+		mode.setWidth("200px");
+		mode.setConvertedValue(ImportFileMode.STRICT);
+
 		progressBar = new ProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
@@ -77,12 +84,16 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		messagesPanel = new Panel($("ImportFileView.errors"), messagesLayout);
 		messagesPanel.setVisible(false);
 
-		mainLayout.addComponents(uploadField, uploadButton, progressBar, messagesPanel);
+		mainLayout.addComponents(mode, uploadField, uploadButton, progressBar, messagesPanel);
 		mainLayout.setExpandRatio(messagesPanel, 1);
 		//mainLayout.setComponentAlignment(exampleExcelFileLink, Alignment.TOP_RIGHT);
 		mainLayout.setComponentAlignment(uploadButton, Alignment.BOTTOM_RIGHT);
 
 		return mainLayout;
+	}
+
+	protected String getUploadFieldCaption() {
+		return $("ImportFileView.excelFile");
 	}
 
 	@Override
@@ -101,13 +112,18 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 	}
 
 	@Override
-	public void setExampleFile(File exampleExcelFile) {
-		this.exampleExcelFile = exampleExcelFile;
+	public void setExampleFile(File exampleFile) {
+		this.exampleFile = exampleFile;
 	}
 
 	@Override
 	public List<String> getSelectedCollections() {
 		return Arrays.asList(getCollection());
+	}
+
+	@Override
+	public ImportFileMode getImportFileMode() {
+		return (ImportFileMode) mode.getConvertedValue();
 	}
 
 	@Override

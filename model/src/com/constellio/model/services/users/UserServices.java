@@ -2,16 +2,16 @@ package com.constellio.model.services.users;
 
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.ReadableDuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -30,6 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -59,6 +60,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 
 public class UserServices {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserServices.class);
 	public static final String ADMIN = "admin";
 	private final UserCredentialsManager userCredentialsManager;
 	private final GlobalGroupsManager globalGroupsManager;
@@ -115,7 +117,19 @@ public class UserServices {
 				msExchDelegateListBL, dn);
 	}
 
+	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
+			List<String> personalEmails,
+			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
+			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+			String dn) {
+		return userCredentialsManager.create(
+				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
+				status, domain,
+				msExchDelegateListBL, dn);
+	}
+
 	public void addUpdateUserCredential(UserCredential userCredential) {
+		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		validateAdminIsActive(userCredential);
 		UserCredential savedUserCredential = userCredential;
 		for (String groupCode : userCredential.getGlobalGroups()) {
@@ -124,7 +138,9 @@ public class UserServices {
 				throw new UserServicesRuntimeException_InvalidGroup(groupCode);
 			}
 			for (String collection : group.getUsersAutomaticallyAddedToCollections()) {
-				savedUserCredential = savedUserCredential.withNewCollection(collection);
+				if (collections.contains(collection)) {
+					savedUserCredential = savedUserCredential.withNewCollection(collection);
+				}
 			}
 		}
 		userCredentialsManager.addUpdate(savedUserCredential);
@@ -132,8 +148,8 @@ public class UserServices {
 	}
 
 	public GlobalGroup createGlobalGroup(
-			String code, String name, List<String> collections, String parent, GlobalGroupStatus status) {
-		return globalGroupsManager.create(code, name, collections, parent, status);
+			String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+		return globalGroupsManager.create(code, name, collections, parent, status, locallyCreated);
 	}
 
 	public void addUpdateGlobalGroup(GlobalGroup globalGroup) {
@@ -407,14 +423,27 @@ public class UserServices {
 	}
 
 	public void sync(UserCredential user) {
+		List<String> availableCollections = collectionsListManager.getCollectionsExcludingSystem();
+		List<String> removedCollections = new ArrayList<>();
 		for (String collection : user.getCollections()) {
-			Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
-			sync(user, collection, transaction);
-			try {
-				recordServices.execute(transaction);
-			} catch (RecordServicesException e) {
-				throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
+			if (availableCollections.contains(collection)) {
+				Transaction transaction = new Transaction().setSkippingReferenceToLogicallyDeletedValidation(true);
+				sync(user, collection, transaction);
+				try {
+					recordServices.execute(transaction);
+				} catch (RecordServicesException e) {
+					throw new UserServicesRuntimeException_CannotExcuteTransaction(e);
+				}
+			} else {
+				removedCollections.add(collection);
+				LOGGER.warn("User '" + user.getUsername() + "' is in invalid collection '" + collection + "'");
 			}
+		}
+
+		if (!removedCollections.isEmpty()) {
+			List<String> collections = new ArrayList<>(user.getCollections());
+			collections.removeAll(removedCollections);
+			addUpdateUserCredential(user.withCollections(collections));
 		}
 	}
 
@@ -441,12 +470,16 @@ public class UserServices {
 
 	private void sync(UserCredential user, String collection, Transaction transaction) {
 		User userInCollection = getUserInCollection(user.getUsername(), collection);
+
 		if (userInCollection == null) {
 			userInCollection = newUserInCollection(collection);
 		} else {
 			userInCollection.set(CommonMetadataBuilder.LOGICALLY_DELETED, false);
 		}
 		userInCollection.setEmail(StringUtils.isBlank(user.getEmail()) ? null : user.getEmail());
+		if (userInCollection.getSchema().hasMetadataWithCode(SolrUserCredential.PERSONAL_EMAILS)) {
+			userInCollection.setPersonalEmails(isEmpty(user.getPersonalEmails()) ? null : user.getPersonalEmails());
+		}
 		userInCollection.setFirstName(user.getFirstName());
 		userInCollection.setLastName(user.getLastName());
 		userInCollection.setUsername(user.getUsername());
@@ -492,10 +525,11 @@ public class UserServices {
 		List<String> groupIds = new ArrayList<>();
 		for (String groupCode : groupCodes) {
 			String groupId = getGroupIdInCollection(groupCode, collection);
-			if (groupId == null) {
-				throw new ImpossibleRuntimeException("No group with code '" + groupCode + "' in collection '" + collection + "'");
+			if (groupId != null) {
+				groupIds.add(groupId);
+				//throw new ImpossibleRuntimeException("No group with code '" + groupCode + "' in collection '" + collection + "'");
 			}
-			groupIds.add(groupId);
+
 		}
 		return groupIds;
 	}
@@ -642,7 +676,9 @@ public class UserServices {
 			LogicalSearchCondition condition = from(types.getSchemaType(Group.SCHEMA_TYPE))
 					.where(groupCodeMetadata(collection)).isEqualTo(group);
 			Record recordGroup = searchServices.searchSingleResult(condition);
-			recordServices.logicallyDelete(recordGroup, User.GOD);
+			if (recordGroup != null) {
+				recordServices.logicallyDelete(recordGroup, User.GOD);
+			}
 		}
 	}
 

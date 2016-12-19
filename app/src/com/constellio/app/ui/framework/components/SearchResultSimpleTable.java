@@ -29,7 +29,9 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class SearchResultSimpleTable extends RecordVOTable implements SearchResultTable {
@@ -41,14 +43,18 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	private Set<SelectionChangeListener> listeners;
 	private RecordVOLazyContainer container;
 	private boolean selectAll;
+	private int maxSelectableResults;
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container) {
+	public SearchResultSimpleTable(RecordVOLazyContainer container, int maxSelectableResults) {
 		this(container, true);
+		this.maxSelectableResults = maxSelectableResults;
 	}
 
 	public SearchResultSimpleTable(final RecordVOLazyContainer container, boolean withCheckBoxes) {
 		super("",container);
 		
+		setColumnCollapsingAllowed(true);
+		setColumnReorderingAllowed(true);
 		addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -56,17 +62,11 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 					Object itemId = event.getItemId();
 					RecordVO recordVO = container.getRecordVO((int) itemId);
 					
-					final ConstellioUI ui = ConstellioUI.getCurrent();
-					String collection = ui.getSessionContext().getCurrentCollection();
-					AppLayerFactory appLayerFactory = ui.getConstellioFactories().getAppLayerFactory();
-					AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
-					List<RecordNavigationExtension> recordNavigationExtensions = extensions.recordNavigationExtensions.getExtensions();
-
-					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(recordVO.getSchema().getCode());
-					NavigationParams navigationParams = new NavigationParams(ui.navigate(), recordVO, schemaTypeCode, Page.getCurrent(), SearchResultSimpleTable.this);
-					for (final RecordNavigationExtension recordNavigationExtension : recordNavigationExtensions) {
-						recordNavigationExtension.prepareLinkToView(navigationParams);
-					}
+					Window recordWindow = new BaseWindow();
+					recordWindow.setWidth("90%");
+					recordWindow.setHeight("90%");
+					recordWindow.setContent(new RecordDisplay(recordVO));
+					UI.getCurrent().addWindow(recordWindow);
 //				}
 			}
 		});
@@ -124,8 +124,7 @@ public class SearchResultSimpleTable extends RecordVOTable implements SearchResu
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		if (selectAll) {
-			// FIXME Not scalable
-			for (Object itemId : container.getItemIds()) {
+			for (Object itemId : container.getItemIds(0, maxSelectableResults)) {
 				if (!deselected.contains(itemId)) {
 					RecordVO record = container.getRecordVO((int) itemId);
 					result.add(record.getId());

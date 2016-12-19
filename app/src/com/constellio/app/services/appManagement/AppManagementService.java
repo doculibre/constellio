@@ -1,5 +1,9 @@
 package com.constellio.app.services.appManagement;
 
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -17,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,14 +45,18 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
+import com.constellio.app.services.extensions.plugins.JSPFPluginServices;
+import com.constellio.app.services.extensions.plugins.PluginServices;
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.VersionValidator;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.services.recovery.ConstellioVersionInfo;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.app.utils.GradleFileVersionParser;
-import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -72,6 +81,7 @@ public class AppManagementService {
 	private static String SERVER_URL = "http://updatecenter.constellio.com:8080";
 	private static final int MAX_VERSION_TO_KEEP = 4;
 
+	private final PluginServices pluginServices;
 	private final ConstellioPluginManager pluginManager;
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
 	private final FileService fileService;
@@ -81,17 +91,17 @@ public class AppManagementService {
 	protected final ConstellioEIMConfigs eimConfigs;
 	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
 
-	public AppManagementService(IOServicesFactory ioServicesFactory, FoldersLocator foldersLocator,
-			SystemGlobalConfigsManager systemGlobalConfigsManager, ConstellioEIMConfigs eimConfigs,
-			ConstellioPluginManager pluginManager, UpgradeAppRecoveryService upgradeAppRecoveryService) {
-		this.systemGlobalConfigsManager = systemGlobalConfigsManager;
-		this.pluginManager = pluginManager;
-		this.fileService = ioServicesFactory.newFileService();
-		this.zipService = ioServicesFactory.newZipService();
+	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
+
+		this.systemGlobalConfigsManager = appLayerFactory.getSystemGlobalConfigsManager();
+		this.pluginManager = appLayerFactory.getPluginManager();
+		this.fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
+		this.zipService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newZipService();
 		this.foldersLocator = foldersLocator;
-		this.ioServices = ioServicesFactory.newIOServices();
-		this.eimConfigs = eimConfigs;
-		this.upgradeAppRecoveryService = upgradeAppRecoveryService;
+		this.ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+		this.eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		this.upgradeAppRecoveryService = appLayerFactory.newUpgradeAppRecoveryService();
+		this.pluginServices = new JSPFPluginServices(ioServices);
 	}
 
 	public void restart()
@@ -132,6 +142,7 @@ public class AppManagementService {
 				throw new RuntimeException(e);
 			}
 			String warVersion = findWarVersion(tempFolder);
+
 			String currentWarVersion = getWarVersion();
 			if (currentWarVersion == null || currentWarVersion.equals("5.0.5")) {
 				currentWarVersion = GradleFileVersionParser.getVersion();
@@ -150,11 +161,10 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 
-			File updatedWarPlugins = new File(tempFolder, "updated-plugins");
-			installNewOrUpdatedPlugins(updatedWarPlugins);
 			File oldPluginsFolder = foldersLocator.getPluginsJarsFolder();
 			copyCurrentPlugins(oldPluginsFolder, tempFolder);
 			movePluginsToNewLib(oldPluginsFolder, tempFolder);
+			updatePluginsWithThoseInWar(tempFolder);
 
 			File currentAppFolder = foldersLocator.getConstellioWebappFolder().getAbsoluteFile();
 			File deployFolder = findDeployFolder(currentAppFolder.getParentFile(), warVersion);
@@ -193,6 +203,53 @@ public class AppManagementService {
 
 	}
 
+	private void updatePluginsWithThoseInWar(File nextWebapp) {
+		updatePlugins(nextWebapp);
+		installPlugins(nextWebapp);
+	}
+
+	private void installPlugins(File nextWebapp) {
+		File pluginsFolder = new File(nextWebapp, "plugins-to-install");
+		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
+			for (File pluginFile : pluginsFolder.listFiles()) {
+				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
+					LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
+					pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
+				}
+			}
+		}
+	}
+
+	private void updatePlugins(File nextWebapp) {
+		File pluginsFolder = new File(nextWebapp, "plugins-to-update");
+		if (pluginsFolder.exists() && pluginsFolder.listFiles() != null) {
+			Set<String> alreadyInstalledPlugins = new HashSet<>();
+
+			for (ConstellioPluginInfo info : pluginManager.getPlugins(ENABLED, READY_TO_INSTALL, INVALID)) {
+				alreadyInstalledPlugins.add(info.getCode());
+			}
+
+			for (File pluginFile : pluginsFolder.listFiles()) {
+				if (pluginFile.getName().toLowerCase().endsWith(".jar")) {
+					try {
+						ConstellioPluginInfo info = pluginServices.extractPluginInfo(pluginFile);
+
+						if (alreadyInstalledPlugins.contains(info.getCode())) {
+							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : installed");
+							pluginManager.prepareInstallablePluginInNextWebapp(pluginFile, nextWebapp);
+						} else {
+							LOGGER.info(pluginsFolder.getName() + "/" + pluginFile.getName() + ".jar : deleted");
+							pluginFile.delete();
+						}
+
+					} catch (InvalidPluginJarException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+		}
+	}
+
 	private void movePluginsToNewLib(File oldPluginsFolder, File newWebAppFolder)
 			throws CannotSaveOldPlugins {
 		File newLibsFolder = foldersLocator.getLibFolder(newWebAppFolder);
@@ -201,22 +258,9 @@ public class AppManagementService {
 		PluginManagementUtils utils = new PluginManagementUtils(oldPluginsFolder, newLibsFolder, pluginsToMoveFile);
 
 		try {
-			utils.movePluginsAndSetNoPluginToMove(pluginManager.getPluginsOfEveryStatus());
+			utils.movePlugins(pluginManager.getPluginsOfEveryStatus());
 		} catch (IOException e) {
 			throw new CannotSaveOldPlugins(e);
-		}
-	}
-
-	private void installNewOrUpdatedPlugins(File warPlugins) {
-		if (warPlugins.exists()) {
-			File[] updatedPlugins = warPlugins.listFiles();
-			if (updatedPlugins != null) {
-				for (File warPlugin : warPlugins.listFiles()) {
-					if (warPlugin.getName().toLowerCase().endsWith(".jar")) {
-						pluginManager.prepareInstallablePlugin(warPlugin);
-					}
-				}
-			}
 		}
 	}
 
@@ -437,7 +481,7 @@ public class AppManagementService {
 		String serverUrl = SERVER_URL + "/changelog/";
 		String changelogURL;
 		try {
-			changelogURL = sendPost(serverUrl, getLicenseInfo().getSignature());
+			changelogURL = sendPost(serverUrl, getInfosToSend());
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}
@@ -450,7 +494,7 @@ public class AppManagementService {
 		String serverUrl = SERVER_URL + "/url/";
 		String warURL;
 		try {
-			warURL = sendPost(serverUrl, getLicenseInfo().getSignature());
+			warURL = sendPost(serverUrl, getInfosToSend());
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}
@@ -458,11 +502,16 @@ public class AppManagementService {
 		return warURL;
 	}
 
-	String sendPost(String url, String signature)
+	String getInfosToSend() {
+		String delimiter = "*";
+		return getLicenseInfo().getSignature() + delimiter + getCurrentInstalledVersionInfo().getVersion();
+	}
+
+	String sendPost(String url, String infoSent)
 			throws IOException {
 		StringBuilder response = new StringBuilder();
 
-		BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, signature)));
+		BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)));
 		String inputLine;
 
 		while ((inputLine = in.readLine()) != null) {
@@ -473,7 +522,7 @@ public class AppManagementService {
 		return response.toString();
 	}
 
-	InputStream getInputForPost(String url, String signature)
+	InputStream getInputForPost(String url, String infoSent)
 			throws IOException {
 		URL obj = new URL(url);
 
@@ -482,7 +531,7 @@ public class AppManagementService {
 		con.setDoOutput(true);
 
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		wr.writeBytes(signature);
+		wr.writeBytes(infoSent);
 		wr.flush();
 		wr.close();
 
@@ -527,7 +576,7 @@ public class AppManagementService {
 		String serverUrl = SERVER_URL + "/version/";
 
 		try {
-			serverUrl = sendPost(serverUrl, getLicenseInfo().getSignature());
+			serverUrl = sendPost(serverUrl, getInfosToSend());
 		} catch (IOException ioe) {
 			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
 		}

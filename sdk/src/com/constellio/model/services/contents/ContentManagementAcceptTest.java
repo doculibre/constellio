@@ -1,5 +1,6 @@
 package com.constellio.model.services.contents;
 
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -31,7 +32,7 @@ import org.mockito.stubbing.Answer;
 
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
-import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
@@ -93,8 +94,8 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	private long docx1Length = 27055L;
 	private long docx2Length = 27325L;
 
-	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6/6gd4=";
-	private String pdf2Hash = "T+4zq4cGP/tXkdJp/qz1WVWYhoQ=";
+	private String pdf1Hash = "KN8RjbrnBgq1EDDV2U71a6_6gd4=";
+	private String pdf2Hash = "T-4zq4cGP_tXkdJp_qz1WVWYhoQ=";
 	private String pdf3Hash = "2O9RyZlxNUL3asxk2yGDT6VIlbs=";
 	private String docx1Hash = "Fss7pKBafi8ok5KaOwEpmNdeGCE=";
 	private String docx2Hash = "TIKwSvHOXHOOtRd1K9t2fm4TQ4I=";
@@ -105,16 +106,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
+		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		withSpiedServices(ContentManager.class);
 
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
-			public void alter(ModelLayerConfiguration configuration) {
-				Mockito.when(configuration.getDelayBeforeDeletingUnreferencedContents()).thenReturn(
-						org.joda.time.Duration.standardMinutes(42));
-
-				Mockito.when(configuration.getUnreferencedContentsThreadDelayBetweenChecks()).thenReturn(
-						org.joda.time.Duration.standardHours(10));
+			public void alter(InMemoryModelLayerConfiguration configuration) {
+				configuration.setDelayBeforeDeletingUnreferencedContents(org.joda.time.Duration.standardMinutes(42));
+				configuration.setUnreferencedContentsThreadDelayBetweenChecks(org.joda.time.Duration.standardHours(10));
 			}
 		});
 		customSystemPreparation(new CustomSystemPreparation() {
@@ -1204,6 +1203,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 
 		givenTimeIs(shishOClock);
 
+		assertThat(getModelLayerFactory().getConfiguration().getDelayBeforeDeletingUnreferencedContents()).isEqualTo(
+				org.joda.time.Duration.standardMinutes(42)
+		);
+
+		assertThat(getModelLayerFactory().getConfiguration().getUnreferencedContentsThreadDelayBetweenChecks()).isEqualTo(
+				org.joda.time.Duration.standardHours(10)
+		);
+
 		uploadPdf1InputStream();
 		uploadPdf2InputStream();
 		uploadDocx1InputStream();
@@ -1733,24 +1740,24 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	}
 
 	private ContentVersionDataSummary getPdf1InputStream() {
-		return new ContentVersionDataSummary("KN8RjbrnBgq1EDDV2U71a6/6gd4=", "application/pdf", 170039);
+		return new ContentVersionDataSummary(pdf1Hash, "application/pdf", 170039);
 	}
 
 	private ContentVersionDataSummary getPdf2InputStream() {
-		return new ContentVersionDataSummary("T+4zq4cGP/tXkdJp/qz1WVWYhoQ=", "application/pdf", 167347);
+		return new ContentVersionDataSummary(pdf2Hash, "application/pdf", 167347);
 	}
 
 	private ContentVersionDataSummary getPdf3InputStream() {
-		return new ContentVersionDataSummary("2O9RyZlxNUL3asxk2yGDT6VIlbs=", "application/pdf", 141667);
+		return new ContentVersionDataSummary(pdf3Hash, "application/pdf", 141667);
 	}
 
 	private ContentVersionDataSummary getDocx1InputStream() {
-		return new ContentVersionDataSummary("Fss7pKBafi8ok5KaOwEpmNdeGCE=",
+		return new ContentVersionDataSummary(docx1Hash,
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document", 27055);
 	}
 
 	private ContentVersionDataSummary getDocx2InputStream() {
-		return new ContentVersionDataSummary("TIKwSvHOXHOOtRd1K9t2fm4TQ4I=",
+		return new ContentVersionDataSummary(docx2Hash,
 				"application/vnd.openxmlformats-officedocument.wordprocessingml.document", 27325);
 	}
 

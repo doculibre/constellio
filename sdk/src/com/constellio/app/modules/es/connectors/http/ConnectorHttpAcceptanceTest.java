@@ -670,7 +670,8 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 		assertThat(connectorDocuments).extracting("URL", "fetched").containsOnly(
 				tuple(WEBSITE + "index.html", true),
 				tuple(WEBSITE + "girafe.png", true),
-				tuple(WEBSITE + "girafe_corrupt.png", true)
+				tuple(WEBSITE + "girafe_corrupt.png", true),
+				tuple(WEBSITE + "empty.html", false)
 		);
 	}
 
@@ -1092,6 +1093,19 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenFullDailyScheduleThenConnectorCurrentlyRunning()
+			throws Exception {
+		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
+				.setTitle("Ze connector").setEnabled(false).setSeeds("http://constellio.com");
+		LocalDateTime shishOClock = new LocalDateTime().withDayOfWeek(DateTimeConstants.WEDNESDAY).withHourOfDay(12)
+				.withMinuteOfHour(50);
+		givenTimeIs(shishOClock);
+		TraversalSchedule schedule1 = new TraversalSchedule(DateTimeConstants.WEDNESDAY, "00:00", "00:00");
+		connectorInstance.setTraversalSchedule(asList(schedule1));
+		assertThat(connectorInstance.isCurrentlyRunning()).isTrue();
+	}
+
+	@Test
 	public void givenTimeAfterScheduleThenConnectorNotCurrentlyRunning()
 			throws Exception {
 		connectorInstance = es.newConnectorHttpInstanceWithId("zeConnector").setCode("zeConnector")
@@ -1163,7 +1177,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenPngAndIOExceptionThenConnectorStopsFetching()
+	public void givenInvalidAndEmptyContentThenStopsFetching()
 			throws Exception {
 		givenTestWebsiteInState5();
 		givenDataSet1Connector();
