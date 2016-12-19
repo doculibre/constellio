@@ -57,6 +57,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	@Override
 	public void startRollbackMode() {
 		if (!inRollbackMode) {
+			LOGGER.info("Rollback mode started");
 			realStartRollback();
 		}
 	}
@@ -85,6 +86,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	@Override
 	public void stopRollbackMode() {
 		if (inRollbackMode) {
+			LOGGER.info("Rollback mode stopped");
 			realStopRollback();
 		}
 	}
@@ -115,6 +117,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 	@Override
 	public void rollback(Throwable t) {
 		if (inRollbackMode) {
+			LOGGER.info("Rolling back");
 			realRollback(t);
 		}
 	}

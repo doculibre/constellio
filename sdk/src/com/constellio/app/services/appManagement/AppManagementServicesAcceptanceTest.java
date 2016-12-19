@@ -5,6 +5,7 @@ import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -152,7 +153,8 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		File newWebappUpdatedPlugins = new File(webappsFolder, "plugins-to-install");
 
 		ArgumentCaptor<File> installedPluginsCaptor = ArgumentCaptor.forClass(File.class);
-		verify(pluginManager, times(2)).prepareInstallablePlugin(installedPluginsCaptor.capture());
+		verify(pluginManager, times(2))
+				.prepareInstallablePluginInNextWebapp(installedPluginsCaptor.capture(), any(File.class));
 
 		assertThat(installedPluginsCaptor.getAllValues()).extracting("name")
 				.containsOnly("plugin1.jar", "PLUGIN2.JAR");

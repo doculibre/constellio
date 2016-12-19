@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +55,7 @@ import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPlugi
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.modules.Module;
@@ -92,6 +94,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	public void detectPlugins() {
+		initialize();
 		this.pluginManager = PluginManagerFactory.createPluginManager();
 
 		if (pluginsDirectory != null && pluginsDirectory.isDirectory()) {
@@ -105,6 +108,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			}
 
 			for (ConstellioPluginInfo pluginInfo : getPlugins(ENABLED, DISABLED, READY_TO_INSTALL)) {
+				LOGGER.info("Detected plugin : " + pluginInfo.getCode());
 				installValidPlugin(pluginInfo);
 			}
 			handlePluginsDependency();
@@ -162,9 +166,11 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			try {
 				PluginActivationFailureCause failure = registerPlugin(pluginJar, pluginId);
 				if (existingInfo.getPluginStatus().equals(READY_TO_INSTALL)) {
+					LOGGER.info("Plugin " + pluginId + " was ready to installed, now marked as enabled");
 					pluginConfigManger.markPluginAsEnabled(pluginId);
 				}
 				if (failure != null) {
+					LOGGER.info("Plugin " + pluginId + " failed : " + failure);
 					pluginConfigManger.invalidateModule(existingInfo.getCode(), failure, null);
 				}
 			} catch (Throwable e) {
@@ -248,6 +254,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	@Override
 	public void initialize() {
 		pluginConfigManger.createConfigFileIfNotExist();
+		markNewPluginsInNewWarAsInstalled(new FoldersLocator());
 	}
 
 	@Override
@@ -309,6 +316,71 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			return JAR_NOT_SAVED_CORRECTLY;
 		}
 		return null;
+	}
+
+	@Override
+	public PluginActivationFailureCause prepareInstallablePluginInNextWebapp(File jarFile, File nextWebapp) {
+		PluginServices helperService = newPluginServices();
+		ConstellioPluginInfo newPluginInfo;
+		try {
+			newPluginInfo = helperService.extractPluginInfo(jarFile);
+			validateId(newPluginInfo.getCode());
+		} catch (InvalidPluginJarException e) {
+			return getAdequateFailureCause(e);
+		} catch (InvalidId_BlankId | InvalidId_NonAlphaNumeric e) {
+			return INVALID_ID_FORMAT;
+		} catch (InvalidId_ExistingId e3) {
+			return INVALID_EXISTING_ID;
+		}
+		ConstellioPluginInfo existingPluginInfo = pluginConfigManger.getPluginInfo(newPluginInfo.getCode());
+		PluginActivationFailureCause failure = helperService.validatePlugin(newPluginInfo, existingPluginInfo);
+		if (failure != null) {
+			return failure;
+		}
+
+		File pluginsDirectory = new File(nextWebapp, "WEB-INF" + File.separator + "plugins");
+		File libDirectory = new File(nextWebapp, "WEB-INF" + File.separator + "lib");
+
+		File jarfileInNextWarPlugins = new File(pluginsDirectory, newPluginInfo.getCode() + ".jar");
+		File jarfileInNextWarLibs = new File(libDirectory, newPluginInfo.getCode() + ".jar");
+		jarfileInNextWarPlugins.delete();
+		jarfileInNextWarLibs.delete();
+		try {
+			FileUtils.copyFile(jarFile, jarfileInNextWarPlugins);
+			FileUtils.moveFile(jarFile, jarfileInNextWarLibs);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		PluginManagementUtils.markNewPluginsInNewWar(nextWebapp, jarfileInNextWarPlugins.getName());
+
+		return null;
+	}
+
+	public void markNewPluginsInNewWarAsInstalled(FoldersLocator foldersLocator) {
+		File webapp = foldersLocator.getConstellioWebappFolder();
+		File plugins = foldersLocator.getPluginsJarsFolder();
+		LOGGER.info("markNewPluginsInNewWarAsInstalled(" + webapp.getAbsolutePath() + ")");
+		List<String> newPluginsFileNames = PluginManagementUtils.getNewPluginsInNewWar(webapp);
+
+		if (!newPluginsFileNames.isEmpty()) {
+			for (String newPluginFilename : newPluginsFileNames) {
+				File newPlugin = new File(plugins, newPluginFilename);
+				PluginServices helperService = newPluginServices();
+				ConstellioPluginInfo newPluginInfo;
+				try {
+					newPluginInfo = helperService.extractPluginInfo(newPlugin);
+					validateId(newPluginInfo.getCode());
+				} catch (Exception e) {
+					throw new ImpossibleRuntimeException(e);
+				}
+
+				LOGGER.info("mark plugin " + newPluginFilename + "' in new war '" + webapp.getAbsolutePath() + "' as installed");
+				pluginConfigManger.installPlugin(newPluginInfo.getCode(), newPluginInfo.getTitle(),
+						newPluginInfo.getVersion(), newPluginInfo.getRequiredConstellioVersion());
+			}
+		}
+		PluginManagementUtils.clearNewPluginsInNewWar(webapp);
 	}
 
 	void addPluginToManageOnStartupList(String code) {
