@@ -1,25 +1,5 @@
 package com.constellio.app.api.search;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -39,6 +19,26 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class FreeTextSearchAcceptTest extends ConstellioTest {
@@ -356,6 +356,111 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenSearchableNumberThenFindRecordsWithNumber()
+			throws Exception {
+
+		givenFrenchCollectionWithSearchableMetadatas();
+
+		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCollectionSchema.code()).get(Schemas.IDENTIFIER).setSearchable(false);
+			}
+		});
+
+		Record record = new TestRecord(zeCollectionSchema, "00000042666");
+		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1).set(zeCollectionSchema.numberMetadata(), 475.0));
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475.0d))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"475.0\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"475,0\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"475\""))).isNotEmpty();
+	}
+
+	@Test
+	public void givenSearchableMultivalueNumberThenFindRecordsWithNumber()
+			throws Exception {
+
+		givenFrenchCollectionWithMultivalueSearchableMetadatas();
+
+		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCollectionSchema.code()).get(Schemas.IDENTIFIER).setSearchable(false);
+			}
+		});
+
+		Record record = new TestRecord(zeCollectionSchema, "00000042666");
+		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1).set(zeCollectionSchema.numberMetadata(), asList(475.0, 333)));
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475.0d))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 475))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"475.0\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"475,0\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"475\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 333.0d))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + 333))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"333.0\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"333,0\""))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "\"333\""))).isNotEmpty();
+	}
+
+	@Test
+	public void givenSearchableDateThenFindRecordsWithDate()
+			throws Exception {
+
+		givenFrenchCollectionWithSearchableMetadatas();
+
+		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCollectionSchema.code()).get(Schemas.IDENTIFIER).setSearchable(false);
+			}
+		});
+
+		LocalDate date = new LocalDate(2001,01,01);
+
+		Record record = new TestRecord(zeCollectionSchema, "00000042666");
+		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1).set(zeCollectionSchema.dateMetadata(), date));
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + date))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/01"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01/01/2001"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01-01-2001"))).isNotEmpty();
+	}
+
+
+	@Test
+	public void givenSearchableMultivalueDateThenFindRecordsWithDate()
+			throws Exception {
+
+		givenFrenchCollectionWithMultivalueSearchableMetadatas();
+
+		zeCollectionSetup.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeCollectionSchema.code()).get(Schemas.IDENTIFIER).setSearchable(false);
+			}
+		});
+
+		LocalDate date = new LocalDate(2001,01,01);
+		LocalDate date2 = new LocalDate(2001,01,01).plusWeeks(1);
+
+		Record record = new TestRecord(zeCollectionSchema, "00000042666");
+		recordServices.add(record.set(zeCollectionSchema.largeTextMetadata(), quote1).set(zeCollectionSchema.dateMetadata(), asList(date, date2)));
+
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + date))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/01"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01/01/2001"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01-01-2001"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + date2))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "2001/01/08"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "08/01/2001"))).isNotEmpty();
+		assertThat(resultsIdsOf(paramsWithQ(frenchSearchField + ":" + "01-08-2001"))).isNotEmpty();
+	}
+
+	@Test
 	public void givenIdsAreSearchableWhenSearchingUsingIdsThenFindRecords()
 			throws Exception {
 
@@ -409,6 +514,29 @@ public class FreeTextSearchAcceptTest extends ConstellioTest {
 
 		defineSchemasManager().using(zeCollectionSetup
 				.withAStringMetadata(whichIsMultivalue, whichIsSearchable)
+				.withANumberMetadata(whichIsSearchable)
+				.withADateMetadata(whichIsSearchable)
+				.withALargeTextMetadata(whichIsSearchable)
+				.withAMultivaluedLargeTextMetadata(whichIsSearchable)
+				.withAContentMetadata(whichIsSearchable)
+				.withAContentListMetadata(whichIsSearchable));
+	}
+
+	private void givenFrenchCollectionWithMultivalueSearchableMetadatas()
+			throws Exception {
+
+		prepareSystem(withZeCollection());
+		recordServices = getModelLayerFactory().newRecordServices();
+		contentManager = getModelLayerFactory().getContentManager();
+
+		solrServer = ((DataLayerFactory) getDataLayerFactory()).getRecordsVaultServer().getNestedSolrServer();
+		setupUsers();
+		aliceInZeCollection = users.aliceIn(zeCollection);
+
+		defineSchemasManager().using(zeCollectionSetup
+				.withAStringMetadata(whichIsMultivalue, whichIsSearchable)
+				.withANumberMetadata(whichIsMultivalue, whichIsSearchable)
+				.withADateMetadata(whichIsMultivalue, whichIsSearchable)
 				.withALargeTextMetadata(whichIsSearchable)
 				.withAMultivaluedLargeTextMetadata(whichIsSearchable)
 				.withAContentMetadata(whichIsSearchable)
