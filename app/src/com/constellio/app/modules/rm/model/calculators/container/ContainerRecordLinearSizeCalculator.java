@@ -11,19 +11,22 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 
-public class ContainerRecordLinearSizeCalculator implements MetadataValueCalculator<String> {
+public class ContainerRecordLinearSizeCalculator implements MetadataValueCalculator<Double> {
 
-    LocalDependency<String> enteredLinearSizeParam = LocalDependency.toAReference(ContainerRecord.LINEAR_SIZE_ENTERED);
+    LocalDependency<Double> enteredLinearSizeParam = LocalDependency.toANumber(ContainerRecord.LINEAR_SIZE_ENTERED);
+
+    LocalDependency<Double> enteredLinearSizeSumParam = LocalDependency.toANumber(ContainerRecord.LINEAR_SIZE_SUM);
 
     @Override
-    public String calculate(CalculatorParameters parameters) {
-        String enteredLinearSizeParam = parameters.get(this.enteredLinearSizeParam);
+    public Double calculate(CalculatorParameters parameters) {
+        Double enteredLinearSizeParam = parameters.get(this.enteredLinearSizeParam);
+        Double enteredLinearSizeSumParam = parameters.get(this.enteredLinearSizeSumParam);
 
-        return enteredLinearSizeParam;
+        return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
     }
 
     @Override
-    public String getDefaultValue() {
+    public Double getDefaultValue() {
         return null;
     }
 
