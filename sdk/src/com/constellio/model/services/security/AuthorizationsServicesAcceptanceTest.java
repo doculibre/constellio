@@ -567,13 +567,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public String toString() {
-			return "VerifiedAuthorization{" +
-					"recordId='" + recordId + '\'' +
-					", principals=" + principals +
-					", removedOnRecords=" + removedOnRecords +
-					", roles=" + roles +
-					", start=" + start +
-					", end=" + end +
+			return "{recordId='" + recordId + '\'' +
+					",  principals=" + principals +
+					",  removedOnRecords=" + removedOnRecords +
+					",  roles=" + roles +
+					",  start=" + start +
+					",  end=" + end +
 					'}';
 		}
 	}
@@ -648,9 +647,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		List<String> ids = new ArrayList<>();
 		for (String principal : principals) {
 			try {
-				ids.add(userServices.getUserInCollection(zeCollection, principal).getId());
+				ids.add(userServices.getUserInCollection(principal, zeCollection).getId());
 			} catch (Exception e) {
-				ids.add(userServices.getGroupInCollection(zeCollection, principal).getId());
+				ids.add(userServices.getGroupInCollection(principal, zeCollection).getId());
 			}
 		}
 		return ids;
@@ -924,6 +923,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		request1 = modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
 		assertThat(request1).is(creatingACopy()).isNot(deleted());
+
+		request2 = modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).withNewPrincipalIds(legends, bob).detaching());
+		assertThat(request2).is(creatingACopy()).isNot(deleted());
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
