@@ -11,7 +11,7 @@ import java.util.List;
  * Created by Constellio on 2016-12-21.
  */
 public class SolrAuthorizationDetails extends RecordWrapper implements AuthorizationDetails {
-    public static final String SCHEMA_TYPE = "autorizationDetail";
+    public static final String SCHEMA_TYPE = "authorizationDetails";
     public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
     public static final String IDENTIFIER = "identifier";
     public static final String ROLES = "roles";

@@ -91,10 +91,10 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
             MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE);
             MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
-            defaultSchema.createUndeletable(SolrAuthorizationDetails.ROLES).setType(STRING).setMultivalue(true);
-            defaultSchema.createUndeletable(SolrAuthorizationDetails.SYNCED).setType(BOOLEAN);
-            defaultSchema.createUndeletable(SolrAuthorizationDetails.START_DATE).setType(DATE);
-            defaultSchema.createUndeletable(SolrAuthorizationDetails.END_DATE).setType(DATE);
+            defaultSchema.createUndeletable(SolrAuthorizationDetails.ROLES).setType(STRING).setMultivalue(true).setUndeletable(false);
+            defaultSchema.createUndeletable(SolrAuthorizationDetails.SYNCED).setType(BOOLEAN).setUndeletable(false);;
+            defaultSchema.createUndeletable(SolrAuthorizationDetails.START_DATE).setType(DATE).setUndeletable(false);;
+            defaultSchema.createUndeletable(SolrAuthorizationDetails.END_DATE).setType(DATE).setUndeletable(false);;
 
             return type;
         }

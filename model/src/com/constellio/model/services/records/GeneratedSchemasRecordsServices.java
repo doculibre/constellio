@@ -671,7 +671,7 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchCondition condition) {
-		MetadataSchemaType type = autorizationDetail.schemaType();
+		MetadataSchemaType type = authorizationDetails.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
 	}
@@ -685,21 +685,21 @@ public class GeneratedSchemasRecordsServices extends BaseSchemasRecordsServices 
 	}
 
 	public SolrAuthorizationDetails getSolrAuthorizationDetailsWithLegacyId(String legacyId) {
-		return wrapSolrAuthorizationDetails(getByLegacyId(autorizationDetail.schemaType(),  legacyId));
+		return wrapSolrAuthorizationDetails(getByLegacyId(authorizationDetails.schemaType(),  legacyId));
 	}
 
 	public SolrAuthorizationDetails newSolrAuthorizationDetails() {
-		return wrapSolrAuthorizationDetails(create(autorizationDetail.schema()));
+		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema()));
 	}
 
 	public SolrAuthorizationDetails newSolrAuthorizationDetailsWithId(String id) {
-		return wrapSolrAuthorizationDetails(create(autorizationDetail.schema(), id));
+		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema(), id));
 	}
 
-	public final SchemaTypeShortcuts_autorizationDetail_default autorizationDetail
-			= new SchemaTypeShortcuts_autorizationDetail_default("autorizationDetail_default");
-	public class SchemaTypeShortcuts_autorizationDetail_default extends SchemaTypeShortcuts {
-		protected SchemaTypeShortcuts_autorizationDetail_default(String schemaCode) {
+	public final SchemaTypeShortcuts_authorizationDetails_default authorizationDetails
+			= new SchemaTypeShortcuts_authorizationDetails_default("authorizationDetails_default");
+	public class SchemaTypeShortcuts_authorizationDetails_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_authorizationDetails_default(String schemaCode) {
 			super(schemaCode);
 		}
 
