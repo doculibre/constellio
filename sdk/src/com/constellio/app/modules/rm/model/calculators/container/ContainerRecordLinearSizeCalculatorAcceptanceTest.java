@@ -54,7 +54,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     }
 
     @Test
-    public void givenParametersThenCalculatorReturnsSameNumber() throws RecordServicesException {
+    public void givenParametersThenCalculatorReturnsGoodValue() throws RecordServicesException {
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
 
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
