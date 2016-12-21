@@ -23,7 +23,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
@@ -57,13 +57,13 @@ public class SecurityServices {
 			startDate = LocalDate.fromDateFields(resource.getStartDate());
 			endDate = LocalDate.fromDateFields(resource.getEndDate());
 		}
-		AuthorizationDetails authorizationDetails = AuthorizationDetails
+		XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 				.create(getUniqueId(), roles, startDate, endDate, collection);
-		Authorization authorization = new Authorization(authorizationDetails, resource.getPrincipalIds(),
+		Authorization authorization = new Authorization(xmlAuthorizationDetails, resource.getPrincipalIds(),
 				resource.getRecordIds());
 		CustomizedAuthorizationsBehavior behavior = getCustomizedAuthorizationsBehavior(keepAttached);
 		authorizationsServices().add(authorization, behavior, null);
-		return authorizationDetails.getId();
+		return xmlAuthorizationDetails.getId();
 	}
 
 	@GET

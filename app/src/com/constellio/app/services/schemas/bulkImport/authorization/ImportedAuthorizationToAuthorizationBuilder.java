@@ -18,7 +18,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -64,7 +64,7 @@ public class ImportedAuthorizationToAuthorizationBuilder {
 			throw new ImportedAuthorizationBuilderRuntimeException_NoValidTarget();
 		}
 		List<String> roles = getRoles(importedAuthorization);
-		return new Authorization(AuthorizationDetails.create(importedAuthorization.getId(), roles, collection),
+		return new Authorization(XMLAuthorizationDetails.create(importedAuthorization.getId(), roles, collection),
 				grantedToPrincipals, grantedOnRecords);
 	}
 

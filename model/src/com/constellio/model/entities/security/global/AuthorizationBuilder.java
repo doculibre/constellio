@@ -12,7 +12,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordUtils;
 
@@ -75,7 +75,7 @@ public class AuthorizationBuilder {
 	}
 
 	private Authorization withRoles(List<String> roles) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, collection, false);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(id, roles, null, null, collection, false);
 		return new Authorization(details, principals, targets);
 	}
 

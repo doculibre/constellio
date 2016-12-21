@@ -11,7 +11,7 @@ import org.junit.Test;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -102,7 +102,7 @@ public class ListAuthorizationsViewAcceptTest extends ConstellioTest {
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> principals, String record) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, principals, Arrays.asList(record));
 		authorizationsService.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
 		return authorization;

@@ -20,7 +20,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -302,7 +302,7 @@ public class EventFactory {
 	}
 
 	private String getAuthorizationDateRange(Authorization authorization) {
-		AuthorizationDetails detail = authorization.getDetail();
+		XMLAuthorizationDetails detail = authorization.getDetail();
 		StringBuilder dateRangeStringBuilder = new StringBuilder("[");
 		if (detail.getStartDate() != null) {
 			dateRangeStringBuilder.append(detail.getStartDate());

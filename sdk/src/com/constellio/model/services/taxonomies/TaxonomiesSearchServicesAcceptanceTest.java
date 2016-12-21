@@ -7,18 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TestRule;
 
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.controller.BatchProcessController;
@@ -852,7 +849,7 @@ public class TaxonomiesSearchServicesAcceptanceTest extends ConstellioTest {
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 

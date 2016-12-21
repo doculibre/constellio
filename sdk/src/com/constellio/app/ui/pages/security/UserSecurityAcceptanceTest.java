@@ -104,7 +104,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
@@ -716,13 +716,13 @@ public class UserSecurityAcceptanceTest extends ConstellioTest {
 
 	private void giveAReadAccessToAFolderToSasquatch(User user, String recordId) {
 
-		AuthorizationDetails authorizationDetails = AuthorizationDetails
+		XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 				.create("auth" + aString(), asList(Role.READ), user.getCollection());
 
 		Authorization authorization = new Authorization();
 		authorization.setGrantedToPrincipals(asList(user.getId()));
 		authorization.setGrantedOnRecords(asList(recordId));
-		authorization.setDetail(authorizationDetails);
+		authorization.setDetail(xmlAuthorizationDetails);
 		getModelLayerFactory().newAuthorizationsServices().add(authorization, CustomizedAuthorizationsBehavior.DETACH, User.GOD);
 
 	}

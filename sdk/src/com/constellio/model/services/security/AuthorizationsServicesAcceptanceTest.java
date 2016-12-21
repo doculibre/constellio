@@ -54,7 +54,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
@@ -615,7 +615,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	private ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {
 
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
+		for (XMLAuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
 				.getAuthorizationsDetails(zeCollection).values()) {
 			Authorization authorization = services.getAuthorization(zeCollection, details.getId());
 
@@ -1346,7 +1346,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		List<String> roles = asList(READ);
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		authorization.setGrantedToPrincipals(new ArrayList<String>());
@@ -1360,7 +1360,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		List<String> roles = asList(READ);
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		authorization.setGrantedOnRecords(new ArrayList<String>());
@@ -1373,7 +1373,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		List<String> roles = asList(READ);
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		authorization.setGrantedToPrincipals(new ArrayList<String>());
@@ -1386,7 +1386,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		List<String> roles = asList(READ);
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		authorization.setGrantedToPrincipals(asList("inexistentId"));
@@ -1399,7 +1399,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		List<String> roles = asList(READ);
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, asList(users.heroesIn(zeCollection).getId()),
 				asList(records.taxo1_category1().getId()));
 		authorization.setGrantedOnRecords(asList("inexistentId"));
@@ -2940,7 +2940,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	private Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(id, roles, null, null, zeCollection);
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
@@ -2970,7 +2970,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	private Authorization addAuthorizationDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
 		services.add(authorization, CustomizedAuthorizationsBehavior.DETACH, users.dakotaLIndienIn(zeCollection));
@@ -2979,7 +2979,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, List<String> grantedOnRecords,
 			LocalDate startDate, LocalDate endDate) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, startDate, endDate, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, startDate, endDate, zeCollection);
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 

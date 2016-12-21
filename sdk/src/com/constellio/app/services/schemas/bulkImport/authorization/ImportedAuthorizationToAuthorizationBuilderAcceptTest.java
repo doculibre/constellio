@@ -20,7 +20,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -99,7 +99,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 		assertThat(authorization.getGrantedOnRecords())
 				.containsExactly(folderHavingLegacyId.getId(), documentHavingLegacyId.getId(),
 						administrativeUnitHavingLegacyId.getId(), userTaskHavingLegacyId.getId());
-		AuthorizationDetails detail = authorization.getDetail();
+		XMLAuthorizationDetails detail = authorization.getDetail();
 		assertThat(detail.getId()).isEqualTo("rwd__id");
 		assertThat(detail.getStartDate()).isNull();
 		assertThat(detail.getEndDate()).isNull();
@@ -112,7 +112,7 @@ public class ImportedAuthorizationToAuthorizationBuilderAcceptTest extends Const
 			throws Exception {
 		validAuthorization.setAccess(null).setRoles(asList("u", "rgd"));
 		Authorization authorization = builder.build(validAuthorization);
-		AuthorizationDetails detail = authorization.getDetail();
+		XMLAuthorizationDetails detail = authorization.getDetail();
 		assertThat(detail.getRoles()).containsExactly("u", "rgd");
 	}
 }

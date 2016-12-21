@@ -11,25 +11,25 @@ import org.junit.Test;
 import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
 import com.constellio.sdk.tests.ConstellioTest;
 
-public class AuthorizationDetailsTest extends ConstellioTest {
+public class XMLAuthorizationDetailsTest extends ConstellioTest {
 
 	Role roleWithNothing = new Role("zeUltimeCollection", "roleWithNothing", "a", Arrays.asList("operation"));
 
 	@Test
 	public void whenCreateAuthorizationDetailsThenHasCorrectCollection()
 			throws Exception {
-		AuthorizationDetails authorizationDetails = AuthorizationDetails
+		XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 				.create(aString(), Arrays.asList(Role.READ), null, null, "zeUltimeCollection");
-		assertThat(authorizationDetails.getCollection()).isEqualTo("zeUltimeCollection");
+		assertThat(xmlAuthorizationDetails.getCollection()).isEqualTo("zeUltimeCollection");
 	}
 
 	@Test
 	public void whenCreateAuthorizationDetailsWithoutDatesThenHasNoDates()
 			throws Exception {
-		AuthorizationDetails authorizationDetails = AuthorizationDetails
+		XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 				.create(aString(), Arrays.asList(Role.READ), null, null, zeCollection);
-		assertThat(authorizationDetails.getStartDate()).isNull();
-		assertThat(authorizationDetails.getEndDate()).isNull();
+		assertThat(xmlAuthorizationDetails.getStartDate()).isNull();
+		assertThat(xmlAuthorizationDetails.getEndDate()).isNull();
 	}
 
 	@Test
@@ -39,29 +39,29 @@ public class AuthorizationDetailsTest extends ConstellioTest {
 		LocalDate start = new LocalDate();
 		LocalDate end = start.plusYears(1);
 
-		AuthorizationDetails authorizationDetails = AuthorizationDetails
+		XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 				.create(aString(), Arrays.asList(Role.READ), start, end, zeCollection);
-		assertThat(authorizationDetails.getStartDate()).isEqualTo(start);
-		assertThat(authorizationDetails.getEndDate()).isEqualTo(end);
+		assertThat(xmlAuthorizationDetails.getStartDate()).isEqualTo(start);
+		assertThat(xmlAuthorizationDetails.getEndDate()).isEqualTo(end);
 	}
 
 	@Test // TODO Decide how to deal with that (expected = AuthorizationDetailsRuntimeException_SameCollectionRequired.class)
 	public void givenRolesOfDifferentCollectionsThenExceptions()
 			throws Exception {
-		AuthorizationDetails.create(aString(), Arrays.asList("a", "b"), null, null, zeCollection);
+		XMLAuthorizationDetails.create(aString(), Arrays.asList("a", "b"), null, null, zeCollection);
 	}
 
 	@Test(expected = AuthorizationDetailsRuntimeException_RoleRequired.class)
 	public void givenNoRolesThenExceptions()
 			throws Exception {
-		AuthorizationDetails.create(aString(), new ArrayList<String>(), null, null, zeCollection);
+		XMLAuthorizationDetails.create(aString(), new ArrayList<String>(), null, null, zeCollection);
 	}
 
 	@Test
 	public void givenMutlipleRolesThenRoleCodesInAuthorizationDetails()
 			throws Exception {
 
-		assertThat(AuthorizationDetails
+		assertThat(XMLAuthorizationDetails
 				.create(aString(), Arrays.asList(Role.READ, roleWithNothing.getCode()), null, null, zeCollection)
 				.getRoles())
 				.containsOnly("READ", "roleWithNothing");
@@ -103,6 +103,6 @@ public class AuthorizationDetailsTest extends ConstellioTest {
 	}
 
 	String getNewAuthorizationId(String... roles) {
-		return AuthorizationDetails.create(aString(), Arrays.asList(roles), null, null, zeCollection).getId();
+		return XMLAuthorizationDetails.create(aString(), Arrays.asList(roles), null, null, zeCollection).getId();
 	}
 }

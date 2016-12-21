@@ -19,7 +19,7 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -273,26 +273,26 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 
 	private void givenDoculibreUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
 			throws RolesManagerRuntimeException {
-		AuthorizationDetails doculibreUserAuthorizationDetails = AuthorizationDetails.create(aString(),
+		XMLAuthorizationDetails doculibreUserXMLAuthorizationDetails = XMLAuthorizationDetails.create(aString(),
 				Arrays.asList(Role.WRITE), "doculibre");
 		List<String> doculibreUserAuthorizationPrincipals = Arrays.asList(users.chuckNorrisIn("doculibre").getId(), users
 				.legendsIn("doculibre").getId(), users.heroesIn("doculibre").getId());
 		List<String> doculibreUserAuthorizationRecords = Arrays.asList(doculibreTaxos.taxo1_firstTypeItem1.getId(),
 				doculibreTaxos.taxo1_firstTypeItem2.getId());
-		authorizationsServices.add(new Authorization(doculibreUserAuthorizationDetails, doculibreUserAuthorizationPrincipals,
+		authorizationsServices.add(new Authorization(doculibreUserXMLAuthorizationDetails, doculibreUserAuthorizationPrincipals,
 				doculibreUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
 	}
 
 	private void givenConstellioUserAuthorizationForChuckNorrisHeroesAndLegendsInTaxo1FirstTypeItems1And2()
 			throws RolesManagerRuntimeException {
 
-		AuthorizationDetails constellioUserAuthorizationDetails = AuthorizationDetails.create(aString(),
+		XMLAuthorizationDetails constellioUserXMLAuthorizationDetails = XMLAuthorizationDetails.create(aString(),
 				Arrays.asList(Role.READ), "constellio");
 		List<String> constellioUserAuthorizationPrincipals = Arrays.asList(users.chuckNorrisIn("constellio").getId(), users
 				.legendsIn("constellio").getId(), users.heroesIn("constellio").getId());
 		List<String> constellioUserAuthorizationRecords = Arrays.asList(constellioTaxos.taxo1_firstTypeItem1.getId(),
 				constellioTaxos.taxo1_firstTypeItem2.getId());
-		authorizationsServices.add(new Authorization(constellioUserAuthorizationDetails, constellioUserAuthorizationPrincipals,
+		authorizationsServices.add(new Authorization(constellioUserXMLAuthorizationDetails, constellioUserAuthorizationPrincipals,
 				constellioUserAuthorizationRecords), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
 	}
 

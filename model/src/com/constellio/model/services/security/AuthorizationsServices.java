@@ -40,7 +40,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
@@ -103,7 +103,7 @@ public class AuthorizationsServices {
 		if (id == null) {
 			throw new IllegalArgumentException("id is null");
 		}
-		AuthorizationDetails authDetails = manager.get(collection, id);
+		XMLAuthorizationDetails authDetails = manager.get(collection, id);
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
@@ -330,12 +330,12 @@ public class AuthorizationsServices {
 		List<Record> records = getAuthorizationGrantedOnRecords(authorization);
 		List<Record> principals = getAuthorizationGrantedToPrincipals(authorization);
 
-		AuthorizationDetails authorizationDetail = authorization.getDetail();
+		XMLAuthorizationDetails authorizationDetail = authorization.getDetail();
 		String authId = authorizationDetail.getId();
 
 		if (authorizationDetail.isFutureAuthorization()) {
 			authId = "-" + authId;
-			authorizationDetail = new AuthorizationDetails(authorizationDetail.getCollection(), authId,
+			authorizationDetail = new XMLAuthorizationDetails(authorizationDetail.getCollection(), authId,
 					authorizationDetail.getRoles(), authorizationDetail.getStartDate(), authorizationDetail.getEndDate(), false);
 		}
 		manager.add(authorizationDetail);
@@ -378,14 +378,14 @@ public class AuthorizationsServices {
 
 	void refreshActivationForAllAuths(List<String> collections) {
 		for (String collection : collections) {
-			Map<String, AuthorizationDetails> authDetails = manager.getAuthorizationsDetails(collection);
-			for (AuthorizationDetails authDetail : authDetails.values()) {
+			Map<String, XMLAuthorizationDetails> authDetails = manager.getAuthorizationsDetails(collection);
+			for (XMLAuthorizationDetails authDetail : authDetails.values()) {
 				refreshAuthorizationBasedOnDates(authDetail);
 			}
 		}
 	}
 
-	void refreshAuthorizationBasedOnDates(AuthorizationDetails authDetail) {
+	void refreshAuthorizationBasedOnDates(XMLAuthorizationDetails authDetail) {
 		if (authDetail.getStartDate() != null && authDetail.getEndDate() != null) {
 			String authId = authDetail.getId();
 			LocalDate localDateNow = TimeProvider.getLocalDate();
@@ -399,7 +399,7 @@ public class AuthorizationsServices {
 		}
 	}
 
-	void changeAuthorizationCode(AuthorizationDetails authorization, String newCode) {
+	void changeAuthorizationCode(XMLAuthorizationDetails authorization, String newCode) {
 		String oldAuthCode = authorization.getId();
 		List<Record> recordsWithAuth = getRecordsWithAuth(authorization.getCollection(), oldAuthCode);
 		for (Record record : recordsWithAuth) {
@@ -408,7 +408,7 @@ public class AuthorizationsServices {
 		}
 		manager.remove(authorization);
 
-		AuthorizationDetails newDetails = new AuthorizationDetails(authorization.getCollection(), newCode,
+		XMLAuthorizationDetails newDetails = new XMLAuthorizationDetails(authorization.getCollection(), newCode,
 				authorization.getRoles(), authorization.getStartDate(), authorization.getEndDate(), false);
 		manager.add(newDetails);
 		try {
@@ -459,8 +459,8 @@ public class AuthorizationsServices {
 
 	String inheritedToSpecific(String collection, String id) {
 		String newId = uniqueIdGenerator.next();
-		AuthorizationDetails inherited = manager.get(collection, id);
-		AuthorizationDetails detail = AuthorizationDetails.create(
+		XMLAuthorizationDetails inherited = manager.get(collection, id);
+		XMLAuthorizationDetails detail = XMLAuthorizationDetails.create(
 				newId, inherited.getRoles(), inherited.getStartDate(), inherited.getEndDate(), collection);
 		manager.add(detail);
 		List<Record> principals = findAllPrincipalsWithAuthorization(inherited);
@@ -504,11 +504,11 @@ public class AuthorizationsServices {
 		record.set(Schemas.REMOVED_AUTHORIZATIONS, removedAuths);
 	}
 
-	public void delete(AuthorizationDetails authorization, User user) {
+	public void delete(XMLAuthorizationDetails authorization, User user) {
 		delete(authorization, user, true);
 	}
 
-	public void delete(AuthorizationDetails authorization, User user, boolean reattachIfNeeded) {
+	public void delete(XMLAuthorizationDetails authorization, User user, boolean reattachIfNeeded) {
 		delete(authorization.getId(), authorization.getCollection(), user, reattachIfNeeded);
 	}
 
@@ -539,7 +539,7 @@ public class AuthorizationsServices {
 		}
 
 		try {
-			AuthorizationDetails details = manager.get(collection, authorizationId);
+			XMLAuthorizationDetails details = manager.get(collection, authorizationId);
 			if (details != null) {
 				manager.remove(details);
 			}
@@ -745,7 +745,7 @@ public class AuthorizationsServices {
 
 		List<Authorization> authorizations = new ArrayList<>();
 		for (String authId : authIds) {
-			AuthorizationDetails authDetails = manager.get(record.getCollection(), authId);
+			XMLAuthorizationDetails authDetails = manager.get(record.getCollection(), authId);
 			if (authDetails != null) {
 				List<String> grantedToPrincipals = findAllPrincipalIdsWithAuthorization(authDetails);
 				List<String> grantedOnRecords = findAllRecordIdsWithAuthorizations(authDetails);
@@ -757,11 +757,11 @@ public class AuthorizationsServices {
 		return authorizations;
 	}
 
-	private List<String> findAllRecordIdsWithAuthorizations(AuthorizationDetails authDetails) {
+	private List<String> findAllRecordIdsWithAuthorizations(XMLAuthorizationDetails authDetails) {
 		return new RecordUtils().toIdList(findAllRecordsWithAuthorizations(authDetails));
 	}
 
-	private List<Record> findAllRecordsWithAuthorizations(AuthorizationDetails authDetails) {
+	private List<Record> findAllRecordsWithAuthorizations(XMLAuthorizationDetails authDetails) {
 		List<Record> records = new ArrayList<>();
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
@@ -775,7 +775,7 @@ public class AuthorizationsServices {
 		return records;
 	}
 
-	private List<String> findAllPrincipalIdsWithAuthorization(AuthorizationDetails authDetails) {
+	private List<String> findAllPrincipalIdsWithAuthorization(XMLAuthorizationDetails authDetails) {
 		List<String> principals = new ArrayList<>();
 
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(authDetails.getCollection());
@@ -813,7 +813,7 @@ public class AuthorizationsServices {
 		return principals;
 	}
 
-	private List<Record> findAllPrincipalsWithAuthorization(AuthorizationDetails detail) {
+	private List<Record> findAllPrincipalsWithAuthorization(XMLAuthorizationDetails detail) {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(detail.getCollection());
 		LogicalSearchQuery query = new LogicalSearchQuery(
 				from(Arrays.asList(types.getSchemaType(User.SCHEMA_TYPE), types.getSchemaType(Group.SCHEMA_TYPE)))
@@ -1017,7 +1017,7 @@ public class AuthorizationsServices {
 	}
 
 	public String getAuthorizationIdByIdWithoutPrefix(String collection, String idWithoutPrefix) {
-		AuthorizationDetails authDetails = manager.getByIdWithoutPrefix(collection, idWithoutPrefix);
+		XMLAuthorizationDetails authDetails = manager.getByIdWithoutPrefix(collection, idWithoutPrefix);
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(idWithoutPrefix);
 		}

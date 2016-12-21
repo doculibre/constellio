@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -230,7 +230,7 @@ public class RecordServicesOptimisticLockingWithAuthorizationsAcceptanceTest ext
 
 	private Authorization addAuthorizationWithoutDetaching(String id, List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(id, roles, null, null, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(id, roles, null, null, zeCollection);
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 		return authorization;

@@ -22,7 +22,7 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -235,7 +235,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 

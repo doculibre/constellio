@@ -24,14 +24,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.records.RecordServices;
@@ -171,7 +169,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 			List<String> permissions = toConstellioPermissions(ace.getPermissions());
 			Record principal = getPrincipalRecord(ace.getPrincipalId());
 			List<String> authorizationsIds = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
-			for (AuthorizationDetails authDetails : getObjectAuthorizationsWithPermission(objectId, permissions)) {
+			for (XMLAuthorizationDetails authDetails : getObjectAuthorizationsWithPermission(objectId, permissions)) {
 				authorizationsIds.remove(authDetails.getId());
 				authorizationsPotentiallyEmpty.add(authDetails.getId());
 			}
@@ -197,16 +195,16 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		for (Ace ace : acesToAdd) {
 			if (!REMOVE_INHERITANCE_COMMAND.equals(ace.getPrincipalId())) {
 				List<String> permissions = toConstellioPermissions(ace.getPermissions());
-				AuthorizationDetails authorizationDetails = getObjectAuthorizationWithPermission(objectId, permissions);
+				XMLAuthorizationDetails xmlAuthorizationDetails = getObjectAuthorizationWithPermission(objectId, permissions);
 				Record principal = getPrincipalRecord(ace.getPrincipalId());
-				if (authorizationDetails == null) {
+				if (xmlAuthorizationDetails == null) {
 					Authorization auth = new AuthorizationBuilder(collection)
 							.forPrincipalsIds(principal.getId()).on(objectId).giving(permissions);
 					authorizationsServices.add(auth, user);
 
 				} else {
 					List<String> authorizations = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
-					authorizations.add(authorizationDetails.getId());
+					authorizations.add(xmlAuthorizationDetails.getId());
 					principal.set(Schemas.AUTHORIZATIONS, authorizations);
 					try {
 						recordServices.updateAsync(principal);
@@ -218,18 +216,18 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		}
 	}
 
-	AuthorizationDetails getObjectAuthorizationWithPermission(String objectId, List<String> permissions) {
-		List<AuthorizationDetails> detailses = getObjectAuthorizationsWithPermission(objectId, permissions);
+	XMLAuthorizationDetails getObjectAuthorizationWithPermission(String objectId, List<String> permissions) {
+		List<XMLAuthorizationDetails> detailses = getObjectAuthorizationsWithPermission(objectId, permissions);
 		return detailses.isEmpty() ? null : detailses.get(0);
 	}
 
-	List<AuthorizationDetails> getObjectAuthorizationsWithPermission(String objectId, List<String> permissions) {
+	List<XMLAuthorizationDetails> getObjectAuthorizationsWithPermission(String objectId, List<String> permissions) {
 		Record record = recordServices.getDocumentById(objectId);
 		List<String> authorizations = record.get(Schemas.AUTHORIZATIONS);
-		List<AuthorizationDetails> detailses = new ArrayList<>();
+		List<XMLAuthorizationDetails> detailses = new ArrayList<>();
 
 		for (String authorization : authorizations) {
-			AuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager().get(collection, authorization);
+			XMLAuthorizationDetails details = modelLayerFactory.getAuthorizationDetailsManager().get(collection, authorization);
 
 			if (details != null && hasSameElementsNoMatterTheOrder(details.getRoles(), permissions)) {
 				detailses.add(details);

@@ -33,7 +33,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -836,7 +836,7 @@ public class TaxonomiesSearchServices_VisibleTreesWithoutChildrenDetectionAccept
 	private void givenUserHasReadAccessTo(String... ids) {
 
 		Authorization authorization = new Authorization();
-		authorization.setDetail(AuthorizationDetails.create("zeAuthorization", asList(Role.READ), zeCollection));
+		authorization.setDetail(XMLAuthorizationDetails.create("zeAuthorization", asList(Role.READ), zeCollection));
 		authorization.setGrantedOnRecords(asList(ids));
 		authorization.setGrantedToPrincipals(asList(alice.getId()));
 		getModelLayerFactory().newAuthorizationsServices().add(

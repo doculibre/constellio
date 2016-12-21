@@ -20,7 +20,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -87,7 +87,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 
 	private Authorization toAuthorization(AuthorizationVO authorizationVO) {
 		String code = authorizationVO.getAuthId();
-		AuthorizationDetails details;
+		XMLAuthorizationDetails details;
 		if (StringUtils.isBlank(code)) {
 			code = modelLayerFactory.getDataLayerFactory().getUniqueIdGenerator().next();
 
@@ -98,7 +98,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 				roles.add(roleCode);
 			}
 
-			details = AuthorizationDetails.create(
+			details = XMLAuthorizationDetails.create(
 					code, roles, authorizationVO.getStartDate(), authorizationVO.getEndDate(), view.getCollection());
 		} else {
 			details = modelLayerFactory.getAuthorizationDetailsManager().get(view.getCollection(), code);

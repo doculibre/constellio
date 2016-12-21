@@ -16,7 +16,7 @@ import org.junit.runners.MethodSorters;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
@@ -401,7 +401,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 		List<String> roles = Arrays.asList(Role.READ, Role.WRITE, Role.DELETE);
 
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, null, null, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, null, null, zeCollection);
 		List<String> grantedToPrincipals = Arrays.asList(users.chuckNorrisIn(zeCollection).getId());
 		List<String> grantedOnRecords = Arrays.asList(records.taxo1_fond1().getId());
 
@@ -445,7 +445,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, null, null, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, null, null, zeCollection);
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
@@ -455,7 +455,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 	private Authorization addAuthorizationDetaching(List<String> roles, List<String> grantedToPrincipals,
 			List<String> grantedOnRecords) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
 		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.DETACH, null);
@@ -464,7 +464,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, List<String> grantedOnRecords,
 			LocalDate startDate, LocalDate endDate) {
-		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, startDate, endDate, zeCollection);
+		XMLAuthorizationDetails details = XMLAuthorizationDetails.create(aString(), roles, startDate, endDate, zeCollection);
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 

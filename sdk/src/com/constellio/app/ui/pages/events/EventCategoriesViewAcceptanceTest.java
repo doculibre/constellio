@@ -29,7 +29,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServices;
@@ -519,7 +519,7 @@ public class EventCategoriesViewAcceptanceTest extends ConstellioTest {
 			AdministrativeUnit administrativeUnit) {
 		List<String> roles = Arrays.asList(Role.WRITE);
 		String authorizationDetailId = userToAdd + "." + administrativeUnit;
-		AuthorizationDetails detail = AuthorizationDetails
+		XMLAuthorizationDetails detail = XMLAuthorizationDetails
 				.create(authorizationDetailId, roles, testDate.toLocalDate(), testDate.plusDays(1).toLocalDate(),
 						zeCollection);
 		List<String> grantedToPrincipals = new ArrayList<>();

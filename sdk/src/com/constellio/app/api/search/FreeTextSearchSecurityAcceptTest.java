@@ -20,15 +20,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.ModificationImpactCalculatorAcceptSetup.AnotherSchemaMetadatas;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -480,12 +478,12 @@ public class FreeTextSearchSecurityAcceptTest extends ConstellioTest {
 			throws RecordServicesException, InterruptedException {
 		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
 
-		AuthorizationDetails zeCollectionAuth = AuthorizationDetails
+		XMLAuthorizationDetails zeCollectionAuth = XMLAuthorizationDetails
 				.create("1", asList(Role.READ), zeCollection);
 		authorizationsServices.add(new Authorization(zeCollectionAuth, asList(users.gandalfLeblancIn(zeCollection).getId()),
 				asList(zeCollectionRecord1)), CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
 
-		AuthorizationDetails anotherCollectionAuth = AuthorizationDetails
+		XMLAuthorizationDetails anotherCollectionAuth = XMLAuthorizationDetails
 				.create("2", asList(Role.READ), anotherCollection);
 		authorizationsServices
 				.add(new Authorization(anotherCollectionAuth, asList(users.gandalfLeblancIn(anotherCollection).getId()),

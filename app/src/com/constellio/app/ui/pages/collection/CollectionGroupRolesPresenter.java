@@ -15,7 +15,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationBuilder;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -126,9 +126,9 @@ public class CollectionGroupRolesPresenter extends SingleSchemaBasePresenter<Col
 			}
 		} else {
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			AuthorizationDetails authorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId())
+			XMLAuthorizationDetails xmlAuthorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId())
 					.getDetail();
-			authorizationsServices.delete(authorizationDetails, getCurrentUser());
+			authorizationsServices.delete(xmlAuthorizationDetails, getCurrentUser());
 		}
 		view.refreshTable();
 	}

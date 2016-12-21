@@ -29,7 +29,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -1968,11 +1968,11 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasDeletePermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
+			XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 					.create("zeAuthorization", asList(Role.DELETE), zeCollection);
 			List<String> grantedTo = asList(user.getId());
 			List<String> grantedOn = asList(record.getId());
-			Authorization authorization = new Authorization(authorizationDetails, grantedTo, grantedOn);
+			Authorization authorization = new Authorization(xmlAuthorizationDetails, grantedTo, grantedOn);
 			authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
 			waitForBatchProcess();
 		}
@@ -1980,11 +1980,11 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasReadPermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			AuthorizationDetails authorizationDetails = AuthorizationDetails
+			XMLAuthorizationDetails xmlAuthorizationDetails = XMLAuthorizationDetails
 					.create("zeAuthorization", asList(Role.READ), zeCollection);
 			List<String> grantedTo = asList(user.getId());
 			List<String> grantedOn = asList(record.getId());
-			Authorization authorization = new Authorization(authorizationDetails, grantedTo, grantedOn);
+			Authorization authorization = new Authorization(xmlAuthorizationDetails, grantedTo, grantedOn);
 			authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.KEEP_ATTACHED, null);
 			waitForBatchProcess();
 		}

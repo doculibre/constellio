@@ -29,7 +29,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.CustomizedAuthorizationsBehavior;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -75,7 +75,8 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	@Mock Group rightGroup;
 	@Mock Group rightSubGroup;
 	@Mock Authorization rightAuthorization;
-	@Mock AuthorizationDetails rightAuthorizationDetails;
+	@Mock
+	XMLAuthorizationDetails rightXMLAuthorizationDetails;
 	@Mock Record rightRecord;
 	@Mock Role rightRole;
 	List<String> rightAuthorizationList;
@@ -205,7 +206,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 		auths.add("oldAuth2");
 
 		Authorization auth = mock(Authorization.class, "oldAuth2");
-		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
+		XMLAuthorizationDetails authDetails = mock(XMLAuthorizationDetails.class, "authDetails");
 		when(authDetails.getId()).thenReturn("oldAuth2");
 		when(auth.getDetail()).thenReturn(authDetails);
 
@@ -225,7 +226,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 		inheritedAuths.add("inheritedAuth2");
 
 		Authorization auth = mock(Authorization.class, "inheritedAuth2");
-		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
+		XMLAuthorizationDetails authDetails = mock(XMLAuthorizationDetails.class, "authDetails");
 		when(authDetails.getId()).thenReturn("inheritedAuth2");
 		when(auth.getDetail()).thenReturn(authDetails);
 
@@ -251,7 +252,7 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	@Test
 	public void whenDeletingAuthThenAuthRemovedOnAllRecords()
 			throws Exception {
-		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
+		XMLAuthorizationDetails authDetails = mock(XMLAuthorizationDetails.class, "authDetails");
 		when(authDetails.getId()).thenReturn("theAuth");
 		when(authDetails.getCollection()).thenReturn(zeCollection);
 
@@ -294,10 +295,10 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	@Test
 	public void whenChangingAuthCodeThenCodeChanged()
 			throws Exception {
-		AuthorizationDetails authDetails = mock(AuthorizationDetails.class, "authDetails");
+		XMLAuthorizationDetails authDetails = mock(XMLAuthorizationDetails.class, "authDetails");
 		when(authDetails.getId()).thenReturn("oldAuth");
 		doReturn(records).when(authorizationsServices).getRecordsWithAuth(anyString(), anyString());
-		ArgumentCaptor<AuthorizationDetails> valueCaptor = new ArgumentCaptor<>();
+		ArgumentCaptor<XMLAuthorizationDetails> valueCaptor = new ArgumentCaptor<>();
 
 		authorizationsServices.changeAuthorizationCode(authDetails, "newCode");
 
@@ -314,9 +315,9 @@ public class AuthorizationsServicesUnitTest extends ConstellioTest {
 	public void whenActivatingAllAuthsWithActiveDatesThenAllAuthsRefreshed()
 			throws Exception {
 		List<String> collections = Arrays.asList("zeCollection");
-		AuthorizationDetails auth1 = mock(AuthorizationDetails.class);
-		AuthorizationDetails auth2 = mock(AuthorizationDetails.class);
-		Map<String, AuthorizationDetails> auths = new HashMap<>();
+		XMLAuthorizationDetails auth1 = mock(XMLAuthorizationDetails.class);
+		XMLAuthorizationDetails auth2 = mock(XMLAuthorizationDetails.class);
+		Map<String, XMLAuthorizationDetails> auths = new HashMap<>();
 		auths.put("auth1", auth1);
 		auths.put("auth2", auth2);
 		doReturn(auths).when(manager).getAuthorizationsDetails("zeCollection");

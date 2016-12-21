@@ -29,7 +29,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -106,7 +106,7 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 	private Authorization grantReadForAliceOnFolderA01(String authorizationId) {
 		User alice = users.aliceIn(zeCollection);
 		Folder folderA01 = records.getFolder_A01();
-		return new Authorization(AuthorizationDetails.create(authorizationId, asList(Role.READ), zeCollection),
+		return new Authorization(XMLAuthorizationDetails.create(authorizationId, asList(Role.READ), zeCollection),
 				asList(alice.getId()), asList(folderA01.getId()));
 	}
 

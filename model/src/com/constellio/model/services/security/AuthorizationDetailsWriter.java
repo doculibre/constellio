@@ -6,7 +6,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.AuthorizationDetails;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
 
 public class AuthorizationDetailsWriter {
 
@@ -30,25 +30,25 @@ public class AuthorizationDetailsWriter {
 		document.setRootElement(authorizations);
 	}
 
-	public void add(AuthorizationDetails authorizationDetails) {
+	public void add(XMLAuthorizationDetails xmlAuthorizationDetails) {
 		Element rolesElements = new Element(ROLES);
-		for (String role : authorizationDetails.getRoles()) {
+		for (String role : xmlAuthorizationDetails.getRoles()) {
 			Element roleElement = new Element(ROLE).setText(role);
 			rolesElements.addContent(roleElement);
 		}
-		LocalDate startDate = authorizationDetails.getStartDate();
-		LocalDate endDate = authorizationDetails.getEndDate();
+		LocalDate startDate = xmlAuthorizationDetails.getStartDate();
+		LocalDate endDate = xmlAuthorizationDetails.getEndDate();
 		if (startDate == null) {
 			startDate = new LocalDate(Integer.MIN_VALUE);
 		}
 		if (endDate == null) {
 			endDate = new LocalDate(Integer.MAX_VALUE);
 		}
-		Element collectionElement = new Element(COLLECTION).setText(authorizationDetails.getCollection());
+		Element collectionElement = new Element(COLLECTION).setText(xmlAuthorizationDetails.getCollection());
 		Element startDateElement = new Element(START_DATE).setText(startDate.toString());
 		Element endDateElement = new Element(END_DATE).setText(endDate.toString());
-		Element authorizationElement = new Element(AUTHORIZATION).setAttribute(ID, authorizationDetails.getId());
-		Element syncedElement = new Element(SYNCED).setText(authorizationDetails.isSynced() ? "true" : "false");
+		Element authorizationElement = new Element(AUTHORIZATION).setAttribute(ID, xmlAuthorizationDetails.getId());
+		Element syncedElement = new Element(SYNCED).setText(xmlAuthorizationDetails.isSynced() ? "true" : "false");
 		authorizationElement.addContent(startDateElement);
 		authorizationElement.addContent(endDateElement);
 		authorizationElement.addContent(collectionElement);
