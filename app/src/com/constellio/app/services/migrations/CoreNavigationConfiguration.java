@@ -26,6 +26,8 @@ import com.constellio.model.services.users.UserServices;
 public class CoreNavigationConfiguration implements Serializable {
 	public static final String CONFIG = "config";
 	public static final String CONFIG_ICON = "images/icons/config/configuration.png";
+	public static final String STORAGE_CONFIG = "storage";
+	public static final String STORAGE_CONFIG_ICON = "images/icons/config/storage.png";
 	public static final String LDAP_CONFIG = "ldapConfig";
 	public static final String LDAP_CONFIG_ICON = "images/icons/config/address_book3.png";
 	public static final String GROUPS = "groups";
@@ -102,6 +104,19 @@ public class CoreNavigationConfiguration implements Serializable {
 			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
 				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
 				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_CONFIGURATION));
+			}
+		});
+
+		config.add(AdminView.SYSTEM_SECTION, new NavigationItem.Active(STORAGE_CONFIG, STORAGE_CONFIG_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().storageManagement();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, ModelLayerFactory modelLayerFactory) {
+				CredentialUserPermissionChecker userHas = modelLayerFactory.newUserServices().has(user.getUsername());
+				return visibleIf(userHas.globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_STORAGE));
 			}
 		});
 

@@ -247,6 +247,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.CONFIG_MANAGEMENT);
 	}
 
+	public void storageManagement() {
+		navigator.navigateTo(NavigatorConfigurationService.STORAGE_MANAGEMENT);
+	}
+
 	public void pluginManagement() {
 		navigator.navigateTo(NavigatorConfigurationService.PLUGIN_MANAGEMENT);
 	}
