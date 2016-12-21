@@ -3,9 +3,11 @@ package com.constellio.app.services.migrations.scripts;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.wrappers.type.SolrAuthorizationDetails;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -30,14 +32,48 @@ public class CoreMigrationTo_6_7 implements MigrationScript {
         convertXMLAuthorizationDetailsToSolrAuthorizationDetails(collection, appLayerFactory);
     }
 
-    private void convertXMLAuthorizationDetailsToSolrAuthorizationDetails(String collection, AppLayerFactory appLayerFactory) {
+    private void convertXMLAuthorizationDetailsToSolrAuthorizationDetails(String collection, AppLayerFactory appLayerFactory)
+            throws RecordServicesException {
+
         AuthorizationDetailsManager manager = appLayerFactory.getModelLayerFactory().getAuthorizationDetailsManager();
         Map<String, XMLAuthorizationDetails> xmlAuthorizationDetailsList = manager.getAuthorizationsDetails(collection);
-        Iterator iterator = xmlAuthorizationDetailsList.entrySet().iterator();
+        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+        Iterator iterator = xmlAuthorizationDetailsList.values().iterator();
         while(iterator.hasNext())  {
-            Map.Entry pair = (Map.Entry) iterator.next();
-            System.out.println(pair.getKey() + " = " + pair.getValue());
+            XMLAuthorizationDetails xmlAuthorizationDetails = (XMLAuthorizationDetails) iterator.next();
+            buildSolrAuthorizationDetails(xmlAuthorizationDetails, schemasRecordsServices, appLayerFactory);
+
         }
+    }
+
+    private void buildSolrAuthorizationDetails(XMLAuthorizationDetails xmlAuthorizationDetails,
+                                               SchemasRecordsServices schemasRecordsServices, AppLayerFactory appLayerFactory)
+            throws RecordServicesException {
+
+        SolrAuthorizationDetails solrAuthorizationDetails = schemasRecordsServices.newSolrAuthorizationDetailsWithId(xmlAuthorizationDetails.getId());
+        if(xmlAuthorizationDetails.getStartDate() == null || xmlAuthorizationDetails.getStartDate().getYear() < 2007) {
+            solrAuthorizationDetails.setStartDate(null);
+        }
+        else {
+            solrAuthorizationDetails.setStartDate(xmlAuthorizationDetails.getStartDate());
+        }
+
+        if(xmlAuthorizationDetails.getEndDate() == null || xmlAuthorizationDetails.getEndDate().getYear() < 2007) {
+            solrAuthorizationDetails.setEndDate(null);
+        }
+        else {
+            solrAuthorizationDetails.setEndDate(xmlAuthorizationDetails.getEndDate());
+        }
+
+        if(!xmlAuthorizationDetails.isSynced()) {
+            solrAuthorizationDetails.setSynced(null);
+        }
+        else {
+            solrAuthorizationDetails.setSynced(true);
+        }
+
+        solrAuthorizationDetails.setRoles(xmlAuthorizationDetails.getRoles());
+        appLayerFactory.getModelLayerFactory().newRecordServices().add(solrAuthorizationDetails);
     }
 
     private class CoreSchemaAlterationFor6_7 extends MetadataSchemasAlterationHelper {

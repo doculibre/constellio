@@ -1,7 +1,6 @@
-package com.constellio.app.modules.rm.wrappers.type;
+package com.constellio.model.entities.records.wrappers;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.joda.time.LocalDate;
@@ -44,9 +43,19 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
         return get(ROLES);
     }
 
+    public SolrAuthorizationDetails setRoles(List<String> roles) {
+        set(ROLES, roles);
+        return this;
+    }
+
     @Override
     public LocalDate getStartDate() {
         return get(START_DATE);
+    }
+
+    public SolrAuthorizationDetails setStartDate(LocalDate startDate) {
+        set(START_DATE, startDate);
+        return this;
     }
 
     @Override
@@ -54,8 +63,18 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
         return get(END_DATE);
     }
 
+    public SolrAuthorizationDetails setEndDate(LocalDate endDate) {
+        set(END_DATE, endDate);
+        return this;
+    }
+
     @Override
     public boolean isSynced() {
         return Boolean.TRUE.equals(get(SYNCED));
+    }
+
+    public SolrAuthorizationDetails setSynced(Boolean isSynced) {
+        set(SYNCED, isSynced);
+        return this;
     }
 }
