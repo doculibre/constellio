@@ -9,6 +9,7 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER2_2_DOC1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER3;
@@ -21,6 +22,8 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_CATEGORY2_1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1;
+import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -36,6 +39,7 @@ import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -69,6 +73,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.SecurityAcceptanceTestSetup.Records;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
@@ -89,7 +95,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	RecordServices recordServices;
 	TaxonomiesManager taxonomiesManager;
 	CollectionsListManager collectionsListManager;
-	AuthorizationsServices authorizationsServices;
+	AuthorizationsServices services;
 	UserServices userServices;
 	SchemasRecordsServices schemas;
 
@@ -105,6 +111,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	String PERMISSION_OF_NO_ROLE = "permissionOfNoRole";
 	String PERMISSION_OF_ROLE1 = "permissionOfRole1";
 	String PERMISSION_OF_ROLE2 = "permissionOfRole2";
+	String PERMISSION_OF_ROLE3 = "permissionOfRole3";
 	String PERMISSION_OF_ROLE1_AND_ROLE2 = "permissionOfRole1AndRole2";
 
 	final String VERSION_HISTORY_READ = "VERSION_HISTORY_READ";
@@ -142,7 +149,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 						new Role(zeCollection, ROLE1, "Ze role 1", asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE1_AND_ROLE2)));
 				rolesManager.addRole(
 						new Role(zeCollection, ROLE2, "Ze role 2", asList(PERMISSION_OF_ROLE2, PERMISSION_OF_ROLE1_AND_ROLE2)));
-				rolesManager.addRole(new Role(zeCollection, ROLE3, "Ze role 3", new ArrayList<String>()));
+				rolesManager.addRole(new Role(zeCollection, ROLE3, "Ze role 3", asList(PERMISSION_OF_ROLE3)));
 
 				try {
 					givenChuckNorrisSeesEverything();
@@ -156,7 +163,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				recordServices = getModelLayerFactory().newRecordServices();
 				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
 				searchServices = getModelLayerFactory().newSearchServices();
-				authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+				services = getModelLayerFactory().newAuthorizationsServices();
 				schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 				roleManager = getModelLayerFactory().getRolesManager();
 				collectionsListManager = getModelLayerFactory().getCollectionsListManager();
@@ -216,6 +223,27 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		taxonomiesManager.setPrincipalTaxonomy(taxonomy, schemasManager);
 		records = setup.givenRecords(recordServices);
 		otherCollectionRecords = anothercollectionSetup.givenRecords(recordServices);
+	}
+
+	static int totalBatchProcessCount = 0;
+
+	@After
+	public void checkIfNoBatchProcessRequired() {
+		List<String> finishedBatchProcesses = new ArrayList<>();
+		for (BatchProcess batchProcess : getModelLayerFactory().getBatchProcessesManager().getFinishedBatchProcesses()) {
+			finishedBatchProcesses.add(batchProcess.getId());
+		}
+
+		int batchProcessCount = finishedBatchProcesses.size() - initialFinishedBatchProcesses.size();
+		totalBatchProcessCount += batchProcessCount;
+	}
+
+	@AfterClass
+	public static void tearDown()
+			throws Exception {
+
+		System.out.println("Total batch process count : " + totalBatchProcessCount);
+
 	}
 
 	@After
@@ -301,12 +329,19 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public ListAssert<Object> usersWithRole(String role) {
-			return assertThat(authorizationsServices.getUsersWithRoleForRecord(role, get(recordId)))
+			return assertThat(services.getUsersWithRoleForRecord(role, get(recordId)))
 					.describedAs("users with role '" + role + "' on record '" + recordId + "'").extracting("username");
 		}
 
 		public ListAssert<Object> assertThatUsersWithPermission(String permission) {
-			return assertThat(authorizationsServices.getUsersWithPermissionOnRecord(permission, get(recordId)))
+			return assertThat(services.getUsersWithPermissionOnRecord(permission, get(recordId)))
+					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")
+					.extracting("username");
+		}
+
+		public ListAssert<Object> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission) {
+			return assertThat(
+					services.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(permission, get(recordId)))
 					.describedAs("users with permission '" + permission + "' on record '" + recordId + "'")
 					.extracting("username");
 		}
@@ -582,7 +617,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
 		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
 				.getAuthorizationsDetails(zeCollection).values()) {
-			Authorization authorization = authorizationsServices.getAuthorization(zeCollection, details.getId());
+			Authorization authorization = services.getAuthorization(zeCollection, details.getId());
 
 			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
 					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getDetail().getId()));
@@ -620,7 +655,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		public AuthorizationVerifier hasPrincipals(String... principals) {
 			List<String> expectedPrincipals = toPrincipalIds(principals);
-			com.constellio.model.entities.security.Authorization authorization = authorizationsServices
+			com.constellio.model.entities.security.Authorization authorization = services
 					.getAuthorization(zeCollection, authId);
 			assertThat(authorization.getGrantedToPrincipals()).describedAs("principals")
 					.containsOnly(expectedPrincipals.toArray(new String[0]));
@@ -697,7 +732,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private AuthorizationModificationResponse modify(AuthorizationModificationRequest request) {
-		return authorizationsServices.execute(request);
+		return services.execute(request);
 	}
 
 	private Condition<? super AuthorizationModificationResponse> deleted() {
@@ -885,7 +920,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	public void givenPrincipalsAreModifiedOnRecordOfAuthorizationKeepingAttachedThenDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
 
 		assertThat(modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin)))
@@ -894,24 +929,55 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				.is(creatingACopy()).isNot(deleted());
 
 		assertThatAllAuthorizations().containsOnly(
-				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob).removedOnRecords(TAXO1_CATEGORY2_1),
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(bob).removedOnRecords(TAXO1_CATEGORY2_1),
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(heroes).removedOnRecords(TAXO1_CATEGORY2_1),
-				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(robin),
+				authOnRecord(TAXO1_CATEGORY2_1).givingReadWrite().forPrincipals(robin),
 				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(legends, bob)
 		);
 
-		//TODO Bug! Robin should have ROLE3
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, chuck);
+			verifyRecord.usersWithWriteAccess().containsOnly(bob, chuck);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, robin);
-			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, robin, chuck);
+			verifyRecord.usersWithWriteAccess().containsOnly(robin, chuck);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
+	}
+
+	@Test
+	public void whenModifyingAnInvalidAuthorizationOnRecordThenException()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
+		auth1 = addKeepingAttached(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingReadAccess());
+		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
+
+		request1 = modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
+
+		try {
+			modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
+			fail("Exception expected");
+		} catch (NoSuchAuthorizationWithIdOnRecord e) {
+			//OK
+		}
+
+		try {
+			modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
+			fail("Exception expected");
+		} catch (NoSuchAuthorizationWithIdOnRecord e) {
+			//OK
+		}
+
+		try {
+			modify(authorizationOnRecord("invalidAuth", TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
+			fail("Exception expected");
+		} catch (NoSuchAuthorizationWithId e) {
+			//OK
+		}
 	}
 
 	@Test
@@ -922,10 +988,20 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		auth2 = addKeepingAttached(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadAccess());
 
 		request1 = modify(authorizationOnRecord(auth1, TAXO1_CATEGORY2_1).withNewPrincipalIds(robin).detaching());
+		String auth1CopyInCategory2_1 = request1.getIdOfAuthorizationCopy(auth1);
+		String auth2CopyInCategory2_1 = request1.getIdOfAuthorizationCopy(auth2);
 		assertThat(request1).is(creatingACopy()).isNot(deleted());
 
-		request2 = modify(authorizationOnRecord(auth2, TAXO1_CATEGORY2_1).withNewPrincipalIds(legends, bob).detaching());
-		assertThat(request2).is(creatingACopy()).isNot(deleted());
+		assertThatAllAuthorizations().containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
+				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(heroes),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(robin),
+				authOnRecord(TAXO1_CATEGORY2_1).givingRead().forPrincipals(heroes)
+		);
+
+		request2 = modify(authorizationOnRecord(auth2CopyInCategory2_1, TAXO1_CATEGORY2_1)
+				.withNewPrincipalIds(legends, bob).detaching());
+		assertThat(request2).isNot(creatingACopy()).isNot(deleted());
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingRead().forPrincipals(bob),
@@ -936,18 +1012,17 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		assertThatAuth(auth1).hasPrincipals(bob);
 		assertThatAuth(auth2).hasPrincipals(heroes);
-		assertThatAuth(request1.getIdOfAuthorizationCopy()).hasPrincipals(robin);
-		assertThatAuth(request2.getIdOfAuthorizationCopy()).hasPrincipals(legends, bob);
+		assertThatAuth(auth1CopyInCategory2_1).hasPrincipals(robin);
+		assertThatAuth(auth2CopyInCategory2_1).hasPrincipals(legends, bob);
 
-		//TODO Bug! Robin should have ROLE3
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4, FOLDER4_1_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, alice);
+			verifyRecord.usersWithReadAccess().containsOnly(charles, dakota, gandalf, robin, bob, chuck);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)) {
-			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, robin);
-			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob);
+			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, gandalf, edouard, alice, bob, chuck, robin);
+			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 			if (verifyRecord.recordId.equals(TAXO1_CATEGORY2_1)) {
 				verifyRecord.detachedAuthorizationFlag().isTrue();
 			} else {
@@ -1106,7 +1181,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(users.bobIn(zeCollection))
 				.has(authorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
 
-		authorizationsServices.delete(authorization.getDetail(), User.GOD);
+		services.delete(authorization.getDetail(), User.GOD);
 		waitForBatchProcess();
 		assertThat(users.bobIn(zeCollection))
 				.has(noAuthorizationsToRead(records.taxo1_category1(), records.folder1(), records.folder2()));
@@ -1120,9 +1195,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		User bob = users.bobIn(zeCollection);
 		recordServices.update(bob.setCollectionReadAccess(true).getWrappedRecord());
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isFalse();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isFalse();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canWrite(bob, records.folder1())).isFalse();
+		assertThat(services.canDelete(bob, records.folder1())).isFalse();
 	}
 
 	@Test
@@ -1132,9 +1207,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		User bob = users.bobIn(zeCollection);
 		recordServices.update(bob.setCollectionWriteAccess(true).getWrappedRecord());
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isFalse();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canWrite(bob, records.folder1())).isTrue();
+		assertThat(services.canDelete(bob, records.folder1())).isFalse();
 	}
 
 	@Test
@@ -1144,9 +1219,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		User bob = users.bobIn(zeCollection);
 		recordServices.update(bob.setCollectionDeleteAccess(true).getWrappedRecord());
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isFalse();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isTrue();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canWrite(bob, records.folder1())).isFalse();
+		assertThat(services.canDelete(bob, records.folder1())).isTrue();
 	}
 
 	@Test
@@ -1156,9 +1231,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		User bob = users.bobIn(zeCollection);
 		recordServices.update(bob.setCollectionWriteAccess(true).setCollectionDeleteAccess(true).getWrappedRecord());
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canWrite(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canDelete(bob, records.folder1())).isTrue();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canWrite(bob, records.folder1())).isTrue();
+		assertThat(services.canDelete(bob, records.folder1())).isTrue();
 	}
 
 	@Test
@@ -1400,10 +1475,10 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo1_category2().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), asList(records.folder4().getId()));
 		waitForBatchProcess();
-		authorizationsServices.removeAuthorizationOnRecord(authorizationHeroes, records.folder4(),
+		services.removeAuthorizationOnRecord(authorizationHeroes, records.folder4(),
 				KEEP_ATTACHED);
 		waitForBatchProcess();
-		authorizationsServices.reset(records.folder4());
+		services.reset(records.folder4());
 		waitForBatchProcess();
 
 		List<String> foundHeroesRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
@@ -1430,10 +1505,10 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), asList(records.folder4().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorizationHeroes, records.folder4(),
+		services.removeAuthorizationOnRecord(authorizationHeroes, records.folder4(),
 				CustomizedAuthorizationsBehavior.DETACH);
 		waitForBatchProcess();
-		authorizationsServices.reset(records.folder4());
+		services.reset(records.folder4());
 		waitForBatchProcess();
 
 		List<String> foundHeroesRecords = findAllFoldersAndDocuments(users.charlesIn(zeCollection));
@@ -1480,9 +1555,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.legendsIn(zeCollection).getId()), asList(records.folder4().getId()));
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), asList(records.folder4_1().getId()));
-		authorizationsServices.removeAuthorizationOnRecord(authorizationHeroes, records.folder4_1(),
+		services.removeAuthorizationOnRecord(authorizationHeroes, records.folder4_1(),
 				KEEP_ATTACHED);
-		authorizationsServices.reset(records.folder4());
+		services.reset(records.folder4());
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.folder4().getId()));
 		waitForBatchProcess();
 
@@ -1502,9 +1577,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addAuthorizationWithoutDetaching(roles, asList(users.bobIn(zeCollection).getId()), asList(records.folder4_1().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorizationHeroes, records.folder4_1(),
+		services.removeAuthorizationOnRecord(authorizationHeroes, records.folder4_1(),
 				CustomizedAuthorizationsBehavior.DETACH);
-		authorizationsServices.reset(records.folder4());
+		services.reset(records.folder4());
 		addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()), asList(records.folder4().getId()));
 		waitForBatchProcess();
 
@@ -1537,7 +1612,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.folder4().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(writeAuthorizationHeroesAndLegends, records.folder4_1(),
+		services.removeAuthorizationOnRecord(writeAuthorizationHeroesAndLegends, records.folder4_1(),
 				CustomizedAuthorizationsBehavior.DETACH);
 		waitForBatchProcess();
 
@@ -1571,7 +1646,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.folder4().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorizationBob, records.folder4_2(),
+		services.removeAuthorizationOnRecord(authorizationBob, records.folder4_2(),
 				KEEP_ATTACHED);
 		addAuthorizationWithoutDetaching(roles, asList(users.charlesIn(zeCollection).getId()),
 				asList(records.folder4_2().getId()));
@@ -1602,12 +1677,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.folder4().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorizationBob, records.folder4_2(),
+		services.removeAuthorizationOnRecord(authorizationBob, records.folder4_2(),
 				KEEP_ATTACHED);
 		addAuthorizationDetaching(roles, asList(users.charlesIn(zeCollection).getId()), asList(records.folder4_2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorizationAlice, records.folder4_2(),
+		services.removeAuthorizationOnRecord(authorizationAlice, records.folder4_2(),
 				KEEP_ATTACHED);
 		addAuthorizationWithoutDetaching(roles, asList(users.dakotaIn(zeCollection).getId()),
 				asList(records.folder4_2().getId()));
@@ -1673,34 +1748,34 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		addAuthorizationWithoutDetaching(readRoles, asList(dakota), asList(taxo1_category1));
 		waitForBatchProcess();
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(folder2))).hasSize(2)
+		assertThat(services.getRecordAuthorizations(get(folder2))).hasSize(2)
 				.has(authorizationGrantingRolesOnTo(writeRoles, asList(folder2, folder4), asList(heroes, dakota)))
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(taxo1_category1), asList(dakota)));
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(folder4))).hasSize(2)
+		assertThat(services.getRecordAuthorizations(get(folder4))).hasSize(2)
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(folder4), asList(legends)))
 				.has(authorizationGrantingRolesOnTo(writeRoles, asList(folder2, folder4), asList(heroes, dakota)));
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(taxo1_category1))).hasSize(1)
+		assertThat(services.getRecordAuthorizations(get(taxo1_category1))).hasSize(1)
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(taxo1_category1), asList(dakota)));
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(legends))).hasSize(1)
+		assertThat(services.getRecordAuthorizations(get(legends))).hasSize(1)
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(folder4), asList(legends)));
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(heroes))).hasSize(1)
+		assertThat(services.getRecordAuthorizations(get(heroes))).hasSize(1)
 				.has(authorizationGrantingRolesOnTo(writeRoles, asList(folder2, folder4), asList(heroes, dakota)));
 
-		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(get(dakota));
+		List<Authorization> authorizations = services.getRecordAuthorizations(get(dakota));
 		System.out.println(authorizations);
-		assertThat(authorizationsServices.getRecordAuthorizations(get(dakota))).hasSize(2)
+		assertThat(services.getRecordAuthorizations(get(dakota))).hasSize(2)
 				.has(authorizationGrantingRolesOnTo(writeRoles, asList(folder2, folder4), asList(heroes, dakota)))
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(taxo1_category1), asList(dakota)));
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(gandalf))).hasSize(2)
+		assertThat(services.getRecordAuthorizations(get(gandalf))).hasSize(2)
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(folder4), asList(legends)))
 				.has(authorizationGrantingRolesOnTo(writeRoles, asList(folder2, folder4), asList(heroes, dakota)));
 
-		assertThat(authorizationsServices.getRecordAuthorizations(get(edouard))).hasSize(1)
+		assertThat(services.getRecordAuthorizations(get(edouard))).hasSize(1)
 				.has(authorizationGrantingRolesOnTo(readRoles, asList(folder4), asList(legends)));
 	}
 
@@ -1830,9 +1905,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		for (Authorization recordAuth : authorizationsServices.getRecordAuthorizations(records.folder2())) {
+		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder2())) {
 			if (recordAuth.getGrantedToPrincipals().contains(users.bobIn(zeCollection).getId())) {
-				authorizationsServices.removeAuthorizationOnRecord(recordAuth, records.folder2(),
+				services.removeAuthorizationOnRecord(recordAuth, records.folder2(),
 						CustomizedAuthorizationsBehavior.DETACH);
 			}
 		}
@@ -1851,9 +1926,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo2_station2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		for (Authorization recordAuth : authorizationsServices.getRecordAuthorizations(records.folder2())) {
+		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder2())) {
 			if (recordAuth.getGrantedToPrincipals().contains(users.bobIn(zeCollection).getId())) {
-				authorizationsServices.removeAuthorizationOnRecord(recordAuth, records.folder2(),
+				services.removeAuthorizationOnRecord(recordAuth, records.folder2(),
 						CustomizedAuthorizationsBehavior.DETACH);
 			}
 		}
@@ -1899,7 +1974,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(foundRecords).isEmpty();
 
 		givenTimeIs(new LocalDate(2032, 12, 22));
-		authorizationsServices.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 		foundRecords = findAllFoldersAndDocuments(users.aliceIn(zeCollection));
@@ -1924,13 +1999,13 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		givenTimeIs(new LocalDate(2013, 10, 23));
 		//givenTimeIs(new LocalDate(2013, 10, 22));
 		//TODO Authorization should become effective the first day!
-		authorizationsServices.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
 		assertThat(findAllFoldersAndDocuments(users.aliceIn(zeCollection))).isNotEmpty();
 		assertThat(findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection))).isNotEmpty();
 
 		givenTimeIs(new LocalDate(2017, 10, 23));
-		authorizationsServices.refreshActivationForAllAuths(collectionsListManager.getCollections());
+		services.refreshActivationForAllAuths(collectionsListManager.getCollections());
 		waitForBatchProcess();
 		assertThat(findAllFoldersAndDocuments(users.aliceIn(zeCollection))).isEmpty();
 		assertThat(findAllFoldersAndDocuments(users.edouardLechatIn(zeCollection))).isEmpty();
@@ -2039,9 +2114,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo1_category2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		for (Authorization recordAuth : authorizationsServices.getRecordAuthorizations(records.folder4())) {
+		for (Authorization recordAuth : services.getRecordAuthorizations(records.folder4())) {
 			if (recordAuth.getGrantedToPrincipals().contains(users.heroesIn(zeCollection).getId())) {
-				authorizationsServices.removeAuthorizationOnRecord(recordAuth, records.folder4(),
+				services.removeAuthorizationOnRecord(recordAuth, records.folder4(),
 						CustomizedAuthorizationsBehavior.DETACH);
 			}
 		}
@@ -2069,7 +2144,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isTrue();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
 	}
 
 	private Role getRoleWithPermissions(String operation) {
@@ -2089,7 +2164,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isFalse();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 	}
 
 	@Test
@@ -2102,7 +2177,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isFalse();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 	}
 
 	@Test
@@ -2118,7 +2193,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isTrue();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
 	}
 
 	@Test
@@ -2135,9 +2210,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord(), records.taxo1_category1(), records.folder1(), records.folder2()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isTrue();
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canRead(bob, records.folder2())).isTrue();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canRead(bob, records.folder2())).isTrue();
 	}
 
 	@Test
@@ -2158,9 +2233,9 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord(), records.taxo1_category1(),
 				records.folder1(), records.folder2()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isTrue();
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canRead(bob, records.folder2())).isTrue();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canRead(bob, records.folder2())).isTrue();
 
 	}
 
@@ -2177,10 +2252,10 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord(), records.taxo1_category1(), records.folder1(), records.folder2()));
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canRead(bob, records.folder2())).isTrue();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canRead(bob, records.folder2())).isTrue();
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isTrue();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isTrue();
 	}
 
 	@Test
@@ -2201,8 +2276,8 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord(), records.taxo1_category1(),
 				records.folder1(), records.folder2()));
 
-		assertThat(authorizationsServices.canRead(bob, records.folder1())).isTrue();
-		assertThat(authorizationsServices.canRead(bob, records.folder2())).isTrue();
+		assertThat(services.canRead(bob, records.folder1())).isTrue();
+		assertThat(services.canRead(bob, records.folder2())).isTrue();
 
 	}
 
@@ -2218,7 +2293,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isFalse();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 	}
 
 	@Test
@@ -2237,7 +2312,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		this.saveRefreshRecord(asList(bob.getWrappedRecord(), group.getWrappedRecord()));
 
-		assertThat(authorizationsServices.canRead(bob, records.taxo1_category1())).isFalse();
+		assertThat(services.canRead(bob, records.taxo1_category1())).isFalse();
 	}
 
 	@Test
@@ -2250,7 +2325,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
 				records.folder4());
 
 		assertThat(hasDeletePermissionOnHierarchy).isTrue();
@@ -2266,7 +2341,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
 				records.folder4());
 
 		assertThat(hasDeletePermissionOnHierarchy).isFalse();
@@ -2281,12 +2356,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo1_category2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorization, records.folder4_2(),
+		services.removeAuthorizationOnRecord(authorization, records.folder4_2(),
 				KEEP_ATTACHED);
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnHierarchy(users.bobIn(zeCollection),
 				records.folder4());
 
 		assertThat(hasDeletePermissionOnHierarchy).isFalse();
@@ -2305,7 +2380,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(records.folder4(), users.bobIn(zeCollection));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		boolean hasRestaurationPermissionOnHierarchy = authorizationsServices.hasRestaurationPermissionOnHierarchy(
+		boolean hasRestaurationPermissionOnHierarchy = services.hasRestaurationPermissionOnHierarchy(
 				users.bobIn(zeCollection), records.folder4());
 
 		assertThat(hasRestaurationPermissionOnHierarchy).isTrue();
@@ -2324,7 +2399,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasRestaurationPermissionOnHierarchy(
+		boolean hasDeletePermissionOnHierarchy = services.hasRestaurationPermissionOnHierarchy(
 				users.aliceIn(zeCollection), records.folder4());
 
 		assertThat(hasDeletePermissionOnHierarchy).isFalse();
@@ -2343,12 +2418,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(records.folder4(), users.bobIn(zeCollection));
 
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorization, records.folder4_2(),
+		services.removeAuthorizationOnRecord(authorization, records.folder4_2(),
 				KEEP_ATTACHED);
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices
+		boolean hasDeletePermissionOnHierarchy = services
 				.hasRestaurationPermissionOnHierarchy(users.bobIn(zeCollection),
 						records.folder4());
 
@@ -2366,7 +2441,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
 				users.bobIn(zeCollection), records.taxo1_category2(), true, schemasManager);
 
 		assertThat(hasDeletePermissionOnHierarchy).isTrue();
@@ -2382,7 +2457,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(users.bobIn(zeCollection), records.folder2(), true,
+		services.hasDeletePermissionOnPrincipalConceptHierarchy(users.bobIn(zeCollection), records.folder2(), true,
 				schemasManager);
 	}
 
@@ -2396,7 +2471,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(users.bobIn(zeCollection), records.folder1(), true,
+		services.hasDeletePermissionOnPrincipalConceptHierarchy(users.bobIn(zeCollection), records.folder1(), true,
 				schemasManager);
 	}
 
@@ -2410,12 +2485,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo1_category2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorization, records.folder3(),
+		services.removeAuthorizationOnRecord(authorization, records.folder3(),
 				KEEP_ATTACHED);
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
 				users.bobIn(zeCollection), records.taxo1_category2(), true, schemasManager);
 
 		assertThat(hasDeletePermissionOnHierarchy).isFalse();
@@ -2432,7 +2507,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
 				users.bobIn(zeCollection), records.taxo1_category2(), false, schemasManager);
 
 		assertThat(hasDeletePermissionOnHierarchy).isTrue();
@@ -2448,12 +2523,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				asList(records.taxo1_category2().getId()));
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
-		authorizationsServices.removeAuthorizationOnRecord(authorization, records.folder4(),
+		services.removeAuthorizationOnRecord(authorization, records.folder4(),
 				KEEP_ATTACHED);
 		waitForBatchProcess();
 		recordServices.refresh(records.allRecords());
 
-		boolean hasDeletePermissionOnHierarchy = authorizationsServices.hasDeletePermissionOnPrincipalConceptHierarchy(
+		boolean hasDeletePermissionOnHierarchy = services.hasDeletePermissionOnPrincipalConceptHierarchy(
 				users.bobIn(zeCollection), records.taxo1_category2(), false, schemasManager);
 
 		assertThat(hasDeletePermissionOnHierarchy).isTrue();
@@ -2470,7 +2545,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 		String authId = authorization.getDetail().getId();
 
-		Authorization retrievedAuthorization = authorizationsServices
+		Authorization retrievedAuthorization = services
 				.getAuthorization(authorization.getDetail().getCollection(),
 						authId);
 
@@ -2501,20 +2576,15 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		String sasquatchId = users.sasquatchIn(zeCollection).getId();
-		Role role1 = new Role(zeCollection, "role1", "First role", asList("operation1", "operation2"));
-		Role role2 = new Role(zeCollection, "role2", "Second role", asList("operation2", "operation3"));
-		Role role3 = new Role(zeCollection, "role3", "Third role", asList("operation3", "operation4"));
-
-		roleManager.addRole(role1);
-		roleManager.addRole(role2);
-		roleManager.addRole(role3);
 
 		getModelLayerFactory().newRecordServices().update(
-				users.dakotaIn(zeCollection).setUserRoles(asList("role3")));
+				users.dakotaIn(zeCollection).setUserRoles(asList(ROLE3)));
 
-		addAuthorizationWithoutDetaching(asList("role1"), asList(sasquatchId),
+		addAuthorizationWithoutDetaching(asList(ROLE1), asList(sasquatchId),
+				asList(records.taxo1_category1().getId()));
+		addAuthorizationWithoutDetaching(asList(ROLE1), asList(sasquatchId),
 				asList(records.taxo1_category2().getId()));
-		addAuthorizationWithoutDetaching(asList("role2"), asList(sasquatchId),
+		addAuthorizationWithoutDetaching(asList(ROLE2), asList(sasquatchId),
 				asList(records.taxo1_fond1_1().getId()));
 		waitForBatchProcess();
 
@@ -2522,270 +2592,143 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		User sasquatchInZeCollection = users.sasquatchIn(zeCollection);
 		User sasquatchInAnotherCollection = users.sasquatchIn(anotherCollection);
 
-		String[] allConcepts =
-				new String[] { records.taxo1_fond1().getId(), records.taxo1_fond1_1().getId(), records.taxo1_category1().getId(),
-						records.taxo1_category1().getId(), records.taxo1_category2().getId(),
-						records.taxo1_category2_1().getId() };
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_NO_ROLE, dakotaInZeCollection)).isEmpty();
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1, dakotaInZeCollection)).isEmpty();
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1_AND_ROLE2, dakotaInZeCollection)).isEmpty();
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE2, dakotaInZeCollection)).isEmpty();
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE3, dakotaInZeCollection))
+				.containsOnly(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1);
 
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation0", dakotaInZeCollection))
-				.isEmpty();
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_NO_ROLE, sasquatchInZeCollection)).isEmpty();
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1, sasquatchInZeCollection))
+				.containsOnly(TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1);
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE1_AND_ROLE2, sasquatchInZeCollection))
+				.containsOnly(TAXO1_CATEGORY1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, TAXO1_FOND1_1);
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE2, sasquatchInZeCollection))
+				.containsOnly(TAXO1_FOND1_1, TAXO1_CATEGORY1);
+		assertThat(services.getConceptsForWhichUserHasPermission(PERMISSION_OF_ROLE3, sasquatchInZeCollection)).isEmpty();
 
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation1", dakotaInZeCollection))
-				.isEmpty();
+		for (String permission : asList(PERMISSION_OF_ROLE1, PERMISSION_OF_ROLE1_AND_ROLE2, PERMISSION_OF_ROLE2,
+				PERMISSION_OF_ROLE3)) {
+			assertThat(services.getConceptsForWhichUserHasPermission(permission, sasquatchInAnotherCollection)).isEmpty();
+		}
 
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation2", dakotaInZeCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation3", dakotaInZeCollection))
-				.containsOnly(allConcepts);
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation4", dakotaInZeCollection))
-				.containsOnly(allConcepts);
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation0", sasquatchInZeCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation1", sasquatchInZeCollection))
-				.containsOnly(records.taxo1_category2().getId(), records.taxo1_category2_1().getId());
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation2", sasquatchInZeCollection))
-				.containsOnly(records.taxo1_fond1_1().getId(), records.taxo1_category1().getId(),
-						records.taxo1_category2().getId(), records.taxo1_category2_1().getId());
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation3", sasquatchInZeCollection))
-				.containsOnly(records.taxo1_fond1_1().getId(), records.taxo1_category1().getId());
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation4", sasquatchInZeCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation0", sasquatchInAnotherCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation1", sasquatchInAnotherCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation2", sasquatchInAnotherCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation3", sasquatchInAnotherCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getConceptsForWhichUserHasPermission("operation4", sasquatchInAnotherCollection))
-				.isEmpty();
 	}
 
 	@Test
 	public void whenGetUsersWithGlobalPermissionThenReturnTheGoodUsers()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		String sasquatchId = users.sasquatchIn(zeCollection).getId();
-		String robinId = users.robinIn(zeCollection).getId();
-		String aliceId = users.aliceIn(zeCollection).getId();
-		Role role1 = new Role(zeCollection, "role1", "First role", asList("operation1", "operation2"));
-		Role role2 = new Role(zeCollection, "role2", "Second role", asList("operation2", "operation3"));
-		Role role3 = new Role(zeCollection, "role3", "Third role", asList("operation3", "operation4"));
-
-		roleManager.addRole(role1);
-		roleManager.addRole(role2);
-		roleManager.addRole(role3);
 
 		getModelLayerFactory().newRecordServices().update(
-				users.sasquatchIn(zeCollection).setUserRoles(asList("role1")));
+				users.sasquatchIn(zeCollection).setUserRoles(asList(ROLE1)));
 
 		getModelLayerFactory().newRecordServices().update(
-				users.robinIn(zeCollection).setUserRoles(asList("role2")));
+				users.robinIn(zeCollection).setUserRoles(asList(ROLE2)));
 
-		addAuthorizationWithoutDetaching(asList("role3"), asList(robinId),
+		addAuthorizationWithoutDetaching(asList(ROLE3),
+				asList(users.robinIn(zeCollection).getId()),
 				asList(records.taxo1_fond1().getId()));
 		waitForBatchProcess();
 
-		User alice = users.aliceIn(zeCollection);
-		User sasquatch = users.sasquatchIn(zeCollection);
-		User sasquatchInAnotherCollection = users.sasquatchIn(anotherCollection);
-		User robin = users.robinIn(zeCollection);
-		User robinInAnotherCollection = users.robinIn(anotherCollection);
-
-		assertThat(authorizationsServices.getUsersWithGlobalPermissionInCollection("operation0", zeCollection))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithGlobalPermissionInCollection("operation1", zeCollection))
-				.containsOnly(sasquatch);
-
-		assertThat(authorizationsServices.getUsersWithGlobalPermissionInCollection("operation2", zeCollection))
-				.containsOnly(sasquatch, robin);
-
-		assertThat(authorizationsServices.getUsersWithGlobalPermissionInCollection("operation3", zeCollection))
-				.containsOnly(robin);
-
-		assertThat(authorizationsServices.getUsersWithGlobalPermissionInCollection("operation4", zeCollection))
-				.isEmpty();
-	}
-
-	@Test
-	public void whenGetUsersWithPermissionOnConceptExcludingInheritedAuthorizationsThenReturnTheGoodUsers()
-			throws Exception {
-		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		String sasquatchId = users.sasquatchIn(zeCollection).getId();
-		String robinId = users.robinIn(zeCollection).getId();
-		String aliceId = users.aliceIn(zeCollection).getId();
-		Role role1 = new Role(zeCollection, "role1", "First role", asList("operation1", "operation2"));
-		Role role2 = new Role(zeCollection, "role2", "Second role", asList("operation2", "operation3"));
-		Role role3 = new Role(zeCollection, "role3", "Third role", asList("operation3", "operation4"));
-
-		roleManager.addRole(role1);
-		roleManager.addRole(role2);
-		roleManager.addRole(role3);
-
-		getModelLayerFactory().newRecordServices().update(
-				users.aliceIn(zeCollection).setUserRoles(asList("role3")));
-
-		addAuthorizationWithoutDetaching(asList("role1"), asList(sasquatchId),
-				asList(records.taxo1_category2().getId()));
-		addAuthorizationWithoutDetaching(asList("role2"), asList(robinId),
-				asList(records.taxo1_fond1().getId()));
-		waitForBatchProcess();
-
-		User alice = users.aliceIn(zeCollection);
-		User sasquatch = users.sasquatchIn(zeCollection);
-		User sasquatchInAnotherCollection = users.sasquatchIn(anotherCollection);
-		User robin = users.robinIn(zeCollection);
-		User robinInAnotherCollection = users.robinIn(anotherCollection);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation0",
-				records.taxo1_fond1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation1",
-				records.taxo1_fond1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation2",
-				records.taxo1_fond1()))
-				.containsOnly(robin);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation3",
-				records.taxo1_fond1()))
-				.containsOnly(robin);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation4",
-				records.taxo1_fond1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation0",
-				records.taxo1_fond1_1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation1",
-				records.taxo1_fond1_1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation2",
-				records.taxo1_fond1_1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation3",
-				records.taxo1_fond1_1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation4",
-				records.taxo1_fond1_1()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation0",
-				records.taxo1_category2()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation1",
-				records.taxo1_category2()))
-				.containsOnly(sasquatch);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation2",
-				records.taxo1_category2()))
-				.containsOnly(sasquatch);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation3",
-				records.taxo1_category2()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations("operation4",
-				records.taxo1_category2()))
-				.isEmpty();
+		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_NO_ROLE, zeCollection))
+				.extracting("username").isEmpty();
+		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE1, zeCollection))
+				.extracting("username").containsOnly(sasquatch);
+		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE1_AND_ROLE2, zeCollection))
+				.extracting("username").containsOnly(sasquatch, robin);
+		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE2, zeCollection))
+				.extracting("username").containsOnly(robin);
+		assertThat(services.getUsersWithGlobalPermissionInCollection(PERMISSION_OF_ROLE3, zeCollection))
+				.extracting("username").isEmpty();
 	}
 
 	@Test
 	public void whenGetUsersWithPermissionOnConceptThenReturnTheGoodUsers()
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		String sasquatchId = users.sasquatchIn(zeCollection).getId();
-		String robinId = users.robinIn(zeCollection).getId();
-		String aliceId = users.aliceIn(zeCollection).getId();
-		Role role1 = new Role(zeCollection, "role1", "First role", asList("operation1", "operation2"));
-		Role role2 = new Role(zeCollection, "role2", "Second role", asList("operation2", "operation3"));
-		Role role3 = new Role(zeCollection, "role3", "Third role", asList("operation3", "operation4"));
 
-		roleManager.addRole(role1);
-		roleManager.addRole(role2);
-		roleManager.addRole(role3);
-
-		getModelLayerFactory().newRecordServices().update(
-				users.aliceIn(zeCollection).setUserRoles(asList("role3")));
-
-		addAuthorizationWithoutDetaching(asList("role1"), asList(sasquatchId),
-				asList(records.taxo1_category2().getId()));
-		addAuthorizationWithoutDetaching(asList("role2"), asList(robinId),
-				asList(records.taxo1_fond1().getId()));
+		getModelLayerFactory().newRecordServices().update(users.aliceIn(zeCollection).setUserRoles(asList(ROLE3)));
+		auth1 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).giving(ROLE2));
+		auth2 = addKeepingAttached(authorizationForUser(robin).on(TAXO1_FOND1).giving(ROLE1));
+		auth3 = addKeepingAttached(authorizationForUser(gandalf).on(FOLDER1).giving(ROLE1));
 		waitForBatchProcess();
 
-		User alice = users.aliceIn(zeCollection);
-		User sasquatch = users.sasquatchIn(zeCollection);
-		User sasquatchInAnotherCollection = users.sasquatchIn(anotherCollection);
-		User robin = users.robinIn(zeCollection);
-		User robinInAnotherCollection = users.robinIn(anotherCollection);
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE1).containsOnly(robin, gandalf);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE1_AND_ROLE2).containsOnly(robin, gandalf);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE3).containsOnly(alice);
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation0", records.taxo1_fond1()))
-				.isEmpty();
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2_2_DOC1)) {
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE1).containsOnly(robin);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE1_AND_ROLE2).containsOnly(robin);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE2).isEmpty();
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE3).containsOnly(alice);
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation1", records.taxo1_fond1()))
-				.isEmpty();
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3_DOC1, FOLDER4_1)) {
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE1).containsOnly(robin);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE1_AND_ROLE2).containsOnly(robin, sasquatch);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE2).containsOnly(sasquatch);
+			verifyRecord.assertThatUsersWithPermission(PERMISSION_OF_ROLE3).containsOnly(alice);
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation2", records.taxo1_fond1()))
-				.containsOnly(robin);
+	}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation3", records.taxo1_fond1()))
-				.containsOnly(robin, alice);
+	@Test
+	public void whenGetUsersWithPermissionOnConceptExcludingInheritedAuthorizationsThenReturnTheGoodUsers()
+			throws Exception {
+		givenTaxonomy1IsThePrincipalAndSomeRecords();
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation4", records.taxo1_fond1()))
-				.containsOnly(alice);
+		getModelLayerFactory().newRecordServices().update(users.aliceIn(zeCollection).setUserRoles(asList(ROLE3)));
+		auth1 = addKeepingAttached(authorizationForUser(sasquatch).on(TAXO1_CATEGORY2).giving(ROLE2));
+		auth2 = addKeepingAttached(authorizationForUser(robin).on(TAXO1_FOND1).giving(ROLE1));
+		auth3 = addKeepingAttached(authorizationForUser(gandalf).on(FOLDER1).giving(ROLE1));
+		waitForBatchProcess();
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation0", records.taxo1_fond1_1()))
-				.isEmpty();
+		for (RecordVerifier verifyRecord : $(TAXO1_FOND1)) {
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1)
+					.containsOnly(robin);
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1_AND_ROLE2)
+					.containsOnly(robin);
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE2).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE3).isEmpty();
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation1", records.taxo1_fond1_1()))
-				.isEmpty();
+		for (RecordVerifier verifyRecord : $(FOLDER1)) {
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1)
+					.containsOnly(gandalf);
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1_AND_ROLE2)
+					.containsOnly(gandalf);
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE2).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE3).isEmpty();
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation2", records.taxo1_fond1_1()))
-				.containsOnly(robin);
+		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2)) {
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1_AND_ROLE2)
+					.containsOnly(sasquatch);
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE2)
+					.containsOnly(sasquatch);
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE3).isEmpty();
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation3", records.taxo1_fond1_1()))
-				.containsOnly(robin, alice);
+		for (RecordVerifier verifyRecord : $(FOLDER2, FOLDER1_DOC1, TAXO1_FOND1_1, TAXO1_CATEGORY1, TAXO1_CATEGORY2_1,
+				FOLDER2_2_DOC1)) {
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_NO_ROLE).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1).isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE1_AND_ROLE2)
+					.isEmpty();
+			verifyRecord.getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(PERMISSION_OF_ROLE3).isEmpty();
+		}
 
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation4", records.taxo1_fond1_1()))
-				.containsOnly(alice);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation0", records.taxo1_category2()))
-				.isEmpty();
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation1", records.taxo1_category2()))
-				.containsOnly(sasquatch);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation2", records.taxo1_category2()))
-				.containsOnly(robin, sasquatch);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation3", records.taxo1_category2()))
-				.containsOnly(robin, alice);
-
-		assertThat(authorizationsServices.getUsersWithPermissionOnRecord("operation4", records.taxo1_category2()))
-				.containsOnly(alice);
 	}
 
 	@Test
@@ -2793,18 +2736,18 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
 		String sasquatchId = users.sasquatchIn(zeCollection).getId();
-		Role role1 = new Role(zeCollection, "role1", "First role", asList("operation1", "operation2"));
-		Role role2 = new Role(zeCollection, "role2", "Second role", asList("operation3", "operation4"));
-		Role role3 = new Role(zeCollection, "role3", "Third role", asList("operation5", "operation6"));
+		Role roleA = new Role(zeCollection, "roleA", "First role", asList("operation1", "operation2"));
+		Role roleB = new Role(zeCollection, "roleB", "Second role", asList("operation3", "operation4"));
+		Role roleC = new Role(zeCollection, "roleC", "Third role", asList("operation5", "operation6"));
 
-		roleManager.addRole(role1);
-		roleManager.addRole(role2);
-		roleManager.addRole(role3);
+		roleManager.addRole(roleA);
+		roleManager.addRole(roleB);
+		roleManager.addRole(roleC);
 
 		getModelLayerFactory().newRecordServices().update(
-				users.sasquatchIn(zeCollection).setUserRoles(asList("role1")));
+				users.sasquatchIn(zeCollection).setUserRoles(asList("roleA")));
 
-		addAuthorizationWithoutDetaching(asList("role2", READ), asList(sasquatchId),
+		addAuthorizationWithoutDetaching(asList("roleB", READ), asList(sasquatchId),
 				asList(records.taxo1_category1().getId()));
 		waitForBatchProcess();
 
@@ -2876,7 +2819,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return new Condition<User>() {
 			@Override
 			public boolean matches(User user) {
-				assertThat(authorizationsServices.canWrite(user, record))
+				assertThat(services.canWrite(user, record))
 						.describedAs("can write '" + record.getId() + "'")
 						.isTrue();
 				return true;
@@ -2889,7 +2832,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return new Condition<User>() {
 			@Override
 			public boolean matches(User user) {
-				assertThat(authorizationsServices.canWrite(user, record))
+				assertThat(services.canWrite(user, record))
 						.describedAs("can write '" + record.getId() + "'")
 						.isFalse();
 				return true;
@@ -3001,12 +2944,12 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
+		services.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 		return authorization;
 	}
 
 	private String addKeepingAttached(Authorization authorization) {
-		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
+		services.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
@@ -3017,7 +2960,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void addDetaching(Authorization authorization) {
-		authorizationsServices.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
+		services.add(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
@@ -3030,7 +2973,7 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		AuthorizationDetails details = AuthorizationDetails.create(aString(), roles, zeCollection);
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, CustomizedAuthorizationsBehavior.DETACH, users.dakotaLIndienIn(zeCollection));
+		services.add(authorization, CustomizedAuthorizationsBehavior.DETACH, users.dakotaLIndienIn(zeCollection));
 		return authorization;
 	}
 
@@ -3040,11 +2983,11 @@ public class AuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		Authorization authorization = new Authorization(details, grantedToPrincipals, grantedOnRecords);
 
-		authorizationsServices.add(authorization, KEEP_ATTACHED, null);
+		services.add(authorization, KEEP_ATTACHED, null);
 	}
 
 	private void modifyAuthorizationWithoutDetaching(Authorization authorization) {
-		authorizationsServices
+		services
 				.modify(authorization, KEEP_ATTACHED, users.dakotaLIndienIn(zeCollection));
 	}
 

@@ -15,6 +15,7 @@ import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +97,12 @@ public class AuthorizationsServices {
 	}
 
 	public Authorization getAuthorization(String collection, String id) {
+		if (collection == null) {
+			throw new IllegalArgumentException("Collection is null");
+		}
+		if (id == null) {
+			throw new IllegalArgumentException("id is null");
+		}
 		AuthorizationDetails authDetails = manager.get(collection, id);
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
@@ -198,7 +205,12 @@ public class AuthorizationsServices {
 		for (Record record : searchServices.search(new LogicalSearchQuery()
 				.setCondition(from(userSchemaType).where(userAllAuthorizations).isIn(authorizationsGivingPermission)))) {
 
-			users.add(new User(record, types, roles));
+			User user = new User(record, types, roles);
+			if (!user.has(permission).on(record)) {
+				throw new RuntimeException("has method is failing");
+			}
+
+			users.add(user);
 		}
 		return users;
 	}
@@ -562,12 +574,22 @@ public class AuthorizationsServices {
 	}
 
 	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
+
+		//TODO : Exception lorsqu'on modifie une authorisation qu'un record n'a pas
+
 		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
 		Record record = recordServices.getDocumentById(request.getRecordId());
+
+		List<String> recordAuthorizations = record.getList(Schemas.ALL_AUTHORIZATIONS);
+		if (!recordAuthorizations.contains(request.getAuthorizationId())) {
+			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(request.getAuthorizationId(),
+					record);
+		}
+
 		boolean recordDetached = Boolean.TRUE == record.get(IS_DETACHED_AUTHORIZATIONS);
 		if (request.getRecordId().equals(authorization.getGrantedOnRecord())) {
 			executeOnAuthorization(request, authorization, record);
-			return new AuthorizationModificationResponse(false, null);
+			return new AuthorizationModificationResponse(false, null, Collections.<String, String>emptyMap());
 
 		} else {
 			if (request.getBehavior() == CustomizedAuthorizationsBehavior.DETACH && !recordDetached) {
@@ -575,7 +597,7 @@ public class AuthorizationsServices {
 				String authCopy = originalToCopyMap.get(request.getAuthorizationId());
 				Authorization authorizationCopy = getAuthorization(request.getCollection(), authCopy);
 				executeOnAuthorization(request, authorizationCopy, record);
-				return new AuthorizationModificationResponse(false, authCopy);
+				return new AuthorizationModificationResponse(false, authCopy, originalToCopyMap);
 
 			} else {
 				String copyId = inheritedToSpecific(record.getCollection(), authorization.getDetail().getId());
@@ -593,7 +615,9 @@ public class AuthorizationsServices {
 
 				Authorization authorizationCopy = getAuthorization(record.getCollection(), copyId);
 				executeOnAuthorization(request, authorizationCopy, record);
-				return new AuthorizationModificationResponse(false, copyId);
+
+				return new AuthorizationModificationResponse(false, copyId,
+						Collections.singletonMap(authorization.getDetail().getId(), copyId));
 			}
 
 		}

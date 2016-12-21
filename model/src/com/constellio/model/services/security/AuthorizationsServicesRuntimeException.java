@@ -31,6 +31,13 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class NoSuchAuthorizationWithIdOnRecord extends AuthorizationsServicesRuntimeException {
+
+		public NoSuchAuthorizationWithIdOnRecord(String id, Record record) {
+			super("No such authorization with id '" + id + "' on record '" + record.getIdTitle() + "'");
+		}
+	}
+
 	public static class InvalidTargetRecordsIds extends AuthorizationsServicesRuntimeException {
 
 		public InvalidTargetRecordsIds(List<Record> records, List<String> recordIds) {
