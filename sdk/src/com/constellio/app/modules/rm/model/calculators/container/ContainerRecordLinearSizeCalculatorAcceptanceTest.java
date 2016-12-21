@@ -30,6 +30,12 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
 
     ContainerRecordLinearSizeCalculator calculator;
 
+    RMSchemasRecordsServices rm;
+
+    RecordServices recordServices;
+
+    SearchServices searchServices;
+
     @Mock CalculatorParameters parameters;
 
     @Before
@@ -41,6 +47,10 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
                 withZeCollection().withConstellioRMModule().withAllTestUsers()
                         .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
         );
+
+        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+        recordServices = getModelLayerFactory().newRecordServices();
+        searchServices = getModelLayerFactory().newSearchServices();
     }
 
     @Test
@@ -56,31 +66,82 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(null);
 
         assertThat(calculator.calculate(parameters)).isEqualTo(9001);
+
+        when(parameters.get(calculator.enteredLinearSizeSumParam)).thenReturn(null);
+
+        assertThat(calculator.calculate(parameters)).isNull();
     }
 
     @Test
-    public void givenContainerWithLinearSizeEnteredThenLinearSizeIsCalculated() throws RecordServicesException {
+    public void givenFolderWithLinearSizeLinkedToContainerWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum() throws RecordServicesException {
 
-        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        ContainerRecord containerRecord = rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary");
-        RecordServices recordServices = getModelLayerFactory().newRecordServices();
+        ContainerRecord containerRecord = buildDefaultContainer();
         recordServices.add(containerRecord);
-        recordServices.add(rm.newFolderWithId("parentFolder").setTitle("title").setLinearSize(new Double(2)).setContainer("containerTest")
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
-        );
-        recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer("containerTest")
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
-        );
-        recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer("containerTest").setParentFolder("parentFolder")
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
-        );
+        addFoldersLinkedToContainer(containerRecord.getId());
 
-        SearchServices searchServices = getModelLayerFactory().newSearchServices();
         getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
         Record record = searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("containerTest"));
         assertThat(rm.wrapContainerRecord(record).getLinearSizeEntered()).isNull();
-        assertThat(rm.wrapContainerRecord(record).get(ContainerRecord.LINEAR_SIZE_SUM)).isEqualTo(new Double(6));
-        rm.wrapContainerRecord(record).get(ContainerRecord.LINEAR_SIZE);
-        assertThat(rm.wrapContainerRecord(record).get(ContainerRecord.LINEAR_SIZE)).isEqualTo(new Double(6));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeSum()).isEqualTo(new Double(6));
+        assertThat(rm.wrapContainerRecord(record).getLinearSize()).isEqualTo(new Double(6));
+    }
+
+    @Test
+    public void givenFolderWithLinearSizeLinkedToContainerWithLinearSizeEnteredThenLinearSizeIsEqualToEnteredValue() throws RecordServicesException {
+
+        ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(2);
+        recordServices.add(containerRecord);
+        addFoldersLinkedToContainer(containerRecord.getId());
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        Record record = searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("containerTest"));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeEntered()).isEqualTo(new Double(2));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeSum()).isEqualTo(new Double(6));
+        assertThat(rm.wrapContainerRecord(record).getLinearSize()).isEqualTo(new Double(2));
+    }
+
+    @Test
+    public void givenContainerWithLinearSizeEnteredWithoutLinkedFolderThenLinearSizeIsEqualToEnteredValue() throws RecordServicesException {
+
+        ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(2);
+        recordServices.add(containerRecord);
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        Record record = searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("containerTest"));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeEntered()).isEqualTo(new Double(2));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeSum()).isEqualTo(new Double(0));
+        assertThat(rm.wrapContainerRecord(record).getLinearSize()).isEqualTo(new Double(2));
+    }
+
+    @Test
+    public void givenContainerWithoutLinearSizeEnteredAndWithoutLinkedFolderThenLinearSizeIsEqualToZero() throws RecordServicesException {
+
+        ContainerRecord containerRecord = buildDefaultContainer();
+        recordServices.add(containerRecord);
+
+        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+        Record record = searchServices.searchSingleResult(from(rm.containerRecord.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("containerTest"));
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeEntered()).isNull();
+        assertThat(rm.wrapContainerRecord(record).getLinearSizeSum()).isEqualTo(new Double(0));
+        assertThat(rm.wrapContainerRecord(record).getLinearSize()).isEqualTo(new Double(0));
+    }
+
+    public ContainerRecord buildDefaultContainer() {
+        return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary");
+    }
+
+    public void addFoldersLinkedToContainer(String containerID) throws RecordServicesException {
+        recordServices.add(rm.newFolderWithId("parentFolder").setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+        );
+        recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+        );
+        recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID).setParentFolder("parentFolder")
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+        );
+        recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setParentFolder("parentFolder")
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+        );
     }
 }

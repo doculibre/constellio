@@ -42,6 +42,6 @@ public class ContainerRecordLinearSizeCalculator implements MetadataValueCalcula
 
     @Override
     public List<? extends Dependency> getDependencies() {
-        return asList(enteredLinearSizeParam);
+        return asList(enteredLinearSizeParam, enteredLinearSizeSumParam);
     }
 }

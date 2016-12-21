@@ -303,12 +303,20 @@ public class ContainerRecord extends RecordWrapper {
 		return this;
 	}
 
-	public double getLinearSizeEntered() {
+	public Double getLinearSizeEntered() {
 		return get(LINEAR_SIZE_ENTERED);
 	}
 
 	public ContainerRecord setLinearSizeEntered(double linearSizeEntered) {
 		set(LINEAR_SIZE_ENTERED, linearSizeEntered);
 		return this;
+	}
+
+	public Double getLinearSizeSum() {
+		return get(LINEAR_SIZE_SUM);
+	}
+
+	public Double getLinearSize() {
+		return get(LINEAR_SIZE);
 	}
 }
