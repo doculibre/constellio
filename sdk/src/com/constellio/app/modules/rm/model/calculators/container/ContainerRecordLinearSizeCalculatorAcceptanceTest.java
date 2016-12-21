@@ -39,8 +39,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     @Mock CalculatorParameters parameters;
 
     @Before
-    public void setUp()
-            throws Exception {
+    public void setUp() {
         givenBackgroundThreadsEnabled();
         calculator = spy(new ContainerRecordLinearSizeCalculator());
         prepareSystem(
@@ -54,7 +53,7 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     }
 
     @Test
-    public void givenParametersThenCalculatorReturnsGoodValue() throws RecordServicesException {
+    public void givenParametersThenCalculatorReturnsGoodValue()  {
         when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
 
         assertThat(calculator.calculate(parameters)).isEqualTo(5);
@@ -73,7 +72,8 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     }
 
     @Test
-    public void givenFolderWithLinearSizeLinkedToContainerWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum() throws RecordServicesException {
+    public void givenFolderWithLinearSizeLinkedToContainerWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
+            throws RecordServicesException {
 
         ContainerRecord containerRecord = buildDefaultContainer();
         recordServices.add(containerRecord);
@@ -87,7 +87,8 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     }
 
     @Test
-    public void givenFolderWithLinearSizeLinkedToContainerWithLinearSizeEnteredThenLinearSizeIsEqualToEnteredValue() throws RecordServicesException {
+    public void givenFolderWithLinearSizeLinkedToContainerWithLinearSizeEnteredThenLinearSizeIsEqualToEnteredValue()
+            throws RecordServicesException {
 
         ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(2);
         recordServices.add(containerRecord);
@@ -101,7 +102,8 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     }
 
     @Test
-    public void givenContainerWithLinearSizeEnteredWithoutLinkedFolderThenLinearSizeIsEqualToEnteredValue() throws RecordServicesException {
+    public void givenContainerWithLinearSizeEnteredWithoutLinkedFolderThenLinearSizeIsEqualToEnteredValue()
+            throws RecordServicesException {
 
         ContainerRecord containerRecord = buildDefaultContainer().setLinearSizeEntered(2);
         recordServices.add(containerRecord);
@@ -114,7 +116,8 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
     }
 
     @Test
-    public void givenContainerWithoutLinearSizeEnteredAndWithoutLinkedFolderThenLinearSizeIsEqualToZero() throws RecordServicesException {
+    public void givenContainerWithoutLinearSizeEnteredAndWithoutLinkedFolderThenLinearSizeIsEqualToZero()
+            throws RecordServicesException {
 
         ContainerRecord containerRecord = buildDefaultContainer();
         recordServices.add(containerRecord);
@@ -130,18 +133,24 @@ public class ContainerRecordLinearSizeCalculatorAcceptanceTest extends Constelli
         return rm.newContainerRecordWithId("containerTest").setType(records.containerTypeId_boite22x22).setTemporaryIdentifier("containerTestTemporary");
     }
 
-    public void addFoldersLinkedToContainer(String containerID) throws RecordServicesException {
+    public void addFoldersLinkedToContainer(String containerID)
+            throws RecordServicesException {
+
         recordServices.add(rm.newFolderWithId("parentFolder").setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+                .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
         );
         recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID)
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+                .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
         );
         recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setContainer(containerID).setParentFolder("parentFolder")
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+                .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
         );
         recordServices.add(rm.newFolder().setTitle("title").setLinearSize(new Double(2)).setParentFolder("parentFolder")
-                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X).setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
+                .setAdministrativeUnitEntered(records.unitId_10).setCategoryEntered(records.categoryId_X)
+                .setRetentionRuleEntered(records.ruleId_1).setMediumTypes(records.PA).setOpenDate(new LocalDate())
         );
     }
 }
