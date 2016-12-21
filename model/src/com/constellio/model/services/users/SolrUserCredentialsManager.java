@@ -17,6 +17,7 @@ import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
@@ -172,14 +173,23 @@ public class SolrUserCredentialsManager implements UserCredentialsManager, Syste
 	}
 
 	@Override
-	public void removeCollection(String collection) {
-		Transaction transaction = new Transaction();
-		for (Record record : searchServices.search(getUserCredentialsInCollectionQuery(collection))) {
-			transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedCollection(collection));
-		}
+	public void removeCollection(final String collection) {
 		try {
-			modelLayerFactory.newRecordServices().execute(transaction);
-		} catch (RecordServicesException e) {
+			new ActionExecutorInBatch(searchServices, "Remove collection in user credentials records", 1000) {
+
+				@Override
+				public void doActionOnBatch(List<Record> records)
+						throws Exception {
+					Transaction transaction = new Transaction();
+					for (Record record : records) {
+						transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedCollection(collection));
+					}
+
+					modelLayerFactory.newRecordServices().execute(transaction);
+
+				}
+			}.execute(getUserCredentialsInCollectionQuery(collection));
+		} catch (Exception e) {
 			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
 	}
