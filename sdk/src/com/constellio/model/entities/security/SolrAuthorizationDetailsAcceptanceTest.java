@@ -1,64 +1,99 @@
 package com.constellio.model.entities.security;
 
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.extractions.RecordPopulateServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.model.services.users.UserServicesRuntimeException;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
-import com.constellio.sdk.tests.annotations.PreserveState;
-import org.junit.BeforeClass;
+import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.List;
 
-@PreserveState(state = "C:\\Users\\Constellio\\Desktop\\given_system_in_6.5.33_with_tasks,rm_modules__with_document_rules.zip", enabled = false)
+import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 
-    @BeforeClass
-    public static void tearDown()
-            throws Exception {
-        //Toggle.FORCE_ROLLBACK.enable();
+    RMTestRecords records = new RMTestRecords(zeCollection);
+    Users users = new Users();
 
+    @Before
+    public void setup()
+            throws Exception {
+        prepareSystem(
+                withZeCollection().withConstellioRMModule().withAllTestUsers()
+                        .withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList()
+        );
+        inCollection(zeCollection).setCollectionTitleTo("Collection de test");
+
+        users.setUp(getModelLayerFactory().newUserServices());
     }
 
     @Test
-    @MainTestDefaultStart
-    public void startApplicationWithSaveState()
-            throws Exception {
-        RecordPopulateServices.LOG_CONTENT_MISSING = false;
-        givenTransactionLogIsEnabled();
+    public void whenQueryingFoldersFilteredByUserThenReturnsGoodFolders() {
 
-        File stateFile = new File(getClass().getAnnotation(PreserveState.class).state());
-        getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(stateFile).withPasswordsReset()
-                .withFakeEncryptionServices();
+        assertThat(getReadWriteDeleteRecordsForUser(users.adminIn(zeCollection)))
+            .containsExactly(getExpectedAdminRead(), getExpectedAdminWrite(), getExpectedAdminDelete());
 
-        getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(10000);
+        assertThat(getReadWriteDeleteRecordsForUser(users.adminIn(zeCollection)))
+            .containsExactly(getExpectedAdminRead(), getExpectedAdminWrite(), getExpectedAdminDelete());
 
-        UserServices userServices = getModelLayerFactory().newUserServices();
-        UserCredential adminCredential = userServices.getUser("admin");
-        adminCredential.getServiceKey();
+        assertThat(getReadWriteDeleteRecordsForUser(users.aliceIn(zeCollection)))
+            .containsExactly(getExpectedAliceRead(), getExpectedAliceWrite(), getExpectedAliceDelete());
 
-        CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-        List<String> collections = collectionsListManager.getCollections();
-        for (String collection : collections) {
-            try {
-                userServices.getUserInCollection(adminCredential.getUsername(), collection);
-            } catch (UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection e) {
-                userServices.addUserToCollection(adminCredential, collection);
-            }
-        }
+        assertThat(getReadWriteDeleteRecordsForUser(users.bobIn(zeCollection)))
+            .containsExactly(getExpectedBobRead(), getExpectedBobWrite(), getExpectedBobDelete());
 
-        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
-        List<SolrAuthorizationDetails> solrAuthorizationDetailsList = schemasRecordsServices.searchSolrAuthorizationDetailss(LogicalSearchQueryOperators.from(schemasRecordsServices.authorizationDetails.schemaType()).where(Schemas.IDENTIFIER).isNotNull());
-        System.out.println(solrAuthorizationDetailsList);
+        assertThat(getReadWriteDeleteRecordsForUser(users.charlesIn(zeCollection)))
+            .containsExactly(getExpectedCharlesRead(), getExpectedCharlesWrite(), getExpectedCharlesDelete());
 
+        assertThat(getReadWriteDeleteRecordsForUser(users.chuckNorrisIn(zeCollection)))
+            .containsExactly(getExpectedChuckRead(), getExpectedChuckWrite(), getExpectedChuckDelete());
 
+        assertThat(getReadWriteDeleteRecordsForUser(users.dakotaIn(zeCollection)))
+            .containsExactly(getExpectedDakotaRead(), getExpectedDakotaWrite(), getExpectedDakotaDelete());
+
+        assertThat(getReadWriteDeleteRecordsForUser(users.edouardIn(zeCollection)))
+            .containsExactly(getExpectedEdouardRead(), getExpectedEdouardWrite(), getExpectedEdouardDelete());
+
+        assertThat(getReadWriteDeleteRecordsForUser(users.gandalfIn(zeCollection)))
+            .containsExactly(getExpectedGandalfRead(), getExpectedGandalfWrite(), getExpectedGandalfDelete());
+
+        assertThat(getReadWriteDeleteRecordsForUser(users.robinIn(zeCollection)))
+            .containsExactly(getExpectedRobinRead(), getExpectedRobinWrite(), getExpectedRobinDelete());
+
+        assertThat(getReadWriteDeleteRecordsForUser(users.sasquatchIn(zeCollection)))
+            .containsExactly(getExpectedSasquatchRead(), getExpectedSasquatchWrite(), getExpectedSasquatchDelete());
+    }
+
+    public List<List<String>> getReadWriteDeleteRecordsForUser(User user) {
+        return asList(getReadRecordsForUser(user), getWriteRecordsForUser(user), getDeleteRecordsForUser(user));
+    }
+
+    public List<String> getReadRecordsForUser(User user) {
+        SearchServices searchServices = getModelLayerFactory().newSearchServices();
+        MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
+        return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
+                from(type).returnAll()).filteredWithUser(user));
+    }
+
+    public List<String> getWriteRecordsForUser(User user) {
+        SearchServices searchServices = getModelLayerFactory().newSearchServices();
+        MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
+        return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
+                from(type).returnAll()).filteredWithUserWrite(user));
+    }
+
+    public List<String> getDeleteRecordsForUser(User user) {
+        SearchServices searchServices = getModelLayerFactory().newSearchServices();
+        MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE);
+        return searchServices.searchRecordIds(new LogicalSearchQuery().setCondition(
+                from(type).returnAll()).filteredWithUserDelete(user));
     }
 }
